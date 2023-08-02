@@ -52,7 +52,7 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 		})
 	}
 
-	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), pr, ou, r.QuickNodeUserInfo)
+	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), ou, pr, r.QuickNodeUserInfo)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			QuickNodeResponse{
@@ -99,7 +99,7 @@ func UpdateProvisionRequestHandler(c echo.Context) error {
 func (r *ProvisionRequest) UpdateProvision(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	pr := r.ProvisionRequest
-	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnUpdateProvisionWorkflow(context.Background(), pr, ou)
+	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnUpdateProvisionWorkflow(context.Background(), ou, pr)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			QuickNodeResponse{

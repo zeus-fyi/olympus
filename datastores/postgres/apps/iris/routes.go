@@ -2,6 +2,7 @@ package iris_models
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
@@ -392,4 +393,136 @@ func DeleteOrgGroupAndRoutes(ctx context.Context, orgID int, routeGroupName stri
 		return nil
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("DeleteOrgGroupAndRoutes"))
+}
+
+type TableUsage struct {
+	EndpointCount int `json:"endpointCount"`
+	TableCount    int `json:"tableCount"`
+}
+
+func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsage, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+		SELECT COALESCE(COUNT(*), 0) as endpoint_count, 
+       		COALESCE(
+       		   (SELECT COUNT(*)
+       		    FROM org_route_groups WHERE org_id = $1
+       		    AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id))
+       		    ,0) as table_count
+		FROM org_routes 
+		WHERE org_id = $1
+	`
+
+	endpointCount, groupTablesCount := 0, 0
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&endpointCount, &groupTablesCount)
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("OrgEndpointsAndGroupTablesCount has no entries")
+		return &TableUsage{0, 0}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &TableUsage{endpointCount, groupTablesCount}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
+}
+
+func OrgGroupTablesToRemove(ctx context.Context, orgID int, plan string) ([]string, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+		SELECT route_group_id, route_group_name
+		FROM org_route_groups
+		WHERE org_id = $1
+		AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id)
+		ORDER BY route_group_id
+	`
+
+	maxCount := 1
+	switch plan {
+	case "performance":
+		maxCount = PerformanceGroupTables
+	case "standard":
+		maxCount = StandardGroupTables
+	case "free":
+		maxCount = FreeGroupTables
+	}
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("OrgGroupTablesToRemove")); returnErr != nil {
+		return nil, err
+	}
+
+	var ogToDelete []string
+	count := 0
+	defer rows.Close()
+	for rows.Next() {
+		var routeGroupName string
+		var routeGroupID int
+
+		rowErr := rows.Scan(
+			&routeGroupID, &routeGroupName,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("OrgGroupTablesToRemove"))
+			return nil, rowErr
+		}
+		if count >= maxCount {
+			ogToDelete = append(ogToDelete, routeGroupName)
+		}
+		count += 1
+	}
+	return ogToDelete, misc.ReturnIfErr(err, q.LogHeader("OrgGroupTablesToRemove"))
+
+}
+
+/*
+SELECT route_group_id, route_group_name
+FROM org_route_groups
+WHERE org_id = 7138983863666903883
+AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id)
+ORDER BY route_group_id
+*/
+const (
+	FreeGroupTables        = 1
+	StandardGroupTables    = 50
+	PerformanceGroupTables = 250
+)
+
+func (t *TableUsage) CheckEndpointLimits() error {
+	if t.EndpointCount > 1000 {
+		return errors.New("exceeds plan endpoints")
+	}
+	return nil
+}
+
+func (t *TableUsage) CheckPlanLimits(plan string) error {
+	err := t.CheckEndpointLimits()
+	if err != nil {
+		return err
+	}
+	switch plan {
+	case "performance":
+		// check 50k ZU/s
+		// check max 3B ZU/month
+		if t.TableCount > PerformanceGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
+		return nil
+	case "standard":
+		// check 25k ZU/s
+		// check max 1B ZU/month
+		if t.TableCount > StandardGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
+		return nil
+	case "free":
+		// check 1k ZU/s
+		// check max 50M ZU/month
+		if t.TableCount > FreeGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
+		return nil
+	case "test":
+	default:
+	}
+	return nil
 }

@@ -7,6 +7,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris/models/bases/autogen"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 )
@@ -24,6 +27,14 @@ func CreateOrgRoutesRequestHandler(c echo.Context) error {
 
 func (r *OrgGroupRoutesRequest) Create(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
+	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	err = tc.CheckEndpointLimits()
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, err)
+	}
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {
 		or[i] = iris_autogen_bases.OrgRoutes{
@@ -35,7 +46,7 @@ func (r *OrgGroupRoutesRequest) Create(c echo.Context) error {
 		Routes: r.Routes,
 	}
 	ctx := context.Background()
-	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisPlatformSetupRequestWorkflow(ctx, ipr)
+	err = platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisPlatformSetupRequestWorkflow(ctx, ipr)
 	if err != nil {
 		log.Err(err).Msg("CreateOrgGroupRoutesRequest")
 		return err
@@ -58,6 +69,26 @@ type OrgGroupRoutesRequest struct {
 
 func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
+	token := c.Get("bearer").(string)
+	if len(token) <= 0 {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	key, err := auth.VerifyBearerTokenServiceWithQuickNodePlan(context.Background(), token, create_org_users.IrisQuickNodeService)
+	if err != nil {
+		log.Err(err).Msg("InitV1Routes")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	if len(key.PublicKeyName) <= 0 {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	err = tc.CheckPlanLimits(key.PublicKeyName)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, err)
+	}
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {
 		or[i] = iris_autogen_bases.OrgRoutes{
@@ -70,7 +101,7 @@ func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
 		Routes:       r.Routes,
 	}
 	ctx := context.Background()
-	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisPlatformSetupRequestWorkflow(ctx, ipr)
+	err = platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisPlatformSetupRequestWorkflow(ctx, ipr)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ExecuteIrisPlatformSetupRequestWorkflow")
 		return c.JSON(http.StatusInternalServerError, nil)

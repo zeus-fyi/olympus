@@ -1,66 +1,104 @@
 package quicknode_orchestrations
 
 import (
+	"context"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/workflow"
 )
 
-type HestiaQuicknodeWorkflow struct {
+type HestiaQuickNodeWorkflow struct {
 	temporal_base.Workflow
 	HestiaQuicknodeActivities
 }
 
 const defaultTimeout = 72 * time.Hour
 
-func NewHestiaQuicknodeWorkflow() HestiaQuicknodeWorkflow {
-	deployWf := HestiaQuicknodeWorkflow{
+func NewHestiaQuickNodeWorkflow() HestiaQuickNodeWorkflow {
+	deployWf := HestiaQuickNodeWorkflow{
 		Workflow: temporal_base.Workflow{},
 	}
 	return deployWf
 }
 
-func (h *HestiaQuicknodeWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{h.ProvisionWorkflow, h.UpdateProvisionWorkflow, h.DeprovisionWorkflow, h.DeactivateWorkflow}
+func (h *HestiaQuickNodeWorkflow) GetWorkflows() []interface{} {
+	return []interface{}{h.ProvisionWorkflow, h.UpdateProvisionWorkflow, h.DeprovisionWorkflow, h.DeactivateWorkflow,
+		h.DeleteOrgGroupRoutingTable}
 }
 
-func (h *HestiaQuicknodeWorkflow) ProvisionWorkflow(ctx workflow.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser, user hestia_quicknode.QuickNodeUserInfo) error {
-	log := workflow.GetLogger(ctx)
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: defaultTimeout,
-	}
-	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(pCtx, h.Provision, pr, ou, user).Get(pCtx, nil)
+func (h *HestiaQuickNodeWorkflow) DeleteOrgGroupRoutingTable(ctx context.Context, ou org_users.OrgUser, groupName string) error {
+	err := iris_models.DeleteOrgGroupAndRoutes(context.Background(), ou.OrgID, groupName)
 	if err != nil {
-		log.Warn("params", pr)
-		log.Warn("ou", ou)
-		log.Error("failed to provision QuickNode services", "Error", err)
+		log.Err(err).Msg("DeleteOrgGroupRoutingTable: DeleteOrgGroupRoutingTable")
 		return err
 	}
 	return nil
 }
 
-func (h *HestiaQuicknodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) error {
-	log := workflow.GetLogger(ctx)
+func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest, user hestia_quicknode.QuickNodeUserInfo) error {
+	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(pCtx, h.UpdateProvision, pr, ou).Get(pCtx, nil)
+	err := workflow.ExecuteActivity(pCtx, h.Provision, ou, pr, user).Get(pCtx, nil)
 	if err != nil {
-		log.Warn("params", pr)
-		log.Warn("ou", ou)
-		log.Error("failed to provision QuickNode services", "Error", err)
+		logger.Warn("params", pr)
+		logger.Warn("ou", ou)
+		logger.Error("failed to provision QuickNode services", "Error", err)
 		return err
 	}
 	return nil
 }
 
-func (h *HestiaQuicknodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, dp hestia_quicknode.DeprovisionRequest, ou org_users.OrgUser) error {
-	log := workflow.GetLogger(ctx)
+func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
+	logger := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: defaultTimeout,
+	}
+	pCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(pCtx, h.UpdateProvision, ou, pr).Get(pCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", ou)
+		logger.Error("failed to provision QuickNode services", "Error", err)
+		return err
+	}
+	var excessGroups []string
+	err = workflow.ExecuteActivity(pCtx, h.CheckPlanOverages, ou, pr).Get(pCtx, &excessGroups)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", ou)
+		logger.Error("failed to adjust services", "Error", err)
+		return err
+	}
+
+	for _, groupName := range excessGroups {
+		err = workflow.ExecuteActivity(pCtx, h.DeleteOrgGroupRoutingTable, ou, groupName).Get(pCtx, &excessGroups)
+		if err != nil {
+			logger.Warn("params", pr)
+			logger.Warn("ou", ou)
+			logger.Error("failed to adjust services", "Error", err)
+			return err
+		}
+		err = workflow.ExecuteActivity(pCtx, h.IrisPlatformDeleteGroupTableCacheRequest, ou, groupName).Get(pCtx, &excessGroups)
+		if err != nil {
+			logger.Warn("params", pr)
+			logger.Warn("ou", ou)
+			logger.Error("failed to adjust cache services", "Error", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *HestiaQuickNodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, ou org_users.OrgUser, dp hestia_quicknode.DeprovisionRequest) error {
+	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
@@ -72,30 +110,37 @@ func (h *HestiaQuicknodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, dp h
 		sleepDuration := time.Duration(deprovisionAt-currentTime) * time.Second
 		err := workflow.Sleep(pCtx, sleepDuration)
 		if err != nil {
-			log.Error("HestiaQuicknodeWorkflow: failed to sleep", "Error", err)
+			logger.Error("HestiaQuickNodeWorkflow: failed to sleep", "Error", err)
 			return err
 		}
 	}
-	err := workflow.ExecuteActivity(pCtx, h.Deprovision, dp, ou).Get(pCtx, nil)
+	err := workflow.ExecuteActivity(pCtx, h.Deprovision, ou, dp).Get(pCtx, nil)
 	if err != nil {
-		log.Warn("params", dp)
-		log.Warn("ou", ou)
-		log.Error("HestiaQuicknodeWorkflow: failed to deprovision QuickNode services", "Error", err)
+		logger.Warn("params", dp)
+		logger.Warn("ou", ou)
+		logger.Error("HestiaQuickNodeWorkflow: failed to deprovision QuickNode services", "Error", err)
 		return err
 	}
 
 	err = workflow.ExecuteActivity(pCtx, h.DeprovisionCache, ou).Get(pCtx, nil)
 	if err != nil {
-		log.Warn("params", dp)
-		log.Warn("ou", ou)
-		log.Error("HestiaQuicknodeWorkflow: failed to DeprovisionCache", "Error", err)
+		logger.Warn("params", dp)
+		logger.Warn("ou", ou)
+		logger.Error("HestiaQuickNodeWorkflow: failed to DeprovisionCache", "Error", err)
 		return err
+	}
+
+	err = workflow.ExecuteActivity(pCtx, h.DeactivateApiKey, ou, dp).Get(pCtx, nil)
+	if err != nil {
+		logger.Warn("params", dp)
+		logger.Warn("ou", ou)
+		logger.Error("HestiaQuickNodeWorkflow: failed to deactivate api key", "Error", err)
 	}
 	return nil
 }
 
-func (h *HestiaQuicknodeWorkflow) DeactivateWorkflow(ctx workflow.Context, da hestia_quicknode.DeactivateRequest, ou org_users.OrgUser) error {
-	log := workflow.GetLogger(ctx)
+func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest) error {
+	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
@@ -107,16 +152,16 @@ func (h *HestiaQuicknodeWorkflow) DeactivateWorkflow(ctx workflow.Context, da he
 		sleepDuration := time.Duration(deactivateAt-currentTime) * time.Second
 		err := workflow.Sleep(pCtx, sleepDuration)
 		if err != nil {
-			log.Error("HestiaQuicknodeWorkflow: failed to sleep", "Error", err)
+			logger.Error("HestiaQuickNodeWorkflow: failed to sleep", "Error", err)
 			return err
 		}
 	}
 
-	err := workflow.ExecuteActivity(pCtx, h.Deactivate, da, ou).Get(pCtx, nil)
+	err := workflow.ExecuteActivity(pCtx, h.Deactivate, ou, da).Get(pCtx, nil)
 	if err != nil {
-		log.Warn("params", da)
-		log.Warn("ou", ou)
-		log.Error("HestiaQuicknodeWorkflow: failed to deactivate QuickNode services", "Error", err)
+		logger.Warn("params", da)
+		logger.Warn("ou", ou)
+		logger.Error("HestiaQuickNodeWorkflow: failed to deactivate QuickNode services", "Error", err)
 		return err
 	}
 	return nil

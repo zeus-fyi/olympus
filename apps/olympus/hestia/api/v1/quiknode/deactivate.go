@@ -25,7 +25,7 @@ type DeactivateRequest struct {
 func (r *DeactivateRequest) Deactivate(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	da := r.DeactivateRequest
-	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnDeactivateWorkflow(context.Background(), da, ou)
+	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnDeactivateWorkflow(context.Background(), ou, da)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			QuickNodeResponse{

@@ -24,6 +24,7 @@ type ProvisionRequest struct {
 }
 
 const (
+	TestPlan        = "test"
 	FreePlan        = "free"
 	LitePlan        = "lite"
 	Standard        = "standard"
@@ -46,6 +47,12 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 	}
 	switch pr.Plan {
 	case FreePlan, Standard, PerformancePlan:
+	case TestPlan:
+		if !r.IsTest {
+			return c.JSON(http.StatusBadRequest, QuickNodeResponse{
+				Error: "error: plan not supported",
+			})
+		}
 	default:
 		return c.JSON(http.StatusBadRequest, QuickNodeResponse{
 			Error: "error: plan not supported",

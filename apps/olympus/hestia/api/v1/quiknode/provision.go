@@ -172,7 +172,9 @@ func (r *ProvisionRequest) UpdateProvision(c echo.Context) error {
 				Status: "error",
 			})
 	}
-	return c.JSON(http.StatusOK, QuickNodeResponse{
-		Status: "success",
+	return c.JSON(http.StatusOK, ProvisionResponse{
+		AccessURL:    "https://iris.zeus.fyi/v1/router",
+		DashboardURL: "https://cloud.zeus.fyi/quicknode/dashboard",
+		Status:       "success",
 	})
 }

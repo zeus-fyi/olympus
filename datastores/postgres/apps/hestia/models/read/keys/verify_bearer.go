@@ -66,7 +66,7 @@ func (k *OrgUserKey) VerifyQuickNodeToken(ctx context.Context) error {
 	FROM users_keys usk
 	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
 	INNER JOIN org_users ou ON ou.user_id = usk.user_id
-	WHERE public_key = $1 AAND usk.public_key_type_id = $2
+	WHERE public_key = $1 AND usk.public_key_type_id = $2
 	`)
 	q.RawQuery = query
 	log.Debug().Interface("VerifyQuickNodeToken:", q.LogHeader(Sn))
@@ -120,6 +120,10 @@ func (k *OrgUserKey) VerifyUserTokenService(ctx context.Context, serviceName str
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("VerifyUserTokenService error")
 		k.PublicKeyVerified = false
+		err = k.VerifyQuickNodeToken(ctx)
+		if err != nil {
+			return err
+		}
 	}
 	if k.PublicKeyVerified == false {
 		return errors.New("unauthorized key")
@@ -130,19 +134,13 @@ func (k *OrgUserKey) VerifyUserTokenService(ctx context.Context, serviceName str
 func (k *OrgUserKey) QueryVerifyUserTokenServiceWithQuickNodePlan() sql_query_templates.QueryParams {
 	var q sql_query_templates.QueryParams
 	query := fmt.Sprintf(`
-	WITH cte_get_user_key AS (
-		SELECT usk.user_id AS user_id
+		SELECT usk.public_key_verified, ou.org_id, ou.user_id, uks.service_id
 		FROM users_keys usk
-		WHERE usk.public_key = $1
-	) 
-	SELECT usk.public_key_verified, ou.org_id, ou.user_id, usk.public_key, qmc.plan
-	FROM users_keys usk
-	INNER JOIN quicknode_marketplace_customer qmc ON qmc.quicknode_id = usk.public_key
-	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
-	INNER JOIN users_key_services uksvc ON uksvc.public_key = usk.public_key
-	INNER JOIN services svcs ON svcs.service_id = uksvc.service_id
-	INNER JOIN org_users ou ON ou.user_id = usk.user_id
-	WHERE usk.user_id = (SELECT user_id FROM cte_get_user_key) AND svcs.service_name = $2
+		INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
+		INNER JOIN org_users ou ON ou.user_id = usk.user_id
+		INNER JOIN users_key_services uks ON uks.public_key = usk.public_key
+		WHERE usk.public_key = $1 AND uks.service_id = $2 AND usk.public_key_verified = true
+		LIMIT 1
 	`)
 	q.RawQuery = query
 	return q
@@ -151,7 +149,8 @@ func (k *OrgUserKey) QueryVerifyUserTokenServiceWithQuickNodePlan() sql_query_te
 func (k *OrgUserKey) VerifyUserTokenServiceWithQuickNodePlan(ctx context.Context, serviceName string) error {
 	q := k.QueryVerifyUserTokenServiceWithQuickNodePlan()
 	log.Debug().Interface("QueryVerifyUserTokenServiceWithQuickNodePlan:", q.LogHeader(Sn))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceName).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID, &k.PublicKeyName)
+	serviceID := 11
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceID).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID, &serviceID)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("VerifyUserTokenServiceWithQuickNodePlan error")
 		k.PublicKeyVerified = false

@@ -31,7 +31,7 @@ func InitHestiaQuicknodeWorker(ctx context.Context, temporalAuthCfg temporal_aut
 	taskQueueName := HestiaQuicknodeTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
 	activityDef := NewHestiaQuicknodeActivities()
-	wf := NewHestiaQuicknodeWorkflow()
+	wf := NewHestiaQuickNodeWorkflow()
 
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())

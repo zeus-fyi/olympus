@@ -25,7 +25,7 @@ type DeprovisionRequest struct {
 func (r *DeprovisionRequest) Deprovision(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	dp := r.DeprovisionRequest
-	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnDeprovisionWorkflow(context.Background(), dp, ou)
+	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnDeprovisionWorkflow(context.Background(), ou, dp)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			QuickNodeResponse{

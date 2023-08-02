@@ -9,15 +9,15 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (h *HestiaQuicknodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser, user hestia_quicknode.QuickNodeUserInfo) error {
+func (h *HestiaQuicknodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest, user hestia_quicknode.QuickNodeUserInfo) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: h.TaskQueueName,
 	}
-	txWf := NewHestiaQuicknodeWorkflow()
+	txWf := NewHestiaQuickNodeWorkflow()
 	wf := txWf.ProvisionWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr, ou, user)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, pr, user)
 	if err != nil {
 		log.Err(err).Msg("ExecuteQnProvisionWorkflow")
 		return err
@@ -25,15 +25,15 @@ func (h *HestiaQuicknodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, 
 	return err
 }
 
-func (h *HestiaQuicknodeWorker) ExecuteQnUpdateProvisionWorkflow(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) error {
+func (h *HestiaQuicknodeWorker) ExecuteQnUpdateProvisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: h.TaskQueueName,
 	}
-	txWf := NewHestiaQuicknodeWorkflow()
+	txWf := NewHestiaQuickNodeWorkflow()
 	wf := txWf.UpdateProvisionWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr, ou)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteQnUpdateProvisionWorkflow")
 		return err
@@ -41,15 +41,15 @@ func (h *HestiaQuicknodeWorker) ExecuteQnUpdateProvisionWorkflow(ctx context.Con
 	return err
 }
 
-func (h *HestiaQuicknodeWorker) ExecuteQnDeprovisionWorkflow(ctx context.Context, pr hestia_quicknode.DeprovisionRequest, ou org_users.OrgUser) error {
+func (h *HestiaQuicknodeWorker) ExecuteQnDeprovisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.DeprovisionRequest) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: h.TaskQueueName,
 	}
-	txWf := NewHestiaQuicknodeWorkflow()
+	txWf := NewHestiaQuickNodeWorkflow()
 	wf := txWf.DeprovisionWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr, ou)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteQnDeprovisionWorkflow")
 		return err
@@ -57,15 +57,15 @@ func (h *HestiaQuicknodeWorker) ExecuteQnDeprovisionWorkflow(ctx context.Context
 	return err
 }
 
-func (h *HestiaQuicknodeWorker) ExecuteQnDeactivateWorkflow(ctx context.Context, pr hestia_quicknode.DeactivateRequest, ou org_users.OrgUser) error {
+func (h *HestiaQuicknodeWorker) ExecuteQnDeactivateWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.DeactivateRequest) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: h.TaskQueueName,
 	}
-	txWf := NewHestiaQuicknodeWorkflow()
+	txWf := NewHestiaQuickNodeWorkflow()
 	wf := txWf.DeactivateWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr, ou)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteQnDeactivateWorkflow")
 		return err

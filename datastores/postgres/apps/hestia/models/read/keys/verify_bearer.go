@@ -296,3 +296,19 @@ func (k *OrgUserKey) GetOrCreateCustomerStripeID(ctx context.Context) (string, e
 	}
 	return k.PublicKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
+
+func DeactivateQuickNodeApiKey(ctx context.Context, qid string) error {
+	var q sql_query_templates.QueryParams
+	query := fmt.Sprintf(`
+	UPDATE users_keys
+	SET public_key_verified = false
+	WHERE public_key = $1
+	`)
+	q.RawQuery = query
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, qid)
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("No key to deactivate")
+		return nil
+	}
+	return err
+}

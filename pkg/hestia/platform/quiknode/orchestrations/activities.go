@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	hestia_quicknode_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/quiknode"
+	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
@@ -34,7 +35,7 @@ type ActivitiesSlice []interface{}
 func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
 		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
-		h.IrisPlatformDeleteGroupTableCacheRequest,
+		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey,
 	}
 }
 
@@ -53,7 +54,7 @@ func (h *HestiaQuicknodeActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser, user hestia_quicknode.QuickNodeUserInfo) error {
+func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest, user hestia_quicknode.QuickNodeUserInfo) error {
 	ps := hestia_autogen_bases.ProvisionedQuickNodeServices{
 		QuickNodeID: pr.QuickNodeID,
 		EndpointID:  pr.EndpointID,
@@ -109,7 +110,7 @@ func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, pr hestia_qui
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) error {
+func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
 	ps := hestia_autogen_bases.ProvisionedQuickNodeServices{
 		QuickNodeID: pr.QuickNodeID,
 		EndpointID:  pr.EndpointID,
@@ -156,7 +157,7 @@ func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, pr hest
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) Deprovision(ctx context.Context, dp hestia_quicknode.DeprovisionRequest, ou org_users.OrgUser) error {
+func (h *HestiaQuicknodeActivities) Deprovision(ctx context.Context, ou org_users.OrgUser, dp hestia_quicknode.DeprovisionRequest) error {
 	err := hestia_quicknode_models.DeprovisionQuickNodeServices(ctx, dp.QuickNodeID)
 	if err != nil {
 		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: Deprovision")
@@ -177,7 +178,7 @@ func (h *HestiaQuicknodeActivities) DeprovisionCache(ctx context.Context, ou org
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, da hestia_quicknode.DeactivateRequest, ou org_users.OrgUser) error {
+func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest) error {
 	err := hestia_quicknode_models.DeactivateProvisionedQuickNodeServiceEndpoint(ctx, da.QuickNodeID, da.EndpointID)
 	if err != nil {
 		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: Deactivate")
@@ -186,10 +187,18 @@ func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, da hestia_qu
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) CheckPlanOverages(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) ([]string, error) {
+func (h *HestiaQuicknodeActivities) CheckPlanOverages(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) ([]string, error) {
 	tc, err := iris_models.OrgGroupTablesToRemove(context.Background(), ou.OrgID, pr.Plan)
 	if err != nil {
 		return nil, err
 	}
 	return tc, nil
+}
+
+func (h *HestiaQuicknodeActivities) DeactivateApiKey(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.DeprovisionRequest) error {
+	err := read_keys.DeactivateQuickNodeApiKey(context.Background(), pr.QuickNodeID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -62,6 +62,10 @@ func InitV1Routes(e *echo.Echo) {
 				log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
 				return false, err
 			}
+			if len(services) <= 0 {
+				log.Warn().Msg("InitV1Routes: No services found")
+				return false, nil
+			}
 			c.Set("servicePlans", k.Services)
 			ou := org_users.NewOrgUserWithID(k.OrgID, k.GetUserID())
 			c.Set("orgUser", ou)

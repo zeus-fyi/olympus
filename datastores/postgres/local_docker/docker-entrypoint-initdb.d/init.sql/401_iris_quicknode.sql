@@ -26,7 +26,7 @@ CREATE INDEX provisioned_quicknode_services_http_ind ON provisioned_quicknode_se
 CREATE TABLE "public"."provisioned_quicknode_services_referers" (
     endpoint_id text NOT NULL,
     referer text NOT NULL,
-    PRIMARY KEY (endpoint_id, referer),
+    PRIMARY KEY (endpoint_id),
     FOREIGN KEY (endpoint_id) REFERENCES provisioned_quicknode_services(endpoint_id)
 );
 CREATE INDEX endpoint_ref_ind ON provisioned_quicknode_services_referers ("endpoint_id");
@@ -34,7 +34,7 @@ CREATE INDEX endpoint_ref_ind ON provisioned_quicknode_services_referers ("endpo
 CREATE TABLE "public"."provisioned_quicknode_services_contract_addresses" (
     endpoint_id text NOT NULL,
     contract_address text NOT NULL,
-    PRIMARY KEY (endpoint_id, contract_address),
+    PRIMARY KEY (endpoint_id),
     FOREIGN KEY (endpoint_id) REFERENCES provisioned_quicknode_services(endpoint_id)
 );
 CREATE INDEX endpoint_ca_ind ON provisioned_quicknode_services_contract_addresses ("endpoint_id");

@@ -47,7 +47,7 @@ func (k *OrgUserKey) QueryVerifyUserPassword() sql_query_templates.QueryParams {
 func (k *OrgUserKey) VerifyUserPassword(ctx context.Context, email string) error {
 	q := k.QueryVerifyUserPassword()
 	log.Debug().Interface("VerifyUserBearerToken:", q.LogHeader(Sn))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, email, keys.PassphraseKeyTypeID).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, email).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("VerifyUserPassword error")
 		k.PublicKeyVerified = false

@@ -19,11 +19,8 @@ const (
 )
 
 var (
-	QuickNodeUsername  = ""
-	QuickNodePassword  = ""
-	QuickNodeToken     = ""
-	QuickNodeOrgID     = 10
-	QuickNodeTestOrgID = 9
+	QuickNodeUsername = ""
+	QuickNodePassword = ""
 )
 
 func InitV1RoutesServices(e *echo.Echo) {

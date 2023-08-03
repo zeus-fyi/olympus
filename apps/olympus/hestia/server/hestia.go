@@ -77,7 +77,6 @@ func Hestia() {
 		awsAuthCfg.Region = awsRegion
 		sw.SESAuthAWS.Region = awsRegion
 		hestia_quicknode_dashboard.JWTAuthSecret = sw.QuickNodeJWT
-		hestia_quiknode_v1_routes.QuickNodeToken = sw.QuickNodeBearer
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword
 		if len(hestia_quiknode_v1_routes.QuickNodePassword) <= 0 {
 			log.Fatal().Msg("Hestia: QuickNodePassword is empty")
@@ -103,7 +102,6 @@ func Hestia() {
 
 		hestia_quicknode_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
 		hestia_quiknode_v1_routes.QuickNodePassword = tc.QuickNodeMarketplace.Password
-		hestia_quiknode_v1_routes.QuickNodeToken = tc.QuickNodeMarketplace.AuthToken
 
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
@@ -120,7 +118,6 @@ func Hestia() {
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 		hestia_quicknode_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
 		hestia_quiknode_v1_routes.QuickNodePassword = tc.QuickNodeMarketplace.Password
-		hestia_quiknode_v1_routes.QuickNodeToken = tc.QuickNodeMarketplace.AuthToken
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES

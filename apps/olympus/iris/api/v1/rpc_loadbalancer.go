@@ -21,6 +21,9 @@ const (
 	QuickNodeEndpointID = "x-instance-id"
 	QuickNodeChain      = "x-qn-chain"
 	QuickNodeNetwork    = "x-qn-network"
+
+	restTypeGET  = "GET"
+	restTypePOST = "POST"
 )
 
 type ProxyRequest struct {
@@ -40,14 +43,44 @@ func RpcLoadBalancerRequestHandler(c echo.Context) error {
 	payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 	request := new(ProxyRequest)
 	request.Body = echo.Map{}
+	if payloadSizingMeter.N() <= 0 {
+		return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
+	}
 	if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
 		log.Err(err)
 		return err
 	}
-	return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter)
+	return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
 }
 
-func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter) error {
+func RpcLoadBalancerGETRequestHandler(c echo.Context) error {
+	bodyBytes, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		log.Err(err)
+		return err
+	}
+	payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
+	request := new(ProxyRequest)
+	request.Body = echo.Map{}
+	if payloadSizingMeter.N() <= 0 {
+		return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
+	}
+	if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
+		log.Err(err)
+		return err
+	}
+	return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
+}
+
+func (p *ProxyRequest) DirectProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
+	switch restType {
+	case restTypeGET:
+		return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
+	}
+	return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
+}
+
+func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
 	routeGroup := c.QueryParam("routeGroup")
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
@@ -79,6 +112,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              routeInfo.RoutePath,
 		ServicePlan:      plan,
+		PayloadTypeREST:  restType,
 		Referrers:        routeInfo.Referers,
 		Payload:          p.Body,
 		Response:         nil,

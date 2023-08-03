@@ -74,4 +74,5 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 	eg.POST("/router/group", RpcLoadBalancerRequestHandler)
+	eg.GET("/router/group", RpcLoadBalancerGETRequestHandler)
 }

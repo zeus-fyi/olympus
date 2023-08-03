@@ -35,6 +35,7 @@ func (i *IrisApiRequestsWorkflow) GetWorkflows() []interface{} {
 type ApiProxyRequest struct {
 	Url              string
 	ServicePlan      string
+	PayloadTypeREST  string
 	Referrers        []string
 	Payload          echo.Map
 	Response         echo.Map

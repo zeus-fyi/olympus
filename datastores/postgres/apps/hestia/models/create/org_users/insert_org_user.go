@@ -113,7 +113,7 @@ func (o *OrgUser) InsertOrgUserWithNewQuickNodeKeyForService(ctx context.Context
 					VALUES((SELECT user_id FROM new_user_id), $1, true, $2, $3)
 					ON CONFLICT (public_key) DO UPDATE SET 
 						public_key_verified = EXCLUDED.public_key_verified,
-						user_id = EXCLUDED.user_id;
+						user_id = EXCLUDED.user_id
 				), cte_qn_service AS (
 					INSERT INTO users_key_services(public_key, service_id)
 					VALUES($3, $4)

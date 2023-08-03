@@ -98,5 +98,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 			log.Err(err).Interface("ou", ou).Str("route", routeInfo.RoutePath).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 		}
 	}(ou.OrgID, payloadSizingMeter)
+	c.Response().Header().Set("X-Selected-Route", routeInfo.RoutePath)
 	return c.JSON(http.StatusOK, resp.Response)
 }

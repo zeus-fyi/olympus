@@ -35,7 +35,9 @@ func (r *OrgGroupRoutesRequest) DeleteOrgRoutes(c echo.Context) error {
 		log.Err(err).Msg("DeleteOrgRoutes")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return nil
+	return c.JSON(http.StatusOK, QuickNodeResponse{
+		Status: "success",
+	})
 }
 
 func DeleteOrgGroupRoutesRequestHandler(c echo.Context) error {
@@ -60,5 +62,7 @@ func (r *OrgGroupRoutesRequest) DeleteOrgRoutingGroup(c echo.Context) error {
 		log.Err(err).Msg("DeleteOrgRoutingGroup")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, QuickNodeResponse{
+		Status: "success",
+	})
 }

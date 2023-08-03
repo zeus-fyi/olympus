@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	hestia_quiknode_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/quiknode"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 )
 
@@ -55,5 +56,13 @@ func (r *OrgGroupRoutesRequest) UpdateOrgGroup(c echo.Context) error {
 		log.Err(err).Msg("UpdateOrgGroupRoutesRequest")
 		return err
 	}
-	return c.JSON(http.StatusOK, nil)
+
+	return c.JSON(http.StatusOK, hestia_quiknode_v1_routes.QuickNodeResponse{
+		Status: "success",
+	})
+}
+
+type QuickNodeResponse struct {
+	Status string `json:"status,omitempty"`
+	Error  string `json:"error,omitempty"`
 }

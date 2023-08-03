@@ -29,7 +29,6 @@ func InitProductionRedisIrisCache(ctx context.Context) {
 		Addr: "redis-replicas.redis.svc.cluster.local:6379",
 	}
 	reader := redis.NewClient(&readRedisOpts)
-
 	IrisRedisClient = NewIrisCache(ctx, writer, reader)
 }
 

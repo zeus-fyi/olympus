@@ -56,6 +56,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessSecret = tc.AwsSecretKeyDynamoDB
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
+	default:
+		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
 	}
 	//dynamoDBCreds.Region = "us-west-1"
 	//

@@ -33,7 +33,7 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set(QuickNodeEndpointID, qnEndpointID)
 			c.Set(QuickNodeChain, qnChain)
 			c.Set(QuickNodeNetwork, qnNetwork)
-			orgID, plan, err := iris_redis.IrisRedis.GetAuthCacheIfExists(ctx, token)
+			orgID, plan, err := iris_redis.IrisRedisClient.GetAuthCacheIfExists(ctx, token)
 			if err == nil && orgID > 0 && plan != "" {
 				c.Set("servicePlan", plan)
 				c.Set("orgUser", org_users.NewOrgUserWithID(int(orgID), 0))
@@ -64,7 +64,7 @@ func InitV1Routes(e *echo.Echo) {
 			if err == nil && ou.OrgID > 0 && plan != "" {
 				go func(oID int, token, plan string) {
 					log.Info().Int("orgID", oID).Str("plan", plan).Msg("InitV1Routes: SetAuthCache")
-					err = iris_redis.IrisRedis.SetAuthCache(context.Background(), oID, token, plan)
+					err = iris_redis.IrisRedisClient.SetAuthCache(context.Background(), oID, token, plan)
 					if err != nil {
 						log.Err(err).Msg("InitV1Routes: SetAuthCache")
 					}

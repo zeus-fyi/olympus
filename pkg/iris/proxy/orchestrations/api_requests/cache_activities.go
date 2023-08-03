@@ -9,7 +9,7 @@ import (
 )
 
 func (i *IrisApiRequestsActivities) UpdateOrgRoutingTable(ctx context.Context, orgID int, rgName string, routes []iris_models.RouteInfo) error {
-	err := iris_redis.IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), orgID, rgName, routes)
+	err := iris_redis.IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), orgID, rgName, routes)
 	if err != nil {
 		log.Error().Int("orgID", orgID).Str("routeGroup", rgName).Err(err).Msg("UpdateOrgRoutingTable: Failed to update routing tables for org")
 		return err
@@ -18,7 +18,7 @@ func (i *IrisApiRequestsActivities) UpdateOrgRoutingTable(ctx context.Context, o
 }
 
 func (i *IrisApiRequestsActivities) DeleteOrgRoutingTable(ctx context.Context, orgID int, rgName string) error {
-	err := iris_redis.IrisRedis.DeleteOrgRoutingGroup(context.Background(), orgID, rgName)
+	err := iris_redis.IrisRedisClient.DeleteOrgRoutingGroup(context.Background(), orgID, rgName)
 	if err != nil {
 		log.Error().Int("orgID", orgID).Str("routeGroup", rgName).Err(err).Msg("UpdateOrgRoutingTable: Failed to update routing tables for org")
 		return err

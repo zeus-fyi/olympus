@@ -20,7 +20,7 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 			Referers:  nil,
 		},
 	}
-	err := IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
+	err := IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
 	r.NoError(err)
 
 	additionalRoute := "https://artemis2.zeus.fyi"
@@ -38,11 +38,11 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 			Referers:  nil,
 		},
 	}
-	err = IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
+	err = IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
 	r.NoError(err)
 	m := make(map[string]int)
 	for i := 0; i < 10; i++ {
-		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, nil)
+		routeEndpoint, rerr := IrisRedisClient.GetNextRoute(context.Background(), 1, rgName, nil)
 		r.NoError(rerr)
 		r.NotEmpty(routeEndpoint)
 		fmt.Println(routeEndpoint)
@@ -59,9 +59,9 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 			Referers:  nil,
 		},
 	}
-	err = IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
+	err = IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
 	for i := 0; i < 10; i++ {
-		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, nil)
+		routeEndpoint, rerr := IrisRedisClient.GetNextRoute(context.Background(), 1, rgName, nil)
 		r.NoError(rerr)
 		r.NotEmpty(routeEndpoint)
 		fmt.Println(routeEndpoint)
@@ -83,12 +83,12 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 			Referers:  nil,
 		},
 	}
-	err := IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
+	err := IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
 	r.NoError(err)
 
 	m := make(map[string]int)
 	for i := 0; i < 10; i++ {
-		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, nil)
+		routeEndpoint, rerr := IrisRedisClient.GetNextRoute(context.Background(), 1, rgName, nil)
 		r.NoError(rerr)
 		r.NotEmpty(routeEndpoint.RoutePath)
 		fmt.Println(routeEndpoint)
@@ -103,10 +103,10 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 		}
 	}
 
-	err = IrisRedis.DeleteOrgRoutingGroup(context.Background(), 1, rgName)
+	err = IrisRedisClient.DeleteOrgRoutingGroup(context.Background(), 1, rgName)
 	r.NoError(err)
 
-	_, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, nil)
+	_, rerr := IrisRedisClient.GetNextRoute(context.Background(), 1, rgName, nil)
 	r.Error(rerr)
 }
 
@@ -122,7 +122,7 @@ func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 			Referers:  nil,
 		},
 	}
-	err := IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
+	err := IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
 	r.NoError(err)
 
 	meter := iris_usage_meters.NewPayloadSizeMeter(nil)
@@ -130,7 +130,7 @@ func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 	m := make(map[string]int)
 	for i := 0; i < 10; i++ {
 		meter.Add(2048)
-		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, meter)
+		routeEndpoint, rerr := IrisRedisClient.GetNextRoute(context.Background(), 1, rgName, meter)
 		r.NoError(rerr)
 		r.NotEmpty(routeEndpoint.RoutePath)
 		fmt.Println(routeEndpoint)
@@ -138,9 +138,9 @@ func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 
 		meter.Reset()
 		meter.Add(2048 * 10)
-		err = IrisRedis.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
+		err = IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
 		r.NoError(err)
-		err = IrisRedis.CheckRateLimit(context.Background(), 1, "test", meter)
+		err = IrisRedisClient.CheckRateLimit(context.Background(), 1, "test", meter)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -148,19 +148,19 @@ func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 
 	meter.Reset()
 	meter.Add(1024 * 1000)
-	err = IrisRedis.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
+	err = IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
 	r.NoError(err)
 }
 
 func (r *IrisRedisTestSuite) TestRateLimit() {
 	meter := iris_usage_meters.NewPayloadSizeMeter(nil)
 
-	um, err := IrisRedis.GetUsageRates(context.Background(), 1, meter)
+	um, err := IrisRedisClient.GetUsageRates(context.Background(), 1, meter)
 	r.NoError(err)
 	r.NotNil(um)
 	fmt.Println(um)
 
 	// should exceed monthly limit of 1k ZU
-	err = IrisRedis.CheckRateLimit(context.Background(), 1, "test", meter)
+	err = IrisRedisClient.CheckRateLimit(context.Background(), 1, "test", meter)
 	r.Error(err)
 }

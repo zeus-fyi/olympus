@@ -3,6 +3,7 @@ package v1_iris
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -62,14 +63,15 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
 	}
 	// todo refactor to fetch auth & plan from redis
-	err := iris_redis.IrisRedis.CheckRateLimit(context.Background(), ou.OrgID, plan, payloadSizingMeter)
+	err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.CheckRateLimit")
 		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
 	}
 
 	payloadSizingMeter.Plan = plan
-	routeInfo, err := iris_redis.IrisRedis.GetNextRoute(context.Background(), ou.OrgID, routeGroup, payloadSizingMeter)
+	rgName := fmt.Sprintf("%d-%s", ou.OrgID, routeGroup)
+	routeInfo, err := iris_redis.IrisRedisClient.GetNextRoute(context.Background(), ou.OrgID, rgName, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.GetNextRoute")
 		errResp := Response{Message: "routeGroup not found"}
@@ -93,7 +95,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	go func(orgID int, ps *iris_usage_meters.PayloadSizeMeter) {
-		err = iris_redis.IrisRedis.IncrementResponseUsageRateMeter(context.Background(), ou.OrgID, ps)
+		err = iris_redis.IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), ou.OrgID, ps)
 		if err != nil {
 			log.Err(err).Interface("ou", ou).Str("route", routeInfo.RoutePath).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 		}

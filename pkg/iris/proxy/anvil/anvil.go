@@ -52,9 +52,9 @@ func (a *AnvilProxy) RemoveSessionLockedRoute(ctx context.Context, sessionID str
 	if _, ok := LockedSessionToRouteCacheMap.Load(sessionID); ok {
 		LockedSessionTTL.Store(sessionID, fmt.Sprintf("%d", 0))
 	}
-	if iris_redis.IrisRedis.Writer != nil {
-		_, _ = iris_redis.IrisRedis.DeleteSessionCacheIfExists(ctx, sessionID)
-		_, _ = iris_redis.IrisRedis.DeleteSessionRouteCacheIfExists(ctx, sessionID)
+	if iris_redis.IrisRedisClient.Writer != nil {
+		_, _ = iris_redis.IrisRedisClient.DeleteSessionCacheIfExists(ctx, sessionID)
+		_, _ = iris_redis.IrisRedisClient.DeleteSessionRouteCacheIfExists(ctx, sessionID)
 	}
 	return
 }
@@ -67,14 +67,14 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 	if route, ok := LockedSessionToRouteCacheMap.Load(sessionID); ok {
 		ttl := ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
 		LockedSessionTTL.Store(sessionID, fmt.Sprintf("%d", ttl))
-		if iris_redis.IrisRedis.Writer != nil {
-			_, _ = iris_redis.IrisRedis.GetAndUpdateLatestSessionCacheTTLIfExists(ctx, sessionID, a.LockDefaultTime)
+		if iris_redis.IrisRedisClient.Writer != nil {
+			_, _ = iris_redis.IrisRedisClient.GetAndUpdateLatestSessionCacheTTLIfExists(ctx, sessionID, a.LockDefaultTime)
 		}
 		return route, nil
 	}
 
-	if iris_redis.IrisRedis.Writer != nil {
-		val, err := iris_redis.IrisRedis.GetAndUpdateLatestSessionCacheTTLIfExists(ctx, sessionID, a.LockDefaultTime)
+	if iris_redis.IrisRedisClient.Writer != nil {
+		val, err := iris_redis.IrisRedisClient.GetAndUpdateLatestSessionCacheTTLIfExists(ctx, sessionID, a.LockDefaultTime)
 		if err == nil && len(val) > 0 {
 			ttl := ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
 			LockedSessionTTL.Store(sessionID, fmt.Sprintf("%d", ttl))
@@ -90,15 +90,15 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 		if !ok {
 			return "", ErrNoRoutesAvailable
 		}
-		if iris_redis.IrisRedis.Reader != nil && iris_redis.IrisRedis.Writer != nil {
-			exists, err := iris_redis.IrisRedis.DoesSessionIDExist(ctx, sessionID)
+		if iris_redis.IrisRedisClient.Reader != nil && iris_redis.IrisRedisClient.Writer != nil {
+			exists, err := iris_redis.IrisRedisClient.DoesSessionIDExist(ctx, sessionID)
 			if err != nil {
 				a.PriorityQueue.Push(route, ttl)
 				log.Err(err).Msg("error checking if session exists")
 				return "", err
 			}
 			if !exists {
-				err = iris_redis.IrisRedis.AddSessionWithTTL(ctx, sessionID, route, a.LockDefaultTime)
+				err = iris_redis.IrisRedisClient.AddSessionWithTTL(ctx, sessionID, route, a.LockDefaultTime)
 				if err != nil {
 					a.PriorityQueue.Push(route, ttl)
 					log.Err(err).Msg("error adding session to cache")

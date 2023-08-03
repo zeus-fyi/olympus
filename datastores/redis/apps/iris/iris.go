@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var IrisRedis IrisCache
+var IrisRedisClient IrisCache
 
 type IrisCache struct {
 	Writer *redis.Client
@@ -30,7 +30,7 @@ func InitProductionRedisIrisCache(ctx context.Context) {
 	}
 	reader := redis.NewClient(&readRedisOpts)
 
-	IrisRedis = NewIrisCache(ctx, writer, reader)
+	IrisRedisClient = NewIrisCache(ctx, writer, reader)
 }
 
 func InitLocalTestProductionRedisIrisCache(ctx context.Context) {
@@ -42,5 +42,5 @@ func InitLocalTestProductionRedisIrisCache(ctx context.Context) {
 		Addr: "localhost:6380",
 	}
 	reader := redis.NewClient(&readRedisOpts)
-	IrisRedis = NewIrisCache(ctx, writer, reader)
+	IrisRedisClient = NewIrisCache(ctx, writer, reader)
 }

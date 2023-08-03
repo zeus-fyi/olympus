@@ -23,7 +23,7 @@ type ActivitiesSlice []interface{}
 func (i *IrisApiRequestsActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{i.RelayRequest, i.InternalSvcRelayRequest, i.ExtLoadBalancerRequest, i.UpdateOrgRoutingTable,
 		i.SelectSingleOrgGroupsRoutingTables, i.SelectOrgGroupRoutingTable, i.SelectAllRoutingTables,
-		i.DeleteOrgRoutingTable,
+		i.DeleteOrgRoutingTable, i.ExtLoadBalancerGETRequest,
 	}
 }
 
@@ -64,6 +64,10 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 }
 
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	switch pr.PayloadTypeREST {
+	case "GET":
+		return i.ExtLoadBalancerGETRequest(ctx, pr)
+	}
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
 	// only get first referer, not sure why a list is needed
@@ -73,6 +77,31 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		}
 	}
 	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
+	if err != nil {
+		log.Err(err).Msg("Failed to relay api request")
+		return nil, err
+	}
+	if pr.PayloadSizeMeter == nil {
+		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
+	}
+	pr.PayloadSizeMeter.Add(resp.Size())
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Msg("Failed to relay api request")
+		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
+	}
+	return pr, err
+}
+
+func (i *IrisApiRequestsActivities) ExtLoadBalancerGETRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	r := resty.New()
+	r.SetBaseURL(pr.Url)
+	// only get first referer, not sure why a list is needed
+	for ind, ref := range pr.Referrers {
+		if ind == 0 {
+			r.SetHeader("Referer", ref)
+		}
+	}
+	resp, err := r.R().SetResult(&pr.Response).Get(pr.Url)
 	if err != nil {
 		log.Err(err).Msg("Failed to relay api request")
 		return nil, err

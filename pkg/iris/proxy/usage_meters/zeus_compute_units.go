@@ -32,10 +32,12 @@ func (u *UsageMeter) IsRateLimited(rateLimit, monthlyLimit float64) (bool, bool)
 
 func NewPayloadSizeMeter(bodyBytes []byte) *PayloadSizeMeter {
 	month := time.Now().UTC().Month()
-	return &PayloadSizeMeter{
+	pm := &PayloadSizeMeter{
 		R:     bytes.NewReader(bodyBytes),
 		Month: month.String(),
 	}
+	pm.Add(int64(len(bodyBytes)))
+	return pm
 }
 
 func (cr *PayloadSizeMeter) Read(p []byte) (n int, err error) {

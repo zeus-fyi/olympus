@@ -87,7 +87,7 @@ func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
 	err = tc.CheckPlanLimits(plan)
 	if err != nil {
 		log.Err(err).Interface("plan", plan).Msg("CreateGroupRoute: CheckPlanLimits")
-		return c.JSON(http.StatusUnprocessableEntity, err)
+		return c.JSON(http.StatusPreconditionFailed, err)
 	}
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {

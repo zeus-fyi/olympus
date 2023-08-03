@@ -44,7 +44,7 @@ func (r *OrgGroupRoutesRequest) UpdateOrgGroup(c echo.Context) error {
 	}
 	err = tc.CheckPlanLimits(plan)
 	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, err)
+		return c.JSON(http.StatusPreconditionFailed, err)
 	}
 	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
 		Ou:           ou,

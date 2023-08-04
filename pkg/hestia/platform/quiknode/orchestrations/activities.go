@@ -47,7 +47,8 @@ func (h *HestiaQuicknodeActivities) UpsertQuickNodeRoutingEndpoint(ctx context.C
 		return nil
 	}
 	routes := []iris_autogen_bases.OrgRoutes{{
-		RoutePath: pr.EndpointID},
+		RoutePath: pr.HttpUrl,
+	},
 	}
 	err := iris_models.InsertOrgRoutesFromQuickNodeID(context.Background(), pr.QuickNodeID, routes)
 	if err != nil {

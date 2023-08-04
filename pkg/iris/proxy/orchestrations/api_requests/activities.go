@@ -90,16 +90,13 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	default:
 		resp, err = sendRequest(r.R(), pr, "POST")
 	}
-
 	if err != nil {
 		log.Err(err).Msg("Failed to relay api request")
 		return pr, err
 	}
-
-	pr.PayloadSizeMeter.Add(resp.Size())
-	if resp.StatusCode() >= 400 {
+	if pr.StatusCode >= 400 {
 		log.Err(err).Msg("Failed to relay api request")
-		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
+		return pr, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
 	}
 	return pr, err
 }
@@ -130,6 +127,10 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		default:
 			resp, err = request.SetResult(&pr.Response).Post(pr.Url)
 		}
+	}
+	if resp != nil {
+		pr.PayloadSizeMeter.Add(resp.Size())
+		pr.StatusCode = resp.StatusCode()
 	}
 	return resp, err
 }

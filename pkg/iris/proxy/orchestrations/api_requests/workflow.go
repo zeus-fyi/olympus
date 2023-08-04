@@ -39,6 +39,7 @@ type ApiProxyRequest struct {
 	Referrers        []string
 	Payload          echo.Map
 	Response         echo.Map
+	StatusCode       int
 	IsInternal       bool
 	Timeout          time.Duration
 	PayloadSizeMeter *iris_usage_meters.PayloadSizeMeter

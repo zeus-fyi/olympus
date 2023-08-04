@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -91,9 +92,20 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		errResp := Response{Message: "routeGroup not found"}
 		return c.JSON(http.StatusBadRequest, errResp)
 	}
+
+	path := routeInfo.RoutePath
+	suffix, ok := c.Get("capturedPath").(string)
+	if ok {
+		newPath, rerr := url.JoinPath(routeInfo.RoutePath, suffix)
+		if rerr != nil {
+			log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
+		} else {
+			path = newPath
+		}
+	}
 	payloadSizingMeter.Reset()
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:              routeInfo.RoutePath,
+		Url:              path,
 		ServicePlan:      plan,
 		PayloadTypeREST:  restType,
 		Referrers:        routeInfo.Referers,
@@ -106,15 +118,15 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	rw := iris_api_requests.NewArtemisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("route", routeInfo.RoutePath).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
-		return c.JSON(http.StatusInternalServerError, err)
+		log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		return c.JSON(resp.StatusCode, resp.Response)
 	}
 	go func(orgID int, ps *iris_usage_meters.PayloadSizeMeter) {
 		err = iris_redis.IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), ou.OrgID, ps)
 		if err != nil {
-			log.Err(err).Interface("ou", ou).Str("route", routeInfo.RoutePath).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
+			log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 		}
 	}(ou.OrgID, payloadSizingMeter)
-	c.Response().Header().Set("X-Selected-Route", routeInfo.RoutePath)
+	c.Response().Header().Set("X-Selected-Route", path)
 	return c.JSON(http.StatusOK, resp.Response)
 }

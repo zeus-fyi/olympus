@@ -70,11 +70,11 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
 	// only get first referer, not sure why a list is needed
-	for ind, ref := range pr.Referrers {
-		if ind == 0 {
-			r.SetHeader("Referer", ref)
-		}
-	}
+	//for ind, ref := range pr.Referrers {
+	//	if ind == 0 {
+	//		r.SetHeader("Referer", ref)
+	//	}
+	//}
 	if pr.PayloadSizeMeter == nil {
 		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 	}

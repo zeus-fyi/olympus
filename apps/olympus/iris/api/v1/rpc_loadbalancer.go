@@ -120,6 +120,11 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		for key, values := range resp.ResponseHeaders {
+			for _, value := range values {
+				c.Response().Header().Add(key, value)
+			}
+		}
 		c.Response().Header().Set("X-Selected-Route", path)
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}
@@ -129,6 +134,11 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 			log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 		}
 	}(ou.OrgID, payloadSizingMeter)
+	for key, values := range resp.ResponseHeaders {
+		for _, value := range values {
+			c.Response().Header().Add(key, value)
+		}
+	}
 	c.Response().Header().Set("X-Selected-Route", path)
 	if resp.Response == nil && resp.RawResponse != nil {
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))

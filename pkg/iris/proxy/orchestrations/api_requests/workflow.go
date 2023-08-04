@@ -1,6 +1,7 @@
 package iris_api_requests
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -39,6 +40,7 @@ type ApiProxyRequest struct {
 	Referrers        []string
 	Payload          echo.Map
 	Response         echo.Map
+	ResponseHeaders  http.Header
 	RawResponse      []byte
 	StatusCode       int
 	IsInternal       bool

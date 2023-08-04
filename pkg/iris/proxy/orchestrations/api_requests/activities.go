@@ -134,6 +134,9 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		if resp.StatusCode() >= 400 || pr.Response == nil {
 			pr.RawResponse = resp.Body()
 		}
+		if resp.Header() != nil {
+			pr.ResponseHeaders = resp.Header()
+		}
 	}
 	return resp, err
 }

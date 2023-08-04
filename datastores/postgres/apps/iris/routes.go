@@ -119,9 +119,9 @@ func UpsertGeneratedQuickNodeOrgRouteGroup(ctx context.Context, quickNodeID stri
 			GROUP BY ou.org_id
 			LIMIT 1
 		), cte_upsert_route_group AS (
-			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name)
-			VALUES ($1, $2, $3)
-			ON CONFLICT (org_id, route_group_name) DO UPDATE SET route_group_id = $1
+			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name, auto_generated)
+			VALUES ($1, $2, $3, true)
+			ON CONFLICT (org_id, route_group_name) DO UPDATE SET auto_generated = true
 			RETURNING route_group_id
 		), cte_route_ids AS (
 			SELECT route_id as route_id

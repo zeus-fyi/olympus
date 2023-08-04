@@ -43,6 +43,8 @@ const (
 	IrisCreateGroupRoutesPath = "/iris/routes/groups/create"
 	IrisReadGroupsRoutesPath  = "/iris/routes/groups/read"
 	IrisDeleteGroupRoutesPath = "/iris/routes/groups/delete"
+
+	IrisDeleteRoutesPathInternal = "/iris/routes/delete/:orgID"
 )
 
 func InitV1Routes(e *echo.Echo) {
@@ -131,6 +133,8 @@ func InitV1InternalRoutes(e *echo.Echo) {
 		},
 	}))
 	eg.POST(DemoUsersCreateRoute, CreateDemoUserHandler)
+	eg.DELETE(IrisDeleteRoutesPathInternal, hestia_iris_v1_routes.InternalDeleteOrgRoutesRequestHandler)
+
 	//eg.POST("/users/create", CreateUserHandler)
 	//eg.POST("/orgs/create", CreateOrgHandler)
 	//eg.POST("/cloud/namespace/request/create", CreateTopologiesOrgCloudCtxNsRequestHandler)

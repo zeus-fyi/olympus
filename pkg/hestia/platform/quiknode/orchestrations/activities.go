@@ -12,9 +12,11 @@ import (
 	hestia_quicknode_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/quiknode"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	iris_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris/models/bases/autogen"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
@@ -36,7 +38,23 @@ func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
 		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
 		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey, h.DeleteOrgGroupRoutingTable, h.InsertQuickNodeApiKey,
+		h.UpsertQuickNodeRoutingEndpoint, h.IrisPlatformDeleteEndpointRequest,
 	}
+}
+
+func (h *HestiaQuicknodeActivities) UpsertQuickNodeRoutingEndpoint(ctx context.Context, pr hestia_quicknode.ProvisionRequest) error {
+	if pr.EndpointID == "" {
+		return nil
+	}
+	routes := []iris_autogen_bases.OrgRoutes{{
+		RoutePath: pr.EndpointID},
+	}
+	err := iris_models.InsertOrgRoutesFromQuickNodeID(context.Background(), pr.QuickNodeID, routes)
+	if err != nil {
+		log.Err(err).Msg("UpsertQuickNodeRoutingEndpoint")
+		return err
+	}
+	return nil
 }
 
 func (h *HestiaQuicknodeActivities) DeleteOrgGroupRoutingTable(ctx context.Context, ou org_users.OrgUser, groupName string) error {
@@ -68,6 +86,24 @@ func (h *HestiaQuicknodeActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx
 	}
 	if resp.StatusCode() >= 400 {
 		log.Err(err).Interface("orgUser", ou).Msg("HestiaQuicknodeActivities: IrisPlatformDeleteGroupTableCacheRequest")
+		return err
+	}
+	return nil
+}
+
+func (h *HestiaQuicknodeActivities) IrisPlatformDeleteEndpointRequest(ctx context.Context, ou org_users.OrgUser, route string) error {
+	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
+	removeEndpoint := fmt.Sprintf("/v1/internal/router/delete/%d", ou.OrgID)
+	rr := hestia_req_types.IrisOrgGroupRoutesRequest{
+		Routes: []string{route},
+	}
+	resp, err := rc.R().
+		SetBody(rr).
+		Delete(removeEndpoint)
+	if err != nil || resp.StatusCode() >= 400 {
+		if err == nil {
+			err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())
+		}
 		return err
 	}
 	return nil
@@ -199,13 +235,13 @@ func (h *HestiaQuicknodeActivities) DeprovisionCache(ctx context.Context, ou org
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest) error {
-	err := hestia_quicknode_models.DeactivateProvisionedQuickNodeServiceEndpoint(ctx, da.QuickNodeID, da.EndpointID)
+func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest) (string, error) {
+	urlHttpEndpoint, err := hestia_quicknode_models.DeactivateProvisionedQuickNodeServiceEndpoint(ctx, da.QuickNodeID, da.EndpointID)
 	if err != nil {
 		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: Deactivate")
-		return err
+		return urlHttpEndpoint, err
 	}
-	return nil
+	return urlHttpEndpoint, nil
 }
 
 func (h *HestiaQuicknodeActivities) CheckPlanOverages(ctx context.Context, pr hestia_quicknode.ProvisionRequest) ([]string, error) {

@@ -40,6 +40,37 @@ func (r *OrgGroupRoutesRequest) DeleteOrgRoutes(c echo.Context) error {
 	})
 }
 
+func InternalDeleteOrgRoutesRequestHandler(c echo.Context) error {
+	request := new(OrgGroupRoutesRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.InternalDeleteOrgRoutes(c)
+}
+
+func (r *OrgGroupRoutesRequest) InternalDeleteOrgRoutes(c echo.Context) error {
+	if len(r.Routes) == 0 {
+		return c.JSON(http.StatusBadRequest, "no routes provided for deletion")
+	}
+	orgID, ok := c.Get("orgID").(int)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, "orgID is required")
+	}
+	ou := org_users.NewOrgUserWithID(orgID, 0)
+	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
+		Ou:     ou,
+		Routes: r.Routes,
+	}
+	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisDeleteOrgRoutesWorkflow(context.Background(), ipr)
+	if err != nil {
+		log.Err(err).Msg("DeleteOrgRoutes")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, QuickNodeResponse{
+		Status: "success",
+	})
+}
+
 func DeleteOrgGroupRoutesRequestHandler(c echo.Context) error {
 	request := new(OrgGroupRoutesRequest)
 	if err := c.Bind(request); err != nil {

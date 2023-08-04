@@ -150,19 +150,20 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 	return misc.ReturnIfErr(err, q.LogHeader("UpdateProvisionedQuickNodeService"))
 }
 
-func DeactivateProvisionedQuickNodeServiceEndpoint(ctx context.Context, quickNodeID, endpointID string) error {
+func DeactivateProvisionedQuickNodeServiceEndpoint(ctx context.Context, quickNodeID, endpointID string) (string, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `UPDATE provisioned_quicknode_services
     			  SET active = false
 				  WHERE quicknode_id = $1 AND endpoint_id = $2
-			      RETURNING quicknode_id;
+			      RETURNING quicknode_id, http_url;
 				  `
 	qnID := ""
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, quickNodeID, endpointID).Scan(&qnID)
+	httpURL := ""
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, quickNodeID, endpointID).Scan(&qnID, &httpURL)
 	if err != nil {
-		return err
+		return httpURL, err
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("DeactivateProvisionedQuickNodeServiceEndpoint"))
+	return httpURL, err
 }
 
 func DeprovisionQuickNodeServices(ctx context.Context, quickNodeID string) error {

@@ -51,6 +51,14 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, ou org
 			return err
 		}
 	}
+	upsertCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(pCtx, h.UpsertQuickNodeRoutingEndpoint, pr).Get(upsertCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", ou)
+		logger.Error("failed to upsert endpoint into org routing table", "Error", err)
+		return err
+	}
 	return nil
 }
 
@@ -158,11 +166,23 @@ func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou or
 		}
 	}
 
-	err := workflow.ExecuteActivity(pCtx, h.Deactivate, ou, da).Get(pCtx, nil)
+	var httpURL string
+	err := workflow.ExecuteActivity(pCtx, h.Deactivate, ou, da).Get(pCtx, &httpURL)
 	if err != nil {
 		logger.Warn("params", da)
 		logger.Warn("ou", ou)
 		logger.Error("HestiaQuickNodeWorkflow: failed to deactivate QuickNode services", "Error", err)
+		return err
+	}
+	if len(httpURL) == 0 {
+		return nil
+	}
+	rmEndpointCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(rmEndpointCtx, h.IrisPlatformDeleteEndpointRequest, ou, httpURL).Get(rmEndpointCtx, nil)
+	if err != nil {
+		logger.Warn("params", da)
+		logger.Warn("ou", ou)
+		logger.Error("HestiaQuickNodeWorkflow: failed to call IrisPlatformDeleteEndpointRequest", "Error", err)
 		return err
 	}
 	return nil

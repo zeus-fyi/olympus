@@ -131,6 +131,9 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 	if resp != nil {
 		pr.PayloadSizeMeter.Add(resp.Size())
 		pr.StatusCode = resp.StatusCode()
+		if resp.StatusCode() >= 400 || pr.Response == nil {
+			pr.RawResponse = resp.Body()
+		}
 	}
 	return resp, err
 }

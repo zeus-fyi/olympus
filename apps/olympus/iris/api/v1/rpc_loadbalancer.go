@@ -119,7 +119,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
-		return c.JSON(resp.StatusCode, resp.Response)
+		c.Response().Header().Set("X-Selected-Route", path)
+		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}
 	go func(orgID int, ps *iris_usage_meters.PayloadSizeMeter) {
 		err = iris_redis.IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), ou.OrgID, ps)

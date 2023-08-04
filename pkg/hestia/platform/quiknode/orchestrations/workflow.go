@@ -3,6 +3,7 @@ package quicknode_orchestrations
 import (
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -131,19 +132,27 @@ func (h *HestiaQuickNodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, ou o
 		return err
 	}
 
+	deactivateKeyCtx := workflow.WithActivityOptions(ctx, ao)
+	orgID := 0
+	err = workflow.ExecuteActivity(deactivateKeyCtx, h.DeactivateApiKey, ou, dp).Get(deactivateKeyCtx, &orgID)
+	if err != nil {
+		logger.Warn("params", dp)
+		logger.Warn("ou", ou)
+		logger.Error("HestiaQuickNodeWorkflow: failed to deactivate api key", "Error", err)
+	}
+	if ou.OrgID == 0 && orgID != 0 {
+		ou.OrgID = orgID
+	}
+	if ou.OrgID == 0 {
+		log.Warn().Msg("HestiaQuickNodeWorkflow: failed to deactivate api key")
+		return nil
+	}
 	err = workflow.ExecuteActivity(pCtx, h.DeprovisionCache, ou).Get(pCtx, nil)
 	if err != nil {
 		logger.Warn("params", dp)
 		logger.Warn("ou", ou)
 		logger.Error("HestiaQuickNodeWorkflow: failed to DeprovisionCache", "Error", err)
 		return err
-	}
-
-	err = workflow.ExecuteActivity(pCtx, h.DeactivateApiKey, ou, dp).Get(pCtx, nil)
-	if err != nil {
-		logger.Warn("params", dp)
-		logger.Warn("ou", ou)
-		logger.Error("HestiaQuickNodeWorkflow: failed to deactivate api key", "Error", err)
 	}
 	return nil
 }

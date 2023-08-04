@@ -301,18 +301,22 @@ func (k *OrgUserKey) GetOrCreateCustomerStripeID(ctx context.Context) (string, e
 	return k.PublicKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
-func DeactivateQuickNodeApiKey(ctx context.Context, qid string) error {
+func DeactivateQuickNodeApiKey(ctx context.Context, qid string) (int, error) {
 	var q sql_query_templates.QueryParams
 	query := fmt.Sprintf(`
-	UPDATE users_keys
-	SET public_key_verified = false
-	WHERE public_key = $1
+	WITH cte_update_key AS (
+		UPDATE users_keys
+		SET public_key_verified = false
+		WHERE public_key = $1
+		RETURNING user_id
+	) SELECT org_id FROM org_users WHERE user_id = (SELECT user_id FROM cte_update_key)
 	`)
 	q.RawQuery = query
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, qid)
+	orgID := 0
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, qid).Scan(&orgID)
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("No key to deactivate")
-		return nil
+		return orgID, nil
 	}
-	return err
+	return orgID, err
 }

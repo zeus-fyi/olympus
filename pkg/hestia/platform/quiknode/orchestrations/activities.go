@@ -257,11 +257,11 @@ func (h *HestiaQuicknodeActivities) CheckPlanOverages(ctx context.Context, pr he
 	return tc, nil
 }
 
-func (h *HestiaQuicknodeActivities) DeactivateApiKey(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.DeprovisionRequest) error {
-	err := read_keys.DeactivateQuickNodeApiKey(context.Background(), pr.QuickNodeID)
+func (h *HestiaQuicknodeActivities) DeactivateApiKey(ctx context.Context, pr hestia_quicknode.DeprovisionRequest) (int, error) {
+	orgID, err := read_keys.DeactivateQuickNodeApiKey(context.Background(), pr.QuickNodeID)
 	if err != nil {
 		log.Warn().Msg("Provision: DeactivateApiKey")
-		return err
+		return orgID, err
 	}
-	return nil
+	return orgID, nil
 }

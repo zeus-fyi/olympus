@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -21,9 +22,6 @@ const (
 	QuickNodeEndpointID = "x-instance-id"
 	QuickNodeChain      = "x-qn-chain"
 	QuickNodeNetwork    = "x-qn-network"
-
-	restTypeGET  = "GET"
-	restTypePOST = "POST"
 )
 
 type ProxyRequest struct {
@@ -34,50 +32,32 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-func RpcLoadBalancerRequestHandler(c echo.Context) error {
-	bodyBytes, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		log.Err(err)
-		return err
-	}
-	payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
-	request := new(ProxyRequest)
-	request.Body = echo.Map{}
-	if payloadSizingMeter.N() <= 0 {
-		return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
-	}
-	if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
-		log.Err(err)
-		return err
-	}
-	return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
-}
+var (
+	RpcLoadBalancerGETRequestHandler    = RpcLoadBalancerRequestHandler("GET")
+	RpcLoadBalancerPOSTRequestHandler   = RpcLoadBalancerRequestHandler("POST")
+	RpcLoadBalancerPUTRequestHandler    = RpcLoadBalancerRequestHandler("PUT")
+	RpcLoadBalancerDELETERequestHandler = RpcLoadBalancerRequestHandler("DELETE")
+)
 
-func RpcLoadBalancerGETRequestHandler(c echo.Context) error {
-	bodyBytes, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		log.Err(err)
-		return err
+func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		bodyBytes, err := io.ReadAll(c.Request().Body)
+		if err != nil {
+			log.Err(err)
+			return err
+		}
+		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
+		request := new(ProxyRequest)
+		request.Body = echo.Map{}
+		if payloadSizingMeter.N() <= 0 {
+			return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
+		}
+		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
+			log.Err(err)
+			return err
+		}
+		return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
 	}
-	payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
-	request := new(ProxyRequest)
-	request.Body = echo.Map{}
-	if payloadSizingMeter.N() <= 0 {
-		return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
-	}
-	if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
-		log.Err(err)
-		return err
-	}
-	return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
-}
-
-func (p *ProxyRequest) DirectProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
-	switch restType {
-	case restTypeGET:
-		return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
-	}
-	return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
 }
 
 func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
@@ -94,6 +74,10 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if plan == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
 	}
+	if payloadSizingMeter == nil {
+		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
+	}
+
 	// todo refactor to fetch auth & plan from redis
 	err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, payloadSizingMeter)
 	if err != nil {
@@ -108,9 +92,20 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		errResp := Response{Message: "routeGroup not found"}
 		return c.JSON(http.StatusBadRequest, errResp)
 	}
+
+	path := routeInfo.RoutePath
+	suffix, ok := c.Get("capturedPath").(string)
+	if ok {
+		newPath, rerr := url.JoinPath(routeInfo.RoutePath, suffix)
+		if rerr != nil {
+			log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
+		} else {
+			path = newPath
+		}
+	}
 	payloadSizingMeter.Reset()
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:              routeInfo.RoutePath,
+		Url:              path,
 		ServicePlan:      plan,
 		PayloadTypeREST:  restType,
 		Referrers:        routeInfo.Referers,
@@ -123,15 +118,16 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	rw := iris_api_requests.NewArtemisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("route", routeInfo.RoutePath).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
-		return c.JSON(http.StatusInternalServerError, err)
+		log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		c.Response().Header().Set("X-Selected-Route", path)
+		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}
 	go func(orgID int, ps *iris_usage_meters.PayloadSizeMeter) {
 		err = iris_redis.IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), ou.OrgID, ps)
 		if err != nil {
-			log.Err(err).Interface("ou", ou).Str("route", routeInfo.RoutePath).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
+			log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 		}
 	}(ou.OrgID, payloadSizingMeter)
-	c.Response().Header().Set("X-Selected-Route", routeInfo.RoutePath)
+	c.Response().Header().Set("X-Selected-Route", path)
 	return c.JSON(http.StatusOK, resp.Response)
 }

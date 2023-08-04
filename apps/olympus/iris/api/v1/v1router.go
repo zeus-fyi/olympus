@@ -3,6 +3,7 @@ package v1_iris
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -73,6 +74,27 @@ func InitV1Routes(e *echo.Echo) {
 			return len(services) > 0, err
 		},
 	}))
-	eg.POST("/router/group", RpcLoadBalancerRequestHandler)
+
+	eg.POST("/router/group", RpcLoadBalancerPOSTRequestHandler)
+	eg.POST("/router/group/*", wrapHandlerWithCapture(RpcLoadBalancerPOSTRequestHandler))
+
 	eg.GET("/router/group", RpcLoadBalancerGETRequestHandler)
+	eg.GET("/router/group/*", wrapHandlerWithCapture(RpcLoadBalancerGETRequestHandler))
+
+	eg.PUT("/router/group", RpcLoadBalancerPUTRequestHandler)
+	eg.PUT("/router/group/*", wrapHandlerWithCapture(RpcLoadBalancerPUTRequestHandler))
+
+	eg.DELETE("/router/group", RpcLoadBalancerDELETERequestHandler)
+	eg.DELETE("/router/group/*", wrapHandlerWithCapture(RpcLoadBalancerDELETERequestHandler))
+}
+func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// c.Param("*") will contain the captured path
+		capturedPath := c.Param("*")
+		fmt.Println(capturedPath)
+		c.Set("capturedPath", capturedPath)
+
+		// Then do something with the captured path...
+		return handler(c)
+	}
 }

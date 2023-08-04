@@ -135,7 +135,7 @@ func UpsertGeneratedQuickNodeOrgRouteGroup(ctx context.Context, quickNodeID stri
 			  ON CONFLICT (route_id, route_group_id) DO NOTHING
 	`
 	ogr.RouteGroupID = ts.UnixTimeStampNow()
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, quickNodeID, ogr.RouteGroupID, ogr.OrgID, ogr.RouteGroupName, pq.Array(routePaths))
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, quickNodeID, ogr.RouteGroupID, ogr.RouteGroupName, pq.Array(routePaths))
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("No new routes to insert")
 		return nil

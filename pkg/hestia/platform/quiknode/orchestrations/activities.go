@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
@@ -50,7 +51,13 @@ func (h *HestiaQuicknodeActivities) UpsertQuickNodeGroupTableRoutingEndpoints(ct
 		RoutePath: pr.HttpUrl,
 	},
 	}
-	groupName := fmt.Sprintf("%s-%s", pr.Chain, pr.Network)
+	var groupName string
+	prefix := strings.Split(pr.Network, "-")[0]
+	if pr.Chain == prefix {
+		groupName = pr.Network
+	} else {
+		groupName = fmt.Sprintf("%s-%s", pr.Chain, pr.Network)
+	}
 	ogr := iris_autogen_bases.OrgRouteGroups{
 		RouteGroupName: groupName,
 	}

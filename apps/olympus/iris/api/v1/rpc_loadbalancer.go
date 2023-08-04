@@ -129,5 +129,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		}
 	}(ou.OrgID, payloadSizingMeter)
 	c.Response().Header().Set("X-Selected-Route", path)
-	return c.JSON(http.StatusOK, resp.Response)
+	if resp.Response == nil && resp.RawResponse != nil {
+		return c.JSON(resp.StatusCode, string(resp.RawResponse))
+	}
+	return c.JSON(resp.StatusCode, resp.Response)
 }

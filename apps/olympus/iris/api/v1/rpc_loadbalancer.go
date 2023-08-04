@@ -21,11 +21,6 @@ const (
 	QuickNodeEndpointID = "x-instance-id"
 	QuickNodeChain      = "x-qn-chain"
 	QuickNodeNetwork    = "x-qn-network"
-
-	restTypeGET  = "GET"
-	restTypePOST = "POST"
-	restTypePUT  = "PUT"
-	restTypeDEL  = "DELETE"
 )
 
 type ProxyRequest struct {

@@ -38,8 +38,28 @@ func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
 		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
 		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey, h.DeleteOrgGroupRoutingTable, h.InsertQuickNodeApiKey,
-		h.UpsertQuickNodeRoutingEndpoint, h.IrisPlatformDeleteEndpointRequest,
+		h.UpsertQuickNodeRoutingEndpoint, h.IrisPlatformDeleteEndpointRequest, h.UpsertQuickNodeGroupTableRoutingEndpoints,
 	}
+}
+
+func (h *HestiaQuicknodeActivities) UpsertQuickNodeGroupTableRoutingEndpoints(ctx context.Context, pr hestia_quicknode.ProvisionRequest) error {
+	if pr.HttpUrl == "" || len(pr.Network) == 0 || len(pr.Chain) == 0 {
+		return nil
+	}
+	routes := []iris_autogen_bases.OrgRoutes{{
+		RoutePath: pr.HttpUrl,
+	},
+	}
+	groupName := fmt.Sprintf("%s-%s", pr.Chain, pr.Network)
+	ogr := iris_autogen_bases.OrgRouteGroups{
+		RouteGroupName: groupName,
+	}
+	err := iris_models.UpsertGeneratedQuickNodeOrgRouteGroup(context.Background(), pr.QuickNodeID, ogr, routes)
+	if err != nil {
+		log.Err(err).Msg("UpsertQuickNodeRoutingEndpoint")
+		return err
+	}
+	return nil
 }
 
 func (h *HestiaQuicknodeActivities) UpsertQuickNodeRoutingEndpoint(ctx context.Context, pr hestia_quicknode.ProvisionRequest) error {
@@ -55,6 +75,7 @@ func (h *HestiaQuicknodeActivities) UpsertQuickNodeRoutingEndpoint(ctx context.C
 		log.Err(err).Msg("UpsertQuickNodeRoutingEndpoint")
 		return err
 	}
+
 	return nil
 }
 

@@ -53,11 +53,19 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, ou org
 		}
 	}
 	upsertCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(pCtx, h.UpsertQuickNodeRoutingEndpoint, pr).Get(upsertCtx, nil)
+	err = workflow.ExecuteActivity(upsertCtx, h.UpsertQuickNodeRoutingEndpoint, pr).Get(upsertCtx, nil)
 	if err != nil {
 		logger.Warn("params", pr)
 		logger.Warn("ou", ou)
-		logger.Error("failed to upsert endpoint into org routing table", "Error", err)
+		logger.Error("UpsertQuickNodeRoutingEndpoint: failed to upsert endpoint into org routing table", "Error", err)
+		return err
+	}
+	upsertGroupCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(upsertGroupCtx, h.UpsertQuickNodeGroupTableRoutingEndpoints, pr).Get(upsertGroupCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", ou)
+		logger.Error("UpsertQuickNodeGroupTableRoutingEndpoints: failed to upsert endpoint into org routing table", "Error", err)
 		return err
 	}
 	return nil

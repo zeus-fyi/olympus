@@ -24,6 +24,8 @@ const (
 
 	restTypeGET  = "GET"
 	restTypePOST = "POST"
+	restTypePUT  = "PUT"
+	restTypeDEL  = "DELETE"
 )
 
 type ProxyRequest struct {
@@ -34,48 +36,41 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-func RpcLoadBalancerRequestHandler(c echo.Context) error {
-	bodyBytes, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		log.Err(err)
-		return err
-	}
-	payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
-	request := new(ProxyRequest)
-	request.Body = echo.Map{}
-	if payloadSizingMeter.N() <= 0 {
-		return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
-	}
-	if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
-		log.Err(err)
-		return err
-	}
-	return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
-}
+var (
+	RpcLoadBalancerGETRequestHandler    = RpcLoadBalancerRequestHandler("GET")
+	RpcLoadBalancerPOSTRequestHandler   = RpcLoadBalancerRequestHandler("POST")
+	RpcLoadBalancerPUTRequestHandler    = RpcLoadBalancerRequestHandler("PUT")
+	RpcLoadBalancerDELETERequestHandler = RpcLoadBalancerRequestHandler("DELETE")
+)
 
-func RpcLoadBalancerGETRequestHandler(c echo.Context) error {
-	bodyBytes, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		log.Err(err)
-		return err
+func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		bodyBytes, err := io.ReadAll(c.Request().Body)
+		if err != nil {
+			log.Err(err)
+			return err
+		}
+		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
+		request := new(ProxyRequest)
+		request.Body = echo.Map{}
+		if payloadSizingMeter.N() <= 0 {
+			return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
+		}
+		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
+			log.Err(err)
+			return err
+		}
+		return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
 	}
-	payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
-	request := new(ProxyRequest)
-	request.Body = echo.Map{}
-	if payloadSizingMeter.N() <= 0 {
-		return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
-	}
-	if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
-		log.Err(err)
-		return err
-	}
-	return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
 }
-
 func (p *ProxyRequest) DirectProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
 	switch restType {
 	case restTypeGET:
 		return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
+	case restTypePUT:
+		return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePUT)
+	case restTypeDEL:
+		return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeDEL)
 	}
 	return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
 }

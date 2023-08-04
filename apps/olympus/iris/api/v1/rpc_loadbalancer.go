@@ -113,6 +113,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		Response:         nil,
 		IsInternal:       false,
 		Timeout:          1 * time.Minute,
+		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
 	}
 	rw := iris_api_requests.NewArtemisApiRequestsActivities()

@@ -102,6 +102,47 @@ func InsertOrgRoutesFromQuickNodeID(ctx context.Context, quickNodeID string, rou
 	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutes"))
 }
 
+func UpsertGeneratedQuickNodeOrgRouteGroup(ctx context.Context, quickNodeID string, ogr iris_autogen_bases.OrgRouteGroups, routes []iris_autogen_bases.OrgRoutes) error {
+	// Convert the routes slice into a format that can be used in the SQL query
+	routePaths := make([]string, len(routes))
+	for i, route := range routes {
+		routePaths[i] = route.RoutePath
+	}
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+      WITH cte_qn_org_id AS (
+			SELECT ou.org_id as org_id
+			FROM quicknode_marketplace_customer qmc 
+			LEFT JOIN users_keys usk ON usk.public_key = qmc.quicknode_id
+			LEFT JOIN org_users ou ON ou.user_id = usk.user_id
+			WHERE quicknode_id = $1
+			GROUP BY ou.org_id
+			LIMIT 1
+		), cte_upsert_route_group AS (
+			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name, auto_generated)
+			VALUES ($1, $2, $3, true)
+			ON CONFLICT (org_id, route_group_name) DO UPDATE SET 
+				route_group_id = $1,
+				auto_generated = EXCLUDED.auto_generated
+			RETURNING route_group_id
+		), cte_route_ids AS (
+			SELECT route_id as route_id
+			FROM org_routes
+			WHERE org_id = (SELECT org_id FROM cte_qn_org_id) AND route_path = ANY($4::text[])
+		) 	  INSERT INTO org_routes_groups(route_id, route_group_id)
+			  SELECT route_id, (SELECT COALESCE(route_group_id, $1) FROM cte_upsert_route_group) as route_group_id
+			  FROM cte_route_ids
+			  ON CONFLICT (route_id, route_group_id) DO NOTHING
+	`
+	ogr.RouteGroupID = ts.UnixTimeStampNow()
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, quickNodeID, ogr.RouteGroupID, ogr.OrgID, ogr.RouteGroupName, pq.Array(routePaths))
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("No new routes to insert")
+		return nil
+	}
+	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRouteGroup"))
+}
+
 func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGroups, routes []iris_autogen_bases.OrgRoutes) error {
 	// Convert the routes slice into a format that can be used in the SQL query
 	routePaths := make([]string, len(routes))
@@ -451,7 +492,7 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
        		    AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id))
        		    ,0) as table_count
 		FROM org_routes 
-		WHERE org_id = $1
+		WHERE org_id = $1 AND auto_generated = false
 	`
 
 	endpointCount, groupTablesCount := 0, 0
@@ -477,6 +518,7 @@ func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string
 						WHERE public_key = $1
 						LIMIT 1)
 		AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id)
+		AND auto_generated = false
 		ORDER BY route_group_id
 	`
 
@@ -517,7 +559,6 @@ func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string
 		count += 1
 	}
 	return ogToDelete, misc.ReturnIfErr(err, q.LogHeader("OrgGroupTablesToRemove"))
-
 }
 
 /*

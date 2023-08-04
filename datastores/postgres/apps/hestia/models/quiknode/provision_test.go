@@ -193,7 +193,7 @@ func (s *QuickNodeProvisioningTestSuite) TestDeactiveEndpointService() {
 	s.Require().NotEmpty(qnsLookup.EndpointMap)
 	s.Require().Len(qnsLookup.EndpointMap, 2)
 
-	err = DeactivateProvisionedQuickNodeServiceEndpoint(ctx, qid, eid)
+	_, err = DeactivateProvisionedQuickNodeServiceEndpoint(ctx, qid, eid)
 	s.Require().Nil(err)
 	qnsLookup, err = SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
 	s.Require().Nil(err)

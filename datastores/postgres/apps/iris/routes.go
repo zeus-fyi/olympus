@@ -61,6 +61,47 @@ func InsertOrgRoutes(ctx context.Context, orgID int, routes []iris_autogen_bases
 	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutes"))
 }
 
+func InsertOrgRoutesFromQuickNodeID(ctx context.Context, quickNodeID string, routes []iris_autogen_bases.OrgRoutes) error {
+	// Generate a slice of IDs for the new routes
+	routeIDs := make([]int, len(routes))
+	for i := range routeIDs {
+		routeIDs[i] = ts.UnixTimeStampNow()
+	}
+
+	// Convert the routes slice into a format that can be used in the SQL query
+	routePaths := make([]string, len(routes))
+	for i, route := range routes {
+		routePaths[i] = route.RoutePath
+	}
+
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+        WITH cte_qn_org_id AS (
+			SELECT ou.org_id as org_id
+			FROM quicknode_marketplace_customer qmc 
+			LEFT JOIN users_keys usk ON usk.public_key = qmc.quicknode_id
+			LEFT JOIN org_users ou ON ou.user_id = usk.user_id
+			WHERE quicknode_id = $1
+			GROUP BY ou.org_id
+			LIMIT 1
+		), new_routes (route_id, route_path) AS (
+            SELECT * FROM UNNEST ($2::int8[], $3::text[])
+        ), existing_routes AS (
+            SELECT route_path FROM org_routes WHERE org_id = (SELECT org_id FROM cte_qn_org_id)
+        )
+        INSERT INTO org_routes (route_id, org_id, route_path)
+		SELECT nr.route_id, (SELECT org_id FROM cte_qn_org_id), nr.route_path
+		FROM new_routes nr
+		WHERE NOT EXISTS (SELECT 1 FROM existing_routes er WHERE er.route_path = nr.route_path)
+    `
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, quickNodeID, pq.Array(routeIDs), pq.Array(routePaths))
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("No new routes to insert")
+		return nil
+	}
+	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutes"))
+}
+
 func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGroups, routes []iris_autogen_bases.OrgRoutes) error {
 	// Convert the routes slice into a format that can be used in the SQL query
 	routePaths := make([]string, len(routes))

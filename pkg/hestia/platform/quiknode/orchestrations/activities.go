@@ -118,9 +118,12 @@ func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, ou org_users.
 			String: pr.HttpUrl,
 			Valid:  len(pr.HttpUrl) > 0,
 		},
-		Network: sql.NullString{},
-		Plan:    pr.Plan,
-		Active:  true,
+		Network: sql.NullString{
+			String: pr.Network,
+			Valid:  len(pr.Network) > 0,
+		},
+		Plan:   pr.Plan,
+		Active: true,
 		WssURL: sql.NullString{
 			String: pr.WssUrl,
 			Valid:  len(pr.WssUrl) > 0,
@@ -171,9 +174,12 @@ func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, pr hest
 			String: pr.HttpUrl,
 			Valid:  len(pr.HttpUrl) > 0,
 		},
-		Network: sql.NullString{},
-		Plan:    pr.Plan,
-		Active:  true,
+		Network: sql.NullString{
+			String: pr.Network,
+			Valid:  len(pr.Network) > 0,
+		},
+		Plan:   pr.Plan,
+		Active: true,
 		WssURL: sql.NullString{
 			String: pr.WssUrl,
 			Valid:  len(pr.WssUrl) > 0,

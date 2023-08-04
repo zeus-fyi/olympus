@@ -5,6 +5,7 @@ import (
 	"time"
 
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -45,7 +46,16 @@ func (h *HestiaPlatformServiceWorkflows) IrisRoutingServiceRequestWorkflow(ctx w
 			log.Error("HestiaPlatformServiceWorkflows: failed to CreateOrgGroupRoutingTable", "Error", err)
 			return err
 		}
-		err = workflow.ExecuteActivity(pCtx, h.IrisPlatformSetupCacheUpdateRequest, pr).Get(pCtx, nil)
+		so := workflow.ActivityOptions{
+			StartToCloseTimeout: time.Minute * 15,
+			RetryPolicy: &temporal.RetryPolicy{
+				InitialInterval:    time.Minute * 1,
+				BackoffCoefficient: 1.5,
+				MaximumInterval:    time.Minute * 5,
+			},
+		}
+		sCtx := workflow.WithActivityOptions(ctx, so)
+		err = workflow.ExecuteActivity(sCtx, h.IrisPlatformSetupCacheUpdateRequest, pr).Get(sCtx, nil)
 		if err != nil {
 			log.Warn("params", pr)
 			log.Error("HestiaPlatformServiceWorkflows: failed to complete IrisPlatformSetupCacheUpdateRequest", "Error", err)
@@ -72,7 +82,16 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 		return err
 	}
 	pr.OrgGroupName = orgGroupName
-	err = workflow.ExecuteActivity(pCtx, h.IrisPlatformDeleteGroupTableCacheRequest, pr).Get(pCtx, nil)
+	do := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 15,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Minute * 1,
+			BackoffCoefficient: 1.5,
+			MaximumInterval:    time.Minute * 5,
+		},
+	}
+	dCtx := workflow.WithActivityOptions(ctx, do)
+	err = workflow.ExecuteActivity(dCtx, h.IrisPlatformDeleteGroupTableCacheRequest, pr).Get(dCtx, nil)
 	if err != nil {
 		log.Warn("params", pr)
 		log.Error("HestiaPlatformServiceWorkflows: failed to complete IrisPlatformDeleteGroupTableCacheRequest", "Error", err)
@@ -96,7 +115,16 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgRoutesWorkflow(ctx workflo
 		log.Error("HestiaPlatformServiceWorkflows: failed to DeleteOrgRoutes", "Error", err)
 		return err
 	}
-	err = workflow.ExecuteActivity(pCtx, h.IrisPlatformSetupCacheUpdateRequest, pr).Get(pCtx, nil)
+	do := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 15,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Minute * 1,
+			BackoffCoefficient: 1.5,
+			MaximumInterval:    time.Minute * 5,
+		},
+	}
+	dCtx := workflow.WithActivityOptions(ctx, do)
+	err = workflow.ExecuteActivity(dCtx, h.IrisPlatformSetupCacheUpdateRequest, pr).Get(dCtx, nil)
 	if err != nil {
 		log.Warn("params", pr)
 		log.Error("HestiaPlatformServiceWorkflows: failed to complete IrisPlatformSetupCacheUpdateRequest", "Error", err)
@@ -109,6 +137,11 @@ func (h *HestiaPlatformServiceWorkflows) IrisRemoveAllOrgRoutesFromCacheWorkflow
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Minute * 1,
+			BackoffCoefficient: 1.5,
+			MaximumInterval:    time.Minute * 5,
+		},
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
 	// this deletes all the routing tables from cache for this org

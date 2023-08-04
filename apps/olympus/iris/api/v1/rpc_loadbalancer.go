@@ -54,25 +54,14 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		request := new(ProxyRequest)
 		request.Body = echo.Map{}
 		if payloadSizingMeter.N() <= 0 {
-			return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
+			return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
 		}
 		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
 			log.Err(err)
 			return err
 		}
-		return request.DirectProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
+		return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
 	}
-}
-func (p *ProxyRequest) DirectProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
-	switch restType {
-	case restTypeGET:
-		return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeGET)
-	case restTypePUT:
-		return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePUT)
-	case restTypeDEL:
-		return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypeDEL)
-	}
-	return p.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, restTypePOST)
 }
 
 func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
@@ -89,6 +78,10 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if plan == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
 	}
+	if payloadSizingMeter == nil {
+		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
+	}
+
 	// todo refactor to fetch auth & plan from redis
 	err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, payloadSizingMeter)
 	if err != nil {

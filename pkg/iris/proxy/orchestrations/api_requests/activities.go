@@ -108,7 +108,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 	var resp *resty.Response
 	var err error
 
-	if pr.PayloadSizeMeter.N() > int64(0) {
+	if pr.Payload != nil {
 		switch method {
 		case "GET":
 			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(pr.Url)

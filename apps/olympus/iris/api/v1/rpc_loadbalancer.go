@@ -22,6 +22,7 @@ const (
 	QuickNodeEndpointID = "x-instance-id"
 	QuickNodeChain      = "x-qn-chain"
 	QuickNodeNetwork    = "x-qn-network"
+	RouteGroupHeader    = "X-Route-Group"
 )
 
 type ProxyRequest struct {
@@ -61,7 +62,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 }
 
 func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
-	routeGroup := c.QueryParam("routeGroup")
+	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
 	}

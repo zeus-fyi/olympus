@@ -87,6 +87,7 @@ func InitV1Routes(e *echo.Echo) {
 	eg.DELETE("/router/group", RpcLoadBalancerDELETERequestHandler)
 	eg.DELETE("/router/group/*", wrapHandlerWithCapture(RpcLoadBalancerDELETERequestHandler))
 }
+
 func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// c.Param("*") will contain the captured path

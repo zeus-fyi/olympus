@@ -270,10 +270,10 @@ func (h *HestiaQuicknodeActivities) DeprovisionCache(ctx context.Context, ou org
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest) (string, error) {
+func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, da hestia_quicknode.DeactivateRequest) (string, error) {
 	urlHttpEndpoint, err := hestia_quicknode_models.DeactivateProvisionedQuickNodeServiceEndpoint(ctx, da.QuickNodeID, da.EndpointID)
 	if err != nil {
-		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: Deactivate")
+		log.Warn().Err(err).Msg("Provision: Deactivate")
 		return urlHttpEndpoint, err
 	}
 	return urlHttpEndpoint, nil

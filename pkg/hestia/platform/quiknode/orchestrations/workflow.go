@@ -193,7 +193,7 @@ func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou or
 	}
 
 	var httpURL string
-	err := workflow.ExecuteActivity(pCtx, h.Deactivate, ou, da).Get(pCtx, &httpURL)
+	err := workflow.ExecuteActivity(pCtx, h.Deactivate, da).Get(pCtx, &httpURL)
 	if err != nil {
 		logger.Warn("params", da)
 		logger.Warn("ou", ou)

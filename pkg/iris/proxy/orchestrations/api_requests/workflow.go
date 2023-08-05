@@ -40,6 +40,7 @@ type ApiProxyRequest struct {
 	Referrers        []string
 	Payload          echo.Map
 	Response         echo.Map
+	RequestHeaders   http.Header
 	ResponseHeaders  http.Header
 	RawResponse      []byte
 	StatusCode       int

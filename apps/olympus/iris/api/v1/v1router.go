@@ -75,17 +75,17 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 
-	eg.POST("/router/group", RpcLoadBalancerPOSTRequestHandler)
-	eg.POST("/router/group/*", wrapHandlerWithCapture(RpcLoadBalancerPOSTRequestHandler))
+	eg.POST("/router", RpcLoadBalancerPOSTRequestHandler)
+	eg.POST("/router/*", wrapHandlerWithCapture(RpcLoadBalancerPOSTRequestHandler))
 
-	eg.GET("/router/group", RpcLoadBalancerGETRequestHandler)
-	eg.GET("/router/group/*", wrapHandlerWithCapture(RpcLoadBalancerGETRequestHandler))
+	eg.GET("/router", RpcLoadBalancerGETRequestHandler)
+	eg.GET("/router/*", wrapHandlerWithCapture(RpcLoadBalancerGETRequestHandler))
 
-	eg.PUT("/router/group", RpcLoadBalancerPUTRequestHandler)
-	eg.PUT("/router/group/*", wrapHandlerWithCapture(RpcLoadBalancerPUTRequestHandler))
+	eg.PUT("/router", RpcLoadBalancerPUTRequestHandler)
+	eg.PUT("/router/*", wrapHandlerWithCapture(RpcLoadBalancerPUTRequestHandler))
 
-	eg.DELETE("/router/group", RpcLoadBalancerDELETERequestHandler)
-	eg.DELETE("/router/group/*", wrapHandlerWithCapture(RpcLoadBalancerDELETERequestHandler))
+	eg.DELETE("/router", RpcLoadBalancerDELETERequestHandler)
+	eg.DELETE("/router/*", wrapHandlerWithCapture(RpcLoadBalancerDELETERequestHandler))
 }
 
 func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {

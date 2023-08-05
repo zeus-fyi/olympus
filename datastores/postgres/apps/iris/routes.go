@@ -93,13 +93,14 @@ func InsertOrgRoutesFromQuickNodeID(ctx context.Context, quickNodeID string, rou
 		SELECT nr.route_id, (SELECT org_id FROM cte_qn_org_id), nr.route_path
 		FROM new_routes nr
 		WHERE NOT EXISTS (SELECT 1 FROM existing_routes er WHERE er.route_path = nr.route_path)
+		ON CONFLICT (org_id, route_path) DO NOTHING
     `
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, quickNodeID, pq.Array(routeIDs), pq.Array(routePaths))
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("No new routes to insert")
 		return nil
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutes"))
+	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutesFromQuickNodeID"))
 }
 
 func UpsertGeneratedQuickNodeOrgRouteGroup(ctx context.Context, quickNodeID string, ogr iris_autogen_bases.OrgRouteGroups, routes []iris_autogen_bases.OrgRoutes) error {

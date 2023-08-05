@@ -44,14 +44,18 @@ func InitV1RoutesServices(e *echo.Echo) {
 		if QuickNodePassword != password {
 			return false, nil
 		}
-		key, err := auth.VerifyQuickNodeToken(context.Background(), qnIDHeader)
-		if err != nil {
-			log.Err(err).Msg("InitV1Routes QuickNode user not found: creating new org")
-			err = nil
+
+		if len(qnIDHeader) > 0 {
+			key, err := auth.VerifyQuickNodeToken(context.Background(), qnIDHeader)
+			if err != nil {
+				log.Err(err).Msg("InitV1Routes QuickNode user not found: creating new org")
+				err = nil
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, 0)
+			c.Set("orgUser", ou)
+			c.Set("verified", key.IsVerified())
 		}
-		ou := org_users.NewOrgUserWithID(key.OrgID, 0)
-		c.Set("orgUser", ou)
-		c.Set("verified", key.IsVerified())
+
 		if password == QuickNodePassword {
 			if len(qnTestHeader) > 0 && qnTestHeader == "true" {
 				c.Set("isTest", true)

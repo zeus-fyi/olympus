@@ -15,6 +15,7 @@ CREATE TABLE "public"."org_route_groups" (
 );
 ALTER TABLE "public"."org_route_groups" ADD CONSTRAINT "org_route_groups_pk" PRIMARY KEY ("route_group_id");
 CREATE INDEX org_route_groups_path_ind ON org_route_groups ("org_id", "route_group_name");
+CREATE INDEX org_route_groups_autogen_ind ON org_route_groups ("auto_generated");
 
 CREATE TABLE "public"."org_routes_groups" (
     "route_group_id" int8  NOT NULL REFERENCES org_route_groups(route_group_id),

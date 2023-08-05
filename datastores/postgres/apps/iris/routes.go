@@ -159,9 +159,10 @@ func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGro
 			DELETE FROM org_routes_groups
 			WHERE route_group_id IN (SELECT route_group_id FROM org_route_groups WHERE org_id = $2 AND route_group_name = $3)
 		), new_route_group AS (
-			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name)
-			VALUES ($1, $2, $3)
-			ON CONFLICT (org_id, route_group_name) DO UPDATE SET route_group_id = $1
+			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name, auto_generated)
+			VALUES ($2, (SELECT org_id FROM cte_qn_org_id), $3, false)
+			ON CONFLICT (org_id, route_group_name) DO UPDATE SET 
+				auto_generated = EXCLUDED.auto_generated
 			RETURNING route_group_id
 		), cte_ins AS (
 			SELECT COALESCE(route_group_id, $1) as route_group_id

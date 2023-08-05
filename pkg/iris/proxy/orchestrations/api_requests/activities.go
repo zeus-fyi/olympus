@@ -3,6 +3,7 @@ package iris_api_requests
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
@@ -69,12 +70,14 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
-	// only get first referer, not sure why a list is needed
-	//for ind, ref := range pr.Referrers {
-	//	if ind == 0 {
-	//		r.SetHeader("Referer", ref)
-	//	}
-	//}
+	for k, v := range pr.RequestHeaders {
+		r.SetHeader(k, strings.Join(v, ", ")) // Joining all values with a comma
+	}
+
+	if len(pr.Referrers) > 0 {
+		r.SetHeader("Referer", strings.Join(pr.Referrers, ", ")) // Joining all values with a comma
+	}
+
 	if pr.PayloadSizeMeter == nil {
 		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 	}

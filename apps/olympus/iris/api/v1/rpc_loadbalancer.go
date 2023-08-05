@@ -105,10 +105,22 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		}
 	}
 	payloadSizingMeter.Reset()
+
+	headers := make(http.Header)
+	for k, v := range c.Request().Header {
+		if k == "Authorization" {
+			continue // Skip authorization headers
+		}
+		if k == "X-Route-Group" {
+			continue // Skip empty headers
+		}
+		headers[k] = v // Assuming there's at least one value
+	}
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
 		ServicePlan:      plan,
 		PayloadTypeREST:  restType,
+		RequestHeaders:   headers,
 		Referrers:        routeInfo.Referers,
 		Payload:          p.Body,
 		Response:         nil,

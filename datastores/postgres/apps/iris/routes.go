@@ -488,11 +488,11 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
 		SELECT COALESCE(COUNT(*), 0) as endpoint_count, 
        		COALESCE(
        		   (SELECT COUNT(*)
-       		    FROM org_route_groups WHERE org_id = $1
+       		    FROM org_route_groups WHERE org_id = $1  AND auto_generated = false
        		    AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id))
        		    ,0) as table_count
 		FROM org_routes 
-		WHERE org_id = $1 AND auto_generated = false
+		WHERE org_id = $1
 	`
 
 	endpointCount, groupTablesCount := 0, 0

@@ -67,7 +67,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
 	}
 
-	c.QueryParams()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	plan := ""
 	sp, ok := c.Get("servicePlan").(string)
@@ -118,6 +117,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		}
 		headers[k] = v // Assuming there's at least one value
 	}
+	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
 		ServicePlan:      plan,
@@ -125,7 +125,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		RequestHeaders:   headers,
 		Referrers:        routeInfo.Referers,
 		Payload:          p.Body,
-		QueryParams:      c.QueryParams(),
+		QueryParams:      qps,
 		Response:         nil,
 		IsInternal:       false,
 		Timeout:          1 * time.Minute,

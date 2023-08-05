@@ -155,11 +155,10 @@ func DeactivateProvisionedQuickNodeServiceEndpoint(ctx context.Context, quickNod
 	q.RawQuery = `UPDATE provisioned_quicknode_services
     			  SET active = false
 				  WHERE quicknode_id = $1 AND endpoint_id = $2
-			      RETURNING quicknode_id, http_url;
+			      RETURNING http_url;
 				  `
-	qnID := ""
 	httpURL := ""
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, quickNodeID, endpointID).Scan(&qnID, &httpURL)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, quickNodeID, endpointID).Scan(&httpURL)
 	if err != nil {
 		return httpURL, err
 	}

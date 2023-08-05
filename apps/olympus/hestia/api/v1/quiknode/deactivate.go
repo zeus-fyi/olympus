@@ -11,11 +11,11 @@ import (
 )
 
 func DeactivateRequestHandler(c echo.Context) error {
-	request := new(DeprovisionRequest)
+	request := new(DeactivateRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.Deprovision(c)
+	return request.Deactivate(c)
 }
 
 type DeactivateRequest struct {

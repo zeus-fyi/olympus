@@ -7,6 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -103,7 +104,15 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 			logger.Error("failed to adjust services", "Error", err)
 			return err
 		}
-		cdCtx := workflow.WithActivityOptions(ctx, ao)
+		ro := workflow.ActivityOptions{
+			StartToCloseTimeout: defaultTimeout,
+			RetryPolicy: &temporal.RetryPolicy{
+				InitialInterval:    5 * time.Minute,
+				BackoffCoefficient: 2,
+				MaximumInterval:    2 * time.Minute,
+			},
+		}
+		cdCtx := workflow.WithActivityOptions(ctx, ro)
 		err = workflow.ExecuteActivity(cdCtx, h.IrisPlatformDeleteGroupTableCacheRequest, ou, groupName).Get(cdCtx, nil)
 		if err != nil {
 			logger.Warn("params", pr)

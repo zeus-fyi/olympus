@@ -3,6 +3,7 @@ package iris_api_requests
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -70,6 +71,22 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
+
+	parsedURL, err := url.Parse(pr.Url)
+	if err != nil {
+		fmt.Println("Error parsing URL:", err)
+		return pr, err
+	}
+
+	if parsedURL.Scheme != "https" {
+		fmt.Println("Error: URL must be an HTTPS URL")
+		return pr, err
+	}
+
+	if len(pr.QueryParams) > 0 {
+		r.QueryParam = pr.QueryParams
+	}
+
 	for k, v := range pr.RequestHeaders {
 		r.SetHeader(k, strings.Join(v, ", ")) // Joining all values with a comma
 	}
@@ -82,7 +99,6 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 	}
 	var resp *resty.Response
-	var err error
 	switch pr.PayloadTypeREST {
 	case "GET":
 		resp, err = sendRequest(r.R(), pr, "GET")

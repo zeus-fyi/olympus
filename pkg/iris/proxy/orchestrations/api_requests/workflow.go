@@ -2,6 +2,7 @@ package iris_api_requests
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -38,6 +39,7 @@ type ApiProxyRequest struct {
 	ServicePlan      string
 	PayloadTypeREST  string
 	Referrers        []string
+	QueryParams      url.Values
 	Payload          echo.Map
 	Response         echo.Map
 	RequestHeaders   http.Header

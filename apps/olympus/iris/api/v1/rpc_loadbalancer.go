@@ -66,6 +66,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
 	}
+
+	c.QueryParams()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	plan := ""
 	sp, ok := c.Get("servicePlan").(string)
@@ -123,6 +125,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		RequestHeaders:   headers,
 		Referrers:        routeInfo.Referers,
 		Payload:          p.Body,
+		QueryParams:      c.QueryParams(),
 		Response:         nil,
 		IsInternal:       false,
 		Timeout:          1 * time.Minute,

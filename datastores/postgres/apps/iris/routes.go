@@ -93,13 +93,14 @@ func InsertOrgRoutesFromQuickNodeID(ctx context.Context, quickNodeID string, rou
 		SELECT nr.route_id, (SELECT org_id FROM cte_qn_org_id), nr.route_path
 		FROM new_routes nr
 		WHERE NOT EXISTS (SELECT 1 FROM existing_routes er WHERE er.route_path = nr.route_path)
+		ON CONFLICT (org_id, route_path) DO NOTHING
     `
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, quickNodeID, pq.Array(routeIDs), pq.Array(routePaths))
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("No new routes to insert")
 		return nil
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutes"))
+	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutesFromQuickNodeID"))
 }
 
 func UpsertGeneratedQuickNodeOrgRouteGroup(ctx context.Context, quickNodeID string, ogr iris_autogen_bases.OrgRouteGroups, routes []iris_autogen_bases.OrgRoutes) error {
@@ -122,7 +123,6 @@ func UpsertGeneratedQuickNodeOrgRouteGroup(ctx context.Context, quickNodeID stri
 			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name, auto_generated)
 			VALUES ($2, (SELECT org_id FROM cte_qn_org_id), $3, true)
 			ON CONFLICT (org_id, route_group_name) DO UPDATE SET 
-				route_group_id = $2,
 				auto_generated = EXCLUDED.auto_generated
 			RETURNING route_group_id
 		), cte_route_ids AS (
@@ -159,9 +159,10 @@ func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGro
 			DELETE FROM org_routes_groups
 			WHERE route_group_id IN (SELECT route_group_id FROM org_route_groups WHERE org_id = $2 AND route_group_name = $3)
 		), new_route_group AS (
-			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name)
-			VALUES ($1, $2, $3)
-			ON CONFLICT (org_id, route_group_name) DO UPDATE SET route_group_id = $1
+			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name, auto_generated)
+			VALUES ($2, (SELECT org_id FROM cte_qn_org_id), $3, false)
+			ON CONFLICT (org_id, route_group_name) DO UPDATE SET 
+				auto_generated = EXCLUDED.auto_generated
 			RETURNING route_group_id
 		), cte_ins AS (
 			SELECT COALESCE(route_group_id, $1) as route_group_id

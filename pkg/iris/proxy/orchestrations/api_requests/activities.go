@@ -3,6 +3,7 @@ package iris_api_requests
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -152,6 +153,18 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		if resp.StatusCode() >= 400 || pr.Response == nil {
 			pr.RawResponse = resp.Body()
 		}
+		pr.ResponseHeaders = filterHeaders(resp.RawResponse.Header)
+
 	}
 	return resp, err
+}
+
+func filterHeaders(headers http.Header) http.Header {
+	filteredHeaders := make(http.Header)
+	for key, values := range headers {
+		if key[:2] == "X-" {
+			filteredHeaders[key] = values
+		}
+	}
+	return filteredHeaders
 }

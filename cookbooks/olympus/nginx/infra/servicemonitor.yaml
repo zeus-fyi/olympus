@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: nginx-ingress-monitor
+  labels:
+    app: "ingress-nginx"
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx  # This should match the labels of the NGINX Ingress Controller Service
+  endpoints:
+    - port: "prometheus"  # You need to ensure that the Service exposing the NGINX Ingress Controller has a port named "prometheus" set to 9113
+      interval: 10s

@@ -22,10 +22,38 @@ func NewKronosWorkflow() KronosWorkflow {
 	return deployWf
 }
 
-func (k *KronosActivities) GetWorkflows() []interface{} {
-	return []interface{}{}
+func (k *KronosWorkflow) GetWorkflows() []interface{} {
+	return []interface{}{k.Yin, k.Yang, k.SignalFlow}
 }
 
-func (k *KronosWorkflow) T(ctx workflow.Context) error {
+// SignalFlow should be used to place new control flows on the helix
+func (k *KronosWorkflow) SignalFlow(ctx workflow.Context) error {
+	return nil
+}
+
+// Yin should send commands and execute actions
+func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+	}
+	aCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(aCtx, k.GetAssignments).Get(aCtx, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Yang should check, status, & react to changes
+func (k *KronosWorkflow) Yang(ctx workflow.Context) error {
+	//workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+	}
+	aCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(aCtx, k.Recycle).Get(aCtx, nil)
+	if err != nil {
+		return err
+	}
 	return nil
 }

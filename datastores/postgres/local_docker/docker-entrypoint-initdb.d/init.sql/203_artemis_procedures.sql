@@ -12,7 +12,6 @@ CREATE INDEX "orchestrations_last_updated_at_index" ON "public"."orchestrations"
 CREATE INDEX orchestrations_active ON orchestrations(active);
 CREATE INDEX orchestrations_name_ind ON orchestrations(orchestration_name);
 
-
 CREATE TRIGGER set_timestamp_on_orchestrations_updated
 AFTER UPDATE ON orchestrations
 FOR EACH ROW

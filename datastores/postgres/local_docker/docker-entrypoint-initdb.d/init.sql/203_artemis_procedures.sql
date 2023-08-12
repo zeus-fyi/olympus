@@ -1,7 +1,8 @@
 CREATE TABLE "public"."orchestrations" (
    "orchestration_id" int8 NOT NULL DEFAULT next_id(),
    "org_id" int8 NOT NULL REFERENCES orgs(org_id),
-   "orchestration_name" text NOT NULL
+   "orchestration_name" text NOT NULL,
+   "instructions" jsonb NOT NULL DEFAULT {}
 );
 ALTER TABLE "public"."orchestrations" ADD CONSTRAINT "orchestrations_pk" PRIMARY KEY ("orchestration_id");
 ALTER TABLE "public"."orchestrations" ADD CONSTRAINT "orchestrations_uniq_name_to_org" UNIQUE ("org_id", "orchestration_name");

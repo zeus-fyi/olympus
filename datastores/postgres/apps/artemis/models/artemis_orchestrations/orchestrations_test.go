@@ -44,6 +44,12 @@ func (s *OrchestrationsTestSuite) TestInsertOrchestrationDefinition() {
 	s.Require().Nil(err)
 	s.Assert().NotZero(os.OrchestrationID)
 	fmt.Println(os.OrchestrationID)
+
+	// todo: add instructions
+	//err = os.InsertOrchestrationsWithInstructions(ctx, []byte("test"))
+	//s.Require().Nil(err)
+	//s.Assert().NotZero(os.OrchestrationID)
+	//fmt.Println(os.OrchestrationID)
 }
 
 func (s *OrchestrationsTestSuite) TestInsertOrchestrationsScheduledToCloudCtxNsUsingName() {

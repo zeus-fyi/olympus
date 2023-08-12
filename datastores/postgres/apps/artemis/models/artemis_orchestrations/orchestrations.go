@@ -37,6 +37,37 @@ func (o *OrchestrationJob) InsertOrchestrations(ctx context.Context) error {
 	return misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
 }
 
+func (o *OrchestrationJob) SelectOrchestrationsWithInstructions(ctx context.Context) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+				  SELECT orchestration_id, instructions
+				  FROM orchestrations
+				  WHERE org_id = $1 AND orchestration_name = $2
+				  `
+	log.Debug().Interface("InsertOrchestrations", q.LogHeader(Orchestrations))
+	var instructions []byte
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName).Scan(&o.OrchestrationID, &instructions)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
+		return err
+	}
+	return misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
+}
+
+func (o *OrchestrationJob) InsertOrchestrationsWithInstructions(ctx context.Context, instructions []byte) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+				  INSERT INTO orchestrations(org_id, orchestration_name, instructions)
+				  VALUES ($1, $2, $3)
+				  RETURNING orchestration_id;
+				  `
+	log.Debug().Interface("InsertOrchestrations", q.LogHeader(Orchestrations))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName, instructions).Scan(&o.OrchestrationID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
+		return err
+	}
+	return misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
+}
+
 func (o *OrchestrationJob) InsertOrchestrationsScheduledToCloudCtxNsUsingName(ctx context.Context) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `

@@ -3,6 +3,7 @@ package kronos_helix
 import (
 	"time"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/workflow"
 )
@@ -37,10 +38,13 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
 	}
 	aCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(aCtx, k.GetAssignments).Get(aCtx, nil)
+	oj := artemis_orchestrations.OrchestrationJob{}
+	err := workflow.ExecuteActivity(aCtx, k.GetAssignments).Get(aCtx, &oj)
 	if err != nil {
 		return err
 	}
+	// TODO: Add logic to handle the assignments
+
 	return nil
 }
 

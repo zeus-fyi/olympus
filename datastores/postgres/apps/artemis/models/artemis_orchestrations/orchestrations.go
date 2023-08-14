@@ -37,17 +37,17 @@ func (o *OrchestrationJob) InsertOrchestrations(ctx context.Context) error {
 	return misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
 }
 
-func SelectActiveOrchestrationsWithInstructions(ctx context.Context, orgID int) ([]OrchestrationJob, error) {
+func SelectActiveOrchestrationsWithInstructions(ctx context.Context, orgID int, orchestType string) ([]OrchestrationJob, error) {
 	var ojs []OrchestrationJob
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
 				  SELECT orchestration_id, orchestration_name, instructions
 				  FROM orchestrations
-				  WHERE org_id = $1 AND active = true
+				  WHERE org_id = $1 AND active = true AND type = $2
 				  `
 	log.Debug().Interface("InsertOrchestrations", q.LogHeader(Orchestrations))
 
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, orchestType)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return ojs, err
 	}

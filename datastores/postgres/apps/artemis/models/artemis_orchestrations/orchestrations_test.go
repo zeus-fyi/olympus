@@ -132,7 +132,7 @@ func (s *OrchestrationsTestSuite) TestSelectOrchestrationsAtCloudCtxNsWithStatus
 func (s *OrchestrationsTestSuite) TestSelectActiveInstructions() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
-	ojs, err := SelectActiveOrchestrationsWithInstructions(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	ojs, err := SelectActiveOrchestrationsWithInstructions(ctx, s.Tc.ProductionLocalTemporalOrgID, "zeus")
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(ojs)
 }

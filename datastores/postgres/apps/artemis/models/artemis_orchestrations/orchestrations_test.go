@@ -44,12 +44,6 @@ func (s *OrchestrationsTestSuite) TestInsertOrchestrationDefinition() {
 	s.Require().Nil(err)
 	s.Assert().NotZero(os.OrchestrationID)
 	fmt.Println(os.OrchestrationID)
-
-	// todo: add instructions
-	//err = os.InsertOrchestrationsWithInstructions(ctx, []byte("test"))
-	//s.Require().Nil(err)
-	//s.Assert().NotZero(os.OrchestrationID)
-	//fmt.Println(os.OrchestrationID)
 }
 
 func (s *OrchestrationsTestSuite) TestInsertOrchestrationsScheduledToCloudCtxNsUsingName() {
@@ -132,7 +126,7 @@ func (s *OrchestrationsTestSuite) TestSelectOrchestrationsAtCloudCtxNsWithStatus
 func (s *OrchestrationsTestSuite) TestSelectActiveInstructions() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
-	ojs, err := SelectActiveOrchestrationsWithInstructions(ctx, s.Tc.ProductionLocalTemporalOrgID, "zeus", "zeus")
+	ojs, err := SelectSystemOrchestrationsWithInstructionsByGroup(ctx, s.Tc.ProductionLocalTemporalOrgID, "olympus")
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(ojs)
 }

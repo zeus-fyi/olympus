@@ -218,9 +218,9 @@ func Hestia() {
 	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker done")
 
 	log.Info().Msg("Hestia: InitKronosWorker start")
+	kronos_helix.InitKronosHelixWorker(context.Background(), temporalAuthConfigKronos)
 	cKronos := kronos_helix.KronosServiceWorker.Worker.ConnectTemporalClient()
 	defer cKronos.Close()
-	kronos_helix.InitKronosHelixWorker(context.Background(), temporalAuthConfigKronos)
 	kronos_helix.KronosServiceWorker.Worker.RegisterWorker(cKronos)
 	err = kronos_helix.KronosServiceWorker.Worker.Start()
 	if err != nil {

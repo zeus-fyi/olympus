@@ -9,28 +9,28 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
-type HestiaQuicknodeWorker struct {
+type HestiaQuickNodeWorker struct {
 	temporal_base.Worker
 }
 
 var (
-	HestiaQnWorker HestiaQuicknodeWorker
+	HestiaQnWorker HestiaQuickNodeWorker
 )
 
 const (
-	HestiaQuicknodeTaskQueue = "HestiaQuicknodeTaskQueue"
+	HestiaQuickNodeTaskQueue = "HestiaQuickNodeTaskQueue"
 )
 
-func InitHestiaQuicknodeWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker")
+func InitHestiaQuickNodeWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
+	log.Info().Msg("Hestia: InitHestiaQuickNodeWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
-		log.Err(err).Msg("InitHestiaQuicknodeWorker: NewTemporalClient failed")
+		log.Err(err).Msg("InitHestiaQuickNodeWorker: NewTemporalClient failed")
 		misc.DelayedPanic(err)
 	}
-	taskQueueName := HestiaQuicknodeTaskQueue
+	taskQueueName := HestiaQuickNodeTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
-	activityDef := NewHestiaQuicknodeActivities()
+	activityDef := NewHestiaQuickNodeActivities()
 	wf := NewHestiaQuickNodeWorkflow()
 
 	w.AddWorkflows(wf.GetWorkflows())

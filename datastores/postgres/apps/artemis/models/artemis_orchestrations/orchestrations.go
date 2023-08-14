@@ -2,6 +2,7 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -22,6 +23,26 @@ type OrchestrationJob struct {
 	zeus_common_types.CloudCtxNs
 }
 
+func NewActiveTemporalOrchestrationJobTemplate(orgID int, orchName, groupName, orchType string) OrchestrationJob {
+	return OrchestrationJob{
+		Orchestrations: artemis_autogen_bases.Orchestrations{
+			OrgID:             orgID,
+			Active:            true,
+			GroupName:         groupName,
+			Type:              orchType,
+			OrchestrationName: orchName,
+		},
+		Scheduled:  artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs{},
+		CloudCtxNs: zeus_common_types.CloudCtxNs{},
+	}
+}
+
+func NewActiveTemporalOrchestrationJobTemplateWithInstructions(orgID int, orchName, groupName, orchType, instructions string) OrchestrationJob {
+	oj := NewActiveTemporalOrchestrationJobTemplate(orgID, orchName, groupName, orchType)
+	oj.Instructions = instructions
+	return oj
+}
+
 func (o *OrchestrationJob) InsertOrchestrations(ctx context.Context) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
@@ -31,6 +52,92 @@ func (o *OrchestrationJob) InsertOrchestrations(ctx context.Context) error {
 				  `
 	log.Debug().Interface("InsertOrchestrations", q.LogHeader(Orchestrations))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName).Scan(&o.OrchestrationID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
+		return err
+	}
+	return misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
+}
+
+func SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx context.Context, orgID int, orchestType, groupName string, updatedAtWindowThreshold time.Duration) ([]OrchestrationJob, error) {
+	var ojs []OrchestrationJob
+	q := sql_query_templates.QueryParams{}
+	thresholdTime := time.Now().UTC().Add(-updatedAtWindowThreshold).Format(time.RFC3339) // Calculate the threshold time
+	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions
+				  FROM orchestrations
+				  WHERE org_id = $1 AND active = true AND type = $2 AND group_name = $3 AND updated_at > $4
+				  `
+	log.Debug().Interface("SelectActiveOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, orchestType, groupName, thresholdTime)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
+		return ojs, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		oj := OrchestrationJob{}
+		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
+			return ojs, rowErr
+		}
+		ojs = append(ojs, oj)
+	}
+	return ojs, err
+}
+
+func SelectSystemOrchestrationsWithInstructionsByGroup(ctx context.Context, orgID int, groupName string) ([]OrchestrationJob, error) {
+	var ojs []OrchestrationJob
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions
+				  FROM orchestrations
+				  WHERE org_id = $1 AND active = true AND group_name = $2
+				  `
+	log.Debug().Interface("SelectActiveOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, groupName)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
+		return ojs, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		oj := OrchestrationJob{}
+		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
+			return ojs, rowErr
+		}
+		ojs = append(ojs, oj)
+	}
+	return ojs, err
+}
+
+func (o *OrchestrationJob) UpsertOrchestrationWithInstructions(ctx context.Context) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `INSERT INTO orchestrations(org_id, orchestration_name, instructions, type, group_name, active)
+				  VALUES ($1, $2, $3, $4, $5, $6)
+				  ON CONFLICT (org_id, orchestration_name)
+				  DO UPDATE SET 
+					  instructions = EXCLUDED.instructions,
+					  type = EXCLUDED.type,
+					  group_name = EXCLUDED.group_name,
+					  active = EXCLUDED.active
+				  RETURNING orchestration_id;
+				  `
+	log.Debug().Interface("InsertOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName, o.Instructions, o.Type, o.GroupName, o.Active).Scan(&o.OrchestrationID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
+		return err
+	}
+	return misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
+}
+
+func (o *OrchestrationJob) UpdateOrchestrationActiveStatus(ctx context.Context) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `UPDATE orchestrations
+				  SET active = $3
+				  WHERE org_id = $1 AND orchestration_name = $2
+				  RETURNING orchestration_id;
+				  `
+	log.Debug().Interface("InsertOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName, o.Active).Scan(&o.OrchestrationID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return err
 	}

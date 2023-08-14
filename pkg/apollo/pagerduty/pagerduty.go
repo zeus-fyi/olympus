@@ -9,7 +9,7 @@ import (
 	"github.com/PagerDuty/go-pagerduty"
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
-	resty_base "github.com/zeus-fyi/zeus/pkg/zeus/client/base"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 const (

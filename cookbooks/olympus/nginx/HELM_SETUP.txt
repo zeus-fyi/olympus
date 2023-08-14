@@ -1,0 +1,27 @@
+ helm upgrade nginx-ingress ingress-nginx/ingress-nginx \
+--set controller.resources.requests.cpu=1 \
+--set controller.resources.requests.memory=3Gi \
+--set controller.resources.limits.cpu=1 \
+--set controller.resources.limits.memory=3Gi \
+--set controller.autoscaling.enabled=true \
+--set controller.autoscaling.minReplicas=3 \
+--set controller.autoscaling.maxReplicas=32 \
+--set controller.autoscaling.targetCPUUtilizationPercentage=80 \
+--set controller.autoscaling.targetMemoryUtilizationPercentage=80 \
+--set controller.enableLatencyMetrics=true \
+--set controller.metrics.enabled=true \
+--set-string controller.podAnnotations."prometheus\.io/scrape"="true" \
+--set-string controller.podAnnotations."prometheus\.io/port"="10254" \
+--set controller.tolerations\[0\].key="app" \
+--set controller.tolerations\[0\].operator="Equal" \
+--set controller.tolerations\[0\].value="nginx" \
+--set controller.tolerations\[0\].effect="NoSchedule" \
+--set controller.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms\[0\].matchExpressions\[0\].key="app" \
+--set controller.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms\[0\].matchExpressions\[0\].operator="In" \
+--set controller.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms\[0\].matchExpressions\[0\].values\[0\]="nginx" \
+--set controller.serviceMonitor.create=true \
+--set controller.serviceMonitor.name=nginx-ingress-monitor \
+--set controller.serviceMonitor.create=true \
+--set controller.serviceMonitor.labels.app="ingress-nginx" \
+--set controller.serviceMonitor.labels.release=kube-prometheus-stack \
+--set controller.serviceMonitor.selectorMatchLabels.app\\.kubernetes\\.io/name=ingress-nginx

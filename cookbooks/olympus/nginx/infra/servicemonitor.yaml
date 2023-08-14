@@ -10,5 +10,5 @@ spec:
     matchLabels:
       app.kubernetes.io/name: ingress-nginx  # This should match the labels of the NGINX Ingress Controller Service
   endpoints:
-    - port: "prometheus"  # You need to ensure that the Service exposing the NGINX Ingress Controller has a port named "prometheus" set to 9113
+    - port: "metrics"
       interval: 10s

@@ -3,16 +3,18 @@ package quicknode_orchestrations
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 	"go.temporal.io/sdk/client"
 )
 
-func (h *HestiaQuicknodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest, user hestia_quicknode.QuickNodeUserInfo) error {
+func (h *HestiaQuickNodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest, user hestia_quicknode.QuickNodeUserInfo) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
 		TaskQueue: h.TaskQueueName,
 	}
 	txWf := NewHestiaQuickNodeWorkflow()
@@ -25,7 +27,7 @@ func (h *HestiaQuicknodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, 
 	return err
 }
 
-func (h *HestiaQuicknodeWorker) ExecuteQnUpdateProvisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
+func (h *HestiaQuickNodeWorker) ExecuteQnUpdateProvisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -41,7 +43,7 @@ func (h *HestiaQuicknodeWorker) ExecuteQnUpdateProvisionWorkflow(ctx context.Con
 	return err
 }
 
-func (h *HestiaQuicknodeWorker) ExecuteQnDeprovisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.DeprovisionRequest) error {
+func (h *HestiaQuickNodeWorker) ExecuteQnDeprovisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.DeprovisionRequest) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -57,7 +59,7 @@ func (h *HestiaQuicknodeWorker) ExecuteQnDeprovisionWorkflow(ctx context.Context
 	return err
 }
 
-func (h *HestiaQuicknodeWorker) ExecuteQnDeactivateWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.DeactivateRequest) error {
+func (h *HestiaQuickNodeWorker) ExecuteQnDeactivateWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.DeactivateRequest) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{

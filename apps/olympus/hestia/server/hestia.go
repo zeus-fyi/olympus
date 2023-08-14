@@ -98,6 +98,7 @@ func Hestia() {
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, sw.SESAuthAWS)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
+		kronos_helix.InitPagerDutyAlertClient(sw.PagerDutyApiKey)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -116,6 +117,7 @@ func Hestia() {
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
+		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -132,6 +134,7 @@ func Hestia() {
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
+		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
@@ -195,8 +198,8 @@ func Hestia() {
 	}
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Done")
 
-	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker starting")
-	quicknode_orchestrations.InitHestiaQuicknodeWorker(context.Background(), temporalAuthConfigHestia)
+	log.Info().Msg("Hestia: InitHestiaQuickNodeWorker starting")
+	quicknode_orchestrations.InitHestiaQuickNodeWorker(context.Background(), temporalAuthConfigHestia)
 	cHestia := quicknode_orchestrations.HestiaQnWorker.Worker.ConnectTemporalClient()
 	defer cHestia.Close()
 	quicknode_orchestrations.HestiaQnWorker.Worker.RegisterWorker(cHestia)
@@ -205,7 +208,7 @@ func Hestia() {
 		log.Fatal().Err(err).Msgf("Hestia: %s HestiaQnWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
-	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker done")
+	log.Info().Msg("Hestia: InitHestiaQuickNodeWorker done")
 
 	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker start")
 	platform_service_orchestrations.InitHestiaIrisPlatformServicesWorker(context.Background(), temporalAuthConfigHestia)

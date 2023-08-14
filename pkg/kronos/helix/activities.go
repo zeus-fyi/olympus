@@ -18,7 +18,7 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (k *KronosActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{k.Recycle, k.GetAssignments, k.ExecuteTriggeredAlert, k.ProcessAssignment}
+	return []interface{}{k.Recycle, k.GetAssignments, k.ExecuteTriggeredAlert, k.ProcessAssignment, k.UpsertAssignment}
 }
 
 func (k *KronosActivities) Recycle(ctx context.Context) error {
@@ -30,6 +30,15 @@ func (k *KronosActivities) Recycle(ctx context.Context) error {
 }
 
 const internalOrgID = 7138983863666903883
+
+func (k *KronosActivities) UpsertAssignment(ctx context.Context, oj artemis_orchestrations.OrchestrationJob) error {
+	err := oj.UpsertOrchestrationWithInstructions(ctx)
+	if err != nil {
+		log.Err(err).Msg("UpsertAssignment: UpsertOrchestrationWithInstructions failed")
+		return err
+	}
+	return nil
+}
 
 func (k *KronosActivities) GetAssignments(ctx context.Context, orchestType, orchestGroup string) ([]artemis_orchestrations.OrchestrationJob, error) {
 	ojs, err := artemis_orchestrations.SelectActiveOrchestrationsWithInstructions(ctx, internalOrgID, orchestType, orchestGroup)
@@ -52,7 +61,7 @@ func (k *KronosActivities) ExecuteTriggeredAlert(ctx context.Context, instructio
 	pdEvent.Payload.Summary = instructions.Alerts.AlertMessage
 	pdEvent.Payload.Component = instructions.Alerts.Component
 	pdEvent.Payload.Details = instructions.Alerts.Source
-	pdEvent.Payload.Severity = instructions.Alerts.AlertSeverity.Critical()
+	pdEvent.Payload.Severity = instructions.Alerts.Severity.Critical()
 	_, err := PdAlertClient.SendAlert(ctx, pdEvent)
 	if err != nil {
 		log.Err(err).Msg("ExecuteTriggeredAlert: SendAlert failed")

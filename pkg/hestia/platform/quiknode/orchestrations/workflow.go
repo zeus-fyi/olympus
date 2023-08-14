@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -13,10 +14,13 @@ import (
 
 type HestiaQuickNodeWorkflow struct {
 	temporal_base.Workflow
-	HestiaQuicknodeActivities
+	HestiaQuickNodeActivities
 }
 
-const defaultTimeout = 72 * time.Hour
+const (
+	defaultTimeout      = 72 * time.Hour
+	defaultAlertTimeout = 20 * time.Minute
+)
 
 func NewHestiaQuickNodeWorkflow() HestiaQuickNodeWorkflow {
 	deployWf := HestiaQuickNodeWorkflow{
@@ -29,13 +33,23 @@ func (h *HestiaQuickNodeWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{h.ProvisionWorkflow, h.UpdateProvisionWorkflow, h.DeprovisionWorkflow, h.DeactivateWorkflow}
 }
 
-func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest, user hestia_quicknode.QuickNodeUserInfo) error {
+func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest, user hestia_quicknode.QuickNodeUserInfo) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "HestiaQuickNodeWorkflow", "temporal")
+	alertCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", ou)
+		logger.Error("failed to provision QuickNode services", "Error", err)
+		return err
+	}
+
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(pCtx, h.Provision, ou, pr, user).Get(pCtx, nil)
+	err = workflow.ExecuteActivity(pCtx, h.Provision, ou, pr, user).Get(pCtx, nil)
 	if err != nil {
 		logger.Warn("params", pr)
 		logger.Warn("ou", ou)

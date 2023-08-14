@@ -22,6 +22,26 @@ type OrchestrationJob struct {
 	zeus_common_types.CloudCtxNs
 }
 
+func NewActiveTemporalOrchestrationJobTemplate(orgID int, orchName, groupName, orchType string) OrchestrationJob {
+	return OrchestrationJob{
+		Orchestrations: artemis_autogen_bases.Orchestrations{
+			OrgID:             orgID,
+			Active:            true,
+			GroupName:         groupName,
+			Type:              orchType,
+			OrchestrationName: orchName,
+		},
+		Scheduled:  artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs{},
+		CloudCtxNs: zeus_common_types.CloudCtxNs{},
+	}
+}
+
+func NewActiveTemporalOrchestrationJobTemplateWithInstructions(orgID int, orchName, groupName, orchType, instructions string) OrchestrationJob {
+	oj := NewActiveTemporalOrchestrationJobTemplate(orgID, orchName, groupName, orchType)
+	oj.Instructions = instructions
+	return oj
+}
+
 func (o *OrchestrationJob) InsertOrchestrations(ctx context.Context) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
@@ -40,8 +60,7 @@ func (o *OrchestrationJob) InsertOrchestrations(ctx context.Context) error {
 func SelectActiveOrchestrationsWithInstructions(ctx context.Context, orgID int, orchestType, groupName string) ([]OrchestrationJob, error) {
 	var ojs []OrchestrationJob
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `
-				  SELECT orchestration_id, orchestration_name, instructions
+	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions
 				  FROM orchestrations
 				  WHERE org_id = $1 AND active = true AND type = $2 AND group_name = $3
 				  `
@@ -63,15 +82,20 @@ func SelectActiveOrchestrationsWithInstructions(ctx context.Context, orgID int, 
 	return ojs, err
 }
 
-func (o *OrchestrationJob) InsertOrchestrationsWithInstructions(ctx context.Context, instructions []byte) error {
+func (o *OrchestrationJob) UpsertOrchestrationWithInstructions(ctx context.Context) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `
-				  INSERT INTO orchestrations(org_id, orchestration_name, instructions)
-				  VALUES ($1, $2, $3)
+	q.RawQuery = `INSERT INTO orchestrations(org_id, orchestration_name, instructions, type, group_name, active)
+				  VALUES ($1, $2, $3, $4, $5, $6)
+				  ON CONFLICT (org_id, orchestration_name)
+				  DO UPDATE SET 
+					  instructions = EXCLUDED.instructions,
+					  type = EXCLUDED.type,
+					  group_name = EXCLUDED.group_name,
+					  active = EXCLUDED.active
 				  RETURNING orchestration_id;
 				  `
 	log.Debug().Interface("InsertOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName, instructions).Scan(&o.OrchestrationID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName, o.Instructions, o.Type, o.GroupName, o.Active).Scan(&o.OrchestrationID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return err
 	}

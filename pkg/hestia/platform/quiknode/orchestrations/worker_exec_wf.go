@@ -19,7 +19,7 @@ func (h *HestiaQuickNodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, 
 	}
 	txWf := NewHestiaQuickNodeWorkflow()
 	wf := txWf.ProvisionWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, pr, user)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, pr, user)
 	if err != nil {
 		log.Err(err).Msg("ExecuteQnProvisionWorkflow")
 		return err
@@ -31,11 +31,12 @@ func (h *HestiaQuickNodeWorker) ExecuteQnUpdateProvisionWorkflow(ctx context.Con
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
 		TaskQueue: h.TaskQueueName,
 	}
 	txWf := NewHestiaQuickNodeWorkflow()
 	wf := txWf.UpdateProvisionWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, pr)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteQnUpdateProvisionWorkflow")
 		return err
@@ -47,6 +48,7 @@ func (h *HestiaQuickNodeWorker) ExecuteQnDeprovisionWorkflow(ctx context.Context
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
 		TaskQueue: h.TaskQueueName,
 	}
 	txWf := NewHestiaQuickNodeWorkflow()
@@ -63,6 +65,7 @@ func (h *HestiaQuickNodeWorker) ExecuteQnDeactivateWorkflow(ctx context.Context,
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
 		TaskQueue: h.TaskQueueName,
 	}
 	txWf := NewHestiaQuickNodeWorkflow()

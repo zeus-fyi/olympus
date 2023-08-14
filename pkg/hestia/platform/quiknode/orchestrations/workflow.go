@@ -18,8 +18,7 @@ type HestiaQuickNodeWorkflow struct {
 }
 
 const (
-	defaultTimeout      = 72 * time.Hour
-	defaultAlertTimeout = 20 * time.Minute
+	defaultTimeout = 72 * time.Hour
 )
 
 func NewHestiaQuickNodeWorkflow() HestiaQuickNodeWorkflow {
@@ -38,7 +37,8 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID s
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "HestiaQuickNodeWorkflow", "temporal")
+
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "HestiaQuickNodeWorkflow", "ProvisionWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
@@ -83,16 +83,35 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID s
 		logger.Error("UpsertQuickNodeGroupTableRoutingEndpoints: failed to upsert endpoint into org routing table", "Error", err)
 		return err
 	}
+
+	finishedCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(alertCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", ou)
+		logger.Error("failed to UpdateAndMarkOrchestrationInactive qn services", "Error", err)
+		return err
+	}
 	return nil
 }
 
-func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
+func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "HestiaQuickNodeWorkflow", "UpdateProvisionWorkflow")
+	alertCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", ou)
+		logger.Error("failed to update QuickNode services", "Error", err)
+		return err
+	}
+
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(pCtx, h.UpdateProvision, pr).Get(pCtx, nil)
+	err = workflow.ExecuteActivity(pCtx, h.UpdateProvision, pr).Get(pCtx, nil)
 	if err != nil {
 		logger.Warn("params", pr)
 		logger.Warn("ou", ou)
@@ -134,6 +153,15 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 			logger.Error("failed to adjust cache services", "Error", err)
 			return err
 		}
+	}
+
+	finishedCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(alertCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", ou)
+		logger.Error("failed to UpdateAndMarkOrchestrationInactive qn services", "Error", err)
+		return err
 	}
 	return nil
 }

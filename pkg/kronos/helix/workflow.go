@@ -3,8 +3,11 @@ package kronos_helix
 import (
 	"time"
 
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -13,7 +16,7 @@ type KronosWorkflow struct {
 	KronosActivities
 }
 
-const defaultTimeout = 6 * time.Second
+const kronosLoopInterval = 10 * time.Minute
 
 func NewKronosWorkflow() KronosWorkflow {
 	deployWf := KronosWorkflow{
@@ -24,7 +27,7 @@ func NewKronosWorkflow() KronosWorkflow {
 }
 
 func (k *KronosWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{k.Yin, k.Yang, k.SignalFlow}
+	return []interface{}{k.Yin, k.Yang, k.SignalFlow, k.OrchestrationChildProcessReset}
 }
 
 // SignalFlow should be used to place new control flows on the helix
@@ -34,30 +37,110 @@ func (k *KronosWorkflow) SignalFlow(ctx workflow.Context) error {
 
 // Yin should send commands and execute actions
 func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
+	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
 	}
 	aCtx := workflow.WithActivityOptions(ctx, ao)
-	oj := artemis_orchestrations.OrchestrationJob{}
-	err := workflow.ExecuteActivity(aCtx, k.GetAssignments).Get(aCtx, &oj)
+	var ojs []artemis_orchestrations.OrchestrationJob
+	err := workflow.ExecuteActivity(aCtx, k.GetInternalAssignments).Get(aCtx, &ojs)
 	if err != nil {
+		logger.Error("failed to get internal assignments", "Error", err)
 		return err
 	}
-	// TODO: Add logic to handle the assignments
+	for _, oj := range ojs {
+		var pdV2Event *pagerduty.V2Event
+		var inst Instructions
+		instCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(instCtx, k.GetInstructionsFromJob, oj).Get(instCtx, &inst)
+		if err != nil {
+			logger.Error("failed to get alert assignment from instructions", "Error", err)
+			return err
+		}
+		alertAssignmentCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(alertAssignmentCtx, k.GetAlertAssignmentFromInstructions, oj, inst).Get(alertAssignmentCtx, &pdV2Event)
+		if err != nil {
+			logger.Error("failed to get alert assignment from instructions", "Error", err)
+			return err
+		}
+		if pdV2Event != nil {
+			alertCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(alertCtx, k.ExecuteTriggeredAlert, *pdV2Event).Get(alertCtx, nil)
+			if err != nil {
+				logger.Error("failed to execute triggered alert", "Error", err)
+				return err
+			}
+			childWorkflowOptions := workflow.ChildWorkflowOptions{
+				TaskQueue:         KronosHelixTaskQueue,
+				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+			}
+			childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
+			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "OrchestrationChildProcessReset", oj, inst)
+			var childWE workflow.Execution
+			if err = childWfFuture.GetChildWorkflowExecution().Get(childCtx, &childWE); err != nil {
+				logger.Error("Failed to get child workflow execution", "Error", err)
+				return err
+			}
+		}
+	}
+	childWorkflowOptions := workflow.ChildWorkflowOptions{
+		TaskQueue:         KronosHelixTaskQueue,
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+	}
+	childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
+	childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "Yang", kronosLoopInterval)
+	var childWE workflow.Execution
+	if err = childWfFuture.GetChildWorkflowExecution().Get(childCtx, &childWE); err != nil {
+		logger.Error("Failed to get child workflow execution", "Error", err)
+		return err
+	}
+	return nil
+}
 
+func (k *KronosWorkflow) OrchestrationChildProcessReset(ctx workflow.Context, oj artemis_orchestrations.OrchestrationJob, inst Instructions) error {
+	logger := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Hour * 730, // Setting a valid non-zero timeout
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Second * 10,
+			BackoffCoefficient: 2,
+			MaximumInterval:    time.Minute * 5,
+		},
+	}
+	aCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(aCtx, k.UpdateAndMarkOrchestrationInactive, oj).Get(aCtx, nil)
+	if err != nil {
+		logger.Error("failed to execute triggered alert", "Error", err)
+		return err
+	}
+	err = workflow.Sleep(aCtx, inst.Trigger.ResetAlertAfterTimeDuration)
+	if err != nil {
+		logger.Error("failed to sleep", "Error", err)
+		return err
+	}
+	err = workflow.ExecuteActivity(aCtx, k.UpdateAndMarkOrchestrationActive, oj).Get(aCtx, nil)
+	if err != nil {
+		logger.Error("failed to execute triggered alert", "Error", err)
+		return err
+	}
 	return nil
 }
 
 // Yang should check, status, & react to changes
-func (k *KronosWorkflow) Yang(ctx workflow.Context) error {
-	//workflow.GetLogger(ctx)
+func (k *KronosWorkflow) Yang(ctx workflow.Context, waitTime time.Duration) error {
+	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
 	}
-	// time sleep?
-	aCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(aCtx, k.Recycle).Get(aCtx, nil)
+	err := workflow.Sleep(ctx, waitTime)
 	if err != nil {
+		logger.Error("failed to sleep", "Error", err)
+		return err
+	}
+	aCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(aCtx, k.Recycle).Get(aCtx, nil)
+	if err != nil {
+		logger.Error("failed to recycle", "Error", err)
 		return err
 	}
 	return nil

@@ -25,10 +25,10 @@ func (t *HestiaQuickNodeOrchestrationsTestSuite) SetupTest() {
 func (t *HestiaQuickNodeOrchestrationsTestSuite) TestSeed() {
 	ai := kronos_helix.Instructions{
 		Alerts: kronos_helix.AlertInstructions{
-			Severity:     apollo_pagerduty.CRITICAL,
-			AlertMessage: "Unable to provision QuickNode services",
-			Source:       "HestiaQuickNodeWorkflow",
-			Component:    "ProvisionWorkflow",
+			Severity:  apollo_pagerduty.CRITICAL,
+			Message:   "Unable to provision QuickNode services",
+			Source:    "HestiaQuickNodeWorkflow",
+			Component: "ProvisionWorkflow",
 		},
 		Trigger: kronos_helix.TriggerInstructions{
 			AlertAfterTime: defaultAlertTimeout,

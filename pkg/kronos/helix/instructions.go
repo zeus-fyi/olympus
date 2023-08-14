@@ -8,8 +8,10 @@ import (
 )
 
 type Instructions struct {
-	Alerts  AlertInstructions   `json:"alerts,omitempty"`
-	Trigger TriggerInstructions `json:"trigger,omitempty"`
+	GroupName string              `json:"groupName"`
+	Type      string              `json:"type"`
+	Alerts    AlertInstructions   `json:"alerts,omitempty"`
+	Trigger   TriggerInstructions `json:"trigger,omitempty"`
 }
 
 var (
@@ -33,15 +35,15 @@ var (
 // AlertAfterTime: eg set a 20 minutes duration, and for each wf watched it will check for completion <20 minutes or will alert
 
 type TriggerInstructions struct {
-	AlertAfterTime      time.Duration `json:"alertAfterTime,omitempty"`
-	ResetAlertAfterTime time.Time     `json:"resetAlertAfterTime,omitempty"`
+	AlertAfterTime              time.Duration `json:"alertAfterTime,omitempty"`
+	ResetAlertAfterTimeDuration time.Duration `json:"resetAlertAfterTime,omitempty"`
 }
 
 type AlertInstructions struct {
-	Severity     apollo_pagerduty.Severity `json:"alertSeverity"`
-	AlertMessage string                    `json:"alertMessage"`
-	Source       string                    `json:"source"`
-	Component    string                    `json:"component"`
+	Severity  apollo_pagerduty.Severity `json:"severity"`
+	Message   string                    `json:"message"`
+	Source    string                    `json:"source"`
+	Component string                    `json:"component"`
 }
 
 func InitPagerDutyAlertClient(pdApiKey string) {

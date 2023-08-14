@@ -27,10 +27,13 @@ const (
 )
 
 type HestiaQuickNodeActivities struct {
+	kronos_helix.KronosActivities
 }
 
 func NewHestiaQuickNodeActivities() HestiaQuickNodeActivities {
-	return HestiaQuickNodeActivities{}
+	return HestiaQuickNodeActivities{
+		KronosActivities: kronos_helix.NewKronosActivities(),
+	}
 }
 
 type ActivityDefinition interface{}

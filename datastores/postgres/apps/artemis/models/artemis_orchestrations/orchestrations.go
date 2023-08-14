@@ -37,20 +37,31 @@ func (o *OrchestrationJob) InsertOrchestrations(ctx context.Context) error {
 	return misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
 }
 
-func (o *OrchestrationJob) SelectOrchestrationsWithInstructions(ctx context.Context) error {
+func SelectActiveOrchestrationsWithInstructions(ctx context.Context, orgID int) ([]OrchestrationJob, error) {
+	var ojs []OrchestrationJob
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
-				  SELECT orchestration_id, instructions
+				  SELECT orchestration_id, orchestration_name, instructions
 				  FROM orchestrations
-				  WHERE org_id = $1 AND orchestration_name = $2
+				  WHERE org_id = $1 AND active = true
 				  `
 	log.Debug().Interface("InsertOrchestrations", q.LogHeader(Orchestrations))
-	var instructions []byte
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName).Scan(&o.OrchestrationID, &instructions)
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
-		return err
+		return ojs, err
 	}
-	return misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
+	defer rows.Close()
+	for rows.Next() {
+		oj := OrchestrationJob{}
+		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
+			return ojs, rowErr
+		}
+		ojs = append(ojs, oj)
+	}
+	return ojs, err
 }
 
 func (o *OrchestrationJob) InsertOrchestrationsWithInstructions(ctx context.Context, instructions []byte) error {

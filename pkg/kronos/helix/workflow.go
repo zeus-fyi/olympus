@@ -54,6 +54,7 @@ func (k *KronosWorkflow) Yang(ctx workflow.Context) error {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
 	}
+	// time sleep?
 	aCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(aCtx, k.Recycle).Get(aCtx, nil)
 	if err != nil {

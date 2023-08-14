@@ -28,11 +28,12 @@ func (k *KronosActivities) Recycle(ctx context.Context) error {
 	return nil
 }
 
-func (k *KronosActivities) GetAssignments(ctx context.Context) (artemis_orchestrations.OrchestrationJob, error) {
-	oj := artemis_orchestrations.OrchestrationJob{}
-	err := oj.SelectOrchestrationsWithInstructions(context.Background())
+const internalOrgID = 7138983863666903883
+
+func (k *KronosActivities) GetAssignments(ctx context.Context) ([]artemis_orchestrations.OrchestrationJob, error) {
+	ojs, err := artemis_orchestrations.SelectActiveOrchestrationsWithInstructions(ctx, internalOrgID)
 	if err != nil {
-		return oj, err
+		return nil, err
 	}
-	return oj, err
+	return ojs, err
 }

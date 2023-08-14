@@ -129,6 +129,14 @@ func (s *OrchestrationsTestSuite) TestSelectOrchestrationsAtCloudCtxNsWithStatus
 	s.Assert().True(orchTodo)
 }
 
+func (s *OrchestrationsTestSuite) TestSelectActiveInstructions() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	ojs, err := SelectActiveOrchestrationsWithInstructions(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(ojs)
+}
+
 // SelectOrchestrationsAtCloudCtxNsWithStatus
 func TestOrchestrationsTestSuite(t *testing.T) {
 	suite.Run(t, new(OrchestrationsTestSuite))

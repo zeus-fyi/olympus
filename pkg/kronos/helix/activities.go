@@ -31,8 +31,8 @@ func (k *KronosActivities) Recycle(ctx context.Context) error {
 
 const internalOrgID = 7138983863666903883
 
-func (k *KronosActivities) GetAssignments(ctx context.Context, orchestType string) ([]artemis_orchestrations.OrchestrationJob, error) {
-	ojs, err := artemis_orchestrations.SelectActiveOrchestrationsWithInstructions(ctx, internalOrgID, orchestType)
+func (k *KronosActivities) GetAssignments(ctx context.Context, orchestType, orchestGroup string) ([]artemis_orchestrations.OrchestrationJob, error) {
+	ojs, err := artemis_orchestrations.SelectActiveOrchestrationsWithInstructions(ctx, internalOrgID, orchestType, orchestGroup)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
@@ -81,6 +82,7 @@ func (k *KronosActivities) GetAlertAssignmentFromInstructions(ctx context.Contex
 		return nil, nil
 	}
 	pdEvent := PdAlertGenericWfIssuesEvent
+	pdEvent.DedupKey = uuid.New().String()
 	pdEvent.Payload.Summary = ins.Alerts.Message
 	pdEvent.Payload.Component = ins.Alerts.Component
 	pdEvent.Payload.Details = ins.Alerts.Source

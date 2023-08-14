@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -26,8 +27,8 @@ func (t *KronosInstructionsTestSuite) SetupTest() {
 }
 
 func (t *KronosInstructionsTestSuite) TestAlertPatternWf() {
-	groupName := olympus
-	instType := "alerts"
+	groupName := "testGroup"
+	instType := "testType"
 	inst := Instructions{
 		GroupName: groupName,
 		Type:      instType,
@@ -44,16 +45,33 @@ func (t *KronosInstructionsTestSuite) TestAlertPatternWf() {
 	}
 	b, err := json.Marshal(inst)
 	t.Require().Nil(err)
+
 	oj := artemis_orchestrations.OrchestrationJob{
 		Orchestrations: artemis_autogen_bases.Orchestrations{
 			OrgID:             t.Tc.ProductionLocalTemporalOrgID,
 			Active:            true,
 			GroupName:         groupName,
 			Type:              instType,
-			Instructions:      string(b),
-			OrchestrationName: "test",
+			OrchestrationName: "testKronosMaster-" + uuid.New().String(),
 		},
 	}
+	err = oj.UpsertOrchestrationWithInstructions(ctx)
+	t.Require().Nil(err)
+	t.Assert().NotZero(oj.OrchestrationID)
+
+	groupName = olympus
+	instType = "alerts"
+	oj = artemis_orchestrations.OrchestrationJob{
+		Orchestrations: artemis_autogen_bases.Orchestrations{
+			OrgID:             t.Tc.ProductionLocalTemporalOrgID,
+			Active:            true,
+			GroupName:         groupName,
+			Type:              instType,
+			Instructions:      string(b),
+			OrchestrationName: "testKronosAlertTriggerWf-" + uuid.New().String(),
+		},
+	}
+
 	err = oj.UpsertOrchestrationWithInstructions(ctx)
 	t.Require().Nil(err)
 	t.Assert().NotZero(oj.OrchestrationID)

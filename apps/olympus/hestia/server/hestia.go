@@ -29,6 +29,7 @@ import (
 	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	artemis_client "github.com/zeus-fyi/zeus/pkg/artemis/client"
@@ -49,6 +50,12 @@ var (
 		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
 		Namespace:        "production-hestia.ngb72",
 		HostPort:         "production-hestia.ngb72.tmprl.cloud:7233",
+	}
+	temporalAuthConfigKronos = temporal_auth.TemporalAuth{
+		ClientCertPath:   "/etc/ssl/certs/ca.pem",
+		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
+		Namespace:        "kronos.ngb72",
+		HostPort:         "kronos.ngb72.tmprl.cloud:7233",
 	}
 	awsRegion  = "us-west-1"
 	awsAuthCfg = aegis_aws_auth.AuthAWS{
@@ -96,7 +103,7 @@ func Hestia() {
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		temporalAuthConfig = tc.DevTemporalAuth
 		temporalAuthConfigHestia = tc.DevTemporalAuth
-
+		temporalAuthConfigKronos = tc.DevTemporalAuth
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 
@@ -114,6 +121,7 @@ func Hestia() {
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthConfig = tc.DevTemporalAuth
 		temporalAuthConfigHestia = tc.DevTemporalAuth
+		temporalAuthConfigKronos = tc.DevTemporalAuth
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 		hestia_quicknode_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
@@ -208,6 +216,18 @@ func Hestia() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker done")
+
+	log.Info().Msg("Hestia: InitKronosWorker start")
+	cKronos := kronos_helix.KronosServiceWorker.Worker.ConnectTemporalClient()
+	defer cKronos.Close()
+	kronos_helix.InitKronosHelixWorker(context.Background(), temporalAuthConfigKronos)
+	kronos_helix.KronosServiceWorker.Worker.RegisterWorker(cKronos)
+	err = kronos_helix.KronosServiceWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Hestia: %s InitKronosWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Hestia: InitKronosWorker done")
 
 	if env == "local" || env == "production-local" {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{

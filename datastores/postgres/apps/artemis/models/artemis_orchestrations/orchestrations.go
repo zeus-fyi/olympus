@@ -45,8 +45,7 @@ func SelectActiveOrchestrationsWithInstructions(ctx context.Context, orgID int, 
 				  FROM orchestrations
 				  WHERE org_id = $1 AND active = true AND type = $2 AND group_name = $3
 				  `
-	log.Debug().Interface("InsertOrchestrations", q.LogHeader(Orchestrations))
-
+	log.Debug().Interface("SelectActiveOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, orchestType, groupName)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return ojs, err
@@ -71,7 +70,7 @@ func (o *OrchestrationJob) InsertOrchestrationsWithInstructions(ctx context.Cont
 				  VALUES ($1, $2, $3)
 				  RETURNING orchestration_id;
 				  `
-	log.Debug().Interface("InsertOrchestrations", q.LogHeader(Orchestrations))
+	log.Debug().Interface("InsertOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName, instructions).Scan(&o.OrchestrationID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return err

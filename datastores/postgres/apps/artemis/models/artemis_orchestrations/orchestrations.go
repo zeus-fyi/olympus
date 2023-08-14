@@ -137,6 +137,10 @@ func (o *OrchestrationJob) UpsertOrchestrationWithInstructions(ctx context.Conte
 				  RETURNING orchestration_id;
 				  `
 	log.Debug().Interface("InsertOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
+	if len(o.Instructions) == 0 {
+		o.Instructions = "{}"
+	}
+
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName, o.Instructions, o.Type, o.GroupName, o.Active).Scan(&o.OrchestrationID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return err

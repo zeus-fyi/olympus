@@ -84,6 +84,21 @@ func SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx context.Conte
 	return ojs, err
 }
 
+func SelectOrchestrationByName(ctx context.Context, orgID int, name string) (OrchestrationJob, error) {
+	var oj OrchestrationJob
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions
+				  FROM orchestrations
+				  WHERE org_id = $1 AND orchestration_name = $2 
+				  `
+	log.Debug().Interface("SelectOrchestrationByName", q.LogHeader(Orchestrations))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, name).Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
+		return oj, err
+	}
+	return oj, err
+}
+
 func SelectSystemOrchestrationsWithInstructionsByGroup(ctx context.Context, orgID int, groupName string) ([]OrchestrationJob, error) {
 	var ojs []OrchestrationJob
 	q := sql_query_templates.QueryParams{}

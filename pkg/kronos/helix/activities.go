@@ -10,8 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
 
-type KronosActivities struct {
-}
+type KronosActivities struct{}
 
 func NewKronosActivities() KronosActivities {
 	return KronosActivities{}
@@ -91,16 +90,6 @@ func (k *KronosActivities) GetAlertAssignmentFromInstructions(ctx context.Contex
 }
 
 func (k *KronosActivities) ProcessAssignment(ctx context.Context, oj artemis_orchestrations.OrchestrationJob) error {
-	if oj.Instructions == "{}" || oj.Instructions == "" {
-		log.Info().Msg("ProcessAssignment: Instructions are empty")
-		return nil
-	}
-	var instructions Instructions
-	err := json.Unmarshal([]byte(oj.Instructions), &instructions)
-	if err != nil {
-		log.Err(err).Msg("ProcessAssignment: Unmarshal failed")
-		return err
-	}
 	return nil
 }
 

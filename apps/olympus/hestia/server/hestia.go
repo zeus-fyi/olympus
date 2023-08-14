@@ -99,6 +99,7 @@ func Hestia() {
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 		kronos_helix.InitPagerDutyAlertClient(sw.PagerDutyApiKey)
+		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = sw.PagerDutyRoutingKey
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -118,6 +119,7 @@ func Hestia() {
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)
+		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = tc.PagerDutyRoutingKey
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -135,6 +137,7 @@ func Hestia() {
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)
+		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = tc.PagerDutyRoutingKey
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

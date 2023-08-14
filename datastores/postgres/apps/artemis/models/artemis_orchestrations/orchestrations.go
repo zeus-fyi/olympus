@@ -87,12 +87,12 @@ func SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx context.Conte
 func SelectOrchestrationByName(ctx context.Context, orgID int, name string) (OrchestrationJob, error) {
 	var oj OrchestrationJob
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions
+	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions, type, group_name
 				  FROM orchestrations
 				  WHERE org_id = $1 AND orchestration_name = $2 
 				  `
 	log.Debug().Interface("SelectOrchestrationByName", q.LogHeader(Orchestrations))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, name).Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, name).Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions, &oj.Type, &oj.GroupName)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return oj, err
 	}
@@ -102,11 +102,11 @@ func SelectOrchestrationByName(ctx context.Context, orgID int, name string) (Orc
 func SelectSystemOrchestrationsWithInstructionsByGroup(ctx context.Context, orgID int, groupName string) ([]OrchestrationJob, error) {
 	var ojs []OrchestrationJob
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions
+	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions, type, group_name
 				  FROM orchestrations
 				  WHERE org_id = $1 AND active = true AND group_name = $2
 				  `
-	log.Debug().Interface("SelectActiveOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
+	log.Debug().Interface("SelectSystemOrchestrationsWithInstructionsByGroup", q.LogHeader(Orchestrations))
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, groupName)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return ojs, err
@@ -114,7 +114,7 @@ func SelectSystemOrchestrationsWithInstructionsByGroup(ctx context.Context, orgI
 	defer rows.Close()
 	for rows.Next() {
 		oj := OrchestrationJob{}
-		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions)
+		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions, &oj.Type, &oj.GroupName)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
 			return ojs, rowErr

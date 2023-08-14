@@ -16,7 +16,10 @@ type KronosWorkflow struct {
 	KronosActivities
 }
 
-const kronosLoopInterval = 10 * time.Minute
+const (
+	kronosLoopInterval = 10 * time.Minute
+	alerts             = "alerts"
+)
 
 func NewKronosWorkflow() KronosWorkflow {
 	deployWf := KronosWorkflow{
@@ -56,6 +59,9 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 		if err != nil {
 			logger.Error("failed to get alert assignment from instructions", "Error", err)
 			return err
+		}
+		if oj.Type != alerts {
+			continue
 		}
 		alertAssignmentCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(alertAssignmentCtx, k.GetAlertAssignmentFromInstructions, oj, inst).Get(alertAssignmentCtx, &pdV2Event)
@@ -131,6 +137,11 @@ func (k *KronosWorkflow) Yang(ctx workflow.Context, waitTime time.Duration) erro
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Minute,
+			BackoffCoefficient: 2.0,
+			MaximumInterval:    time.Minute * 5,
+		},
 	}
 	err := workflow.Sleep(ctx, waitTime)
 	if err != nil {

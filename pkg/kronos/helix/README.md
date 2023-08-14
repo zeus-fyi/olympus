@@ -1,5 +1,4 @@
 
-
 use olympus group to get internal assignments
 ```go
 func (k *KronosActivities) GetInternalAssignments(ctx context.Context) ([]artemis_orchestrations.OrchestrationJob, error) {
@@ -10,3 +9,8 @@ func (k *KronosActivities) GetInternalAssignments(ctx context.Context) ([]artemi
 	return ojs, err
 }
 ```
+
+for internal platform alerts
+
+use group: olympus
+use type: alerts

@@ -156,7 +156,7 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 	}
 
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(alertCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {
 		logger.Warn("params", pr)
 		logger.Warn("ou", ou)

@@ -3,6 +3,7 @@ package kronos_helix
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -24,6 +25,47 @@ type KronosInstructionsTestSuite struct {
 func (t *KronosInstructionsTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+}
+
+// HestiaPlatformServiceWorkflows
+// IrisRoutingServiceRequestWorkflow, IrisDeleteOrgGroupRoutingTableWorkflow, IrisDeleteOrgRoutesWorkflow, IrisRemoveAllOrgRoutesFromCacheWorkflow
+
+func (t *KronosWorkerTestSuite) TestInsertAlertOrchestrators() {
+	groupName := "HestiaPlatformServiceWorkflows"
+	instType := "IrisRemoveAllOrgRoutesFromCacheWorkflow"
+
+	orchName := fmt.Sprintf("%s-%s", groupName, instType)
+	inst := Instructions{
+		GroupName: groupName,
+		Type:      instType,
+		Alerts: AlertInstructions{
+			Severity:  apollo_pagerduty.CRITICAL,
+			Source:    "TEMPORAL_ALERTS",
+			Component: "This is a workflow component",
+			Message:   "A QuickNode services workflow is stuck",
+		},
+		Trigger: TriggerInstructions{
+			AlertAfterTime:              time.Minute * 10,
+			ResetAlertAfterTimeDuration: time.Minute * 10,
+		},
+	}
+	b, err := json.Marshal(inst)
+	t.Require().Nil(err)
+	groupName = olympus
+	instType = "alerts"
+	oj := artemis_orchestrations.OrchestrationJob{
+		Orchestrations: artemis_autogen_bases.Orchestrations{
+			OrgID:             t.Tc.ProductionLocalTemporalOrgID,
+			Active:            true,
+			GroupName:         groupName,
+			Type:              instType,
+			Instructions:      string(b),
+			OrchestrationName: orchName,
+		},
+	}
+	err = oj.UpsertOrchestrationWithInstructions(ctx)
+	t.Require().Nil(err)
+	t.Assert().NotZero(oj.OrchestrationID)
 }
 
 func (t *KronosInstructionsTestSuite) TestAlertPatternWf() {

@@ -34,8 +34,7 @@ const (
 )
 
 func (r *ProvisionRequest) Provision(c echo.Context) error {
-	qh, ok := c.Get(QuickNodeIDHeader).(string)
-	if !ok || len(qh) <= 0 {
+	if c.Get(QuickNodeIDHeader) == nil {
 		key, err := auth.VerifyQuickNodeToken(context.Background(), r.QuickNodeID)
 		if err != nil {
 			log.Err(err).Msg("InitV1Routes QuickNode user not found: creating new org")
@@ -49,7 +48,14 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 	ouc := c.Get("orgUser")
 	ou, ok := ouc.(org_users.OrgUser)
 	if !ok {
-		ou = org_users.OrgUser{}
+		key, err := auth.VerifyQuickNodeToken(context.Background(), r.QuickNodeID)
+		if err != nil {
+			log.Err(err).Msg("InitV1Routes QuickNode user not found: creating new org")
+			err = nil
+		}
+		ou = org_users.NewOrgUserWithID(key.OrgID, 0)
+		c.Set("orgUser", ou)
+		c.Set("verified", key.IsVerified())
 	}
 	pr := r.ProvisionRequest
 	r.Verified = false
@@ -110,7 +116,16 @@ func (r *ProvisionRequest) ProvisionTest(c echo.Context) error {
 	ou, ok := ouc.(org_users.OrgUser)
 	if !ok {
 		ou = org_users.OrgUser{}
+		key, err := auth.VerifyQuickNodeToken(context.Background(), r.QuickNodeID)
+		if err != nil {
+			log.Err(err).Msg("InitV1Routes QuickNode user not found: creating new org")
+			err = nil
+		}
+		ou = org_users.NewOrgUserWithID(key.OrgID, 0)
+		c.Set("orgUser", ou)
+		c.Set("verified", key.IsVerified())
 	}
+
 	pr := r.ProvisionRequest
 	r.Verified = false
 	val, ok := c.Get("verified").(bool)
@@ -157,7 +172,14 @@ func (r *ProvisionRequest) UpdateProvision(c echo.Context) error {
 	ouc := c.Get("orgUser")
 	ou, ok := ouc.(org_users.OrgUser)
 	if !ok {
-		ou = org_users.OrgUser{}
+		key, err := auth.VerifyQuickNodeToken(context.Background(), r.QuickNodeID)
+		if err != nil {
+			log.Err(err).Msg("InitV1Routes QuickNode user not found: creating new org")
+			err = nil
+		}
+		ou = org_users.NewOrgUserWithID(key.OrgID, 0)
+		c.Set("orgUser", ou)
+		c.Set("verified", key.IsVerified())
 	}
 	r.Verified = false
 	val, ok := c.Get("verified").(bool)

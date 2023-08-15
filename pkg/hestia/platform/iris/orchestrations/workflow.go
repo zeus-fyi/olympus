@@ -28,12 +28,16 @@ func (h *HestiaPlatformServiceWorkflows) GetWorkflows() []interface{} {
 	return []interface{}{h.IrisRoutingServiceRequestWorkflow, h.IrisDeleteOrgGroupRoutingTableWorkflow, h.IrisDeleteOrgRoutesWorkflow, h.IrisRemoveAllOrgRoutesFromCacheWorkflow}
 }
 
+const (
+	internalOrgID = 7138983863666903883
+)
+
 func (h *HestiaPlatformServiceWorkflows) IrisRoutingServiceRequestWorkflow(ctx workflow.Context, wfID string, pr IrisPlatformServiceRequest) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(pr.Ou.OrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisRoutingServiceRequestWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisRoutingServiceRequestWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
@@ -94,7 +98,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: org group name is empty")
 	}
 
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(pr.Ou.OrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisDeleteOrgGroupRoutingTableWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisDeleteOrgGroupRoutingTableWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
@@ -147,7 +151,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgRoutesWorkflow(ctx workflo
 	if len(pr.Routes) == 0 {
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgRoutesWorkflow: no routes provided for deletion")
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(pr.Ou.OrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisDeleteOrgRoutesWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisDeleteOrgRoutesWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
@@ -200,7 +204,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisRemoveAllOrgRoutesFromCacheWorkflow
 			MaximumInterval:    time.Minute * 5,
 		},
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(pr.Ou.OrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisRemoveAllOrgRoutesFromCacheWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisRemoveAllOrgRoutesFromCacheWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {

@@ -66,7 +66,7 @@ func SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx context.Conte
 				  FROM orchestrations
 				  WHERE org_id = $1 AND active = true AND type = $2 AND group_name = $3 AND updated_at < $4
 				  `
-	log.Debug().Interface("SelectActiveOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
+	log.Debug().Interface("SelectActiveOrchestrationsWithInstructionsUsingTimeWindow", q.LogHeader(Orchestrations))
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, orchestType, groupName, thresholdTime)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return ojs, err

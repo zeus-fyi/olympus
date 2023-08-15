@@ -103,7 +103,7 @@ func InsertOrgRoutesFromQuickNodeID(ctx context.Context, quickNodeID string, rou
 	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutesFromQuickNodeID"))
 }
 
-func UpsertGeneratedQuickNodeOrgRouteGroup(ctx context.Context, quickNodeID string, ogr iris_autogen_bases.OrgRouteGroups, routes []iris_autogen_bases.OrgRoutes) error {
+func UpsertGeneratedQuickNodeOrgRouteGroup(ctx context.Context, quickNodeID string, ogr iris_autogen_bases.OrgRouteGroups, routes []iris_autogen_bases.OrgRoutes) (int, error) {
 	// Convert the routes slice into a format that can be used in the SQL query
 	routePaths := make([]string, len(routes))
 	for i, route := range routes {
@@ -129,18 +129,20 @@ func UpsertGeneratedQuickNodeOrgRouteGroup(ctx context.Context, quickNodeID stri
 			SELECT route_id as route_id
 			FROM org_routes
 			WHERE org_id = (SELECT org_id FROM cte_qn_org_id) AND route_path = ANY($4::text[])
-		) 	  INSERT INTO org_routes_groups(route_id, route_group_id)
+		), cte_org_insert AS (
+			  INSERT INTO org_routes_groups(route_id, route_group_id)
 			  SELECT route_id, (SELECT COALESCE(route_group_id, $2) FROM cte_upsert_route_group) as route_group_id
 			  FROM cte_route_ids
 			  ON CONFLICT (route_id, route_group_id) DO NOTHING
+		) SELECT org_id FROM cte_qn_org_id
 	`
 	ogr.RouteGroupID = ts.UnixTimeStampNow()
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, quickNodeID, ogr.RouteGroupID, ogr.RouteGroupName, pq.Array(routePaths))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, quickNodeID, ogr.RouteGroupID, ogr.RouteGroupName, pq.Array(routePaths)).Scan(&ogr.OrgID)
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("No new routes to insert")
-		return nil
+		return ogr.OrgID, nil
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRouteGroup"))
+	return ogr.OrgID, misc.ReturnIfErr(err, q.LogHeader("UpsertGeneratedQuickNodeOrgRouteGroup"))
 }
 
 func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGroups, routes []iris_autogen_bases.OrgRoutes) error {

@@ -45,14 +45,32 @@ func (h *HestiaQuickNodeActivities) GetActivities() ActivitiesSlice {
 		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
 		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey, h.DeleteOrgGroupRoutingTable, h.InsertQuickNodeApiKey,
 		h.UpsertQuickNodeRoutingEndpoint, h.IrisPlatformDeleteEndpointRequest, h.UpsertQuickNodeGroupTableRoutingEndpoints,
+		h.RefreshOrgGroupTables,
 	}
 	actSlice = append(actSlice, kr.GetActivities()...)
 	return actSlice
 }
 
-func (h *HestiaQuickNodeActivities) UpsertQuickNodeGroupTableRoutingEndpoints(ctx context.Context, pr hestia_quicknode.ProvisionRequest) error {
+func (h *HestiaQuickNodeActivities) RefreshOrgGroupTables(ctx context.Context, orgID int) error {
+	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
+
+	refreshEndpoint := fmt.Sprintf("/v1/internal/router/refresh/%d", orgID)
+	resp, err := rc.R().Get(refreshEndpoint)
+	if err != nil {
+		log.Err(err).Msg("RefreshOrgGroupTables")
+		return err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Int("orgID", orgID).Msg("IrisPlatformSetupCacheUpdateRequest")
+		return err
+	}
+	return nil
+
+}
+
+func (h *HestiaQuickNodeActivities) UpsertQuickNodeGroupTableRoutingEndpoints(ctx context.Context, pr hestia_quicknode.ProvisionRequest) (int, error) {
 	if pr.HttpUrl == "" || len(pr.Network) == 0 || len(pr.Chain) == 0 {
-		return nil
+		return -1, nil
 	}
 	routes := []iris_autogen_bases.OrgRoutes{{
 		RoutePath: pr.HttpUrl,
@@ -68,12 +86,12 @@ func (h *HestiaQuickNodeActivities) UpsertQuickNodeGroupTableRoutingEndpoints(ct
 	ogr := iris_autogen_bases.OrgRouteGroups{
 		RouteGroupName: groupName,
 	}
-	err := iris_models.UpsertGeneratedQuickNodeOrgRouteGroup(context.Background(), pr.QuickNodeID, ogr, routes)
+	orgID, err := iris_models.UpsertGeneratedQuickNodeOrgRouteGroup(context.Background(), pr.QuickNodeID, ogr, routes)
 	if err != nil {
 		log.Err(err).Msg("UpsertQuickNodeRoutingEndpoint")
-		return err
+		return orgID, err
 	}
-	return nil
+	return orgID, nil
 }
 
 func (h *HestiaQuickNodeActivities) UpsertQuickNodeRoutingEndpoint(ctx context.Context, pr hestia_quicknode.ProvisionRequest) error {

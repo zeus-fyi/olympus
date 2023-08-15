@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	iris_api "github.com/zeus-fyi/olympus/iris/api"
+	iris_metrics "github.com/zeus-fyi/olympus/iris/api/metrics"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -28,6 +29,10 @@ func Iris() {
 
 	srv := NewIrisServer(cfg)
 	srv.E = iris_api.Routes(srv.E)
+
+	metricsSrv := NewMetricsServer(cfg)
+	metricsSrv.E = iris_api.MetricRoutes(metricsSrv.E)
+	iris_metrics.InitIrisMetrics()
 	// Start server
 	log.Info().Msg("Iris: Starting IrisProxyWorker")
 	c := iris_api_requests.IrisProxyWorker.ConnectTemporalClient()
@@ -49,6 +54,9 @@ func Iris() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Iris: IrisCacheWorker Started")
+	go func() {
+		metricsSrv.Start()
+	}()
 	srv.Start()
 }
 

@@ -155,9 +155,6 @@ func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGro
 			SELECT route_id
 	 		FROM org_routes
 			WHERE org_id = $2 AND route_path = ANY($4::text[])
- 		), cte_del AS (
-			DELETE FROM org_routes_groups
-			WHERE route_group_id IN (SELECT route_group_id FROM org_route_groups WHERE org_id = $2 AND route_group_name = $3)
 		), new_route_group AS (
 			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name, auto_generated)
 			VALUES ($1, $2, $3, false)

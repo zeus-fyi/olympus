@@ -93,7 +93,7 @@ func (h *HestiaPlatformActivities) CreateOrgGroupRoutingTable(ctx context.Contex
 	}
 	err := iris_models.InsertOrgRouteGroup(context.Background(), ogr, routes)
 	if err != nil {
-		log.Err(err).Msg("UpdateDatabaseOrgRoutingTables")
+		log.Err(err).Msg("InsertOrgRouteGroup")
 		return err
 	}
 	return nil

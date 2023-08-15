@@ -25,7 +25,7 @@ func NewHestiaPlatformServiceWorkflows() HestiaPlatformServiceWorkflows {
 }
 
 func (h *HestiaPlatformServiceWorkflows) GetWorkflows() []interface{} {
-	return []interface{}{h.IrisRoutingServiceRequestWorkflow, h.IrisDeleteOrgGroupRoutingTableWorkflow, h.IrisDeleteOrgRoutesWorkflow, h.IrisDeleteOrgGroupRoutingTableWorkflow}
+	return []interface{}{h.IrisRoutingServiceRequestWorkflow, h.IrisDeleteOrgGroupRoutingTableWorkflow, h.IrisDeleteOrgRoutesWorkflow, h.IrisRemoveAllOrgRoutesFromCacheWorkflow}
 }
 
 func (h *HestiaPlatformServiceWorkflows) IrisRoutingServiceRequestWorkflow(ctx workflow.Context, wfID string, pr IrisPlatformServiceRequest) error {

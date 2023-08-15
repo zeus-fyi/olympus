@@ -41,7 +41,7 @@ func (pd *PagerDutyClient) SendAlert(ctx context.Context, event pagerduty.V2Even
 		SetBody(event).
 		Post("/")
 
-	if err != nil || resp.StatusCode() != http.StatusAccepted {
+	if err != nil || resp.StatusCode() >= 400 {
 		log.Ctx(ctx).Err(err).Msg("PagerDutyClient: SendAlert")
 		if resp.StatusCode() == http.StatusBadRequest {
 			err = errors.New("bad request")

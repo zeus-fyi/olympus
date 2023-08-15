@@ -17,9 +17,8 @@ type Instructions struct {
 var (
 	PdAlertClient               apollo_pagerduty.PagerDutyClient
 	PdAlertGenericWfIssuesEvent = pagerduty.V2Event{
-		RoutingKey: "",
-		Action:     "",
-		Payload:    PdAlertGenericWfIssuesPayload,
+		Action:  apollo_pagerduty.TRIGGER,
+		Payload: PdAlertGenericWfIssuesPayload,
 	}
 	PdAlertGenericWfIssuesPayload = &pagerduty.V2Payload{
 		Summary:   "There is a stuck workflow",

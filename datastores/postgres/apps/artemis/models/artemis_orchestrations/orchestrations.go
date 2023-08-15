@@ -61,10 +61,10 @@ func (o *OrchestrationJob) InsertOrchestrations(ctx context.Context) error {
 func SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx context.Context, orgID int, orchestType, groupName string, updatedAtWindowThreshold time.Duration) ([]OrchestrationJob, error) {
 	var ojs []OrchestrationJob
 	q := sql_query_templates.QueryParams{}
-	thresholdTime := time.Now().UTC().Add(-updatedAtWindowThreshold).Format(time.RFC3339) // Calculate the threshold time
-	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions
+	thresholdTime := time.Now().UTC().Add(-updatedAtWindowThreshold) // Calculate the threshold time
+	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions, type, group_name
 				  FROM orchestrations
-				  WHERE org_id = $1 AND active = true AND type = $2 AND group_name = $3 AND updated_at > $4
+				  WHERE org_id = $1 AND active = true AND type = $2 AND group_name = $3 AND updated_at < $4
 				  `
 	log.Debug().Interface("SelectActiveOrchestrationsWithInstructions", q.LogHeader(Orchestrations))
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, orchestType, groupName, thresholdTime)
@@ -74,7 +74,7 @@ func SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx context.Conte
 	defer rows.Close()
 	for rows.Next() {
 		oj := OrchestrationJob{}
-		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions)
+		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions, &oj.Type, &oj.GroupName)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
 			return ojs, rowErr

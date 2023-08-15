@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -17,6 +18,14 @@ var ctx = context.Background()
 
 type OrchestrationsTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
+}
+
+func (s *OrchestrationsTestSuite) TestSelectActiveOrchestrationsWithInstructionsUsingTimeWindow() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	oj, err := SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx, s.Tc.ProductionLocalTemporalOrgID, "testType", "testGroup", time.Second)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(oj)
 }
 
 func (s *OrchestrationsTestSuite) TestInsertOrchestrationDefinition() {

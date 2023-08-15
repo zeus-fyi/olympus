@@ -46,7 +46,11 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 		c.Set("verified", key.IsVerified())
 	}
 
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ouc := c.Get("orgUser")
+	ou, ok := ouc.(org_users.OrgUser)
+	if !ok {
+		ou = org_users.OrgUser{}
+	}
 	pr := r.ProvisionRequest
 	r.Verified = false
 	val, ok := c.Get("verified").(bool)
@@ -102,7 +106,11 @@ func TestProvisionRequestHandler(c echo.Context) error {
 }
 
 func (r *ProvisionRequest) ProvisionTest(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ouc := c.Get("orgUser")
+	ou, ok := ouc.(org_users.OrgUser)
+	if !ok {
+		ou = org_users.OrgUser{}
+	}
 	pr := r.ProvisionRequest
 	r.Verified = false
 	val, ok := c.Get("verified").(bool)
@@ -115,7 +123,7 @@ func (r *ProvisionRequest) ProvisionTest(c echo.Context) error {
 	} else {
 		r.IsTest = false
 	}
-	pr.Plan = "free"
+	pr.Plan = "lite"
 	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), ou, pr, r.QuickNodeUserInfo)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
@@ -146,7 +154,11 @@ func UpdateProvisionRequestHandler(c echo.Context) error {
 }
 
 func (r *ProvisionRequest) UpdateProvision(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ouc := c.Get("orgUser")
+	ou, ok := ouc.(org_users.OrgUser)
+	if !ok {
+		ou = org_users.OrgUser{}
+	}
 	r.Verified = false
 	val, ok := c.Get("verified").(bool)
 	if ok {

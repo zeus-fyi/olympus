@@ -72,21 +72,27 @@ func (k *KronosActivities) GetInstructionsFromJob(ctx context.Context, oj artemi
 	return ins, nil
 }
 
-func (k *KronosActivities) GetAlertAssignmentFromInstructions(ctx context.Context, ins Instructions) (*pagerduty.V2Event, error) {
+func (k *KronosActivities) GetAlertAssignmentFromInstructions(ctx context.Context, ins Instructions) (pagerduty.V2Event, error) {
 	ojs, err := artemis_orchestrations.SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx, internalOrgID, ins.Type, ins.GroupName, ins.Trigger.AlertAfterTime)
 	if err != nil {
-		return nil, err
+		return pagerduty.V2Event{}, err
 	}
 	if len(ojs) == 0 {
-		return nil, nil
+		return pagerduty.V2Event{}, nil
 	}
 	pdEvent := PdAlertGenericWfIssuesEvent
 	pdEvent.DedupKey = uuid.New().String()
-	pdEvent.Payload.Summary = ins.Alerts.Message
-	pdEvent.Payload.Component = ins.Alerts.Component
-	pdEvent.Payload.Details = ins.Alerts.Source
+	if ins.Alerts.Message != "" {
+		pdEvent.Payload.Summary = ins.Alerts.Message
+	}
+	if ins.Alerts.Component != "" {
+		pdEvent.Payload.Component = ins.Alerts.Component
+	}
+	if ins.Alerts.Source != "" {
+		pdEvent.Payload.Details = ins.Alerts.Source
+	}
 	pdEvent.Payload.Severity = ins.Alerts.Severity.Critical()
-	return &pdEvent, err
+	return pdEvent, err
 }
 
 func (k *KronosActivities) ProcessAssignment(ctx context.Context, oj artemis_orchestrations.OrchestrationJob) error {
@@ -114,9 +120,9 @@ func (k *KronosActivities) UpdateAndMarkOrchestrationActive(ctx context.Context,
 }
 
 func (k *KronosActivities) ExecuteTriggeredAlert(ctx context.Context, pdEvent pagerduty.V2Event) error {
-	_, err := PdAlertClient.SendAlert(ctx, pdEvent)
+	resp, err := PdAlertClient.SendAlert(ctx, pdEvent)
 	if err != nil {
-		log.Err(err).Msg("ExecuteTriggeredAlert: SendAlert failed")
+		log.Err(err).Interface("resp", resp).Msg("ExecuteTriggeredAlert: SendAlert failed")
 		return err
 	}
 	return err

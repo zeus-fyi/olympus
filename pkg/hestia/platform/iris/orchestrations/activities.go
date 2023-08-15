@@ -9,24 +9,30 @@ import (
 	iris_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris/models/bases/autogen"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
+	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 )
 
 type HestiaPlatformActivities struct {
+	kronos_helix.KronosActivities
 }
 
 func NewHestiaPlatformActivities() HestiaPlatformActivities {
-	return HestiaPlatformActivities{}
+	return HestiaPlatformActivities{
+		KronosActivities: kronos_helix.NewKronosActivities(),
+	}
 }
 
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (h *HestiaPlatformActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{
+	actSlice := []interface{}{
 		h.IrisPlatformSetupCacheUpdateRequest, h.UpdateDatabaseOrgRoutingTables, h.CreateOrgGroupRoutingTable,
 		h.DeleteOrgGroupRoutingTable, h.DeleteOrgRoutes, h.IrisPlatformDeleteGroupTableCacheRequest,
 		h.IrisPlatformDeleteOrgGroupTablesCacheRequest,
 	}
+	actSlice = append(actSlice, h.KronosActivities.GetActivities()...)
+	return actSlice
 }
 
 func (h *HestiaPlatformActivities) DeleteOrgGroupRoutingTable(ctx context.Context, pr IrisPlatformServiceRequest) error {

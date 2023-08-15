@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/sdk/client"
@@ -19,11 +20,12 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisPlatformSetupRequestWorkflow(c
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
 		TaskQueue: h.TaskQueueName,
 	}
 	txWf := NewHestiaPlatformServiceWorkflows()
 	wf := txWf.IrisRoutingServiceRequestWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteIrisPlatformSetupRequestWorkflow")
 		return err
@@ -41,11 +43,12 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisDeleteOrgGroupRoutingTableWork
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
 		TaskQueue: h.TaskQueueName,
 	}
 	txWf := NewHestiaPlatformServiceWorkflows()
 	wf := txWf.IrisDeleteOrgGroupRoutingTableWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteIrisDeleteOrgGroupRoutingTableWorkflow")
 		return err
@@ -61,10 +64,11 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisDeleteOrgRoutesWorkflow(ctx co
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: h.TaskQueueName,
+		ID:        uuid.New().String(),
 	}
 	txWf := NewHestiaPlatformServiceWorkflows()
 	wf := txWf.IrisDeleteOrgRoutesWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteIrisDeleteOrgRoutesWorkflow")
 		return err
@@ -80,10 +84,11 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisRemoveAllOrgRoutesFromCacheWor
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: h.TaskQueueName,
+		ID:        uuid.New().String(),
 	}
 	txWf := NewHestiaPlatformServiceWorkflows()
 	wf := txWf.IrisRemoveAllOrgRoutesFromCacheWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteIrisDeleteOrgRoutesWorkflow")
 		return err

@@ -60,7 +60,7 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 		r.IsTest = false
 	}
 	switch pr.Plan {
-	case FreePlan, Standard, PerformancePlan:
+	case LitePlan, Standard, PerformancePlan:
 	case TestPlan:
 		if !r.IsTest {
 			return c.JSON(http.StatusBadRequest, QuickNodeResponse{
@@ -160,7 +160,7 @@ func (r *ProvisionRequest) UpdateProvision(c echo.Context) error {
 	}
 	pr := r.ProvisionRequest
 	switch pr.Plan {
-	case FreePlan, Standard, PerformancePlan:
+	case LitePlan, Standard, PerformancePlan:
 	case TestPlan:
 		if !r.IsTest {
 			return c.JSON(http.StatusBadRequest, QuickNodeResponse{

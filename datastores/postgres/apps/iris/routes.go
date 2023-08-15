@@ -529,6 +529,8 @@ func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string
 		maxCount = PerformanceGroupTables
 	case "standard":
 		maxCount = StandardGroupTables
+	case "lite":
+		maxCount = LiteGroupTables
 	case "test":
 		maxCount = FreeGroupTables
 	case "free":
@@ -571,6 +573,7 @@ ORDER BY route_group_id
 */
 const (
 	FreeGroupTables        = 1
+	LiteGroupTables        = 25
 	StandardGroupTables    = 50
 	PerformanceGroupTables = 250
 )
@@ -603,15 +606,23 @@ func (t *TableUsage) CheckPlanLimits(plan string) error {
 			return errors.New("exceeds plan group tables")
 		}
 		return nil
-	case "free":
-		// check 1k ZU/s
-		// check max 50M ZU/month
-		if t.TableCount >= FreeGroupTables {
+	case "lite":
+		// check 25k ZU/s
+		// check max 1B ZU/month
+		if t.TableCount >= LiteGroupTables {
 			return errors.New("exceeds plan group tables")
 		}
 		return nil
+	case "free":
+		// check 1k ZU/s
+		// check max 50M ZU/month
+		//if t.TableCount >= FreeGroupTables {
+		//	return errors.New("exceeds plan group tables")
+		//}
+		return errors.New("plan not found")
 	case "test":
 	default:
+		return errors.New("plan not found")
 	}
-	return nil
+	return errors.New("plan not found")
 }

@@ -11,12 +11,14 @@ import (
 )
 
 const (
-	OneThousand        = 1_000
-	TwentyFiveThousand = 25_000
-	FiftyThousand      = 50_000
-	FiftyMillion       = 50_000_000
-	OneBillion         = 1_000_000_000
-	ThreeBillion       = 3_000_000_000
+	OneThousand            = 1_000
+	TenThousand            = 10_000
+	TwentyFiveThousand     = 25_000
+	FiftyThousand          = 50_000
+	FiftyMillion           = 50_000_000
+	TwoHundredFiftyMillion = 250_000_000
+	OneBillion             = 1_000_000_000
+	ThreeBillion           = 3_000_000_000
 )
 
 func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan string, meter *iris_usage_meters.PayloadSizeMeter) error {
@@ -35,15 +37,16 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan string, 
 		// check 25k ZU/s
 		// check max 1B ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(TwentyFiveThousand, OneBillion)
-	case "free":
+	case "lite":
 		// check 1k ZU/s
 		// check max 50M ZU/month
-		rateLimited, monthlyLimited = um.IsRateLimited(OneThousand, FiftyMillion)
+		rateLimited, monthlyLimited = um.IsRateLimited(TenThousand, TwoHundredFiftyMillion)
 	case "test":
 		// check 1k ZU/s
 		// check max 50M ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(100, 1000)
 	default:
+		rateLimited, monthlyLimited = um.IsRateLimited(0, 0)
 	}
 	if rateLimited {
 		return errors.New("rate limited")

@@ -19,6 +19,7 @@ type HestiaQuickNodeWorkflow struct {
 
 const (
 	defaultTimeout = 72 * time.Hour
+	internalOrgID  = 7138983863666903883
 )
 
 func NewHestiaQuickNodeWorkflow() HestiaQuickNodeWorkflow {
@@ -38,7 +39,7 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID s
 		StartToCloseTimeout: defaultTimeout,
 	}
 
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "HestiaQuickNodeWorkflow", "ProvisionWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaQuickNodeWorkflow", "ProvisionWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
@@ -100,7 +101,7 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "HestiaQuickNodeWorkflow", "UpdateProvisionWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaQuickNodeWorkflow", "UpdateProvisionWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {

@@ -88,7 +88,7 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID s
 
 	if orgID > 0 {
 		refGroupCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(refGroupCtx, h.RefreshOrgGroupTables, orgID).Get(refGroupCtx, &orgID)
+		err = workflow.ExecuteActivity(refGroupCtx, h.RefreshOrgGroupTables, orgID).Get(refGroupCtx, nil)
 		if err != nil {
 			logger.Warn("params", pr)
 			logger.Warn("ou", ou)

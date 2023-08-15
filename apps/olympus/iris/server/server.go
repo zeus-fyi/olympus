@@ -39,7 +39,7 @@ func NewIrisServer(cfg Config) Server {
 func NewMetricsServer(cfg Config) Server {
 	srv := Server{
 		host: cfg.Host,
-		port: "8000",
+		port: "9090",
 		E:    InitBaseRoute(),
 	}
 	return srv

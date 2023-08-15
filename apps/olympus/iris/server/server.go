@@ -36,6 +36,15 @@ func NewIrisServer(cfg Config) Server {
 	return srv
 }
 
+func NewMetricsServer(cfg Config) Server {
+	srv := Server{
+		host: cfg.Host,
+		port: "9090",
+		E:    InitBaseRoute(),
+	}
+	return srv
+}
+
 func InitBaseRoute() *echo.Echo {
 	e := echo.New()
 	e.Use(

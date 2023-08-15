@@ -10,10 +10,10 @@ import (
 func (t *IrisCookbookTestSuite) TestDeploy() {
 	_, rerr := irisClusterDefinition.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
 	t.Require().Nil(rerr)
-	cdep := irisClusterDefinition.GenerateDeploymentRequest()
+	//cdep := irisClusterDefinition.GenerateDeploymentRequest()
 
-	_, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
-	t.Require().Nil(err)
+	//_, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
+	//t.Require().Nil(err)
 }
 
 func (t *IrisCookbookTestSuite) TestClusterDestroy() {

@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: iris-monitor
+  labels:
+    app: "iris"
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: iris
+  endpoints:
+    - port: "metrics"
+      interval: 10s

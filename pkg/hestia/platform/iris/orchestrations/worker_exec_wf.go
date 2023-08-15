@@ -27,7 +27,7 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisPlatformSetupRequestWorkflow(c
 	wf := txWf.IrisRoutingServiceRequestWorkflow
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, pr)
 	if err != nil {
-		log.Err(err).Msg("ExecuteIrisPlatformSetupRequestWorkflow")
+		log.Err(err).Msg("ExecuteIrisRoutingServiceRequestWorkflow")
 		return err
 	}
 	return err
@@ -90,7 +90,7 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisRemoveAllOrgRoutesFromCacheWor
 	wf := txWf.IrisRemoveAllOrgRoutesFromCacheWorkflow
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, pr)
 	if err != nil {
-		log.Err(err).Msg("ExecuteIrisDeleteOrgRoutesWorkflow")
+		log.Err(err).Msg("ExecuteIrisRemoveAllOrgRoutesFromCacheWorkflow")
 		return err
 	}
 	return err

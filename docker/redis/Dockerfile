@@ -3,7 +3,7 @@ FROM ubuntu:22.04 as t-digest-builder
 WORKDIR /app
 
 ARG VERSION
-RUN apt-get update && apt-get install -y ca-certificates git
+RUN apt-get update && apt-get install -y ca-certificates git build-essential
 RUN git clone https://github.com/usmanm/redis-tdigest.git
 
 WORKDIR /app/redis-tdigest

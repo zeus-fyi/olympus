@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - docker/redis/Dockerfile
+      - .github/workflows/redis.yml
     branches:
       - main
       - dev

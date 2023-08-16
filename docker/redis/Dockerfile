@@ -4,5 +4,5 @@ WORKDIR /app
 
 ARG VERSION
 RUN apt-get update && apt-get install -y ca-certificates git
-RUN git clone https://github.com/zeus-fyi/redis-tdigest.git && git pull
+RUN git clone https://github.com/usmanm/redis-tdigest.git && git pull
 RUN cd redis-tdigest && make

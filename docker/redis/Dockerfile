@@ -8,4 +8,4 @@ RUN git clone https://github.com/usmanm/redis-tdigest.git
 
 WORKDIR /app/redis-tdigest
 RUN git pull origin master
-RUN make
+RUN make all

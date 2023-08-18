@@ -69,7 +69,7 @@ require (
 	github.com/zeus-fyi/tojen v0.0.0-20221009050240-e9617f6e35ef
 	go.temporal.io/api v1.11.1-0.20220907050538-6de5285cf463
 	go.temporal.io/sdk v1.17.0
-	golang.org/x/exp v0.0.0-20230206171751-46f607a40771
+	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	google.golang.org/api v0.118.0
 	k8s.io/api v0.26.1
 	k8s.io/apimachinery v0.26.1
@@ -125,6 +125,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
+	github.com/influxdata/tdigest v0.0.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -150,6 +151,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
+	gonum.org/v1/gonum v0.13.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.54.0 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect

@@ -86,6 +86,9 @@ func InitV1Routes(e *echo.Echo) {
 
 	eg.DELETE("/router", RpcLoadBalancerDELETERequestHandler)
 	eg.DELETE("/router/*", wrapHandlerWithCapture(RpcLoadBalancerDELETERequestHandler))
+
+	eg.GET("/router/rate/usage", RateRequestHandler)
+
 }
 
 func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {

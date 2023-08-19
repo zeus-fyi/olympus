@@ -1,16 +1,17 @@
 package iris_redis
 
-import "context"
+import (
+	"context"
+)
 
 func (r *IrisRedisTestSuite) TestSetMetricLatencyTDigest() {
-	err := IrisRedisClient.SetMetricLatencyTDigest(context.Background(), 1, "s", "test", []float64{5.3}, false)
+	err := IrisRedisClient.SetMetricLatencyTDigest(context.Background(), 1, "fooTable", "foo", 10.0)
 	r.NoError(err)
 }
 
-func (r *IrisRedisTestSuite) TestGetMetricPercentile() {
-	// Assume that you have a method to mock the behavior of the Redis client
-	// and it's assigned to IrisRedisClient.Reader
-	value, err := IrisRedisClient.GetMetricPercentile(context.Background(), 1, "s", "test", 90.0)
+func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
+	quantileVal, sc, err := IrisRedisClient.GetMetricPercentile(context.Background(), 1, "fooTable", "foo", 0.5)
 	r.NoError(err)
-	r.Equal(42.0, value)
+	r.NotEmpty(quantileVal)
+	r.NotEmpty(sc)
 }

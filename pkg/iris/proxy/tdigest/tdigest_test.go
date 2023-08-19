@@ -2,10 +2,11 @@ package iris_tdigest
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"math/rand"
 	"testing"
 
-	"github.com/influxdata/tdigest"
+	"github.com/caio/go-tdigest/v4"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
@@ -23,24 +24,15 @@ func (s *IrisTdigestTestSuite) SetupTest() {
 }
 
 func (s *IrisTdigestTestSuite) TestTdigest() {
-	td := tdigest.NewWithCompression(100)
+	td, _ := tdigest.New()
 
 	for i := 0; i < 10000; i++ {
-		td.Add(float64(i), 1)
+		// Analogue to t.AddWeighted(rand.Float64(), 1)
+		err := td.Add(rand.Float64())
+		s.NoError(err)
 	}
-	// Compute Quantiles
-	log.Println("50th", td.Quantile(0.5))
-	log.Println("75th", td.Quantile(0.75))
-	log.Println("90th", td.Quantile(0.9))
-	log.Println("99th", td.Quantile(0.99))
-
-	// Compute CDFs
-	log.Println("CDF(1) = ", td.CDF(1))
-	log.Println("CDF(2) = ", td.CDF(2))
-	log.Println("CDF(3) = ", td.CDF(3))
-	log.Println("CDF(4) = ", td.CDF(4))
-	log.Println("CDF(5) = ", td.CDF(5))
-
+	fmt.Printf("p(.5) = %.6f\n", td.Quantile(0.5))
+	fmt.Printf("CDF(Quantile(.5)) = %.6f\n", td.CDF(td.Quantile(0.5)))
 }
 
 func TestIrisTdigestTestSuite(t *testing.T) {

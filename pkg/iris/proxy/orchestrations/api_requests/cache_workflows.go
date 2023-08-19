@@ -11,6 +11,7 @@ import (
 func (i *IrisApiRequestsWorkflow) CacheRefreshAllOrgRoutingTablesWorkflow(ctx workflow.Context) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    15 * time.Minute,
 			BackoffCoefficient: 2,

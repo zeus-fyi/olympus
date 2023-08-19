@@ -41,6 +41,15 @@ func (p *RefreshOrgRoutingTableRequest) RefreshOrgRoutingTable(c echo.Context) e
 	return c.JSON(http.StatusOK, nil)
 }
 
+func InternalRestoreCacheForAllOrgsHandler(c echo.Context) error {
+	request := new(RefreshOrgRoutingTableRequest)
+	if err := c.Bind(&request); err != nil {
+		log.Err(err)
+		return err
+	}
+	return request.RefreshAllOrgRoutingTables(c)
+}
+
 func (p *RefreshOrgRoutingTableRequest) RefreshAllOrgRoutingTables(c echo.Context) error {
 	err := iris_api_requests.IrisCacheWorker.ExecuteIrisCacheRefreshAllOrgRoutingTablesWorkflow(context.Background())
 	if err != nil {

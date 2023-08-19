@@ -52,7 +52,7 @@ func (m *IrisCache) GetMetricPercentile(ctx context.Context, orgID int, tableNam
 	metricTdigestKey := fmt.Sprintf("%d:%s:%s", orgID, tableName, metricName)
 	metricTdigestSampleCount := fmt.Sprintf("%s:samples", metricTdigestKey)
 	// Use Redis pipeline to perform both operations
-	pipe := m.Writer.Pipeline()
+	pipe := m.Reader.Pipeline()
 
 	percentileCmd := pipe.Do(ctx, "PERCENTILE.GET", metricTdigestKey, percentile)
 	sampleCountCmd := pipe.Get(ctx, metricTdigestSampleCount)

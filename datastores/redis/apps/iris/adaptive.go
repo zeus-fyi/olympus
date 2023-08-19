@@ -17,8 +17,8 @@ func (m *IrisCache) SetMetricLatencyTDigest(ctx context.Context, orgID int, tabl
 
 	pipe.Incr(ctx, metricTdigestSampleCount)
 	pipe.Do(ctx, "PERCENTILE.MERGE", metricTdigestKey, latency)
-	pipe.Expire(ctx, metricTdigestKey, 15*time.Second)
-	pipe.Expire(ctx, metricTdigestSampleCount, 15*time.Second)
+	pipe.Expire(ctx, metricTdigestKey, 15*time.Minute)
+	pipe.Expire(ctx, metricTdigestSampleCount, 15*time.Minute)
 
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)

@@ -2,6 +2,7 @@ package iris_redis
 
 import (
 	"context"
+	"fmt"
 )
 
 func (r *IrisRedisTestSuite) TestSetMetricLatencyTDigest() {
@@ -14,4 +15,6 @@ func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
 	r.NoError(err)
 	r.NotEmpty(quantileVal)
 	r.NotEmpty(sc)
+
+	fmt.Println(quantileVal, sc)
 }

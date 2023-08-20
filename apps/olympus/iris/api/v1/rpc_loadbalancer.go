@@ -3,6 +3,7 @@ package v1_iris
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -127,7 +128,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		Referrers:        routeInfo.Referers,
 		Payload:          p.Body,
 		QueryParams:      qps,
-		Response:         nil,
 		IsInternal:       false,
 		Timeout:          1 * time.Minute,
 		StatusCode:       http.StatusOK, // default
@@ -142,6 +142,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 				c.Response().Header().Add(key, value)
 			}
 		}
+		c.Response().Header().Set("X-Response-Latency-ms", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
+		c.Response().Header().Set("X-Response-ReceivedAt-UTC", resp.ReceivedAt.UTC().String())
 		c.Response().Header().Set("X-Selected-Route", path)
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}
@@ -157,6 +159,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		}
 	}
 	c.Response().Header().Set("X-Selected-Route", path)
+	c.Response().Header().Set("X-Response-Latency-ms", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
+	c.Response().Header().Set("X-Response-ReceivedAt-UTC", resp.ReceivedAt.UTC().String())
 	if resp.Response == nil && resp.RawResponse != nil {
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}

@@ -111,7 +111,7 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 		if percentileCmdMedian != nil {
 			val, rerr := percentileCmdMedian.Result()
 			if rerr != nil {
-				log.Err(rerr).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
+				log.Warn().Err(rerr).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
 				rerr = nil
 			} else {
 				if val != nil {
@@ -122,7 +122,7 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 		if percentileCmdTail != nil {
 			val, rerr := percentileCmdTail.Result()
 			if rerr != nil {
-				log.Err(rerr).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
+				log.Warn().Err(rerr).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
 			} else {
 				if val != nil {
 					stats.MetricLatencyTail = val.(float64)
@@ -132,7 +132,8 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 		if sampleCountCmd != nil {
 			count, rerr := sampleCountCmd.Result()
 			if rerr != nil {
-				log.Err(rerr).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
+				log.Warn().Err(rerr).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
+				rerr = nil
 			} else {
 				stats.MetricSampleCount, err = strconv.Atoi(count)
 				if err != nil {

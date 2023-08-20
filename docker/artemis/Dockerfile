@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.4
-FROM golang:1.20.1-buster as src_builder
+FROM golang:1.21-bookworm as src_builder
 
 WORKDIR /app
 

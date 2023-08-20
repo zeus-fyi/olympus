@@ -48,6 +48,8 @@ type ApiProxyRequest struct {
 	StatusCode       int
 	IsInternal       bool
 	Timeout          time.Duration
+	ReceivedAt       time.Time
+	Latency          time.Duration
 	PayloadSizeMeter *iris_usage_meters.PayloadSizeMeter
 }
 

@@ -1,6 +1,6 @@
 module github.com/zeus-fyi/olympus/artemis
 
-go 1.20
+go 1.21
 
 require (
 	github.com/LK4D4/trylock v0.0.0-20191027065348-ff7e133a5c54

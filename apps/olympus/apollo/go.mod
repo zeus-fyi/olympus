@@ -1,6 +1,6 @@
 module github.com/zeus-fyi/olympus/beacon-indexer
 
-go 1.20
+go 1.21
 
 require (
 	github.com/go-redis/redis/v9 v9.0.0-beta.2

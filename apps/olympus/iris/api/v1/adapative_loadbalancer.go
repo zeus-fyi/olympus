@@ -2,9 +2,7 @@ package v1_iris
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -17,52 +15,7 @@ import (
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
-const (
-	QuickNodeTestHeader = "X-QN-TESTING"
-	QuickNodeIDHeader   = "x-quicknode-id"
-	QuickNodeEndpointID = "x-instance-id"
-	QuickNodeChain      = "x-qn-chain"
-	QuickNodeNetwork    = "x-qn-network"
-	RouteGroupHeader    = "X-Route-Group"
-)
-
-type ProxyRequest struct {
-	Body echo.Map
-}
-
-type Response struct {
-	Message string `json:"message"`
-}
-
-var (
-	RpcLoadBalancerGETRequestHandler    = RpcLoadBalancerRequestHandler("GET")
-	RpcLoadBalancerPOSTRequestHandler   = RpcLoadBalancerRequestHandler("POST")
-	RpcLoadBalancerPUTRequestHandler    = RpcLoadBalancerRequestHandler("PUT")
-	RpcLoadBalancerDELETERequestHandler = RpcLoadBalancerRequestHandler("DELETE")
-)
-
-func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		bodyBytes, err := io.ReadAll(c.Request().Body)
-		if err != nil {
-			log.Err(err)
-			return err
-		}
-		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
-		request := new(ProxyRequest)
-		request.Body = echo.Map{}
-		if payloadSizingMeter.N() <= 0 {
-			return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
-		}
-		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
-			log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
-			return err
-		}
-		return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
-	}
-}
-
-func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
+func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
@@ -73,8 +26,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		ouser, ok := ouc.(org_users.OrgUser)
 		if ok {
 			ou = ouser
-		} else {
-			return c.JSON(http.StatusBadRequest, Response{Message: "user not found"})
 		}
 	}
 	plan := ""
@@ -90,17 +41,30 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if payloadSizingMeter == nil {
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
-
-	routeInfo, err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
+	ri, err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.CheckRateLimit")
 		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
 	}
-	path := routeInfo.RoutePath
-	if c.Get("capturedPath") != nil {
-		suffix, sok := c.Get("capturedPath").(string)
+	tableStats, err := iris_redis.IrisRedisClient.GetNextAdaptiveRoute(context.Background(), ou.OrgID, routeGroup, ri, payloadSizingMeter)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.GetNextRoute")
+		errResp := Response{Message: "routeGroup not found"}
+		return c.JSON(http.StatusBadRequest, errResp)
+	}
+	payloadSizingMeter.Plan = plan
+	if tableStats.MemberRankScoreOut.Member == nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	path, ok := tableStats.MemberRankScoreOut.Member.(string)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	sfx := c.Get("capturedPath")
+	if sfx != nil {
+		suffix, sok := sfx.(string)
 		if sok {
-			newPath, rerr := url.JoinPath(routeInfo.RoutePath, suffix)
+			newPath, rerr := url.JoinPath(path, suffix)
 			if rerr != nil {
 				log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
 				rerr = nil
@@ -109,7 +73,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 			}
 		}
 	}
-
 	payloadSizingMeter.Reset()
 	headers := make(http.Header)
 	for k, v := range c.Request().Header {
@@ -127,7 +90,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		ServicePlan:      plan,
 		PayloadTypeREST:  restType,
 		RequestHeaders:   headers,
-		Referrers:        routeInfo.Referers,
+		Referrers:        ri.Referers,
 		Payload:          p.Body,
 		QueryParams:      qps,
 		IsInternal:       false,
@@ -149,12 +112,14 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		c.Response().Header().Set("X-Selected-Route", path)
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}
-	go func(orgID int, ps *iris_usage_meters.PayloadSizeMeter) {
-		err = iris_redis.IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), ou.OrgID, ps)
+	tableStats.Meter = resp.PayloadSizeMeter
+	tableStats.LatencyMilliseconds = resp.Latency.Milliseconds()
+	go func(orgID int, tbl *iris_redis.StatTable) {
+		err = iris_redis.IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), tbl)
 		if err != nil {
 			log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 		}
-	}(ou.OrgID, payloadSizingMeter)
+	}(ou.OrgID, tableStats)
 	for key, values := range resp.ResponseHeaders {
 		for _, value := range values {
 			c.Response().Header().Add(key, value)

@@ -110,12 +110,13 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		c.Response().Header().Set("X-Selected-Route", path)
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}
-	go func(orgID int, ps *iris_usage_meters.PayloadSizeMeter, tbl *iris_redis.StatTable) {
+	tableStats.Meter = resp.PayloadSizeMeter
+	go func(orgID int, tbl *iris_redis.StatTable) {
 		err = iris_redis.IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), tbl)
 		if err != nil {
 			log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 		}
-	}(ou.OrgID, payloadSizingMeter, tableStats)
+	}(ou.OrgID, tableStats)
 	for key, values := range resp.ResponseHeaders {
 		for _, value := range values {
 			c.Response().Header().Add(key, value)

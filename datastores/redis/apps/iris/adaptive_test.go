@@ -73,33 +73,42 @@ func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMi
 func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage() {
 
 	latency := float64(randomBetween(1, 100))
-	uuidStr := uuid.New().String()
 	tableStats := StatTable{
-		OrgID:     1,
-		TableName: "fooTestTable",
-		MemberRankScoreIn: redis.Z{
-			Score:  1,
-			Member: "fooTest" + uuidStr,
-		},
-		LatencyQuartilePercentageRank: latency / 100.0,
-		Latency:                       latency,
-		Metric:                        "fooTestMetricName" + uuidStr,
-		MetricSampleCount:             100,
-	}
-	err := IrisRedisClient.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(context.Background(), &tableStats)
-	r.NoError(err)
-
-	tableStats = StatTable{
 		OrgID:     1,
 		TableName: "fooTestTable",
 		MemberRankScoreIn: redis.Z{
 			Score:  1,
 			Member: "https://zeus.fyi",
 		},
-		MemberRankScoreOut: redis.Z{
+		LatencyQuartilePercentageRank: latency / 100.0,
+		Latency:                       latency,
+		Metric:                        "fooTestMetricName",
+		MetricSampleCount:             100,
+	}
+	err := IrisRedisClient.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(context.Background(), &tableStats)
+	r.NoError(err)
+
+	latency = float64(randomBetween(1, 100))
+	tableStatsYang := StatTable{
+		OrgID:     1,
+		TableName: "fooTestTable",
+		MemberRankScoreIn: redis.Z{
 			Score:  1,
 			Member: "https://artemis.zeus.fyi",
 		},
+		LatencyQuartilePercentageRank: latency / 100.0,
+		Latency:                       latency,
+		Metric:                        "fooTestMetricName",
+		MetricSampleCount:             100,
+	}
+	err = IrisRedisClient.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(context.Background(), &tableStatsYang)
+	r.NoError(err)
+
+	tableStats2 := StatTable{
+		OrgID:                         1,
+		TableName:                     "fooTestTable",
+		MemberRankScoreIn:             tableStats.MemberRankScoreIn,
+		MemberRankScoreOut:            tableStats.MemberRankScoreOut,
 		LatencyQuartilePercentageRank: .5,
 		Latency:                       float64(rand.Int()),
 		Metric:                        "fooTestMetricName",
@@ -108,6 +117,6 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 		MetricSampleCount:             101,
 		Meter:                         nil,
 	}
-	err = IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), &tableStats)
+	err = IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), &tableStats2)
 	r.NoError(err)
 }

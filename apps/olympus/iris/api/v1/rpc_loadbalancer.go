@@ -66,12 +66,20 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
 	}
-
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou := org_users.OrgUser{}
+	ouc := c.Get("orgUser")
+	if ouc != nil {
+		ouser, ok := ouc.(org_users.OrgUser)
+		if ok {
+			ou = ouser
+		}
+	}
 	plan := ""
-	sp, ok := c.Get("servicePlan").(string)
-	if ok {
-		plan = sp
+	if c.Get("servicePlan") != nil {
+		sp, ok := c.Get("servicePlan").(string)
+		if ok {
+			plan = sp
+		}
 	}
 	if plan == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
@@ -80,33 +88,26 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
 
-	// todo refactor to fetch auth & plan from redis
-	err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
+	routeInfo, err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.CheckRateLimit")
 		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
 	}
-
-	payloadSizingMeter.Plan = plan
-	routeInfo, err := iris_redis.IrisRedisClient.GetNextRoute(context.Background(), ou.OrgID, routeGroup, payloadSizingMeter)
-	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.GetNextRoute")
-		errResp := Response{Message: "routeGroup not found"}
-		return c.JSON(http.StatusBadRequest, errResp)
-	}
-
 	path := routeInfo.RoutePath
-	suffix, ok := c.Get("capturedPath").(string)
-	if ok {
-		newPath, rerr := url.JoinPath(routeInfo.RoutePath, suffix)
-		if rerr != nil {
-			log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
-		} else {
-			path = newPath
+	if c.Get("capturedPath") != nil {
+		suffix, sok := c.Get("capturedPath").(string)
+		if sok {
+			newPath, rerr := url.JoinPath(routeInfo.RoutePath, suffix)
+			if rerr != nil {
+				log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
+				rerr = nil
+			} else {
+				path = newPath
+			}
 		}
 	}
-	payloadSizingMeter.Reset()
 
+	payloadSizingMeter.Reset()
 	headers := make(http.Header)
 	for k, v := range c.Request().Header {
 		if k == "Authorization" {

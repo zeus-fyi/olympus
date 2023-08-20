@@ -19,12 +19,20 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
 	}
-
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou := org_users.OrgUser{}
+	ouc := c.Get("orgUser")
+	if ouc != nil {
+		ouser, ok := ouc.(org_users.OrgUser)
+		if ok {
+			ou = ouser
+		}
+	}
 	plan := ""
-	sp, ok := c.Get("servicePlan").(string)
-	if ok {
-		plan = sp
+	if c.Get("servicePlan") != nil {
+		sp, ok := c.Get("servicePlan").(string)
+		if ok {
+			plan = sp
+		}
 	}
 	if plan == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
@@ -46,16 +54,13 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		return c.JSON(http.StatusBadRequest, errResp)
 	}
 	payloadSizingMeter.Plan = plan
-
 	if tableStats.MemberRankScoreOut.Member == nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	path, ok := tableStats.MemberRankScoreOut.Member.(string)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	sfx := c.Get("capturedPath")
 	if sfx != nil {
 		suffix, sok := sfx.(string)

@@ -216,7 +216,7 @@ func (m *IrisCache) GetNextAdaptiveRoute(ctx context.Context, orgID int, rgName 
 		},
 		MemberRankScoreOut:            redis.Z{},
 		LatencyQuartilePercentageRank: 0,
-		Latency:                       0,
+		LatencyMilliseconds:           0,
 		Metric:                        "testMetricName",
 		MetricLatencyMedian:           0,
 		MetricLatencyTail:             0,

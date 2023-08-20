@@ -28,10 +28,15 @@ func (r *RateRequest) GetUsageRate(c echo.Context) error {
 		ou = org_users.OrgUser{}
 	}
 	plan := ""
-	sp, ok := c.Get("servicePlan").(string)
-	if ok {
-		plan = sp
+
+	svp := c.Get("servicePlan")
+	if svp != nil {
+		sp, sok := svp.(string)
+		if sok {
+			plan = sp
+		}
 	}
+
 	if plan == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
 	}

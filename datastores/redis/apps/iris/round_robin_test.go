@@ -140,7 +140,7 @@ func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 		meter.Add(2048 * 10)
 		err = IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
 		r.NoError(err)
-		err = IrisRedisClient.CheckRateLimit(context.Background(), 1, "d", "test", meter)
+		_, err = IrisRedisClient.CheckRateLimit(context.Background(), 1, "d", "test", meter)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -162,6 +162,6 @@ func (r *IrisRedisTestSuite) TestRateLimit() {
 	fmt.Println(um)
 
 	// should exceed monthly limit of 1k ZU
-	err = IrisRedisClient.CheckRateLimit(context.Background(), 1, "test", "d", meter)
+	_, err = IrisRedisClient.CheckRateLimit(context.Background(), 1, "test", "d", meter)
 	r.Error(err)
 }

@@ -204,65 +204,27 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	return err
 }
 
-func (m *IrisCache) GetNextAdaptiveRoute(ctx context.Context, orgID int, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_models.RouteInfo, error) {
-	// Generate the rate limiter key with the Unix timestamp
-	rateLimiterKey := orgRateLimitTag(orgID)
-	orgRequests := fmt.Sprintf("%d-total-zu-usage", orgID)
-	if meter != nil {
-		orgRequests = orgMonthlyUsageTag(orgID, meter.Month)
+func (m *IrisCache) GetNextAdaptiveRoute(ctx context.Context, orgID int, rgName string, ri iris_models.RouteInfo, meter *iris_usage_meters.PayloadSizeMeter) (*StatTable, error) {
+	ts := &StatTable{
+		OrgID:     orgID,
+		TableName: rgName,
+		MemberRankScoreIn: redis.Z{
+			Score:  1,
+			Member: ri.RoutePath,
+		},
+		MemberRankScoreOut:            redis.Z{},
+		LatencyQuartilePercentageRank: 0,
+		Latency:                       0,
+		Metric:                        "testMetricName",
+		MetricLatencyMedian:           0,
+		MetricLatencyTail:             0,
+		MetricSampleCount:             0,
+		Meter:                         meter,
 	}
-
-	// Use Redis transaction (pipeline) to perform all operations atomically
-	pipe := m.Writer.TxPipeline()
-
-	if meter != nil {
-		// Increment the payload size meter
-		_ = pipe.IncrByFloat(ctx, orgRequests, meter.ZeusRequestComputeUnitsConsumed())
-		// Increment the rate limiter key
-		_ = pipe.IncrByFloat(ctx, rateLimiterKey, meter.ZeusRequestComputeUnitsConsumed())
-	} else {
-		_ = pipe.Incr(ctx, orgRequests)
-		// Increment the rate limiter key
-		_ = pipe.Incr(ctx, rateLimiterKey)
-	}
-
-	// Set the key to expire after 2 seconds, or later for testing and qa
-	pipe.Expire(ctx, rateLimiterKey, 10*time.Second)
-
-	// Generate the route key
-	routeKey := orgRouteTag(orgID, rgName)
-
-	// Check if the key exists
-	existsCmd := pipe.Exists(ctx, routeKey)
-
-	// Pop the endpoint from the head of the list and push it back to the tail, ensuring round-robin rotation
-	endpointCmd := pipe.LMove(ctx, routeKey, routeKey, "LEFT", "RIGHT")
-
-	// Execute pipeline
-	_, err := pipe.Exec(ctx)
+	err := m.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx, ts)
 	if err != nil {
-		// If there's an error, log it and return it
-		fmt.Printf("error during pipeline execution: %s\n", err.Error())
-		return iris_models.RouteInfo{}, err
+		return nil, err
 	}
+	return ts, nil
 
-	// Check whether the key exists
-	if existsCmd.Val() <= 0 {
-		log.Err(err).Msgf("key doesn't exist: %s", routeKey)
-		return iris_models.RouteInfo{}, fmt.Errorf("key doesn't exist: %s", routeKey)
-	}
-
-	// Get referers from Redis
-	refererKey := orgRouteTag(orgID, endpointCmd.Val()) + ":referers"
-	referers, err := m.Reader.SMembers(ctx, refererKey).Result()
-	if err != nil {
-		log.Err(err).Msgf("error getting referers for route: %s", refererKey)
-		return iris_models.RouteInfo{}, fmt.Errorf("error getting referers for route: %s", refererKey)
-	}
-
-	// Return the RouteInfo
-	return iris_models.RouteInfo{
-		RoutePath: endpointCmd.Val(),
-		Referers:  referers,
-	}, nil
 }

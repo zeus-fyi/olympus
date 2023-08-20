@@ -33,38 +33,42 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
 
-	err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
+	ri, err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.CheckRateLimit")
 		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
 	}
 
-	routeInfo, err := iris_redis.IrisRedisClient.GetNextAdaptiveRoute(context.Background(), ou.OrgID, routeGroup, payloadSizingMeter)
+	tableStats, err := iris_redis.IrisRedisClient.GetNextAdaptiveRoute(context.Background(), ou.OrgID, routeGroup, ri, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.GetNextRoute")
 		errResp := Response{Message: "routeGroup not found"}
 		return c.JSON(http.StatusBadRequest, errResp)
 	}
 	payloadSizingMeter.Plan = plan
-	//routeInfo, err := iris_redis.IrisRedisClient.GetNextRoute(context.Background(), ou.OrgID, routeGroup, payloadSizingMeter)
-	//if err != nil {
-	//	log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.GetNextRoute")
-	//	errResp := Response{Message: "routeGroup not found"}
-	//	return c.JSON(http.StatusBadRequest, errResp)
-	//}
 
-	path := routeInfo.RoutePath
-	suffix, ok := c.Get("capturedPath").(string)
-	if ok {
-		newPath, rerr := url.JoinPath(routeInfo.RoutePath, suffix)
-		if rerr != nil {
-			log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
-		} else {
-			path = newPath
+	if tableStats.MemberRankScoreOut.Member == nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	path, ok := tableStats.MemberRankScoreOut.Member.(string)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	sfx := c.Get("capturedPath")
+	if sfx != nil {
+		suffix, sok := sfx.(string)
+		if sok {
+			newPath, rerr := url.JoinPath(path, suffix)
+			if rerr != nil {
+				log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
+			} else {
+				path = newPath
+			}
 		}
 	}
 	payloadSizingMeter.Reset()
-
 	headers := make(http.Header)
 	for k, v := range c.Request().Header {
 		if k == "Authorization" {
@@ -81,7 +85,7 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		ServicePlan:      plan,
 		PayloadTypeREST:  restType,
 		RequestHeaders:   headers,
-		Referrers:        routeInfo.Referers,
+		Referrers:        ri.Referers,
 		Payload:          p.Body,
 		QueryParams:      qps,
 		Response:         nil,

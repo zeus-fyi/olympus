@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
@@ -18,11 +19,11 @@ const (
 	ThreeBillion           = 3_000_000_000
 )
 
-func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGroup string, meter *iris_usage_meters.PayloadSizeMeter) error {
+func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGroup string, meter *iris_usage_meters.PayloadSizeMeter) (iris_models.RouteInfo, error) {
 	// Generate the rate limiter key with the Unix timestamp
-	_, um, err := m.GetUsageRatesAndNextRoute(ctx, orgID, routeGroup, meter)
+	ri, um, err := m.GetUsageRatesAndNextRoute(ctx, orgID, routeGroup, meter)
 	if err != nil {
-		return err
+		return ri, err
 	}
 	rateLimited, monthlyLimited := false, false
 	switch plan {
@@ -48,12 +49,12 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGr
 		rateLimited, monthlyLimited = um.IsRateLimited(0, 0)
 	}
 	if rateLimited {
-		return errors.New("rate limited")
+		return ri, errors.New("rate limited")
 	}
 	if monthlyLimited {
-		return errors.New("monthly usage exceeds plan credits")
+		return ri, errors.New("monthly usage exceeds plan credits")
 	}
-	return nil
+	return ri, nil
 }
 
 /*

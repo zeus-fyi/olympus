@@ -18,9 +18,9 @@ const (
 	ThreeBillion           = 3_000_000_000
 )
 
-func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan string, meter *iris_usage_meters.PayloadSizeMeter) error {
+func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGroup string, meter *iris_usage_meters.PayloadSizeMeter) error {
 	// Generate the rate limiter key with the Unix timestamp
-	um, err := m.GetUsageRates(ctx, orgID, meter)
+	_, um, err := m.GetUsageRatesAndNextRoute(ctx, orgID, routeGroup, meter)
 	if err != nil {
 		return err
 	}

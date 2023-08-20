@@ -8,12 +8,12 @@ import (
 )
 
 func (r *IrisRedisTestSuite) TestSetMetricLatencyTDigest() {
-	err := IrisRedisClient.SetMetricLatencyTDigest(context.Background(), 1, "fooTable", "foo", 10.0)
+	err := IrisRedisClient.SetMetricLatencyTDigest(context.Background(), 1, "fooTestTable", "fooTestMetricName", 10.0)
 	r.NoError(err)
 }
 
 func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
-	quantileVal, sc, err := IrisRedisClient.GetMetricPercentile(context.Background(), 1, "fooTable", "foo", 0.5)
+	quantileVal, sc, err := IrisRedisClient.GetMetricPercentile(context.Background(), 1, "fooTestTable", "fooTestMetricName", 0.5)
 	r.NoError(err)
 	r.NotEmpty(quantileVal)
 	r.NotEmpty(sc)
@@ -24,14 +24,14 @@ func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
 func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMissing() {
 	tableStats := StatTable{
 		OrgID:     1,
-		TableName: "fooTable",
+		TableName: "fooTestTable",
 		MemberRankScoreIn: redis.Z{
 			Score:  1,
-			Member: "foo",
+			Member: "fooTest",
 		},
 		LatencyQuartilePercentageRank: 0,
 		Latency:                       0,
-		Metric:                        "",
+		Metric:                        "fooTestMetricName",
 		MetricSampleCount:             0,
 	}
 	err := IrisRedisClient.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(context.Background(), &tableStats)
@@ -41,15 +41,22 @@ func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMi
 func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage() {
 	tableStats := StatTable{
 		OrgID:     1,
-		TableName: "fooTable",
+		TableName: "fooTestTable",
 		MemberRankScoreIn: redis.Z{
 			Score:  1,
-			Member: "foo",
+			Member: "fooTest",
+		},
+		MemberRankScoreOut: redis.Z{
+			Score:  1,
+			Member: "fooTest",
 		},
 		LatencyQuartilePercentageRank: 0,
-		Latency:                       0,
-		Metric:                        "",
-		MetricSampleCount:             0,
+		Latency:                       100,
+		Metric:                        "fooTestMetricName",
+		MetricLatencyMedian:           0,
+		MetricLatencyTail:             0,
+		MetricSampleCount:             3,
+		Meter:                         nil,
 	}
 	err := IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), &tableStats)
 	r.NoError(err)

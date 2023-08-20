@@ -92,7 +92,6 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		Referrers:        ri.Referers,
 		Payload:          p.Body,
 		QueryParams:      qps,
-		Response:         nil,
 		IsInternal:       false,
 		Timeout:          1 * time.Minute,
 		StatusCode:       http.StatusOK, // default
@@ -111,6 +110,7 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}
 	tableStats.Meter = resp.PayloadSizeMeter
+	tableStats.LatencyMilliseconds = resp.Latency.Milliseconds()
 	go func(orgID int, tbl *iris_redis.StatTable) {
 		err = iris_redis.IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), tbl)
 		if err != nil {

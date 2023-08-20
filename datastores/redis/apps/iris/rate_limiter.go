@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
@@ -23,6 +24,7 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGr
 	// Generate the rate limiter key with the Unix timestamp
 	ri, um, err := m.GetUsageRatesAndNextRoute(ctx, orgID, routeGroup, meter)
 	if err != nil {
+		log.Err(err).Interface("um", um).Interface("ri", ri).Msg("CheckRateLimit: GetUsageRatesAndNextRoute")
 		return ri, err
 	}
 	rateLimited, monthlyLimited := false, false

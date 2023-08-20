@@ -42,7 +42,7 @@ type StatTable struct {
 	MemberRankScoreOut redis.Z `json:"memberRankScoreOut"`
 
 	LatencyQuartilePercentageRank float64 `json:"latencyQuartileRankPercentage"`
-	Latency                       float64 `json:"latency,omitempty"`
+	LatencyMilliseconds           int64   `json:"latency,omitempty"`
 	Metric                        string  `json:"metric,omitempty"`
 	MetricLatencyMedian           float64 `json:"metricLatencyMedian,omitempty"`
 	MetricLatencyTail             float64 `json:"metricLatencyTail,omitempty"`
@@ -76,6 +76,7 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 		percentileCmdTail = pipe.Do(ctx, "PERCENTILE.GET", tableMetricKey, 0.9)
 
 		metricTdigestSampleCountKey := fmt.Sprintf("%s:samples", tableMetricKey)
+		pipe.Expire(ctx, metricTdigestSampleCountKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 		sampleCountCmd = pipe.Get(ctx, metricTdigestSampleCountKey)
 	}
 
@@ -180,12 +181,12 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	}
 
 	var tdigestResp *redis.Cmd
-	if stats.Metric != "" && stats.Latency > 0 {
+	if stats.Metric != "" && stats.LatencyMilliseconds > 0 {
 		tableMetricKey := fmt.Sprintf("%d:%s:%s", stats.OrgID, stats.TableName, stats.Metric)
 		metricTdigestSampleCountKey := fmt.Sprintf("%s:samples", tableMetricKey)
 		pipe.Incr(ctx, metricTdigestSampleCountKey)
 		pipe.Expire(ctx, metricTdigestSampleCountKey, 15*time.Minute)
-		tdigestResp = pipe.Do(ctx, "PERCENTILE.MERGE", tableMetricKey, stats.Latency)
+		tdigestResp = pipe.Do(ctx, "PERCENTILE.MERGE", tableMetricKey, stats.LatencyMilliseconds)
 		pipe.Expire(ctx, tableMetricKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 	}
 	// Execute the transaction

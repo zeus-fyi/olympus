@@ -3,6 +3,7 @@ package iris_redis
 import (
 	"context"
 	"fmt"
+	"math/rand"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
@@ -61,18 +62,18 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 		TableName: "fooTestTable",
 		MemberRankScoreIn: redis.Z{
 			Score:  1,
-			Member: "fooTest",
+			Member: "fooTest" + uuid.New().String(),
 		},
 		MemberRankScoreOut: redis.Z{
 			Score:  1,
-			Member: "fooTest",
+			Member: "fooTest" + uuid.New().String(),
 		},
-		LatencyQuartilePercentageRank: 0,
-		Latency:                       100,
+		LatencyQuartilePercentageRank: .5,
+		Latency:                       float64(rand.Int()),
 		Metric:                        "fooTestMetricName",
-		MetricLatencyMedian:           0,
-		MetricLatencyTail:             0,
-		MetricSampleCount:             3,
+		MetricLatencyMedian:           .5,
+		MetricLatencyTail:             1,
+		MetricSampleCount:             10,
 		Meter:                         nil,
 	}
 	err := IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), &tableStats)

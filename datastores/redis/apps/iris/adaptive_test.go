@@ -10,7 +10,7 @@ import (
 )
 
 func (r *IrisRedisTestSuite) TestSetMetricLatencyTDigest() {
-	err := IrisRedisClient.SetMetricLatencyTDigest(context.Background(), 1, "fooTestTable", "fooTestMetricName", 10.0)
+	err := IrisRedisClient.SetMetricLatencyTDigest(context.Background(), 1, "fooTestTable", "fooTestMetricName", 1.0)
 	r.NoError(err)
 }
 
@@ -42,9 +42,9 @@ func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMi
 		TableName: "fooTestTable",
 		MemberRankScoreIn: redis.Z{
 			Score:  1,
-			Member: "fooTest",
+			Member: "https://artemis.zeus.fyi",
 		},
-		LatencyQuartilePercentageRank: latency / 100,
+		LatencyQuartilePercentageRank: latency / 100.0,
 		Latency:                       latency,
 		Metric:                        "fooTestMetricName",
 		MetricSampleCount:             100,
@@ -59,9 +59,9 @@ func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMi
 		TableName: "fooTestTable",
 		MemberRankScoreIn: redis.Z{
 			Score:  1,
-			Member: "fooTest" + uuidStr,
+			Member: "https://zeus.fyi",
 		},
-		LatencyQuartilePercentageRank: latency / 100,
+		LatencyQuartilePercentageRank: latency / 100.0,
 		Latency:                       latency,
 		Metric:                        "fooTestMetricName" + uuidStr,
 		MetricSampleCount:             100,
@@ -81,7 +81,7 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 			Score:  1,
 			Member: "fooTest" + uuidStr,
 		},
-		LatencyQuartilePercentageRank: latency / 100,
+		LatencyQuartilePercentageRank: latency / 100.0,
 		Latency:                       latency,
 		Metric:                        "fooTestMetricName" + uuidStr,
 		MetricSampleCount:             100,
@@ -105,7 +105,7 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 		Metric:                        "fooTestMetricName",
 		MetricLatencyMedian:           .5,
 		MetricLatencyTail:             1,
-		MetricSampleCount:             10,
+		MetricSampleCount:             101,
 		Meter:                         nil,
 	}
 	err = IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), &tableStats)

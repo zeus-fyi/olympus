@@ -184,6 +184,7 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 		tableMetricKey := fmt.Sprintf("%d:%s:%s", stats.OrgID, stats.TableName, stats.Metric)
 		metricTdigestSampleCountKey := fmt.Sprintf("%s:samples", tableMetricKey)
 		pipe.Incr(ctx, metricTdigestSampleCountKey)
+		pipe.Expire(ctx, metricTdigestSampleCountKey, 15*time.Minute)
 		tdigestResp = pipe.Do(ctx, "PERCENTILE.MERGE", tableMetricKey, stats.Latency)
 		pipe.Expire(ctx, tableMetricKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 	}

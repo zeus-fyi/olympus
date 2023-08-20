@@ -55,7 +55,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
 		}
 		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
-			log.Err(err)
+			log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 			return err
 		}
 		return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
@@ -73,6 +73,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		ouser, ok := ouc.(org_users.OrgUser)
 		if ok {
 			ou = ouser
+		} else {
+			return c.JSON(http.StatusBadRequest, Response{Message: "user not found"})
 		}
 	}
 	plan := ""

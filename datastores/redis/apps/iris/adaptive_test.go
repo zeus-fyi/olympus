@@ -94,11 +94,11 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 		TableName: "fooTestTable",
 		MemberRankScoreIn: redis.Z{
 			Score:  1,
-			Member: "fooTest" + uuid.New().String(),
+			Member: "https://zeus.fyi",
 		},
 		MemberRankScoreOut: redis.Z{
 			Score:  1,
-			Member: "fooTest" + uuid.New().String(),
+			Member: "https://artemis.zeus.fyi",
 		},
 		LatencyQuartilePercentageRank: .5,
 		Latency:                       float64(rand.Int()),

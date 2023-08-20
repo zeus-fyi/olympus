@@ -66,6 +66,7 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 			newPath, rerr := url.JoinPath(path, suffix)
 			if rerr != nil {
 				log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
+				rerr = nil
 			} else {
 				path = newPath
 			}

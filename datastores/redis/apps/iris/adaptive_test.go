@@ -23,7 +23,20 @@ func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
 	fmt.Println(quantileVal, sc)
 }
 
+func randomBetween(x, y int) int {
+	if x > y {
+		// Swap the numbers if x is greater than y
+		x, y = y, x
+	}
+	return x + rand.Intn(y-x+1)
+}
+
 func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMissing() {
+	//for i := 0; i < 100; i++ {
+	//	err := IrisRedisClient.SetMetricLatencyTDigest(context.Background(), 1, "fooTestTable", "fooTestMetricName", float64(i))
+	//	r.NoError(err)
+	//}
+	latency := float64(randomBetween(1, 100))
 	tableStats := StatTable{
 		OrgID:     1,
 		TableName: "fooTestTable",
@@ -31,33 +44,52 @@ func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMi
 			Score:  1,
 			Member: "fooTest",
 		},
-		LatencyQuartilePercentageRank: 0,
-		Latency:                       0,
+		LatencyQuartilePercentageRank: latency / 100,
+		Latency:                       latency,
 		Metric:                        "fooTestMetricName",
-		MetricSampleCount:             0,
+		MetricSampleCount:             100,
 	}
 	err := IrisRedisClient.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(context.Background(), &tableStats)
 	r.NoError(err)
 
+	latency = float64(randomBetween(1, 100))
 	uuidStr := uuid.New().String()
 	tableStats = StatTable{
 		OrgID:     1,
-		TableName: "fooTestTable" + uuidStr,
+		TableName: "fooTestTable",
 		MemberRankScoreIn: redis.Z{
 			Score:  1,
 			Member: "fooTest" + uuidStr,
 		},
-		LatencyQuartilePercentageRank: 0,
-		Latency:                       0,
+		LatencyQuartilePercentageRank: latency / 100,
+		Latency:                       latency,
 		Metric:                        "fooTestMetricName" + uuidStr,
-		MetricSampleCount:             0,
+		MetricSampleCount:             100,
 	}
 	err = IrisRedisClient.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(context.Background(), &tableStats)
 	r.NoError(err)
 }
 
 func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage() {
+
+	latency := float64(randomBetween(1, 100))
+	uuidStr := uuid.New().String()
 	tableStats := StatTable{
+		OrgID:     1,
+		TableName: "fooTestTable",
+		MemberRankScoreIn: redis.Z{
+			Score:  1,
+			Member: "fooTest" + uuidStr,
+		},
+		LatencyQuartilePercentageRank: latency / 100,
+		Latency:                       latency,
+		Metric:                        "fooTestMetricName" + uuidStr,
+		MetricSampleCount:             100,
+	}
+	err := IrisRedisClient.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(context.Background(), &tableStats)
+	r.NoError(err)
+
+	tableStats = StatTable{
 		OrgID:     1,
 		TableName: "fooTestTable",
 		MemberRankScoreIn: redis.Z{
@@ -76,6 +108,6 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 		MetricSampleCount:             10,
 		Meter:                         nil,
 	}
-	err := IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), &tableStats)
+	err = IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), &tableStats)
 	r.NoError(err)
 }

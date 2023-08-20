@@ -86,8 +86,8 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 	pipe.Expire(ctx, endpointPriorityScoreKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
-	if err != nil {
-		log.Err(err).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
+	if err != nil && err != redis.Nil {
+		log.Warn().Err(err).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
 		return err
 	}
 	score, err := scoreInCmd.Result()
@@ -112,8 +112,11 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 			val, rerr := percentileCmdMedian.Result()
 			if rerr != nil {
 				log.Err(rerr).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
+				rerr = nil
 			} else {
-				stats.MetricLatencyMedian = val.(float64)
+				if val != nil {
+					stats.MetricLatencyMedian = val.(float64)
+				}
 			}
 		}
 		if percentileCmdTail != nil {
@@ -121,7 +124,9 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 			if rerr != nil {
 				log.Err(rerr).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
 			} else {
-				stats.MetricLatencyTail = val.(float64)
+				if val != nil {
+					stats.MetricLatencyTail = val.(float64)
+				}
 			}
 		}
 		if sampleCountCmd != nil {

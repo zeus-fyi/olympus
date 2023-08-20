@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis/v9"
+	"github.com/google/uuid"
 )
 
 func (r *IrisRedisTestSuite) TestSetMetricLatencyTDigest() {
@@ -35,6 +36,22 @@ func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMi
 		MetricSampleCount:             0,
 	}
 	err := IrisRedisClient.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(context.Background(), &tableStats)
+	r.NoError(err)
+
+	uuidStr := uuid.New().String()
+	tableStats = StatTable{
+		OrgID:     1,
+		TableName: "fooTestTable" + uuidStr,
+		MemberRankScoreIn: redis.Z{
+			Score:  1,
+			Member: "fooTest" + uuidStr,
+		},
+		LatencyQuartilePercentageRank: 0,
+		Latency:                       0,
+		Metric:                        "fooTestMetricName" + uuidStr,
+		MetricSampleCount:             0,
+	}
+	err = IrisRedisClient.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(context.Background(), &tableStats)
 	r.NoError(err)
 }
 

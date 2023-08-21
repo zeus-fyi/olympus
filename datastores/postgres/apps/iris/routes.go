@@ -592,14 +592,14 @@ func (t *TableUsage) CheckPlanLimits(plan string) error {
 	}
 	switch plan {
 	case "performance":
-		// check 50k ZU/s
+		// check 100k ZU/s
 		// check max 3B ZU/month
 		if t.TableCount >= PerformanceGroupTables {
 			return errors.New("exceeds plan group tables")
 		}
 		return nil
 	case "standard":
-		// check 25k ZU/s
+		// check 50k ZU/s
 		// check max 1B ZU/month
 		if t.TableCount >= StandardGroupTables {
 			return errors.New("exceeds plan group tables")

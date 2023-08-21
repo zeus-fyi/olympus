@@ -178,7 +178,6 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	log.Info().Int64(" stats.LatencyMilliseconds", stats.LatencyMilliseconds).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
 
 	rate := stats.LatencyQuartilePercentageRank + 0.618
-	// - stats.MemberRankScoreOut.Score is equivalent to just removing the previous score
 	// essentially this just multiplies the score by the priority rate growth
 	scoreAdjustmentMemberOut := rate * stats.MemberRankScoreOut.Score
 	stats.MemberRankScoreOut.Score = scoreAdjustmentMemberOut

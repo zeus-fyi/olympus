@@ -15,7 +15,7 @@ import (
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
-func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
+func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, metricName string) error {
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
@@ -43,12 +43,12 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 	}
 	ri, err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.CheckRateLimit")
+		log.Err(err).Interface("ou", ou).Msg("ProcessAdaptiveLoadBalancerRequest: iris_redis.CheckRateLimit")
 		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
 	}
-	tableStats, err := iris_redis.IrisRedisClient.GetNextAdaptiveRoute(context.Background(), ou.OrgID, routeGroup, ri, payloadSizingMeter)
+	tableStats, err := iris_redis.IrisRedisClient.GetNextAdaptiveRoute(context.Background(), ou.OrgID, routeGroup, metricName, ri, payloadSizingMeter)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.GetNextRoute")
+		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessAdaptiveLoadBalancerRequest: iris_round_robin.GetNextRoute")
 		errResp := Response{Message: "routeGroup not found"}
 		return c.JSON(http.StatusBadRequest, errResp)
 	}
@@ -80,6 +80,12 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 			continue // Skip authorization headers
 		}
 		if k == "X-Route-Group" {
+			continue // Skip empty headers
+		}
+		if k == "X-Load-Balancing-Strategy" {
+			continue // Skip empty headers
+		}
+		if k == "X-Adaptive-Metrics-Key" {
 			continue // Skip empty headers
 		}
 		headers[k] = v // Assuming there's at least one value

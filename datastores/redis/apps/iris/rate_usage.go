@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
@@ -33,10 +32,6 @@ func (m *IrisCache) GetUsageRatesAndNextRoute(ctx context.Context, orgID int, rg
 		// Increment the rate limiter key
 		_ = pipe.Incr(ctx, rateLimiterKey)
 	}
-
-	// Set the key to expire after 2 seconds
-	pipe.Expire(ctx, rateLimiterKey, 10*time.Second)
-
 	// Generate the route key
 	routeKey := orgRouteTag(orgID, rgName)
 
@@ -86,7 +81,6 @@ func (m *IrisCache) GetUsageRatesAndNextRoute(ctx context.Context, orgID int, rg
 	// Check whether the key exists
 	if existsCmd.Val() <= 0 {
 		log.Err(err).Msgf("key doesn't exist: %s", routeKey)
-
 		//return iris_models.RouteInfo{}, fmt.Errorf("key doesn't exist: %s", routeKey)
 	}
 	// Get referers from Redis

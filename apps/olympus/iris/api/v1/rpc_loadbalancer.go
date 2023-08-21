@@ -26,6 +26,13 @@ const (
 	RouteGroupHeader    = "X-Route-Group"
 )
 
+const (
+	LoadBalancingStrategy    = "X-Load-Balancing-Strategy"
+	Adaptive                 = "Adaptive"
+	AdaptiveLoadBalancingKey = "X-Adaptive-Metrics-Key"
+	EthereumJsonRPC          = "Ethereum"
+)
+
 type ProxyRequest struct {
 	Body echo.Map
 }
@@ -57,6 +64,25 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
 			log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 			return err
+		}
+
+		lbStrategy := c.Request().Header.Get(LoadBalancingStrategy)
+		if lbStrategy == Adaptive {
+			metric := ""
+			adaptiveMetricKeyValue := c.Request().Header.Get(AdaptiveLoadBalancingKey)
+			switch adaptiveMetricKeyValue {
+			case EthereumJsonRPC:
+				metricName := request.Body["method"]
+				if metricName != nil {
+					metricNameStr, ok := metricName.(string)
+					if ok {
+						metric = metricNameStr
+					}
+				}
+			default:
+				metric = ""
+			}
+			return request.ProcessAdaptiveLoadBalancerRequest(c, payloadSizingMeter, method, metric)
 		}
 		return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
 	}
@@ -90,7 +116,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if payloadSizingMeter == nil {
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
-
 	routeInfo, err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.CheckRateLimit")
@@ -109,7 +134,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 			}
 		}
 	}
-
 	payloadSizingMeter.Reset()
 	headers := make(http.Header)
 	for k, v := range c.Request().Header {
@@ -117,6 +141,12 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 			continue // Skip authorization headers
 		}
 		if k == "X-Route-Group" {
+			continue // Skip empty headers
+		}
+		if k == "X-Load-Balancing-Strategy" {
+			continue // Skip empty headers
+		}
+		if k == "X-Adaptive-Metrics-Key" {
 			continue // Skip empty headers
 		}
 		headers[k] = v // Assuming there's at least one value

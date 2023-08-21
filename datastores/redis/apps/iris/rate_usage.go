@@ -32,6 +32,8 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 		// Increment the rate limiter key
 		_ = pipe.Incr(ctx, rateLimiterKey)
 	}
+	pipe.Expire(ctx, rateLimiterKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
+
 	// Generate the route key
 	routeKey := orgRouteTag(orgID, rgName)
 

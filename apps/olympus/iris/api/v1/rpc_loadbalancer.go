@@ -31,6 +31,8 @@ const (
 	Adaptive                 = "Adaptive"
 	AdaptiveLoadBalancingKey = "X-Adaptive-Metrics-Key"
 	EthereumJsonRPC          = "Ethereum"
+	QuickNodeJsonRPC         = "QuickNode"
+	JsonRpcAdaptiveMetrics   = "JSON-RPC"
 )
 
 type ProxyRequest struct {
@@ -71,7 +73,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			metric := ""
 			adaptiveMetricKeyValue := c.Request().Header.Get(AdaptiveLoadBalancingKey)
 			switch adaptiveMetricKeyValue {
-			case EthereumJsonRPC:
+			case EthereumJsonRPC, QuickNodeJsonRPC, JsonRpcAdaptiveMetrics:
 				metricName := request.Body["method"]
 				if metricName != nil {
 					metricNameStr, ok := metricName.(string)

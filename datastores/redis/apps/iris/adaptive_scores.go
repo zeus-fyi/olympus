@@ -31,8 +31,9 @@ import (
 // eg. each previous score should decay by 5% of the score if > 1
 
 const (
-	DecayConstant                 = 0.95
-	StatsTimeToLiveAfterLastUsage = 60 * time.Minute
+	DecayConstant                   = 0.95
+	MinSamplesBeforeAdaptiveScoring = 20
+	StatsTimeToLiveAfterLastUsage   = 60 * time.Minute
 )
 
 type StatTable struct {
@@ -178,7 +179,6 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	log.Info().Int64(" stats.LatencyMilliseconds", stats.LatencyMilliseconds).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
 
 	rate := stats.LatencyQuartilePercentageRank + 0.618
-	// - stats.MemberRankScoreOut.Score is equivalent to just removing the previous score
 	// essentially this just multiplies the score by the priority rate growth
 	scoreAdjustmentMemberOut := rate * stats.MemberRankScoreOut.Score
 	stats.MemberRankScoreOut.Score = scoreAdjustmentMemberOut
@@ -191,7 +191,10 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 		// Increment the rate limiter key
 		_ = pipe.IncrByFloat(ctx, rateLimiterKey, stats.Meter.ZeusResponseComputeUnitsConsumed())
 	}
-	pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreOut)
+
+	if stats.MetricSampleCount >= MinSamplesBeforeAdaptiveScoring {
+		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreOut)
+	}
 	if stats.MemberRankScoreIn.Score > 1 {
 		stats.MemberRankScoreIn.Score *= DecayConstant
 		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreIn)

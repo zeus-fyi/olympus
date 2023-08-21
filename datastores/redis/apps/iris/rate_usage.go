@@ -11,7 +11,7 @@ import (
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
-func (m *IrisCache) GetUsageRatesAndNextRoute(ctx context.Context, orgID int, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_models.RouteInfo, iris_usage_meters.UsageMeter, error) {
+func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Context, orgID int, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_models.RouteInfo, iris_usage_meters.UsageMeter, error) {
 	// Generate the rate limiter key with the Unix timestamp
 	rateLimiterKey := orgRateLimitTag(orgID)
 	orgRequests := fmt.Sprintf("%d-total-zu-usage", orgID)
@@ -20,7 +20,7 @@ func (m *IrisCache) GetUsageRatesAndNextRoute(ctx context.Context, orgID int, rg
 	}
 
 	// Use Redis transaction (pipeline) to perform all operations atomically
-	pipe := m.Reader.TxPipeline()
+	pipe := m.Writer.TxPipeline()
 
 	if meter != nil {
 		// Increment the payload size meter

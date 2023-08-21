@@ -22,9 +22,9 @@ const (
 
 func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGroup string, meter *iris_usage_meters.PayloadSizeMeter) (iris_models.RouteInfo, error) {
 	// Generate the rate limiter key with the Unix timestamp
-	ri, um, err := m.GetUsageRatesAndNextRoute(ctx, orgID, routeGroup, meter)
+	ri, um, err := m.RecordRequestUsageRatesCheckLimitAndNextRoute(ctx, orgID, routeGroup, meter)
 	if err != nil {
-		log.Err(err).Interface("um", um).Interface("ri", ri).Msg("CheckRateLimit: GetUsageRatesAndNextRoute")
+		log.Err(err).Interface("um", um).Interface("ri", ri).Msg("CheckRateLimit: RecordRequestUsageRatesCheckLimitAndNextRoute")
 		return ri, err
 	}
 	rateLimited, monthlyLimited := false, false

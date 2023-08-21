@@ -40,7 +40,7 @@ func (r *RateRequest) GetUsageRate(c echo.Context) error {
 	if plan == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
 	}
-	_, ur, err := iris_redis.IrisRedisClient.GetUsageRatesAndNextRoute(context.Background(), ou.OrgID, "", nil)
+	_, ur, err := iris_redis.IrisRedisClient.RecordRequestUsageRatesCheckLimitAndNextRoute(context.Background(), ou.OrgID, "", nil)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("RateRequest: RateRequestHandler")
 		return c.JSON(http.StatusInternalServerError, nil)

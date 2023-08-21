@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
@@ -32,7 +33,8 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 		// Increment the rate limiter key
 		_ = pipe.Incr(ctx, rateLimiterKey)
 	}
-	pipe.Expire(ctx, rateLimiterKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
+	// rate limiter key expires after 3 seconds
+	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
 
 	// Generate the route key
 	routeKey := orgRouteTag(orgID, rgName)

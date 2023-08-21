@@ -174,8 +174,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 				c.Response().Header().Add(key, value)
 			}
 		}
-		c.Response().Header().Set("X-Response-Latency-ms", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
-		c.Response().Header().Set("X-Response-ReceivedAt-UTC", resp.ReceivedAt.UTC().String())
+		c.Response().Header().Set("X-Response-Latency-Milliseconds", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
+		c.Response().Header().Set("X-Response-Received-At-UTC", resp.ReceivedAt.UTC().String())
 		c.Response().Header().Set("X-Selected-Route", path)
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}
@@ -191,8 +191,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		}
 	}
 	c.Response().Header().Set("X-Selected-Route", path)
-	c.Response().Header().Set("X-Response-Latency-ms", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
-	c.Response().Header().Set("X-Response-ReceivedAt-UTC", resp.ReceivedAt.UTC().String())
+	c.Response().Header().Set("X-Response-Latency-Milliseconds", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
+	c.Response().Header().Set("X-Response-Received-At-UTC", resp.ReceivedAt.UTC().String())
 	if resp.Response == nil && resp.RawResponse != nil {
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}

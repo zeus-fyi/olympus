@@ -47,7 +47,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
-		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
+		iris_redis.InitLocalTestRedisIrisCache(ctx)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -55,9 +55,9 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessKey = tc.AwsAccessKeyDynamoDB
 		dynamoDBCreds.AccessSecret = tc.AwsSecretKeyDynamoDB
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
-		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
+		iris_redis.InitLocalTestRedisIrisCache(ctx)
 	default:
-		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
+		iris_redis.InitLocalTestRedisIrisCache(ctx)
 	}
 	//dynamoDBCreds.Region = "us-west-1"
 	//

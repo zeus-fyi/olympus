@@ -45,7 +45,7 @@ func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMi
 			Member: "https://artemis.zeus.fyi",
 		},
 		LatencyQuartilePercentageRank: latency / 100.0,
-		Latency:                       latency,
+		LatencyMilliseconds:           int64(latency),
 		Metric:                        "fooTestMetricName",
 		MetricSampleCount:             100,
 	}
@@ -62,7 +62,7 @@ func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMi
 			Member: "https://zeus.fyi",
 		},
 		LatencyQuartilePercentageRank: latency / 100.0,
-		Latency:                       latency,
+		LatencyMilliseconds:           int64(latency),
 		Metric:                        "fooTestMetricName" + uuidStr,
 		MetricSampleCount:             100,
 	}
@@ -71,7 +71,6 @@ func (r *IrisRedisTestSuite) TestGetAdaptiveEndpointByPriorityScoreAndInsertIfMi
 }
 
 func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage() {
-
 	latency := float64(randomBetween(1, 100))
 	tableStats := StatTable{
 		OrgID:     1,
@@ -81,7 +80,7 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 			Member: "https://zeus.fyi",
 		},
 		LatencyQuartilePercentageRank: latency / 100.0,
-		Latency:                       latency,
+		LatencyMilliseconds:           int64(latency),
 		Metric:                        "fooTestMetricName",
 		MetricSampleCount:             100,
 	}
@@ -97,7 +96,7 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 			Member: "https://artemis.zeus.fyi",
 		},
 		LatencyQuartilePercentageRank: latency / 100.0,
-		Latency:                       latency,
+		LatencyMilliseconds:           int64(latency),
 		Metric:                        "fooTestMetricName",
 		MetricSampleCount:             100,
 	}
@@ -110,7 +109,7 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 		MemberRankScoreIn:             tableStats.MemberRankScoreIn,
 		MemberRankScoreOut:            tableStats.MemberRankScoreOut,
 		LatencyQuartilePercentageRank: rand.Float64(),
-		Latency:                       rand.Float64() * 100.0,
+		LatencyMilliseconds:           int64(rand.Float64() * 100.0),
 		Metric:                        "fooTestMetricName",
 		MetricLatencyMedian:           100.0,
 		MetricLatencyTail:             400.0,

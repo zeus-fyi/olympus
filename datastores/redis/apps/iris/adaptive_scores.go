@@ -32,7 +32,7 @@ import (
 
 const (
 	DecayConstant                 = 0.95
-	StatsTimeToLiveAfterLastUsage = 3 * time.Minute
+	StatsTimeToLiveAfterLastUsage = 60 * time.Minute
 )
 
 type StatTable struct {
@@ -156,25 +156,42 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	if stats == nil {
 		return fmt.Errorf("stats is nil")
 	}
-	endpointOut, ok := stats.MemberRankScoreOut.Member.(string)
-	if !ok {
-		return fmt.Errorf("endpointMember.MemberRankScoreOut is not a string")
-	}
 	if stats.TableName == "" {
 		return fmt.Errorf("stats.TableName is empty")
 	}
-	rateLimiterKey := orgRateLimitTag(stats.OrgID)
+
 	orgRequests := orgMonthlyUsageTag(stats.OrgID, time.Now().UTC().Month().String())
 	endpointPriorityScoreKey := createAdaptiveEndpointPriorityScoreKey(stats.OrgID, stats.TableName)
 
-	scoreAdjustmentIncrMemberOut := ((stats.LatencyQuartilePercentageRank + 0.618) * stats.MemberRankScoreOut.Score) - stats.MemberRankScoreOut.Score
+	if stats.LatencyQuartilePercentageRank <= 0.0 {
+		if stats.LatencyMilliseconds > int64(stats.MetricLatencyTail) {
+			stats.LatencyQuartilePercentageRank = 1.0
+		} else if stats.LatencyMilliseconds < int64(stats.MetricLatencyMedian) {
+			stats.LatencyQuartilePercentageRank = 0.5
+		} else {
+			stats.LatencyQuartilePercentageRank = 0.75
+		}
+	}
+
+	log.Info().Float64(" stats.MetricLatencyMedian", stats.MetricLatencyMedian).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
+	log.Info().Float64(" stats.MetricLatencyTail", stats.MetricLatencyTail).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
+	log.Info().Int64(" stats.LatencyMilliseconds", stats.LatencyMilliseconds).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
+
+	rate := stats.LatencyQuartilePercentageRank + 0.618
+	// - stats.MemberRankScoreOut.Score is equivalent to just removing the previous score
+	// essentially this just multiplies the score by the priority rate growth
+	scoreAdjustmentMemberOut := rate * stats.MemberRankScoreOut.Score
+	stats.MemberRankScoreOut.Score = scoreAdjustmentMemberOut
 	pipe := m.Writer.TxPipeline()
+
+	rateLimiterKey := orgRateLimitTag(stats.OrgID)
+	pipe.Expire(ctx, rateLimiterKey, 3*time.Second)
 	if stats.Meter != nil {
 		_ = pipe.IncrByFloat(ctx, orgRequests, stats.Meter.ZeusResponseComputeUnitsConsumed())
 		// Increment the rate limiter key
 		_ = pipe.IncrByFloat(ctx, rateLimiterKey, stats.Meter.ZeusResponseComputeUnitsConsumed())
 	}
-	pipe.ZIncrBy(ctx, endpointPriorityScoreKey, scoreAdjustmentIncrMemberOut, endpointOut)
+	pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreOut)
 	if stats.MemberRankScoreIn.Score > 1 {
 		stats.MemberRankScoreIn.Score *= DecayConstant
 		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreIn)
@@ -206,7 +223,7 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	return err
 }
 
-func (m *IrisCache) GetNextAdaptiveRoute(ctx context.Context, orgID int, rgName string, ri iris_models.RouteInfo, meter *iris_usage_meters.PayloadSizeMeter) (*StatTable, error) {
+func (m *IrisCache) GetNextAdaptiveRoute(ctx context.Context, orgID int, rgName, metricName string, ri iris_models.RouteInfo, meter *iris_usage_meters.PayloadSizeMeter) (*StatTable, error) {
 	ts := &StatTable{
 		OrgID:     orgID,
 		TableName: rgName,
@@ -217,7 +234,7 @@ func (m *IrisCache) GetNextAdaptiveRoute(ctx context.Context, orgID int, rgName 
 		MemberRankScoreOut:            redis.Z{},
 		LatencyQuartilePercentageRank: 0,
 		LatencyMilliseconds:           0,
-		Metric:                        "testMetricName",
+		Metric:                        metricName,
 		MetricLatencyMedian:           0,
 		MetricLatencyTail:             0,
 		MetricSampleCount:             0,
@@ -225,6 +242,7 @@ func (m *IrisCache) GetNextAdaptiveRoute(ctx context.Context, orgID int, rgName 
 	}
 	err := m.GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx, ts)
 	if err != nil {
+		log.Err(err).Msgf("GetNextAdaptiveRoute")
 		return nil, err
 	}
 	return ts, nil

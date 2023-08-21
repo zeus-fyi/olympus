@@ -138,8 +138,8 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		}
 	}
 	c.Response().Header().Set("X-Selected-Route", path)
-	c.Response().Header().Set("X-Response-Latency-ms", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
-	c.Response().Header().Set("X-Response-ReceivedAt-UTC", resp.ReceivedAt.UTC().String())
+	c.Response().Header().Set("X-Response-Latency-Milliseconds", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
+	c.Response().Header().Set("X-Response-Received-At-UTC", resp.ReceivedAt.UTC().String())
 	if (resp.Response == nil && resp.RawResponse != nil) || sendRawResponse {
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}

@@ -155,7 +155,7 @@ func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 func (r *IrisRedisTestSuite) TestRateLimit() {
 	meter := iris_usage_meters.NewPayloadSizeMeter(nil)
 
-	ur, um, err := IrisRedisClient.GetUsageRatesAndNextRoute(context.Background(), 1, "d", meter)
+	ur, um, err := IrisRedisClient.RecordRequestUsageRatesCheckLimitAndNextRoute(context.Background(), 1, "d", meter)
 	r.NoError(err)
 	r.NotNil(um)
 	r.NotEmpty(ur)

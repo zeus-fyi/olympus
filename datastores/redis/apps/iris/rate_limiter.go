@@ -14,6 +14,7 @@ const (
 	TenThousand            = 10_000
 	TwentyFiveThousand     = 25_000
 	FiftyThousand          = 50_000
+	HundredThousand        = 100_000
 	FiftyMillion           = 50_000_000
 	TwoHundredFiftyMillion = 250_000_000
 	OneBillion             = 1_000_000_000
@@ -34,15 +35,15 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGr
 	case "performance":
 		// check 50k ZU/s
 		// check max 3B ZU/month
-		rateLimited, monthlyLimited = um.IsRateLimited(FiftyThousand, ThreeBillion)
+		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
 	case "standard":
 		// check 25k ZU/s
 		// check max 1B ZU/month
-		rateLimited, monthlyLimited = um.IsRateLimited(TwentyFiveThousand, OneBillion)
+		rateLimited, monthlyLimited = um.IsRateLimited(FiftyThousand, OneBillion)
 	case "lite":
 		// check 1k ZU/s
 		// check max 50M ZU/month
-		rateLimited, monthlyLimited = um.IsRateLimited(TenThousand, TwoHundredFiftyMillion)
+		rateLimited, monthlyLimited = um.IsRateLimited(TwentyFiveThousand, TwoHundredFiftyMillion)
 	case "test":
 		// check 1k ZU/s
 		// check max 50M ZU/month

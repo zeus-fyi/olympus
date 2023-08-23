@@ -23,8 +23,8 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	}
 	pr.Payload = payload
 	// Creating a child context with a timeout
-	//timeoutCtx, cancel := context.WithTimeout(ctx, procedureStep.BroadcastInstructions.MaxDuration)
-	//defer cancel()
+	timeoutCtx, cancel := context.WithTimeout(ctx, procedureStep.BroadcastInstructions.MaxDuration)
+	defer cancel()
 
 	// Channel to collect the results
 	results := make(chan *ApiProxyRequest, len(routes))
@@ -36,7 +36,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	// Iterating through routes and launching goroutines
 	for _, route := range routes {
 		wg.Add(1)
-		go func(r string) {
+		go func(ctx context.Context, r string) {
 			defer wg.Done()
 
 			// Make a copy of the ApiProxyRequest to avoid race conditions
@@ -64,7 +64,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 				}
 				results <- resp
 			}
-		}(route.RoutePath)
+		}(timeoutCtx, route.RoutePath)
 	}
 
 	// Wait for all goroutines to complete

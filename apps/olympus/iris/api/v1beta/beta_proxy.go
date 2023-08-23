@@ -49,7 +49,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if wfExecutor != "" {
 		return p.Process(c, req)
 	}
-	rw := iris_api_requests.NewArtemisApiRequestsActivities()
+	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.InternalSvcRelayRequest(c.Request().Context(), req)
 	if err != nil {
 		log.Err(err).Str("route", routeInfo).Msg("rw.InternalSvcRelayRequest")

@@ -167,7 +167,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
 	}
-	rw := iris_api_requests.NewArtemisApiRequestsActivities()
+	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")

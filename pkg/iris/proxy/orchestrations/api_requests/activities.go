@@ -18,7 +18,7 @@ import (
 type IrisApiRequestsActivities struct {
 }
 
-func NewArtemisApiRequestsActivities() IrisApiRequestsActivities {
+func NewIrisApiRequestsActivities() IrisApiRequestsActivities {
 	return IrisApiRequestsActivities{}
 }
 

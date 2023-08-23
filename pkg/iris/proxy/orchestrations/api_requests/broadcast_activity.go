@@ -9,18 +9,18 @@ import (
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
+	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr *ApiProxyRequest, routes []iris_models.RouteInfo) (*ApiProxyRequest, error) {
-	if len(pr.Procedure.OrderedSteps) == 0 {
-		return nil, errors.New("no steps in procedure")
-	}
-
 	if pr.PayloadSizeMeter == nil {
 		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 	}
 
-	procedureStep := pr.Procedure.OrderedSteps[0]
+	procedureStep, ok := pr.Procedure.OrderedSteps.PopFront().(iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep)
+	if !ok {
+		return nil, errors.New("procedureStep not IrisRoutingProcedureStep")
+	}
 	payload, ok := procedureStep.BroadcastInstructions.Payload.(echo.Map)
 	if !ok {
 		return nil, errors.New("payload not echo.Map")
@@ -71,9 +71,10 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 			}
 		}(timeoutCtx, route.RoutePath)
 	}
-
 	// Wait for all goroutines to complete
 	wg.Wait()
-
+	if pr.Procedure.OrderedSteps.Len() > 0 {
+		return i.BroadcastETLRequest(ctx, pr, routes)
+	}
 	return pr, nil
 }

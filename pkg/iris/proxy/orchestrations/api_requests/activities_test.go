@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/phf/go-queue/queue"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
@@ -70,14 +71,41 @@ func (s *IrisActivitiesTestSuite) TestBroadcastETL() {
 				CurrentMaxFloat64: 0,
 			},
 		},
-		NextProcedure: nil,
 	}
 
-	procedure := iris_programmable_proxy_v1_beta.IrisRoutingProcedure{
-		Name: iris_programmable_proxy_v1_beta.MaxBlockAggReduce,
-		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
-			getBlockHeightProcedure,
+	payloadLatestBlock := echo.Map{
+		"jsonrpc": "2.0",
+		"method":  "eth_getBlockByNumber",
+		"params":  "['latest', true]",
+		"id":      "1",
+	}
+
+	getBlockStep := iris_programmable_proxy_v1_beta.BroadcastInstructions{
+		RoutingPath:  "/",
+		RestType:     "POST",
+		MaxDuration:  timeOut,
+		MaxTries:     3,
+		RoutingTable: rgName,
+		Payload:      payloadLatestBlock,
+	}
+
+	getBlockProcedure := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
+		BroadcastInstructions: getBlockStep,
+		TransformSlice: []iris_programmable_proxy_v1_beta.IrisRoutingResponseETL{
+			{
+				Source:        "",
+				ExtractionKey: "",
+				DataType:      "",
+			},
 		},
+	}
+
+	que := queue.New()
+	que.PushBack(getBlockHeightProcedure)
+	que.PushBack(getBlockProcedure)
+	procedure := iris_programmable_proxy_v1_beta.IrisRoutingProcedure{
+		Name:         iris_programmable_proxy_v1_beta.MaxBlockAggReduce,
+		OrderedSteps: que,
 	}
 
 	pr := &ApiProxyRequest{

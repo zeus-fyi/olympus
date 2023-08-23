@@ -72,9 +72,9 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 	return pr, err
 }
 
-func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr *ApiProxyRequest, routes []iris_models.RouteInfo, prodedure iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep) (*ApiProxyRequest, error) {
+func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr *ApiProxyRequest, routes []iris_models.RouteInfo, procedure iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep) (*ApiProxyRequest, error) {
 	// Creating a child context with a timeout
-	timeoutCtx, cancel := context.WithTimeout(ctx, prodedure.BroadcastInstructions.MaxDuration)
+	timeoutCtx, cancel := context.WithTimeout(ctx, procedure.BroadcastInstructions.MaxDuration)
 	defer cancel()
 
 	// Channel to collect the results

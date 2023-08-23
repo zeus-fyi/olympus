@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
@@ -30,17 +31,18 @@ func (s *IrisActivitiesTestSuite) TestBroadcastETL() {
 	bc := NewIrisApiRequestsActivities()
 
 	timeOut := time.Second * 3
-	pr := &ApiProxyRequest{}
+
 	rgName := "ethereum-mainnet"
 	routes, err := iris_redis.IrisRedisClient.GetBroadcastRoutes(context.Background(), s.Tc.ProductionLocalTemporalOrgID, rgName)
 	s.NoError(err)
 	s.NotEmpty(routes)
-	payload := `{
+
+	payload := echo.Map{
 		"jsonrpc": "2.0",
-		"method": "eth_blockNumber",
-		"params": [],
-		"id": 1
-	}`
+		"method":  "eth_blockNumber",
+		"params":  "[]",
+		"id":      "1",
+	}
 
 	getBlockHeightStep := iris_programmable_proxy_v1_beta.BroadcastInstructions{
 		RoutingPath:  "/",
@@ -63,7 +65,7 @@ func (s *IrisActivitiesTestSuite) TestBroadcastETL() {
 		AggregateMap: map[string]iris_operators.Aggregation{
 			"result": {
 				Operator:          "max",
-				DataType:          "",
+				DataType:          "int",
 				CurrentMaxInt:     0,
 				CurrentMaxFloat64: 0,
 			},
@@ -78,8 +80,12 @@ func (s *IrisActivitiesTestSuite) TestBroadcastETL() {
 		},
 	}
 
+	pr := &ApiProxyRequest{
+		Procedure: procedure,
+	}
+
 	fmt.Println(procedure)
-	resp, err := bc.BroadcastETLRequest(ctx, pr, routes, getBlockHeightProcedure)
+	resp, err := bc.BroadcastETLRequest(ctx, pr, routes)
 	s.NoError(err)
 	s.NotNil(resp)
 }

@@ -6,14 +6,11 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
-	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
-	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 type IrisApiRequestsActivities struct {
@@ -70,52 +67,6 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
 	}
 	return pr, err
-}
-
-func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr *ApiProxyRequest, routes []iris_models.RouteInfo, procedure iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep) (*ApiProxyRequest, error) {
-	// Creating a child context with a timeout
-	timeoutCtx, cancel := context.WithTimeout(ctx, procedure.BroadcastInstructions.MaxDuration)
-	defer cancel()
-
-	// Channel to collect the results
-	results := make(chan *ApiProxyRequest, len(routes))
-
-	// Wait group to wait for all goroutines to complete
-	var wg sync.WaitGroup
-
-	// Iterating through routes and launching goroutines
-	for _, route := range routes {
-		wg.Add(1)
-		go func(r string) {
-			defer wg.Done()
-
-			// Make a copy of the ApiProxyRequest to avoid race conditions
-			req := *pr
-			req.Url = r
-
-			// Call ExtLoadBalancerRequest with the modified request
-			resp, err := i.ExtLoadBalancerRequest(timeoutCtx, &req)
-			if err == nil {
-				results <- resp
-			}
-		}(route.RoutePath)
-	}
-
-	// Wait for all goroutines to complete
-	wg.Wait()
-
-	// Close the channel to stop the receiver
-	close(results)
-
-	// Process the results as needed
-	var finalResponse *ApiProxyRequest
-	// You can choose how to aggregate or select the final response
-	for result := range results {
-		finalResponse = result
-		// Additional logic to combine or select responses
-	}
-
-	return finalResponse, nil
 }
 
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {

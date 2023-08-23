@@ -88,6 +88,9 @@ func (s *IrisActivitiesTestSuite) TestBroadcastETL() {
 	resp, err := bc.BroadcastETLRequest(ctx, pr, routes)
 	s.NoError(err)
 	s.NotNil(resp)
+
+	s.NotEmpty(resp.Payload)
+	fmt.Println(resp.PayloadSizeMeter.Size)
 }
 
 func TestIrisActivitiesTestSuite(t *testing.T) {

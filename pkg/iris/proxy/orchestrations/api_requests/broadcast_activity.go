@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
 func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr *ApiProxyRequest, routes []iris_models.RouteInfo) (*ApiProxyRequest, error) {
@@ -15,8 +16,11 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 		return nil, errors.New("no steps in procedure")
 	}
 
-	procedureStep := pr.Procedure.OrderedSteps[0]
+	if pr.PayloadSizeMeter == nil {
+		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
+	}
 
+	procedureStep := pr.Procedure.OrderedSteps[0]
 	payload, ok := procedureStep.BroadcastInstructions.Payload.(echo.Map)
 	if !ok {
 		return nil, errors.New("payload not echo.Map")
@@ -25,9 +29,6 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	// Creating a child context with a timeout
 	timeoutCtx, cancel := context.WithTimeout(ctx, procedureStep.BroadcastInstructions.MaxDuration)
 	defer cancel()
-
-	// Channel to collect the results
-	results := make(chan *ApiProxyRequest, len(routes))
 
 	// Wait group to wait for all goroutines to complete
 	var wg sync.WaitGroup
@@ -50,8 +51,8 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 					// Assuming that resp.Response contains the data from which to extract the key value
 					transform.Source = r
 					transform.ExtractKeyValue(resp.Response)
-
 					mutex.Lock() // Lock access to shared procedureStep
+					pr.PayloadSizeMeter.Add(resp.PayloadSizeMeter.Size)
 					agg, aok := procedureStep.AggregateMap[transform.ExtractionKey]
 					if aok {
 						aerr := agg.AggregateOn(transform.Value, transform)
@@ -62,7 +63,11 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 					}
 					mutex.Unlock() // Unlock access to shared procedureStep
 				}
-				results <- resp
+			} else {
+				mutex.Lock()
+				pr.PayloadSizeMeter.Add(resp.PayloadSizeMeter.Size)
+				mutex.Unlock()
+				log.Err(err).Msg("Failed to broadcast request")
 			}
 		}(timeoutCtx, route.RoutePath)
 	}
@@ -70,16 +75,5 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	// Wait for all goroutines to complete
 	wg.Wait()
 
-	// Close the channel to stop the receiver
-	close(results)
-
-	// Process the results as needed
-	var finalResponse *ApiProxyRequest
-	// You can choose how to aggregate or select the final response
-	for result := range results {
-		finalResponse = result
-		// Additional logic to combine or select responses
-	}
-
-	return finalResponse, nil
+	return pr, nil
 }

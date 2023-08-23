@@ -7,12 +7,13 @@ import (
 	"net/url"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
+	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 type IrisApiRequestsActivities struct {
@@ -71,9 +72,9 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 	return pr, err
 }
 
-func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr *ApiProxyRequest, routes []string, timeout time.Duration) (*ApiProxyRequest, error) {
+func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr *ApiProxyRequest, routes []iris_models.RouteInfo, prodedure iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep) (*ApiProxyRequest, error) {
 	// Creating a child context with a timeout
-	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
+	timeoutCtx, cancel := context.WithTimeout(ctx, prodedure.BroadcastInstructions.MaxDuration)
 	defer cancel()
 
 	// Channel to collect the results
@@ -97,7 +98,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 			if err == nil {
 				results <- resp
 			}
-		}(route)
+		}(route.RoutePath)
 	}
 
 	// Wait for all goroutines to complete

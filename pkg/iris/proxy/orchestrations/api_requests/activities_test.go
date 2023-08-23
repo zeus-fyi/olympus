@@ -2,12 +2,16 @@ package iris_api_requests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	iris_operators "github.com/zeus-fyi/zeus/pkg/iris/operators"
+	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 var ctx = context.Background()
@@ -19,15 +23,63 @@ type IrisActivitiesTestSuite struct {
 func (s *IrisActivitiesTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
 }
 
 func (s *IrisActivitiesTestSuite) TestBroadcastETL() {
 	bc := NewIrisApiRequestsActivities()
 
-	timeOut := time.Second * 10
+	timeOut := time.Second * 3
 	pr := &ApiProxyRequest{}
-	routes := []string{"1", "2", "3"}
-	resp, err := bc.BroadcastETLRequest(ctx, pr, routes, timeOut)
+	rgName := "ethereum-mainnet"
+	routes, err := iris_redis.IrisRedisClient.GetBroadcastRoutes(context.Background(), s.Tc.ProductionLocalTemporalOrgID, rgName)
+	s.NoError(err)
+	s.NotEmpty(routes)
+	payload := `{
+		"jsonrpc": "2.0",
+		"method": "eth_blockNumber",
+		"params": [],
+		"id": 1
+	}`
+
+	getBlockHeightStep := iris_programmable_proxy_v1_beta.BroadcastInstructions{
+		RoutingPath:  "/",
+		RestType:     "POST",
+		MaxDuration:  timeOut,
+		MaxTries:     3,
+		RoutingTable: rgName,
+		Payload:      payload,
+	}
+
+	getBlockHeightProcedure := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
+		BroadcastInstructions: getBlockHeightStep,
+		TransformSlice: []iris_programmable_proxy_v1_beta.IrisRoutingResponseETL{
+			{
+				Source:        "",
+				ExtractionKey: "result",
+				DataType:      "",
+			},
+		},
+		AggregateMap: map[string]iris_operators.Aggregation{
+			"result": {
+				Operator:          "max",
+				DataType:          "",
+				CurrentMaxInt:     0,
+				CurrentMaxFloat64: 0,
+			},
+		},
+		NextProcedure: nil,
+	}
+
+	procedure := iris_programmable_proxy_v1_beta.IrisRoutingProcedure{
+		Name: iris_programmable_proxy_v1_beta.MaxBlockAggReduce,
+		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
+			getBlockHeightProcedure,
+		},
+	}
+
+	fmt.Println(procedure)
+	resp, err := bc.BroadcastETLRequest(ctx, pr, routes, getBlockHeightProcedure)
 	s.NoError(err)
 	s.NotNil(resp)
 }

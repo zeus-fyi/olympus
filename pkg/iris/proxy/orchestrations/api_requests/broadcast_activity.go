@@ -16,7 +16,6 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	if pr.PayloadSizeMeter == nil {
 		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 	}
-
 	procedureStep, ok := pr.Procedure.OrderedSteps.PopFront().(iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep)
 	if !ok {
 		return nil, errors.New("procedureStep not IrisRoutingProcedureStep")
@@ -37,16 +36,15 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	// Iterating through routes and launching goroutines
 	for _, route := range routes {
 		wg.Add(1)
-		go func(ctx context.Context, r string) {
+		go func(ctx context.Context, r string, cancel func()) {
 			defer wg.Done()
-
 			// Make a copy of the ApiProxyRequest to avoid race conditions
 			req := *pr
 			req.Url = r
 
 			// Call ExtLoadBalancerRequest with the modified request
 			resp, err := i.ExtLoadBalancerRequest(ctx, &req)
-			if err == nil {
+			if err == nil && resp.StatusCode < 400 {
 				for _, transform := range procedureStep.TransformSlice {
 					// Assuming that resp.Response contains the data from which to extract the key value
 					transform.Source = r
@@ -62,6 +60,12 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 						procedureStep.AggregateMap[transform.ExtractionKey] = agg
 					}
 					mutex.Unlock() // Unlock access to shared procedureStep
+					if procedureStep.BroadcastInstructions.FanInRules != nil {
+						switch procedureStep.BroadcastInstructions.FanInRules.Rule {
+						case iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse:
+
+						}
+					}
 				}
 			} else {
 				mutex.Lock()
@@ -69,12 +73,18 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 				mutex.Unlock()
 				log.Err(err).Msg("Failed to broadcast request")
 			}
-		}(timeoutCtx, route.RoutePath)
+		}(timeoutCtx, route.RoutePath, cancel)
 	}
 	// Wait for all goroutines to complete
 	wg.Wait()
 	if pr.Procedure.OrderedSteps.Len() > 0 {
 		return i.BroadcastETLRequest(ctx, pr, routes)
 	}
+	//if procedureStep.BroadcastInstructions.FanInRules != nil {
+	//	if resp, ok := <-successCh; ok {
+	//		return resp, nil
+	//	}
+	//}
+
 	return pr, nil
 }

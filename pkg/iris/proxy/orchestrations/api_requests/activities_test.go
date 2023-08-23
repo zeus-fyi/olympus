@@ -87,6 +87,9 @@ func (s *IrisActivitiesTestSuite) TestBroadcastETL() {
 		MaxTries:     3,
 		RoutingTable: rgName,
 		Payload:      payloadLatestBlock,
+		FanInRules: &iris_programmable_proxy_v1_beta.FanInRules{
+			Rule: iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse,
+		},
 	}
 
 	getBlockProcedure := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{

@@ -3,7 +3,6 @@ package iris_api_requests
 import (
 	"context"
 	"errors"
-	"fmt"
 	"path"
 	"sync"
 
@@ -56,7 +55,6 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 		}
 	}
 	// Iterating through routes and launching goroutines
-	fmt.Println("routes", routes)
 	for _, route := range routes {
 		wg.Add(1)
 		go func(ctx context.Context, r string, cancel func()) {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -73,19 +72,7 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	sfx := c.Get("capturedPath")
-	if sfx != nil {
-		suffix, sok := sfx.(string)
-		if sok {
-			newPath, rerr := url.JoinPath(path, suffix)
-			if rerr != nil {
-				log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
-				rerr = nil
-			} else {
-				path = newPath
-			}
-		}
-	}
+
 	payloadSizingMeter.Reset()
 	headers := make(http.Header)
 	for k, v := range c.Request().Header {
@@ -116,6 +103,13 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		Timeout:          1 * time.Minute,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
+	}
+	sfx := c.Get("capturedPath")
+	if sfx != nil {
+		suffix, sok := sfx.(string)
+		if sok {
+			req.ExtRoutePath = suffix
+		}
 	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	var sendRawResponse bool

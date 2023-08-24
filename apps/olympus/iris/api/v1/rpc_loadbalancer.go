@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -128,18 +127,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
 	}
 	path := routeInfo.RoutePath
-	if c.Get("capturedPath") != nil {
-		suffix, sok := c.Get("capturedPath").(string)
-		if sok {
-			newPath, rerr := url.JoinPath(routeInfo.RoutePath, suffix)
-			if rerr != nil {
-				log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
-				rerr = nil
-			} else {
-				path = newPath
-			}
-		}
-	}
 	payloadSizingMeter.Reset()
 	headers := make(http.Header)
 	for k, v := range c.Request().Header {
@@ -170,6 +157,13 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		Timeout:          1 * time.Minute,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
+	}
+	sfx := c.Get("capturedPath")
+	if sfx != nil {
+		suffix, sok := sfx.(string)
+		if sok {
+			req.ExtRoutePath = suffix
+		}
 	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)

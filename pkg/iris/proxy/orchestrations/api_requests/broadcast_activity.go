@@ -102,7 +102,6 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	}
 	// Wait for all goroutines to complete
 	wg.Wait()
-
 	if pr.Procedure.OrderedSteps.Len() > 0 {
 		if procedureStep.AggregateMap != nil {
 			for _, v := range procedureStep.AggregateMap {
@@ -114,6 +113,9 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 				}
 				pr.Routes = routes
 			}
+		}
+		if len(pr.Routes) <= 0 {
+			return pr, nil
 		}
 		return i.BroadcastETLRequest(ctx, pr)
 	}

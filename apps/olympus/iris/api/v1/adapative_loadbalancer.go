@@ -21,8 +21,9 @@ const (
 )
 
 func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, metricName string) error {
-	if len(c.Request().Header.Get(iris_programmable_proxy_v1_beta.RoutingProcedureHeader)) > 0 {
-		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, metricName)
+	procName := c.Request().Header.Get(iris_programmable_proxy_v1_beta.RoutingProcedureHeader)
+	if procName != "" {
+		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName)
 	}
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {

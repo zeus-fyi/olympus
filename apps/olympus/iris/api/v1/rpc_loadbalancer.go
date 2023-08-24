@@ -91,8 +91,9 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 }
 
 func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
-	if len(c.Request().Header.Get(iris_programmable_proxy_v1_beta.RoutingProcedureHeader)) > 0 {
-		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, "")
+	procName := c.Request().Header.Get(iris_programmable_proxy_v1_beta.RoutingProcedureHeader)
+	if procName != "" {
+		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName)
 	}
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {

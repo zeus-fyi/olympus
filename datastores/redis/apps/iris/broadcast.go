@@ -9,7 +9,7 @@ import (
 
 func (m *IrisCache) GetBroadcastRoutes(ctx context.Context, orgID int, rgName string) ([]iris_models.RouteInfo, error) {
 	// Use Redis pipeline to perform operations
-	pipe := m.Writer.Pipeline()
+	pipe := m.Reader.Pipeline()
 
 	// Generate the route key
 	routeKey := orgRouteTag(orgID, rgName)

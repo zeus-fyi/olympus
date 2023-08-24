@@ -14,7 +14,7 @@ import (
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
-func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, metricName string) error {
+func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, procName string) error {
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
@@ -40,17 +40,10 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 	if payloadSizingMeter == nil {
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
-	ri, err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
+	proc, routes, err := iris_redis.IrisRedisClient.CheckRateLimitBroadcast(context.Background(), ou.OrgID, procName, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessAdaptiveLoadBalancerRequest: iris_redis.CheckRateLimit")
 		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
-	}
-	//fmt.Println(ri.RoutePath, "routeRoundRobin")
-	routes, err := iris_redis.IrisRedisClient.GetBroadcastRoutes(context.Background(), ou.OrgID, routeGroup)
-	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessAdaptiveLoadBalancerRequest: iris_round_robin.GetNextRoute")
-		errResp := Response{Message: "routeGroup not found"}
-		return c.JSON(http.StatusBadRequest, errResp)
 	}
 
 	//fmt.Println(tableStats.MemberRankScoreOut.Member, "routeAdaptive")
@@ -83,12 +76,12 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 	}
 	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
+		Procedure:        proc,
 		Routes:           routes,
 		ExtRoutePath:     extPath,
 		ServicePlan:      plan,
 		PayloadTypeREST:  restType,
 		RequestHeaders:   headers,
-		Referrers:        ri.Referers,
 		Payload:          p.Body,
 		QueryParams:      qps,
 		IsInternal:       false,

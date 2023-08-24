@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -13,18 +12,9 @@ import (
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
-	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
-const (
-	StatusErrorCodePriorityScoreScaleFactor = 3.0
-)
-
-func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, metricName string) error {
-	procName := c.Request().Header.Get(iris_programmable_proxy_v1_beta.RequestHeaderRoutingProcedureHeader)
-	if procName != "" {
-		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName)
-	}
+func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, procName string) error {
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
@@ -50,40 +40,21 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 	if payloadSizingMeter == nil {
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
-	ri, err := iris_redis.IrisRedisClient.CheckRateLimit(context.Background(), ou.OrgID, plan, routeGroup, payloadSizingMeter)
+	proc, routes, err := iris_redis.IrisRedisClient.CheckRateLimitBroadcast(context.Background(), ou.OrgID, procName, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessAdaptiveLoadBalancerRequest: iris_redis.CheckRateLimit")
-		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
-	}
-	//fmt.Println(ri.RoutePath, "routeRoundRobin")
-	tableStats, err := iris_redis.IrisRedisClient.GetNextAdaptiveRoute(context.Background(), ou.OrgID, routeGroup, metricName, ri, payloadSizingMeter)
-	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessAdaptiveLoadBalancerRequest: iris_round_robin.GetNextRoute")
-		errResp := Response{Message: "routeGroup not found"}
-		return c.JSON(http.StatusBadRequest, errResp)
+		return c.JSON(http.StatusTooManyRequests, nil)
 	}
 
 	//fmt.Println(tableStats.MemberRankScoreOut.Member, "routeAdaptive")
 	//fmt.Println(tableStats, "tableStats")
 	payloadSizingMeter.Plan = plan
-	if tableStats.MemberRankScoreOut.Member == nil {
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	path, ok := tableStats.MemberRankScoreOut.Member.(string)
-	if !ok {
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
+	extPath := ""
 	sfx := c.Get("capturedPath")
 	if sfx != nil {
 		suffix, sok := sfx.(string)
 		if sok {
-			newPath, rerr := url.JoinPath(path, suffix)
-			if rerr != nil {
-				log.Warn().Err(rerr).Str("path", path).Msg("ProcessRpcLoadBalancerRequest: url.JoinPath")
-				rerr = nil
-			} else {
-				path = newPath
-			}
+			extPath = suffix
 		}
 	}
 	payloadSizingMeter.Reset()
@@ -105,11 +76,12 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 	}
 	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:              path,
+		Procedure:        proc,
+		Routes:           routes,
+		ExtRoutePath:     extPath,
 		ServicePlan:      plan,
 		PayloadTypeREST:  restType,
 		RequestHeaders:   headers,
-		Referrers:        ri.Referers,
 		Payload:          p.Body,
 		QueryParams:      qps,
 		IsInternal:       false,
@@ -119,31 +91,26 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	var sendRawResponse bool
-	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
+	now := time.Now()
+	resp, err := rw.BroadcastETLRequest(context.Background(), req)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		log.Err(err).Interface("ou", ou).Interface("routes", routes).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
 		err = nil
 		sendRawResponse = true
 	}
-	if resp.StatusCode >= 400 {
-		tableStats.LatencyQuartilePercentageRank = StatusErrorCodePriorityScoreScaleFactor
-	}
-	tableStats.Meter = resp.PayloadSizeMeter
-	tableStats.LatencyMilliseconds = resp.Latency.Milliseconds()
-	//fmt.Println(tableStats, "tableStats")
-	go func(orgID int, tbl *iris_redis.StatTable) {
-		err = iris_redis.IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), tbl)
+	go func(orgID int, usage *iris_usage_meters.PayloadSizeMeter) {
+		err = iris_redis.IrisRedisClient.RecordRequestUsage(context.Background(), orgID, usage)
 		if err != nil {
-			log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
+			log.Err(err).Interface("ou", ou).Interface("usage", usage).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 		}
-	}(ou.OrgID, tableStats)
+	}(ou.OrgID, resp.PayloadSizeMeter)
 	for key, values := range resp.ResponseHeaders {
 		for _, value := range values {
 			c.Response().Header().Add(key, value)
 		}
 	}
-	c.Response().Header().Set("X-Selected-Route", path)
-	c.Response().Header().Set("X-Response-Latency-Milliseconds", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
+	sinceMs := time.Since(now).Milliseconds()
+	c.Response().Header().Set("X-Procedure-Latency-Milliseconds", fmt.Sprintf("%d", sinceMs))
 	c.Response().Header().Set("X-Response-Received-At-UTC", resp.ReceivedAt.UTC().String())
 	if (resp.Response == nil && resp.RawResponse != nil) || sendRawResponse {
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))

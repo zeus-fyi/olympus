@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
+	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 const (
@@ -20,6 +21,46 @@ const (
 	OneBillion             = 1_000_000_000
 	ThreeBillion           = 3_000_000_000
 )
+
+func (m *IrisCache) CheckRateLimitBroadcast(ctx context.Context, orgID int, procedureName, plan, routeGroup string, meter *iris_usage_meters.PayloadSizeMeter) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, []iris_models.RouteInfo, error) {
+	// Generate the rate limiter key with the Unix timestamp
+	proc, ri, um, err := m.RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx, orgID, procedureName, routeGroup, meter)
+	if err != nil {
+		log.Err(err).Interface("um", um).Interface("ri", ri).Msg("CheckRateLimit: RecordRequestUsageRatesCheckLimitAndNextRoute")
+		return proc, ri, err
+	}
+
+	rateLimited, monthlyLimited := false, false
+	switch plan {
+	case "enterprise":
+		// todo
+	case "performance":
+		// check 50k ZU/s
+		// check max 3B ZU/month
+		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
+	case "standard":
+		// check 25k ZU/s
+		// check max 1B ZU/month
+		rateLimited, monthlyLimited = um.IsRateLimited(FiftyThousand, OneBillion)
+	case "lite":
+		// check 1k ZU/s
+		// check max 50M ZU/month
+		rateLimited, monthlyLimited = um.IsRateLimited(TwentyFiveThousand, TwoHundredFiftyMillion)
+	case "test":
+		// check 1k ZU/s
+		// check max 50M ZU/month
+		rateLimited, monthlyLimited = um.IsRateLimited(100, 1000)
+	default:
+		rateLimited, monthlyLimited = um.IsRateLimited(0, 0)
+	}
+	if rateLimited {
+		return proc, ri, errors.New("rate limited")
+	}
+	if monthlyLimited {
+		return proc, ri, errors.New("monthly usage exceeds plan credits")
+	}
+	return proc, ri, nil
+}
 
 func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGroup string, meter *iris_usage_meters.PayloadSizeMeter) (iris_models.RouteInfo, error) {
 	// Generate the rate limiter key with the Unix timestamp

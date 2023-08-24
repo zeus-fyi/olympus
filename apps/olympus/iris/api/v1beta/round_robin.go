@@ -21,7 +21,7 @@ func InternalRoundRobinRequestHandler(c echo.Context) error {
 	return request.ProcessRoundRobin(c, true)
 }
 func (p *BetaProxyRequest) ProcessRoundRobin(c echo.Context, isInternal bool) error {
-	rw := iris_api_requests.NewArtemisApiRequestsActivities()
+	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	routeGroup := c.QueryParam("routeGroup")
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	routeInfo, err := iris_round_robin.GetNextRoute(ou.OrgID, routeGroup)

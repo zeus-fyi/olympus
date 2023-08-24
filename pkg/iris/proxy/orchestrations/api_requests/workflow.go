@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -36,6 +38,8 @@ func (i *IrisApiRequestsWorkflow) GetWorkflows() []interface{} {
 
 type ApiProxyRequest struct {
 	Url              string
+	Routes           []iris_models.RouteInfo
+	ExtRoutePath     string
 	ServicePlan      string
 	PayloadTypeREST  string
 	Referrers        []string
@@ -47,9 +51,11 @@ type ApiProxyRequest struct {
 	RawResponse      []byte
 	StatusCode       int
 	IsInternal       bool
+	MaxTries         int
 	Timeout          time.Duration
 	ReceivedAt       time.Time
 	Latency          time.Duration
+	Procedure        iris_programmable_proxy_v1_beta.IrisRoutingProcedure
 	PayloadSizeMeter *iris_usage_meters.PayloadSizeMeter
 }
 

@@ -18,7 +18,7 @@ func InitIrisApiRequestsWorker(ctx context.Context, temporalAuthCfg temporal_aut
 	}
 	taskQueueName := ApiRequestsTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
-	activityDef := NewArtemisApiRequestsActivities()
+	activityDef := NewIrisApiRequestsActivities()
 	wf := NewIrisApiRequestsWorkflow()
 
 	w.AddWorkflows(wf.GetWorkflows())
@@ -37,7 +37,7 @@ func InitIrisCacheWorker(ctx context.Context, temporalAuthCfg temporal_auth.Temp
 	}
 	taskQueueName := CacheUpdateRequestsTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
-	activityDef := NewArtemisApiRequestsActivities()
+	activityDef := NewIrisApiRequestsActivities()
 	wf := NewIrisApiRequestsWorkflow()
 
 	w.AddWorkflows(wf.GetWorkflows())

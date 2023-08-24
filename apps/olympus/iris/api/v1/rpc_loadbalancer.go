@@ -15,6 +15,7 @@ import (
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
+	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 const (
@@ -67,7 +68,6 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 			return err
 		}
-
 		lbStrategy := c.Request().Header.Get(LoadBalancingStrategy)
 		if lbStrategy == Adaptive {
 			metric := ""
@@ -91,6 +91,10 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 }
 
 func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
+	procName := c.Request().Header.Get(iris_programmable_proxy_v1_beta.RequestHeaderRoutingProcedureHeader)
+	if procName != "" {
+		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName)
+	}
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
@@ -167,7 +171,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
 	}
-	rw := iris_api_requests.NewArtemisApiRequestsActivities()
+	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")

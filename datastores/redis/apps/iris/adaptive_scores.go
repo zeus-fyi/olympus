@@ -69,7 +69,6 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 
 	var percentileCmdMedian, percentileCmdTail *redis.Cmd
 	var sampleCountCmd *redis.StringCmd
-
 	if stats.Metric != "" {
 		tableMetricKey := fmt.Sprintf("%d:%s:%s", stats.OrgID, stats.TableName, stats.Metric)
 		pipe.Expire(ctx, tableMetricKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes

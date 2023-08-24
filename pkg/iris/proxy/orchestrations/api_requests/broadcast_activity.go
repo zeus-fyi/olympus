@@ -3,7 +3,6 @@ package iris_api_requests
 import (
 	"context"
 	"errors"
-	"path"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -48,9 +47,8 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	if pr.Routes != nil {
 		copy(routes, pr.Routes)
 	}
-	if len(pr.ExtRoutePath) > 0 || len(pr.Referrers) > 0 {
+	if len(pr.Referrers) > 0 {
 		for ind, _ := range routes {
-			routes[ind].RoutePath = path.Join(routes[ind].RoutePath, pr.ExtRoutePath)
 			routes[ind].Referers = pr.Referrers
 		}
 	}
@@ -119,5 +117,6 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 		}
 		return i.BroadcastETLRequest(ctx, pr)
 	}
+
 	return pr, nil
 }

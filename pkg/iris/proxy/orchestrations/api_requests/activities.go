@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -75,7 +76,6 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	if pr.MaxTries > 0 {
 		r.SetRetryCount(pr.MaxTries)
 	}
-
 	parsedURL, err := url.Parse(pr.Url)
 	if err != nil {
 		fmt.Println("Error parsing URL:", err)
@@ -128,33 +128,41 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*resty.Response, error) {
 	var resp *resty.Response
 	var err error
+
+	ext := ""
+	if pr.ExtRoutePath != "" {
+		ext = path.Join(pr.ExtRoutePath, pr.Url)
+	} else {
+		ext = pr.Url
+	}
 	if pr.Payload != nil {
 		switch method {
 		case "GET":
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(pr.Url)
+			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(ext)
 		case "PUT":
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Put(pr.Url)
+			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Put(ext)
 		case "DELETE":
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Delete(pr.Url)
+			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Delete(ext)
 		case "POST":
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
+			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(ext)
 		default:
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
+			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(ext)
 		}
 	} else {
 		switch method {
 		case "GET":
-			resp, err = request.SetResult(&pr.Response).Get(pr.Url)
+			resp, err = request.SetResult(&pr.Response).Get(ext)
 		case "PUT":
-			resp, err = request.SetResult(&pr.Response).Put(pr.Url)
+			resp, err = request.SetResult(&pr.Response).Put(ext)
 		case "DELETE":
-			resp, err = request.SetResult(&pr.Response).Delete(pr.Url)
+			resp, err = request.SetResult(&pr.Response).Delete(ext)
 		case "POST":
-			resp, err = request.SetResult(&pr.Response).Post(pr.Url)
+			resp, err = request.SetResult(&pr.Response).Post(ext)
 		default:
-			resp, err = request.SetResult(&pr.Response).Post(pr.Url)
+			resp, err = request.SetResult(&pr.Response).Post(ext)
 		}
 	}
+
 	if resp != nil {
 		pr.PayloadSizeMeter.Add(resp.Size())
 		pr.StatusCode = resp.StatusCode()

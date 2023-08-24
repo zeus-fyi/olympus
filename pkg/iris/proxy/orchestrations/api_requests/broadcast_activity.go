@@ -3,6 +3,7 @@ package iris_api_requests
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path"
 	"sync"
 
@@ -24,11 +25,18 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	if !ok {
 		return nil, errors.New("procedureStep not IrisRoutingProcedureStep")
 	}
-	payload, ok := procedureStep.BroadcastInstructions.Payload.(echo.Map)
-	if !ok {
-		return nil, errors.New("payload not echo.Map")
+
+	if procedureStep.BroadcastInstructions.Payload != nil {
+		if procedureStep.BroadcastInstructions.Payload != nil {
+			switch procedureStep.BroadcastInstructions.Payload.(type) {
+			case echo.Map:
+				pr.Payload = procedureStep.BroadcastInstructions.Payload.(echo.Map)
+			case map[string]interface{}:
+				tmp := echo.Map(procedureStep.BroadcastInstructions.Payload.(map[string]interface{}))
+				pr.Payload = tmp
+			}
+		}
 	}
-	pr.Payload = payload
 	pr.MaxTries = procedureStep.BroadcastInstructions.MaxTries
 	// Creating a child context with a timeout
 	timeoutCtx, cancel := context.WithTimeout(ctx, procedureStep.BroadcastInstructions.MaxDuration)
@@ -37,19 +45,9 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	// Wait group to wait for all goroutines to complete
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
-	var routes []iris_models.RouteInfo
-
-	if (pr.Routes == nil || len(pr.Routes) <= 0) && (len(pr.Url) <= 0) {
-		return nil, errors.New("no routes or url")
-	}
-	if pr.Routes != nil && len(pr.Routes) > 0 {
+	routes := make([]iris_models.RouteInfo, len(pr.Routes))
+	if pr.Routes != nil {
 		copy(routes, pr.Routes)
-	}
-	if len(pr.Url) > 0 && (pr.Routes == nil || len(pr.Routes) == 0) {
-		routes = append(routes, iris_models.RouteInfo{RoutePath: pr.Url, Referers: pr.Referrers})
-	}
-	if len(procedureStep.BroadcastInstructions.RoutingPath) > 0 {
-		pr.ExtRoutePath = procedureStep.BroadcastInstructions.RoutingPath
 	}
 	if len(pr.ExtRoutePath) > 0 || len(pr.Referrers) > 0 {
 		for ind, _ := range routes {
@@ -58,6 +56,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 		}
 	}
 	// Iterating through routes and launching goroutines
+	fmt.Println("routes", routes)
 	for _, route := range routes {
 		wg.Add(1)
 		go func(ctx context.Context, r string, cancel func()) {
@@ -105,7 +104,19 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	}
 	// Wait for all goroutines to complete
 	wg.Wait()
+
 	if pr.Procedure.OrderedSteps.Len() > 0 {
+		if procedureStep.AggregateMap != nil {
+			for _, v := range procedureStep.AggregateMap {
+				newRoutes := make([]iris_models.RouteInfo, len(v.DataSlice))
+				for ind, filteredRoutes := range v.DataSlice {
+					newRoutes[ind] = iris_models.RouteInfo{
+						RoutePath: filteredRoutes.Source,
+					}
+				}
+				pr.Routes = routes
+			}
+		}
 		return i.BroadcastETLRequest(ctx, pr)
 	}
 	return pr, nil

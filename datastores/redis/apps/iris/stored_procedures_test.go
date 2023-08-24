@@ -31,7 +31,7 @@ func (r *IrisRedisTestSuite) TestProcedures() {
 
 	getBlockHeightProcedure := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
 		BroadcastInstructions: getBlockHeightStep,
-		TransformSlice: []iris_programmable_proxy_v1_beta.IrisRoutingResponseETL{
+		TransformSlice: []iris_operators.IrisRoutingResponseETL{
 			{
 				Source:        "",
 				ExtractionKey: "result",
@@ -69,7 +69,7 @@ func (r *IrisRedisTestSuite) TestProcedures() {
 
 	getBlockProcedure := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
 		BroadcastInstructions: getBlockStep,
-		TransformSlice: []iris_programmable_proxy_v1_beta.IrisRoutingResponseETL{
+		TransformSlice: []iris_operators.IrisRoutingResponseETL{
 			{
 				Source:        "",
 				ExtractionKey: "",

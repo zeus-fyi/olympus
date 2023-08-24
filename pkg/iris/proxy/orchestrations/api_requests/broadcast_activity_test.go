@@ -16,7 +16,6 @@ func (s *IrisActivitiesTestSuite) TestBroadcastETL() {
 	bc := NewIrisApiRequestsActivities()
 
 	timeOut := time.Second * 3
-
 	rgName := "ethereum-mainnet"
 	routes, err := iris_redis.IrisRedisClient.GetBroadcastRoutes(context.Background(), s.Tc.ProductionLocalTemporalOrgID, rgName)
 	s.NoError(err)
@@ -97,10 +96,11 @@ func (s *IrisActivitiesTestSuite) TestBroadcastETL() {
 
 	pr := &ApiProxyRequest{
 		Procedure: procedure,
+		Routes:    routes,
 	}
 
 	fmt.Println(procedure)
-	resp, err := bc.BroadcastETLRequest(ctx, pr, routes)
+	resp, err := bc.BroadcastETLRequest(ctx, pr)
 	s.NoError(err)
 	s.NotNil(resp)
 

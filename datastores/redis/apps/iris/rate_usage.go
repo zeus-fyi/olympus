@@ -14,25 +14,24 @@ import (
 
 func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Context, orgID int, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_models.RouteInfo, iris_usage_meters.UsageMeter, error) {
 	// Generate the rate limiter key with the Unix timestamp
-	rateLimiterKey := orgRateLimitTag(orgID)
-	orgRequests := fmt.Sprintf("%d-total-zu-usage", orgID)
-	if meter != nil {
-		orgRequests = orgMonthlyUsageTag(orgID, meter.Month)
+	if meter == nil {
+		meter = &iris_usage_meters.PayloadSizeMeter{}
 	}
-
+	rateLimiterKey := orgRateLimitTag(orgID)
+	orgRequestsTotal := fmt.Sprintf("%d-total-zu-usage", orgID)
+	if len(meter.Month) <= 0 {
+		meter.Month = time.Now().UTC().Month().String()
+	}
+	orgRequestsMonthly := orgMonthlyUsageTag(orgID, meter.Month)
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
 
-	if meter != nil {
-		// Increment the payload size meter
-		_ = pipe.IncrByFloat(ctx, orgRequests, meter.ZeusRequestComputeUnitsConsumed())
-		// Increment the rate limiter key
-		_ = pipe.IncrByFloat(ctx, rateLimiterKey, meter.ZeusRequestComputeUnitsConsumed())
-	} else {
-		_ = pipe.Incr(ctx, orgRequests)
-		// Increment the rate limiter key
-		_ = pipe.Incr(ctx, rateLimiterKey)
-	}
+	// Increment the payload size meter
+	_ = pipe.IncrByFloat(ctx, orgRequestsTotal, meter.ZeusRequestComputeUnitsConsumed())
+	_ = pipe.IncrByFloat(ctx, orgRequestsMonthly, meter.ZeusRequestComputeUnitsConsumed())
+	// Increment the rate limiter key
+	_ = pipe.IncrByFloat(ctx, rateLimiterKey, meter.ZeusRequestComputeUnitsConsumed())
+
 	// rate limiter key expires after 3 seconds
 	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
 
@@ -47,7 +46,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 
 	// Get the values from Redis
 	rateLimitCmd := pipe.Get(ctx, rateLimiterKey)
-	monthlyUsageCmd := pipe.Get(ctx, orgRequests)
+	monthlyUsageCmd := pipe.Get(ctx, orgRequestsMonthly)
 
 	// Execute the pipeline
 	_, err := pipe.Exec(ctx)
@@ -103,4 +102,32 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 			RateLimit:    rateLimitVal,
 			MonthlyUsage: monthlyUsageVal,
 		}, nil
+}
+
+func (m *IrisCache) RecordRequestUsage(ctx context.Context, orgID int, meter *iris_usage_meters.PayloadSizeMeter) error {
+	// Generate the rate limiter key with the Unix timestamp
+	if meter == nil {
+		meter = &iris_usage_meters.PayloadSizeMeter{}
+	}
+	rateLimiterKey := orgRateLimitTag(orgID)
+	orgRequestsTotal := fmt.Sprintf("%d-total-zu-usage", orgID)
+	if len(meter.Month) <= 0 {
+		meter.Month = time.Now().UTC().Month().String()
+	}
+	orgRequestsMonthly := orgMonthlyUsageTag(orgID, meter.Month)
+	// Use Redis transaction (pipeline) to perform all operations atomically
+	pipe := m.Writer.TxPipeline()
+	// Increment the payload size meter
+	_ = pipe.IncrByFloat(ctx, orgRequestsTotal, meter.ZeusRequestComputeUnitsConsumed())
+	_ = pipe.IncrByFloat(ctx, orgRequestsMonthly, meter.ZeusRequestComputeUnitsConsumed())
+	// Increment the rate limiter key
+	_ = pipe.IncrByFloat(ctx, rateLimiterKey, meter.ZeusRequestComputeUnitsConsumed())
+	// rate limiter key expires after 3 seconds
+	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
+	// Execute the pipeline
+	_, err := pipe.Exec(ctx)
+	if err == redis.Nil {
+		err = nil
+	}
+	return err
 }

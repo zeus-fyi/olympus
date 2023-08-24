@@ -4,21 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 func (m *IrisCache) SetStoredProcedure(ctx context.Context, orgID int, procedure iris_programmable_proxy_v1_beta.IrisRoutingProcedure) error {
-	var procedureKey string
+	var procedureKey, procedureStepsKey string
 	if orgID > 0 {
 		procedureKey = fmt.Sprintf("%d:%s:procedure", orgID, procedure.Name)
+		procedureStepsKey = fmt.Sprintf("%d:%s:procedure:steps", orgID, procedure.Name)
 	} else {
 		procedureKey = fmt.Sprintf("global:%s:procedure", procedure.Name)
+		procedureStepsKey = fmt.Sprintf("global:%s:procedure:steps", procedure.Name)
 	}
 
-	procedureStepsKey := fmt.Sprintf("%d:%s:procedure:steps", orgID, procedure.Name)
 	var steps []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep
 	for procedure.OrderedSteps.Len() > 0 {
 		step := procedure.OrderedSteps.PopFront()
@@ -43,8 +43,8 @@ func (m *IrisCache) SetStoredProcedure(ctx context.Context, orgID int, procedure
 	pipe := m.Writer.TxPipeline()
 
 	// Add serialized data to the pipeline
-	pipe.Set(ctx, procedureKey, data, time.Second*10)
-	pipe.Set(ctx, procedureStepsKey, stepsData, time.Second*10)
+	pipe.Set(ctx, procedureKey, data, 0)
+	pipe.Set(ctx, procedureStepsKey, stepsData, 0)
 
 	// Execute the transaction
 	_, err = pipe.Exec(ctx)
@@ -56,13 +56,15 @@ func (m *IrisCache) SetStoredProcedure(ctx context.Context, orgID int, procedure
 }
 
 func (m *IrisCache) GetStoredProcedure(ctx context.Context, orgID int, procedureName string) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, error) {
-	var procedureKey string
-	if orgID > 0 {
+	var procedureKey, procedureStepsKey string
+	if orgID > 0 && procedureName != iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
 		procedureKey = fmt.Sprintf("%d:%s:procedure", orgID, procedureName)
+		procedureStepsKey = fmt.Sprintf("%d:%s:procedure:steps", orgID, procedureName)
+
 	} else {
 		procedureKey = fmt.Sprintf("global:%s:procedure", procedureName)
+		procedureStepsKey = fmt.Sprintf("global:%s:procedure:steps", procedureName)
 	}
-	procedureStepsKey := fmt.Sprintf("%d:%s:procedure:steps", orgID, procedureName)
 	pipe := m.Reader.TxPipeline()
 
 	// Get the values from Redis

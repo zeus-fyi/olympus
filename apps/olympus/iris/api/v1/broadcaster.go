@@ -43,7 +43,7 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 	proc, routes, err := iris_redis.IrisRedisClient.CheckRateLimitBroadcast(context.Background(), ou.OrgID, procName, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessAdaptiveLoadBalancerRequest: iris_redis.CheckRateLimit")
-		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
+		return c.JSON(http.StatusTooManyRequests, nil)
 	}
 
 	//fmt.Println(tableStats.MemberRankScoreOut.Member, "routeAdaptive")

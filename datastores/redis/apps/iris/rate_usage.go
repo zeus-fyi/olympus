@@ -136,13 +136,14 @@ func (m *IrisCache) RecordRequestUsage(ctx context.Context, orgID int, meter *ir
 
 func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx context.Context, orgID int, procedureName, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, []iris_models.RouteInfo, iris_usage_meters.UsageMeter, error) {
 	// Generate the rate limiter key with the Unix timestamp
-	var procedureKey string
-	if orgID > 0 {
+	var procedureKey, procedureStepsKey string
+	if orgID > 0 && procedureName != iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
 		procedureKey = fmt.Sprintf("%d:%s:procedure", orgID, procedureName)
+		procedureStepsKey = fmt.Sprintf("%d:%s:procedure:steps", orgID, procedureName)
 	} else {
 		procedureKey = fmt.Sprintf("global:%s:procedure", procedureName)
+		procedureStepsKey = fmt.Sprintf("global:%s:procedure:steps", procedureName)
 	}
-	procedureStepsKey := fmt.Sprintf("%d:%s:procedure:steps", orgID, procedureName)
 
 	rateLimiterKey := orgRateLimitTag(orgID)
 	orgRequestsTotal := fmt.Sprintf("%d-total-zu-usage", orgID)

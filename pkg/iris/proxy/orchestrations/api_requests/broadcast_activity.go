@@ -51,21 +51,24 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 					transform.ExtractKeyValue(resp.Response)
 					mutex.Lock() // Lock access to shared procedureStep
 					pr.PayloadSizeMeter.Add(resp.PayloadSizeMeter.Size)
-					agg, aok := procedureStep.AggregateMap[transform.ExtractionKey]
-					if aok {
-						aerr := agg.AggregateOn(transform.Value, transform)
-						if aerr != nil {
-							log.Err(aerr).Msg("Failed to aggregate")
+					if len(transform.ExtractionKey) > 0 {
+						agg, aok := procedureStep.AggregateMap[transform.ExtractionKey]
+						if aok {
+							aerr := agg.AggregateOn(transform.Value, transform)
+							if aerr != nil {
+								log.Err(aerr).Msg("Failed to aggregate")
+							}
+							procedureStep.AggregateMap[transform.ExtractionKey] = agg
 						}
-						procedureStep.AggregateMap[transform.ExtractionKey] = agg
 					}
-					mutex.Unlock() // Unlock access to shared procedureStep
 					if procedureStep.BroadcastInstructions.FanInRules != nil {
 						switch procedureStep.BroadcastInstructions.FanInRules.Rule {
 						case iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse:
-
+							pr = resp
+							cancel()
 						}
 					}
+					mutex.Unlock()
 				}
 			} else {
 				mutex.Lock()
@@ -80,11 +83,5 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	if pr.Procedure.OrderedSteps.Len() > 0 {
 		return i.BroadcastETLRequest(ctx, pr, routes)
 	}
-	//if procedureStep.BroadcastInstructions.FanInRules != nil {
-	//	if resp, ok := <-successCh; ok {
-	//		return resp, nil
-	//	}
-	//}
-
 	return pr, nil
 }

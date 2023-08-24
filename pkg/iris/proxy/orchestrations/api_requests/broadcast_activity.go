@@ -25,6 +25,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 		return nil, errors.New("payload not echo.Map")
 	}
 	pr.Payload = payload
+	pr.MaxTries = procedureStep.BroadcastInstructions.MaxTries
 	// Creating a child context with a timeout
 	timeoutCtx, cancel := context.WithTimeout(ctx, procedureStep.BroadcastInstructions.MaxDuration)
 	defer cancel()
@@ -56,7 +57,8 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 						if aok {
 							aerr := agg.AggregateOn(transform.Value, transform)
 							if aerr != nil {
-								log.Err(aerr).Msg("Failed to aggregate")
+								log.Err(aerr).Msg("failed to aggregate")
+								return
 							}
 							procedureStep.AggregateMap[transform.ExtractionKey] = agg
 						}

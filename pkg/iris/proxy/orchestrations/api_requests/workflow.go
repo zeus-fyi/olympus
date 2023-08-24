@@ -48,6 +48,7 @@ type ApiProxyRequest struct {
 	RawResponse      []byte
 	StatusCode       int
 	IsInternal       bool
+	MaxTries         int
 	Timeout          time.Duration
 	ReceivedAt       time.Time
 	Latency          time.Duration

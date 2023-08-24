@@ -72,6 +72,9 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
+	if pr.MaxTries > 0 {
+		r.SetRetryCount(pr.MaxTries)
+	}
 
 	parsedURL, err := url.Parse(pr.Url)
 	if err != nil {
@@ -106,6 +109,8 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		resp, err = sendRequest(r.R(), pr, "PUT")
 	case "DELETE":
 		resp, err = sendRequest(r.R(), pr, "DELETE")
+	case "POST":
+		resp, err = sendRequest(r.R(), pr, "POST")
 	default:
 		resp, err = sendRequest(r.R(), pr, "POST")
 	}
@@ -123,7 +128,6 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*resty.Response, error) {
 	var resp *resty.Response
 	var err error
-
 	if pr.Payload != nil {
 		switch method {
 		case "GET":
@@ -132,6 +136,8 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Put(pr.Url)
 		case "DELETE":
 			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Delete(pr.Url)
+		case "POST":
+			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
 		default:
 			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
 		}
@@ -143,6 +149,8 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			resp, err = request.SetResult(&pr.Response).Put(pr.Url)
 		case "DELETE":
 			resp, err = request.SetResult(&pr.Response).Delete(pr.Url)
+		case "POST":
+			resp, err = request.SetResult(&pr.Response).Post(pr.Url)
 		default:
 			resp, err = request.SetResult(&pr.Response).Post(pr.Url)
 		}
@@ -154,7 +162,6 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			pr.RawResponse = resp.Body()
 		}
 		pr.ResponseHeaders = filterHeaders(resp.RawResponse.Header)
-
 		pr.ReceivedAt = resp.ReceivedAt()
 		pr.Latency = resp.Time()
 	}

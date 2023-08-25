@@ -119,6 +119,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 					switch v.Operator {
 					case "max":
 						pr.FinalResponseHeaders.Add(fmt.Sprintf("X-Agg-Max-Value-%s", v.Name), strconv.Itoa(v.CurrentMaxInt))
+					case "gt":
 					}
 				}
 			}

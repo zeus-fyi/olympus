@@ -40,12 +40,32 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 	if payloadSizingMeter == nil {
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
+
+	var procHeaders ProcedureHeaders
+	ph := c.Get("procedureHeaders")
+	if ph != nil {
+		phe, ok := ph.(ProcedureHeaders)
+		if ok {
+			procHeaders = phe
+		}
+	}
+
+	genProc := procHeaders.GetGeneratedProcedure()
+	if genProc.OrderedSteps != nil {
+		procName = ""
+	}
+
+	// TODO: override procName with X-Procedure-Name header if exists
+
 	proc, routes, err := iris_redis.IrisRedisClient.CheckRateLimitBroadcast(context.Background(), ou.OrgID, procName, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessAdaptiveLoadBalancerRequest: iris_redis.CheckRateLimit")
 		return c.JSON(http.StatusTooManyRequests, nil)
 	}
 
+	if genProc.OrderedSteps != nil {
+		proc = genProc
+	}
 	//fmt.Println(tableStats.MemberRankScoreOut.Member, "routeAdaptive")
 	//fmt.Println(tableStats, "tableStats")
 	payloadSizingMeter.Plan = plan

@@ -7,10 +7,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/phf/go-queue/queue"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
+	iris_operators "github.com/zeus-fyi/zeus/pkg/iris/operators"
+	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 const QuickNodeMarketPlace = "quickNodeMarketPlace"
@@ -62,6 +65,7 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set("servicePlan", plan)
 			c.Set("orgUser", ou)
 			c.Set("bearer", token)
+			c.Set("procedureHeaders", GetProcedureFromHeaders(c))
 			if err == nil && ou.OrgID > 0 && plan != "" {
 				go func(oID int, token, plan string) {
 					log.Info().Int("orgID", oID).Str("plan", plan).Msg("InitV1Routes: SetAuthCache")
@@ -101,4 +105,137 @@ func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {
 		// Then do something with the captured path...
 		return handler(c)
 	}
+}
+
+type ProcedureHeaders struct {
+	XAggOp               string
+	XAggKey              string
+	XAggKeyValueDataType string
+	XAggComp             string
+	XAggCompDataType     string
+	XAggFilterPayload    string
+	XAggFilterFanIn      *string
+}
+
+const (
+	xAggOp               = "X-Agg-Op"
+	xAggKey              = "X-Agg-Key"
+	xAggKeyValueDataType = "X-Agg-Key-Value-Data-Type"
+	xAggComp             = "X-Agg-Comp"
+	xAggCompDataType     = "X-Agg-Comp-Data-Type"
+	xAggFilterPayload    = "X-Agg-Filter-Payload"
+	xAggFilterFanIn      = "X-Agg-Filter-Fan-In"
+)
+
+func (p *ProcedureHeaders) GetProcedureFromHeaders(c echo.Context) iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
+	if c == nil {
+		return p.GetGeneratedProcedure()
+	}
+	ph := GetProcedureFromHeaders(c)
+	return ph.GetGeneratedProcedure()
+}
+
+func (p *ProcedureHeaders) GetGeneratedProcedure() iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
+	proc := iris_programmable_proxy_v1_beta.IrisRoutingProcedure{}
+	if p.XAggKey == "" {
+		return proc
+	}
+	switch p.XAggKeyValueDataType {
+	case "int", "float64":
+	default:
+		return proc
+	}
+	var comp *iris_operators.Operation
+	if p.XAggComp != "" {
+		switch p.XAggCompDataType {
+		case "float64", "int":
+			comp = &iris_operators.Operation{
+				Operator:  iris_operators.Op(p.XAggComp),
+				DataTypeX: p.XAggCompDataType,
+				DataTypeY: p.XAggCompDataType,
+				DataTypeZ: "bool",
+			}
+		default:
+		}
+	}
+	agg := iris_operators.Aggregation{
+		Comparison: comp,
+	}
+	if comp == nil && p.XAggOp == "" {
+		return proc
+	}
+	switch p.XAggOp {
+	case "max", "sum":
+		agg.Operator = iris_operators.AggOp(p.XAggOp)
+	}
+	step := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
+		AggregateMap: map[string]iris_operators.Aggregation{
+			p.XAggKey: {
+				DataType:   p.XAggKeyValueDataType,
+				Comparison: comp,
+			},
+		},
+	}
+	proc.OrderedSteps = queue.New()
+	proc.OrderedSteps.PushBack(step)
+	if p.XAggFilterFanIn != nil {
+		if *p.XAggFilterFanIn == iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse {
+			fanIn := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
+				BroadcastInstructions: iris_programmable_proxy_v1_beta.BroadcastInstructions{
+					FanInRules: &iris_programmable_proxy_v1_beta.FanInRules{
+						Rule: iris_programmable_proxy_v1_beta.BroadcastRules(*p.XAggFilterFanIn),
+					},
+				},
+			}
+			proc.OrderedSteps.PushBack(fanIn)
+		}
+	}
+	return proc
+}
+
+func GetProcedureFromHeaders(c echo.Context) *ProcedureHeaders {
+	p := &ProcedureHeaders{}
+	p.getXAggOp(c)
+	p.getXAggKey(c)
+	p.getXAggKeyValueDataType(c)
+	p.getXAggComp(c)
+	p.getXAggCompDataType(c)
+	p.getXAggFilterPayload(c)
+	p.getXAggFilterFanIn(c)
+	return p
+}
+
+func (p *ProcedureHeaders) getXAggOp(c echo.Context) {
+	x := c.Request().Header.Get(xAggOp)
+	p.XAggOp = x
+}
+
+func (p *ProcedureHeaders) getXAggKey(c echo.Context) {
+	x := c.Request().Header.Get(xAggKey)
+	p.XAggKey = x
+}
+
+func (p *ProcedureHeaders) getXAggKeyValueDataType(c echo.Context) {
+	x := c.Request().Header.Get(xAggKeyValueDataType)
+	p.XAggKeyValueDataType = x
+}
+
+func (p *ProcedureHeaders) getXAggComp(c echo.Context) {
+	x := c.Request().Header.Get(xAggComp)
+	p.XAggComp = x
+}
+
+func (p *ProcedureHeaders) getXAggCompDataType(c echo.Context) {
+	x := c.Request().Header.Get(xAggCompDataType)
+	p.XAggCompDataType = x
+}
+
+func (p *ProcedureHeaders) getXAggFilterPayload(c echo.Context) {
+	x := c.Request().Header.Get(xAggFilterPayload)
+	p.XAggFilterPayload = x
+}
+
+func (p *ProcedureHeaders) getXAggFilterFanIn(c echo.Context) {
+	x := c.Request().Header.Get(xAggFilterFanIn)
+	p.XAggFilterFanIn = &x
 }

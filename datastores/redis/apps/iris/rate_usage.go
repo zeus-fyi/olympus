@@ -137,10 +137,14 @@ func (m *IrisCache) RecordRequestUsage(ctx context.Context, orgID int, meter *ir
 func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx context.Context, orgID int, procedureName, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, []iris_models.RouteInfo, iris_usage_meters.UsageMeter, error) {
 	// Generate the rate limiter key with the Unix timestamp
 	var procedureKey, procedureStepsKey string
+	orgIDStr := fmt.Sprintf("%d", orgID)
 	if orgID > 0 && procedureName != iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
 		procedureKey = fmt.Sprintf("%d:%s:procedure", orgID, procedureName)
 		procedureStepsKey = fmt.Sprintf("%d:%s:procedure:steps", orgID, procedureName)
 	} else {
+		if len(procedureName) <= 0 {
+			procedureName = orgIDStr
+		}
 		procedureKey = fmt.Sprintf("global:%s:procedure", procedureName)
 		procedureStepsKey = fmt.Sprintf("global:%s:procedure:steps", procedureName)
 	}
@@ -161,12 +165,14 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 	_ = pipe.IncrByFloat(ctx, rateLimiterKey, meter.ZeusRequestComputeUnitsConsumed())
 
 	// Get the values from Redis
-	procedureCmd := pipe.Get(ctx, procedureKey)
-	procedureStepsKeyCmd := pipe.Get(ctx, procedureStepsKey)
+	var procedureCmd, procedureStepsKeyCmd *redis.StringCmd
+	if procedureName != orgIDStr {
+		procedureCmd = pipe.Get(ctx, procedureKey)
+		procedureStepsKeyCmd = pipe.Get(ctx, procedureStepsKey)
+	}
 	if meter == nil {
 		meter = &iris_usage_meters.PayloadSizeMeter{}
 	}
-
 	// rate limiter key expires after 3 seconds
 	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
 
@@ -232,30 +238,32 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 		routes = append(routes, routeInfo)
 	}
 
-	data, err := procedureCmd.Bytes()
-	if err != nil {
-		log.Err(err).Msg("Failed to get procedure from Redis")
-		return procedure, routes, iris_usage_meters.UsageMeter{}, err
-	}
-	// Deserialize the procedure
-	err = json.Unmarshal(data, &procedure)
-	if err != nil {
-		log.Err(err).Msg("failed to deserialize the procedure")
-		return procedure, routes, iris_usage_meters.UsageMeter{}, err
-	}
-	stepsBytes, err := procedureStepsKeyCmd.Bytes()
-	if err != nil {
-		log.Err(err).Msg("Failed to get procedure steps from Redis")
-		return procedure, routes, iris_usage_meters.UsageMeter{}, err
-	}
-	var steps []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep
-	err = json.Unmarshal(stepsBytes, &steps)
-	if err != nil {
-		log.Err(err).Msg("Failed to deserialize procedure steps")
-		return procedure, routes, iris_usage_meters.UsageMeter{}, err
-	}
-	for _, step := range steps {
-		procedure.OrderedSteps.PushBack(step)
+	if procedureName != orgIDStr {
+		data, derr := procedureCmd.Bytes()
+		if derr != nil {
+			log.Err(derr).Msg("Failed to get procedure from Redis")
+			return procedure, routes, iris_usage_meters.UsageMeter{}, derr
+		}
+		// Deserialize the procedure
+		err = json.Unmarshal(data, &procedure)
+		if err != nil {
+			log.Err(err).Msg("failed to deserialize the procedure")
+			return procedure, routes, iris_usage_meters.UsageMeter{}, err
+		}
+		stepsBytes, derr := procedureStepsKeyCmd.Bytes()
+		if derr != nil {
+			log.Err(derr).Msg("Failed to get procedure steps from Redis")
+			return procedure, routes, iris_usage_meters.UsageMeter{}, derr
+		}
+		var steps []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep
+		err = json.Unmarshal(stepsBytes, &steps)
+		if err != nil {
+			log.Err(err).Msg("Failed to deserialize procedure steps")
+			return procedure, routes, iris_usage_meters.UsageMeter{}, err
+		}
+		for _, step := range steps {
+			procedure.OrderedSteps.PushBack(step)
+		}
 	}
 	// Return the UsageRates
 	return procedure, routes,

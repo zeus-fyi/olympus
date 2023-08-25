@@ -174,6 +174,11 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 				c.Response().Header().Add(key, value)
 			}
 		}
+		for key, values := range resp.FinalResponseHeaders {
+			for _, value := range values {
+				c.Response().Header().Add(key, value)
+			}
+		}
 		c.Response().Header().Set("X-Response-Latency-Milliseconds", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
 		c.Response().Header().Set("X-Response-Received-At-UTC", resp.ReceivedAt.UTC().String())
 		c.Response().Header().Set("X-Selected-Route", path)
@@ -186,6 +191,11 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		}
 	}(ou.OrgID, payloadSizingMeter)
 	for key, values := range resp.ResponseHeaders {
+		for _, value := range values {
+			c.Response().Header().Add(key, value)
+		}
+	}
+	for key, values := range resp.FinalResponseHeaders {
 		for _, value := range values {
 			c.Response().Header().Add(key, value)
 		}

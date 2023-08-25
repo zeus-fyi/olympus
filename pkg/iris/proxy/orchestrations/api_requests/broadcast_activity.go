@@ -113,9 +113,12 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 				}
 				pr.Routes = routes
 				if len(v.Name) > 0 {
+					if pr.FinalResponseHeaders == nil {
+						pr.FinalResponseHeaders = make(map[string][]string)
+					}
 					switch v.Operator {
 					case "max":
-						pr.ResponseHeaders.Add(fmt.Sprintf("X-Agg-Max-Value-%s", v.Name), strconv.Itoa(v.CurrentMaxInt))
+						pr.FinalResponseHeaders.Add(fmt.Sprintf("X-Agg-Max-Value-%s", v.Name), strconv.Itoa(v.CurrentMaxInt))
 					}
 				}
 			}

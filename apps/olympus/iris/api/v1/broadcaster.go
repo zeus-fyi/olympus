@@ -110,6 +110,11 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		}
 	}
 	sinceMs := time.Since(now).Milliseconds()
+	for key, values := range resp.FinalResponseHeaders {
+		for _, value := range values {
+			c.Response().Header().Add(key, value)
+		}
+	}
 	c.Response().Header().Set("X-Procedure-Latency-Milliseconds", fmt.Sprintf("%d", sinceMs))
 	c.Response().Header().Set("X-Response-Received-At-UTC", resp.ReceivedAt.UTC().String())
 	if (resp.Response == nil && resp.RawResponse != nil) || sendRawResponse {

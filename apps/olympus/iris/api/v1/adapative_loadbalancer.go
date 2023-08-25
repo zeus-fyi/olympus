@@ -136,6 +136,11 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 			c.Response().Header().Add(key, value)
 		}
 	}
+	for key, values := range resp.FinalResponseHeaders {
+		for _, value := range values {
+			c.Response().Header().Add(key, value)
+		}
+	}
 	c.Response().Header().Set("X-Selected-Route", path)
 	c.Response().Header().Set("X-Response-Latency-Milliseconds", fmt.Sprintf("%d", resp.Latency.Milliseconds()))
 	c.Response().Header().Set("X-Response-Received-At-UTC", resp.ReceivedAt.UTC().String())

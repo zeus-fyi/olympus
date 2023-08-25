@@ -90,6 +90,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 							pr = resp
 							mutex.Unlock()
 							cancel()
+							return
 						}
 					}
 					mutex.Unlock()

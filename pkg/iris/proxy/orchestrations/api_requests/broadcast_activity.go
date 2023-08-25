@@ -3,6 +3,8 @@ package iris_api_requests
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -110,6 +112,12 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 					}
 				}
 				pr.Routes = routes
+				if len(v.Name) > 0 {
+					switch v.Operator {
+					case "max":
+						pr.ResponseHeaders.Add(fmt.Sprintf("X-Agg-Max-Value-%s", v.Name), strconv.Itoa(v.CurrentMaxInt))
+					}
+				}
 			}
 		}
 		if len(pr.Routes) <= 0 {

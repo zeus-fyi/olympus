@@ -40,6 +40,7 @@ func (r *IrisRedisTestSuite) TestProcedures() {
 		},
 		AggregateMap: map[string]iris_operators.Aggregation{
 			"result": {
+				Name:              "Block-Height",
 				Operator:          "max",
 				DataType:          "int",
 				CurrentMaxInt:     0,

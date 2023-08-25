@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
+	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_operators "github.com/zeus-fyi/zeus/pkg/iris/operators"
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
@@ -127,15 +128,19 @@ const (
 	xAggFilterFanIn      = "X-Agg-Filter-Fan-In"
 )
 
-func (p *ProcedureHeaders) GetProcedureFromHeaders(c echo.Context) iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
+func (p *ProcedureHeaders) GetProcedureFromHeaders(c echo.Context, rg string, req *iris_api_requests.ApiProxyRequest) iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
 	if c == nil {
-		return p.GetGeneratedProcedure()
+		// for testing
+		return p.GetGeneratedProcedure(rg, req)
 	}
 	ph := GetProcedureFromHeaders(c)
-	return ph.GetGeneratedProcedure()
+	return ph.GetGeneratedProcedure(rg, req)
 }
 
-func (p *ProcedureHeaders) GetGeneratedProcedure() iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
+func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_requests.ApiProxyRequest) iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
+	if req == nil {
+		return iris_programmable_proxy_v1_beta.IrisRoutingProcedure{}
+	}
 	proc := iris_programmable_proxy_v1_beta.IrisRoutingProcedure{}
 	if p.XAggKey == "" {
 		return proc
@@ -158,22 +163,30 @@ func (p *ProcedureHeaders) GetGeneratedProcedure() iris_programmable_proxy_v1_be
 		default:
 		}
 	}
-	agg := iris_operators.Aggregation{
-		Comparison: comp,
-	}
+
 	if comp == nil && p.XAggOp == "" {
 		return proc
+	}
+	agg := iris_operators.Aggregation{
+		Comparison: comp,
+		DataType:   p.XAggKeyValueDataType,
 	}
 	switch p.XAggOp {
 	case "max", "sum":
 		agg.Operator = iris_operators.AggOp(p.XAggOp)
 	}
 	step := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
+		BroadcastInstructions: iris_programmable_proxy_v1_beta.BroadcastInstructions{
+			RoutingPath:  req.ExtRoutePath,
+			RestType:     req.PayloadTypeREST,
+			Payload:      req.Payload,
+			MaxDuration:  req.Timeout,
+			MaxTries:     req.MaxTries,
+			RoutingTable: rg,
+			FanInRules:   nil,
+		},
 		AggregateMap: map[string]iris_operators.Aggregation{
-			p.XAggKey: {
-				DataType:   p.XAggKeyValueDataType,
-				Comparison: comp,
-			},
+			p.XAggKey: agg,
 		},
 	}
 	proc.OrderedSteps = queue.New()
@@ -182,6 +195,12 @@ func (p *ProcedureHeaders) GetGeneratedProcedure() iris_programmable_proxy_v1_be
 		if *p.XAggFilterFanIn == iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse {
 			fanIn := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
 				BroadcastInstructions: iris_programmable_proxy_v1_beta.BroadcastInstructions{
+					RoutingPath:  req.ExtRoutePath,
+					RestType:     req.PayloadTypeREST,
+					Payload:      req.Payload,
+					MaxDuration:  req.Timeout,
+					MaxTries:     req.MaxTries,
+					RoutingTable: rg,
 					FanInRules: &iris_programmable_proxy_v1_beta.FanInRules{
 						Rule: iris_programmable_proxy_v1_beta.BroadcastRules(*p.XAggFilterFanIn),
 					},
@@ -190,6 +209,7 @@ func (p *ProcedureHeaders) GetGeneratedProcedure() iris_programmable_proxy_v1_be
 			proc.OrderedSteps.PushBack(fanIn)
 		}
 	}
+	req.Procedure = proc
 	return proc
 }
 

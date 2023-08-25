@@ -12,6 +12,7 @@ import (
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
+	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, procName string) error {
@@ -41,31 +42,16 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
 
-	var procHeaders ProcedureHeaders
-	ph := c.Get("procedureHeaders")
-	if ph != nil {
-		phe, ok := ph.(ProcedureHeaders)
-		if ok {
-			procHeaders = phe
-		}
-	}
-
-	genProc := procHeaders.GetGeneratedProcedure()
-	if genProc.OrderedSteps != nil {
+	if procName != iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
 		procName = ""
 	}
-
 	// TODO: override procName with X-Procedure-Name header if exists
-
 	proc, routes, err := iris_redis.IrisRedisClient.CheckRateLimitBroadcast(context.Background(), ou.OrgID, procName, plan, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("ProcessAdaptiveLoadBalancerRequest: iris_redis.CheckRateLimit")
 		return c.JSON(http.StatusTooManyRequests, nil)
 	}
 
-	if genProc.OrderedSteps != nil {
-		proc = genProc
-	}
 	//fmt.Println(tableStats.MemberRankScoreOut.Member, "routeAdaptive")
 	//fmt.Println(tableStats, "tableStats")
 	payloadSizingMeter.Plan = plan
@@ -109,6 +95,21 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
 	}
+
+	var procHeaders ProcedureHeaders
+	ph := c.Get("procedureHeaders")
+	if ph != nil {
+		phe, ok := ph.(ProcedureHeaders)
+		if ok {
+			procHeaders = phe
+		}
+	}
+
+	genProc := procHeaders.GetGeneratedProcedure(routeGroup, req)
+	if genProc.OrderedSteps != nil {
+		procName = ""
+	}
+
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	var sendRawResponse bool
 	now := time.Now()

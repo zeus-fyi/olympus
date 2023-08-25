@@ -78,6 +78,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 							aerr := agg.AggregateOn(transform.Value, transform)
 							if aerr != nil {
 								log.Err(aerr).Msg("failed to aggregate")
+								mutex.Unlock()
 								return
 							}
 							procedureStep.AggregateMap[transform.ExtractionKey] = agg
@@ -87,6 +88,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 						switch procedureStep.BroadcastInstructions.FanInRules.Rule {
 						case iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse:
 							pr = resp
+							mutex.Unlock()
 							cancel()
 						}
 					}

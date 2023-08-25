@@ -135,13 +135,13 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 				if len(newRoutes) <= 0 {
 					return pr, nil
 				}
-				return i.BroadcastETLRequest(ctx, pr)
+				_, err := i.BroadcastETLRequest(ctx, pr)
+				if err != nil {
+					log.Err(err).Msg("Failed to broadcast request")
+					return pr, err
+				}
 			}
 		}
-		if len(pr.Routes) <= 0 {
-			return pr, nil
-		}
-		return i.BroadcastETLRequest(ctx, pr)
 	}
 	return pr, nil
 }

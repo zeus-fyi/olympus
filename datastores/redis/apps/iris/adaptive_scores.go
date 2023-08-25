@@ -32,6 +32,7 @@ import (
 
 const (
 	DecayConstant                   = 0.95
+	TailPercentage                  = 0.95
 	MinSamplesBeforeAdaptiveScoring = 20
 	StatsTimeToLiveAfterLastUsage   = 60 * time.Minute
 )
@@ -73,7 +74,7 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 		tableMetricKey := fmt.Sprintf("%d:%s:%s", stats.OrgID, stats.TableName, stats.Metric)
 		pipe.Expire(ctx, tableMetricKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 		percentileCmdMedian = pipe.Do(ctx, "PERCENTILE.GET", tableMetricKey, 0.5)
-		percentileCmdTail = pipe.Do(ctx, "PERCENTILE.GET", tableMetricKey, 0.9)
+		percentileCmdTail = pipe.Do(ctx, "PERCENTILE.GET", tableMetricKey, TailPercentage)
 
 		metricTdigestSampleCountKey := fmt.Sprintf("%s:samples", tableMetricKey)
 		pipe.Expire(ctx, metricTdigestSampleCountKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes

@@ -32,7 +32,8 @@ func (s *IrisV1TestSuite) TestHeaders() {
 		ServicePlan:     "performance",
 		PayloadTypeREST: "POST",
 	}
-	proc := ph.GetGeneratedProcedure("test", req)
+	proc, err := ph.GetGeneratedProcedure("test", req)
+	s.Nil(err)
 	s.NotNil(proc.OrderedSteps)
 
 	i := 0

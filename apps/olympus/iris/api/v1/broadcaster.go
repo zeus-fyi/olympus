@@ -131,7 +131,7 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		}
 	}
 	c.Response().Header().Set("X-Procedure-Latency-Milliseconds", fmt.Sprintf("%d", sinceMs))
-	c.Response().Header().Set("X-Response-Received-At-UTC", resp.ReceivedAt.UTC().String())
+	//c.Response().Header().Set("X-Response-Received-At-UTC", resp.ReceivedAt.UTC().String())
 	if (resp.Response == nil && resp.RawResponse != nil) || sendRawResponse {
 		return c.JSON(resp.StatusCode, string(resp.RawResponse))
 	}

@@ -122,12 +122,15 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 					}
 				}
 			}
+			if len(pr.Routes) <= 0 {
+				return pr, nil
+			}
+			return i.BroadcastETLRequest(ctx, pr)
 		}
 		if len(pr.Routes) <= 0 {
 			return pr, nil
 		}
 		return i.BroadcastETLRequest(ctx, pr)
 	}
-
 	return pr, nil
 }

@@ -91,23 +91,19 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		Payload:          p.Body,
 		QueryParams:      qps,
 		IsInternal:       false,
-		Timeout:          1 * time.Minute,
+		Timeout:          10 * time.Second,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
 	}
-
-	var procHeaders ProcedureHeaders
-	ph := c.Get("procedureHeaders")
-	if ph != nil {
-		phe, ok := ph.(ProcedureHeaders)
-		if ok {
-			procHeaders = phe
-		}
-	}
 	orgIDStr := fmt.Sprintf("%d", ou.OrgID)
 	if req.Procedure.Name == orgIDStr {
-		procHeaders.GetGeneratedProcedure(routeGroup, req)
+		procHeaders := ProcedureHeaders{}
+		_, perr := procHeaders.GetProcedureFromHeaders(c, routeGroup, req)
+		if perr != nil {
+			return c.JSON(http.StatusBadRequest, Response{Message: perr.Error()})
+		}
 	}
+
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	var sendRawResponse bool
 	now := time.Now()

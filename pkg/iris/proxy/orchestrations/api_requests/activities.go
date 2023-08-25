@@ -91,6 +91,13 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	}
 
 	for k, v := range pr.RequestHeaders {
+		if strings.HasPrefix(k, "X-") {
+			continue
+		}
+		switch k {
+		case "Authorization":
+			continue
+		}
 		r.SetHeader(k, strings.Join(v, ", ")) // Joining all values with a comma
 	}
 

@@ -34,6 +34,8 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 			case map[string]interface{}:
 				tmp := echo.Map(procedureStep.BroadcastInstructions.Payload.(map[string]interface{}))
 				pr.Payload = tmp
+			default:
+				log.Warn().Interface("payload", procedureStep.BroadcastInstructions.Payload).Msg("BroadcastETLRequest: unknown payload type")
 			}
 		}
 	}
@@ -114,7 +116,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 						RoutePath: filteredRoutes.Source,
 					}
 				}
-				pr.Routes = routes
+				pr.Routes = newRoutes
 				if len(v.Name) > 0 {
 					if pr.FinalResponseHeaders == nil {
 						pr.FinalResponseHeaders = make(map[string][]string)
@@ -130,11 +132,11 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 						}
 					}
 				}
+				if len(newRoutes) <= 0 {
+					return pr, nil
+				}
+				return i.BroadcastETLRequest(ctx, pr)
 			}
-			if len(pr.Routes) <= 0 {
-				return pr, nil
-			}
-			return i.BroadcastETLRequest(ctx, pr)
 		}
 		if len(pr.Routes) <= 0 {
 			return pr, nil

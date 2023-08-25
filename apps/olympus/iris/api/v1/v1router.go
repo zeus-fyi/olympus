@@ -2,6 +2,7 @@ package v1_iris
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -66,7 +67,6 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set("servicePlan", plan)
 			c.Set("orgUser", ou)
 			c.Set("bearer", token)
-			c.Set("procedureHeaders", GetProcedureFromHeaders(c))
 			if err == nil && ou.OrgID > 0 && plan != "" {
 				go func(oID int, token, plan string) {
 					log.Info().Int("orgID", oID).Str("plan", plan).Msg("InitV1Routes: SetAuthCache")
@@ -128,7 +128,7 @@ const (
 	xAggFilterFanIn      = "X-Agg-Filter-Fan-In"
 )
 
-func (p *ProcedureHeaders) GetProcedureFromHeaders(c echo.Context, rg string, req *iris_api_requests.ApiProxyRequest) iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
+func (p *ProcedureHeaders) GetProcedureFromHeaders(c echo.Context, rg string, req *iris_api_requests.ApiProxyRequest) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, error) {
 	if c == nil {
 		// for testing
 		return p.GetGeneratedProcedure(rg, req)
@@ -137,19 +137,28 @@ func (p *ProcedureHeaders) GetProcedureFromHeaders(c echo.Context, rg string, re
 	return ph.GetGeneratedProcedure(rg, req)
 }
 
-func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_requests.ApiProxyRequest) iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
+func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_requests.ApiProxyRequest) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, error) {
 	if req == nil {
-		return iris_programmable_proxy_v1_beta.IrisRoutingProcedure{}
+		return iris_programmable_proxy_v1_beta.IrisRoutingProcedure{}, errors.New("req is nil")
 	}
 	proc := req.Procedure
 	if p.XAggKey == "" {
-		return proc
+		return proc, errors.New("X-Agg-Key is required")
 	}
 	switch p.XAggKeyValueDataType {
 	case "int", "float64":
 	default:
-		return proc
+		return proc, errors.New("X-Agg-Key-Value-Data-Type must be int or float64")
 	}
+	forwardPayload := echo.Map{}
+	if p.XAggFilterPayload != "" {
+		err := json.Unmarshal([]byte(p.XAggFilterPayload), &forwardPayload)
+		if err != nil {
+			log.Err(err).Str("payload", p.XAggFilterPayload).Msg("GetGeneratedProcedure: json.Unmarshal")
+			return proc, errors.New("X-Agg-Filter-Payload is not valid serialized json")
+		}
+	}
+
 	var comp *iris_operators.Operation
 	if p.XAggComp != "" {
 		switch p.XAggCompDataType {
@@ -165,7 +174,7 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 	}
 
 	if comp == nil && p.XAggOp == "" {
-		return proc
+		return proc, errors.New("X-Agg-Op is required")
 	}
 	agg := iris_operators.Aggregation{
 		Comparison: comp,
@@ -174,6 +183,10 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 	switch p.XAggOp {
 	case "max", "sum":
 		agg.Operator = iris_operators.AggOp(p.XAggOp)
+	}
+	aggValueExtraction := iris_operators.IrisRoutingResponseETL{
+		ExtractionKey: p.XAggKey,
+		DataType:      p.XAggKeyValueDataType,
 	}
 	step := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
 		BroadcastInstructions: iris_programmable_proxy_v1_beta.BroadcastInstructions{
@@ -185,6 +198,7 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 			RoutingTable: rg,
 			FanInRules:   nil,
 		},
+		TransformSlice: []iris_operators.IrisRoutingResponseETL{aggValueExtraction},
 		AggregateMap: map[string]iris_operators.Aggregation{
 			p.XAggKey: agg,
 		},
@@ -194,10 +208,16 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 	if p.XAggFilterFanIn != nil {
 		if *p.XAggFilterFanIn == iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse {
 			fanIn := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
+				TransformSlice: []iris_operators.IrisRoutingResponseETL{
+					{
+						ExtractionKey: "",
+						Value:         nil,
+					},
+				},
 				BroadcastInstructions: iris_programmable_proxy_v1_beta.BroadcastInstructions{
 					RoutingPath:  req.ExtRoutePath,
 					RestType:     req.PayloadTypeREST,
-					Payload:      req.Payload,
+					Payload:      forwardPayload,
 					MaxDuration:  req.Timeout,
 					MaxTries:     req.MaxTries,
 					RoutingTable: rg,
@@ -209,8 +229,12 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 			proc.OrderedSteps.PushBack(fanIn)
 		}
 	}
+
 	req.Procedure = proc
-	return proc
+	if req.Procedure.OrderedSteps.Len() == 0 {
+		return proc, errors.New("no procedure steps generated")
+	}
+	return proc, nil
 }
 
 func GetProcedureFromHeaders(c echo.Context) *ProcedureHeaders {

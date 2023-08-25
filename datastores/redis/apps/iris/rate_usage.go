@@ -138,7 +138,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 	// Generate the rate limiter key with the Unix timestamp
 	var procedureKey, procedureStepsKey string
 	orgIDStr := fmt.Sprintf("%d", orgID)
-	if orgID > 0 && procedureName != iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
+	if orgID > 0 && procedureName == iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
 		procedureKey = fmt.Sprintf("%d:%s:procedure", orgID, procedureName)
 		procedureStepsKey = fmt.Sprintf("%d:%s:procedure:steps", orgID, procedureName)
 	} else {

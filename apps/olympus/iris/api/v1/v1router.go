@@ -111,6 +111,7 @@ func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {
 type ProcedureHeaders struct {
 	XAggOp               string
 	XAggKey              string
+	XAggFanIn            *string
 	XAggKeyValueDataType string
 	XAggComp             string
 	XAggCompDataType     string
@@ -122,6 +123,7 @@ const (
 	xAggOp               = "X-Agg-Op"
 	xAggKey              = "X-Agg-Key"
 	xAggKeyValueDataType = "X-Agg-Key-Value-Data-Type"
+	xAggFanIn            = "X-Agg-Fan-In"
 	xAggComp             = "X-Agg-Comp"
 	xAggCompDataType     = "X-Agg-Comp-Data-Type"
 	xAggFilterPayload    = "X-Agg-Filter-Payload"
@@ -188,6 +190,11 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 		ExtractionKey: p.XAggKey,
 		DataType:      p.XAggKeyValueDataType,
 	}
+
+	var fanInAgg *string
+	if p.XAggFanIn != nil {
+		fanInAgg = p.XAggFanIn
+	}
 	step := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
 		BroadcastInstructions: iris_programmable_proxy_v1_beta.BroadcastInstructions{
 			RoutingPath:  req.ExtRoutePath,
@@ -196,7 +203,7 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 			MaxDuration:  req.Timeout,
 			MaxTries:     req.MaxTries,
 			RoutingTable: rg,
-			FanInRules:   nil,
+			FanInRules:   &iris_programmable_proxy_v1_beta.FanInRules{Rule: iris_programmable_proxy_v1_beta.BroadcastRules(*fanInAgg)},
 		},
 		TransformSlice: []iris_operators.IrisRoutingResponseETL{aggValueExtraction},
 		AggregateMap: map[string]iris_operators.Aggregation{
@@ -241,12 +248,18 @@ func GetProcedureFromHeaders(c echo.Context) *ProcedureHeaders {
 	p := &ProcedureHeaders{}
 	p.getXAggOp(c)
 	p.getXAggKey(c)
+	p.getAggFanIn(c)
 	p.getXAggKeyValueDataType(c)
 	p.getXAggComp(c)
 	p.getXAggCompDataType(c)
 	p.getXAggFilterPayload(c)
 	p.getXAggFilterFanIn(c)
 	return p
+}
+
+func (p *ProcedureHeaders) getAggFanIn(c echo.Context) {
+	x := c.Request().Header.Get(xAggFanIn)
+	p.XAggFanIn = &x
 }
 
 func (p *ProcedureHeaders) getXAggOp(c echo.Context) {

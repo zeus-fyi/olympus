@@ -116,10 +116,15 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 					if pr.FinalResponseHeaders == nil {
 						pr.FinalResponseHeaders = make(map[string][]string)
 					}
-					switch v.Operator {
-					case "max":
+					if v.Comparison != nil {
 						pr.FinalResponseHeaders.Add(fmt.Sprintf("X-Agg-Max-Value-%s", v.Name), strconv.Itoa(v.CurrentMaxInt))
-					case "gt":
+						pr.FinalResponseHeaders.Add(fmt.Sprintf("X-Agg-Min-Value-%s", v.Name), strconv.Itoa(v.CurrentMinInt))
+					} else {
+						switch v.Operator {
+						case "max":
+							pr.FinalResponseHeaders.Add(fmt.Sprintf("X-Agg-Max-Value-%s", v.Name), strconv.Itoa(v.CurrentMaxInt))
+							pr.FinalResponseHeaders.Add(fmt.Sprintf("X-Agg-Min-Value-%s", v.Name), strconv.Itoa(v.CurrentMinInt))
+						}
 					}
 				}
 			}

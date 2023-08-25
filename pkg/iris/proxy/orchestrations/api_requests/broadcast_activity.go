@@ -126,7 +126,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 						pr.FinalResponseHeaders.Add(fmt.Sprintf("X-Agg-Min-Value-%s", v.Name), strconv.Itoa(v.CurrentMinInt))
 					} else {
 						switch v.Operator {
-						case "max":
+						case "max", "sum":
 							pr.FinalResponseHeaders.Add(fmt.Sprintf("X-Agg-Max-Value-%s", v.Name), strconv.Itoa(v.CurrentMaxInt))
 							pr.FinalResponseHeaders.Add(fmt.Sprintf("X-Agg-Min-Value-%s", v.Name), strconv.Itoa(v.CurrentMinInt))
 						}

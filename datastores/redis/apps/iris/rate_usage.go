@@ -194,6 +194,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 		err = nil
 	}
 	var procedure iris_programmable_proxy_v1_beta.IrisRoutingProcedure
+	procedure.Name = procedureName
 	// Get the values from the commands
 	rateLimit, err := rateLimitCmd.Result()
 	rateLimitVal := 0.0
@@ -238,7 +239,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 		routes = append(routes, routeInfo)
 	}
 
-	if procedureName != orgIDStr {
+	if procedure.Name != orgIDStr {
 		data, derr := procedureCmd.Bytes()
 		if derr != nil {
 			log.Err(derr).Msg("Failed to get procedure from Redis")

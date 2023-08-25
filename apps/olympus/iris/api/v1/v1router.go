@@ -141,7 +141,7 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 	if req == nil {
 		return iris_programmable_proxy_v1_beta.IrisRoutingProcedure{}
 	}
-	proc := iris_programmable_proxy_v1_beta.IrisRoutingProcedure{}
+	proc := req.Procedure
 	if p.XAggKey == "" {
 		return proc
 	}

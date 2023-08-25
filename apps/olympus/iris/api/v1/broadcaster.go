@@ -104,12 +104,10 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 			procHeaders = phe
 		}
 	}
-
-	genProc := procHeaders.GetGeneratedProcedure(routeGroup, req)
-	if genProc.OrderedSteps != nil {
-		procName = ""
+	orgIDStr := fmt.Sprintf("%d", ou.OrgID)
+	if req.Procedure.Name == orgIDStr {
+		procHeaders.GetGeneratedProcedure(routeGroup, req)
 	}
-
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	var sendRawResponse bool
 	now := time.Now()

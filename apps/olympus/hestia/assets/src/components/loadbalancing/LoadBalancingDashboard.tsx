@@ -127,6 +127,24 @@ function LoadBalancingDashboardContent(props: any) {
         fetchData(params);
     }, [reload]);
 
+
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         try {
+    //             setLoading(true); // Set loading to true
+    //             const response = await loadBalancingApiGateway.getTableMetrics(groupName);
+    //             // todo set metrics
+    //             dispatch(setTableMetrics(response.data));
+    //         } catch (error) {
+    //             console.log("error", error);
+    //         } finally {
+    //             setLoading(false); // Set loading to false regardless of success or failure.
+    //         }
+    //     }
+    //     fetchData();
+    // }, [groupName]);
+
+
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
         const newSelected = [...selected];

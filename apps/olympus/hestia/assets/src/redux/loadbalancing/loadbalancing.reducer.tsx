@@ -5,6 +5,7 @@ const initialState: LoadBalancingState = {
     routes: [],
     groups: {},
     planUsageDetails: {},
+    tableMetrics: {},
 }
 
 const loadBalancingSlice = createSlice({
@@ -20,11 +21,16 @@ const loadBalancingSlice = createSlice({
         setUserPlanDetails: (state, action: PayloadAction<any>) => {
             state.planUsageDetails = action.payload;
         },
+        setTableMetrics: (state, action: PayloadAction<any>) => {
+            state.tableMetrics = action.payload;
+        }
     }
 });
 
 export const {
     setEndpoints,
     setGroupEndpoints,
-    setUserPlanDetails} = loadBalancingSlice.actions;
+    setUserPlanDetails,
+    setTableMetrics
+} = loadBalancingSlice.actions;
 export default loadBalancingSlice.reducer;

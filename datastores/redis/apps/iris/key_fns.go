@@ -48,11 +48,6 @@ func getHashedTokenPlanKey(token string) string {
 	return fmt.Sprintf("%x:plan", util.Keccak256([]byte(token)))
 }
 
-/*
-	if len(procedureName) <= 0 {
-		procedureName = fmt.Sprintf("%d", orgID)
-	}
-*/
 func getProcedureKey(orgID int, procedureName string) string {
 	if orgID > 0 && procedureName != iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
 		return fmt.Sprintf("{%d}:%s:procedure", orgID, procedureName)

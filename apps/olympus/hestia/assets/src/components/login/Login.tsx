@@ -16,6 +16,7 @@ import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import Link from "@mui/material/Link";
 import {CircularProgress} from "@mui/material";
 import {setSessionAuth} from "../../redux/auth/session.reducer";
+import {setUserPlanDetails} from "../../redux/loadbalancing/loadbalancing.reducer";
 
 const theme = createTheme();
 
@@ -59,6 +60,9 @@ const Login = () => {
             if (statusCode === 200 || statusCode === 204) {
                 setRequestStatus('success');
                 dispatch(setSessionAuth(true))
+                if (res.data.planUsageDetails != null && res.data.planUsageDetails.plan != undefined){
+                    dispatch(setUserPlanDetails(res.data.planUsageDetails))
+                }
                 dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
                 navigate('/apps');
             } else {

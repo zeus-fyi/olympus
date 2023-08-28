@@ -197,7 +197,6 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 		}
 		ou := org_users.NewOrgUser()
 		ou.OrgID = key.OrgID
-
 		pu, err := GetUserPlanInfo(ctx, ou, "test")
 		if err != nil {
 			log.Err(err).Msg("GetUserPlanInfo error")

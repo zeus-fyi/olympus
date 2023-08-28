@@ -1,10 +1,17 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {Groups, LoadBalancingState} from "./loadbalancing.types";
+import {Groups, LoadBalancingState, PlanUsageDetails} from "./loadbalancing.types";
 
 const initialState: LoadBalancingState = {
     routes: [],
     groups: {},
-    planUsageDetails: {},
+    planUsageDetails: {
+        planName: '',
+        computeUsage: null,
+        tableUsage: {
+            endpointCount: 0,
+            tableCount: 0
+        }
+    },
     tableMetrics: {},
 }
 
@@ -18,7 +25,7 @@ const loadBalancingSlice = createSlice({
         setGroupEndpoints: (state, action: PayloadAction<Groups>) => {
             state.groups = action.payload;
         },
-        setUserPlanDetails: (state, action: PayloadAction<any>) => {
+        setUserPlanDetails: (state, action: PayloadAction<PlanUsageDetails>) => {
             state.planUsageDetails = action.payload;
         },
         setTableMetrics: (state, action: PayloadAction<any>) => {

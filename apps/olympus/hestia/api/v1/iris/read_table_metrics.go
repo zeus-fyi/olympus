@@ -7,8 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
-type ReadMetricsRequest struct {
-}
+type ReadMetricsRequest struct{}
 
 func ReadTableMetrics(c echo.Context) error {
 	request := new(ReadMetricsRequest)
@@ -36,6 +35,5 @@ func (r *ReadMetricsRequest) ReadTableStats(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	return c.JSON(http.StatusOK, resp)
 }

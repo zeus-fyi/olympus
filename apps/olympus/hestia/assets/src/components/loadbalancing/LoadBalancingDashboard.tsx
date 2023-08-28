@@ -95,6 +95,7 @@ function LoadBalancingDashboardContent(props: any) {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+    const planUsageDetails = useSelector((state: RootState) => state.loadBalancing.planUsageDetails);
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(false);
@@ -469,7 +470,7 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Box>
                             )}
                         </Card>
-                            <PlanUsagePieChart />
+                            <PlanUsagePieChart planUsageDetails={planUsageDetails}/>
                             <MetricsChart />
                         </Stack>
                     </Container>

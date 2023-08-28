@@ -2,23 +2,19 @@ package iris_redis
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
 )
 
 func (m *IrisCache) SetMetricLatencyTDigest(ctx context.Context, orgID int, tableName, metricName string, latency float64) error {
-	metricTdigestKey := fmt.Sprintf("%d:%s:%s", orgID, tableName, metricName)
-	metricTdigestSampleCount := fmt.Sprintf("%s:samples", metricTdigestKey)
-
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
 
-	pipe.Incr(ctx, metricTdigestSampleCount)
-	pipe.Do(ctx, "PERCENTILE.MERGE", metricTdigestKey, latency)
-	pipe.Expire(ctx, metricTdigestKey, 15*time.Minute)
-	pipe.Expire(ctx, metricTdigestSampleCount, 15*time.Minute)
+	pipe.Incr(ctx, getMetricTdigestMetricSamplesKey(orgID, tableName, metricName))
+	pipe.Do(ctx, "PERCENTILE.MERGE", getMetricTdigestKey(orgID, tableName, metricName), latency)
+	pipe.Expire(ctx, getMetricTdigestKey(orgID, tableName, metricName), 15*time.Minute)
+	pipe.Expire(ctx, getMetricTdigestMetricSamplesKey(orgID, tableName, metricName), 15*time.Minute)
 
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
@@ -30,14 +26,11 @@ func (m *IrisCache) SetMetricLatencyTDigest(ctx context.Context, orgID int, tabl
 }
 
 func (m *IrisCache) DelMetricLatencyTDigest(ctx context.Context, orgID int, tableName, metricName string) error {
-	metricTdigestKey := fmt.Sprintf("%d:%s:%s", orgID, tableName, metricName)
-	metricTdigestSampleCount := fmt.Sprintf("%s:samples", metricTdigestKey)
-
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
 
-	pipe.Del(ctx, metricTdigestSampleCount)
-	pipe.Del(ctx, metricTdigestKey)
+	pipe.Del(ctx, getMetricTdigestMetricSamplesKey(orgID, tableName, metricName))
+	pipe.Del(ctx, getMetricTdigestKey(orgID, tableName, metricName))
 
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)

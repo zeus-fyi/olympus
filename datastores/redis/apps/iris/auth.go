@@ -7,13 +7,12 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
-	util "github.com/wealdtech/go-eth2-util"
 )
 
 func (m *IrisCache) GetAuthCacheIfExists(ctx context.Context, token string) (int64, string, error) {
 	// Generate the rate limiter key with the Unix timestamp
-	hashedToken := fmt.Sprintf("%x", util.Keccak256([]byte(token)))
-	hashedTokenPlan := fmt.Sprintf("%x:plan", util.Keccak256([]byte(token)))
+	hashedToken := getHashedTokenKey(token)
+	hashedTokenPlan := getHashedTokenPlanKey(token)
 
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Reader.TxPipeline()
@@ -50,8 +49,8 @@ func (m *IrisCache) GetAuthCacheIfExists(ctx context.Context, token string) (int
 
 func (m *IrisCache) SetAuthCache(ctx context.Context, orgID int, token, plan string) error {
 	// Generate the rate limiter key with the Unix timestamp
-	hashedToken := fmt.Sprintf("%x", util.Keccak256([]byte(token)))
-	hashedTokenPlan := fmt.Sprintf("%x:plan", util.Keccak256([]byte(token)))
+	hashedToken := getHashedTokenKey(token)
+	hashedTokenPlan := getHashedTokenPlanKey(token)
 
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()

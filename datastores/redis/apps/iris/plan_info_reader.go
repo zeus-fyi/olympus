@@ -11,8 +11,8 @@ import (
 )
 
 func (m *IrisCache) GetPlanUsageInfo(ctx context.Context, orgID int) (*iris_usage_meters.UsageMeter, error) {
-	rateLimiterKey := orgRateLimitTag(orgID)
-	orgRequestsMonthly := orgMonthlyUsageTag(orgID, time.Now().UTC().Month().String())
+	rateLimiterKey := getOrgRateLimitKey(orgID)
+	orgRequestsMonthly := getOrgMonthlyUsageKey(orgID, time.Now().UTC().Month().String())
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Reader.TxPipeline()
 

@@ -12,7 +12,7 @@ func (m *IrisCache) GetBroadcastRoutes(ctx context.Context, orgID int, rgName st
 	pipe := m.Reader.Pipeline()
 
 	// Generate the route key
-	routeKey := orgRouteTag(orgID, rgName)
+	routeKey := getOrgRouteKey(orgID, rgName)
 
 	// Get all elements from the list
 	endpointsCmd := pipe.LRange(ctx, routeKey, 0, -1)

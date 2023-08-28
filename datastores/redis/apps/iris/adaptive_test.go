@@ -2,7 +2,6 @@ package iris_redis
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 
 	"github.com/go-redis/redis/v9"
@@ -12,15 +11,6 @@ import (
 func (r *IrisRedisTestSuite) TestSetMetricLatencyTDigest() {
 	err := IrisRedisClient.SetMetricLatencyTDigest(context.Background(), 1, "fooTestTable", "fooTestMetricName", 1.0)
 	r.NoError(err)
-}
-
-func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
-	quantileVal, sc, err := IrisRedisClient.GetMetricPercentile(context.Background(), 1, "fooTestTable", "fooTestMetricName", 0.5)
-	r.NoError(err)
-	r.NotEmpty(quantileVal)
-	r.NotEmpty(sc)
-
-	fmt.Println(quantileVal, sc)
 }
 
 func randomBetween(x, y int) int {

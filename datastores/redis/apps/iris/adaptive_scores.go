@@ -71,12 +71,13 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 	var percentileCmdMedian, percentileCmdTail *redis.Cmd
 	var sampleCountCmd *redis.StringCmd
 	if stats.Metric != "" {
-		tableMetricKey := fmt.Sprintf("%d:%s:%s", stats.OrgID, stats.TableName, stats.Metric)
-		pipe.Expire(ctx, tableMetricKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
-		percentileCmdMedian = pipe.Do(ctx, "PERCENTILE.GET", tableMetricKey, 0.5)
-		percentileCmdTail = pipe.Do(ctx, "PERCENTILE.GET", tableMetricKey, TailPercentage)
 
-		metricTdigestSampleCountKey := fmt.Sprintf("%s:samples", tableMetricKey)
+		tm := getTableMetricKey(stats.OrgID, stats.TableName, stats.Metric)
+		pipe.Expire(ctx, tm, StatsTimeToLiveAfterLastUsage)
+		percentileCmdMedian = pipe.Do(ctx, "PERCENTILE.GET", tm, 0.5)
+		percentileCmdTail = pipe.Do(ctx, "PERCENTILE.GET", tm, TailPercentage)
+
+		metricTdigestSampleCountKey := getMetricTdigestMetricSamplesKey(stats.OrgID, stats.TableName, stats.Metric)
 		pipe.Expire(ctx, metricTdigestSampleCountKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 		sampleCountCmd = pipe.Get(ctx, metricTdigestSampleCountKey)
 	}
@@ -148,10 +149,6 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 	return nil
 }
 
-func createAdaptiveEndpointPriorityScoreKey(orgID int, tableName string) string {
-	return fmt.Sprintf("%d:%s:priority", orgID, tableName)
-}
-
 // SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage updates the endpoint priority score and rate usage
 func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx context.Context, stats *StatTable) error {
 	if stats == nil {
@@ -161,7 +158,7 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 		return fmt.Errorf("stats.TableName is empty")
 	}
 
-	orgRequests := orgMonthlyUsageTag(stats.OrgID, time.Now().UTC().Month().String())
+	orgRequests := getOrgMonthlyUsageKey(stats.OrgID, time.Now().UTC().Month().String())
 	endpointPriorityScoreKey := createAdaptiveEndpointPriorityScoreKey(stats.OrgID, stats.TableName)
 
 	if stats.LatencyQuartilePercentageRank <= 0.0 {
@@ -184,7 +181,7 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	stats.MemberRankScoreOut.Score = scoreAdjustmentMemberOut
 	pipe := m.Writer.TxPipeline()
 
-	rateLimiterKey := orgRateLimitTag(stats.OrgID)
+	rateLimiterKey := getOrgRateLimitKey(stats.OrgID)
 	pipe.Expire(ctx, rateLimiterKey, 3*time.Second)
 	if stats.Meter != nil {
 		_ = pipe.IncrByFloat(ctx, orgRequests, stats.Meter.ZeusResponseComputeUnitsConsumed())
@@ -202,8 +199,8 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 
 	var tdigestResp *redis.Cmd
 	if stats.Metric != "" && stats.LatencyMilliseconds > 0 {
-		tableMetricKey := fmt.Sprintf("%d:%s:%s", stats.OrgID, stats.TableName, stats.Metric)
-		metricTdigestSampleCountKey := fmt.Sprintf("%s:samples", tableMetricKey)
+		tableMetricKey := getMetricTdigestKey(stats.OrgID, stats.TableName, stats.Metric)
+		metricTdigestSampleCountKey := getMetricTdigestMetricSamplesKey(stats.OrgID, stats.TableName, stats.Metric)
 		pipe.Incr(ctx, metricTdigestSampleCountKey)
 		pipe.Expire(ctx, metricTdigestSampleCountKey, 15*time.Minute)
 		tdigestResp = pipe.Do(ctx, "PERCENTILE.MERGE", tableMetricKey, stats.LatencyMilliseconds)

@@ -3,21 +3,14 @@ package iris_redis
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 func (m *IrisCache) SetStoredProcedure(ctx context.Context, orgID int, procedure iris_programmable_proxy_v1_beta.IrisRoutingProcedure) error {
-	var procedureKey, procedureStepsKey string
-	if orgID > 0 {
-		procedureKey = fmt.Sprintf("%d:%s:procedure", orgID, procedure.Name)
-		procedureStepsKey = fmt.Sprintf("%d:%s:procedure:steps", orgID, procedure.Name)
-	} else {
-		procedureKey = fmt.Sprintf("global:%s:procedure", procedure.Name)
-		procedureStepsKey = fmt.Sprintf("global:%s:procedure:steps", procedure.Name)
-	}
+	procedureKey := getProcedureKey(orgID, procedure.Name)
+	procedureStepsKey := getProcedureStepsKey(orgID, procedure.Name)
 
 	var steps []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep
 	for procedure.OrderedSteps.Len() > 0 {
@@ -56,15 +49,9 @@ func (m *IrisCache) SetStoredProcedure(ctx context.Context, orgID int, procedure
 }
 
 func (m *IrisCache) GetStoredProcedure(ctx context.Context, orgID int, procedureName string) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, error) {
-	var procedureKey, procedureStepsKey string
-	if orgID > 0 && procedureName != iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
-		procedureKey = fmt.Sprintf("%d:%s:procedure", orgID, procedureName)
-		procedureStepsKey = fmt.Sprintf("%d:%s:procedure:steps", orgID, procedureName)
+	procedureKey := getProcedureKey(orgID, procedureName)
+	procedureStepsKey := getProcedureStepsKey(orgID, procedureName)
 
-	} else {
-		procedureKey = fmt.Sprintf("global:%s:procedure", procedureName)
-		procedureStepsKey = fmt.Sprintf("global:%s:procedure:steps", procedureName)
-	}
 	pipe := m.Reader.TxPipeline()
 
 	// Get the values from Redis

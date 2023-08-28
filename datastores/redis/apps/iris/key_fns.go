@@ -41,11 +41,11 @@ func createAdaptiveEndpointPriorityScoreKey(orgID int, tableName string) string 
 }
 
 func getHashedTokenKey(token string) string {
-	return fmt.Sprintf("%x", util.Keccak256([]byte(token)))
+	return fmt.Sprintf("{%x}", util.Keccak256([]byte(token)))
 }
 
 func getHashedTokenPlanKey(token string) string {
-	return fmt.Sprintf("%x:plan", util.Keccak256([]byte(token)))
+	return fmt.Sprintf("{%x}:plan", util.Keccak256([]byte(token)))
 }
 
 func getProcedureKey(orgID int, procedureName string) string {
@@ -67,5 +67,5 @@ func getGlobalProcedureKey(procedureName string) string {
 }
 
 func getGlobalProcedureStepsKey(procedureName string) string {
-	return fmt.Sprintf("%s:steps", procedureName)
+	return fmt.Sprintf("%s:steps", getGlobalProcedureKey(procedureName))
 }

@@ -80,7 +80,7 @@ export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 
 
 const mdTheme = createTheme();
 
-function LoadBalancingDashboardContent() {
+function LoadBalancingDashboardContent(props: any) {
     const params = useParams();
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {

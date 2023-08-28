@@ -33,6 +33,8 @@ type LoginResponse struct {
 	UserID    int    `json:"userID"`
 	SessionID string `json:"sessionID"`
 	TTL       int    `json:"ttl"`
+
+	PlanDetailsUsage any `json:"planUsageDetails,omitempty"`
 }
 
 func (l *LoginRequest) VerifyPassword(c echo.Context) error {

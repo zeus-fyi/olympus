@@ -6,10 +6,12 @@ import {useDispatch} from "react-redux";
 import inMemoryJWT from "../../auth/InMemoryJWT";
 import {pipe, prop} from "ramda";
 import {getAxiosResponse} from "../../helpers/get-axios-response";
+import {setUserPlanDetails} from "../../redux/loadbalancing/loadbalancing.reducer";
 
 const sessionIDParse = pipe(getAxiosResponse,prop('sessionID'));
 const ttlSeconds = pipe(getAxiosResponse, prop('ttl'));
 const userIDParse = pipe(getAxiosResponse, prop('userID'));
+const planUsageDetailsParse = pipe(getAxiosResponse, prop('planUsageDetails'));
 
 export function VerifyQuickNodeLoginJWT() {
     let navigate = useNavigate();
@@ -35,6 +37,8 @@ export function VerifyQuickNodeLoginJWT() {
                     const sessionID = sessionIDParse(response);
                     const tokenExpiry = ttlSeconds(response);
                     const userID = userIDParse(response);
+                    const planDetails = planUsageDetailsParse(response);
+                    dispatch(setUserPlanDetails(planDetails));
                     inMemoryJWT.setToken(sessionID, tokenExpiry);
                     localStorage.setItem("userID", userID);
                     dispatch(setSessionAuth(true))

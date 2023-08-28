@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
@@ -101,6 +102,15 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			SessionID: sessionID,
 			TTL:       3600,
 		}
+		ou := org_users.NewOrgUser()
+		ou.OrgID = key.OrgID
+
+		pu, err := GetUserPlanInfo(ctx, ou, "test")
+		if err != nil {
+			log.Err(err).Msg("GetUserPlanInfo error")
+		} else {
+			li.PlanDetailsUsage = pu
+		}
 		return c.JSON(http.StatusOK, li)
 	})
 
@@ -184,6 +194,15 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			UserID:    key.UserID,
 			SessionID: sessionID,
 			TTL:       3600,
+		}
+		ou := org_users.NewOrgUser()
+		ou.OrgID = key.OrgID
+
+		pu, err := GetUserPlanInfo(ctx, ou, "test")
+		if err != nil {
+			log.Err(err).Msg("GetUserPlanInfo error")
+		} else {
+			li.PlanDetailsUsage = pu
 		}
 		return c.JSON(http.StatusOK, li)
 	})

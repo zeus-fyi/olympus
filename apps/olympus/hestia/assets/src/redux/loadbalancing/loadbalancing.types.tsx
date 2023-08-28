@@ -2,7 +2,7 @@
 export interface LoadBalancingState {
     routes: string[];
     groups: Groups;
-    userPlanInfo: any;
+    planUsageDetails: any;
 }
 
 export interface Groups {

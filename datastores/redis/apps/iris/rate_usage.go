@@ -136,7 +136,7 @@ func (m *IrisCache) RecordRequestUsage(ctx context.Context, orgID int, meter *ir
 
 func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx context.Context, orgID int, procedureName, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, []iris_models.RouteInfo, iris_usage_meters.UsageMeter, error) {
 	// Generate the rate limiter key with the Unix timestamp
-	orgIDStr := strconv.Itoa(orgID)
+	orgIDStr := fmt.Sprintf("%d", orgID)
 	procedureKey := getProcedureKey(orgID, procedureName)
 	procedureStepsKey := getProcedureStepsKey(orgID, procedureName)
 	rateLimiterKey := getOrgRateLimitKey(orgID)

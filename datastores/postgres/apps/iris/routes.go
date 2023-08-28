@@ -270,15 +270,16 @@ func SelectAllOrgRoutes(ctx context.Context) (OrgRoutesGroup, error) {
 
 		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
 			RoutePath: routePath,
-			Referers:  referers,
+			Referrers: referers,
 		})
 	}
 	return og, misc.ReturnIfErr(err, q.LogHeader("SelectAllOrgRoutes"))
 }
 
 type RouteInfo struct {
-	RoutePath string
-	Referers  []string
+	RoutePath     string
+	Referrers     []string
+	PriorityScore *float64
 }
 
 func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (map[string][]RouteInfo, error) {
@@ -331,7 +332,7 @@ func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (map[string][]Route
 
 		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
 			RoutePath: routePath,
-			Referers:  referers,
+			Referrers: referers,
 		})
 	}
 
@@ -433,7 +434,7 @@ func SelectOrgRoutesByOrgAndGroupName(ctx context.Context, orgID int, groupName 
 		}
 		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
 			RoutePath: routePath,
-			Referers:  referers,
+			Referrers: referers,
 		})
 	}
 	return og, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))

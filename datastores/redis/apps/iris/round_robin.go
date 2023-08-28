@@ -81,7 +81,7 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string, 
 	// Return the RouteInfo
 	return iris_models.RouteInfo{
 		RoutePath: endpointCmd.Val(),
-		Referers:  referers,
+		Referrers: referers,
 	}, nil
 }
 
@@ -137,10 +137,10 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 		pipe.RPush(ctx, rgTag, routeInfo.RoutePath)
 
 		// Add the referers to a set
-		if len(routeInfo.Referers) > 0 {
+		if len(routeInfo.Referrers) > 0 {
 			// Convert []string to []interface{}
-			referersInterface := make([]interface{}, len(routeInfo.Referers))
-			for i, v := range routeInfo.Referers {
+			referersInterface := make([]interface{}, len(routeInfo.Referrers))
+			for i, v := range routeInfo.Referrers {
 				referersInterface[i] = v
 			}
 			pipe.SAdd(ctx, refererTag, referersInterface...)

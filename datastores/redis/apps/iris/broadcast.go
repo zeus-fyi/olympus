@@ -30,7 +30,7 @@ func (m *IrisCache) GetBroadcastRoutes(ctx context.Context, orgID int, rgName st
 	for _, endpoint := range endpointsCmd.Val() {
 		routeInfo := iris_models.RouteInfo{
 			RoutePath: endpoint,
-			Referers:  nil,
+			Referrers: nil,
 		}
 		routes = append(routes, routeInfo)
 	}

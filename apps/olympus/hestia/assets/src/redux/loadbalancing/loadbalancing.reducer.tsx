@@ -4,6 +4,7 @@ import {Groups, LoadBalancingState} from "./loadbalancing.types";
 const initialState: LoadBalancingState = {
     routes: [],
     groups: {},
+    userPlanInfo: {},
 }
 
 const loadBalancingSlice = createSlice({
@@ -16,8 +17,14 @@ const loadBalancingSlice = createSlice({
         setGroupEndpoints: (state, action: PayloadAction<Groups>) => {
             state.groups = action.payload;
         },
+        setUserPlanInfo: (state, action: PayloadAction<any>) => {
+            state.userPlanInfo = action.payload;
+        },
     }
 });
 
-export const { setEndpoints, setGroupEndpoints} = loadBalancingSlice.actions;
+export const {
+    setEndpoints,
+    setGroupEndpoints,
+    setUserPlanInfo} = loadBalancingSlice.actions;
 export default loadBalancingSlice.reducer;

@@ -12,13 +12,12 @@ const data02 = [
     { name: 'A2', value: 300 },
 ];
 
-
 export function PlanUsagePieChart(props: any) {
     return (
         <Card>
             <CardContent>
                 <Typography variant="h5" gutterBottom>
-                    Rate Usage
+                    Plan Usage
                 </Typography>
                 <PieChart width={375} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60} fill="#8884d8" />

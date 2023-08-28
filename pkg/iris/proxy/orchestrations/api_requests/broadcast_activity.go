@@ -53,7 +53,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 	}
 	if len(pr.Referrers) > 0 {
 		for ind, _ := range routes {
-			routes[ind].Referers = pr.Referrers
+			routes[ind].Referrers = pr.Referrers
 		}
 	}
 	// Iterating through routes and launching goroutines

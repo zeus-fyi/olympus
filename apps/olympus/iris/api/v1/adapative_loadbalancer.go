@@ -96,7 +96,7 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		ServicePlan:      plan,
 		PayloadTypeREST:  restType,
 		RequestHeaders:   headers,
-		Referrers:        ri.Referers,
+		Referrers:        ri.Referrers,
 		Payload:          p.Body,
 		QueryParams:      qps,
 		IsInternal:       false,

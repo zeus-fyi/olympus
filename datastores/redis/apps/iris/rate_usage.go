@@ -99,7 +99,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 	// Return the UsageRates
 	return iris_models.RouteInfo{
 			RoutePath: endpointCmd.Val(),
-			Referers:  referers,
+			Referrers: referers,
 		}, iris_usage_meters.UsageMeter{
 			RateLimit:    rateLimitVal,
 			MonthlyUsage: monthlyUsageVal,
@@ -234,7 +234,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 	for _, endpoint := range endpointsCmd.Val() {
 		routeInfo := iris_models.RouteInfo{
 			RoutePath: endpoint,
-			Referers:  nil,
+			Referrers: nil,
 		}
 		routes = append(routes, routeInfo)
 	}

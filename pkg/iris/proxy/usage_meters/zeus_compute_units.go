@@ -33,12 +33,20 @@ func (u *UsageMeter) IsRateLimited(rateLimit, monthlyLimit float64) (bool, bool)
 	return u.RateLimit > rateLimit, u.MonthlyUsage > monthlyLimit
 }
 
-func (u *UsageMeter) GetMonthlyUsageZUM() float64 {
-	return u.MonthlyUsage / OneMillion
+func (u *UsageMeter) GetCurrentRateZUk() {
+	u.CurrentRate /= 1000
 }
 
-func (u *UsageMeter) GetMonthlyBudgetZUM() float64 {
-	return u.MonthlyBudgetZU / OneMillion
+func (u *UsageMeter) GetRateLimitZUk() {
+	u.RateLimit /= 1000
+}
+
+func (u *UsageMeter) GetMonthlyUsageZUM() {
+	u.MonthlyUsage /= OneMillion
+}
+
+func (u *UsageMeter) GetMonthlyBudgetZUM() {
+	u.MonthlyBudgetZU /= OneMillion
 }
 
 func NewPayloadSizeMeter(bodyBytes []byte) *PayloadSizeMeter {

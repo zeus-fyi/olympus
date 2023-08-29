@@ -20,8 +20,8 @@ export function PlanRateUsagePieChart(props: any) {
     const [monthlyUsage, setMonthlyUsage] = useState(planUsageDetails?.computeUsage?.monthlyUsage);
     const remainingZU = planBudgetZU - monthlyUsage;
     const data02 = [
-        { name: 'ZU k/s', value: currentRate, fill: "#82ca9d"},
-        { name: 'ZU k/s limit', value: remainingRate, fill: "#ff8080"},
+        { name: 'ZU k/s', value: currentRate, fill: "#ff8080"},
+        { name: 'ZU k/s limit', value: remainingRate, fill: "#82ca9d"},
     ];
     const data01 = [
         { name: 'ZU M remaining', value: remainingZU, fill: "#4db375"},

@@ -25,7 +25,7 @@ import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
-import {PlanRateUsagePieChart, PlanTableCountUsagePieChart} from "./UsagePieChart";
+import {PlanUsagePieCharts} from "./UsagePieChart";
 
 const drawerWidth: number = 240;
 
@@ -94,10 +94,10 @@ function LoadBalancingDashboardContent(props: any) {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
-    const planUsageDetails = useSelector((state: RootState) => state.loadBalancing.planUsageDetails);
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(false);
+
     const [selected, setSelected] = useState<string[]>([]);
     const [groupName, setGroupName] = useState<string>("-all");
     const [tableRoutes, setTableRoutes] = useState<string[]>([]);
@@ -469,8 +469,7 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Box>
                             )}
                         </Card>
-                            <PlanRateUsagePieChart reload={reload} setReload={setReload}/>
-                            <PlanTableCountUsagePieChart reload={reload} setReload={setReload}/>
+                            <PlanUsagePieCharts reload={reload} setReload={setReload}/>
                         </Stack>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

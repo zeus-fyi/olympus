@@ -45,7 +45,7 @@ export const App = () => {
                                 <Route path="clusters"  element={<ProtectedLayout children={<Clusters />}/>}/>
                                 <Route path="clusters/:id" element={<ProtectedLayout children={<ClustersPage />}/>}/>
                             </Route>
-                            <Route path="loadbalancing/dashboard" element={<LoadBalancingDashboard />} />
+                            <Route path="loadbalancing/dashboard" element={<ProtectedLayout children={<LoadBalancingDashboard />}/>}/>
                             <Route>
                                 <Route path="services/chatgpt" element={<ProtectedLayout children={<ChatGPTPage />}/>}/>
                                 <Route path="services/ethereum/validators" element={<ProtectedLayout children={<ValidatorsServices />}/>}/>

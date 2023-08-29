@@ -9,21 +9,21 @@ import (
 )
 
 type TableMetricsSummary struct {
-	TableName string
-	Routes    []redis.Z
-	Metrics   map[string]TableMetric
+	TableName string                 `json:"tableName"`
+	Routes    []redis.Z              `json:"routes"`
+	Metrics   map[string]TableMetric `json:"metrics"`
 }
 
 type TableMetric struct {
-	SampleCount       int
-	RedisSampleCount  *redis.StringCmd
-	MetricPercentiles []MetricSample
+	SampleCount       int              `json:"sampleCount"`
+	RedisSampleCount  *redis.StringCmd `json:"-"`
+	MetricPercentiles []MetricSample   `json:"metricPercentiles"`
 }
 
 type MetricSample struct {
-	Percentile  float64
-	Latency     float64
-	RedisResult *redis.Cmd
+	Percentile  float64    `json:"percentile"`
+	Latency     float64    `json:"latency"`
+	RedisResult *redis.Cmd `json:"-"`
 }
 
 func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgID int, rgName string) (TableMetricsSummary, error) {

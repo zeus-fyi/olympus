@@ -23,7 +23,7 @@ import MainListItems from "../dashboard/listItems";
 import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
 import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
-import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
+import {setEndpoints, setGroupEndpoints, setTableMetrics} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
 import {PlanUsagePieCharts} from "./UsagePieChart";
 
@@ -128,22 +128,20 @@ function LoadBalancingDashboardContent(props: any) {
     }, [reload]);
 
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             setLoading(true); // Set loading to true
-    //             const response = await loadBalancingApiGateway.getTableMetrics(groupName);
-    //             // todo set metrics
-    //             dispatch(setTableMetrics(response.data));
-    //         } catch (error) {
-    //             console.log("error", error);
-    //         } finally {
-    //             setLoading(false); // Set loading to false regardless of success or failure.
-    //         }
-    //     }
-    //     fetchData();
-    // }, [groupName]);
-
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true); // Set loading to true
+                const response = await loadBalancingApiGateway.getTableMetrics(groupName);
+                dispatch(setTableMetrics(response.data));
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or failure.
+            }
+        }
+        fetchData();
+    }, [groupName]);
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
@@ -256,8 +254,23 @@ function LoadBalancingDashboardContent(props: any) {
         setPage(newPage);
     };
 
+    /*
+            try {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            const response = await loadBalancingApiGateway.getTableMetrics(name);
+            dispatch(setTableMetrics(response.data));
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoading(false); // Set loading to false regardless of success or failure.
+            setReload(!reload); // Trigger reload by flipping the state
+        }
+
+
+     */
 
     const handleChangeGroup = (name: string) => {
+
         setPage(0);
         setSelected([]);
         setGroupName(name);

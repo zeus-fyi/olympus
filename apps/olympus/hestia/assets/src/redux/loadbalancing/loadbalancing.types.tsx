@@ -3,7 +3,7 @@ export interface LoadBalancingState {
     routes: string[];
     groups: Groups;
     planUsageDetails: PlanUsageDetails;
-    tableMetrics: any;
+    tableMetrics: TableMetricsSummary;
 }
 
 export interface Groups {
@@ -28,3 +28,25 @@ export type TableUsage = {
     tableCount: number;
     monthlyBudgetTableCount: number;
 }
+
+export interface TableMetricsSummary {
+    tableName: string;
+    routes: Z[];
+    metrics: Record<string, TableMetric>;
+}
+
+export interface TableMetric {
+    sampleCount: number;
+    metricPercentiles: MetricSample[];
+}
+
+export interface MetricSample {
+    percentile: number;
+    latency: number;
+}
+
+export interface Z {
+    Score: number;
+    Member: any;
+}
+

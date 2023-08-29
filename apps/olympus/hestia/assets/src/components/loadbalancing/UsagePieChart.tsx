@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Legend, Pie, PieChart} from 'recharts';
 import {Card, CardContent, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 
 export function PlanUsagePieCharts(props: any) {
@@ -20,7 +20,6 @@ export function PlanUsagePieCharts(props: any) {
 export function PlanRateUsagePieChart(props: any) {
     const { planUsageDetails, reload, setReload} = props;
     const title = planUsageDetails?.planName +  ' Plan';
-    const [loading, setLoading] = useState(true);
     const [rateLimit, setRateLimit] = useState(planUsageDetails?.computeUsage?.rateLimit ?? 0);
     const [currentRate, setCurrentRate] = useState(planUsageDetails?.computeUsage?.currentRate ?? 0);
     const [planBudgetZU, setPlanBudgetZU] = useState(planUsageDetails?.computeUsage?.monthlyBudgetZU ?? 0);
@@ -53,8 +52,6 @@ export function PlanRateUsagePieChart(props: any) {
 
 export function PlanTableCountUsagePieChart(props: any) {
     const {planUsageDetails, reload, setReload} = props;
-    const dispatch = useDispatch();
-    const [loading, setLoading] = useState(true);
     const [endpointCount, setEndpointCount] = useState(planUsageDetails?.tableUsage?.endpointCount);
     const maxEndpointCount = 1000;
     const remainingEndpoints = maxEndpointCount - endpointCount;

@@ -121,5 +121,5 @@ func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
 	r.NoError(err)
 	r.NotEmpty(val)
 
-	fmt.Println(val)
+	fmt.Println(val.(float64))
 }

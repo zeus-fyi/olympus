@@ -9,7 +9,7 @@ import (
 )
 
 func GetMetricOffset(offset int) string {
-	return fmt.Sprintf("fooTestMetricName:%d", offset)
+	return fmt.Sprintf("fooTestMetricName%d", offset)
 }
 func (r *IrisRedisTestSuite) TestGetPriorityScoresAndTdigestMetrics() {
 	pipe := IrisRedisClient.Writer.TxPipeline()
@@ -36,10 +36,12 @@ func (r *IrisRedisTestSuite) TestGetPriorityScoresAndTdigestMetrics() {
 	m3Key := getMetricTdigestKey(1, tableName, m3)
 
 	fmt.Println(m1Key, m2Key, m3Key)
-	pipe.SAdd(context.Background(), m1Key, m1)
-	pipe.SAdd(context.Background(), m2Key, m2)
-	pipe.SAdd(context.Background(), m3Key, m3)
-	pipe.Expire(context.Background(), getTableMetricSetKey(1, "fooTestTable"), StatsTimeToLiveAfterLastUsage)
+
+	tblMetricsSetKey := getTableMetricSetKey(1, tableName)
+	pipe.SAdd(context.Background(), tblMetricsSetKey, m1)
+	pipe.SAdd(context.Background(), tblMetricsSetKey, m2)
+	pipe.SAdd(context.Background(), tblMetricsSetKey, m3)
+	pipe.Expire(context.Background(), tblMetricsSetKey, StatsTimeToLiveAfterLastUsage)
 
 	pipe.IncrBy(context.Background(), getMetricTdigestMetricSamplesKey(1, tableName, m1), 10)
 	pipe.Expire(context.Background(), getMetricTdigestMetricSamplesKey(1, tableName, m1), StatsTimeToLiveAfterLastUsage)
@@ -68,18 +70,20 @@ func (r *IrisRedisTestSuite) TestGetPriorityScoresAndTdigestMetrics() {
 		v2 := float64(i * 10)
 		v3 := float64(i * 100)
 
+		fmt.Println(m1Key)
 		pipe.Do(ctx, "PERCENTILE.MERGE", m1Key, v1)
 		pipe.Do(ctx, "PERCENTILE.MERGE", m2Key, v2)
 		pipe.Do(ctx, "PERCENTILE.MERGE", m3Key, v3)
 	}
-	pipe.Expire(ctx, getMetricTdigestKey(1, tableName, m1), StatsTimeToLiveAfterLastUsage)
-	pipe.Expire(ctx, getMetricTdigestKey(1, tableName, m2), StatsTimeToLiveAfterLastUsage)
-	pipe.Expire(ctx, getMetricTdigestKey(1, tableName, m3), StatsTimeToLiveAfterLastUsage)
+	pipe.Expire(ctx, m1Key, StatsTimeToLiveAfterLastUsage)
+	pipe.Expire(ctx, m2Key, StatsTimeToLiveAfterLastUsage)
+	pipe.Expire(ctx, m3Key, StatsTimeToLiveAfterLastUsage)
 
 	scoreInCmd := pipe.ZScore(ctx, endpointPriorityScoreKey, "https://zeus.fyi")
 	minElemCmd := pipe.ZRangeWithScores(ctx, endpointPriorityScoreKey, 0, 0)
 	pipe.Expire(ctx, endpointPriorityScoreKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
-	pipe.Exec(ctx)
+	_, err = pipe.Exec(ctx)
+	r.NoError(err)
 	scoreInCmd.Result()
 	minElemCmd.Result()
 

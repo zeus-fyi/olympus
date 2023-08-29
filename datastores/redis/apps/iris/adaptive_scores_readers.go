@@ -2,6 +2,7 @@ package iris_redis
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
@@ -15,28 +16,14 @@ type TableMetricsSummary struct {
 
 type TableMetric struct {
 	SampleCount       int
+	RedisSampleCount  *redis.StringCmd
 	MetricPercentiles []MetricSample
 }
 
 type MetricSample struct {
-	Percentile float64
-	Latency    float64
-}
-
-type MetricSampleWrapper struct {
-	MetricSample
-	RedisResult      *redis.Cmd
-	RedisCountResult *redis.StringCmd
-}
-
-func (m *MetricSampleWrapper) GetMetricSample() MetricSample {
-	val, err := m.RedisResult.Float64()
-	if err != nil && err != redis.Nil {
-		log.Warn().Err(err).Msg("GetMetricSample: failed to get percentile for metric")
-		return MetricSample{}
-	}
-	m.Latency = val
-	return m.MetricSample
+	Percentile  float64
+	Latency     float64
+	RedisResult *redis.Cmd
 }
 
 func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgID int, rgName string) (TableMetricsSummary, error) {
@@ -68,24 +55,27 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 	}
 
 	pipe = m.Reader.TxPipeline()
-	metricPipeline := make(map[string][]MetricSampleWrapper, len(tblMetrics))
-	metricCountPipeline := make(map[string]MetricSampleWrapper, len(tblMetrics))
+
+	ts := TableMetricsSummary{
+		TableName: rgName,
+		Routes:    routesWithScores,
+		Metrics:   make(map[string]TableMetric),
+	}
 
 	for _, tbm := range tblMetrics {
 		histogramBins := 7
-		metricPipeline[tbm] = make([]MetricSampleWrapper, histogramBins)
+		metricKey := getTableMetricKey(orgID, rgName, tbm)
 
 		metricTdigestSampleCountKey := getMetricTdigestMetricSamplesKey(orgID, rgName, tbm)
-		sampleCountCmd := pipe.Get(ctx, metricTdigestSampleCountKey)
-		metricCountPipeline[tbm] = MetricSampleWrapper{
-			RedisCountResult: sampleCountCmd,
+		tm := TableMetric{
+			RedisSampleCount:  pipe.Get(ctx, metricTdigestSampleCountKey),
+			MetricPercentiles: make([]MetricSample, histogramBins),
 		}
-		metricKey := getTableMetricKey(orgID, rgName, tbm)
 		for j := 0; j < histogramBins; j++ {
 			percentile := 0.0
 			switch j {
 			case 0:
-				percentile = 0.0
+				percentile = 0.1
 			case 1:
 				percentile = 0.25
 			case 2:
@@ -99,41 +89,40 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 			case 6:
 				percentile = 0.99
 			}
-
-			mw := MetricSampleWrapper{
-				MetricSample: MetricSample{
-					Percentile: percentile,
-				},
-				RedisResult: pipe.Do(ctx, "PERCENTILE.GET", metricKey, percentile),
-			}
-			metricPipeline[tbm][j] = mw
+			tm.MetricPercentiles[j].Percentile = percentile
+			tm.MetricPercentiles[j].RedisResult = pipe.Do(ctx, "PERCENTILE.GET", metricKey, percentile)
 		}
+		ts.Metrics[tbm] = tm
 	}
 	_, err = pipe.Exec(ctx)
 	if err != nil && err != redis.Nil {
 		log.Err(err).Msgf("GetPriorityScoresAndTdigestMetrics: failed to execute pipeline in GetPriorityScoresAndTdigestMetrics")
 		return TableMetricsSummary{}, err
 	}
-	ts := TableMetricsSummary{
-		TableName: rgName,
-		Routes:    routesWithScores,
-		Metrics:   make(map[string]TableMetric),
-	}
-	for metricName, tbm := range metricPipeline {
-		count, cerr := metricCountPipeline[metricName].RedisCountResult.Int()
-		if cerr != nil {
-			log.Err(cerr).Msgf("GetPriorityScoresAndTdigestMetrics: failed to get count for metric %s", metricName)
+
+	for metricKey, metricsRedisWrapper := range ts.Metrics {
+		count, cerr := metricsRedisWrapper.RedisSampleCount.Result()
+		if cerr != nil && cerr != redis.Nil {
+			log.Err(cerr).Msgf("GetPriorityScoresAndTdigestMetrics: failed to get sample count for metric %s", metricKey)
 			continue
 		}
-		mp := make([]MetricSample, len(tbm))
-		for i, mw := range tbm {
-			mv := mw.GetMetricSample()
-			mp[i] = mv
+		tmp := ts.Metrics[metricKey]
+		ci, serr := strconv.Atoi(count)
+		if serr == nil {
+			tmp.SampleCount = ci
 		}
-		ts.Metrics[metricName] = TableMetric{
-			SampleCount:       count,
-			MetricPercentiles: mp,
+		for i, item := range tmp.MetricPercentiles {
+			val, rerr := item.RedisResult.Result()
+			if rerr != nil && rerr != redis.Nil {
+				log.Err(rerr).Msgf("GetPriorityScoresAndTdigestMetrics: failed to get percentile %f for metric %s", item.Percentile, metricKey)
+				continue
+			}
+			fv, ok := val.(float64)
+			if ok {
+				tmp.MetricPercentiles[i].Latency = fv
+			}
 		}
+		ts.Metrics[metricKey] = tmp
 	}
 	return ts, nil
 }

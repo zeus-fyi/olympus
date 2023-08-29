@@ -25,11 +25,11 @@ func getOrgRateLimitKey(orgID int) string {
 }
 
 func getTableMetricKey(orgID int, tableName, metric string) string {
-	return fmt.Sprintf("{%d}:%s:%s", orgID, tableName, metric)
+	return fmt.Sprintf("{%d}.%s:%s", orgID, tableName, metric)
 }
 
 func getTableMetricSetKey(orgID int, tableName string) string {
-	return fmt.Sprintf("{%d}:%s:metrics", orgID, tableName)
+	return fmt.Sprintf("{%d}.%s:metrics", orgID, tableName)
 }
 
 func getMetricTdigestKey(orgID int, tableName, metricName string) string {
@@ -41,7 +41,7 @@ func getMetricTdigestMetricSamplesKey(orgID int, tableName, metricName string) s
 }
 
 func createAdaptiveEndpointPriorityScoreKey(orgID int, tableName string) string {
-	return fmt.Sprintf("{%d}:%s:priority", orgID, tableName)
+	return fmt.Sprintf("{%d}.%s:priority", orgID, tableName)
 }
 
 func getHashedTokenKey(token string) string {
@@ -49,12 +49,12 @@ func getHashedTokenKey(token string) string {
 }
 
 func getHashedTokenPlanKey(token string) string {
-	return fmt.Sprintf("{%x}:plan", util.Keccak256([]byte(token)))
+	return fmt.Sprintf("{%x}.plan", util.Keccak256([]byte(token)))
 }
 
 func getProcedureKey(orgID int, procedureName string) string {
 	if orgID > 0 && procedureName != iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
-		return fmt.Sprintf("{%d}:%s:procedure", orgID, procedureName)
+		return fmt.Sprintf("{%d}.%s:procedure", orgID, procedureName)
 	}
 	return getGlobalProcedureKey(procedureName)
 }

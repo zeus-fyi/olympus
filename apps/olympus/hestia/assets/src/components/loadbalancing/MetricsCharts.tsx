@@ -4,6 +4,15 @@ import {Card, CardContent} from "@mui/material";
 import Typography from "@mui/material/Typography";
 
 
+export function TableMetricsCharts(props: any) {
+    return (
+        <div>
+            <MetricsChart />
+        </div>
+    )
+}
+
+
 export function MetricsChart(props: any) {
     return (
         <Card>

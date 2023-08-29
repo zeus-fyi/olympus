@@ -254,21 +254,6 @@ function LoadBalancingDashboardContent(props: any) {
         setPage(newPage);
     };
 
-    /*
-            try {
-            setLoading(true); // Set loading to false regardless of success or failure.
-            const response = await loadBalancingApiGateway.getTableMetrics(name);
-            dispatch(setTableMetrics(response.data));
-        } catch (error) {
-            console.log("error", error);
-        } finally {
-            setLoading(false); // Set loading to false regardless of success or failure.
-            setReload(!reload); // Trigger reload by flipping the state
-        }
-
-
-     */
-
     const handleChangeGroup = (name: string) => {
 
         setPage(0);

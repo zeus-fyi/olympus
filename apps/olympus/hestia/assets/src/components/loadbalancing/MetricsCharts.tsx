@@ -38,7 +38,6 @@ export function TableMetricsCharts(props: any) {
     )
 }
 
-
 export function MetricsChart(props: any) {
     const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
     const formattedData: FormattedData[] = Object.keys(tableMetrics.metrics).map((key, idx) => {

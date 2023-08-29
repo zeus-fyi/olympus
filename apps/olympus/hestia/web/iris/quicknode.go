@@ -14,9 +14,12 @@ import (
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
+	hestia_service_plans "github.com/zeus-fyi/olympus/hestia/web/service_plans"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
+
+const QuickNodeMarketPlace = "quickNodeMarketPlace"
 
 var JWTAuthSecret = ""
 
@@ -102,14 +105,28 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			SessionID: sessionID,
 			TTL:       3600,
 		}
-		ou := org_users.NewOrgUser()
-		ou.OrgID = key.OrgID
-
-		pu, err := GetUserPlanInfo(ctx, ou, "test")
+		_, err = key.QueryUserAuthedServices(ctx, sessionID)
 		if err != nil {
-			log.Err(err).Msg("GetUserPlanInfo error")
+			log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
 		} else {
-			li.PlanDetailsUsage = pu
+			for _, service := range key.Services {
+				switch service {
+				case "quickNodeMarketPlace":
+					plan, ok := key.Services[QuickNodeMarketPlace]
+					if !ok {
+						log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("CreateGroupRoute: marketplace not found")
+					} else {
+						ou := org_users.NewOrgUser()
+						ou.OrgID = key.OrgID
+						pu, perr := hestia_service_plans.GetUserPlanInfo(ctx, ou, plan)
+						if perr != nil {
+							log.Err(perr).Msg("GetUserPlanInfo error")
+						} else {
+							li.PlanDetailsUsage = &pu
+						}
+					}
+				}
+			}
 		}
 		return c.JSON(http.StatusOK, li)
 	})
@@ -195,13 +212,28 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			SessionID: sessionID,
 			TTL:       3600,
 		}
-		ou := org_users.NewOrgUser()
-		ou.OrgID = key.OrgID
-		pu, err := GetUserPlanInfo(ctx, ou, "test")
+		_, err = key.QueryUserAuthedServices(ctx, sessionID)
 		if err != nil {
-			log.Err(err).Msg("GetUserPlanInfo error")
+			log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
 		} else {
-			li.PlanDetailsUsage = pu
+			for _, service := range key.Services {
+				switch service {
+				case "quickNodeMarketPlace":
+					plan, ok := key.Services[QuickNodeMarketPlace]
+					if !ok {
+						log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("CreateGroupRoute: marketplace not found")
+					} else {
+						ou := org_users.NewOrgUser()
+						ou.OrgID = key.OrgID
+						pu, perr := hestia_service_plans.GetUserPlanInfo(ctx, ou, plan)
+						if perr != nil {
+							log.Err(perr).Msg("GetUserPlanInfo error")
+						} else {
+							li.PlanDetailsUsage = &pu
+						}
+					}
+				}
+			}
 		}
 		return c.JSON(http.StatusOK, li)
 	})

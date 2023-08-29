@@ -1,4 +1,4 @@
-package hestia_quicknode_dashboard
+package hestia_service_plans
 
 import (
 	"context"

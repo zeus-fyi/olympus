@@ -8,11 +8,15 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	hestia_service_plans "github.com/zeus-fyi/olympus/hestia/web/service_plans"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
+
+const QuickNodeMarketPlace = "quickNodeMarketPlace"
 
 var Domain string
 
@@ -34,7 +38,7 @@ type LoginResponse struct {
 	SessionID string `json:"sessionID"`
 	TTL       int    `json:"ttl"`
 
-	PlanDetailsUsage any `json:"planUsageDetails,omitempty"`
+	PlanDetailsUsage *hestia_service_plans.PlanUsageDetails `json:"planUsageDetails,omitempty"`
 }
 
 func (l *LoginRequest) VerifyPassword(c echo.Context) error {
@@ -76,5 +80,28 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	c.SetCookie(cookie)
+	_, err = key.QueryUserAuthedServices(ctx, sessionID)
+	if err != nil {
+		log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
+	} else {
+		for _, service := range key.Services {
+			switch service {
+			case "quickNodeMarketPlace":
+				plan, ok := key.Services[QuickNodeMarketPlace]
+				if !ok {
+					log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("CreateGroupRoute: marketplace not found")
+				} else {
+					ou := org_users.NewOrgUser()
+					ou.OrgID = key.OrgID
+					pu, perr := hestia_service_plans.GetUserPlanInfo(ctx, ou, plan)
+					if perr != nil {
+						log.Err(perr).Msg("GetUserPlanInfo error")
+					} else {
+						resp.PlanDetailsUsage = &pu
+					}
+				}
+			}
+		}
+	}
 	return c.JSON(http.StatusOK, resp)
 }

@@ -22,8 +22,8 @@ type PayloadSizeMeter struct {
 }
 
 type UsageMeter struct {
-	RateLimit    float64
-	MonthlyUsage float64
+	RateLimit    float64 `json:"rateLimit"`
+	MonthlyUsage float64 `json:"monthlyUsage"`
 }
 
 func (u *UsageMeter) IsRateLimited(rateLimit, monthlyLimit float64) (bool, bool) {

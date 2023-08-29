@@ -231,7 +231,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 	if procedure.Name != orgIDStr {
 		data, derr := procedureCmd.Bytes()
 		if derr != nil {
-			log.Err(derr).Msg("Failed to get procedure from Redis")
+			log.Err(derr).Msg("failed to get procedure from Redis")
 			return procedure, routes, iris_usage_meters.UsageMeter{}, derr
 		}
 		// Deserialize the procedure
@@ -242,13 +242,13 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 		}
 		stepsBytes, derr := procedureStepsKeyCmd.Bytes()
 		if derr != nil {
-			log.Err(derr).Msg("Failed to get procedure steps from Redis")
+			log.Err(derr).Msg("failed to get procedure steps from Redis")
 			return procedure, routes, iris_usage_meters.UsageMeter{}, derr
 		}
 		var steps []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep
 		err = json.Unmarshal(stepsBytes, &steps)
 		if err != nil {
-			log.Err(err).Msg("Failed to deserialize procedure steps")
+			log.Err(err).Msg("failed to deserialize procedure steps")
 			return procedure, routes, iris_usage_meters.UsageMeter{}, err
 		}
 		for _, step := range steps {

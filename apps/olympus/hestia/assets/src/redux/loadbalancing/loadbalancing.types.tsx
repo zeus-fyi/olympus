@@ -19,9 +19,11 @@ export type PlanUsageDetails = {
 export type UsageMeter = {
     rateLimit: number;
     monthlyUsage: number;
+    monthlyBudgetZU: number;
 }
 
 export type TableUsage = {
     endpointCount: number;
     tableCount: number;
+    monthlyBudgetTableCount: number;
 }

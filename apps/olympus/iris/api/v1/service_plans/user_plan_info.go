@@ -81,6 +81,7 @@ func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 
+	usage.MonthlyBudgetZU = float64(iris_redis.GetMonthlyPlanBudgetZU(planName))
 	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
 	if err != nil {
 		log.Err(err).Msg("GetUserPlanInfo: OrgEndpointsAndGroupTablesCount")
@@ -91,7 +92,13 @@ func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
 		ComputeUsage: usage,
 	}
 	if tc != nil {
+		err = tc.SetMaxTableCountByPlan(planName)
+		if err != nil {
+			log.Err(err).Msg("GetUserPlanInfo: SetMaxTableCountByPlan")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
 		usageInfo.TableUsage = *tc
+
 	}
 	return c.JSON(http.StatusOK, usageInfo)
 }

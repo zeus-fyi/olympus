@@ -21,7 +21,10 @@ export function PlanUsagePieChart(props: any) {
     const title = planUsageDetails?.planName +  ' Plan';
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(true);
+    const [endpointCount, setEndpointCount] = useState(planUsageDetails?.tableUsage?.endpointCount);
+    const [tableCount, setTableCount] = useState(planUsageDetails?.tableUsage?.tableCount);
 
+    console.log("planUsageDetails", planUsageDetails)
     useEffect(() => {
         const fetchData = async () => {
             try {

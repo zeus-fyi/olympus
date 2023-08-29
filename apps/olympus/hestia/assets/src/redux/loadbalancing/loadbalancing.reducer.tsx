@@ -8,6 +8,7 @@ const initialState: LoadBalancingState = {
         planName: '',
         computeUsage: null,
         tableUsage: {
+            monthlyBudgetTableCount: 0,
             endpointCount: 0,
             tableCount: 0
         }

@@ -3,6 +3,7 @@ package iris_redis
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
@@ -11,6 +12,9 @@ import (
 )
 
 const (
+	TwentyFive             = 25
+	Fifty                  = 50
+	TwoHundredFifty        = 250
 	OneThousand            = 1_000
 	TenThousand            = 10_000
 	TwentyFiveThousand     = 25_000
@@ -21,6 +25,23 @@ const (
 	OneBillion             = 1_000_000_000
 	ThreeBillion           = 3_000_000_000
 )
+
+func GetMonthlyPlanBudgetZU(planName string) int {
+	switch strings.ToLower(planName) {
+	case "enterprise":
+		return ThreeBillion
+	case "performance":
+		return ThreeBillion
+	case "standard":
+		return OneBillion
+	case "lite":
+		return TwoHundredFiftyMillion
+	case "test":
+		return 1000
+	default:
+		return 0
+	}
+}
 
 func (m *IrisCache) CheckRateLimitBroadcast(ctx context.Context, orgID int, procedureName, plan, routeGroup string, meter *iris_usage_meters.PayloadSizeMeter) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, []iris_models.RouteInfo, error) {
 	// Generate the rate limiter key with the Unix timestamp

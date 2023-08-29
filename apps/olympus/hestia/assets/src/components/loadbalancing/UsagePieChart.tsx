@@ -5,19 +5,21 @@ import Typography from "@mui/material/Typography";
 import {accessApiGateway} from "../../gateway/access";
 import {setSessionAuth} from "../../redux/auth/session.reducer";
 import {setUserPlanDetails} from "../../redux/loadbalancing/loadbalancing.reducer";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "../../redux/store";
 
 
 export function PlanRateUsagePieChart(props: any) {
-    const {planUsageDetails} = props;
+    const planUsageDetails = useSelector((state: RootState) => state.loadBalancing.planUsageDetails);
+    const { reload, setReload} = props;
     const title = planUsageDetails?.planName +  ' Plan';
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(true);
-    const [rateLimit, setRateLimit] = useState(planUsageDetails?.computeUsage?.rateLimit);
-    const [currentRate, setCurrentRate] = useState(planUsageDetails?.computeUsage?.currentRate);
+    const [rateLimit, setRateLimit] = useState(planUsageDetails?.computeUsage?.rateLimit ?? 0);
+    const [currentRate, setCurrentRate] = useState(planUsageDetails?.computeUsage?.currentRate ?? 0);
     const remainingRate = rateLimit - currentRate;
-    const [planBudgetZU, setPlanBudgetZU] = useState(planUsageDetails?.computeUsage?.monthlyBudgetZU);
-    const [monthlyUsage, setMonthlyUsage] = useState(planUsageDetails?.computeUsage?.monthlyUsage);
+    const [planBudgetZU, setPlanBudgetZU] = useState(planUsageDetails?.computeUsage?.monthlyBudgetZU ?? 0);
+    const [monthlyUsage, setMonthlyUsage] = useState(planUsageDetails?.computeUsage?.monthlyUsage ?? 0);
     const remainingZU = planBudgetZU - monthlyUsage;
     const data02 = [
         { name: 'ZU k/s', value: currentRate, fill: "#ff8080"},
@@ -51,7 +53,7 @@ export function PlanRateUsagePieChart(props: any) {
         fetchData().then(r =>
             console.log("")
         );
-    }, []);
+    }, [reload]);
 
     if (loading) {
         return null;
@@ -65,7 +67,7 @@ export function PlanRateUsagePieChart(props: any) {
                 <PieChart width={375} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60}  />
                     <Pie data={data02} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={90} label />
-                    <Legend />
+                    <Legend align="left" verticalAlign="bottom" layout="horizontal" />
                 </PieChart>
             </CardContent>
         </Card>
@@ -74,7 +76,9 @@ export function PlanRateUsagePieChart(props: any) {
 
 
 export function PlanTableCountUsagePieChart(props: any) {
-    const {planUsageDetails} = props;
+    const planUsageDetails = useSelector((state: RootState) => state.loadBalancing.planUsageDetails);
+
+    const { reload, setReload} = props;
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(true);
     const [endpointCount, setEndpointCount] = useState(planUsageDetails?.tableUsage?.endpointCount);
@@ -84,17 +88,18 @@ export function PlanTableCountUsagePieChart(props: any) {
     const [planTableCount, setPlanTableCount] = useState(planUsageDetails?.tableUsage?.monthlyBudgetTableCount);
     const remainingTables = planTableCount - tableCount;
     const data01 = [
-        { name: 'Tables(Used)', value: endpointCount },
-        { name: 'Tables(Open)', value: remainingTables },
+        { name: 'Endpoints(Used)', value: endpointCount, fill: "#8884d8" },
+        { name: 'Endpoints(Open)', value: remainingEndpoints, fill: "#82ca9d" },
     ];
     const data02 = [
-        { name: 'Endpoints(Used)', value: endpointCount },
-        { name: 'Endpoints(Open)', value: remainingEndpoints },
+        { name: 'Tables(Used)', value: endpointCount, fill: "#8884d8" },
+        { name: 'Tables(Open)', value: remainingTables, fill: "#82ca9d" },
     ];
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                if (planUsageDetails?.planName !== null && planUsageDetails?.planName !== ''){
+                if (planUsageDetails !== null && planUsageDetails?.planName !== ''){
                     return
                 }
                 const response = await accessApiGateway.checkAuth();
@@ -114,7 +119,7 @@ export function PlanTableCountUsagePieChart(props: any) {
         fetchData().then(r =>
             console.log("")
         );
-    }, []);
+    }, [reload]);
 
     if (loading) {
         return null;
@@ -128,7 +133,7 @@ export function PlanTableCountUsagePieChart(props: any) {
                 <PieChart width={375} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60} fill="#8884d8" />
                     <Pie data={data02} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={90} fill="#82ca9d" label />
-                    <Legend />
+                    <Legend align="left" verticalAlign="bottom" layout="horizontal" />
                 </PieChart>
             </CardContent>
         </Card>

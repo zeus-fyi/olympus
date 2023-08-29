@@ -469,8 +469,8 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Box>
                             )}
                         </Card>
-                            <PlanRateUsagePieChart planUsageDetails={planUsageDetails} titleOn={true}/>
-                            <PlanTableCountUsagePieChart planUsageDetails={planUsageDetails} titleOn={false}/>
+                            <PlanRateUsagePieChart reload={reload} setReload={setReload}/>
+                            <PlanTableCountUsagePieChart reload={reload} setReload={setReload}/>
                         </Stack>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

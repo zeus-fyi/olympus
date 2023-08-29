@@ -103,7 +103,6 @@ func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		usageInfo.TableUsage = *tc
-
 	}
 	return c.JSON(http.StatusOK, usageInfo)
 }

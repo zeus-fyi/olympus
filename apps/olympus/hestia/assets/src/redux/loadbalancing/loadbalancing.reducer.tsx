@@ -6,7 +6,12 @@ const initialState: LoadBalancingState = {
     groups: {},
     planUsageDetails: {
         planName: '',
-        computeUsage: null,
+        computeUsage: {
+            rateLimit: 0,
+            currentRate: 0,
+            monthlyUsage: 0,
+            monthlyBudgetZU: 0
+        },
         tableUsage: {
             monthlyBudgetTableCount: 0,
             endpointCount: 0,

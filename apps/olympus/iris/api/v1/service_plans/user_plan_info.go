@@ -82,6 +82,9 @@ func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
 	}
 
 	usage.MonthlyBudgetZU = float64(iris_redis.GetMonthlyPlanBudgetZU(planName))
+	usage.RateLimit = float64(iris_redis.GetMonthlyPlanBudgetThroughputZU(planName))
+	usage.GetMonthlyUsageZUM()
+	usage.GetMonthlyBudgetZUM()
 	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
 	if err != nil {
 		log.Err(err).Msg("GetUserPlanInfo: OrgEndpointsAndGroupTablesCount")

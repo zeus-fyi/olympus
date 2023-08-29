@@ -26,6 +26,23 @@ const (
 	ThreeBillion           = 3_000_000_000
 )
 
+func GetMonthlyPlanBudgetThroughputZU(planName string) int {
+	switch strings.ToLower(planName) {
+	case "enterprise":
+		return HundredThousand
+	case "performance":
+		return HundredThousand
+	case "standard":
+		return FiftyThousand
+	case "lite":
+		return TwentyFiveThousand
+	case "test":
+		return 1000
+	default:
+		return 0
+	}
+}
+
 func GetMonthlyPlanBudgetZU(planName string) int {
 	switch strings.ToLower(planName) {
 	case "enterprise":

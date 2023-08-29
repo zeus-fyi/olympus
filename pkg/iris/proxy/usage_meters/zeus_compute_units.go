@@ -12,6 +12,7 @@ const (
 	ZeusUnitsPerResponse = 4.0
 	ZeusUnitsPerKB       = 1.0
 	BytesPerKB           = 1024.0
+	OneMillion           = 1_000_000
 )
 
 type PayloadSizeMeter struct {
@@ -23,12 +24,21 @@ type PayloadSizeMeter struct {
 
 type UsageMeter struct {
 	RateLimit       float64 `json:"rateLimit"`
-	MonthlyUsage    float64 `json:"monthlyUsage"`
-	MonthlyBudgetZU float64 `json:"monthlyBudgetZU,omitempty"`
+	CurrentRate     float64 `json:"currentRate"`
+	MonthlyUsage    float64 `json:"monthlyUsage"`              // M units
+	MonthlyBudgetZU float64 `json:"monthlyBudgetZU,omitempty"` // M units
 }
 
 func (u *UsageMeter) IsRateLimited(rateLimit, monthlyLimit float64) (bool, bool) {
 	return u.RateLimit > rateLimit, u.MonthlyUsage > monthlyLimit
+}
+
+func (u *UsageMeter) GetMonthlyUsageZUM() float64 {
+	return u.MonthlyUsage / OneMillion
+}
+
+func (u *UsageMeter) GetMonthlyBudgetZUM() float64 {
+	return u.MonthlyBudgetZU / OneMillion
 }
 
 func NewPayloadSizeMeter(bodyBytes []byte) *PayloadSizeMeter {

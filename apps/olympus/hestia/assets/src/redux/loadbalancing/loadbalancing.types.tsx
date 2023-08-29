@@ -18,6 +18,7 @@ export type PlanUsageDetails = {
 
 export type UsageMeter = {
     rateLimit: number;
+    currentRate : number;
     monthlyUsage: number;
     monthlyBudgetZU: number;
 }

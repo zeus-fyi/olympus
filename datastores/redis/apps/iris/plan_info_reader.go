@@ -54,7 +54,7 @@ func (m *IrisCache) GetPlanUsageInfo(ctx context.Context, orgID int) (*iris_usag
 		}
 	}
 	return &iris_usage_meters.UsageMeter{
-		RateLimit:    rateLimitVal,
+		CurrentRate:  rateLimitVal,
 		MonthlyUsage: monthlyUsageVal,
 	}, nil
 }

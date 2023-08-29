@@ -2,13 +2,13 @@ package hestia_autogen_bases
 
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
-type ProvisionedQuicknodeServicesContractAddresses struct {
+type ProvisionedQuickNodeServicesContractAddresses struct {
 	QuicknodeID     string `db:"quicknode_id" json:"quicknodeID"`
 	ContractAddress string `db:"contract_address" json:"contractAddress"`
 }
-type ProvisionedQuicknodeServicesContractAddressesSlice []ProvisionedQuicknodeServicesContractAddresses
+type ProvisionedQuicknodeServicesContractAddressesSlice []ProvisionedQuickNodeServicesContractAddresses
 
-func (p *ProvisionedQuicknodeServicesContractAddresses) GetRowValues(queryName string) apps.RowValues {
+func (p *ProvisionedQuickNodeServicesContractAddresses) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
@@ -16,11 +16,11 @@ func (p *ProvisionedQuicknodeServicesContractAddresses) GetRowValues(queryName s
 	}
 	return pgValues
 }
-func (p *ProvisionedQuicknodeServicesContractAddresses) GetTableColumns() (columnValues []string) {
+func (p *ProvisionedQuickNodeServicesContractAddresses) GetTableColumns() (columnValues []string) {
 	columnValues = []string{"quicknode_id", "contract_address"}
 	return columnValues
 }
-func (p *ProvisionedQuicknodeServicesContractAddresses) GetTableName() (tableName string) {
+func (p *ProvisionedQuickNodeServicesContractAddresses) GetTableName() (tableName string) {
 	tableName = "provisioned_quicknode_services_contract_addresses"
 	return tableName
 }

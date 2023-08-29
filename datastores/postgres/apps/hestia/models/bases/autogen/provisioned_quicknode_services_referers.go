@@ -2,13 +2,13 @@ package hestia_autogen_bases
 
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
-type ProvisionedQuicknodeServicesReferers struct {
+type ProvisionedQuickNodeServicesReferrers struct {
 	QuicknodeID string `db:"quicknode_id" json:"quicknodeID"`
 	Referer     string `db:"referer" json:"referer"`
 }
-type ProvisionedQuicknodeServicesReferersSlice []ProvisionedQuicknodeServicesReferers
+type ProvisionedQuicknodeServicesReferersSlice []ProvisionedQuickNodeServicesReferrers
 
-func (p *ProvisionedQuicknodeServicesReferers) GetRowValues(queryName string) apps.RowValues {
+func (p *ProvisionedQuickNodeServicesReferrers) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
@@ -16,11 +16,11 @@ func (p *ProvisionedQuicknodeServicesReferers) GetRowValues(queryName string) ap
 	}
 	return pgValues
 }
-func (p *ProvisionedQuicknodeServicesReferers) GetTableColumns() (columnValues []string) {
+func (p *ProvisionedQuickNodeServicesReferrers) GetTableColumns() (columnValues []string) {
 	columnValues = []string{"quicknode_id", "referer"}
 	return columnValues
 }
-func (p *ProvisionedQuicknodeServicesReferers) GetTableName() (tableName string) {
+func (p *ProvisionedQuickNodeServicesReferrers) GetTableName() (tableName string) {
 	tableName = "provisioned_quicknode_services_referers"
 	return tableName
 }

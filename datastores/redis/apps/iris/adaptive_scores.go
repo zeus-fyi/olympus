@@ -71,7 +71,6 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 	var percentileCmdMedian, percentileCmdTail *redis.Cmd
 	var sampleCountCmd *redis.StringCmd
 	if stats.Metric != "" {
-
 		tm := getTableMetricKey(stats.OrgID, stats.TableName, stats.Metric)
 		pipe.Expire(ctx, tm, StatsTimeToLiveAfterLastUsage)
 		percentileCmdMedian = pipe.Do(ctx, "PERCENTILE.GET", tm, 0.5)
@@ -80,6 +79,10 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 		metricTdigestSampleCountKey := getMetricTdigestMetricSamplesKey(stats.OrgID, stats.TableName, stats.Metric)
 		pipe.Expire(ctx, metricTdigestSampleCountKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 		sampleCountCmd = pipe.Get(ctx, metricTdigestSampleCountKey)
+
+		tblMetricSet := getTableMetricSetKey(stats.OrgID, stats.TableName)
+		pipe.SAdd(ctx, tblMetricSet, stats.Metric)
+		pipe.Expire(ctx, tblMetricSet, StatsTimeToLiveAfterLastUsage)
 	}
 
 	// adds new member if it doesn't exist with a starting score of 1
@@ -205,6 +208,10 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 		pipe.Expire(ctx, metricTdigestSampleCountKey, 15*time.Minute)
 		tdigestResp = pipe.Do(ctx, "PERCENTILE.MERGE", tableMetricKey, stats.LatencyMilliseconds)
 		pipe.Expire(ctx, tableMetricKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
+
+		tblMetricSet := getTableMetricSetKey(stats.OrgID, stats.TableName)
+		pipe.SAdd(ctx, tblMetricSet, stats.Metric)
+		pipe.Expire(ctx, tblMetricSet, StatsTimeToLiveAfterLastUsage)
 	}
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)

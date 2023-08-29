@@ -2,7 +2,6 @@ package iris_redis
 
 import (
 	"context"
-	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -13,8 +12,8 @@ func (m *IrisCache) SetMetricLatencyTDigest(ctx context.Context, orgID int, tabl
 
 	pipe.Incr(ctx, getMetricTdigestMetricSamplesKey(orgID, tableName, metricName))
 	pipe.Do(ctx, "PERCENTILE.MERGE", getMetricTdigestKey(orgID, tableName, metricName), latency)
-	pipe.Expire(ctx, getMetricTdigestKey(orgID, tableName, metricName), 15*time.Minute)
-	pipe.Expire(ctx, getMetricTdigestMetricSamplesKey(orgID, tableName, metricName), 15*time.Minute)
+	pipe.Expire(ctx, getMetricTdigestKey(orgID, tableName, metricName), StatsTimeToLiveAfterLastUsage)
+	pipe.Expire(ctx, getMetricTdigestMetricSamplesKey(orgID, tableName, metricName), StatsTimeToLiveAfterLastUsage)
 
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)

@@ -28,6 +28,10 @@ func getTableMetricKey(orgID int, tableName, metric string) string {
 	return fmt.Sprintf("{%d}:%s:%s", orgID, tableName, metric)
 }
 
+func getTableMetricSetKey(orgID int, tableName string) string {
+	return fmt.Sprintf("{%d}:%s:metrics", orgID, tableName)
+}
+
 func getMetricTdigestKey(orgID int, tableName, metricName string) string {
 	return fmt.Sprintf("{%d}.%s:%s", orgID, tableName, metricName)
 }

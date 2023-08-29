@@ -9,7 +9,10 @@ import (
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
-var IrisApiUrl = "https://iris.zeus.fyi"
+var (
+	IrisApiUrl           = "https://iris.zeus.fyi"
+	ArtificialTableCount = 2
+)
 
 func GetPlan(ctx context.Context, token string) (iris_service_plans.PlanUsageDetailsResponse, error) {
 	planUsageDetails := iris_service_plans.PlanUsageDetailsResponse{}
@@ -24,5 +27,6 @@ func GetPlan(ctx context.Context, token string) (iris_service_plans.PlanUsageDet
 		log.Err(err).Msg("GetPlan: IrisPlatformSetupCacheUpdateRequest")
 		return planUsageDetails, err
 	}
+	planUsageDetails.TableUsage.TableCount -= ArtificialTableCount
 	return planUsageDetails, err
 }

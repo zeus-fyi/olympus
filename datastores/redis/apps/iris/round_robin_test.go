@@ -96,8 +96,6 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 	}
 
 	for _, ep := range routes {
-		fmt.Printf("route: %s, count: %d\n", ep, m[ep.RoutePath])
-
 		if m[ep.RoutePath] == 0 {
 			r.FailNow("route not found in map")
 		}

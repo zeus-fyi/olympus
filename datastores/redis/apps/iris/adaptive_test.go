@@ -2,6 +2,7 @@ package iris_redis
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 
 	"github.com/go-redis/redis/v9"
@@ -108,4 +109,17 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 	}
 	err = IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), &tableStats2)
 	r.NoError(err)
+}
+
+func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
+	key := "{1}.fooTestTable:fooTestMetricName:3"
+
+	pipe := IrisRedisClient.Reader.TxPipeline()
+	cmd := pipe.Do(context.Background(), "PERCENTILE.GET", key, 0.5)
+	pipe.Exec(context.Background())
+	val, err := cmd.Result()
+	r.NoError(err)
+	r.NotEmpty(val)
+
+	fmt.Println(val)
 }

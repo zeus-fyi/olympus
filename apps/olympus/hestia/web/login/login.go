@@ -84,21 +84,16 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 	if err != nil {
 		log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
 	} else {
-		for _, service := range key.Services {
+		for service, planName := range key.Services {
 			switch service {
 			case "quickNodeMarketPlace":
-				plan, ok := key.Services[QuickNodeMarketPlace]
-				if !ok {
-					log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("CreateGroupRoute: marketplace not found")
+				ou := org_users.NewOrgUser()
+				ou.OrgID = key.OrgID
+				pu, perr := hestia_service_plans.GetUserPlanInfo(ctx, ou, planName)
+				if perr != nil {
+					log.Err(perr).Msg("GetUserPlanInfo error")
 				} else {
-					ou := org_users.NewOrgUser()
-					ou.OrgID = key.OrgID
-					pu, perr := hestia_service_plans.GetUserPlanInfo(ctx, ou, plan)
-					if perr != nil {
-						log.Err(perr).Msg("GetUserPlanInfo error")
-					} else {
-						resp.PlanDetailsUsage = &pu
-					}
+					resp.PlanDetailsUsage = &pu
 				}
 			}
 		}

@@ -1,9 +1,10 @@
-package hestia_service_plans
+package iris_service_plans
 
 import (
 	"context"
-	"errors"
+	"net/http"
 
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
@@ -24,38 +25,73 @@ todo: get user plan info
 	a. eg. t-digests per metric
 */
 
-type PlanUsageDetails struct {
+const (
+	PlanUsageDetailsRoute = "/plan/usage"
+)
+
+type PlanUsageDetailsRequest struct {
+}
+
+type PlanUsageDetailsResponse struct {
 	PlanName     string                        `json:"planName"`
 	ComputeUsage *iris_usage_meters.UsageMeter `json:"computeUsage,omitempty"`
 	TableUsage   iris_models.TableUsage        `json:"tableUsage"`
 }
 
-func GetUserPlanInfo(ctx context.Context, ou org_users.OrgUser, sp string) (PlanUsageDetails, error) {
+func PlanUsageDetailsRequestHandler(c echo.Context) error {
+	log.Info().Msg("Iris: PlanUsageDetailsRequest")
+	request := new(PlanUsageDetailsRequest)
+	if err := c.Bind(request); err != nil {
+		log.Err(err).Msg("Iris: PlanUsageDetailsRequest")
+		return err
+	}
+	return request.GetUserPlanInfo(c)
+}
+
+func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
+	planName, ok := c.Get("servicePlan").(string)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	ou := org_users.OrgUser{}
+	ouc := c.Get("orgUser")
+	if ouc != nil {
+		ouser, aok := ouc.(org_users.OrgUser)
+		if aok {
+			ou = ouser
+		}
+	}
 	usage, err := iris_redis.IrisRedisClient.GetPlanUsageInfo(context.Background(), ou.OrgID)
 	if err != nil {
 		log.Err(err).Interface("usage", usage).Msg("GetPlanUsageInfo error")
-		return PlanUsageDetails{}, err
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	switch sp {
+	switch planName {
 	case "enterprise":
+		planName = "Enterprise"
 	case "performance":
+		planName = "Performance"
 	case "standard":
+		planName = "Standard"
 	case "lite":
+		planName = "Lite"
 	case "test":
+		planName = "Test"
 	default:
-		return PlanUsageDetails{}, errors.New("invalid service plan")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
+
 	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
 	if err != nil {
 		log.Err(err).Msg("GetUserPlanInfo: OrgEndpointsAndGroupTablesCount")
-		return PlanUsageDetails{}, err
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	usageInfo := PlanUsageDetails{
-		PlanName:     sp,
+	usageInfo := PlanUsageDetailsResponse{
+		PlanName:     planName,
 		ComputeUsage: usage,
 	}
 	if tc != nil {
 		usageInfo.TableUsage = *tc
 	}
-	return usageInfo, nil
+	return c.JSON(http.StatusOK, usageInfo)
 }

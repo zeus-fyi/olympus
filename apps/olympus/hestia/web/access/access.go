@@ -1,44 +1,15 @@
 package hestia_access_keygen
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
+	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
+	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 )
 
-type AccessKeyGenRequest struct {
-}
-
-func AccessKeyGenRequestHandler(c echo.Context) error {
-	request := new(AccessKeyGenRequest)
-	if err := c.Bind(request); err != nil {
-		return err
-	}
-	return request.KeyGen(c)
-}
-
-type AccessKeyGenResp struct {
-	ApiKeyName   string `json:"apiKeyName"`
-	ApiKeySecret string `json:"apiKeySecret"`
-}
-
-func (a *AccessKeyGenRequest) KeyGen(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
-	ctx := context.Background()
-	apiKey, err := create_keys.CreateUserAPIKey(ctx, ou)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("CreateUserAPIKey error")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	resp := AccessKeyGenResp{
-		ApiKeyName:   apiKey.PublicKeyName,
-		ApiKeySecret: apiKey.PublicKey,
-	}
-	return c.JSON(http.StatusOK, resp)
+type AccessRequest struct {
 }
 
 func AccessRequestHandler(c echo.Context) error {
@@ -49,9 +20,17 @@ func AccessRequestHandler(c echo.Context) error {
 	return request.AuthCheck(c)
 }
 
-type AccessRequest struct {
-}
-
 func (a *AccessRequest) AuthCheck(c echo.Context) error {
-	return c.JSON(http.StatusOK, nil)
+	var resp hestia_login.LoginResponse
+	token, ok := c.Get("bearer").(string)
+	if ok {
+		plan, err := hestia_billing.GetPlan(c.Request().Context(), token)
+		if err != nil {
+			log.Err(err).Msg("AuthCheck: GetPlan error")
+			err = nil
+		} else {
+			resp.PlanDetailsUsage = &plan
+		}
+	}
+	return c.JSON(http.StatusOK, resp)
 }

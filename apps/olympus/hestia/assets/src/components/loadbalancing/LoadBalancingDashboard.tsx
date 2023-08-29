@@ -26,7 +26,6 @@ import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
 import {PlanUsagePieChart} from "./UsagePieChart";
-import {MetricsChart} from "./MetricsCharts";
 
 const drawerWidth: number = 240;
 
@@ -471,7 +470,6 @@ function LoadBalancingDashboardContent(props: any) {
                             )}
                         </Card>
                             <PlanUsagePieChart planUsageDetails={planUsageDetails}/>
-                            <MetricsChart />
                         </Stack>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

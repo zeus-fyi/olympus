@@ -8,15 +8,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
-	hestia_service_plans "github.com/zeus-fyi/olympus/hestia/web/service_plans"
+	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
+	iris_service_plans "github.com/zeus-fyi/olympus/iris/api/v1/service_plans"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
-
-const QuickNodeMarketPlace = "quickNodeMarketPlace"
 
 var Domain string
 
@@ -38,7 +36,7 @@ type LoginResponse struct {
 	SessionID string `json:"sessionID"`
 	TTL       int    `json:"ttl"`
 
-	PlanDetailsUsage *hestia_service_plans.PlanUsageDetails `json:"planUsageDetails,omitempty"`
+	PlanDetailsUsage *iris_service_plans.PlanUsageDetailsResponse `json:"planUsageDetails,omitempty"`
 }
 
 func (l *LoginRequest) VerifyPassword(c echo.Context) error {
@@ -69,7 +67,6 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		SessionID: sessionID,
 		TTL:       3600,
 	}
-
 	cookie := &http.Cookie{
 		Name:     aegis_sessions.SessionIDNickname,
 		Value:    sessionID,
@@ -80,23 +77,11 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	c.SetCookie(cookie)
-	_, err = key.QueryUserAuthedServices(ctx, sessionID)
+	pd, err := hestia_billing.GetPlan(ctx, sessionID)
 	if err != nil {
-		log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
+		log.Err(err).Msg("GetPlan error")
 	} else {
-		for service, planName := range key.Services {
-			switch service {
-			case "quickNodeMarketPlace":
-				ou := org_users.NewOrgUser()
-				ou.OrgID = key.OrgID
-				pu, perr := hestia_service_plans.GetUserPlanInfo(ctx, ou, planName)
-				if perr != nil {
-					log.Err(perr).Msg("GetUserPlanInfo error")
-				} else {
-					resp.PlanDetailsUsage = &pu
-				}
-			}
-		}
+		resp.PlanDetailsUsage = &pd
 	}
 	return c.JSON(http.StatusOK, resp)
 }

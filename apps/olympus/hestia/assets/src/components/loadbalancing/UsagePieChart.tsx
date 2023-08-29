@@ -4,19 +4,17 @@ import {Card, CardContent} from "@mui/material";
 import Typography from "@mui/material/Typography";
 
 const data01 = [
-    { name: 'Usage A', value: 100 },
-    { name: 'Usage B', value: 300 },
+    { name: 'Consumed', value: 100 },
+    { name: 'Remaining', value: 300 },
 ];
 const data02 = [
-    { name: 'A1', value: 100 },
-    { name: 'A2', value: 300 },
+    { name: 'Endpoints', value: 100 },
+    { name: 'Unused', value: 300 },
 ];
 
 export function PlanUsagePieChart(props: any) {
     const {planUsageDetails} = props;
-
-    const title = planUsageDetails?.planName +  'Plan Usage';
-    console.log(planUsageDetails, 'planUsageDetails')
+    const title = planUsageDetails?.planName +  ' Plan';
     return (
         <Card>
             <CardContent>

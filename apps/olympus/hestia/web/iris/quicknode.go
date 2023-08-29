@@ -1,4 +1,4 @@
-package hestia_quicknode_dashboard
+package hestia_iris_dashboard
 
 import (
 	"context"
@@ -10,16 +10,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
-	hestia_service_plans "github.com/zeus-fyi/olympus/hestia/web/service_plans"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
-
-const QuickNodeMarketPlace = "quickNodeMarketPlace"
 
 var JWTAuthSecret = ""
 
@@ -105,23 +102,11 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			SessionID: sessionID,
 			TTL:       3600,
 		}
-		_, err = key.QueryUserAuthedServices(ctx, sessionID)
+		pd, err := hestia_billing.GetPlan(ctx, sessionID)
 		if err != nil {
-			log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
+			log.Err(err).Msg("GetPlan error")
 		} else {
-			for service, planName := range key.Services {
-				switch service {
-				case QuickNodeMarketPlace:
-					ou := org_users.NewOrgUser()
-					ou.OrgID = key.OrgID
-					pu, perr := hestia_service_plans.GetUserPlanInfo(ctx, ou, planName)
-					if perr != nil {
-						log.Err(perr).Msg("GetUserPlanInfo error")
-					} else {
-						li.PlanDetailsUsage = &pu
-					}
-				}
-			}
+			li.PlanDetailsUsage = &pd
 		}
 		return c.JSON(http.StatusOK, li)
 	})
@@ -207,23 +192,11 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			SessionID: sessionID,
 			TTL:       3600,
 		}
-		_, err = key.QueryUserAuthedServices(ctx, sessionID)
+		pd, err := hestia_billing.GetPlan(ctx, sessionID)
 		if err != nil {
-			log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
+			log.Err(err).Msg("GetPlan error")
 		} else {
-			for service, planName := range key.Services {
-				switch service {
-				case QuickNodeMarketPlace:
-					ou := org_users.NewOrgUser()
-					ou.OrgID = key.OrgID
-					pu, perr := hestia_service_plans.GetUserPlanInfo(ctx, ou, planName)
-					if perr != nil {
-						log.Err(perr).Msg("GetUserPlanInfo error")
-					} else {
-						li.PlanDetailsUsage = &pu
-					}
-				}
-			}
+			li.PlanDetailsUsage = &pd
 		}
 		return c.JSON(http.StatusOK, li)
 	})

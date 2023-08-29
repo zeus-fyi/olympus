@@ -13,6 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
+	iris_service_plans "github.com/zeus-fyi/olympus/iris/api/v1/service_plans"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_operators "github.com/zeus-fyi/zeus/pkg/iris/operators"
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
@@ -92,8 +93,7 @@ func InitV1Routes(e *echo.Echo) {
 	eg.DELETE("/router", RpcLoadBalancerDELETERequestHandler)
 	eg.DELETE("/router/*", wrapHandlerWithCapture(RpcLoadBalancerDELETERequestHandler))
 
-	eg.GET("/router/rate/usage", RateRequestHandler)
-
+	eg.GET(iris_service_plans.PlanUsageDetailsRoute, iris_service_plans.PlanUsageDetailsRequestHandler)
 }
 
 func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {

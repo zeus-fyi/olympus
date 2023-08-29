@@ -13,11 +13,11 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 	routes := []iris_models.RouteInfo{
 		{
 			RoutePath: "https://zeus.fyi",
-			Referers:  []string{"https://google.com", "https://yahoo.com"},
+			Referrers: []string{"https://google.com", "https://yahoo.com"},
 		},
 		{
 			RoutePath: "https://artemis.zeus.fyi",
-			Referers:  nil,
+			Referrers: nil,
 		},
 	}
 	err := IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
@@ -27,15 +27,15 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 	routes = []iris_models.RouteInfo{
 		{
 			RoutePath: "https://zeus.fyi",
-			Referers:  nil,
+			Referrers: nil,
 		},
 		{
 			RoutePath: "https://artemis.zeus.fyi",
-			Referers:  nil,
+			Referrers: nil,
 		},
 		{
 			RoutePath: additionalRoute,
-			Referers:  nil,
+			Referrers: nil,
 		},
 	}
 	err = IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
@@ -52,11 +52,11 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 	routes = []iris_models.RouteInfo{
 		{
 			RoutePath: "https://zeus.fyi",
-			Referers:  nil,
+			Referrers: nil,
 		},
 		{
 			RoutePath: "https://artemis.zeus.fyi",
-			Referers:  nil,
+			Referrers: nil,
 		},
 	}
 	err = IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
@@ -76,11 +76,11 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 	routes := []iris_models.RouteInfo{
 		{
 			RoutePath: "https://zeus.fyi",
-			Referers:  []string{"https://google.com", "https://yahoo.com"},
+			Referrers: []string{"https://google.com", "https://yahoo.com"},
 		},
 		{
 			RoutePath: "https://artemis.zeus.fyi",
-			Referers:  nil,
+			Referrers: nil,
 		},
 	}
 	err := IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
@@ -96,8 +96,6 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 	}
 
 	for _, ep := range routes {
-		fmt.Printf("route: %s, count: %d\n", ep, m[ep.RoutePath])
-
 		if m[ep.RoutePath] == 0 {
 			r.FailNow("route not found in map")
 		}
@@ -115,11 +113,11 @@ func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 	routes := []iris_models.RouteInfo{
 		{
 			RoutePath: "https://zeus.fyi",
-			Referers:  []string{"https://google.com", "https://yahoo.com"},
+			Referrers: []string{"https://google.com", "https://yahoo.com"},
 		},
 		{
 			RoutePath: "https://artemis.zeus.fyi",
-			Referers:  nil,
+			Referrers: nil,
 		},
 	}
 	err := IrisRedisClient.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)

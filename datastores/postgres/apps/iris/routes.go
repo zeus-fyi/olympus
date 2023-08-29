@@ -3,6 +3,7 @@ package iris_models
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
@@ -270,15 +271,16 @@ func SelectAllOrgRoutes(ctx context.Context) (OrgRoutesGroup, error) {
 
 		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
 			RoutePath: routePath,
-			Referers:  referers,
+			Referrers: referers,
 		})
 	}
 	return og, misc.ReturnIfErr(err, q.LogHeader("SelectAllOrgRoutes"))
 }
 
 type RouteInfo struct {
-	RoutePath string
-	Referers  []string
+	RoutePath     string
+	Referrers     []string
+	PriorityScore *float64
 }
 
 func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (map[string][]RouteInfo, error) {
@@ -331,7 +333,7 @@ func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (map[string][]Route
 
 		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
 			RoutePath: routePath,
-			Referers:  referers,
+			Referrers: referers,
 		})
 	}
 
@@ -433,7 +435,7 @@ func SelectOrgRoutesByOrgAndGroupName(ctx context.Context, orgID int, groupName 
 		}
 		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
 			RoutePath: routePath,
-			Referers:  referers,
+			Referrers: referers,
 		})
 	}
 	return og, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
@@ -478,8 +480,9 @@ func DeleteOrgGroupAndRoutes(ctx context.Context, orgID int, routeGroupName stri
 }
 
 type TableUsage struct {
-	EndpointCount int `json:"endpointCount"`
-	TableCount    int `json:"tableCount"`
+	EndpointCount           int `json:"endpointCount"`
+	TableCount              int `json:"tableCount"`
+	MonthlyBudgetTableCount int `json:"monthlyBudgetTableCount,omitempty"`
 }
 
 func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsage, error) {
@@ -499,13 +502,13 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&endpointCount, &groupTablesCount)
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("OrgEndpointsAndGroupTablesCount has no entries")
-		return &TableUsage{0, 0}, nil
+		return &TableUsage{0, 0, 25}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return &TableUsage{endpointCount, groupTablesCount}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
+	return &TableUsage{endpointCount, groupTablesCount, 25}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
 }
 
 func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string) ([]string, error) {
@@ -584,16 +587,48 @@ func (t *TableUsage) CheckEndpointLimits() error {
 	return nil
 }
 
+func (t *TableUsage) SetMaxTableCountByPlan(plan string) error {
+	switch strings.ToLower(plan) {
+	case "performance":
+		// check 100k ZU/s
+		// check max 3B ZU/month
+		t.MonthlyBudgetTableCount = PerformanceGroupTables
+		return nil
+	case "standard":
+		// check 50k ZU/s
+		// check max 1B ZU/month
+		t.MonthlyBudgetTableCount = StandardGroupTables
+		return nil
+	case "lite":
+		// check 25k ZU/s
+		// check max 1B ZU/month
+		t.MonthlyBudgetTableCount = LiteGroupTables
+		return nil
+	case "free":
+		// check 1k ZU/s
+		// check max 50M ZU/month
+		//if t.TableCount >= FreeGroupTables {
+		//	return errors.New("exceeds plan group tables")
+		//}
+		return errors.New("plan not found")
+	case "test":
+	default:
+		return errors.New("plan not found")
+	}
+	return nil
+}
+
 func (t *TableUsage) CheckPlanLimits(plan string) error {
 	err := t.CheckEndpointLimits()
 	if err != nil {
 		log.Err(err).Msg("CheckPlanLimits")
 		return err
 	}
-	switch plan {
+	switch strings.ToLower(plan) {
 	case "performance":
 		// check 100k ZU/s
 		// check max 3B ZU/month
+		t.MonthlyBudgetTableCount = PerformanceGroupTables
 		if t.TableCount >= PerformanceGroupTables {
 			return errors.New("exceeds plan group tables")
 		}
@@ -601,6 +636,7 @@ func (t *TableUsage) CheckPlanLimits(plan string) error {
 	case "standard":
 		// check 50k ZU/s
 		// check max 1B ZU/month
+		t.MonthlyBudgetTableCount = StandardGroupTables
 		if t.TableCount >= StandardGroupTables {
 			return errors.New("exceeds plan group tables")
 		}
@@ -608,6 +644,7 @@ func (t *TableUsage) CheckPlanLimits(plan string) error {
 	case "lite":
 		// check 25k ZU/s
 		// check max 1B ZU/month
+		t.MonthlyBudgetTableCount = LiteGroupTables
 		if t.TableCount >= LiteGroupTables {
 			return errors.New("exceeds plan group tables")
 		}

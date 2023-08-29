@@ -14,15 +14,6 @@ func (r *IrisRedisTestSuite) TestSetMetricLatencyTDigest() {
 	r.NoError(err)
 }
 
-func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
-	quantileVal, sc, err := IrisRedisClient.GetMetricPercentile(context.Background(), 1, "fooTestTable", "fooTestMetricName", 0.5)
-	r.NoError(err)
-	r.NotEmpty(quantileVal)
-	r.NotEmpty(sc)
-
-	fmt.Println(quantileVal, sc)
-}
-
 func randomBetween(x, y int) int {
 	if x > y {
 		// Swap the numbers if x is greater than y
@@ -118,4 +109,17 @@ func (r *IrisRedisTestSuite) TestSetLatestAdaptiveEndpointPriorityScoreAndUpdate
 	}
 	err = IrisRedisClient.SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(context.Background(), &tableStats2)
 	r.NoError(err)
+}
+
+func (r *IrisRedisTestSuite) TestGetMetricLatencyTDigest() {
+	key := "{1}.fooTestTable:fooTestMetricName:3"
+
+	pipe := IrisRedisClient.Reader.TxPipeline()
+	cmd := pipe.Do(context.Background(), "PERCENTILE.GET", key, 0.5)
+	pipe.Exec(context.Background())
+	val, err := cmd.Result()
+	r.NoError(err)
+	r.NotEmpty(val)
+
+	fmt.Println(val.(float64))
 }

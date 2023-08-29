@@ -25,6 +25,7 @@ import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
+import {PlanUsagePieCharts} from "./UsagePieChart";
 
 const drawerWidth: number = 240;
 
@@ -78,7 +79,7 @@ export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 
 
 const mdTheme = createTheme();
 
-function LoadBalancingDashboardContent() {
+function LoadBalancingDashboardContent(props: any) {
     const params = useParams();
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
@@ -96,6 +97,7 @@ function LoadBalancingDashboardContent() {
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(false);
+
     const [selected, setSelected] = useState<string[]>([]);
     const [groupName, setGroupName] = useState<string>("-all");
     const [tableRoutes, setTableRoutes] = useState<string[]>([]);
@@ -124,6 +126,24 @@ function LoadBalancingDashboardContent() {
         }
         fetchData(params);
     }, [reload]);
+
+
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         try {
+    //             setLoading(true); // Set loading to true
+    //             const response = await loadBalancingApiGateway.getTableMetrics(groupName);
+    //             // todo set metrics
+    //             dispatch(setTableMetrics(response.data));
+    //         } catch (error) {
+    //             console.log("error", error);
+    //         } finally {
+    //             setLoading(false); // Set loading to false regardless of success or failure.
+    //         }
+    //     }
+    //     fetchData();
+    // }, [groupName]);
+
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
@@ -369,6 +389,7 @@ function LoadBalancingDashboardContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Stack direction={"row"} spacing={2} >
                         <Card sx={{ maxWidth: 700 }}>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="div">
@@ -448,6 +469,8 @@ function LoadBalancingDashboardContent() {
                                 </Box>
                             )}
                         </Card>
+                            <PlanUsagePieCharts reload={reload} setReload={setReload}/>
+                        </Stack>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <LoadBalancingRoutesTable

@@ -150,7 +150,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		ServicePlan:      plan,
 		PayloadTypeREST:  restType,
 		RequestHeaders:   headers,
-		Referrers:        routeInfo.Referers,
+		Referrers:        routeInfo.Referrers,
 		Payload:          p.Body,
 		QueryParams:      qps,
 		IsInternal:       false,

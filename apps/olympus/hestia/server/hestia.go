@@ -16,8 +16,9 @@ import (
 	v1_ethereum_aws "github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
 	hestia_quiknode_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/quiknode"
 	hestia_web_router "github.com/zeus-fyi/olympus/hestia/web"
+	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
+	hestia_iris_dashboard "github.com/zeus-fyi/olympus/hestia/web/iris"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
-	hestia_quicknode_dashboard "github.com/zeus-fyi/olympus/hestia/web/quicknode"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -83,13 +84,13 @@ func Hestia() {
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
 		sw.SESAuthAWS.Region = awsRegion
-		hestia_quicknode_dashboard.JWTAuthSecret = sw.QuickNodeJWT
+		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword
 		if len(hestia_quiknode_v1_routes.QuickNodePassword) <= 0 {
 			log.Fatal().Msg("Hestia: QuickNodePassword is empty")
 			misc.DelayedPanic(errors.New("hestia: QuickNodePassword is empty"))
 		}
-		if len(hestia_quicknode_dashboard.JWTAuthSecret) <= 0 {
+		if len(hestia_iris_dashboard.JWTAuthSecret) <= 0 {
 			log.Fatal().Msg("Hestia: JWTAuthSecret is empty")
 			misc.DelayedPanic(errors.New("hestia: QuickNodePassword is empty"))
 		}
@@ -109,7 +110,7 @@ func Hestia() {
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 
-		hestia_quicknode_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
+		hestia_iris_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
 		hestia_quiknode_v1_routes.QuickNodePassword = tc.QuickNodeMarketplace.Password
 
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
@@ -128,7 +129,7 @@ func Hestia() {
 		temporalAuthConfigKronos = tc.DevTemporalAuth
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
-		hestia_quicknode_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
+		hestia_iris_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
 		hestia_quiknode_v1_routes.QuickNodePassword = tc.QuickNodeMarketplace.Password
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
@@ -236,13 +237,15 @@ func Hestia() {
 	log.Info().Msg("Hestia: InitKronosWorker done")
 
 	if env == "local" || env == "production-local" {
+		irisHost := "http://localhost:8080"
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"http://localhost:3000"},
+			AllowOrigins:     []string{"http://localhost:3000", irisHost},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding"},
 			AllowCredentials: true,
 		}))
 		hestia_login.Domain = "localhost"
+		hestia_billing.IrisApiUrl = irisHost
 		v1_ethereum_aws.LambdaBaseDirIn = "/"
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{

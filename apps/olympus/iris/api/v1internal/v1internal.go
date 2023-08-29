@@ -42,5 +42,4 @@ func InitV1InternalRoutes(e *echo.Echo) {
 	eg.DELETE(DeleteOrgRoutingTables, InternalDeleteOrgRoutingTableRequestHandler)
 
 	eg.DELETE(DeleteOrgRoutingGroupTable, InternalDeleteOrgGroupRoutingTableRequestHandler)
-
 }

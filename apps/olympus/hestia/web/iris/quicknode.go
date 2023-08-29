@@ -1,4 +1,4 @@
-package hestia_quicknode_dashboard
+package hestia_iris_dashboard
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -101,6 +102,12 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			SessionID: sessionID,
 			TTL:       3600,
 		}
+		pd, err := hestia_billing.GetPlan(ctx, sessionID)
+		if err != nil {
+			log.Err(err).Msg("GetPlan error")
+		} else {
+			li.PlanDetailsUsage = &pd
+		}
 		return c.JSON(http.StatusOK, li)
 	})
 
@@ -184,6 +191,12 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			UserID:    key.UserID,
 			SessionID: sessionID,
 			TTL:       3600,
+		}
+		pd, err := hestia_billing.GetPlan(ctx, sessionID)
+		if err != nil {
+			log.Err(err).Msg("GetPlan error")
+		} else {
+			li.PlanDetailsUsage = &pd
 		}
 		return c.JSON(http.StatusOK, li)
 	})

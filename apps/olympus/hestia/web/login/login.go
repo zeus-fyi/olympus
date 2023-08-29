@@ -10,6 +10,8 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
+	iris_service_plans "github.com/zeus-fyi/olympus/iris/api/v1/service_plans"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
@@ -33,6 +35,8 @@ type LoginResponse struct {
 	UserID    int    `json:"userID"`
 	SessionID string `json:"sessionID"`
 	TTL       int    `json:"ttl"`
+
+	PlanDetailsUsage *iris_service_plans.PlanUsageDetailsResponse `json:"planUsageDetails,omitempty"`
 }
 
 func (l *LoginRequest) VerifyPassword(c echo.Context) error {
@@ -63,7 +67,6 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		SessionID: sessionID,
 		TTL:       3600,
 	}
-
 	cookie := &http.Cookie{
 		Name:     aegis_sessions.SessionIDNickname,
 		Value:    sessionID,
@@ -74,5 +77,11 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	c.SetCookie(cookie)
+	pd, err := hestia_billing.GetPlan(ctx, sessionID)
+	if err != nil {
+		log.Err(err).Msg("GetPlan error")
+	} else {
+		resp.PlanDetailsUsage = &pd
+	}
 	return c.JSON(http.StatusOK, resp)
 }

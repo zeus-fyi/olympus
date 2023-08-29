@@ -4,6 +4,7 @@ import {accessApiGateway} from "../gateway/access";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../redux/store";
 import {setSessionAuth} from "../redux/auth/session.reducer";
+import {setUserPlanDetails} from "../redux/loadbalancing/loadbalancing.reducer";
 
 export const ProtectedLayout = (props: any) => {
     const {children} = props;
@@ -19,12 +20,16 @@ export const ProtectedLayout = (props: any) => {
                     dispatch(setSessionAuth(false));
                     return;
                 }
+                if (response.data.planUsageDetails != null){
+                    dispatch(setUserPlanDetails(response.data.planUsageDetails))
+                }
                 dispatch(setSessionAuth(true));
             } catch (error) {
                 dispatch(setSessionAuth(false));
                 setLoading(false);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         }
         fetchData().then(r =>
             console.log("")

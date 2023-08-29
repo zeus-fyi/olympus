@@ -19,12 +19,12 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 	if meter == nil {
 		meter = &iris_usage_meters.PayloadSizeMeter{}
 	}
-	rateLimiterKey := orgRateLimitTag(orgID)
-	orgRequestsTotal := fmt.Sprintf("%d-total-zu-usage", orgID)
+	rateLimiterKey := getOrgRateLimitKey(orgID)
+	orgRequestsTotal := getOrgTotalRequestsKey(orgID)
 	if len(meter.Month) <= 0 {
 		meter.Month = time.Now().UTC().Month().String()
 	}
-	orgRequestsMonthly := orgMonthlyUsageTag(orgID, meter.Month)
+	orgRequestsMonthly := getOrgMonthlyUsageKey(orgID, meter.Month)
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
 
@@ -38,7 +38,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
 
 	// Generate the route key
-	routeKey := orgRouteTag(orgID, rgName)
+	routeKey := getOrgRouteKey(orgID, rgName)
 
 	// Check if the key exists
 	existsCmd := pipe.Exists(ctx, routeKey)
@@ -89,7 +89,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 		//return iris_models.RouteInfo{}, fmt.Errorf("key doesn't exist: %s", routeKey)
 	}
 	// Get referers from Redis
-	refererKey := orgRouteTag(orgID, endpointCmd.Val()) + ":referers"
+	refererKey := getOrgRouteKey(orgID, endpointCmd.Val()) + ":referers"
 	referers, err := m.Reader.SMembers(ctx, refererKey).Result()
 	if err != nil {
 		log.Err(err).Msgf("error getting referers for route: %s", refererKey)
@@ -99,7 +99,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 	// Return the UsageRates
 	return iris_models.RouteInfo{
 			RoutePath: endpointCmd.Val(),
-			Referers:  referers,
+			Referrers: referers,
 		}, iris_usage_meters.UsageMeter{
 			RateLimit:    rateLimitVal,
 			MonthlyUsage: monthlyUsageVal,
@@ -111,12 +111,12 @@ func (m *IrisCache) RecordRequestUsage(ctx context.Context, orgID int, meter *ir
 	if meter == nil {
 		meter = &iris_usage_meters.PayloadSizeMeter{}
 	}
-	rateLimiterKey := orgRateLimitTag(orgID)
-	orgRequestsTotal := fmt.Sprintf("%d-total-zu-usage", orgID)
+	rateLimiterKey := getOrgRateLimitKey(orgID)
+	orgRequestsTotal := getOrgTotalRequestsKey(orgID)
 	if len(meter.Month) <= 0 {
 		meter.Month = time.Now().UTC().Month().String()
 	}
-	orgRequestsMonthly := orgMonthlyUsageTag(orgID, meter.Month)
+	orgRequestsMonthly := getOrgMonthlyUsageKey(orgID, meter.Month)
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
 	// Increment the payload size meter
@@ -136,28 +136,17 @@ func (m *IrisCache) RecordRequestUsage(ctx context.Context, orgID int, meter *ir
 
 func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx context.Context, orgID int, procedureName, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, []iris_models.RouteInfo, iris_usage_meters.UsageMeter, error) {
 	// Generate the rate limiter key with the Unix timestamp
-	var procedureKey, procedureStepsKey string
 	orgIDStr := fmt.Sprintf("%d", orgID)
-	if orgID > 0 && procedureName == iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
-		procedureKey = fmt.Sprintf("%d:%s:procedure", orgID, procedureName)
-		procedureStepsKey = fmt.Sprintf("%d:%s:procedure:steps", orgID, procedureName)
-	} else {
-		if len(procedureName) <= 0 {
-			procedureName = orgIDStr
-		}
-		procedureKey = fmt.Sprintf("global:%s:procedure", procedureName)
-		procedureStepsKey = fmt.Sprintf("global:%s:procedure:steps", procedureName)
-	}
-
-	rateLimiterKey := orgRateLimitTag(orgID)
-	orgRequestsTotal := fmt.Sprintf("%d-total-zu-usage", orgID)
+	procedureKey := getProcedureKey(orgID, procedureName)
+	procedureStepsKey := getProcedureStepsKey(orgID, procedureName)
+	rateLimiterKey := getOrgRateLimitKey(orgID)
+	orgRequestsTotal := getOrgTotalRequestsKey(orgID)
 	if len(meter.Month) <= 0 {
 		meter.Month = time.Now().UTC().Month().String()
 	}
-	orgRequestsMonthly := orgMonthlyUsageTag(orgID, meter.Month)
+	orgRequestsMonthly := getOrgMonthlyUsageKey(orgID, meter.Month)
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
-
 	// Increment the payload size meter
 	_ = pipe.IncrByFloat(ctx, orgRequestsTotal, meter.ZeusRequestComputeUnitsConsumed())
 	_ = pipe.IncrByFloat(ctx, orgRequestsMonthly, meter.ZeusRequestComputeUnitsConsumed())
@@ -177,7 +166,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
 
 	// Generate the route key
-	routeKey := orgRouteTag(orgID, rgName)
+	routeKey := getOrgRouteKey(orgID, rgName)
 
 	// Check if the key exists
 	existsCmd := pipe.Exists(ctx, routeKey)
@@ -234,7 +223,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 	for _, endpoint := range endpointsCmd.Val() {
 		routeInfo := iris_models.RouteInfo{
 			RoutePath: endpoint,
-			Referers:  nil,
+			Referrers: nil,
 		}
 		routes = append(routes, routeInfo)
 	}
@@ -242,7 +231,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 	if procedure.Name != orgIDStr {
 		data, derr := procedureCmd.Bytes()
 		if derr != nil {
-			log.Err(derr).Msg("Failed to get procedure from Redis")
+			log.Err(derr).Msg("failed to get procedure from Redis")
 			return procedure, routes, iris_usage_meters.UsageMeter{}, derr
 		}
 		// Deserialize the procedure
@@ -253,13 +242,13 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 		}
 		stepsBytes, derr := procedureStepsKeyCmd.Bytes()
 		if derr != nil {
-			log.Err(derr).Msg("Failed to get procedure steps from Redis")
+			log.Err(derr).Msg("failed to get procedure steps from Redis")
 			return procedure, routes, iris_usage_meters.UsageMeter{}, derr
 		}
 		var steps []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep
 		err = json.Unmarshal(stepsBytes, &steps)
 		if err != nil {
-			log.Err(err).Msg("Failed to deserialize procedure steps")
+			log.Err(err).Msg("failed to deserialize procedure steps")
 			return procedure, routes, iris_usage_meters.UsageMeter{}, err
 		}
 		for _, step := range steps {

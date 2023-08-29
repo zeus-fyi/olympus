@@ -97,7 +97,6 @@ function LoadBalancingDashboardContent(props: any) {
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(false);
-
     const [selected, setSelected] = useState<string[]>([]);
     const [groupName, setGroupName] = useState<string>("-all");
     const [tableRoutes, setTableRoutes] = useState<string[]>([]);

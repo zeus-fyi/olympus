@@ -20,8 +20,6 @@ export const ProtectedLayout = (props: any) => {
                     dispatch(setSessionAuth(false));
                     return;
                 }
-
-                console.log(response.data, 'planDetailssdfsdf')
                 if (response.data.planUsageDetails != null){
                     dispatch(setUserPlanDetails(response.data.planUsageDetails))
                 }

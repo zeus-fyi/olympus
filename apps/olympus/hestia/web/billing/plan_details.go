@@ -27,6 +27,6 @@ func GetPlan(ctx context.Context, token string) (iris_service_plans.PlanUsageDet
 		log.Err(err).Msg("GetPlan: IrisPlatformSetupCacheUpdateRequest")
 		return planUsageDetails, err
 	}
-	planUsageDetails.TableUsage.TableCount -= ArtificialTableCount
+	planUsageDetails.TableUsage.TableCount += ArtificialTableCount
 	return planUsageDetails, err
 }

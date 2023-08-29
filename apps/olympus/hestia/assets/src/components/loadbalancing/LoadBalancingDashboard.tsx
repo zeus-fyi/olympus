@@ -23,9 +23,10 @@ import MainListItems from "../dashboard/listItems";
 import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
 import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
-import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
+import {setEndpoints, setGroupEndpoints, setTableMetrics} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
 import {PlanUsagePieCharts} from "./UsagePieChart";
+import {TableMetricsCharts} from "./MetricsCharts";
 
 const drawerWidth: number = 240;
 
@@ -97,7 +98,6 @@ function LoadBalancingDashboardContent(props: any) {
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(false);
-
     const [selected, setSelected] = useState<string[]>([]);
     const [groupName, setGroupName] = useState<string>("-all");
     const [tableRoutes, setTableRoutes] = useState<string[]>([]);
@@ -128,22 +128,20 @@ function LoadBalancingDashboardContent(props: any) {
     }, [reload]);
 
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             setLoading(true); // Set loading to true
-    //             const response = await loadBalancingApiGateway.getTableMetrics(groupName);
-    //             // todo set metrics
-    //             dispatch(setTableMetrics(response.data));
-    //         } catch (error) {
-    //             console.log("error", error);
-    //         } finally {
-    //             setLoading(false); // Set loading to false regardless of success or failure.
-    //         }
-    //     }
-    //     fetchData();
-    // }, [groupName]);
-
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true); // Set loading to true
+                const response = await loadBalancingApiGateway.getTableMetrics(groupName);
+                dispatch(setTableMetrics(response.data));
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or failure.
+            }
+        }
+        fetchData();
+    }, [groupName]);
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
@@ -256,8 +254,8 @@ function LoadBalancingDashboardContent(props: any) {
         setPage(newPage);
     };
 
-
     const handleChangeGroup = (name: string) => {
+
         setPage(0);
         setSelected([]);
         setGroupName(name);
@@ -469,7 +467,14 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Box>
                             )}
                         </Card>
-                            <PlanUsagePieCharts reload={reload} setReload={setReload}/>
+                            {groupName !== "-all" && groupName !== "unused" && (
+                                <Box sx={{ mb: 2 }}>
+                                    <TableMetricsCharts />
+                                </Box>
+                            )}
+                            {(groupName === "-all" || groupName === "unused") && (
+                                <PlanUsagePieCharts reload={reload} setReload={setReload}/>
+                            )}
                         </Stack>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

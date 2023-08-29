@@ -192,23 +192,23 @@ func (h *HestiaQuickNodeActivities) Provision(ctx context.Context, ou org_users.
 	if pr.ContractAddresses == nil {
 		pr.ContractAddresses = []string{}
 	}
-	cas := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses, len(pr.ContractAddresses))
+	cas := make([]hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses, len(pr.ContractAddresses))
 	for i, ca := range pr.ContractAddresses {
-		cas[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{
+		cas[i] = hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses{
 			ContractAddress: ca,
 		}
 	}
-	car := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesReferers, len(pr.Referers))
+	car := make([]hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers, len(pr.Referers))
 	for i, re := range pr.Referers {
-		car[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{
+		car[i] = hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers{
 			Referer: re,
 		}
 	}
 	qs := hestia_quicknode_models.QuickNodeService{
 		IsTest:                       user.IsTest,
 		ProvisionedQuickNodeServices: ps,
-		ProvisionedQuicknodeServicesContractAddresses: cas,
-		ProvisionedQuicknodeServicesReferers:          car,
+		ProvisionedQuickNodeServicesContractAddresses: cas,
+		ProvisionedQuickNodeServicesReferrers:         car,
 	}
 
 	err := hestia_quicknode_models.InsertProvisionedQuickNodeService(ctx, qs)
@@ -248,22 +248,22 @@ func (h *HestiaQuickNodeActivities) UpdateProvision(ctx context.Context, pr hest
 	if pr.ContractAddresses == nil {
 		pr.ContractAddresses = []string{}
 	}
-	cas := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses, len(pr.ContractAddresses))
+	cas := make([]hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses, len(pr.ContractAddresses))
 	for i, ca := range pr.ContractAddresses {
-		cas[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{
+		cas[i] = hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses{
 			ContractAddress: ca,
 		}
 	}
-	car := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesReferers, len(pr.Referers))
+	car := make([]hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers, len(pr.Referers))
 	for i, re := range pr.Referers {
-		car[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{
+		car[i] = hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers{
 			Referer: re,
 		}
 	}
 	qs := hestia_quicknode_models.QuickNodeService{
 		ProvisionedQuickNodeServices:                  ps,
-		ProvisionedQuicknodeServicesContractAddresses: cas,
-		ProvisionedQuicknodeServicesReferers:          car,
+		ProvisionedQuickNodeServicesContractAddresses: cas,
+		ProvisionedQuickNodeServicesReferrers:         car,
 	}
 
 	err := hestia_quicknode_models.UpdateProvisionedQuickNodeService(ctx, qs)

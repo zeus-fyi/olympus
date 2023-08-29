@@ -58,12 +58,13 @@ export function PlanTableCountUsagePieChart(props: any) {
     const [tableCount, setTableCount] = useState(planUsageDetails?.tableUsage?.tableCount);
     const [planTableCount, setPlanTableCount] = useState(planUsageDetails?.tableUsage?.monthlyBudgetTableCount);
     const remainingTables = planTableCount - tableCount;
+
     const data01 = [
         { name: 'Endpoints(Used)', value: endpointCount, fill: "#8884d8" },
         { name: 'Endpoints(Open)', value: remainingEndpoints, fill: "#82ca9d" },
     ];
     const data02 = [
-        { name: 'Tables(Used)', value: endpointCount, fill: "#8884d8" },
+        { name: 'Tables(Used)', value: tableCount, fill: "#8884d8" },
         { name: 'Tables(Open)', value: remainingTables, fill: "#82ca9d" },
     ];
 

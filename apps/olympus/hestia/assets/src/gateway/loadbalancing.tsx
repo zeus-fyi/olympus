@@ -19,6 +19,7 @@ class LoadBalancingApiGateway {
             return
         }
     }
+
     async getTableMetrics(tableName: string): Promise<any>  {
         const url = `/v1/iris/routes/group/${tableName}/metrics`;
         try {

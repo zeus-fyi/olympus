@@ -15,8 +15,8 @@ import (
 type QuickNodeService struct {
 	IsTest bool
 	hestia_autogen_bases.ProvisionedQuickNodeServices
-	ProvisionedQuicknodeServicesContractAddresses []hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses
-	ProvisionedQuicknodeServicesReferers          []hestia_autogen_bases.ProvisionedQuicknodeServicesReferers
+	ProvisionedQuickNodeServicesContractAddresses []hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses
+	ProvisionedQuickNodeServicesReferrers         []hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers
 }
 
 func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService) error {
@@ -73,12 +73,12 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  WHERE cte_unnest_ref.referer IS NOT NULL AND cte_unnest_ref.referer != ''
 					  ON CONFLICT (endpoint_id) DO UPDATE SET referer = EXCLUDED.referer
 				  ) SELECT quicknode_id FROM cte_insert_service;`
-	cas := make([]string, len(ps.ProvisionedQuicknodeServicesContractAddresses))
-	for _, ca := range ps.ProvisionedQuicknodeServicesContractAddresses {
+	cas := make([]string, len(ps.ProvisionedQuickNodeServicesContractAddresses))
+	for _, ca := range ps.ProvisionedQuickNodeServicesContractAddresses {
 		cas = append(cas, ca.ContractAddress)
 	}
-	refs := make([]string, len(ps.ProvisionedQuicknodeServicesReferers))
-	for _, ref := range ps.ProvisionedQuicknodeServicesReferers {
+	refs := make([]string, len(ps.ProvisionedQuickNodeServicesReferrers))
+	for _, ref := range ps.ProvisionedQuickNodeServicesReferrers {
 		refs = append(refs, ref.Referer)
 	}
 	result, err := apps.Pg.Exec(ctx, q.RawQuery, ps.QuickNodeID, ps.Plan, ps.EndpointID, ps.HttpURL, ps.Network, ps.Active, ps.WssURL, ps.Chain,
@@ -132,12 +132,12 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  WHERE cte_unnest_ref.referer IS NOT NULL AND cte_unnest_ref.referer != ''
 					  ON CONFLICT (endpoint_id) DO UPDATE SET referer = EXCLUDED.referer
 				  ) SELECT quicknode_id FROM cte_insert_plan;`
-	cas := make([]string, len(ps.ProvisionedQuicknodeServicesContractAddresses))
-	for _, ca := range ps.ProvisionedQuicknodeServicesContractAddresses {
+	cas := make([]string, len(ps.ProvisionedQuickNodeServicesContractAddresses))
+	for _, ca := range ps.ProvisionedQuickNodeServicesContractAddresses {
 		cas = append(cas, ca.ContractAddress)
 	}
-	refs := make([]string, len(ps.ProvisionedQuicknodeServicesReferers))
-	for _, ref := range ps.ProvisionedQuicknodeServicesReferers {
+	refs := make([]string, len(ps.ProvisionedQuickNodeServicesReferrers))
+	for _, ref := range ps.ProvisionedQuickNodeServicesReferrers {
 		refs = append(refs, ref.Referer)
 	}
 	qnID := ""
@@ -211,8 +211,8 @@ func SelectQuickNodeServicesByQid(ctx context.Context, qId string) (QuickNodeSer
 				QuickNodeID: qId,
 				Active:      true,
 			},
-			ProvisionedQuicknodeServicesContractAddresses: []hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{},
-			ProvisionedQuicknodeServicesReferers:          []hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{},
+			ProvisionedQuickNodeServicesContractAddresses: []hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses{},
+			ProvisionedQuickNodeServicesReferrers:         []hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers{},
 		}
 		var cadr, refa sql.NullString
 		err = rows.Scan(
@@ -229,18 +229,18 @@ func SelectQuickNodeServicesByQid(ctx context.Context, qId string) (QuickNodeSer
 			return qnse, err
 		}
 		if cadr.Valid {
-			qns.ProvisionedQuicknodeServicesContractAddresses = append(qns.ProvisionedQuicknodeServicesContractAddresses, hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{
+			qns.ProvisionedQuickNodeServicesContractAddresses = append(qns.ProvisionedQuickNodeServicesContractAddresses, hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses{
 				ContractAddress: cadr.String,
 			})
 		}
 		if refa.Valid {
-			qns.ProvisionedQuicknodeServicesReferers = append(qns.ProvisionedQuicknodeServicesReferers, hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{
+			qns.ProvisionedQuickNodeServicesReferrers = append(qns.ProvisionedQuickNodeServicesReferrers, hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers{
 				Referer: refa.String,
 			})
 		}
 		if val, ok := qs[qns.EndpointID]; ok {
-			val.ProvisionedQuicknodeServicesContractAddresses = append(val.ProvisionedQuicknodeServicesContractAddresses, qns.ProvisionedQuicknodeServicesContractAddresses...)
-			val.ProvisionedQuicknodeServicesReferers = append(val.ProvisionedQuicknodeServicesReferers, qns.ProvisionedQuicknodeServicesReferers...)
+			val.ProvisionedQuickNodeServicesContractAddresses = append(val.ProvisionedQuickNodeServicesContractAddresses, qns.ProvisionedQuickNodeServicesContractAddresses...)
+			val.ProvisionedQuickNodeServicesReferrers = append(val.ProvisionedQuickNodeServicesReferrers, qns.ProvisionedQuickNodeServicesReferrers...)
 			qs[qns.EndpointID] = val
 		} else {
 			qs[qns.EndpointID] = qns

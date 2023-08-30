@@ -27,13 +27,15 @@ export function LoadBalancingRoutesTable(props: any) {
 
     return (
         <div>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs example">
-                    <Tab label="Endpoints"  />
-                    <Tab label="Metrics"  />
-                    <Tab label="Priority Scores" />
-                </Tabs>
-            </Box>
+            {groupName !== "-all" && groupName !== "unused" && (
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs example">
+                        <Tab label="Endpoints"  />
+                        <Tab label="Metrics"  />
+                        <Tab label="Priority Scores" />
+                    </Tabs>
+                </Box>
+            )}
             <Box sx={{ mt: 4, mb: 4 }}>
                 {selected.length > 0 && !isUpdatingGroup && (
                     <Box sx={{ mb: 2 }}>

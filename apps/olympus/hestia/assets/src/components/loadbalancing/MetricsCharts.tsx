@@ -14,7 +14,6 @@ interface FormattedData {
 }
 
 export function TableMetricsCharts(props: any) {
-
     return (
         <div>
             <MetricsChart />

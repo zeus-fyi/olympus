@@ -109,6 +109,7 @@ function LoadBalancingDashboardContent(props: any) {
     const [newEndpoint, setNewEndpoint] = useState<string>("");
     const [reload, setReload] = useState(false); // State to trigger reload
     const [createGroupName, setCreateGroupName] = React.useState("");
+    const [selectedTab, setSelectedTab] = useState(0);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -316,6 +317,10 @@ function LoadBalancingDashboardContent(props: any) {
         setTableRoutes(groups[groupName])
     };
 
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setSelectedTab(newValue);
+    };
+
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -479,6 +484,8 @@ function LoadBalancingDashboardContent(props: any) {
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <LoadBalancingRoutesTable
+                            selectedTab={selectedTab}
+                            handleTabChange={handleTabChange}
                             page={page}
                             rowsPerPage={rowsPerPage}
                             loading={loading}

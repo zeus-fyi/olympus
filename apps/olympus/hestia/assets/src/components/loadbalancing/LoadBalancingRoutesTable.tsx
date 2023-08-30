@@ -2,7 +2,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
-import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
+import {Tab, TableContainer, TableFooter, TablePagination, TableRow, Tabs} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -13,7 +13,7 @@ import TextField from "@mui/material/TextField";
 
 export function LoadBalancingRoutesTable(props: any) {
     const { loading,rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
-        handleChangeRowsPerPage,handleChangePage, groupName,
+        handleChangeRowsPerPage,handleChangePage, groupName, selectedTab, handleTabChange,
         isAdding, setIsAdding, newEndpoint, setNewEndpoint, isUpdatingGroup, handleAddGroupTableEndpointsSubmission,
         handleSubmitNewEndpointSubmission, handleDeleteEndpointsSubmission, handleUpdateGroupTableEndpointsSubmission
     } = props
@@ -27,6 +27,13 @@ export function LoadBalancingRoutesTable(props: any) {
 
     return (
         <div>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs example">
+                    <Tab label="Endpoints"  />
+                    <Tab label="Metrics"  />
+                    <Tab label="Priority Scores" />
+                </Tabs>
+            </Box>
             <Box sx={{ mt: 4, mb: 4 }}>
                 {selected.length > 0 && !isUpdatingGroup && (
                     <Box sx={{ mb: 2 }}>

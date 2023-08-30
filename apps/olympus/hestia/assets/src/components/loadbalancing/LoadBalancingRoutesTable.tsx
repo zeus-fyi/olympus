@@ -33,6 +33,7 @@ export function LoadBalancingRoutesTable(props: any) {
                         <Tab label="Endpoints"  />
                         <Tab label="Metrics"  />
                         <Tab label="Priority Scores" />
+                        <Tab label="Procedures" />
                     </Tabs>
                 </Box>
             )}

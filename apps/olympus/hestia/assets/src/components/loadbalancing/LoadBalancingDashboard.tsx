@@ -321,6 +321,14 @@ function LoadBalancingDashboardContent(props: any) {
         setSelectedTab(newValue);
     };
 
+    /*
+        <Tab label="Endpoints"  />
+            <Tab label="Metrics"  />
+            <Tab label="Priority Scores" />
+            <Tab label="Procedures" />
+        </Tabs>
+     */
+
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>

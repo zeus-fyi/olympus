@@ -4,6 +4,7 @@ on:
     paths:
       - apps/olympus/hera/**
       - pkg/aegis/auth_startup/**
+      - pkg/hera/openapi/**
       - docker/hera/Dockerfile
       - .github/workflows/hera.yml
     branches:

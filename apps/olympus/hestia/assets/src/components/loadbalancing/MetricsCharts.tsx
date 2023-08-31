@@ -28,7 +28,6 @@ export function TableMetricsCharts(props: any) {
         async function fetchData() {
             try {
                 setLoading(true);
-                console.log("fetching table metrics")
                 const response = await loadBalancingApiGateway.getTableMetrics(tableName);
                 console.log(response.data)
                 console.log(response)
@@ -47,12 +46,14 @@ export function TableMetricsCharts(props: any) {
     if (loading) {
         return <div>Loading...</div>
     }
+
     return (
         <div>
             {/*<MetricsChart />*/}
+            {tableMetrics && tableMetrics.metrics &&
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                 <Boxplot  data={data12} tableMetrics={tableMetrics} width={1200} height={800} />
-            </Container>
+            </Container>}
         </div>
     )
 }

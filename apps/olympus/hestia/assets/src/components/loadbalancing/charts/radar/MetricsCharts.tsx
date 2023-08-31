@@ -47,6 +47,7 @@ export function TableMetricsCharts(props: any) {
         return <div>Loading...</div>
     }
 
+    console.log(tableMetrics)
     return (
         <div>
             {/*<MetricsChart />*/}

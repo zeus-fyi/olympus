@@ -4,7 +4,7 @@ import {AxisLeft} from "./AxisLeft";
 import {AxisBottom} from "./AxisBottomCategoric";
 import {VerticalBox} from "./VerticalBox";
 import {getSummaryStatsExt} from "./SummaryStats";
-import {TableMetricsSummary} from "../../redux/loadbalancing/loadbalancing.types";
+import {TableMetricsSummary} from "../../../../redux/loadbalancing/loadbalancing.types";
 
 const MARGIN = { top: 30, right: 30, bottom: 30, left: 50 };
 

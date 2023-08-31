@@ -480,16 +480,18 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Box>
                             )}
                         </Card>
-                            {groupName !== "-all" && groupName !== "unused" && (
-                                <Box sx={{ mb: 2 }}>
-                                    <TableMetricsCharts />
-                                </Box>
-                            )}
                             {(groupName === "-all" || groupName === "unused") && (
                                 <PlanUsagePieCharts reload={reload} setReload={setReload}/>
                             )}
                         </Stack>
                     </Container>
+                    {groupName !== "-all" && groupName !== "unused" && (
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <Box sx={{ mb: 2 }}>
+                                <TableMetricsCharts />
+                            </Box>
+                        </Container>
+                    )}
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <LoadBalancingRoutesTable
                             selectedTab={selectedTab}

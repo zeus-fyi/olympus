@@ -59,11 +59,13 @@ export const Boxplot = ({ width, height, data, tableMetrics }: BoxplotProps) => 
         .range([0, boundsWidth])
         .domain([0, maxVal ?? 1])
 
-    // domain should be be the range of numbers in a slice passed to xScale I guess
-    // Build the box shapes
-    const allShapes = groups.map((group, i) => {
+
+    const allShapes = Object.entries(tableMetrics.metrics).map(([key, metric], i) => {
+        // Get summary stats for this specific metric
+        const { minAdj, q1, median, q3, maxAdj } = sumStats;
+
         return (
-            <g key={i} transform={`translate(${yScale(group)},0)`}>
+            <g key={key} transform={`translate(0, ${yScale(key)})`}>
                 <VerticalBox
                     width={yScale.bandwidth()}
                     q1={xScale(q1)}
@@ -86,7 +88,7 @@ export const Boxplot = ({ width, height, data, tableMetrics }: BoxplotProps) => 
                     height={boundsHeight}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 >
-                    {/*{allShapes}*/}
+                    {allShapes}
                     <AxisLeft yScale={yScale} pixelsPerTick={30} />
                     {/* X axis uses an additional translation to appear at the bottom */}
                     <g transform={`translate(0, ${boundsHeight})`}>

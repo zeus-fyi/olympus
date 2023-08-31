@@ -83,7 +83,7 @@ func InitV1Routes(e *echo.Echo) {
 
 	eg.GET(IrisReadGroupRoutesPath, hestia_iris_v1_routes.ReadOrgGroupRoutesRequestHandler)
 	eg.GET(IrisReadGroupsRoutesPath, hestia_iris_v1_routes.ReadOrgGroupsRoutesRequestHandler)
-	eg.GET(IrisReadGroupTableMetricsPath, hestia_iris_v1_routes.ReadTableMetrics)
+	eg.GET(IrisReadGroupTableMetricsPath, hestia_iris_v1_routes.ReadTableMetricsRequestHandler)
 
 	eg.POST(IrisCreateGroupRoutesPath, hestia_iris_v1_routes.CreateOrgGroupRoutesRequestHandler)
 	eg.PUT(IrisUpdateGroupRoutesPath, hestia_iris_v1_routes.UpdateOrgGroupRoutesRequestHandler)

@@ -14,7 +14,7 @@ import (
 
 type ReadMetricsRequest struct{}
 
-func ReadTableMetrics(c echo.Context) error {
+func ReadTableMetricsRequestHandler(c echo.Context) error {
 	request := new(ReadMetricsRequest)
 	if err := c.Bind(request); err != nil {
 		return err

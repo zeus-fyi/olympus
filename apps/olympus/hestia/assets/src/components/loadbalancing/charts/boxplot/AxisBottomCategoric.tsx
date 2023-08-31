@@ -1,8 +1,8 @@
 import {useMemo} from "react";
-import {ScaleBand} from "d3";
+import {ScaleLinear} from "d3";
 
 type AxisBottomProps = {
-    xScale: ScaleBand<string>;
+    xScale: ScaleLinear<number, number>;
 };
 
 // tick length
@@ -10,14 +10,14 @@ const TICK_LENGTH = 6;
 
 export const AxisBottom = ({ xScale }: AxisBottomProps) => {
     const [min, max] = xScale.range();
-
     const ticks = useMemo(() => {
         return xScale.domain().map((value) => ({
             value,
             // @ts-ignore
-            xOffset: xScale(value) + xScale.bandwidth() / 2,
+            xOffset: xScale(value)
         }));
     }, [xScale]);
+    //+ xScale.bandwidth() / 2,
 
     return (
         <>
@@ -27,7 +27,6 @@ export const AxisBottom = ({ xScale }: AxisBottomProps) => {
                 fill="none"
                 stroke="currentColor"
             />
-
             {/* Ticks and labels */}
             {ticks.map(({ value, xOffset }) => (
                 <g key={value} transform={`translate(${xOffset}, 0)`}>

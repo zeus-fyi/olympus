@@ -1,8 +1,8 @@
 import {useMemo} from "react";
-import {ScaleLinear} from "d3";
+import {ScaleBand} from "d3";
 
 type AxisLeftProps = {
-    yScale: ScaleLinear<number, number>;
+    yScale: ScaleBand<string>;
     pixelsPerTick: number;
     xOffset?: number;
 };
@@ -10,32 +10,39 @@ type AxisLeftProps = {
 // tick length
 const TICK_LENGTH = 6;
 
-export const AxisLeft = ({ yScale, pixelsPerTick, xOffset = 20 as number }: AxisLeftProps) => {
-    const range = yScale.range();
+export const AxisLeft = ({ yScale, pixelsPerTick, xOffset = 0 as number }: AxisLeftProps) => {
+    const [min, max] = yScale.range();
 
     const ticks = useMemo(() => {
-        const height = range[0] - range[1];
-        const numberOfTicksTarget = Math.floor(0.5*height / pixelsPerTick);
-
-        return yScale.ticks(numberOfTicksTarget).map((value) => ({
+        return yScale.domain().map((value) => ({
             value,
-            yOffset: yScale(value),
+            // @ts-ignore
+            yOffset: yScale(value) + yScale.bandwidth() / 2,
         }));
-    }, [yScale, pixelsPerTick]);
+    }, [yScale]);
 
     return (
-        <g className="axis-left" transform={`translate(${xOffset}, 0)`}>
-            {ticks.map((d, i) => (
-                <g key={i} transform={`translate(0,${d.yOffset})`}>
+        <>
+            {/* Main vertical line */}
+            <line x1={xOffset} y1={0} x2={xOffset} y2={yScale.range()[1]} stroke="currentColor" />
+
+            {/* Ticks and labels */}
+            {ticks.map(({ value, yOffset }) => (
+                <g key={value} transform={`translate(0, ${yOffset})`}>
                     <text
-                        key={i}
-                        style={{ fontSize: '24px', textAnchor: 'end', transform: 'translate(-5px, 5px)' }}
+                        x={xOffset - TICK_LENGTH * 2}
+                        y={0}
+                        style={{
+                            fontSize: "20px",
+                            textAnchor: "end",
+                            dominantBaseline: "middle",
+                        }}
                     >
-                        {d.value + ' ms'}
+                        {value}
                     </text>
                 </g>
             ))}
-        </g>
+        </>
     );
 };
 

@@ -21,7 +21,6 @@ export function TableMetricsCharts(props: any) {
     const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
     const dispatch = useDispatch();
     const [loading, setLoading] = React.useState(false);
-
     const {tableName} = props;
 
     useEffect(() => {

@@ -43,21 +43,17 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 		log.Err(err).Msgf("GetPriorityScoresAndTdigestMetrics: failed to execute pipeline in GetPriorityScoresAndTdigestMetrics")
 		return TableMetricsSummary{}, err
 	}
-
 	tblMetrics, err := tblMetricsCmd.Result()
 	if err != nil && err != redis.Nil {
 		log.Err(err).Msgf("GetPriorityScoresAndTdigestMetrics: failed to get table metrics")
 		return TableMetricsSummary{}, err
 	}
-
 	routesWithScores, err := routesWithScoresCmd.Result()
 	if err != nil && err != redis.Nil {
 		log.Err(err).Msgf("GetPriorityScoresAndTdigestMetrics: failed to get routes with scores")
 		return TableMetricsSummary{}, err
 	}
-
 	pipe = m.Reader.TxPipeline()
-
 	ts := TableMetricsSummary{
 		TableName: rgName,
 		Routes:    routesWithScores,
@@ -65,7 +61,7 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 	}
 
 	for _, tbm := range tblMetrics {
-		histogramBins := 7
+		histogramBins := 8
 		metricKey := getTableMetricKey(orgID, rgName, tbm)
 
 		metricTdigestSampleCountKey := getMetricTdigestMetricSamplesKey(orgID, rgName, tbm)
@@ -90,6 +86,8 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 				percentile = 0.95
 			case 6:
 				percentile = 0.99
+			case 7:
+				percentile = 1.0
 			}
 			tm.MetricPercentiles[j].Percentile = percentile
 			tm.MetricPercentiles[j].RedisResult = pipe.Do(ctx, "PERCENTILE.GET", metricKey, percentile)

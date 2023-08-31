@@ -21,7 +21,7 @@ const initialState: LoadBalancingState = {
     tableMetrics: {
         tableName: '',
         routes: [],
-        metrics: {}
+        metrics: {},
     },
 }
 

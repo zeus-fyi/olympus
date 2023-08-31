@@ -28,6 +28,7 @@ export function TableMetricsCharts(props: any) {
         async function fetchData() {
             try {
                 setLoading(true);
+                console.log("fetching table metrics")
                 const response = await loadBalancingApiGateway.getTableMetrics(tableName);
                 console.log(response.data)
                 console.log(response)

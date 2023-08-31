@@ -329,6 +329,7 @@ function LoadBalancingDashboardContent(props: any) {
         </Tabs>
      */
 
+    console.log('sa;jghsldgn;ljasdfng;lasfdxng;l')
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -485,13 +486,13 @@ function LoadBalancingDashboardContent(props: any) {
                             )}
                         </Stack>
                     </Container>
-                    {groupName !== "-all" && groupName !== "unused" && (
+                    {/*{groupName !== "-all" && groupName !== "unused" && (*/}
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Box sx={{ mb: 2 }}>
                                 <TableMetricsCharts tableName={groupName}/>
                             </Box>
                         </Container>
-                    )}
+                    {/*)}*/}
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <LoadBalancingRoutesTable
                             selectedTab={selectedTab}

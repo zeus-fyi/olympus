@@ -24,6 +24,9 @@ func ReadTableMetricsRequestHandler(c echo.Context) error {
 
 func (r *ReadMetricsRequest) ReadTableStats(c echo.Context) error {
 	tblName := c.Param("groupName")
+	if tblName == "" || tblName == "-all" || tblName == "unused" {
+		return c.JSON(http.StatusAccepted, nil)
+	}
 	token, ok := c.Get("bearer").(string)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)

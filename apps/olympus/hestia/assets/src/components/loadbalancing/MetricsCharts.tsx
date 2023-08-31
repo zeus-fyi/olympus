@@ -1,12 +1,14 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart} from 'recharts';
 import {Card, CardContent} from "@mui/material";
 import Typography from "@mui/material/Typography";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {TableMetric} from "../../redux/loadbalancing/loadbalancing.types";
 import {Boxplot} from "./BoxPlot";
 import Container from "@mui/material/Container";
+import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
+import {setTableMetrics} from "../../redux/loadbalancing/loadbalancing.reducer";
 
 interface FormattedData {
     subject: string;
@@ -16,6 +18,31 @@ interface FormattedData {
 }
 
 export function TableMetricsCharts(props: any) {
+    const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
+    const dispatch = useDispatch();
+    const [loading, setLoading] = React.useState(false);
+
+    const {tableName} = props;
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                setLoading(true);
+                const response = await loadBalancingApiGateway.getTableMetrics(tableName);
+                console.log(response.data)
+                console.log(response)
+                dispatch(setTableMetrics(response.data));
+            } catch (e) {
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchData();
+    }, [tableName]);
+
+    if (loading) {
+        return <div>Loading...</div>
+    }
     return (
         <div>
             <MetricsChart />

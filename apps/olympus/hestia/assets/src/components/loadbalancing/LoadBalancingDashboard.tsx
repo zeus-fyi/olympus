@@ -488,7 +488,7 @@ function LoadBalancingDashboardContent(props: any) {
                     {groupName !== "-all" && groupName !== "unused" && (
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Box sx={{ mb: 2 }}>
-                                <TableMetricsCharts />
+                                <TableMetricsCharts tableName={groupName}/>
                             </Box>
                         </Container>
                     )}

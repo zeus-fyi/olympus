@@ -129,7 +129,7 @@ func (p *PlanUsageDetailsRequest) GetTableMetrics(c echo.Context) error {
 	tblName := c.Param("groupName")
 	usage, err := iris_redis.IrisRedisClient.GetPriorityScoresAndTdigestMetrics(context.Background(), ou.OrgID, tblName)
 	if err != nil {
-		log.Err(err).Interface("usage", usage).Msg("GetPlanUsageInfo error")
+		log.Err(err).Interface("usage", usage).Msg("GetTableMetrics: GetPriorityScoresAndTdigestMetrics error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, usage)

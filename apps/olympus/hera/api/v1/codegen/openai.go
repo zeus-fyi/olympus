@@ -13,7 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 	openai "github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/pkg/hera/hera_openai"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"

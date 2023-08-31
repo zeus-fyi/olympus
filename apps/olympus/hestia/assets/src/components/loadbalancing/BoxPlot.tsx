@@ -3,7 +3,8 @@ import * as d3 from "d3";
 import {AxisLeft} from "./AxisLeft";
 import {AxisBottom} from "./AxisBottomCategoric";
 import {VerticalBox} from "./VerticalBox";
-import {getSummaryStats} from "./SummaryStats";
+import {getSummaryStatsExt} from "./SummaryStats";
+import {TableMetricsSummary} from "../../redux/loadbalancing/loadbalancing.types";
 
 const MARGIN = { top: 30, right: 30, bottom: 30, left: 50 };
 
@@ -11,9 +12,10 @@ type BoxplotProps = {
     width: number;
     height: number;
     data: { name: string; value: number }[];
+    tableMetrics : TableMetricsSummary;
 };
 
-export const Boxplot = ({ width, height, data }: BoxplotProps) => {
+export const Boxplot = ({ width, height, data, tableMetrics }: BoxplotProps) => {
     // The bounds (= area inside the axis) is calculated by substracting the margins from total width / height
     const boundsWidth = width - MARGIN.right - MARGIN.left;
     const boundsHeight = height - MARGIN.top - MARGIN.bottom;
@@ -29,6 +31,10 @@ export const Boxplot = ({ width, height, data }: BoxplotProps) => {
         return { chartMin, chartMax, groups };
     }, [data]);
 
+
+    if (tableMetrics == undefined ) {
+        return null;
+    }
     // Compute scales
     const yScale = d3
         .scaleLinear()
@@ -42,15 +48,13 @@ export const Boxplot = ({ width, height, data }: BoxplotProps) => {
 
     // Build the box shapes
     const allShapes = groups.map((group, i) => {
-        const groupData = data.filter((d) => d.name === group).map((d) => d.value);
-        const sumStats = getSummaryStats(groupData);
+        const sumStats = getSummaryStatsExt(tableMetrics);
 
         if (!sumStats) {
             return null;
         }
 
-        const { min, q1, median, q3, max } = sumStats;
-
+        const { minAdj, q1, median, q3, maxAdj } = sumStats;
         return (
             <g key={i} transform={`translate(${xScale(group)},0)`}>
                 <VerticalBox
@@ -58,8 +62,8 @@ export const Boxplot = ({ width, height, data }: BoxplotProps) => {
                     q1={yScale(q1)}
                     median={yScale(median)}
                     q3={yScale(q3)}
-                    min={yScale(min)}
-                    max={yScale(max)}
+                    min={yScale(minAdj)}
+                    max={yScale(maxAdj)}
                     stroke="black"
                     fill={"#ead4f5"}
                 />

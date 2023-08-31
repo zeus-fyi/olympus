@@ -47,7 +47,7 @@ func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.Org
 
 func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.CompletionResponse, error) {
 	if len(params.Model) <= 0 {
-		params.Model = openai.GPT3TextDavinci003
+		params.Model = openai.GPT4
 	}
 
 	req := openai.CompletionRequest{

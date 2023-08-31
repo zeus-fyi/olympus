@@ -43,7 +43,7 @@ func (s *HeraTestSuite) TestOpenAIChatGptInsert() {
 	resp, err := HeraOpenAI.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
+			Model: openai.GPT4,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
@@ -54,6 +54,7 @@ func (s *HeraTestSuite) TestOpenAIChatGptInsert() {
 		},
 	)
 	s.Require().Nil(err)
+	fmt.Println(resp)
 	err = HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
 	s.Require().Nil(err)
 }

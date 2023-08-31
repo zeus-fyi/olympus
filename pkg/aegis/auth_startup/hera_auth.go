@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/hera/hera_openai"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 )
 

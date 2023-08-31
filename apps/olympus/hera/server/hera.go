@@ -13,7 +13,7 @@ import (
 	v1_hera "github.com/zeus-fyi/olympus/hera/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
-	"github.com/zeus-fyi/olympus/pkg/hera/hera_openai"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 

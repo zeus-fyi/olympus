@@ -34,11 +34,15 @@ func CreateUICodeGenAPIRequestHandler(c echo.Context) error {
 }
 func (ai *UICodeGenAPIRequest) CompleteUICodeGenRequest(c echo.Context) error {
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Ctx(ctx).Err(fmt.Errorf("failed to cast orgUser")).Msg("CompleteUICodeGenRequest")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
+			Model: openai.GPT4,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,

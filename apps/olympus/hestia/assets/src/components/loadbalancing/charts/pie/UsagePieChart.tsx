@@ -3,7 +3,7 @@ import {Legend, Pie, PieChart} from 'recharts';
 import {Card, CardContent, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {useSelector} from "react-redux";
-import {RootState} from "../../redux/store";
+import {RootState} from "../../../../redux/store";
 
 export function PlanUsagePieCharts(props: any) {
     const planUsageDetails = useSelector((state: RootState) => state.loadBalancing.planUsageDetails);

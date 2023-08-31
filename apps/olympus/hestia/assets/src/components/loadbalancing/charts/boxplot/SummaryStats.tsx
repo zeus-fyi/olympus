@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import {TableMetricsSummary} from "../../redux/loadbalancing/loadbalancing.types";
+import {TableMetricsSummary} from "../../../../redux/loadbalancing/loadbalancing.types";
 
 // Takes an array of numbers and compute some summary statistics from it like quantiles, median..
 // Those summary statistics are the info needed to draw a boxplot

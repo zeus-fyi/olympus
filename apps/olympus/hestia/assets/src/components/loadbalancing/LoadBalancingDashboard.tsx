@@ -25,8 +25,8 @@ import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints, setTableMetrics} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
-import {PlanUsagePieCharts} from "./UsagePieChart";
-import {TableMetricsCharts} from "./MetricsCharts";
+import {PlanUsagePieCharts} from "./charts/pie/UsagePieChart";
+import {TableMetricsCharts} from "./charts/radar/MetricsCharts";
 
 const drawerWidth: number = 240;
 

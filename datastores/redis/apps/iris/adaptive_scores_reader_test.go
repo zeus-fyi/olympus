@@ -8,6 +8,7 @@ import (
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
 
+// {7138983863666903883}.ethereum-mainnet:eth_getBlockByNumber:samples
 // {7138983863666903883}.ethereum-mainnet:eth_blockNumber:samples
 // {7138983863666903883}.ethereum-mainnet:eth_getBlockByNumber:samples
 // {7138983863666903883}.ethereum-mainnet:metrics

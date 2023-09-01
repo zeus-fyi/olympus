@@ -10,11 +10,10 @@ const MARGIN = { top: 30, right: 30, bottom: 30, left: 50 };
 type BoxplotProps = {
     width: number;
     height: number;
-    data: { name: string; value: number }[];
     tableMetrics: TableMetricsSummary;
 };
 
-export const Boxplot = ({ width, height, data, tableMetrics }: BoxplotProps) => {
+export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
     if (!tableMetrics) {
         return null;
     }

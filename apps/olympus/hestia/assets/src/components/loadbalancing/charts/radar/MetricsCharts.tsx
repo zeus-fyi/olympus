@@ -32,8 +32,8 @@ export function TableMetricsCharts(props: any) {
             try {
                 setLoading(true);
                 const response = await loadBalancingApiGateway.getTableMetrics(tableName);
-                console.log(response.data)
-                console.log(response)
+                // console.log(response.data)
+                // console.log(response)
                 const tableMetrics = response.data;
                 if (tableMetrics.metrics != null && tableMetrics.length > 0) {
                     dispatch(setTableMetrics(response.data));

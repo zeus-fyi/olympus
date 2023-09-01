@@ -35,11 +35,13 @@ export const Boxplot = ({ width, height, data, tableMetrics }: BoxplotProps) => 
     const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([0, maxVal ?? 0]);
 
     // Render BoxPlots
+    let offset = 0;
     const allShapes = Object.entries(tableMetrics.metrics).map(([key, metric], i) => {
         const sumStats = getSummaryStatsExt(metric);  // Get summary stats for each metric
         if (!sumStats) {
             return null;
         }
+        offset += 1
         const { minAdj, q1, median, q3, maxAdj } = sumStats;
         return (
             <g key={key} transform={`translate(0, ${yScale(key) ?? 0})`}>
@@ -52,6 +54,7 @@ export const Boxplot = ({ width, height, data, tableMetrics }: BoxplotProps) => 
                     max={xScale(maxAdj) ?? 0}
                     stroke="black"
                     fill="#ead4f5"
+                    offset={offset}
                 />
             </g>
         );

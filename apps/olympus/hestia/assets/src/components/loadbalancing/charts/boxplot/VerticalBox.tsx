@@ -10,8 +10,9 @@ type VerticalBoxProps = {
     width: number;
     stroke: string;
     fill: string;
+    offset: number;
 };
-const STROKE_WIDTH = 2; // Adjust this to your needs
+const STROKE_WIDTH = 1; // Adjust this to your needs
 
 export const VerticalBox = ({
                          min,
@@ -21,34 +22,40 @@ export const VerticalBox = ({
                          max,
                          width,
                          stroke,
-                         fill,
+                         fill, offset,
                      }:VerticalBoxProps) => {
+
+    let x = 0
+    if (offset !== 0) {
+        x = offset -1
+    }
+    console.log("offset", offset)
     return (
         <>
             {/* Vertical line */}
             <line
-                x1={width / 2}
-                x2={width / 2}
-                y1={min}
-                y2={max}
+                x1={median}
+                x2={median}
+                y1={fill}
+                y2={fill}
                 stroke={stroke}
                 strokeWidth={STROKE_WIDTH} // Corrected attribute name
             />
             {/* Rectangle box */}
             <rect
-                x={0}
-                y={min}
+                x={x}
+                y={offset}
                 width={width}
-                height={q3 - q1}
+                height={100}
                 stroke={stroke}
                 fill={fill}
             />
             {/* Median line */}
             <line
-                x1={0}
-                x2={width}
-                y1={median}
-                y2={median}
+                x1={median}
+                x2={median}
+                y1={0}
+                y2={offset}
                 stroke={stroke}
                 strokeWidth={STROKE_WIDTH} // Corrected attribute name
             />

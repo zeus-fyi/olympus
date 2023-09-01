@@ -35,14 +35,6 @@ export const VerticalBox = ({
                 stroke={stroke}
                 strokeWidth={STROKE_WIDTH} // Corrected attribute name
             />
-            {/*<line*/}
-            {/*    x1={q1}*/}
-            {/*    x2={q1}*/}
-            {/*    y1={offset}*/}
-            {/*    y2={offset}*/}
-            {/*    stroke={stroke}*/}
-            {/*    strokeWidth={STROKE_WIDTH} // Corrected attribute name*/}
-            {/*/>*/}
             {/* Rectangle box */}
             <rect
                 x={q1}
@@ -64,7 +56,7 @@ export const VerticalBox = ({
             />
             <g>
                 <text
-                    x={q1}
+                    x={q1-25}
                     y={offset-25}  // Position below the line
                     style={{
                         fontSize: "12px",
@@ -77,7 +69,7 @@ export const VerticalBox = ({
             </g>
             <g>
                 <text
-                    x={q3}
+                    x={q3+25}
                     y={offset-25}  // Position below the line
                     style={{
                         fontSize: "12px",

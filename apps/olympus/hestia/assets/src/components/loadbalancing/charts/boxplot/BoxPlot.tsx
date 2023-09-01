@@ -42,16 +42,16 @@ export const Boxplot = ({ width, height, data, tableMetrics }: BoxplotProps) => 
             return null;
         }
         offset += 1
-        const { minAdj, q1, median, q3, maxAdj } = sumStats;
+        const { minAdj, q1, median, q3, maxAdj,max,min } = sumStats;
         return (
             <g key={key} transform={`translate(0, ${yScale(key) ?? 0})`}>
                 <VerticalBox
                     width={q3-q1}
-                    min={xScale(minAdj) ?? 0}
+                    min={xScale(min) ?? 0}
                     q1={xScale(q1) ?? 0}
                     median={xScale(median) ?? 0}
                     q3={xScale(q3) ?? 0}
-                    max={xScale(maxAdj) ?? 0}
+                    max={xScale(max) ?? 0}
                     stroke="black"
                     fill="#ead4f5"
                     offset={offset}

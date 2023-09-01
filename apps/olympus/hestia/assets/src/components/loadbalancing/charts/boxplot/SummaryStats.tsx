@@ -33,5 +33,5 @@ export const getSummaryStatsExt = (data: TableMetric) => {
     const minAdj = q1 - 1.5 * interQuantileRange
     const maxAdj = q3 + 1.5 * interQuantileRange
 
-    return {minAdj, q1, median, q3, maxAdj}
+    return {minAdj, q1, median, q3, maxAdj, max, min}
 }

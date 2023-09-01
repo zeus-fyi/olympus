@@ -24,41 +24,93 @@ export const VerticalBox = ({
                          stroke,
                          fill, offset,
                      }:VerticalBoxProps) => {
-
-    let x = 0
-    if (offset !== 0) {
-        x = offset -1
-    }
-    console.log("offset", offset)
     return (
         <>
             {/* Vertical line */}
             <line
                 x1={median}
                 x2={median}
-                y1={fill}
-                y2={fill}
+                y1={offset}
+                y2={offset}
+                stroke={stroke}
+                strokeWidth={STROKE_WIDTH} // Corrected attribute name
+            />
+            <line
+                x1={q1}
+                x2={q1}
+                y1={offset}
+                y2={offset}
                 stroke={stroke}
                 strokeWidth={STROKE_WIDTH} // Corrected attribute name
             />
             {/* Rectangle box */}
             <rect
-                x={x}
+                x={q1}
                 y={offset}
-                width={width}
+                width={q3-q1}
                 height={100}
                 stroke={stroke}
                 fill={fill}
             />
-            {/* Median line */}
+
+            {/* min-max line */}
             <line
-                x1={median}
-                x2={median}
-                y1={0}
-                y2={offset}
+                x1={min}
+                x2={max}
+                y1={offset+50}
+                y2={offset+50}
                 stroke={stroke}
                 strokeWidth={STROKE_WIDTH} // Corrected attribute name
             />
+            <g>
+                <text
+                    x={q1}
+                    y={offset-25}  // Position below the line
+                    style={{
+                        fontSize: "12px",
+                        textAnchor: "middle", // To center the text relative to given 'x'
+                        dominantBaseline: "middle"
+                    }}
+                >
+                    p25
+                </text>
+            </g>
+            <g>
+                <text
+                    x={q3}
+                    y={offset-25}  // Position below the line
+                    style={{
+                        fontSize: "12px",
+                        textAnchor: "middle", // To center the text relative to given 'x'
+                        dominantBaseline: "middle"
+                    }}
+                >
+                    p75
+                </text>
+            </g>
+            {/* Median line */}
+            <g>
+            <line
+                x1={median}
+                x2={median}
+                y1={offset-100}
+                y2={offset+200}
+                stroke={stroke}
+                strokeWidth={STROKE_WIDTH} // Corrected attribute name
+            />
+                {/* Label for the line */}
+                <text
+                    x={median}
+                    y={offset-125}  // Position below the line
+                    style={{
+                        fontSize: "12px",
+                        textAnchor: "middle", // To center the text relative to given 'x'
+                        dominantBaseline: "middle"
+                    }}
+                >
+                    Median {median} ms
+                </text>
+            </g>
         </>
     );
 };

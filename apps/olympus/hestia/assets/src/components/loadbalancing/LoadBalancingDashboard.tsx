@@ -20,15 +20,16 @@ import authProvider from "../../redux/auth/auth.actions";
 import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
-import {LoadBalancingRoutesTable} from "./tables/LoadBalancingRoutesTable";
 import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints, setTableMetrics} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
 import {PlanUsagePieCharts} from "./charts/pie/UsagePieChart";
 import {TableMetricsCharts} from "./charts/radar/MetricsCharts";
+import {LoadBalancingRoutesTable} from "./tables/LoadBalancingRoutesTable";
 import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
+
 
 const drawerWidth: number = 240;
 

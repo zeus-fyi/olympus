@@ -71,9 +71,10 @@ export function TableMetricsCharts(props: any) {
 
 export function MetricsChart(props: any) {
     const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
-    if (tableMetrics == null || tableMetrics.metrics == null ||  Object.keys(tableMetrics.metrics).length == 0) {
+    if (tableMetrics == null || tableMetrics.metrics == null) {
         return <div></div>
     }
+    console.log(tableMetrics)
     const formattedData: FormattedData[] = Object.keys(tableMetrics.metrics).map((key, idx) => {
         const metric: TableMetric = tableMetrics.metrics[key];
         return {

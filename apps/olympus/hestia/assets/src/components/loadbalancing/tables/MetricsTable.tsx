@@ -2,7 +2,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
-import {Tab, TableContainer, TableFooter, TablePagination, TableRow, Tabs} from "@mui/material";
+import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -11,7 +11,7 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import TextField from "@mui/material/TextField";
 
-export function LoadBalancingRoutesTable(props: any) {
+export function LoadBalancingMetricsTable(props: any) {
     const { loading,rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
         handleChangeRowsPerPage,handleChangePage, groupName, selectedTab, handleTabChange,
         isAdding, setIsAdding, newEndpoint, setNewEndpoint, isUpdatingGroup, handleAddGroupTableEndpointsSubmission,
@@ -27,16 +27,6 @@ export function LoadBalancingRoutesTable(props: any) {
 
     return (
         <div>
-            {groupName !== "-all" && groupName !== "unused" && (
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs example">
-                        <Tab label="Endpoints"  />
-                        <Tab label="Metrics"  />
-                        <Tab label="Priority Scores" />
-                        <Tab label="Procedures" />
-                    </Tabs>
-                </Box>
-            )}
             <Box sx={{ mt: 4, mb: 4 }}>
                 {selected.length > 0 && !isUpdatingGroup && (
                     <Box sx={{ mb: 2 }}>
@@ -54,7 +44,7 @@ export function LoadBalancingRoutesTable(props: any) {
                         </Button>
                     </Box>
                 )}
-                    <TableContainer component={Paper}>
+                <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
                             <TableRow style={{ backgroundColor: '#333'}} >

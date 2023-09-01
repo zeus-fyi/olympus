@@ -479,13 +479,13 @@ function LoadBalancingDashboardContent(props: any) {
                             )}
                         </Stack>
                     </Container>
-                    {/*{groupName !== "-all" && groupName !== "unused" && (*/}
+                    {groupName !== "-all" && groupName !== "unused" && (
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Box sx={{ mb: 2 }}>
                                 <TableMetricsCharts tableName={groupName}/>
                             </Box>
                         </Container>
-                    {/*)}*/}
+                    )}
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         {groupName !== "-all" && groupName !== "unused" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -522,7 +522,7 @@ function LoadBalancingDashboardContent(props: any) {
                             handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
                             handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
                         />)}
-                        {selectedTab === 1 && (
+                        {selectedTab === 1 && groupName !== "-all" && groupName !== "unused" &&  (
                             <LoadBalancingMetricsTable
                                 selectedTab={selectedTab}
                                 handleTabChange={handleTabChange}
@@ -547,7 +547,7 @@ function LoadBalancingDashboardContent(props: any) {
                                 handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
                                 handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
                             />)}
-                        {selectedTab === 2 && (
+                        {selectedTab === 2 && groupName !== "-all" && groupName !== "unused" && (
                             <LoadBalancingPriorityScoreMetricsTable
                                 selectedTab={selectedTab}
                                 handleTabChange={handleTabChange}

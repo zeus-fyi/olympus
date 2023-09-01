@@ -83,7 +83,7 @@ export function LoadBalancingMetricsTable(props: any) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {safeEndpoints.map((slice, index) => (
+                            {safeEndpoints && safeEndpoints.map((slice, index) => (
                                 <TableRow key={index}>
                                     <TableCell align="center">{slice.metricName}</TableCell>
                                     <TableCell align="center">{slice.sampleCount}</TableCell>
@@ -95,6 +95,11 @@ export function LoadBalancingMetricsTable(props: any) {
                                     <TableCell align="center">{slice.p100}</TableCell>
                                 </TableRow>
                             ))}
+                            {emptyRows > 0 && (
+                                <TableRow style={{ height: 53 * emptyRows }}>
+                                    <TableCell colSpan={4} />
+                                </TableRow>
+                            )}
                         </TableBody>
                         <TableFooter>
                             <TableRow>

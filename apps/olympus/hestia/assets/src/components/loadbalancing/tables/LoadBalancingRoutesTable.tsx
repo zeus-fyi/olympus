@@ -81,7 +81,7 @@ export function LoadBalancingRoutesTable(props: any) {
                                     </TableCell>
                                 </TableRow>
                             )}
-                            {safeEndpoints.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: string, i: number) => (
+                            {safeEndpoints && safeEndpoints.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: string, i: number) => (
                                 <TableRow
                                     key={i}
                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}

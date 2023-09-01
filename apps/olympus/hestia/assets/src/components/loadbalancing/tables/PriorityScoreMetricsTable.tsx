@@ -73,12 +73,17 @@ export function LoadBalancingPriorityScoreMetricsTable(props: any) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {safeEndpoints.map((slice, index) => (
+                            {safeEndpoints && safeEndpoints.map((slice, index) => (
                                 <TableRow key={index}>
                                     <TableCell align="left">{slice.Member}</TableCell>
                                     <TableCell align="left">{slice.Score}</TableCell>
                                 </TableRow>
                             ))}
+                            {emptyRows > 0 && (
+                                <TableRow style={{ height: 53 * emptyRows }}>
+                                    <TableCell colSpan={4} />
+                                </TableRow>
+                            )}
                         </TableBody>
                         <TableFooter>
                             <TableRow>

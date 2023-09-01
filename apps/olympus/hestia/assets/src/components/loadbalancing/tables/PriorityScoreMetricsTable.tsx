@@ -13,7 +13,6 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../redux/store";
 import {loadBalancingApiGateway} from "../../../gateway/loadbalancing";
 import {setTableMetrics} from "../../../redux/loadbalancing/loadbalancing.reducer";
-import {generateMetricSlices, MetricAggregateRow} from "../../../redux/loadbalancing/loadbalancing.types";
 
 export function LoadBalancingPriorityScoreMetricsTable(props: any) {
     const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
@@ -42,10 +41,9 @@ export function LoadBalancingPriorityScoreMetricsTable(props: any) {
     if (loadingMetrics) {
         return <div>Loading...</div> // Display loading message while data is fetching
     }
-    let safeEndpoints = endpoints ?? [];
+    let safeEndpoints = tableMetrics.routes ?? [];
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - safeEndpoints.length) : 0;
-    const metricSlices: MetricAggregateRow[] = generateMetricSlices([tableMetrics]); // Generate slices here
 
     return (
         <div>
@@ -70,27 +68,15 @@ export function LoadBalancingPriorityScoreMetricsTable(props: any) {
                     <Table sx={{ minWidth: 650 }} aria-label="metric slice table">
                         <TableHead>
                             <TableRow style={{ backgroundColor: '#333'}}>
-                                <TableCell style={{ color: 'white'}} align="center">Metric Name</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">Samples</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P10</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P25</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P5</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P75</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P99</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P100</TableCell>
+                                <TableCell style={{ color: 'white'}} align="left">Endpoint</TableCell>
+                                <TableCell style={{ color: 'white'}} align="left">Score</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {metricSlices.map((slice, index) => (
+                            {safeEndpoints.map((slice, index) => (
                                 <TableRow key={index}>
-                                    <TableCell align="center">{slice.metricName}</TableCell>
-                                    <TableCell align="center">{slice.sampleCount}</TableCell>
-                                    <TableCell align="center">{slice.p10}</TableCell>
-                                    <TableCell align="center">{slice.p25}</TableCell>
-                                    <TableCell align="center">{slice.p5}</TableCell>
-                                    <TableCell align="center">{slice.p75}</TableCell>
-                                    <TableCell align="center">{slice.p99}</TableCell>
-                                    <TableCell align="center">{slice.p100}</TableCell>
+                                    <TableCell align="left">{slice.Member}</TableCell>
+                                    <TableCell align="left">{slice.Score}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

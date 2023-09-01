@@ -56,8 +56,8 @@ export const VerticalBox = ({
             />
             <g>
                 <text
-                    x={q1-25}
-                    y={offset-25}  // Position below the line
+                    x={q1-18}
+                    y={offset-18}  // Position below the line
                     style={{
                         fontSize: "12px",
                         textAnchor: "middle", // To center the text relative to given 'x'
@@ -69,8 +69,8 @@ export const VerticalBox = ({
             </g>
             <g>
                 <text
-                    x={q3+25}
-                    y={offset-25}  // Position below the line
+                    x={q3+18}
+                    y={offset-18}  // Position below the line
                     style={{
                         fontSize: "12px",
                         textAnchor: "middle", // To center the text relative to given 'x'
@@ -93,7 +93,7 @@ export const VerticalBox = ({
                 {/* Label for the line */}
                 <text
                     x={median}
-                    y={offset-125}  // Position below the line
+                    y={offset-115}  // Position below the line
                     style={{
                         fontSize: "12px",
                         textAnchor: "middle", // To center the text relative to given 'x'

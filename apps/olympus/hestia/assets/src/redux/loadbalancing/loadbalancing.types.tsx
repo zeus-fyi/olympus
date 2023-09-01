@@ -93,8 +93,6 @@ export function generateMetricSlices(tableMetricsSummaries: TableMetricsSummary[
                     metricSlice.p75 = latency;
                 } else if (percentile === 0.99) {
                     metricSlice.p99 = latency;
-                } else if (percentile === 1) {
-                    metricSlice.p100 = latency;
                 }
             }
             metricSlices.push(metricSlice);

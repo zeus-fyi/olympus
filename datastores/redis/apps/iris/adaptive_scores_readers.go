@@ -59,7 +59,7 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 	}
 
 	for _, tbm := range tblMetrics {
-		histogramBins := 8
+		histogramBins := 7
 		metricKey := getTableMetricKey(orgID, rgName, tbm)
 
 		metricTdigestSampleCountKey := getMetricTdigestMetricSamplesKey(orgID, rgName, tbm)
@@ -85,7 +85,7 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 			case 6:
 				percentile = 0.99
 			case 7:
-				percentile = 1.0
+				//percentile = 1.0
 			}
 			tm.MetricPercentiles[j].Percentile = percentile
 			tm.MetricPercentiles[j].RedisResult = pipe.Do(ctx, "PERCENTILE.GET", metricKey, percentile)

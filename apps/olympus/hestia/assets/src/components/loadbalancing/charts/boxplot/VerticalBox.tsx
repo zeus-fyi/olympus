@@ -86,7 +86,7 @@ export const VerticalBox = ({
                 x1={median}
                 x2={median}
                 y1={offset-100}
-                y2={offset+200}
+                y2={offset+100}
                 stroke={stroke}
                 strokeWidth={STROKE_WIDTH} // Corrected attribute name
             />

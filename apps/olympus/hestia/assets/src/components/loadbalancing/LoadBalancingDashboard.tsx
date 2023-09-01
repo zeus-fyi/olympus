@@ -28,6 +28,7 @@ import TextField from "@mui/material/TextField";
 import {PlanUsagePieCharts} from "./charts/pie/UsagePieChart";
 import {TableMetricsCharts} from "./charts/radar/MetricsCharts";
 import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
+import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
 
 const drawerWidth: number = 240;
 
@@ -523,6 +524,31 @@ function LoadBalancingDashboardContent(props: any) {
                         />)}
                         {selectedTab === 1 && (
                             <LoadBalancingMetricsTable
+                                selectedTab={selectedTab}
+                                handleTabChange={handleTabChange}
+                                page={page}
+                                rowsPerPage={rowsPerPage}
+                                loading={loading}
+                                endpoints={tableRoutes}
+                                groups={groups}
+                                groupName={groupName}
+                                selected={selected}
+                                handleSelectAllClick={handleSelectAllClick}
+                                handleClick={handleClick}
+                                handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                handleChangePage={handleChangePage}
+                                isAdding={isAdding}
+                                setIsAdding={setIsAdding}
+                                newEndpoint={newEndpoint}
+                                isUpdatingGroup={isUpdatingGroup}
+                                setNewEndpoint={setNewEndpoint}
+                                handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                                handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                                handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                                handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
+                            />)}
+                        {selectedTab === 2 && (
+                            <LoadBalancingPriorityScoreMetricsTable
                                 selectedTab={selectedTab}
                                 handleTabChange={handleTabChange}
                                 page={page}

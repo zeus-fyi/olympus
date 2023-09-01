@@ -15,7 +15,7 @@ import {loadBalancingApiGateway} from "../../../gateway/loadbalancing";
 import {setTableMetrics} from "../../../redux/loadbalancing/loadbalancing.reducer";
 import {generateMetricSlices, MetricAggregateRow} from "../../../redux/loadbalancing/loadbalancing.types";
 
-export function LoadBalancingMetricsTable(props: any) {
+export function LoadBalancingPriorityScoreMetricsTable(props: any) {
     const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
         handleChangeRowsPerPage,handleChangePage, groupName, selectedTab, handleTabChange,
         isAdding, setIsAdding, newEndpoint, setNewEndpoint, isUpdatingGroup, handleAddGroupTableEndpointsSubmission,
@@ -70,27 +70,27 @@ export function LoadBalancingMetricsTable(props: any) {
                     <Table sx={{ minWidth: 650 }} aria-label="metric slice table">
                         <TableHead>
                             <TableRow style={{ backgroundColor: '#333'}}>
-                                <TableCell style={{ color: 'white'}} align="left">Metric Name</TableCell>
-                                <TableCell style={{ color: 'white'}} align="left">Samples</TableCell>
-                                <TableCell style={{ color: 'white'}} align="left">P10</TableCell>
-                                <TableCell style={{ color: 'white'}} align="left">P25</TableCell>
-                                <TableCell style={{ color: 'white'}} align="left">P5</TableCell>
-                                <TableCell style={{ color: 'white'}} align="left">P75</TableCell>
-                                <TableCell style={{ color: 'white'}} align="left">P99</TableCell>
-                                <TableCell style={{ color: 'white'}} align="left">P100</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">Metric Name</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">Samples</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">P10</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">P25</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">P5</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">P75</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">P99</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">P100</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {metricSlices.map((slice, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{slice.metricName}</TableCell>
-                                    <TableCell>{slice.sampleCount}</TableCell>
-                                    <TableCell>{slice.p10}</TableCell>
-                                    <TableCell>{slice.p25}</TableCell>
-                                    <TableCell>{slice.p5}</TableCell>
-                                    <TableCell>{slice.p75}</TableCell>
-                                    <TableCell>{slice.p99}</TableCell>
-                                    <TableCell>{slice.p100}</TableCell>
+                                    <TableCell align="center">{slice.metricName}</TableCell>
+                                    <TableCell align="center">{slice.sampleCount}</TableCell>
+                                    <TableCell align="center">{slice.p10}</TableCell>
+                                    <TableCell align="center">{slice.p25}</TableCell>
+                                    <TableCell align="center">{slice.p5}</TableCell>
+                                    <TableCell align="center">{slice.p75}</TableCell>
+                                    <TableCell align="center">{slice.p99}</TableCell>
+                                    <TableCell align="center">{slice.p100}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

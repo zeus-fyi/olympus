@@ -53,6 +53,7 @@ export interface Z {
 // Define the new type for MetricSlice
 export interface MetricAggregateRow {
     metricName: string;
+    sampleCount: number;
     p10?: string;
     p25?: string;
     p5?: string;
@@ -77,6 +78,7 @@ export function generateMetricSlices(tableMetricsSummaries: TableMetricsSummary[
             const tableMetric = tableMetricsSummary.metrics[metricName];
             const metricSlice: MetricAggregateRow = {
                 metricName,
+                sampleCount: tableMetric.sampleCount
             };
             for (const metricSample of tableMetric.metricPercentiles) {
                 const percentile = metricSample.percentile;

@@ -5,7 +5,7 @@ import {TableMetricsSummary} from "../../../../redux/loadbalancing/loadbalancing
 import {getSummaryStatsExt} from "./SummaryStats";
 import {VerticalBox} from "./VerticalBox";
 
-const MARGIN = { top: 30, right: 30, bottom: 30, left: 50 };
+const MARGIN = { top: 100, right: 50, bottom: 30, left: 50 };
 
 type BoxplotProps = {
     width: number;
@@ -28,10 +28,8 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
         metric.metricPercentiles.map((sample) => sample.latency)
     );
     const maxVal = d3.max(allLatencies);
-    // const minVal = d3.min(allLatencies);
-
     // Define scales
-    const yScale = d3.scaleOrdinal().range([0, boundsHeight]).domain(groups);
+    const yScale = d3.scaleBand().range([0, boundsHeight]).domain(groups);
     const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([0, maxVal ?? 0]);
 
     // Render BoxPlots
@@ -41,7 +39,6 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
         if (!sumStats) {
             return null;
         }
-        offset += 1
         const { minAdj, q1, median, q3, maxAdj,max,min } = sumStats;
         return (
             <g key={key} transform={`translate(0, ${yScale(key) ?? 0})`}>
@@ -54,7 +51,7 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
                     max={xScale(max) ?? 0}
                     stroke="black"
                     fill="#ead4f5"
-                    offset={offset-1}
+                    offset={i}
                 />
             </g>
         );

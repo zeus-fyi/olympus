@@ -1,8 +1,8 @@
 import {useMemo} from "react";
-import {ScaleOrdinal} from "d3";
+import {ScaleBand} from "d3";
 
 type AxisLeftProps = {
-    yScale: ScaleOrdinal<string, any>;
+    yScale: ScaleBand<string>;
     pixelsPerTick: number;
     height?: number;
 };
@@ -22,9 +22,9 @@ export const AxisLeft = ({ yScale, pixelsPerTick, height = 0 }: AxisLeftProps) =
             <line x1="0" x2="0" y1="0" y2={yScale.range()[yScale.range().length - 1]} stroke="black" />
             {/* Draw ticks */}
             {ticks.map((tick, index) => (
-                <g key={index} transform={`translate(0, ${tick.yOffset})`}>
+                <g key={tick.value} transform={`translate(0, ${tick.yOffset})`}>
                     <line x1={-6} x2={4} y1="0" y2="0" stroke="black" />
-                    <text x={-8} y={5} textAnchor="end">
+                    <text x={-8} y={0} textAnchor="end">
                         {tick.value}
                     </text>
                 </g>

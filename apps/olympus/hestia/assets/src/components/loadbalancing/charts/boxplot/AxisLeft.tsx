@@ -7,11 +7,7 @@ type AxisLeftProps = {
     xOffset?: number;
 };
 
-// tick length
-const TICK_LENGTH = 6;  // Add your desired tick length value here
-
 export const AxisLeft = ({ yScale, pixelsPerTick, xOffset = 0 }: AxisLeftProps) => {
-
     const ticks = useMemo(() => {
         return yScale.domain().map((value, index) => ({
             value,
@@ -27,8 +23,8 @@ export const AxisLeft = ({ yScale, pixelsPerTick, xOffset = 0 }: AxisLeftProps) 
             {/* Draw ticks */}
             {ticks.map((tick, index) => (
                 <g key={index} transform={`translate(0, ${tick.yOffset})`}>
-                    <line x1="0" x2={-TICK_LENGTH} y1="0" y2="0" stroke="black" />
-                    <text x={-TICK_LENGTH - 4} y={5} textAnchor="end">
+                    <line x1="0" x2={4} y1="0" y2="0" stroke="black" />
+                    <text x={-6} y={5} textAnchor="end">
                         {tick.value}
                     </text>
                 </g>

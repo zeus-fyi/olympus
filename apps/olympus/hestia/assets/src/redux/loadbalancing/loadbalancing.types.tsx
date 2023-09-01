@@ -78,7 +78,6 @@ export function generateMetricSlices(tableMetricsSummaries: TableMetricsSummary[
             const metricSlice: MetricAggregateRow = {
                 metricName,
             };
-
             for (const metricSample of tableMetric.metricPercentiles) {
                 const percentile = metricSample.percentile;
                 const latency = addTimeUnitToLatency(metricSample.latency);
@@ -96,10 +95,8 @@ export function generateMetricSlices(tableMetricsSummaries: TableMetricsSummary[
                     metricSlice.p100 = latency;
                 }
             }
-
             metricSlices.push(metricSlice);
         }
     }
-
     return metricSlices;
 }

@@ -42,7 +42,9 @@ export function LoadBalancingMetricsTable(props: any) {
     if (loadingMetrics) {
         return <div>Loading...</div> // Display loading message while data is fetching
     }
-
+    if (tableMetrics == null || tableMetrics.metrics == null ||  Object.keys(tableMetrics.metrics).length == 0) {
+        return <div></div>
+    }
     const metricSlices: MetricAggregateRow[] = generateMetricSlices([tableMetrics]); // Generate slices here
     let safeEndpoints = metricSlices ?? [];
 

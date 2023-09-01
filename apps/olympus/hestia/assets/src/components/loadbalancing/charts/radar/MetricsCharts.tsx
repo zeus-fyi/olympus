@@ -6,7 +6,11 @@ import {useDispatch, useSelector} from "react-redux";
 import Container from "@mui/material/Container";
 import {RootState} from "../../../../redux/store";
 import {Boxplot} from "../boxplot/BoxPlot";
-import {TableMetric} from "../../../../redux/loadbalancing/loadbalancing.types";
+import {
+    generateMetricSlices,
+    MetricAggregateRow,
+    TableMetric
+} from "../../../../redux/loadbalancing/loadbalancing.types";
 import {loadBalancingApiGateway} from "../../../../gateway/loadbalancing";
 import {setTableMetrics} from "../../../../redux/loadbalancing/loadbalancing.reducer";
 
@@ -46,6 +50,14 @@ export function TableMetricsCharts(props: any) {
         return <div>Loading...</div>
     }
 
+    if (tableMetrics == null || tableMetrics.metrics == null ||  Object.keys(tableMetrics.metrics).length == 0) {
+        return <div></div>
+    }
+    const metricSlices: MetricAggregateRow[] = generateMetricSlices([tableMetrics]); // Generate slices here
+    let safeEndpoints = metricSlices ?? [];
+    if (safeEndpoints.length == 0) {
+        return <div></div>
+    }
     return (
         <div>
             {/*<MetricsChart />*/}

@@ -493,7 +493,7 @@ function LoadBalancingDashboardContent(props: any) {
                                     <Tab label="Endpoints"  />
                                     <Tab label="Metrics"  />
                                     <Tab label="Priority Scores" />
-                                    <Tab label="Procedures" />
+                                    {/*<Tab label="Procedures" />*/}
                                 </Tabs>
                             </Box>
                         )}

@@ -42,6 +42,15 @@ export const AxisBottom = ({ xScale }: AxisBottomProps) => {
                     </text>
                 </g>
             ))}
+            <text
+                style={{
+                    fontSize: "20px",
+                    textAnchor: "initial",
+                    transform: `translate(${max-20}px, -10px)`, // Change here
+                }}
+            >
+                {"ms"}
+            </text>
         </>
     );
 };

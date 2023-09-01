@@ -64,9 +64,9 @@ export interface MetricAggregateRow {
 
 function addTimeUnitToLatency(latency: number): string {
     if (latency < 1000) {
-        return `${latency}ms`;
+        return `${latency.toFixed(0)}ms`;
     } else {
-        return `${latency/1000}ms`;
+        return `${(latency/1000).toFixed(0)}ms`;
     }
 }
 

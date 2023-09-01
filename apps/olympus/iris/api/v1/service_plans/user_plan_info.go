@@ -107,30 +107,3 @@ func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, usageInfo)
 }
-
-func TableMetricsDetailsRequestHandler(c echo.Context) error {
-	request := new(PlanUsageDetailsRequest)
-	if err := c.Bind(request); err != nil {
-		log.Err(err).Msg("Iris: GetTableMetrics")
-		return err
-	}
-	return request.GetTableMetrics(c)
-}
-
-func (p *PlanUsageDetailsRequest) GetTableMetrics(c echo.Context) error {
-	ou := org_users.OrgUser{}
-	ouc := c.Get("orgUser")
-	if ouc != nil {
-		ouser, aok := ouc.(org_users.OrgUser)
-		if aok {
-			ou = ouser
-		}
-	}
-	tblName := c.Param("groupName")
-	usage, err := iris_redis.IrisRedisClient.GetPriorityScoresAndTdigestMetrics(context.Background(), ou.OrgID, tblName)
-	if err != nil {
-		log.Err(err).Interface("usage", usage).Msg("GetPlanUsageInfo error")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	return c.JSON(http.StatusOK, usage)
-}

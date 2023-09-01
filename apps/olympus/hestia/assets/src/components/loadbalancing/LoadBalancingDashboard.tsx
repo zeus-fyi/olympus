@@ -17,16 +17,18 @@ import Button from "@mui/material/Button";
 import {useNavigate, useParams} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
+import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
-import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
+import {LoadBalancingRoutesTable} from "./tables/LoadBalancingRoutesTable";
 import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints, setTableMetrics} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
-import {PlanUsagePieCharts} from "./UsagePieChart";
-import {TableMetricsCharts} from "./MetricsCharts";
+import {PlanUsagePieCharts} from "./charts/pie/UsagePieChart";
+import {TableMetricsCharts} from "./charts/radar/MetricsCharts";
+import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
+import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
 
 const drawerWidth: number = 240;
 
@@ -109,6 +111,7 @@ function LoadBalancingDashboardContent(props: any) {
     const [newEndpoint, setNewEndpoint] = useState<string>("");
     const [reload, setReload] = useState(false); // State to trigger reload
     const [createGroupName, setCreateGroupName] = React.useState("");
+    const [selectedTab, setSelectedTab] = useState(0);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -316,6 +319,10 @@ function LoadBalancingDashboardContent(props: any) {
         setTableRoutes(groups[groupName])
     };
 
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setSelectedTab(newValue);
+    };
+
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -467,18 +474,33 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Box>
                             )}
                         </Card>
-                            {groupName !== "-all" && groupName !== "unused" && (
-                                <Box sx={{ mb: 2 }}>
-                                    <TableMetricsCharts />
-                                </Box>
-                            )}
                             {(groupName === "-all" || groupName === "unused") && (
                                 <PlanUsagePieCharts reload={reload} setReload={setReload}/>
                             )}
                         </Stack>
                     </Container>
+                    {groupName !== "-all" && groupName !== "unused" && (
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <Box sx={{ mb: 2 }}>
+                                <TableMetricsCharts tableName={groupName}/>
+                            </Box>
+                        </Container>
+                    )}
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        {groupName !== "-all" && groupName !== "unused" && (
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs example">
+                                    <Tab label="Endpoints"  />
+                                    <Tab label="Metrics"  />
+                                    <Tab label="Priority Scores" />
+                                    {/*<Tab label="Procedures" />*/}
+                                </Tabs>
+                            </Box>
+                        )}
+                        {selectedTab === 0 && (
                         <LoadBalancingRoutesTable
+                            selectedTab={selectedTab}
+                            handleTabChange={handleTabChange}
                             page={page}
                             rowsPerPage={rowsPerPage}
                             loading={loading}
@@ -499,7 +521,57 @@ function LoadBalancingDashboardContent(props: any) {
                             handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
                             handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
                             handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
-                        />
+                        />)}
+                        {selectedTab === 1 && groupName !== "-all" && groupName !== "unused" &&  (
+                            <LoadBalancingMetricsTable
+                                selectedTab={selectedTab}
+                                handleTabChange={handleTabChange}
+                                page={page}
+                                rowsPerPage={rowsPerPage}
+                                loading={loading}
+                                endpoints={tableRoutes}
+                                groups={groups}
+                                groupName={groupName}
+                                selected={selected}
+                                handleSelectAllClick={handleSelectAllClick}
+                                handleClick={handleClick}
+                                handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                handleChangePage={handleChangePage}
+                                isAdding={isAdding}
+                                setIsAdding={setIsAdding}
+                                newEndpoint={newEndpoint}
+                                isUpdatingGroup={isUpdatingGroup}
+                                setNewEndpoint={setNewEndpoint}
+                                handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                                handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                                handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                                handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
+                            />)}
+                        {selectedTab === 2 && groupName !== "-all" && groupName !== "unused" && (
+                            <LoadBalancingPriorityScoreMetricsTable
+                                selectedTab={selectedTab}
+                                handleTabChange={handleTabChange}
+                                page={page}
+                                rowsPerPage={rowsPerPage}
+                                loading={loading}
+                                endpoints={tableRoutes}
+                                groups={groups}
+                                groupName={groupName}
+                                selected={selected}
+                                handleSelectAllClick={handleSelectAllClick}
+                                handleClick={handleClick}
+                                handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                handleChangePage={handleChangePage}
+                                isAdding={isAdding}
+                                setIsAdding={setIsAdding}
+                                newEndpoint={newEndpoint}
+                                isUpdatingGroup={isUpdatingGroup}
+                                setNewEndpoint={setNewEndpoint}
+                                handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                                handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                                handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                                handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
+                            />)}
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

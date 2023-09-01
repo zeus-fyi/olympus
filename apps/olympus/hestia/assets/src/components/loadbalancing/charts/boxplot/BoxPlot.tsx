@@ -27,13 +27,14 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
     const allLatencies = Object.values(tableMetrics.metrics).flatMap((metric) =>
         metric.metricPercentiles.map((sample) => sample.latency)
     );
-    const maxVal = d3.max(allLatencies);
+    const maxVal = d3.max(allLatencies) ?? 0;
+    const minVal = d3.min(allLatencies) ?? 0;
+
     // Define scales
     const yScale = d3.scaleBand().range([0, boundsHeight]).domain(groups);
-    const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([0, maxVal ?? 0]);
+    const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([minVal*0.75, maxVal]);
 
     // Render BoxPlots
-    let offset = 0;
     const allShapes = Object.entries(tableMetrics.metrics).map(([key, metric], i) => {
         const sumStats = getSummaryStatsExt(metric);  // Get summary stats for each metric
         if (!sumStats) {
@@ -57,12 +58,13 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
         );
     });
 
+    const pixelPerTick = boundsHeight / groups.length+1;
     return (
         <div>
             <svg width={width} height={height}>
                 <g transform={`translate(${MARGIN.left+150}, ${MARGIN.top})`}>
                     {allShapes}
-                    <AxisLeft yScale={yScale} pixelsPerTick={100} height={boundsHeight} />
+                    <AxisLeft yScale={yScale} pixelsPerTick={pixelPerTick} height={boundsHeight} />
                     <g transform={`translate(0, ${boundsHeight})`}>
                         <AxisBottom xScale={xScale} />
                     </g>

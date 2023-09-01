@@ -62,7 +62,7 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
     return (
         <div>
             <svg width={width} height={height}>
-                <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
+                <g transform={`translate(${MARGIN.left+150}, ${MARGIN.top})`}>
                     {allShapes}
                     <AxisLeft yScale={yScale} pixelsPerTick={30} />
                     <g transform={`translate(0, ${boundsHeight})`}>

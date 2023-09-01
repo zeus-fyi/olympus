@@ -46,7 +46,7 @@ export const VerticalBox = ({
             {/* Rectangle box */}
             <rect
                 x={q1}
-                y={offset}
+                y={offset-1}
                 width={q3-q1}
                 height={100}
                 stroke={stroke}

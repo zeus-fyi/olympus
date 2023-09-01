@@ -6,7 +6,7 @@ type AxisBottomProps = {
 };
 
 // tick length
-const TICK_LENGTH = 13;
+const TICK_LENGTH = 6;
 
 export const AxisBottom = ({ xScale }: AxisBottomProps) => {
     const [min, max] = xScale.range();

@@ -46,19 +46,19 @@ export const VerticalBox = ({
             {/* Rectangle box */}
             <rect
                 x={q1}
-                y={offset-1}
+                y={offset-50}
                 width={q3-q1}
                 height={100}
                 stroke={stroke}
                 fill={fill}
             />
 
-            {/* min-max line */}
+            {/* horizontal line */}
             <line
                 x1={min}
                 x2={max}
-                y1={offset+50}
-                y2={offset+50}
+                y1={offset}
+                y2={offset}
                 stroke={stroke}
                 strokeWidth={STROKE_WIDTH} // Corrected attribute name
             />

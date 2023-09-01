@@ -78,7 +78,7 @@ export function LoadBalancingMetricsTable(props: any) {
                                 <TableCell style={{ color: 'white'}} align="center">Samples</TableCell>
                                 <TableCell style={{ color: 'white'}} align="center">P10</TableCell>
                                 <TableCell style={{ color: 'white'}} align="center">P25</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P5</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">P50</TableCell>
                                 <TableCell style={{ color: 'white'}} align="center">P75</TableCell>
                                 <TableCell style={{ color: 'white'}} align="center">P99</TableCell>
                             </TableRow>

@@ -32,7 +32,7 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
     console.log("maxVal", maxVal, allLatencies)
     // Define scales
     const yScale = d3.scaleBand().range([0, boundsHeight]).domain(groups);
-    const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([minVal*0.75, maxVal]);
+    const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([minVal*0.75, maxVal*1.25]);
 
     // Render BoxPlots
     const allShapes = Object.entries(tableMetrics.metrics).map(([key, metric], i) => {

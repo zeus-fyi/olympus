@@ -27,8 +27,6 @@ type MetricSample struct {
 }
 
 func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgID int, rgName string) (TableMetricsSummary, error) {
-	orgID = 1
-	rgName = "fooTestTable"
 	pipe := m.Reader.TxPipeline()
 	endpointPriorityScoreKey := createAdaptiveEndpointPriorityScoreKey(orgID, rgName)
 	tblMetricsSetKey := getTableMetricSetKey(orgID, rgName)

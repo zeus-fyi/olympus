@@ -41,6 +41,9 @@ export function LoadBalancingPriorityScoreMetricsTable(props: any) {
     if (loadingMetrics) {
         return <div>Loading...</div> // Display loading message while data is fetching
     }
+    if (tableMetrics == null || tableMetrics.metrics == null ||  Object.keys(tableMetrics.metrics).length == 0) {
+        return <div></div>
+    }
     let safeEndpoints = tableMetrics.routes ?? [];
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - safeEndpoints.length) : 0;

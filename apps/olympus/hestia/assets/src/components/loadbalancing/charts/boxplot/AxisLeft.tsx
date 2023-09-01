@@ -14,12 +14,11 @@ export const AxisLeft = ({ yScale, pixelsPerTick, height = 0 }: AxisLeftProps) =
             yOffset: yScale(value) ?? 0,
         }));
     }, [yScale]);
-
     // + index + pixelsPerTick / 2,
     return (
-        <g transform={`translate(0, ${height})`}>
+        <g transform={`translate(0, 0})`}>
             {/* Draw axis line */}
-            <line x1="0" x2="0" y1="0" y2={yScale.range()[yScale.range().length - 1]} stroke="black" />
+            <line x1="0" x2="0" y1={height}  y2={0} stroke="black" />
             {/* Draw ticks */}
             {ticks.map((tick, index) => (
                 <g key={tick.value} transform={`translate(0, ${tick.yOffset})`}>

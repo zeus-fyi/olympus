@@ -108,7 +108,7 @@ export const VerticalBox = ({
                         dominantBaseline: "middle"
                     }}
                 >
-                    Median {median} ms
+                    median
                 </text>
             </g>
         </>

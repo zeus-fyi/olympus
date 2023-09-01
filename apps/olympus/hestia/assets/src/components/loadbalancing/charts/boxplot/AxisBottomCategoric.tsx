@@ -6,7 +6,7 @@ type AxisBottomProps = {
 };
 
 // tick length
-const TICK_LENGTH = 6;
+const TICK_LENGTH = 13;
 
 export const AxisBottom = ({ xScale }: AxisBottomProps) => {
     const [min, max] = xScale.range();
@@ -23,7 +23,7 @@ export const AxisBottom = ({ xScale }: AxisBottomProps) => {
         <>
             {/* Main horizontal line */}
             <path
-                d={["M", min + 20, 0, "L", max - 20, 0].join(" ")}
+                d={["M", min, 0, "L", max+TICK_LENGTH*2, 0].join(" ")}
                 fill="none"
                 stroke="currentColor"
             />

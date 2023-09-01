@@ -29,7 +29,6 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
     );
     const maxVal = d3.max(allLatencies) ?? 0;
     const minVal = d3.min(allLatencies) ?? 0;
-    console.log("maxVal", maxVal, allLatencies)
     // Define scales
     const yScale = d3.scaleBand().range([0, boundsHeight]).domain(groups);
     const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([minVal*0.75, maxVal*1.25]);

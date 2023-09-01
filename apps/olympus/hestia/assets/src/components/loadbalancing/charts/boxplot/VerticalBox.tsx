@@ -35,14 +35,14 @@ export const VerticalBox = ({
                 stroke={stroke}
                 strokeWidth={STROKE_WIDTH} // Corrected attribute name
             />
-            <line
-                x1={q1}
-                x2={q1}
-                y1={offset}
-                y2={offset}
-                stroke={stroke}
-                strokeWidth={STROKE_WIDTH} // Corrected attribute name
-            />
+            {/*<line*/}
+            {/*    x1={q1}*/}
+            {/*    x2={q1}*/}
+            {/*    y1={offset}*/}
+            {/*    y2={offset}*/}
+            {/*    stroke={stroke}*/}
+            {/*    strokeWidth={STROKE_WIDTH} // Corrected attribute name*/}
+            {/*/>*/}
             {/* Rectangle box */}
             <rect
                 x={q1}

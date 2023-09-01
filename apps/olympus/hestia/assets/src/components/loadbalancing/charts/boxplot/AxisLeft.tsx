@@ -1,8 +1,8 @@
 import {useMemo} from "react";
-import {ScaleBand} from "d3";
+import {ScaleOrdinal} from "d3";
 
 type AxisLeftProps = {
-    yScale: ScaleBand<string>;
+    yScale: ScaleOrdinal<string, any>;
     pixelsPerTick: number;
     xOffset?: number;
 };
@@ -11,43 +11,29 @@ type AxisLeftProps = {
 const TICK_LENGTH = 6;  // Add your desired tick length value here
 
 export const AxisLeft = ({ yScale, pixelsPerTick, xOffset = 0 }: AxisLeftProps) => {
-    const [min, max] = yScale.range();
 
     const ticks = useMemo(() => {
         return yScale.domain().map((value, index) => ({
             value,
-            index,  // Add index to be used as the current iteration number
-            // @ts-ignore
-            yOffset: yScale(value) + yScale.bandwidth() / 2,
+            yOffset: yScale(value) + index + pixelsPerTick / 2,
         }));
     }, [yScale]);
 
     return (
-        <>
-            {/* Main vertical line */}
-            <line x1={xOffset} y1={0} x2={xOffset} y2={max} stroke="currentColor" />
+        <g transform={`translate(${xOffset}, 0)`}>
+            {/* Draw axis line */}
+            <line x1="0" x2="0" y1="0" y2={yScale.range()[yScale.range().length - 1]} stroke="black" />
 
-            {/* Ticks and labels */}
-            {ticks.map(({ value, yOffset, index }) => (
-                <g key={value} transform={`translate(0, ${yOffset})`}>
-                    {/* Draw tick line */}
-                    <line x1={xOffset - TICK_LENGTH} x2={xOffset} y1={index} y2={index} stroke="currentColor"/>
-
-                    {/* Draw tick label */}
-                    <text
-                        x={xOffset - TICK_LENGTH * 2}
-                        y={index}
-                        style={{
-                            fontSize: "16px",
-                            textAnchor: "end",
-                            dominantBaseline: "middle",
-                        }}
-                    >
-                        {value}
+            {/* Draw ticks */}
+            {ticks.map((tick, index) => (
+                <g key={index} transform={`translate(0, ${tick.yOffset})`}>
+                    <line x1="0" x2={-TICK_LENGTH} y1="0" y2="0" stroke="black" />
+                    <text x={-TICK_LENGTH - 4} y={5} textAnchor="end">
+                        {tick.value}
                     </text>
                 </g>
             ))}
-        </>
+        </g>
     );
 };
 

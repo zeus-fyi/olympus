@@ -28,9 +28,10 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
         metric.metricPercentiles.map((sample) => sample.latency)
     );
     const maxVal = d3.max(allLatencies);
+    // const minVal = d3.min(allLatencies);
 
     // Define scales
-    const yScale = d3.scaleBand().range([0, boundsHeight]).domain(groups).padding(0.1);
+    const yScale = d3.scaleOrdinal().range([0, boundsHeight]).domain(groups);
     const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([0, maxVal ?? 0]);
 
     // Render BoxPlots
@@ -53,7 +54,7 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
                     max={xScale(max) ?? 0}
                     stroke="black"
                     fill="#ead4f5"
-                    offset={offset}
+                    offset={offset-1}
                 />
             </g>
         );
@@ -64,7 +65,7 @@ export const Boxplot = ({ width, height, tableMetrics }: BoxplotProps) => {
             <svg width={width} height={height}>
                 <g transform={`translate(${MARGIN.left+150}, ${MARGIN.top})`}>
                     {allShapes}
-                    <AxisLeft yScale={yScale} pixelsPerTick={30} />
+                    <AxisLeft yScale={yScale} pixelsPerTick={100} />
                     <g transform={`translate(0, ${boundsHeight})`}>
                         <AxisBottom xScale={xScale} />
                     </g>

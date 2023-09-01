@@ -19,11 +19,6 @@ export const Boxplot = ({ width, height, data, tableMetrics }: BoxplotProps) => 
         return null;
     }
 
-    const sumStats = getSummaryStatsExt(tableMetrics);
-    if (!sumStats) {
-        return null;
-    }
-
     // Scales and Dimensions
     const boundsWidth = width - MARGIN.right - MARGIN.left;
     const boundsHeight = height - MARGIN.top - MARGIN.bottom;
@@ -36,17 +31,20 @@ export const Boxplot = ({ width, height, data, tableMetrics }: BoxplotProps) => 
     const maxVal = d3.max(allLatencies);
 
     // Define scales
-    const yScale = d3.scaleBand().range([0, boundsHeight]).domain(groups).padding(0.1); // Added padding
+    const yScale = d3.scaleBand().range([0, boundsHeight]).domain(groups).padding(0.1);
     const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([0, maxVal ?? 0]);
 
     // Render BoxPlots
     const allShapes = Object.entries(tableMetrics.metrics).map(([key, metric], i) => {
+        const sumStats = getSummaryStatsExt(metric);  // Get summary stats for each metric
+        if (!sumStats) {
+            return null;
+        }
         const { minAdj, q1, median, q3, maxAdj } = sumStats;
-
         return (
             <g key={key} transform={`translate(0, ${yScale(key) ?? 0})`}>
                 <VerticalBox
-                    width={boundsWidth}
+                    width={q3-q1}
                     min={xScale(minAdj) ?? 0}
                     q1={xScale(q1) ?? 0}
                     median={xScale(median) ?? 0}

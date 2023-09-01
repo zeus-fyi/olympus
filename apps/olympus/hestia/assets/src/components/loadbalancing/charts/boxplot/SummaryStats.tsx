@@ -1,35 +1,28 @@
-import {TableMetricsSummary} from "../../../../redux/loadbalancing/loadbalancing.types";
+import {TableMetric} from "../../../../redux/loadbalancing/loadbalancing.types";
 
-export const getSummaryStatsExt = (data: TableMetricsSummary) => {
+export const getSummaryStatsExt = (data: TableMetric) => {
     let min = 0
     let q1 = 0
     let median = 0
     let q3 = 0
     let max = 0
-    for (const [key, tableMetrics] of Object.entries(data.metrics)) {
-        if (tableMetrics.metricPercentiles.length === 0) {
-            return
-        }
-        if (tableMetrics.sampleCount === 0) {
-            return
-        }
-        for (const [mpk, mp] of Object.entries(tableMetrics.metricPercentiles)) {
-            if (mp.percentile == 0.1) {
-                 min = mp.latency
+    for (const [key, tableMetrics] of Object.entries(data.metricPercentiles)) {
+
+            if (tableMetrics.percentile == 0.1) {
+                 min =tableMetrics.latency
             }
-            if (mp.percentile == 0.25) {
-                 q1 = mp.latency
+            if (tableMetrics.percentile == 0.25) {
+                 q1 = tableMetrics.latency
             }
-            if (mp.percentile == 0.5) {
-                 median = mp.latency
+            if (tableMetrics.percentile == 0.5) {
+                 median = tableMetrics.latency
             }
-            if (mp.percentile == 0.75) {
-                 q3 = mp.latency
+            if (tableMetrics.percentile == 0.75) {
+                 q3 = tableMetrics.latency
             }
-            if (mp.percentile == 0.99) {
-                 max = mp.latency
+            if (tableMetrics.percentile == 0.99) {
+                 max = tableMetrics.latency
             }
-        }
     }
 
     if(!q3 || !q1 || !median){

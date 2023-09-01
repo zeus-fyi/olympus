@@ -10,14 +10,14 @@ const TICK_LENGTH = 6;
 
 export const AxisBottom = ({ xScale }: AxisBottomProps) => {
     const [min, max] = xScale.range();
+    // Compute ticks: increase the number to have more ticks
+    const numTicks = 10;
     const ticks = useMemo(() => {
-        return xScale.domain().map((value) => ({
+        return xScale.ticks(numTicks).map(value => ({
             value,
-            // @ts-ignore
             xOffset: xScale(value)
         }));
-    }, [xScale]);
-    //+ xScale.bandwidth() / 2,
+    }, [xScale, numTicks]);
 
     return (
         <>

@@ -8,6 +8,19 @@ import (
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
 
+// {7138983863666903883}.ethereum-mainnet:eth_blockNumber:samples
+// {7138983863666903883}.ethereum-mainnet:eth_getBlockByNumber:samples
+// {7138983863666903883}.ethereum-mainnet:metrics
+
+func (r *IrisRedisTestSuite) TestReadMetrics() {
+	tm, err := IrisRedisClient.GetPriorityScoresAndTdigestMetrics(context.Background(), 7138983863666903883, "ethereum-mainnet")
+	r.NoError(err)
+	fmt.Println(tm)
+	r.Equal("ethereum-mainnet", tm.TableName)
+	r.NotEmpty(tm.Metrics)
+	r.NotEmpty(tm.Routes)
+}
+
 func GetMetricOffset(offset int) string {
 	return fmt.Sprintf("fooTestMetricName%d", offset)
 }

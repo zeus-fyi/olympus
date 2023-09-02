@@ -90,7 +90,7 @@ export function LoadBalancingMetricsTable(props: any) {
                                     <TableCell align="center">{slice.sampleCount}</TableCell>
                                     <TableCell align="center">{slice.p10}</TableCell>
                                     <TableCell align="center">{slice.p25}</TableCell>
-                                    <TableCell align="center">{slice.p5}</TableCell>
+                                    <TableCell align="center">{slice.p50}</TableCell>
                                     <TableCell align="center">{slice.p75}</TableCell>
                                     <TableCell align="center">{slice.p99}</TableCell>
                                 </TableRow>

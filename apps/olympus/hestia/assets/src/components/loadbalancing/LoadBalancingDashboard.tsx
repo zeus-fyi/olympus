@@ -25,7 +25,7 @@ import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/
 import {setEndpoints, setGroupEndpoints, setTableMetrics} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
 import {PlanUsagePieCharts} from "./charts/pie/UsagePieChart";
-import {TableMetricsCharts} from "./charts/radar/MetricsCharts";
+import {MetricsChart, TableMetricsCharts} from "./charts/radar/MetricsCharts";
 import {LoadBalancingRoutesTable} from "./tables/LoadBalancingRoutesTable";
 import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
@@ -477,6 +477,9 @@ function LoadBalancingDashboardContent(props: any) {
                         </Card>
                             {(groupName === "-all" || groupName === "unused") && (
                                 <PlanUsagePieCharts reload={reload} setReload={setReload}/>
+                            )}
+                            {(groupName !== "-all" && groupName !== "unused") && (
+                                <MetricsChart />
                             )}
                         </Stack>
                     </Container>

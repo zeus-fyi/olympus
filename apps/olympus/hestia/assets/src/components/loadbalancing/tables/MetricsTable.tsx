@@ -80,6 +80,7 @@ export function LoadBalancingMetricsTable(props: any) {
                                 <TableCell style={{ color: 'white'}} align="center">P50</TableCell>
                                 <TableCell style={{ color: 'white'}} align="center">P75</TableCell>
                                 <TableCell style={{ color: 'white'}} align="center">P90</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">P95</TableCell>
                                 <TableCell style={{ color: 'white'}} align="center">P99</TableCell>
                             </TableRow>
                         </TableHead>
@@ -92,6 +93,7 @@ export function LoadBalancingMetricsTable(props: any) {
                                     <TableCell align="center">{slice.p50}</TableCell>
                                     <TableCell align="center">{slice.p75}</TableCell>
                                     <TableCell align="center">{slice.p90}</TableCell>
+                                    <TableCell align="center">{slice.p95}</TableCell>
                                     <TableCell align="center">{slice.p99}</TableCell>
                                 </TableRow>
                             ))}

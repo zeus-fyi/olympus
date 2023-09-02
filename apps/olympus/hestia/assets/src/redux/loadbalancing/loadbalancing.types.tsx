@@ -58,6 +58,7 @@ export interface MetricAggregateRow {
     p50?: string;
     p75?: string;
     p90?: string;
+    p95?: string;
     p99?: string;
     p100?: string;
 }
@@ -85,6 +86,8 @@ export function generateMetricSlices(tableMetricsSummaries: TableMetricsSummary[
                 const latency = addTimeUnitToLatency(metricSample.latency);
                 if (percentile === 0.9) {
                     metricSlice.p90 = latency;
+                } else if (percentile === 0.95) {
+                    metricSlice.p95 = latency;
                 } else if (percentile === 0.25) {
                     metricSlice.p25 = latency;
                 } else if (percentile === 0.5) {

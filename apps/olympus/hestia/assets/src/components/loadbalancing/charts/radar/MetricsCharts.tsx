@@ -32,11 +32,11 @@ export function TableMetricsCharts(props: any) {
             try {
                 setLoading(true);
                 const response = await loadBalancingApiGateway.getTableMetrics(tableName);
-                console.log(response.data)
-                console.log(response)
+                // console.log(response.data)
+                // console.log(response)
                 const tableMetrics = response.data;
-                if (tableMetrics.metrics != null && tableMetrics.length > 0) {
-                    dispatch(setTableMetrics(response.data));
+                if (tableMetrics != null && tableMetrics.metrics != null) {
+                    dispatch(setTableMetrics(tableMetrics));
                 }
             } catch (e) {
             } finally {
@@ -71,7 +71,7 @@ export function TableMetricsCharts(props: any) {
 
 export function MetricsChart(props: any) {
     const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
-    if (tableMetrics == null || tableMetrics.metrics == null ||  Object.keys(tableMetrics.metrics).length == 0) {
+    if (tableMetrics == null || tableMetrics.metrics == null) {
         return <div></div>
     }
     const formattedData: FormattedData[] = Object.keys(tableMetrics.metrics).map((key, idx) => {

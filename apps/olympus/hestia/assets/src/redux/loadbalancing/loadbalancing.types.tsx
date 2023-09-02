@@ -56,7 +56,7 @@ export interface MetricAggregateRow {
     sampleCount: number;
     p10?: string;
     p25?: string;
-    p5?: string;
+    p50?: string;
     p75?: string;
     p99?: string;
     p100?: string;
@@ -88,7 +88,7 @@ export function generateMetricSlices(tableMetricsSummaries: TableMetricsSummary[
                 } else if (percentile === 0.25) {
                     metricSlice.p25 = latency;
                 } else if (percentile === 0.5) {
-                    metricSlice.p5 = latency;
+                    metricSlice.p50 = latency;
                 } else if (percentile === 0.75) {
                     metricSlice.p75 = latency;
                 } else if (percentile === 0.99) {

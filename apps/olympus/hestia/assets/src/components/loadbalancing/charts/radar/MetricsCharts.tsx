@@ -1,16 +1,12 @@
 import React, {useEffect} from 'react';
-import {PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart} from 'recharts';
+import {PolarAngleAxis, PolarGrid, Radar, RadarChart} from 'recharts';
 import {Card, CardContent} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
 import Container from "@mui/material/Container";
 import {RootState} from "../../../../redux/store";
 import {Boxplot} from "../boxplot/BoxPlot";
-import {
-    generateMetricSlices,
-    MetricAggregateRow,
-    TableMetric
-} from "../../../../redux/loadbalancing/loadbalancing.types";
+import {generateMetricSlices, MetricAggregateRow} from "../../../../redux/loadbalancing/loadbalancing.types";
 import {loadBalancingApiGateway} from "../../../../gateway/loadbalancing";
 import {setTableMetrics} from "../../../../redux/loadbalancing/loadbalancing.reducer";
 
@@ -63,7 +59,7 @@ export function TableMetricsCharts(props: any) {
             {/*<MetricsChart />*/}
             {tableMetrics && tableMetrics.metrics &&
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <Boxplot tableMetrics={tableMetrics} width={1200} height={800} />
+                <Boxplot tableMetrics={tableMetrics} width={1200} height={(1+safeEndpoints.length)*225} />
             </Container>}
         </div>
     )
@@ -74,30 +70,20 @@ export function MetricsChart(props: any) {
     if (tableMetrics == null || tableMetrics.metrics == null) {
         return <div></div>
     }
-    const formattedData: FormattedData[] = Object.keys(tableMetrics.metrics).map((key, idx) => {
-        const metric: TableMetric = tableMetrics.metrics[key];
-        return {
-            subject: `Sample ${idx + 1}`,
-            sampleCount: metric.sampleCount,
-            percentile: metric.metricPercentiles.reduce((acc, sample) => acc + sample.percentile, 0) / metric.metricPercentiles.length,
-            latency: metric.metricPercentiles.reduce((acc, sample) => acc + sample.latency, 0) / metric.metricPercentiles.length,
-        };
-    });
+
+    const formattedData: MetricAggregateRow[] = generateMetricSlices([tableMetrics]); // Generate slices here
     return (
         <div>
             {formattedData.length > 0 && (
                 <Card>
                     <CardContent>
                         <Typography variant="h5" gutterBottom>
-                            Metrics Chart for {tableMetrics.tableName}
+                            Table Requests
                         </Typography>
-                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={formattedData}>
+                        <RadarChart cx="50%" cy="50%" outerRadius="80%" width={700} height={300} data={formattedData}>
                             <PolarGrid />
-                            <PolarAngleAxis dataKey="subject" />
-                            <PolarRadiusAxis />
+                            <PolarAngleAxis dataKey="metricName" />
                             <Radar name="Sample Count" dataKey="sampleCount" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                            <Radar name="Percentile" dataKey="percentile" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
-                            <Radar name="Latency" dataKey="latency" stroke="#ffc658" fill="#ffc658" fillOpacity={0.6} />
                         </RadarChart>
                     </CardContent>
                 </Card>

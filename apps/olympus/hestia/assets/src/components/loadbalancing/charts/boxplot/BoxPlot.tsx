@@ -5,7 +5,7 @@ import {TableMetricsSummary} from "../../../../redux/loadbalancing/loadbalancing
 import {getSummaryStatsExt} from "./SummaryStats";
 import {VerticalBox} from "./VerticalBox";
 
-const MARGIN = { top: 175, right: 175, bottom: 30, left: 50 };
+const MARGIN = { top: 175, right: 175, bottom: 30, left: 75 };
 
 type BoxplotProps = {
     width: number;

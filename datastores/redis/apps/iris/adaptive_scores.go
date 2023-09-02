@@ -178,14 +178,14 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	//log.Info().Float64(" stats.MetricLatencyTail", stats.MetricLatencyTail).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
 	//log.Info().Int64(" stats.LatencyMilliseconds", stats.LatencyMilliseconds).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
 
-	rate := stats.LatencyQuartilePercentageRank + 0.618
+	rate := stats.LatencyQuartilePercentageRank + 0.6
 	// essentially this just multiplies the score by the priority rate growth
 	scoreAdjustmentMemberOut := rate * stats.MemberRankScoreOut.Score
 	stats.MemberRankScoreOut.Score = scoreAdjustmentMemberOut
 	pipe := m.Writer.TxPipeline()
 
 	rateLimiterKey := getOrgRateLimitKey(stats.OrgID)
-	pipe.Expire(ctx, rateLimiterKey, 3*time.Second)
+	pipe.Expire(ctx, rateLimiterKey, 2*time.Second)
 	if stats.Meter != nil {
 		_ = pipe.IncrByFloat(ctx, orgRequests, stats.Meter.ZeusResponseComputeUnitsConsumed())
 		// Increment the rate limiter key
@@ -205,7 +205,7 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 		tableMetricKey := getMetricTdigestKey(stats.OrgID, stats.TableName, stats.Metric)
 		metricTdigestSampleCountKey := getMetricTdigestMetricSamplesKey(stats.OrgID, stats.TableName, stats.Metric)
 		pipe.Incr(ctx, metricTdigestSampleCountKey)
-		pipe.Expire(ctx, metricTdigestSampleCountKey, 15*time.Minute)
+		pipe.Expire(ctx, metricTdigestSampleCountKey, StatsTimeToLiveAfterLastUsage)
 		tdigestResp = pipe.Do(ctx, "PERCENTILE.MERGE", tableMetricKey, stats.LatencyMilliseconds)
 		pipe.Expire(ctx, tableMetricKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 

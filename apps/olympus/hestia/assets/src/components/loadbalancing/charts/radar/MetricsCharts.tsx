@@ -72,15 +72,18 @@ export function MetricsChart(props: any) {
     }
 
     const formattedData: MetricAggregateRow[] = generateMetricSlices([tableMetrics]); // Generate slices here
+    const sortedMetrics = formattedData.sort((a, b) => b.sampleCount - a.sampleCount);
+    const topTenMetrics = sortedMetrics.slice(0, 10);
+
     return (
         <div>
             {formattedData.length > 0 && (
                 <Card>
                     <CardContent>
                         <Typography variant="h5" gutterBottom>
-                            Table Requests
+                            Top Table Requests
                         </Typography>
-                        <RadarChart cx="50%" cy="50%" outerRadius="80%" width={700} height={300} data={formattedData}>
+                        <RadarChart cx="50%" cy="50%" outerRadius="80%" width={700} height={300} data={topTenMetrics}>
                             <PolarGrid />
                             <PolarAngleAxis dataKey="metricName" />
                             <Radar name="Sample Count" dataKey="sampleCount" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />

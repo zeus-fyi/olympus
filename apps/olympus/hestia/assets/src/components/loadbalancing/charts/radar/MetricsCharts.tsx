@@ -59,7 +59,7 @@ export function TableMetricsCharts(props: any) {
             {/*<MetricsChart />*/}
             {tableMetrics && tableMetrics.metrics &&
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <Boxplot tableMetrics={tableMetrics} width={1200} height={(1+safeEndpoints.length)*200} />
+                <Boxplot tableMetrics={tableMetrics} width={1200} height={(1+safeEndpoints.length)*225} />
             </Container>}
         </div>
     )

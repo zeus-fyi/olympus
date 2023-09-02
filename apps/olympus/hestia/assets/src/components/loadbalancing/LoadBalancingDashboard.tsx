@@ -259,11 +259,15 @@ function LoadBalancingDashboardContent(props: any) {
     };
 
     const handleChangeGroup = (name: string) => {
-
         setPage(0);
         setSelected([]);
         setGroupName(name);
         setIsUpdatingGroup(false);
+
+        if (endpoints == null || endpoints.length == 0) {
+            setReload(!reload); // Trigger reload by flipping the state
+        }
+
         setTableRoutes(name === "-all" ? endpoints : groups[name]);
     };
 

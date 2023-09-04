@@ -46,6 +46,8 @@ const (
 	IrisReadGroupsRoutesPath  = "/iris/routes/groups/read"
 	IrisDeleteGroupRoutesPath = "/iris/routes/groups/delete"
 
+	IrisDeleteSingleGroupRoutesPath = "/iris/routes/group/:groupName/delete"
+
 	IrisDeleteRoutesPathInternal = "/iris/routes/delete/:orgID"
 )
 
@@ -90,7 +92,7 @@ func InitV1Routes(e *echo.Echo) {
 	eg.PUT(IrisUpdateGroupRoutesPath, hestia_iris_v1_routes.UpdateOrgGroupRoutesRequestHandler)
 	eg.PUT(IrisRemoveEndpointsFromGroupRoutesPath, hestia_iris_v1_routes.DeletePartialOrgGroupRoutesRequestHandler)
 	eg.DELETE(IrisDeleteGroupRoutesPath, hestia_iris_v1_routes.DeleteReplaceOrgGroupRoutesRequestHandler)
-
+	eg.DELETE(IrisDeleteSingleGroupRoutesPath, hestia_iris_v1_routes.DeleteOrgGroupRoutesRequestHandler)
 	eg.GET(IrisReadAllRoutesAndGroupsPath, hestia_iris_v1_routes.ReadAllOrgGroupsAndEndpointsRequestHandler)
 
 	eg.GET("/age/generate", GenerateRandomAgeEncryptionKey) // if no js client, generate age keypair

@@ -64,9 +64,6 @@ func (h *HestiaPlatformActivities) DeleteOrgRoutesFromGroup(ctx context.Context,
 }
 
 func (h *HestiaPlatformActivities) DeleteOrgRoutingGroup(ctx context.Context, pr IrisPlatformServiceRequest) error {
-	if len(pr.Routes) == 0 {
-		return nil
-	}
 	if pr.OrgGroupName == "" {
 		return nil
 	}

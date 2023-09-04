@@ -111,7 +111,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 
 	orgGroupName := pr.OrgGroupName
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(pCtx, h.DeleteOrgRoutesFromGroup, pr).Get(pCtx, nil)
+	err = workflow.ExecuteActivity(pCtx, h.DeleteOrgRoutingGroup, pr).Get(pCtx, nil)
 	if err != nil {
 		logger.Warn("params", pr)
 		logger.Error("HestiaPlatformServiceWorkflows: DeleteOrgRoutesFromGroup: failed to DeleteOrgGroupRoutingTable", "Error", err)

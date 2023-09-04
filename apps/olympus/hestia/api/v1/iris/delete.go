@@ -79,6 +79,14 @@ func DeleteReplaceOrgGroupRoutesRequestHandler(c echo.Context) error {
 	return request.DeleteOrgRoutingGroup(c)
 }
 
+func DeleteOrgGroupRoutesRequestHandler(c echo.Context) error {
+	request := new(OrgGroupRoutesRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.DeleteOrgRoutingGroup(c)
+}
+
 func (r *OrgGroupRoutesRequest) DeleteOrgRoutingGroup(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {

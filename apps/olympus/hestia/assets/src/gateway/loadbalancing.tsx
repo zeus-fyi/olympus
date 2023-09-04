@@ -90,6 +90,23 @@ class LoadBalancingApiGateway {
             return
         }
     }
+    async removeEndpointsFromGroupRoutingTable(payload: IrisOrgGroupRoutesRequest): Promise<any>  {
+        const url = `/v1/iris/routes/group/${payload.groupName}/delete`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await hestiaApi.put(url, payload, config)
+        } catch (exc) {
+            console.error('error sending put customer endpoints request');
+            console.error(exc);
+            return
+        }
+    }
 }
 export const loadBalancingApiGateway = new LoadBalancingApiGateway();
 

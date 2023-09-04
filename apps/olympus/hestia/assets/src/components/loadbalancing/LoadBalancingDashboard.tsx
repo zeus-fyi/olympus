@@ -180,7 +180,11 @@ function LoadBalancingDashboardContent(props: any) {
                 if (payload.routes.length === 0) {
                     const response = await loadBalancingApiGateway.deleteEndpoints(payload);
                 } else {
-                    const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
+                    const payloadPartial: IrisOrgGroupRoutesRequest = {
+                        groupName: groupName,
+                        routes: selected
+                    }
+                    const response = await loadBalancingApiGateway.removeEndpointsFromGroupRoutingTable(payloadPartial);
                 }
             }
         } catch (error) {
@@ -263,11 +267,12 @@ function LoadBalancingDashboardContent(props: any) {
         setSelected([]);
         setGroupName(name);
         setIsUpdatingGroup(false);
-
         if (endpoints == null || endpoints.length == 0) {
             setReload(!reload); // Trigger reload by flipping the state
         }
-
+        if (name === "-all" || name === "unused") {
+            setSelectedTab(0);
+        }
         setTableRoutes(name === "-all" ? endpoints : groups[name]);
     };
 
@@ -501,7 +506,7 @@ function LoadBalancingDashboardContent(props: any) {
                                     <Tab label="Endpoints"  />
                                     <Tab label="Metrics"  />
                                     <Tab label="Priority Scores" />
-                                    {/*<Tab label="Procedures" />*/}
+                                    <Tab label="Procedures" />
                                 </Tabs>
                             </Box>
                         )}

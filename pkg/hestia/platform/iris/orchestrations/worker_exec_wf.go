@@ -56,6 +56,29 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisDeleteOrgGroupRoutingTableWork
 	return err
 }
 
+func (h *HestiaPlatformServicesWorker) ExecuteIrisRemoveRoutesFromOrgGroupRoutingTableWorkflow(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	if pr.OrgGroupName == "" {
+		return errors.New("org group name is empty")
+	}
+	if pr.Ou.OrgID == 0 {
+		return errors.New("org id is empty")
+	}
+	tc := h.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
+		TaskQueue: h.TaskQueueName,
+	}
+	txWf := NewHestiaPlatformServiceWorkflows()
+	wf := txWf.IrisDeleteRoutesFromOrgGroupRoutingTableWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, pr)
+	if err != nil {
+		log.Err(err).Msg("ExecuteIrisDeleteOrgGroupRoutingTableWorkflow")
+		return err
+	}
+	return err
+}
+
 func (h *HestiaPlatformServicesWorker) ExecuteIrisDeleteOrgRoutesWorkflow(ctx context.Context, pr IrisPlatformServiceRequest) error {
 	if pr.Ou.OrgID == 0 {
 		return errors.New("org id is empty")

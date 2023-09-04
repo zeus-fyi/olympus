@@ -112,9 +112,9 @@ func (h *HestiaQuickNodeActivities) UpsertQuickNodeRoutingEndpoint(ctx context.C
 }
 
 func (h *HestiaQuickNodeActivities) DeleteOrgGroupRoutingTable(ctx context.Context, ou org_users.OrgUser, groupName string) error {
-	err := iris_models.DeleteOrgGroupAndRoutes(context.Background(), ou.OrgID, groupName)
+	err := iris_models.DeleteOrgRoutingGroup(context.Background(), ou.OrgID, groupName)
 	if err != nil {
-		log.Err(err).Msg("DeleteOrgGroupRoutingTable: DeleteOrgGroupRoutingTable")
+		log.Err(err).Msg("HestiaQuickNodeActivities: DeleteOrgGroupRoutingTable")
 		return err
 	}
 	return nil

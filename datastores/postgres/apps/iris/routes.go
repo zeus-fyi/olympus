@@ -181,6 +181,28 @@ func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGro
 	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRouteGroup"))
 }
 
+func DeleteOrgRoutesFromGroup(ctx context.Context, orgID int, groupName string, routePaths []string) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+		WITH cte_entry AS (
+			SELECT ogs.route_id
+			FROM org_route_groups org
+			INNER JOIN org_routes_groups ogs ON ogs.route_group_id = org.route_group_id
+			INNER JOIN org_routes orr ON orr.route_id = ogs.route_id
+			WHERE org.org_id = $1 AND org.route_group_name = $2 AND orr.route_path = ANY($3::text[])
+		)
+		DELETE FROM org_routes_groups
+		WHERE route_id IN (SELECT route_id FROM cte_entry)
+	`
+
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, groupName, pq.Array(routePaths))
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("No new routes to insert")
+		return nil
+	}
+	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRouteGroup"))
+}
+
 func InsertOrgRoutesGroups(ctx context.Context, ors iris_autogen_bases.OrgRoutesGroups) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO org_routes_groups(route_group_id,route_id)
@@ -458,26 +480,26 @@ func DeleteOrgRoutes(ctx context.Context, orgID int, routes []string) error {
 	return misc.ReturnIfErr(err, q.LogHeader("DeleteOrgRoutes"))
 }
 
-func DeleteOrgGroupAndRoutes(ctx context.Context, orgID int, routeGroupName string) error {
-	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `
-		WITH cte_delete1 AS (
-			DELETE FROM org_routes_groups og
-		    WHERE route_group_id IN ( SELECT ortg.route_group_id
-			  						  FROM org_routes_groups ortg
-			  						  INNER JOIN org_route_groups org ON org.route_group_id = ortg.route_group_id		
-									  WHERE org.org_id = $1 AND org.route_group_name = $2)
-		) 
-		DELETE FROM org_route_groups
-		WHERE org_id = $1 AND route_group_name = $2
-	`
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, routeGroupName)
-	if err == pgx.ErrNoRows {
-		log.Warn().Msg("No routes to delete")
-		return nil
-	}
-	return misc.ReturnIfErr(err, q.LogHeader("DeleteOrgGroupAndRoutes"))
-}
+//func DeleteOrgGroupAndRoutes(ctx context.Context, orgID int, routeGroupName string) error {
+//	q := sql_query_templates.QueryParams{}
+//	q.RawQuery = `
+//		WITH cte_delete1 AS (
+//			DELETE FROM org_routes_groups og
+//		    WHERE route_group_id IN ( SELECT ortg.route_group_id
+//			  						  FROM org_routes_groups ortg
+//			  						  INNER JOIN org_route_groups org ON org.route_group_id = ortg.route_group_id
+//									  WHERE org.org_id = $1 AND org.route_group_name = $2)
+//		)
+//		DELETE FROM org_route_groups
+//		WHERE org_id = $1 AND route_group_name = $2
+//	`
+//	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, routeGroupName)
+//	if err == pgx.ErrNoRows {
+//		log.Warn().Msg("No routes to delete")
+//		return nil
+//	}
+//	return misc.ReturnIfErr(err, q.LogHeader("DeleteOrgGroupAndRoutes"))
+//}
 
 type TableUsage struct {
 	EndpointCount           int `json:"endpointCount"`

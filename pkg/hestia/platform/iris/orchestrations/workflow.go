@@ -97,6 +97,9 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 	if pr.OrgGroupName == "" {
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: org group name is empty")
 	}
+	if len(pr.Routes) == 0 {
+		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: no routes provided for deletion")
+	}
 
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisDeleteOrgGroupRoutingTableWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
@@ -110,10 +113,10 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 
 	orgGroupName := pr.OrgGroupName
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(pCtx, h.DeleteOrgGroupRoutingTable, pr).Get(pCtx, nil)
+	err = workflow.ExecuteActivity(pCtx, h.DeleteOrgRoutesFromGroup, pr).Get(pCtx, nil)
 	if err != nil {
 		logger.Warn("params", pr)
-		logger.Error("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: failed to DeleteOrgGroupRoutingTable", "Error", err)
+		logger.Error("HestiaPlatformServiceWorkflows: DeleteOrgRoutesFromGroup: failed to DeleteOrgGroupRoutingTable", "Error", err)
 		return err
 	}
 	pr.OrgGroupName = orgGroupName

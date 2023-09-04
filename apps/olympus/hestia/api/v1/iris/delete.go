@@ -71,7 +71,7 @@ func (r *OrgGroupRoutesRequest) InternalDeleteOrgRoutes(c echo.Context) error {
 	})
 }
 
-func DeleteOrgGroupRoutesRequestHandler(c echo.Context) error {
+func DeleteReplaceOrgGroupRoutesRequestHandler(c echo.Context) error {
 	request := new(OrgGroupRoutesRequest)
 	if err := c.Bind(request); err != nil {
 		return err
@@ -86,6 +86,40 @@ func (r *OrgGroupRoutesRequest) DeleteOrgRoutingGroup(c echo.Context) error {
 	}
 	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
 		Ou:           ou,
+		OrgGroupName: r.GroupName,
+	}
+	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisDeleteOrgGroupRoutingTableWorkflow(context.Background(), ipr)
+	if err != nil {
+		log.Err(err).Msg("DeleteOrgRoutingGroup")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, QuickNodeResponse{
+		Status: "success",
+	})
+}
+
+func DeletePartialOrgGroupRoutesRequestHandler(c echo.Context) error {
+	request := new(OrgGroupRoutesRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.DeletePartialOrgGroupRoutes(c)
+}
+
+func (r *OrgGroupRoutesRequest) DeletePartialOrgGroupRoutes(c echo.Context) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if len(r.GroupName) == 0 {
+		return c.JSON(http.StatusBadRequest, "GroupName is required")
+	}
+	if (len(r.Routes)) == 0 {
+		return c.JSON(http.StatusBadRequest, "Routes are required")
+	}
+	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
+		Ou:           ou,
+		Routes:       r.Routes,
 		OrgGroupName: r.GroupName,
 	}
 	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisDeleteOrgGroupRoutingTableWorkflow(context.Background(), ipr)

@@ -28,23 +28,11 @@ type ActivitiesSlice []interface{}
 func (h *HestiaPlatformActivities) GetActivities() ActivitiesSlice {
 	actSlice := []interface{}{
 		h.IrisPlatformSetupCacheUpdateRequest, h.UpdateDatabaseOrgRoutingTables, h.CreateOrgGroupRoutingTable,
-		h.DeleteOrgGroupRoutingTable, h.DeleteOrgRoutes, h.IrisPlatformDeleteGroupTableCacheRequest,
-		h.IrisPlatformDeleteOrgGroupTablesCacheRequest,
+		h.DeleteOrgRoutes, h.IrisPlatformDeleteGroupTableCacheRequest,
+		h.IrisPlatformDeleteOrgGroupTablesCacheRequest, h.DeleteOrgRoutesFromGroup,
 	}
 	actSlice = append(actSlice, h.KronosActivities.GetActivities()...)
 	return actSlice
-}
-
-func (h *HestiaPlatformActivities) DeleteOrgGroupRoutingTable(ctx context.Context, pr IrisPlatformServiceRequest) error {
-	if pr.OrgGroupName == "" {
-		return nil
-	}
-	err := iris_models.DeleteOrgGroupAndRoutes(context.Background(), pr.Ou.OrgID, pr.OrgGroupName)
-	if err != nil {
-		log.Err(err).Msg("DeleteOrgGroupRoutingTable: DeleteOrgGroupRoutingTable")
-		return err
-	}
-	return nil
 }
 
 func (h *HestiaPlatformActivities) DeleteOrgRoutes(ctx context.Context, pr IrisPlatformServiceRequest) error {
@@ -52,6 +40,21 @@ func (h *HestiaPlatformActivities) DeleteOrgRoutes(ctx context.Context, pr IrisP
 		return nil
 	}
 	err := iris_models.DeleteOrgRoutes(context.Background(), pr.Ou.OrgID, pr.Routes)
+	if err != nil {
+		log.Err(err).Msg("DeleteOrgRoutes: DeleteOrgRoutes")
+		return err
+	}
+	return nil
+}
+func (h *HestiaPlatformActivities) DeleteOrgRoutesFromGroup(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	if len(pr.Routes) == 0 {
+		return nil
+	}
+	if pr.OrgGroupName == "" {
+		return nil
+	}
+
+	err := iris_models.DeleteOrgRoutesFromGroup(context.Background(), pr.Ou.OrgID, pr.OrgGroupName, pr.Routes)
 	if err != nil {
 		log.Err(err).Msg("DeleteOrgRoutes: DeleteOrgRoutes")
 		return err

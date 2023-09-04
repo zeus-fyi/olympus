@@ -80,7 +80,10 @@ func DeleteReplaceOrgGroupRoutesRequestHandler(c echo.Context) error {
 }
 
 func (r *OrgGroupRoutesRequest) DeleteOrgRoutingGroup(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	if len(r.GroupName) == 0 {
 		return c.JSON(http.StatusBadRequest, "GroupName is required")
 	}

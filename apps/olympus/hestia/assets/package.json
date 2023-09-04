@@ -94,6 +94,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-transform-private-property-in-object": "^7.22.11",
     "@redux-devtools/core": "^3.13.1",
     "@types/aws4": "^1.11.2",
     "@types/js-yaml": "^4.0.5",

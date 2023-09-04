@@ -135,8 +135,8 @@ func (h *HestiaPlatformActivities) IrisPlatformSetupCacheUpdateRequest(ctx conte
 
 func (h *HestiaPlatformActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx context.Context, pr IrisPlatformServiceRequest) error {
 	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
-	refreshEndpoint := fmt.Sprintf("/v1/internal/router/delete/%d/%s", pr.Ou.OrgID, pr.OrgGroupName)
-	resp, err := rc.R().Get(refreshEndpoint)
+	refreshEndpoint := fmt.Sprintf("/v1/internal/router/%d/%s", pr.Ou.OrgID, pr.OrgGroupName)
+	resp, err := rc.R().Delete(refreshEndpoint)
 	if err != nil {
 		log.Err(err).Msg("IrisPlatformDeleteGroupTableCacheRequest")
 		return err
@@ -150,8 +150,8 @@ func (h *HestiaPlatformActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx 
 
 func (h *HestiaPlatformActivities) IrisPlatformDeleteOrgGroupTablesCacheRequest(ctx context.Context, pr IrisPlatformServiceRequest) error {
 	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
-	refreshEndpoint := fmt.Sprintf("/v1/internal/router/delete/%d", pr.Ou.OrgID)
-	resp, err := rc.R().Get(refreshEndpoint)
+	refreshEndpoint := fmt.Sprintf("/v1/internal/router/%d", pr.Ou.OrgID)
+	resp, err := rc.R().Delete(refreshEndpoint)
 	if err != nil {
 		log.Err(err).Msg("HestiaPlatformActivities: IrisPlatformDeleteOrgGroupTablesCacheRequest")
 		return err

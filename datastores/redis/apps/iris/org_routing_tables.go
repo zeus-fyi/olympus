@@ -103,12 +103,14 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 func (m *IrisCache) DeleteOrgRoutingGroup(ctx context.Context, orgID int, rgName string) error {
 	// Generate the key
 	tag := getOrgRouteKey(orgID, rgName)
+	endpointPriorityScoreKey := createAdaptiveEndpointPriorityScoreKey(orgID, rgName)
 
 	// Start a new transaction
 	pipe := m.Writer.TxPipeline()
 
 	// Remove the old key if it exists
 	pipe.Del(ctx, tag)
+	pipe.Del(ctx, endpointPriorityScoreKey)
 
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)

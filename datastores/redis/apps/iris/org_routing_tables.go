@@ -83,11 +83,11 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 		// Add the referers to a set
 		if len(routeInfo.Referrers) > 0 {
 			// Convert []string to []interface{}
-			referersInterface := make([]interface{}, len(routeInfo.Referrers))
+			referrersInterface := make([]interface{}, len(routeInfo.Referrers))
 			for i, v := range routeInfo.Referrers {
-				referersInterface[i] = v
+				referrersInterface[i] = v
 			}
-			pipe.SAdd(ctx, refererTag, referersInterface...)
+			pipe.SAdd(ctx, refererTag, referrersInterface...)
 		}
 	}
 

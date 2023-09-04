@@ -122,9 +122,9 @@ func (r *OrgGroupRoutesRequest) DeletePartialOrgGroupRoutes(c echo.Context) erro
 		Routes:       r.Routes,
 		OrgGroupName: r.GroupName,
 	}
-	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisDeleteOrgGroupRoutingTableWorkflow(context.Background(), ipr)
+	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisRemoveRoutesFromOrgGroupRoutingTableWorkflow(context.Background(), ipr)
 	if err != nil {
-		log.Err(err).Msg("DeleteOrgRoutingGroup")
+		log.Err(err).Msg("DeletePartialOrgGroupRoutes: ExecuteIrisRemoveRoutesFromOrgGroupRoutingTableWorkflow")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, QuickNodeResponse{

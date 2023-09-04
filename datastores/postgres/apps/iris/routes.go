@@ -115,8 +115,7 @@ func DeleteOrgRoutingGroup(ctx context.Context, orgID int, groupName string) err
 			WHERE org.org_id = $1 AND org.route_group_name = $2
 		)
 		DELETE FROM org_routes_groups
-		WHERE route_id IN (SELECT route_id FROM cte_entry)
-	`
+		WHERE route_id IN (SELECT route_id FROM cte_entry) AND route_group_id IN (SELECT route_group_id FROM cte_entry)`
 
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, groupName)
 	if err == pgx.ErrNoRows {
@@ -207,16 +206,15 @@ func DeleteOrgRoutesFromGroup(ctx context.Context, orgID int, groupName string, 
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
 		WITH cte_entry AS (
-			SELECT ogs.route_id
+			SELECT ogs.route_group_id, ogs.route_id
 			FROM org_route_groups org
 			INNER JOIN org_routes_groups ogs ON ogs.route_group_id = org.route_group_id
 			INNER JOIN org_routes orr ON orr.route_id = ogs.route_id
 			WHERE org.org_id = $1 AND org.route_group_name = $2 AND orr.route_path = ANY($3::text[])
 		)
 		DELETE FROM org_routes_groups
-		WHERE route_id IN (SELECT route_id FROM cte_entry)
+		WHERE route_id IN (SELECT route_id FROM cte_entry) AND route_group_id IN (SELECT route_group_id FROM cte_entry)
 	`
-
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, groupName, pq.Array(routePaths))
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("No new routes to insert")

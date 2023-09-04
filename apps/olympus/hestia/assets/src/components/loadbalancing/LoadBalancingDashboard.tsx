@@ -29,6 +29,7 @@ import {MetricsChart, TableMetricsCharts} from "./charts/radar/MetricsCharts";
 import {LoadBalancingRoutesTable} from "./tables/LoadBalancingRoutesTable";
 import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
+import {ProceduresTable} from "./tables/ProceduresTables";
 
 
 const drawerWidth: number = 240;
@@ -113,6 +114,7 @@ function LoadBalancingDashboardContent(props: any) {
     const [reload, setReload] = useState(false); // State to trigger reload
     const [createGroupName, setCreateGroupName] = React.useState("");
     const [selectedTab, setSelectedTab] = useState(0);
+    const [selectedMainTab, setSelectedMainTab] = useState(0);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -333,6 +335,10 @@ function LoadBalancingDashboardContent(props: any) {
         setSelectedTab(newValue);
     };
 
+    const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setSelectedMainTab(newValue);
+    };
+
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -510,6 +516,14 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Tabs>
                             </Box>
                         )}
+                        {groupName === "-all" && (
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs example">
+                                    <Tab label="Endpoints"  />
+                                    <Tab label="Procedures" />
+                                </Tabs>
+                            </Box>
+                        )}
                         {selectedTab === 0 && (
                         <LoadBalancingRoutesTable
                             selectedTab={selectedTab}
@@ -562,6 +576,31 @@ function LoadBalancingDashboardContent(props: any) {
                             />)}
                         {selectedTab === 2 && groupName !== "-all" && groupName !== "unused" && (
                             <LoadBalancingPriorityScoreMetricsTable
+                                selectedTab={selectedTab}
+                                handleTabChange={handleTabChange}
+                                page={page}
+                                rowsPerPage={rowsPerPage}
+                                loading={loading}
+                                endpoints={tableRoutes}
+                                groups={groups}
+                                groupName={groupName}
+                                selected={selected}
+                                handleSelectAllClick={handleSelectAllClick}
+                                handleClick={handleClick}
+                                handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                handleChangePage={handleChangePage}
+                                isAdding={isAdding}
+                                setIsAdding={setIsAdding}
+                                newEndpoint={newEndpoint}
+                                isUpdatingGroup={isUpdatingGroup}
+                                setNewEndpoint={setNewEndpoint}
+                                handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                                handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                                handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                                handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
+                            />)}
+                        {selectedTab === 3 && groupName !== "-all" && groupName !== "unused" && (
+                            <ProceduresTable
                                 selectedTab={selectedTab}
                                 handleTabChange={handleTabChange}
                                 page={page}

@@ -16,8 +16,8 @@ const (
 	RefreshOrgRoutingTable     = "/router/refresh/:orgID"
 
 	RefreshOrgGroupRoutingTable = "/router/refresh/:orgID/:groupName"
-	DeleteOrgRoutingTables      = "/router/delete/:orgID"
-	DeleteOrgRoutingGroupTable  = "/router/delete/:orgID/:groupName"
+	DeleteOrgRoutingTables      = "/router/:orgID"
+	DeleteOrgRoutingGroupTable  = "/router/:orgID/:groupName"
 )
 
 func InitV1InternalRoutes(e *echo.Echo) {

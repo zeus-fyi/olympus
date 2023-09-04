@@ -30,6 +30,7 @@ func (h *HestiaPlatformActivities) GetActivities() ActivitiesSlice {
 		h.IrisPlatformSetupCacheUpdateRequest, h.UpdateDatabaseOrgRoutingTables, h.CreateOrgGroupRoutingTable,
 		h.DeleteOrgRoutes, h.IrisPlatformDeleteGroupTableCacheRequest,
 		h.IrisPlatformDeleteOrgGroupTablesCacheRequest, h.DeleteOrgRoutesFromGroup,
+		h.IrisPlatformRefreshOrgGroupTableCacheRequest,
 	}
 	actSlice = append(actSlice, h.KronosActivities.GetActivities()...)
 	return actSlice
@@ -146,6 +147,21 @@ func (h *HestiaPlatformActivities) IrisPlatformDeleteOrgGroupTablesCacheRequest(
 	}
 	if resp.StatusCode() >= 400 {
 		log.Err(err).Interface("orgUser", pr.Ou).Msg("HestiaPlatformActivities: IrisPlatformDeleteOrgGroupTablesCacheRequest")
+		return err
+	}
+	return nil
+}
+
+func (h *HestiaPlatformActivities) IrisPlatformRefreshOrgGroupTableCacheRequest(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
+	refreshEndpoint := fmt.Sprintf("/v1/internal/router/refresh/%d/%s", pr.Ou.OrgID, pr.OrgGroupName)
+	resp, err := rc.R().Put(refreshEndpoint)
+	if err != nil {
+		log.Err(err).Msg("HestiaPlatformActivities: IrisPlatformRefreshOrgGroupTableCacheRequest")
+		return err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("orgUser", pr.Ou).Msg("HestiaPlatformActivities: IrisPlatformRefreshOrgGroupTableCacheRequest")
 		return err
 	}
 	return nil

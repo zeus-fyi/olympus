@@ -25,7 +25,8 @@ func NewHestiaPlatformServiceWorkflows() HestiaPlatformServiceWorkflows {
 }
 
 func (h *HestiaPlatformServiceWorkflows) GetWorkflows() []interface{} {
-	return []interface{}{h.IrisRoutingServiceRequestWorkflow, h.IrisDeleteOrgGroupRoutingTableWorkflow, h.IrisDeleteOrgRoutesWorkflow, h.IrisRemoveAllOrgRoutesFromCacheWorkflow}
+	return []interface{}{h.IrisRoutingServiceRequestWorkflow, h.IrisDeleteOrgGroupRoutingTableWorkflow, h.IrisDeleteOrgRoutesWorkflow,
+		h.IrisRemoveAllOrgRoutesFromCacheWorkflow, h.IrisDeleteRoutesFromOrgGroupRoutingTableWorkflow}
 }
 
 const (
@@ -133,6 +134,63 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 	if err != nil {
 		logger.Warn("params", pr)
 		logger.Error("HestiaPlatformServiceWorkflows: failed to complete IrisPlatformDeleteGroupTableCacheRequest", "Error", err)
+		return err
+	}
+	finishedCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", pr.Ou)
+		logger.Error("failed to update cache for qn services", "Error", err)
+		return err
+	}
+	return nil
+}
+
+func (h *HestiaPlatformServiceWorkflows) IrisDeleteRoutesFromOrgGroupRoutingTableWorkflow(ctx workflow.Context, wfID string, pr IrisPlatformServiceRequest) error {
+	logger := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 15,
+	}
+	if pr.OrgGroupName == "" {
+		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: org group name is empty")
+	}
+	if len(pr.Routes) == 0 {
+		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: no routes provided for deletion")
+	}
+
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisDeleteRoutesFromOrgGroupRoutingTableWorkflow")
+	alertCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Warn("ou", pr.Ou)
+		logger.Error("failed to update cache for qn services", "Error", err)
+		return err
+	}
+
+	orgGroupName := pr.OrgGroupName
+	pCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(pCtx, h.DeleteOrgRoutesFromGroup, pr).Get(pCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Error("HestiaPlatformServiceWorkflows: DeleteOrgRoutesFromGroup: failed to DeleteOrgGroupRoutingTable", "Error", err)
+		return err
+	}
+	pr.OrgGroupName = orgGroupName
+	do := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 15,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Minute * 1,
+			BackoffCoefficient: 1.5,
+			MaximumInterval:    time.Minute * 5,
+		},
+	}
+	dCtx := workflow.WithActivityOptions(ctx, do)
+	err = workflow.ExecuteActivity(dCtx, h.IrisPlatformRefreshOrgGroupTableCacheRequest, pr).Get(dCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		logger.Error("HestiaPlatformServiceWorkflows: failed to complete IrisPlatformRefreshOrgGroupTableCacheRequest", "Error", err)
 		return err
 	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)

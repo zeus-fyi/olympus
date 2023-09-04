@@ -119,9 +119,7 @@ func (h *HestiaPlatformActivities) CreateOrgGroupRoutingTable(ctx context.Contex
 	return nil
 }
 
-const (
-	IrisApiUrl = "https://iris.zeus.fyi"
-)
+var IrisApiUrl = "https://iris.zeus.fyi"
 
 func (h *HestiaPlatformActivities) IrisPlatformSetupCacheUpdateRequest(ctx context.Context, pr IrisPlatformServiceRequest) error {
 	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
@@ -171,7 +169,7 @@ func (h *HestiaPlatformActivities) IrisPlatformDeleteOrgGroupTablesCacheRequest(
 func (h *HestiaPlatformActivities) IrisPlatformRefreshOrgGroupTableCacheRequest(ctx context.Context, pr IrisPlatformServiceRequest) error {
 	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
 	refreshEndpoint := fmt.Sprintf("/v1/internal/router/refresh/%d/%s", pr.Ou.OrgID, pr.OrgGroupName)
-	resp, err := rc.R().Put(refreshEndpoint)
+	resp, err := rc.R().Get(refreshEndpoint)
 	if err != nil {
 		log.Err(err).Msg("HestiaPlatformActivities: IrisPlatformRefreshOrgGroupTableCacheRequest")
 		return err

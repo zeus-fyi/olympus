@@ -45,7 +45,7 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshAllOrgRoutingTablesWorkflow(ctx wo
 func (i *IrisApiRequestsWorkflow) CacheRefreshOrgRoutingTablesWorkflow(ctx workflow.Context, orgID int) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    5 * time.Minute,
 			BackoffCoefficient: 2,
@@ -75,7 +75,7 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshOrgRoutingTablesWorkflow(ctx workf
 func (i *IrisApiRequestsWorkflow) CacheRefreshOrgGroupTableWorkflow(ctx workflow.Context, orgID int, groupName string) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    3 * time.Minute,
 			BackoffCoefficient: 2,
@@ -107,7 +107,7 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshOrgGroupTableWorkflow(ctx workflow
 func (i *IrisApiRequestsWorkflow) DeleteRoutingGroupWorkflow(ctx workflow.Context, orgID int, groupName string) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    3 * time.Minute,
 			BackoffCoefficient: 2,
@@ -132,7 +132,7 @@ func (i *IrisApiRequestsWorkflow) DeleteRoutingGroupWorkflow(ctx workflow.Contex
 func (i *IrisApiRequestsWorkflow) DeleteAllOrgRoutingGroupsWorkflow(ctx workflow.Context, orgID int) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    3 * time.Minute,
 			BackoffCoefficient: 2,

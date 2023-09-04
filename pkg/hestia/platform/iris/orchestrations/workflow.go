@@ -98,9 +98,6 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 	if pr.OrgGroupName == "" {
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: org group name is empty")
 	}
-	if len(pr.Routes) == 0 {
-		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: no routes provided for deletion")
-	}
 
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaPlatformServiceWorkflows", "IrisDeleteOrgGroupRoutingTableWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
@@ -150,7 +147,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 func (h *HestiaPlatformServiceWorkflows) IrisDeleteRoutesFromOrgGroupRoutingTableWorkflow(ctx workflow.Context, wfID string, pr IrisPlatformServiceRequest) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15,
+		StartToCloseTimeout: time.Minute * 30,
 	}
 	if pr.OrgGroupName == "" {
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: org group name is empty")
@@ -179,7 +176,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteRoutesFromOrgGroupRoutingTabl
 	}
 	pr.OrgGroupName = orgGroupName
 	do := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15,
+		StartToCloseTimeout: time.Minute * 30,
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Minute * 1,
 			BackoffCoefficient: 1.5,
@@ -207,7 +204,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteRoutesFromOrgGroupRoutingTabl
 func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgRoutesWorkflow(ctx workflow.Context, wfID string, pr IrisPlatformServiceRequest) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15,
+		StartToCloseTimeout: time.Minute * 30,
 	}
 	if len(pr.Routes) == 0 {
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgRoutesWorkflow: no routes provided for deletion")

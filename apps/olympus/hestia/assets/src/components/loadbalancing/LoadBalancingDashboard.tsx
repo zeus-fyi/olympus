@@ -180,7 +180,11 @@ function LoadBalancingDashboardContent(props: any) {
                 if (payload.routes.length === 0) {
                     const response = await loadBalancingApiGateway.deleteEndpoints(payload);
                 } else {
-                    const response = await loadBalancingApiGateway.removeEndpointsFromGroupRoutingTable(payload);
+                    const payloadPartial: IrisOrgGroupRoutesRequest = {
+                        groupName: groupName,
+                        routes: selected
+                    }
+                    const response = await loadBalancingApiGateway.removeEndpointsFromGroupRoutingTable(payloadPartial);
                 }
             }
         } catch (error) {

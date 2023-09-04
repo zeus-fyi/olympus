@@ -269,6 +269,9 @@ function LoadBalancingDashboardContent(props: any) {
         }
 
         setTableRoutes(name === "-all" ? endpoints : groups[name]);
+        if (name === "-all" || name === "unused") {
+            setSelectedTab(0);
+        }
     };
 
     const handleUpdateGroupTableEndpointsSubmission = async () => {
@@ -501,7 +504,7 @@ function LoadBalancingDashboardContent(props: any) {
                                     <Tab label="Endpoints"  />
                                     <Tab label="Metrics"  />
                                     <Tab label="Priority Scores" />
-                                    {/*<Tab label="Procedures" />*/}
+                                    <Tab label="Procedures" />
                                 </Tabs>
                             </Box>
                         )}

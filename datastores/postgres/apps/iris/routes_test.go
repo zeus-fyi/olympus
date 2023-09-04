@@ -23,10 +23,9 @@ func (s *IrisTestSuite) TestInsertOrgRoute() {
 func (s *IrisTestSuite) TestDeleteOrgGroupRoutes() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
-	routes := []string{"https://chaotic-polished-glitter.quiknode.pro/2ebe51720d5565be36f36296600a571c67d60d49/",
-		"https://proud-convincing-sheet.quiknode.pro/04428c76b26b5dd1be7808bd5c0df8d8dd25e86f/"}
+	routes := []string{"https://fragrant-bitter-lambo.quiknode.pro/7aa59ebefff9128164cac7737bfefeae45b4ee8d/"}
 
-	err := DeleteOrgRoutesFromGroup(ctx, s.Tc.ProductionLocalTemporalOrgID, "test", routes)
+	err := DeleteOrgRoutesFromGroup(ctx, s.Tc.ProductionLocalTemporalOrgID, "etg2", routes)
 	s.Require().Nil(err)
 }
 
@@ -107,7 +106,7 @@ func (s *IrisTestSuite) TestInsertOrgRoutes() {
 	err = InsertOrgRouteGroup(ctx, ogr, routes)
 	s.Require().Nil(err)
 
-	err = DeleteOrgGroupAndRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID, ogr.RouteGroupName)
+	err = DeleteOrgRoutingGroup(ctx, s.Tc.ProductionLocalTemporalOrgID, ogr.RouteGroupName)
 	s.Require().Nil(err)
 }
 

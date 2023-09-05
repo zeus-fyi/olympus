@@ -40,6 +40,7 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 	if payloadSizingMeter == nil {
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
+
 	if len(procName) <= 0 {
 		procName = fmt.Sprintf("%d", ou.OrgID)
 	}
@@ -77,8 +78,6 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		headers[k] = v // Assuming there's at least one value
 	}
 	qps := c.QueryParams()
-
-	// TODO: add max timeout param
 	req := &iris_api_requests.ApiProxyRequest{
 		Procedure:        proc,
 		Routes:           routes,
@@ -92,6 +91,12 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		Timeout:          4 * time.Second,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
+	}
+
+	proc, err = BuildProcedureIfTemplateExists(procName, routeGroup, req, p.Body)
+	if err != nil {
+		log.Err(err).Str("procedure", procName).Msg("ExtractProcedureIfExists: GetProcedureTemplateJsonRPC")
+		return c.JSON(http.StatusBadRequest, Response{Message: err.Error()})
 	}
 	orgIDStr := fmt.Sprintf("%d", ou.OrgID)
 	if req.Procedure.Name == orgIDStr {

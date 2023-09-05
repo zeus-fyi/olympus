@@ -24,6 +24,21 @@ func ProcedureStageOnePayload(procName string) echo.Map {
 	}
 }
 
+func IsEmbeddedProcedure(procName string) bool {
+	switch procName {
+	case EthMaxBlockAggReduce:
+		return true
+	case AvaxMaxBlockAggReduce:
+		return true
+	case NearMaxBlockAggReduce:
+		return true
+	case BtcMaxBlockAggReduce:
+		return true
+	default:
+		return false
+	}
+}
+
 var (
 	EthGetBlockNumberPayload = echo.Map{
 		"method":  "eth_blockNumber",

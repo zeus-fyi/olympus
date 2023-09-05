@@ -12,7 +12,7 @@ import (
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
-func (p *ProxyRequest) ExtractProcedureIfExists(c echo.Context, rgName string, req *iris_api_requests.ApiProxyRequest, stageTwoPayload echo.Map) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, error) {
+func (p *ProxyRequest) ExtractProcedureIfExists(c echo.Context) string {
 	procedureName := ""
 	procName := c.Request().Header.Get(iris_programmable_proxy_v1_beta.RequestHeaderRoutingProcedureHeader)
 	if procName != "" {
@@ -25,9 +25,13 @@ func (p *ProxyRequest) ExtractProcedureIfExists(c echo.Context, rgName string, r
 			procedureName = procNameStr
 		}
 	}
-	pd, err := GetProcedureTemplateJsonRPC(rgName, procedureName, req, stageTwoPayload)
+	return procedureName
+}
+
+func BuildProcedureIfTemplateExists(procName, rgName string, req *iris_api_requests.ApiProxyRequest, stageTwoPayload echo.Map) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, error) {
+	pd, err := GetProcedureTemplateJsonRPC(rgName, procName, req, stageTwoPayload)
 	if err != nil {
-		log.Err(err).Str("procedure", procedureName).Msg("ExtractProcedureIfExists: GetProcedureTemplateJsonRPC")
+		log.Err(err).Str("procedure", procName).Msg("ExtractProcedureIfExists: GetProcedureTemplateJsonRPC")
 		return pd, err
 	}
 	return pd, err

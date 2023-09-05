@@ -60,12 +60,12 @@ export function PlanTableCountUsagePieChart(props: any) {
     const remainingTables = planTableCount - tableCount;
 
     const data01 = [
-        { name: `Endpoints ${endpointCount.toFixed(0)}`, value: endpointCount, fill: "#ff4d4d" },
-        { name: `Endpoints ${endpointCount.toFixed(0)}`, value: remainingEndpoints, fill: "#4db375" },
+        { name: `Slots(Used) ${endpointCount.toFixed(0)}`, value: endpointCount, fill: "#ff4d4d" },
+        { name: `Slots(Open) ${remainingEndpoints.toFixed(0)}`, value: remainingEndpoints, fill: "#4db375" },
     ];
     const data02 = [
-        { name: `Used ${tableCount.toFixed(0)}`, value: tableCount, fill: "#ff4d4d" },
-        { name: `Open ${remainingTables.toFixed(0)}`, value: remainingTables, fill: "#4db375" },
+        { name: `Tables(Used) ${tableCount.toFixed(0)}`, value: tableCount, fill: "#ff4d4d" },
+        { name: `Tables(Open) ${remainingTables.toFixed(0)}`, value: remainingTables, fill: "#4db375" },
     ];
 
     return (
@@ -74,7 +74,7 @@ export function PlanTableCountUsagePieChart(props: any) {
                 <Typography variant="h5" gutterBottom>
                    Table, Endpoint Usage
                 </Typography>
-                <PieChart width={375} height={275}>
+                <PieChart width={400} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60} fill="#8884d8" />
                     <Pie data={data02} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={90} fill="#82ca9d" label />
                     <Legend align="left" verticalAlign="bottom" layout="vertical" />

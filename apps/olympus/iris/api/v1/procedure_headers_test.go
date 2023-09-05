@@ -22,6 +22,24 @@ var ctx = context.Background()
 
 func (s *IrisV1TestSuite) TestEthHeaders() {
 
+	fnRule := iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse
+	ph := ProcedureHeaders{
+		XAggOp:               "max",
+		XAggKey:              "result",
+		XAggKeyValueDataType: "int",
+		XAggFilterFanIn:      &fnRule,
+	}
+
+	req := &iris_api_requests.ApiProxyRequest{
+		Url:             "https://zeus.fyi",
+		ExtRoutePath:    "/",
+		ServicePlan:     "performance",
+		PayloadTypeREST: "POST",
+	}
+	proc, err := ph.GetGeneratedProcedure("test", req)
+	s.Nil(err)
+	s.NotNil(proc.OrderedSteps)
+
 	/*
 		needs to test that
 		1. max block finder

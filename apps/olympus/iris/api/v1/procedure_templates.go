@@ -10,12 +10,16 @@ import (
 func GetProcedureTemplateJsonRPC(rgName, procName string, req *iris_api_requests.ApiProxyRequest, stageTwoPayload echo.Map) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, error) {
 	switch procName {
 	case iris_catalog_procedures.EthMaxBlockAggReduce:
+		delete(stageTwoPayload, "procedure")
 		return GetEthMaxBlockAggReduceTemplate(rgName, req, stageTwoPayload)
 	case iris_catalog_procedures.AvaxMaxBlockAggReduce:
+		delete(stageTwoPayload, "procedure")
 		return GetAvaxMaxBlockAggReduceTemplate(rgName, req, stageTwoPayload)
 	case iris_catalog_procedures.NearMaxBlockAggReduce:
+		delete(stageTwoPayload, "procedure")
 		return GetNearMaxBlockAggReduceTemplate(rgName, req, stageTwoPayload)
 	case iris_catalog_procedures.BtcMaxBlockAggReduce:
+		delete(stageTwoPayload, "procedure")
 		return GetBtcMaxBlockAggReduceTemplate(rgName, req, stageTwoPayload)
 	default:
 		return iris_programmable_proxy_v1_beta.IrisRoutingProcedure{}, nil

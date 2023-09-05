@@ -14,6 +14,12 @@ import {RootState} from "../../../redux/store";
 import {loadBalancingApiGateway} from "../../../gateway/loadbalancing";
 import {setProceduresCatalog} from "../../../redux/loadbalancing/loadbalancing.reducer";
 import ExamplePageMarkdownText from "../markdown/ExamplePageMarkdown";
+import {
+    avaxMaxBlockAggReduceExample,
+    btcMaxBlockAggReduceExample,
+    ethMaxBlockAggReduceExample,
+    nearMaxBlockAggReduceExample
+} from "../markdown/ExampleRequests";
 
 export function ProceduresCatalogTable(props: any) {
     const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
@@ -27,7 +33,6 @@ export function ProceduresCatalogTable(props: any) {
     const [code, setCode] = React.useState('');
     const [showDetails, setShowDetails] = React.useState(false);
     const [showDetailsRow, setShowDetailsRow] = React.useState(-1);
-    const [procedureName, setProcedureName] = React.useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -67,11 +72,30 @@ export function ProceduresCatalogTable(props: any) {
         if (index === showDetailsRow) {
             setShowDetailsRow(-1);
             setShowDetails(false);
+            setCode('')
             return;
         } else {
             setShowDetails(true);
         }
-        setProcedureName(procName);
+
+        console.log("procName", procName)
+        switch (procName) {
+            case 'eth_maxBlockAggReduce':
+                setCode(ethMaxBlockAggReduceExample);
+                console.log("ethMaxBlockAggReduceExample")
+                break;
+            case 'avax_maxBlockAggReduce':
+                setCode(avaxMaxBlockAggReduceExample);
+                break;
+            case 'near_maxBlockAggReduce':
+                setCode(nearMaxBlockAggReduceExample);
+                break;
+            case 'btc_maxBlockAggReduce':
+                setCode(btcMaxBlockAggReduceExample);
+                break;
+            default:
+                break;
+        }
         setShowDetailsRow(index);
     };
 
@@ -139,7 +163,7 @@ export function ProceduresCatalogTable(props: any) {
                                             showDetails && showDetailsRow === index && (
                                                 <div>
                                                     <Stack direction={"column"} spacing={2}>
-                                                        <ExamplePageMarkdownText onChange={onChange} procedureName={procedureName} setCode={setCode}/>
+                                                        <ExamplePageMarkdownText onChange={onChange} code={code} setCode={setCode}/>
                                                         <Box sx={{ mt: 4, mb: 4 }}>
                                                             <Button variant="contained" fullWidth={true} color="primary"  onClick={() => ({})}>
                                                                 Send Request

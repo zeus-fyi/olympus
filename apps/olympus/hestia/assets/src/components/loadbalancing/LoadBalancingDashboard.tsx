@@ -320,7 +320,6 @@ function LoadBalancingDashboardContent(props: any) {
         const filteredRoutes = endpoints.filter(
             endpoint => !groups[groupName].includes(endpoint)
         );
-
         setTableRoutes(filteredRoutes);
         return;
     };
@@ -338,6 +337,7 @@ function LoadBalancingDashboardContent(props: any) {
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
     };
+
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>

@@ -60,7 +60,7 @@ export default function ExamplePageMarkdownText(props: any) {
         case 'near_maxBlockAggReduce':
             setCode(nearMaxBlockAggReduceExample);
             break;
-        case 'btcMaxBlockAggReduceExample':
+        case 'btc_maxBlockAggReduce':
             setCode(btcMaxBlockAggReduceExample);
             break;
         default:
@@ -74,7 +74,7 @@ export default function ExamplePageMarkdownText(props: any) {
                 language={"json"}
                 theme={'vs-dark'}
                 onChange={(event) => onChange(event)}
-                value={ethMaxBlockAggReduceExample}
+                value={code}
                 options={{
                     wordWrap: "on"
                 }}

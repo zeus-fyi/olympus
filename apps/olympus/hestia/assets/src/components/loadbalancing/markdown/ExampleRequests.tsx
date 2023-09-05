@@ -19,7 +19,6 @@ export const nearMaxBlockAggReduceExample = `{
     "id": 1
 }`
 
-
 export const avaxMaxBlockAggReduceExample = `{
     "jsonrpc": "2.0",
     "procedure": "avax_maxBlockAggReduce",

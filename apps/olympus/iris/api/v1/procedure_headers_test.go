@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	iris_catalog_procedures "github.com/zeus-fyi/olympus/iris/api/v1/procedures"
@@ -23,11 +24,21 @@ var ctx = context.Background()
 
 func (s *IrisV1TestSuite) TestEthHeaders() iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
 	fnRule := iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse
+	stageTwoPayload := echo.Map{
+		"jsonrpc": "2.0",
+		"method":  "eth_getBlockByNumber",
+		"params": []interface{}{
+			"latest",
+			true,
+		},
+		"id": 1,
+	}
 	ph := ProcedureHeaders{
 		XAggOp:               "max",
 		XAggKey:              "result",
 		XAggKeyValueDataType: "int",
 		XAggFilterFanIn:      &fnRule,
+		ForwardPayload:       stageTwoPayload,
 	}
 	payload := iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.EthMaxBlockAggReduce)
 	req := &iris_api_requests.ApiProxyRequest{

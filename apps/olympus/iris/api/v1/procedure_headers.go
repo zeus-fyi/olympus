@@ -12,19 +12,25 @@ import (
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
-func (p *ProxyRequest) ExtractProcedureIfExists(c echo.Context) string {
+func (p *ProxyRequest) ExtractProcedureIfExists(c echo.Context, rgName string, req *iris_api_requests.ApiProxyRequest, stageTwoPayload echo.Map) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, error) {
+	procedureName := ""
 	procName := c.Request().Header.Get(iris_programmable_proxy_v1_beta.RequestHeaderRoutingProcedureHeader)
 	if procName != "" {
-		return procName
+		procedureName = procName
 	}
 	procedure := p.Body["procedure"]
 	if procedure != nil {
 		procNameStr, ok := procedure.(string)
 		if ok {
-			return procNameStr
+			procedureName = procNameStr
 		}
 	}
-	return ""
+	pd, err := GetProcedureTemplateJsonRPC(rgName, procedureName, req, stageTwoPayload)
+	if err != nil {
+		log.Err(err).Str("procedure", procedureName).Msg("ExtractProcedureIfExists: GetProcedureTemplateJsonRPC")
+		return pd, err
+	}
+	return pd, err
 }
 
 type ProcedureHeaders struct {
@@ -36,6 +42,8 @@ type ProcedureHeaders struct {
 	XAggCompDataType     string
 	XAggFilterPayload    string
 	XAggFilterFanIn      *string
+
+	ForwardPayload echo.Map
 }
 
 const (
@@ -79,7 +87,6 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 			return proc, errors.New("X-Agg-Filter-Payload is not valid serialized json")
 		}
 	}
-
 	var comp *iris_operators.Operation
 	if p.XAggComp != "" {
 		switch p.XAggCompDataType {
@@ -134,6 +141,9 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 	proc.OrderedSteps.PushBack(step)
 	if p.XAggFilterFanIn != nil {
 		if *p.XAggFilterFanIn == iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse {
+			if p.ForwardPayload != nil {
+				forwardPayload = p.ForwardPayload
+			}
 			fanIn := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
 				TransformSlice: []iris_operators.IrisRoutingResponseETL{
 					{
@@ -156,7 +166,6 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 			proc.OrderedSteps.PushBack(fanIn)
 		}
 	}
-
 	req.Procedure = proc
 	if req.Procedure.OrderedSteps.Len() == 0 {
 		return proc, errors.New("no procedure steps generated")

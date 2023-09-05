@@ -2,7 +2,7 @@ import * as React from "react";
 import {useEffect} from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
+import {Stack, TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -60,8 +60,6 @@ export function ProceduresCatalogTable(props: any) {
 
     const onChange = async (textInput: string) => {
         setCode(textInput);
-        // const tokenCount = await heraApiGateway.getTokenCountEstimate(textInput);
-        // setTokenEstimate(tokenCount);
     };
 
     const onViewDetails = async (index: number) => {
@@ -110,26 +108,40 @@ export function ProceduresCatalogTable(props: any) {
                                     <TableCell align="left">{slice.protocol}</TableCell>
                                     <TableCell align="left">{slice.description}</TableCell>
                                     <TableCell align="left">
-                                        <Button variant="contained" color="primary"  onClick={() => onViewDetails(index)}>
-                                            View Details
-                                        </Button>
-                                        <Box sx={{ mt: 4, mb: 4 }}>
-                                            <Button variant="contained" color="primary"  onClick={() => ({})}>
-                                                Send Request
-                                            </Button>
-                                        </Box>
-                                        <Box sx={{ mt: 4, mb: 4 }}>
-                                            <Button variant="contained" color="primary"  onClick={() => ({})}>
-                                                Settings
-                                            </Button>
-                                        </Box>
+                                        <Stack direction={"row"} spacing={2}>
+                                            <Box sx={{ mt: 4, mb: 4 }}>
+                                                {
+                                                   showDetails && showDetailsRow === index ? (
+                                                       <Button variant="contained" color="primary"  onClick={() => onViewDetails(index)}>
+                                                           Hide Details
+                                                       </Button>
+                                                    ) : (
+                                                       <Button variant="contained" color="primary"  onClick={() => onViewDetails(index)}>
+                                                           View Details
+                                                       </Button>
+                                                    )
+                                                }
+                                            </Box>
+                                        </Stack>
+                                        {/*<Box sx={{ mt: 4, mb: 4 }}>*/}
+                                        {/*    <Button variant="contained" color="primary"  onClick={() => ({})}>*/}
+                                        {/*        Settings*/}
+                                        {/*    </Button>*/}
+                                        {/*</Box>*/}
                                         {/*{statusMessageRowIndex === i && <div>{statusMessage}</div>}*/}
                                     </TableCell>
                                     <TableCell align="left">
                                         {
                                             showDetails && showDetailsRow === index && (
                                                 <div>
-                                                    <ExamplePageMarkdownText onChange={onChange}/>
+                                                    <Stack direction={"column"} spacing={2}>
+                                                        <ExamplePageMarkdownText onChange={onChange}/>
+                                                        <Box sx={{ mt: 4, mb: 4 }}>
+                                                            <Button variant="contained" fullWidth={true} color="primary"  onClick={() => ({})}>
+                                                                Send Request
+                                                            </Button>
+                                                        </Box>
+                                                    </Stack>
                                                 </div>
                                             )
                                         }

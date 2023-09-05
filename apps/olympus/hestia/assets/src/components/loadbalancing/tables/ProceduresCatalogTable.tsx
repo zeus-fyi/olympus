@@ -98,6 +98,11 @@ export function ProceduresCatalogTable(props: any) {
         setShowDetailsRow(index);
     };
 
+    const onSubmitPayload = async () => {
+        // todo: submit payload
+    };
+
+
     return (
         <div>
             <Box sx={{ mt: 4, mb: 4 }}>
@@ -164,7 +169,7 @@ export function ProceduresCatalogTable(props: any) {
                                                     <Stack direction={"column"} spacing={2}>
                                                         <ExamplePageMarkdownText onChange={onChange} code={code} setCode={setCode}/>
                                                         <Box sx={{ mt: 4, mb: 4 }}>
-                                                            <Button variant="contained" fullWidth={true} color="primary"  onClick={() => ({})}>
+                                                            <Button variant="contained" fullWidth={true} color="primary"  onClick={onSubmitPayload}>
                                                                 Send Request
                                                             </Button>
                                                         </Box>

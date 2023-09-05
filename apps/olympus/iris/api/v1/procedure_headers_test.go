@@ -71,7 +71,6 @@ func (s *IrisV1TestSuite) TestEthHeaders() {
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 	fmt.Println(resp.String())
-
 }
 
 func (s *IrisV1TestSuite) TestHeaders() {

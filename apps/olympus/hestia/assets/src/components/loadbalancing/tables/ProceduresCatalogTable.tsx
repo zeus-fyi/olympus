@@ -81,7 +81,6 @@ export function ProceduresCatalogTable(props: any) {
         switch (procName) {
             case 'eth_maxBlockAggReduce':
                 setCode(ethMaxBlockAggReduceExample);
-                console.log("ethMaxBlockAggReduceExample")
                 break;
             case 'avax_maxBlockAggReduce':
                 setCode(avaxMaxBlockAggReduceExample);
@@ -99,9 +98,18 @@ export function ProceduresCatalogTable(props: any) {
     };
 
     const onSubmitPayload = async () => {
-        // todo: submit payload
+        // todo submit payload
+        // try {
+        //     setLoadingProcedures(true); // Set loading to true
+        //     const response = await loadBalancingApiGateway.getProceduresCatalog();
+        //     console.log("response", response.data)
+        //     dispatch(setProceduresCatalog(response.data));
+        // } catch (error) {
+        //     console.log("error", error);
+        // } finally {
+        //     setLoadingProcedures(false); // Set loading to false regardless of success or failure.
+        // }
     };
-
 
     return (
         <div>

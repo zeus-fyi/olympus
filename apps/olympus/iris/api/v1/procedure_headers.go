@@ -93,7 +93,6 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 		default:
 		}
 	}
-
 	if comp == nil && p.XAggOp == "" {
 		return proc, errors.New("X-Agg-Op is required")
 	}
@@ -110,9 +109,11 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 		DataType:      p.XAggKeyValueDataType,
 	}
 
-	var fanInAgg *string
+	var fanInRules *iris_programmable_proxy_v1_beta.FanInRules
 	if p.XAggFanIn != nil {
-		fanInAgg = p.XAggFanIn
+		fanInRules = &iris_programmable_proxy_v1_beta.FanInRules{
+			Rule: iris_programmable_proxy_v1_beta.BroadcastRules(*p.XAggFanIn),
+		}
 	}
 	step := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
 		BroadcastInstructions: iris_programmable_proxy_v1_beta.BroadcastInstructions{
@@ -122,7 +123,7 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 			MaxDuration:  req.Timeout,
 			MaxTries:     req.MaxTries,
 			RoutingTable: rg,
-			FanInRules:   &iris_programmable_proxy_v1_beta.FanInRules{Rule: iris_programmable_proxy_v1_beta.BroadcastRules(*fanInAgg)},
+			FanInRules:   fanInRules,
 		},
 		TransformSlice: []iris_operators.IrisRoutingResponseETL{aggValueExtraction},
 		AggregateMap: map[string]iris_operators.Aggregation{

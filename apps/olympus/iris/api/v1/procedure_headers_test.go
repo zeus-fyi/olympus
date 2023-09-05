@@ -20,8 +20,7 @@ type IrisV1TestSuite struct {
 
 var ctx = context.Background()
 
-func (s *IrisV1TestSuite) TestEthHeaders() {
-
+func (s *IrisV1TestSuite) TestEthHeaders() iris_programmable_proxy_v1_beta.IrisRoutingProcedure {
 	fnRule := iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse
 	ph := ProcedureHeaders{
 		XAggOp:               "max",
@@ -49,7 +48,12 @@ func (s *IrisV1TestSuite) TestEthHeaders() {
 				a4. fan-in rule: eg. returnOnFirstSuccess
 		2. needs to update so that it works with json-rpc to replace procedure headers & any method chain
 	*/
+	return proc
+}
 
+func (s *IrisV1TestSuite) TestEthJsonRPC() {
+	proc := s.TestEthHeaders()
+	s.NotNil(proc)
 	groupName := "ethereum-mainnet"
 	irisClient := resty_base.GetBaseRestyClient("https://iris.zeus.fyi/v1/router", s.Tc.ProductionLocalTemporalBearerToken)
 	irisClient.Header.Set("Content-Type", "application/json")

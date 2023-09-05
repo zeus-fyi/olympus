@@ -5,6 +5,12 @@ import MonacoEditor from "react-monaco-editor/lib/editor";
 import {editor} from "monaco-editor";
 // @ts-ignore
 import yaml from 'js-yaml';
+import {
+    avaxMaxBlockAggReduceExample,
+    btcMaxBlockAggReduceExample,
+    ethMaxBlockAggReduceExample,
+    nearMaxBlockAggReduceExample
+} from "./ExampleRequests";
 import setTheme = editor.setTheme;
 
 window.MonacoEnvironment = { getWorkerUrl: () => proxy };
@@ -28,8 +34,8 @@ export const languageData = [
 ];
 
 export default function ExamplePageMarkdownText(props: any) {
-    const {code, setCode, language, onChange} = props;
-
+    const {code, setCode, language, onChange, procedureName} = props;
+    const [example, setExample] = useState<string>('');
     const themeRef = useRef<string>()
     function onSelectThemeChange(e: React.ChangeEvent<HTMLSelectElement>) {
         e.persist();
@@ -44,6 +50,22 @@ export default function ExamplePageMarkdownText(props: any) {
         }
     }, []);
 
+    switch (procedureName) {
+        case 'eth_maxBlockAggReduce':
+            setCode(ethMaxBlockAggReduceExample);
+            break;
+        case 'avax_maxBlockAggReduce':
+            setCode(avaxMaxBlockAggReduceExample);
+            break;
+        case 'near_maxBlockAggReduce':
+            setCode(nearMaxBlockAggReduceExample);
+            break;
+        case 'btcMaxBlockAggReduceExample':
+            setCode(btcMaxBlockAggReduceExample);
+            break;
+        default:
+            break;
+    }
     return (
         <div>
             <MonacoEditor
@@ -52,7 +74,7 @@ export default function ExamplePageMarkdownText(props: any) {
                 language={"json"}
                 theme={'vs-dark'}
                 onChange={(event) => onChange(event)}
-                value={code}
+                value={ethMaxBlockAggReduceExample}
                 options={{
                     wordWrap: "on"
                 }}

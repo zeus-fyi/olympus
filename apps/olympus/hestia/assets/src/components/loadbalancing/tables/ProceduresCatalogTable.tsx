@@ -27,6 +27,7 @@ export function ProceduresCatalogTable(props: any) {
     const [code, setCode] = React.useState('');
     const [showDetails, setShowDetails] = React.useState(false);
     const [showDetailsRow, setShowDetailsRow] = React.useState(-1);
+    const [procedureName, setProcedureName] = React.useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -62,7 +63,7 @@ export function ProceduresCatalogTable(props: any) {
         setCode(textInput);
     };
 
-    const onViewDetails = async (index: number) => {
+    const onViewDetails = async (index: number, procName: string) => {
         if (index === showDetailsRow) {
             setShowDetailsRow(-1);
             setShowDetails(false);
@@ -70,6 +71,7 @@ export function ProceduresCatalogTable(props: any) {
         } else {
             setShowDetails(true);
         }
+        setProcedureName(procName);
         setShowDetailsRow(index);
     };
 
@@ -114,11 +116,11 @@ export function ProceduresCatalogTable(props: any) {
                                             <Box sx={{ mt: 4, mb: 4 }}>
                                                 {
                                                    showDetails && showDetailsRow === index ? (
-                                                       <Button variant="contained" color="primary"  onClick={() => onViewDetails(index)}>
+                                                       <Button variant="contained" color="primary"  onClick={() => onViewDetails(index, '')}>
                                                            Hide Details
                                                        </Button>
                                                     ) : (
-                                                       <Button variant="contained" color="primary"  onClick={() => onViewDetails(index)}>
+                                                       <Button variant="contained" color="primary"  onClick={() => onViewDetails(index, slice.name)}>
                                                            View Details
                                                        </Button>
                                                     )
@@ -137,7 +139,7 @@ export function ProceduresCatalogTable(props: any) {
                                             showDetails && showDetailsRow === index && (
                                                 <div>
                                                     <Stack direction={"column"} spacing={2}>
-                                                        <ExamplePageMarkdownText onChange={onChange}/>
+                                                        <ExamplePageMarkdownText onChange={onChange} procedureName={procedureName} setCode={setCode}/>
                                                         <Box sx={{ mt: 4, mb: 4 }}>
                                                             <Button variant="contained" fullWidth={true} color="primary"  onClick={() => ({})}>
                                                                 Send Request

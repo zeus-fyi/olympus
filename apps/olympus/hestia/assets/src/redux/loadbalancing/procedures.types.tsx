@@ -1,11 +1,11 @@
 type Queue = any[];
 
-interface IrisRoutingProcedure {
+export interface IrisRoutingProcedure {
     name: string;
     orderedSteps?: Queue;
 }
 
-interface BroadcastInstructions {
+export interface BroadcastInstructions {
     routingPath: string;
     restType: string;
     payload?: any;
@@ -35,7 +35,7 @@ function returnResultsOnSuccess(b: BroadcastRules): BroadcastRules {
 }
 
 // Assuming iris_operators.IrisRoutingResponseETL and iris_operators.Aggregation are already defined
-interface IrisRoutingProcedureStep {
+export interface IrisRoutingProcedureStep {
     broadcastInstructions?: BroadcastInstructions;
     transformSlice?: IrisRoutingResponseETL[]; // Replace with actual type
     aggregateMap?: { [key: string]: Aggregation }; // Replace with actual type

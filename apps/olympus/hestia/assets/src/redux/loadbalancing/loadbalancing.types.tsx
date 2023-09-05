@@ -1,3 +1,4 @@
+import {IrisRoutingProcedure} from "./procedures.types";
 
 export interface LoadBalancingState {
     routes: string[];

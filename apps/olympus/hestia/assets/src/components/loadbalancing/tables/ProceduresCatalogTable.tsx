@@ -12,41 +12,40 @@ import TablePaginationActions from "@mui/material/TablePagination/TablePaginatio
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../redux/store";
 import {loadBalancingApiGateway} from "../../../gateway/loadbalancing";
-import {setTableMetrics} from "../../../redux/loadbalancing/loadbalancing.reducer";
-import {generateMetricSlices, MetricAggregateRow} from "../../../redux/loadbalancing/loadbalancing.types";
+import {setProceduresCatalog} from "../../../redux/loadbalancing/loadbalancing.reducer";
 
-export function ProceduresTable(props: any) {
+export function ProceduresCatalogTable(props: any) {
     const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
         handleChangeRowsPerPage,handleChangePage, groupName, selectedTab, handleTabChange,
         isAdding, setIsAdding, newEndpoint, setNewEndpoint, isUpdatingGroup, handleAddGroupTableEndpointsSubmission,
         handleSubmitNewEndpointSubmission, handleDeleteEndpointsSubmission, handleUpdateGroupTableEndpointsSubmission
     } = props
-    const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
+    const proceduresCatalog = useSelector((state: RootState) => state.loadBalancing.proceduresCatalog);
     const dispatch = useDispatch();
-    const [loadingMetrics, setLoadinMetrics] = React.useState(false);
+    const [loadingProcedures, setLoadingProcedures] = React.useState(false);
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setLoadinMetrics(true); // Set loading to true
-                const response = await loadBalancingApiGateway.getTableMetrics(groupName);
-                dispatch(setTableMetrics(response.data));
+                setLoadingProcedures(true); // Set loading to true
+                const response = await loadBalancingApiGateway.getProceduresCatalog();
+                console.log("response", response.data)
+                dispatch(setProceduresCatalog(response.data));
             } catch (error) {
                 console.log("error", error);
             } finally {
-                setLoadinMetrics(false); // Set loading to false regardless of success or failure.
+                setLoadingProcedures(false); // Set loading to false regardless of success or failure.
             }
         }
         fetchData();
     }, [groupName]);
 
-    if (loadingMetrics) {
+    if (loadingProcedures) {
         return <div>Loading...</div> // Display loading message while data is fetching
     }
-    if (tableMetrics == null || tableMetrics.metrics == null ||  Object.keys(tableMetrics.metrics).length == 0) {
+    if (proceduresCatalog == null || proceduresCatalog.length === 0) {
         return <div></div>
     }
-    const metricSlices: MetricAggregateRow[] = generateMetricSlices([tableMetrics]); // Generate slices here
-    let safeEndpoints = metricSlices ?? [];
+    let safeEndpoints = proceduresCatalog ?? [];
 
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - safeEndpoints.length) : 0;
@@ -74,27 +73,13 @@ export function ProceduresTable(props: any) {
                     <Table sx={{ minWidth: 650 }} aria-label="metric slice table">
                         <TableHead>
                             <TableRow style={{ backgroundColor: '#333'}}>
-                                <TableCell style={{ color: 'white'}} align="center">Metric Name</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">Samples</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P25</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P50</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P75</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P90</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P95</TableCell>
-                                <TableCell style={{ color: 'white'}} align="center">P99</TableCell>
+                                <TableCell style={{ color: 'white'}} align="center">Name</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {safeEndpoints && safeEndpoints.map((slice, index) => (
                                 <TableRow key={index}>
-                                    <TableCell align="center">{slice.metricName}</TableCell>
-                                    <TableCell align="center">{slice.sampleCount}</TableCell>
-                                    <TableCell align="center">{slice.p25}</TableCell>
-                                    <TableCell align="center">{slice.p50}</TableCell>
-                                    <TableCell align="center">{slice.p75}</TableCell>
-                                    <TableCell align="center">{slice.p90}</TableCell>
-                                    <TableCell align="center">{slice.p95}</TableCell>
-                                    <TableCell align="center">{slice.p99}</TableCell>
+                                    <TableCell align="center">{slice.name}</TableCell>
                                 </TableRow>
                             ))}
                             {emptyRows > 0 && (

@@ -29,8 +29,7 @@ import {MetricsChart, TableMetricsCharts} from "./charts/radar/MetricsCharts";
 import {LoadBalancingRoutesTable} from "./tables/LoadBalancingRoutesTable";
 import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
-import {ProceduresTable} from "./tables/ProceduresTables";
-
+import {ProceduresCatalogTable} from "./tables/ProceduresCatalogTable";
 
 const drawerWidth: number = 240;
 
@@ -600,7 +599,7 @@ function LoadBalancingDashboardContent(props: any) {
                                 handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
                             />)}
                         {selectedTab === 3 && groupName !== "-all" && groupName !== "unused" && (
-                            <ProceduresTable
+                            <ProceduresCatalogTable
                                 selectedTab={selectedTab}
                                 handleTabChange={handleTabChange}
                                 page={page}

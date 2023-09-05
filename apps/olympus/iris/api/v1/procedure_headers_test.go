@@ -17,6 +17,9 @@ type IrisV1TestSuite struct {
 
 var ctx = context.Background()
 
+func (s *IrisV1TestSuite) TestEthHeaders() {
+}
+
 func (s *IrisV1TestSuite) TestHeaders() {
 	fnRule := iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse
 	ph := ProcedureHeaders{

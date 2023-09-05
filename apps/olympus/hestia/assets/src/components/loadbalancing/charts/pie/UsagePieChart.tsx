@@ -29,8 +29,8 @@ export function PlanRateUsagePieChart(props: any) {
         { name: `ZU ${currentRate} k/s`, value: currentRate, fill: "#ff4d4d"},
     ];
     const data01 = [
-        { name: `ZU M ${(planBudgetZU-monthlyUsage).toFixed(0)}`, value: planBudgetZU-monthlyUsage, fill: "#4db375"},
-        { name: `ZU M ${(monthlyUsage).toFixed(0)}`, value: monthlyUsage, fill: "#ff4d4d"},
+        { name: `ZU ${(planBudgetZU-monthlyUsage).toFixed(0)}M`, value: planBudgetZU-monthlyUsage, fill: "#4db375"},
+        { name: `ZU ${(monthlyUsage).toFixed(0)}M`, value: monthlyUsage, fill: "#ff4d4d"},
     ];
 
     return (

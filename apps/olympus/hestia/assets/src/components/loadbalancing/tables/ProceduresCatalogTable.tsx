@@ -13,6 +13,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../redux/store";
 import {loadBalancingApiGateway} from "../../../gateway/loadbalancing";
 import {setProceduresCatalog} from "../../../redux/loadbalancing/loadbalancing.reducer";
+import ExamplePageMarkdownText from "../markdown/ExamplePageMarkdown";
 
 export function ProceduresCatalogTable(props: any) {
     const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
@@ -23,6 +24,7 @@ export function ProceduresCatalogTable(props: any) {
     const proceduresCatalog = useSelector((state: RootState) => state.loadBalancing.proceduresCatalog);
     const dispatch = useDispatch();
     const [loadingProcedures, setLoadingProcedures] = React.useState(false);
+    const [code, setCode] = React.useState('');
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -53,6 +55,11 @@ export function ProceduresCatalogTable(props: any) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - safeEndpoints.length) : 0;
 
+    const onChange = async (textInput: string) => {
+        setCode(textInput);
+        // const tokenCount = await heraApiGateway.getTokenCountEstimate(textInput);
+        // setTokenEstimate(tokenCount);
+    };
     return (
         <div>
             <Box sx={{ mt: 4, mb: 4 }}>
@@ -91,14 +98,26 @@ export function ProceduresCatalogTable(props: any) {
                                     <TableCell align="left">{slice.description}</TableCell>
                                     <TableCell align="left">
                                         <Button variant="contained" color="primary"  onClick={() => ({})}>
-                                            View Request Details
+                                            View Details
                                         </Button>
+                                        <Box sx={{ mt: 4, mb: 4 }}>
+                                            <Button variant="contained" color="primary"  onClick={() => ({})}>
+                                                Send Request
+                                            </Button>
+                                        </Box>
+                                        <Box sx={{ mt: 4, mb: 4 }}>
+                                            <Button variant="contained" color="primary"  onClick={() => ({})}>
+                                                Settings
+                                            </Button>
+                                        </Box>
                                         {/*{statusMessageRowIndex === i && <div>{statusMessage}</div>}*/}
                                     </TableCell>
                                     <TableCell align="left">
-                                        <Button variant="contained" color="primary"  onClick={() => ({})}>
-                                            Settings
-                                        </Button>
+                                        {/*<Button variant="contained" color="primary"  onClick={() => ({})}>*/}
+                                        {/*    Settings*/}
+                                        {/*</Button>*/}
+
+                                        <ExamplePageMarkdownText onChange={onChange}/>
                                         {/*{statusMessageRowIndex === i && <div>{statusMessage}</div>}*/}
                                     </TableCell>
                                 </TableRow>

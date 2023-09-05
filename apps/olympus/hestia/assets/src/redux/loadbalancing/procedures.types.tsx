@@ -2,6 +2,8 @@ export type Queue = any[];
 
 export interface IrisRoutingProcedure {
     name: string;
+    description: string;
+    protocol: string;
     orderedSteps?: Queue;
 }
 

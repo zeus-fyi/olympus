@@ -23,14 +23,12 @@ export function ProceduresCatalogTable(props: any) {
     const proceduresCatalog = useSelector((state: RootState) => state.loadBalancing.proceduresCatalog);
     const dispatch = useDispatch();
     const [loadingProcedures, setLoadingProcedures] = React.useState(false);
-    console.log('selectedMainTab', selectedMainTab)
     useEffect(() => {
         const fetchData = async () => {
             try {
                 if (selectedMainTab !== 1) {
                     return
                 }
-                console.log('fetching procedures catalog')
                 setLoadingProcedures(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getProceduresCatalog();
                 console.log("response", response.data)
@@ -78,13 +76,17 @@ export function ProceduresCatalogTable(props: any) {
                     <Table sx={{ minWidth: 650 }} aria-label="metric slice table">
                         <TableHead>
                             <TableRow style={{ backgroundColor: '#333'}}>
-                                <TableCell style={{ color: 'white'}} align="center">Name</TableCell>
+                                <TableCell style={{ color: 'white'}} align="left">Name</TableCell>
+                                <TableCell style={{ color: 'white'}} align="left">Protocol</TableCell>
+                                <TableCell style={{ color: 'white'}} align="left">Description</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {safeEndpoints && safeEndpoints.map((slice, index) => (
                                 <TableRow key={index}>
-                                    <TableCell align="center">{slice.name}</TableCell>
+                                    <TableCell align="left">{slice.name}</TableCell>
+                                    <TableCell align="left">{slice.protocol}</TableCell>
+                                    <TableCell align="left">{slice.description}</TableCell>
                                 </TableRow>
                             ))}
                             {emptyRows > 0 && (

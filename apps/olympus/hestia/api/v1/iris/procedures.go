@@ -19,7 +19,8 @@ type ProceduresRequestResponseWrapper struct {
 type ProceduresRequestResponse struct {
 	Name         string                                                     `json:"name"`
 	Description  string                                                     `json:"description"`
-	OrderedSteps []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep `json:"steps"`
+	Protocol     string                                                     `json:"protocol"`
+	OrderedSteps []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep `json:"orderedSteps,omitempty"`
 }
 
 func ProceduresRequestHandler(c echo.Context) error {
@@ -102,10 +103,14 @@ func (p *ProceduresRequest) GetProceduresCatalog(c echo.Context) error {
 		},
 	}
 	resp := []ProceduresRequestResponse{{
-		Name:         "ethereumMaxBlockAggReduce",
+		Name:         "eth_maxBlockAggReduce",
+		Description:  "This procedure will return the latest block number and the block data for the latest block. ",
+		Protocol:     "ethereum",
 		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
 	}, {
-		Name:         "near",
+		Name:         "near_maxBlockAggReduce",
+		Protocol:     "near",
+		Description:  "This procedure will return the latest block number and the block data for the latest block. ",
 		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
 	},
 	}

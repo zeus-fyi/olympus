@@ -26,10 +26,14 @@ const initialState: LoadBalancingState = {
     },
     proceduresCatalog: [{
         name: '',
+        description: '',
+        protocol: '',
         orderedSteps: [],
     }],
     proceduresOnTable: [{
         name: '',
+        description: '',
+        protocol: '',
         orderedSteps: [],
     }]
 }

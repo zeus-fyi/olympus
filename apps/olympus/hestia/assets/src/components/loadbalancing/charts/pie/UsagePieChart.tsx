@@ -25,12 +25,12 @@ export function PlanRateUsagePieChart(props: any) {
     const [planBudgetZU, setPlanBudgetZU] = useState(planUsageDetails?.computeUsage?.monthlyBudgetZU ?? 0);
     const [monthlyUsage, setMonthlyUsage] = useState(planUsageDetails?.computeUsage?.monthlyUsage ?? 0);
     const data02 = [
-        { name: 'ZU k/s', value: currentRate, fill: "#ff8080"},
-        { name: 'ZU k/s limit', value: rateLimit - currentRate, fill: "#82ca9d"},
+        { name: `ZU ${(rateLimit - currentRate).toFixed(0)}k/s  limit`, value: rateLimit - currentRate, fill: "#4db375"},
+        { name: `ZU ${currentRate} k/s`, value: currentRate, fill: "#ff4d4d"},
     ];
     const data01 = [
-        { name: 'ZU M remaining', value: planBudgetZU-monthlyUsage, fill: "#4db375"},
-        { name: 'ZU M consumed', value: monthlyUsage, fill: "#ff4d4d"},
+        { name: `ZU M ${(planBudgetZU-monthlyUsage).toFixed(0)}`, value: planBudgetZU-monthlyUsage, fill: "#4db375"},
+        { name: `ZU M ${(monthlyUsage).toFixed(0)}`, value: monthlyUsage, fill: "#ff4d4d"},
     ];
 
     return (
@@ -39,10 +39,10 @@ export function PlanRateUsagePieChart(props: any) {
                 <Typography variant="h5" gutterBottom>
                     {title}
                 </Typography>
-                <PieChart width={375} height={275}>
+                <PieChart width={400} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60}  />
                     <Pie data={data02} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={90} label />
-                    <Legend align="left" verticalAlign="bottom" layout="horizontal" />
+                    <Legend align="left" verticalAlign="bottom" layout="vertical" />
                 </PieChart>
             </CardContent>
         </Card>
@@ -60,12 +60,12 @@ export function PlanTableCountUsagePieChart(props: any) {
     const remainingTables = planTableCount - tableCount;
 
     const data01 = [
-        { name: 'Endpoints(Used)', value: endpointCount, fill: "#8884d8" },
-        { name: 'Endpoints(Open)', value: remainingEndpoints, fill: "#82ca9d" },
+        { name: `Endpoints ${endpointCount.toFixed(0)}`, value: endpointCount, fill: "#ff4d4d" },
+        { name: `Endpoints ${endpointCount.toFixed(0)}`, value: remainingEndpoints, fill: "#4db375" },
     ];
     const data02 = [
-        { name: 'Tables(Used)', value: tableCount, fill: "#8884d8" },
-        { name: 'Tables(Open)', value: remainingTables, fill: "#82ca9d" },
+        { name: `Used ${tableCount.toFixed(0)}`, value: tableCount, fill: "#ff4d4d" },
+        { name: `Open ${remainingTables.toFixed(0)}`, value: remainingTables, fill: "#4db375" },
     ];
 
     return (
@@ -77,7 +77,7 @@ export function PlanTableCountUsagePieChart(props: any) {
                 <PieChart width={375} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60} fill="#8884d8" />
                     <Pie data={data02} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={90} fill="#82ca9d" label />
-                    <Legend align="left" verticalAlign="bottom" layout="horizontal" />
+                    <Legend align="left" verticalAlign="bottom" layout="vertical" />
                 </PieChart>
             </CardContent>
         </Card>

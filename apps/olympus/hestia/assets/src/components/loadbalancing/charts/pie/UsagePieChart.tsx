@@ -30,7 +30,7 @@ export function PlanRateUsagePieChart(props: any) {
     ];
     const data01 = [
         { name: `ZU ${(planBudgetZU-monthlyUsage).toFixed(0)}M`, value: planBudgetZU-monthlyUsage, fill: "#4db375"},
-        { name: `ZU ${(monthlyUsage).toFixed(0)}M`, value: monthlyUsage, fill: "#ff4d4d"},
+        { name: `ZU ${(monthlyUsage).toFixed(0)}M used`, value: monthlyUsage, fill: "#ff4d4d"},
     ];
 
     return (
@@ -60,12 +60,12 @@ export function PlanTableCountUsagePieChart(props: any) {
     const remainingTables = planTableCount - tableCount;
 
     const data01 = [
-        { name: `Slots(Used) ${endpointCount.toFixed(0)}`, value: endpointCount, fill: "#ff4d4d" },
-        { name: `Slots(Open) ${remainingEndpoints.toFixed(0)}`, value: remainingEndpoints, fill: "#4db375" },
+        { name: `routes used ${endpointCount.toFixed(0)}`, value: endpointCount, fill: "#ff4d4d" },
+        { name: `routes open ${remainingEndpoints.toFixed(0)}`, value: remainingEndpoints, fill: "#4db375" },
     ];
     const data02 = [
-        { name: `Tables(Used) ${tableCount.toFixed(0)}`, value: tableCount, fill: "#ff4d4d" },
-        { name: `Tables(Open) ${remainingTables.toFixed(0)}`, value: remainingTables, fill: "#4db375" },
+        { name: `tables used ${tableCount.toFixed(0)}`, value: tableCount, fill: "#ff4d4d" },
+        { name: `tables open ${remainingTables.toFixed(0)}`, value: remainingTables, fill: "#4db375" },
     ];
 
     return (

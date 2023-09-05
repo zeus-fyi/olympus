@@ -25,6 +25,9 @@ export function ProceduresCatalogTable(props: any) {
     const dispatch = useDispatch();
     const [loadingProcedures, setLoadingProcedures] = React.useState(false);
     const [code, setCode] = React.useState('');
+    const [showDetails, setShowDetails] = React.useState(false);
+    const [showDetailsRow, setShowDetailsRow] = React.useState(-1);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -60,6 +63,16 @@ export function ProceduresCatalogTable(props: any) {
         // const tokenCount = await heraApiGateway.getTokenCountEstimate(textInput);
         // setTokenEstimate(tokenCount);
     };
+
+    const onViewDetails = async (index: number) => {
+        setShowDetails(!showDetails);
+        if (index == showDetailsRow) {
+            setShowDetailsRow(-1);
+            return;
+        }
+        setShowDetailsRow(index);
+    };
+
     return (
         <div>
             <Box sx={{ mt: 4, mb: 4 }}>
@@ -97,7 +110,7 @@ export function ProceduresCatalogTable(props: any) {
                                     <TableCell align="left">{slice.protocol}</TableCell>
                                     <TableCell align="left">{slice.description}</TableCell>
                                     <TableCell align="left">
-                                        <Button variant="contained" color="primary"  onClick={() => ({})}>
+                                        <Button variant="contained" color="primary"  onClick={() => onViewDetails(index)}>
                                             View Details
                                         </Button>
                                         <Box sx={{ mt: 4, mb: 4 }}>
@@ -113,11 +126,13 @@ export function ProceduresCatalogTable(props: any) {
                                         {/*{statusMessageRowIndex === i && <div>{statusMessage}</div>}*/}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {/*<Button variant="contained" color="primary"  onClick={() => ({})}>*/}
-                                        {/*    Settings*/}
-                                        {/*</Button>*/}
-
-                                        <ExamplePageMarkdownText onChange={onChange}/>
+                                        {
+                                            showDetails && showDetailsRow === index && (
+                                                <div>
+                                                    <ExamplePageMarkdownText onChange={onChange}/>
+                                                </div>
+                                            )
+                                        }
                                         {/*{statusMessageRowIndex === i && <div>{statusMessage}</div>}*/}
                                     </TableCell>
                                 </TableRow>

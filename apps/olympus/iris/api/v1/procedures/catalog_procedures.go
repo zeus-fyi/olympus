@@ -1,5 +1,7 @@
 package iris_catalog_procedures
 
+import "github.com/labstack/echo/v4"
+
 const (
 	EthMaxBlockAggReduce  = "eth_maxBlockAggReduce"
 	AvaxMaxBlockAggReduce = "avax_maxBlockAggReduce"
@@ -7,35 +9,35 @@ const (
 	BtcMaxBlockAggReduce  = "btc_maxBlockAggReduce"
 )
 
-func ProcedureStageOnePayload(procName string) string {
+func ProcedureStageOnePayload(procName string) echo.Map {
 	switch procName {
 	case EthMaxBlockAggReduce:
 		return EthGetBlockNumberPayload
 	case AvaxMaxBlockAggReduce:
-		return ""
+		return echo.Map{}
 	case NearMaxBlockAggReduce:
 		return NearGetBlockNumberPayload
 	case BtcMaxBlockAggReduce:
 		return BtcGetBlockNumberPayload
 	default:
-		return ""
+		return echo.Map{}
 	}
 }
 
-const (
-	EthGetBlockNumberPayload = `
-	{
-	  "method": "eth_blockNumber",
-	  "params": [],
-	  "id": 1,
-	  "jsonrpc": "2.0"
-	}`
-	NearGetBlockNumberPayload = `
-	{
+var (
+	EthGetBlockNumberPayload = echo.Map{
+		"method":  "eth_blockNumber",
+		"params":  []interface{}{},
+		"id":      1,
 		"jsonrpc": "2.0",
-		"method": "status",
-		"params": [],
-		"id": 1
-	}`
-	BtcGetBlockNumberPayload = `{ "method": "getblockcount" }`
+	}
+	NearGetBlockNumberPayload = echo.Map{
+		"jsonrpc": "2.0",
+		"method":  "status",
+		"params":  []interface{}{},
+		"id":      1,
+	}
+	BtcGetBlockNumberPayload = echo.Map{
+		"method": "getblockcount",
+	}
 )

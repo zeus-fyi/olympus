@@ -29,17 +29,17 @@ func (s *IrisV1TestSuite) TestEthHeaders() iris_programmable_proxy_v1_beta.IrisR
 		XAggKeyValueDataType: "int",
 		XAggFilterFanIn:      &fnRule,
 	}
-
+	payload := iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.EthMaxBlockAggReduce)
 	req := &iris_api_requests.ApiProxyRequest{
+		Url:             "https://fragrant-bitter-lambo.quiknode.pro/7aa59ebefff9128164cac7737bfefeae45b4ee8d/",
 		ExtRoutePath:    "/",
 		ServicePlan:     "performance",
 		PayloadTypeREST: "POST",
+		Payload:         payload,
 	}
 	proc, err := ph.GetGeneratedProcedure("ethereum-mainnet", req)
 	s.Nil(err)
 	s.NotNil(proc.OrderedSteps)
-
-	payload := iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.EthMaxBlockAggReduce)
 	s.NotEmpty(payload)
 	/*
 		needs to test that
@@ -62,7 +62,6 @@ func (s *IrisV1TestSuite) TestEthJsonRPC() {
 	irisClient.Header.Set("Content-Type", "application/json")
 	irisClient.Header.Set(iris_programmable_proxy.RouteGroupHeader, groupName)
 	irisClient.Header.Set(iris_programmable_proxy_v1_beta.LoadBalancingStrategy, iris_programmable_proxy_v1_beta.Adaptive)
-
 	payload := `{
 		"jsonrpc": "2.0",
 		"procedure": "eth_maxBlockAggReduce",

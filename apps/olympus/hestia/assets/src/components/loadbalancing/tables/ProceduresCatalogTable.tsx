@@ -176,11 +176,11 @@ export function ProceduresCatalogTable(props: any) {
                                                 <div>
                                                     <Stack direction={"column"} spacing={2}>
                                                         <ExamplePageMarkdownText onChange={onChange} code={code} setCode={setCode}/>
-                                                        <Box sx={{ mt: 4, mb: 4 }}>
-                                                            <Button variant="contained" fullWidth={true} color="primary"  onClick={onSubmitPayload}>
-                                                                Send Request
-                                                            </Button>
-                                                        </Box>
+                                                        {/*<Box sx={{ mt: 4, mb: 4 }}>*/}
+                                                        {/*    <Button variant="contained" fullWidth={true} color="primary"  onClick={onSubmitPayload}>*/}
+                                                        {/*        Send Request*/}
+                                                        {/*    </Button>*/}
+                                                        {/*</Box>*/}
                                                     </Stack>
                                                 </div>
                                             )

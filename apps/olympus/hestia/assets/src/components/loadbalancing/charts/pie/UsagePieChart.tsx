@@ -60,12 +60,12 @@ export function PlanTableCountUsagePieChart(props: any) {
     const remainingTables = planTableCount - tableCount;
 
     const data01 = [
-        { name: `routes used ${endpointCount.toFixed(0)}`, value: endpointCount, fill: "#ff4d4d" },
         { name: `routes open ${remainingEndpoints.toFixed(0)}`, value: remainingEndpoints, fill: "#4db375" },
+        { name: `routes used ${endpointCount.toFixed(0)}`, value: endpointCount, fill: "#ff4d4d" },
     ];
     const data02 = [
-        { name: `tables used ${tableCount.toFixed(0)}`, value: tableCount, fill: "#ff4d4d" },
         { name: `tables open ${remainingTables.toFixed(0)}`, value: remainingTables, fill: "#4db375" },
+        { name: `tables used ${tableCount.toFixed(0)}`, value: tableCount, fill: "#ff4d4d" },
     ];
 
     return (

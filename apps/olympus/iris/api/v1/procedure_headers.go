@@ -47,7 +47,8 @@ type ProcedureHeaders struct {
 	XAggFilterPayload    string
 	XAggFilterFanIn      *string
 
-	ForwardPayload echo.Map
+	StageOneAggregateMapName string
+	ForwardPayload           echo.Map
 }
 
 const (
@@ -108,6 +109,7 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 		return proc, errors.New("X-Agg-Op is required")
 	}
 	agg := iris_operators.Aggregation{
+		Name:       p.StageOneAggregateMapName,
 		Comparison: comp,
 		DataType:   p.XAggKeyValueDataType,
 	}

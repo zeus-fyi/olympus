@@ -34,11 +34,12 @@ func (s *IrisV1TestSuite) TestEthHeaders() iris_programmable_proxy_v1_beta.IrisR
 		"id": 1,
 	}
 	ph := ProcedureHeaders{
-		XAggOp:               "max",
-		XAggKey:              "result",
-		XAggKeyValueDataType: "int",
-		XAggFilterFanIn:      &fnRule,
-		ForwardPayload:       stageTwoPayload,
+		XAggOp:                   "max",
+		XAggKey:                  "result",
+		XAggKeyValueDataType:     "int",
+		XAggFilterFanIn:          &fnRule,
+		ForwardPayload:           stageTwoPayload,
+		StageOneAggregateMapName: iris_catalog_procedures.EthMaxBlockAggReduce,
 	}
 	payload := iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.EthMaxBlockAggReduce)
 	req := &iris_api_requests.ApiProxyRequest{

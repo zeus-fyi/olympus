@@ -31,12 +31,11 @@ func (s *IrisV1TestSuite) TestEthHeaders() {
 	}
 
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:             "https://zeus.fyi",
 		ExtRoutePath:    "/",
 		ServicePlan:     "performance",
 		PayloadTypeREST: "POST",
 	}
-	proc, err := ph.GetGeneratedProcedure("test", req)
+	proc, err := ph.GetGeneratedProcedure("ethereum-mainnet", req)
 	s.Nil(err)
 	s.NotNil(proc.OrderedSteps)
 

@@ -63,10 +63,12 @@ export function ProceduresCatalogTable(props: any) {
     };
 
     const onViewDetails = async (index: number) => {
-        setShowDetails(!showDetails);
-        if (index == showDetailsRow) {
+        if (index === showDetailsRow) {
             setShowDetailsRow(-1);
+            setShowDetails(false);
             return;
+        } else {
+            setShowDetails(true);
         }
         setShowDetailsRow(index);
     };

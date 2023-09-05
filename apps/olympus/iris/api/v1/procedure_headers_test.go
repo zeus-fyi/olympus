@@ -18,6 +18,12 @@ type IrisV1TestSuite struct {
 var ctx = context.Background()
 
 func (s *IrisV1TestSuite) TestEthHeaders() {
+
+	/*
+		needs to test that
+		1. max block finder
+		2. max block finder with fan in for main method request
+	*/
 }
 
 func (s *IrisV1TestSuite) TestHeaders() {

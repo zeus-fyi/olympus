@@ -10,6 +10,7 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	iris_catalog_procedures "github.com/zeus-fyi/olympus/iris/api/v1/procedures"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
@@ -137,6 +138,7 @@ func (m *IrisCache) RecordRequestUsage(ctx context.Context, orgID int, meter *ir
 func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx context.Context, orgID int, procedureName, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, []iris_models.RouteInfo, iris_usage_meters.UsageMeter, error) {
 	// Generate the rate limiter key with the Unix timestamp
 	orgIDStr := fmt.Sprintf("%d", orgID)
+
 	procedureKey := getProcedureKey(orgID, procedureName)
 	procedureStepsKey := getProcedureStepsKey(orgID, procedureName)
 	rateLimiterKey := getOrgRateLimitKey(orgID)
@@ -155,7 +157,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 
 	// Get the values from Redis
 	var procedureCmd, procedureStepsKeyCmd *redis.StringCmd
-	if procedureName != orgIDStr {
+	if procedureName != orgIDStr && !iris_catalog_procedures.IsEmbeddedProcedure(procedureName) {
 		procedureCmd = pipe.Get(ctx, procedureKey)
 		procedureStepsKeyCmd = pipe.Get(ctx, procedureStepsKey)
 	}
@@ -228,7 +230,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 		routes = append(routes, routeInfo)
 	}
 
-	if procedure.Name != orgIDStr {
+	if procedure.Name != orgIDStr && !iris_catalog_procedures.IsEmbeddedProcedure(procedureName) {
 		data, derr := procedureCmd.Bytes()
 		if derr != nil {
 			log.Err(derr).Msg("failed to get procedure from Redis")

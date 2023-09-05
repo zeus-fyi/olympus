@@ -12,7 +12,6 @@ import (
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
-	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, procName string) error {
@@ -41,9 +40,7 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 	if payloadSizingMeter == nil {
 		payloadSizingMeter = iris_usage_meters.NewPayloadSizeMeter(nil)
 	}
-	if procName != iris_programmable_proxy_v1_beta.MaxBlockAggReduce {
-		procName = ""
-	}
+
 	if len(procName) <= 0 {
 		procName = fmt.Sprintf("%d", ou.OrgID)
 	}
@@ -81,8 +78,6 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		headers[k] = v // Assuming there's at least one value
 	}
 	qps := c.QueryParams()
-
-	// TODO: add max timeout param
 	req := &iris_api_requests.ApiProxyRequest{
 		Procedure:        proc,
 		Routes:           routes,
@@ -96,6 +91,12 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		Timeout:          4 * time.Second,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
+	}
+
+	proc, err = BuildProcedureIfTemplateExists(procName, routeGroup, req, p.Body)
+	if err != nil {
+		log.Err(err).Str("procedure", procName).Msg("ExtractProcedureIfExists: GetProcedureTemplateJsonRPC")
+		return c.JSON(http.StatusBadRequest, Response{Message: err.Error()})
 	}
 	orgIDStr := fmt.Sprintf("%d", ou.OrgID)
 	if req.Procedure.Name == orgIDStr {

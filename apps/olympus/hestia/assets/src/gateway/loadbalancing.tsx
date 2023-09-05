@@ -20,6 +20,42 @@ class LoadBalancingApiGateway {
         }
     }
 
+    async getProceduresCatalog(): Promise<any>  {
+        const url = `/v1/iris/procedures`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await hestiaApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending get customer endpoints request');
+            console.error(exc);
+            return
+        }
+    }
+
+    async getProcedures(tableName: string): Promise<any>  {
+        const url = `/v1/iris/routes/group/${tableName}/procedures`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await hestiaApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending get customer endpoints request');
+            console.error(exc);
+            return
+        }
+    }
+
     async getTableMetrics(tableName: string): Promise<any>  {
         const url = `/v1/iris/routes/group/${tableName}/metrics`;
         try {

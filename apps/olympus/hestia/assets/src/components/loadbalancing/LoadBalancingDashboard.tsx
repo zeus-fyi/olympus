@@ -29,7 +29,7 @@ import {MetricsChart, TableMetricsCharts} from "./charts/radar/MetricsCharts";
 import {LoadBalancingRoutesTable} from "./tables/LoadBalancingRoutesTable";
 import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
-
+import {ProceduresCatalogTable} from "./tables/ProceduresCatalogTable";
 
 const drawerWidth: number = 240;
 
@@ -113,6 +113,7 @@ function LoadBalancingDashboardContent(props: any) {
     const [reload, setReload] = useState(false); // State to trigger reload
     const [createGroupName, setCreateGroupName] = React.useState("");
     const [selectedTab, setSelectedTab] = useState(0);
+    const [selectedMainTab, setSelectedMainTab] = useState(0);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -272,6 +273,7 @@ function LoadBalancingDashboardContent(props: any) {
         }
         if (name === "-all" || name === "unused") {
             setSelectedTab(0);
+            setSelectedMainTab(0);
         }
         setTableRoutes(name === "-all" ? endpoints : groups[name]);
     };
@@ -318,7 +320,6 @@ function LoadBalancingDashboardContent(props: any) {
         const filteredRoutes = endpoints.filter(
             endpoint => !groups[groupName].includes(endpoint)
         );
-
         setTableRoutes(filteredRoutes);
         return;
     };
@@ -331,6 +332,10 @@ function LoadBalancingDashboardContent(props: any) {
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedTab(newValue);
+    };
+
+    const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setSelectedMainTab(newValue);
     };
 
     return (
@@ -502,7 +507,7 @@ function LoadBalancingDashboardContent(props: any) {
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         {groupName !== "-all" && groupName !== "unused" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs example">
+                                <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs">
                                     <Tab label="Endpoints"  />
                                     <Tab label="Metrics"  />
                                     <Tab label="Priority Scores" />
@@ -510,7 +515,15 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Tabs>
                             </Box>
                         )}
-                        {selectedTab === 0 && (
+                        {groupName === "-all" && (
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
+                                    <Tab label="Endpoints"  />
+                                    <Tab label="Procedures" />
+                                </Tabs>
+                            </Box>
+                        )}
+                        { selectedMainTab == 0 && selectedTab === 0 && (
                         <LoadBalancingRoutesTable
                             selectedTab={selectedTab}
                             handleTabChange={handleTabChange}
@@ -562,6 +575,32 @@ function LoadBalancingDashboardContent(props: any) {
                             />)}
                         {selectedTab === 2 && groupName !== "-all" && groupName !== "unused" && (
                             <LoadBalancingPriorityScoreMetricsTable
+                                selectedTab={selectedTab}
+                                handleTabChange={handleTabChange}
+                                page={page}
+                                rowsPerPage={rowsPerPage}
+                                loading={loading}
+                                endpoints={tableRoutes}
+                                groups={groups}
+                                groupName={groupName}
+                                selected={selected}
+                                handleSelectAllClick={handleSelectAllClick}
+                                handleClick={handleClick}
+                                handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                handleChangePage={handleChangePage}
+                                isAdding={isAdding}
+                                setIsAdding={setIsAdding}
+                                newEndpoint={newEndpoint}
+                                isUpdatingGroup={isUpdatingGroup}
+                                setNewEndpoint={setNewEndpoint}
+                                handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                                handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                                handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                                handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
+                            />)}
+                        {selectedMainTab === 1 && groupName === "-all" && (
+                            <ProceduresCatalogTable
+                                selectedMainTab={selectedMainTab}
                                 selectedTab={selectedTab}
                                 handleTabChange={handleTabChange}
                                 page={page}

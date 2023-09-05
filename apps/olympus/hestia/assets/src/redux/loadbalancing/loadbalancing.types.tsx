@@ -1,9 +1,12 @@
+import {IrisRoutingProcedure} from "./procedures.types";
 
 export interface LoadBalancingState {
     routes: string[];
     groups: Groups;
     planUsageDetails: PlanUsageDetails;
     tableMetrics: TableMetricsSummary;
+    proceduresCatalog: IrisRoutingProcedure[];
+    proceduresOnTable: IrisRoutingProcedure[];
 }
 
 export interface Groups {

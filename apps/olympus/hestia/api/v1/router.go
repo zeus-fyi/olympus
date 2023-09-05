@@ -49,6 +49,9 @@ const (
 	IrisDeleteSingleGroupRoutesPath = "/iris/routes/group/:groupName/delete"
 
 	IrisDeleteRoutesPathInternal = "/iris/routes/delete/:orgID"
+
+	IrisGetProceduresCatalog = "/iris/procedures"
+	IrisGetProceduresOnTable = "/iris/routes/group/:groupName/procedures"
 )
 
 func InitV1Routes(e *echo.Echo) {
@@ -94,7 +97,8 @@ func InitV1Routes(e *echo.Echo) {
 	eg.DELETE(IrisDeleteGroupRoutesPath, hestia_iris_v1_routes.DeleteReplaceOrgGroupRoutesRequestHandler)
 	eg.DELETE(IrisDeleteSingleGroupRoutesPath, hestia_iris_v1_routes.DeleteOrgGroupRoutesRequestHandler)
 	eg.GET(IrisReadAllRoutesAndGroupsPath, hestia_iris_v1_routes.ReadAllOrgGroupsAndEndpointsRequestHandler)
-
+	eg.GET(IrisGetProceduresCatalog, hestia_iris_v1_routes.ProceduresRequestHandler)
+	eg.GET(IrisGetProceduresOnTable, hestia_iris_v1_routes.ProceduresOnTableRequestHandler)
 	eg.GET("/age/generate", GenerateRandomAgeEncryptionKey) // if no js client, generate age keypair
 
 	// ethereum aws automation

@@ -1,5 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {Groups, LoadBalancingState, PlanUsageDetails, TableMetricsSummary} from "./loadbalancing.types";
+import {IrisRoutingProcedure} from "./procedures.types";
 
 const initialState: LoadBalancingState = {
     routes: [],
@@ -23,6 +24,18 @@ const initialState: LoadBalancingState = {
         routes: [],
         metrics: {},
     },
+    proceduresCatalog: [{
+        name: '',
+        description: '',
+        protocol: '',
+        orderedSteps: [],
+    }],
+    proceduresOnTable: [{
+        name: '',
+        description: '',
+        protocol: '',
+        orderedSteps: [],
+    }]
 }
 
 const loadBalancingSlice = createSlice({
@@ -40,6 +53,12 @@ const loadBalancingSlice = createSlice({
         },
         setTableMetrics: (state, action: PayloadAction<TableMetricsSummary>) => {
             state.tableMetrics = action.payload;
+        },
+        setProceduresCatalog: (state, action: PayloadAction<IrisRoutingProcedure[]>) => {
+            state.proceduresCatalog = action.payload;
+        },
+        setProceduresOnTable: (state, action: PayloadAction<IrisRoutingProcedure[]>) => {
+            state.proceduresOnTable = action.payload;
         }
     }
 });
@@ -48,6 +67,8 @@ export const {
     setEndpoints,
     setGroupEndpoints,
     setUserPlanDetails,
-    setTableMetrics
+    setTableMetrics,
+    setProceduresCatalog,
+    setProceduresOnTable,
 } = loadBalancingSlice.actions;
 export default loadBalancingSlice.reducer;

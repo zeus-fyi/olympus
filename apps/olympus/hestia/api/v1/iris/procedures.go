@@ -5,12 +5,21 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/phf/go-queue/queue"
 	iris_operators "github.com/zeus-fyi/zeus/pkg/iris/operators"
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 type ProceduresRequest struct {
+}
+
+type ProceduresRequestResponseWrapper struct {
+	Procedures []ProceduresRequestResponse `json:"procedures"`
+}
+
+type ProceduresRequestResponse struct {
+	Name         string                                                     `json:"name"`
+	Description  string                                                     `json:"description"`
+	OrderedSteps []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep `json:"steps"`
 }
 
 func ProceduresRequestHandler(c echo.Context) error {
@@ -19,6 +28,18 @@ func ProceduresRequestHandler(c echo.Context) error {
 		return err
 	}
 	return request.GetProceduresCatalog(c)
+}
+
+func ProceduresOnTableRequestHandler(c echo.Context) error {
+	request := new(ProceduresRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.GetProceduresOnTable(c)
+}
+
+func (p *ProceduresRequest) GetProceduresOnTable(c echo.Context) error {
+	return nil
 }
 
 func (p *ProceduresRequest) GetProceduresCatalog(c echo.Context) error {
@@ -80,15 +101,12 @@ func (p *ProceduresRequest) GetProceduresCatalog(c echo.Context) error {
 			},
 		},
 	}
-	que := queue.New()
-	que.PushBack(getBlockHeightProcedure)
-	que.PushBack(getBlockProcedure)
-	resp := []iris_programmable_proxy_v1_beta.IrisRoutingProcedure{{
+	resp := []ProceduresRequestResponse{{
 		Name:         "ethereumMaxBlockAggReduce",
-		OrderedSteps: que,
+		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
 	}, {
 		Name:         "near",
-		OrderedSteps: que,
+		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
 	},
 	}
 

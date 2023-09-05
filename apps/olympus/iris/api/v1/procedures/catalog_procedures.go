@@ -1,24 +1,41 @@
 package iris_catalog_procedures
 
 const (
-	eth_maxBlockAggReduce  = "eth_maxBlockAggReduce"
-	avax_maxBlockAggReduce = "avax_maxBlockAggReduce"
-	near_maxBlockAggReduce = "near_maxBlockAggReduce"
-	btc_maxBlockAggReduce  = "btc_maxBlockAggReduce"
+	EthMaxBlockAggReduce  = "eth_maxBlockAggReduce"
+	AvaxMaxBlockAggReduce = "avax_maxBlockAggReduce"
+	NearMaxBlockAggReduce = "near_maxBlockAggReduce"
+	BtcMaxBlockAggReduce  = "btc_maxBlockAggReduce"
 )
 
-func Procedure(procName string) {
+func ProcedureStageOnePayload(procName string) string {
 	switch procName {
-	case eth_maxBlockAggReduce:
-		// do something
-	case avax_maxBlockAggReduce:
-		// do something
-	case near_maxBlockAggReduce:
-		// do something
-	case btc_maxBlockAggReduce:
-		// do something
+	case EthMaxBlockAggReduce:
+		return EthGetBlockNumberPayload
+	case AvaxMaxBlockAggReduce:
+		return ""
+	case NearMaxBlockAggReduce:
+		return NearGetBlockNumberPayload
+	case BtcMaxBlockAggReduce:
+		return BtcGetBlockNumberPayload
 	default:
-		// do something
+		return ""
 	}
-	return
 }
+
+const (
+	EthGetBlockNumberPayload = `
+	{
+	  "method": "eth_blockNumber",
+	  "params": [],
+	  "id": 1,
+	  "jsonrpc": "2.0"
+	}`
+	NearGetBlockNumberPayload = `
+	{
+		"jsonrpc": "2.0",
+		"method": "status",
+		"params": [],
+		"id": 1
+	}`
+	BtcGetBlockNumberPayload = `{ "method": "getblockcount" }`
+)

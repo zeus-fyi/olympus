@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	iris_catalog_procedures "github.com/zeus-fyi/olympus/iris/api/v1/procedures"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	"github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy"
@@ -38,6 +39,8 @@ func (s *IrisV1TestSuite) TestEthHeaders() iris_programmable_proxy_v1_beta.IrisR
 	s.Nil(err)
 	s.NotNil(proc.OrderedSteps)
 
+	payload := iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.EthMaxBlockAggReduce)
+	s.NotEmpty(payload)
 	/*
 		needs to test that
 		1. max block finder

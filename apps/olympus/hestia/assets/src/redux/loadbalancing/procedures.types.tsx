@@ -1,4 +1,4 @@
-type Queue = any[];
+export type Queue = any[];
 
 export interface IrisRoutingProcedure {
     name: string;
@@ -15,22 +15,22 @@ export interface BroadcastInstructions {
     fanInRules?: FanInRules;
 }
 
-interface FanInRules {
+export interface FanInRules {
     rule: BroadcastRules;
 }
 
-type BroadcastRules = "returnOnFirstSuccess" | "returnAllSuccessful";
+export type BroadcastRules = "returnOnFirstSuccess" | "returnAllSuccessful";
 
-const FanInRuleFirstValidResponse: BroadcastRules = "returnOnFirstSuccess";
-const FanInRuleReturnAllResponses: BroadcastRules = "returnAllSuccessful";
+export const FanInRuleFirstValidResponse: BroadcastRules = "returnOnFirstSuccess";
+export const FanInRuleReturnAllResponses: BroadcastRules = "returnAllSuccessful";
 
 // ReturnFirstResultOnSuccess function
-function returnFirstResultOnSuccess(b: BroadcastRules): BroadcastRules {
+export function returnFirstResultOnSuccess(b: BroadcastRules): BroadcastRules {
     return FanInRuleFirstValidResponse;
 }
 
 // ReturnResultsOnSuccess function
-function returnResultsOnSuccess(b: BroadcastRules): BroadcastRules {
+export function returnResultsOnSuccess(b: BroadcastRules): BroadcastRules {
     return FanInRuleReturnAllResponses;
 }
 

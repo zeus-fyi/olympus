@@ -16,16 +16,21 @@ import {setProceduresCatalog} from "../../../redux/loadbalancing/loadbalancing.r
 
 export function ProceduresCatalogTable(props: any) {
     const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
-        handleChangeRowsPerPage,handleChangePage, groupName, selectedTab, handleTabChange,
+        handleChangeRowsPerPage,handleChangePage, groupName, selectedTab, handleTabChange, selectedMainTab,
         isAdding, setIsAdding, newEndpoint, setNewEndpoint, isUpdatingGroup, handleAddGroupTableEndpointsSubmission,
         handleSubmitNewEndpointSubmission, handleDeleteEndpointsSubmission, handleUpdateGroupTableEndpointsSubmission
     } = props
     const proceduresCatalog = useSelector((state: RootState) => state.loadBalancing.proceduresCatalog);
     const dispatch = useDispatch();
     const [loadingProcedures, setLoadingProcedures] = React.useState(false);
+    console.log('selectedMainTab', selectedMainTab)
     useEffect(() => {
         const fetchData = async () => {
             try {
+                if (selectedMainTab !== 1) {
+                    return
+                }
+                console.log('fetching procedures catalog')
                 setLoadingProcedures(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getProceduresCatalog();
                 console.log("response", response.data)
@@ -37,7 +42,7 @@ export function ProceduresCatalogTable(props: any) {
             }
         }
         fetchData();
-    }, [groupName]);
+    }, [selectedMainTab]);
 
     if (loadingProcedures) {
         return <div>Loading...</div> // Display loading message while data is fetching

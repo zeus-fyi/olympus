@@ -273,6 +273,7 @@ function LoadBalancingDashboardContent(props: any) {
         }
         if (name === "-all" || name === "unused") {
             setSelectedTab(0);
+            setSelectedMainTab(0);
         }
         setTableRoutes(name === "-all" ? endpoints : groups[name]);
     };
@@ -337,7 +338,6 @@ function LoadBalancingDashboardContent(props: any) {
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
     };
-
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -507,7 +507,7 @@ function LoadBalancingDashboardContent(props: any) {
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         {groupName !== "-all" && groupName !== "unused" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs example">
+                                <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs">
                                     <Tab label="Endpoints"  />
                                     <Tab label="Metrics"  />
                                     <Tab label="Priority Scores" />
@@ -517,13 +517,13 @@ function LoadBalancingDashboardContent(props: any) {
                         )}
                         {groupName === "-all" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs example">
+                                <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
                                     <Tab label="Endpoints"  />
                                     <Tab label="Procedures" />
                                 </Tabs>
                             </Box>
                         )}
-                        {selectedTab === 0 && (
+                        { selectedMainTab == 0 && selectedTab === 0 && (
                         <LoadBalancingRoutesTable
                             selectedTab={selectedTab}
                             handleTabChange={handleTabChange}
@@ -598,8 +598,9 @@ function LoadBalancingDashboardContent(props: any) {
                                 handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
                                 handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
                             />)}
-                        {selectedTab === 3 && groupName !== "-all" && groupName !== "unused" && (
+                        {selectedMainTab === 1 && groupName === "-all" && (
                             <ProceduresCatalogTable
+                                selectedMainTab={selectedMainTab}
                                 selectedTab={selectedTab}
                                 handleTabChange={handleTabChange}
                                 page={page}

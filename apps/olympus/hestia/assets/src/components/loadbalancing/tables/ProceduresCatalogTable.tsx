@@ -79,6 +79,8 @@ export function ProceduresCatalogTable(props: any) {
                                 <TableCell style={{ color: 'white'}} align="left">Name</TableCell>
                                 <TableCell style={{ color: 'white'}} align="left">Protocol</TableCell>
                                 <TableCell style={{ color: 'white'}} align="left">Description</TableCell>
+                                <TableCell style={{ color: 'white'}} align="left"></TableCell>
+                                <TableCell style={{ color: 'white'}} align="left"></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -87,6 +89,18 @@ export function ProceduresCatalogTable(props: any) {
                                     <TableCell align="left">{slice.name}</TableCell>
                                     <TableCell align="left">{slice.protocol}</TableCell>
                                     <TableCell align="left">{slice.description}</TableCell>
+                                    <TableCell align="left">
+                                        <Button variant="contained" color="primary"  onClick={() => ({})}>
+                                            View Request Details
+                                        </Button>
+                                        {/*{statusMessageRowIndex === i && <div>{statusMessage}</div>}*/}
+                                    </TableCell>
+                                    <TableCell align="left">
+                                        <Button variant="contained" color="primary"  onClick={() => ({})}>
+                                            Settings
+                                        </Button>
+                                        {/*{statusMessageRowIndex === i && <div>{statusMessage}</div>}*/}
+                                    </TableCell>
                                 </TableRow>
                             ))}
                             {emptyRows > 0 && (

@@ -78,7 +78,6 @@ export function ProceduresCatalogTable(props: any) {
             setShowDetails(true);
         }
 
-        console.log("procName", procName)
         switch (procName) {
             case 'eth_maxBlockAggReduce':
                 setCode(ethMaxBlockAggReduceExample);

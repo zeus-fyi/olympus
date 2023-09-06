@@ -82,7 +82,6 @@ func (h *HestiaQuickNodeActivities) DeleteAuthCache(ctx context.Context, qnID st
 		return err
 	}
 	return nil
-
 }
 
 func (h *HestiaQuickNodeActivities) UpsertQuickNodeGroupTableRoutingEndpoints(ctx context.Context, pr hestia_quicknode.ProvisionRequest) (int, error) {

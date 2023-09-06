@@ -216,16 +216,17 @@ func (k *OrgUserKey) GetUserAuthedServices() sql_query_templates.QueryParams {
 	return q
 }
 
-func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) ([]string, error) {
+func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) ([]string, map[string]string, error) {
 	q := k.GetUserAuthedServices()
 	log.Debug().Interface("QueryUserAuthedServices:", q.LogHeader(Sn))
 
 	m := make(map[string]string)
+	keysFound := make(map[string]string)
 	var services []string
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, token)
 	log.Err(err).Interface("QueryUserAuthedServices: Query: ", q.RawQuery)
 	if err != nil {
-		return services, err
+		return services, keysFound, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -234,13 +235,14 @@ func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) 
 		rowErr := rows.Scan(&k.PublicKey, &serviceName, &k.OrgID, &k.UserID, &plan)
 		if rowErr != nil {
 			log.Err(rowErr).Interface("QueryUserAuthedServices: Query: ", q.RawQuery)
-			return services, rowErr
+			return services, keysFound, rowErr
 		}
+		keysFound[k.PublicKey] = k.PublicKey
 		services = append(services, serviceName)
 		m[serviceName] = plan
 	}
 	k.Services = m
-	return services, misc.ReturnIfErr(err, q.LogHeader(Sn))
+	return services, keysFound, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
 func (k *OrgUserKey) QueryGetCustomerStripeID() sql_query_templates.QueryParams {

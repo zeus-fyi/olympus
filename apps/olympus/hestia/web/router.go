@@ -46,7 +46,7 @@ func InitV1Routes(e *echo.Echo) {
 
 			}
 			key := read_keys.NewKeyReader()
-			services, err := key.QueryUserAuthedServices(ctx, token)
+			services, _, err := key.QueryUserAuthedServices(ctx, token)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
 				return false, err

@@ -18,6 +18,8 @@ const (
 	RefreshOrgGroupRoutingTable = "/router/refresh/:orgID/:groupName"
 	DeleteOrgRoutingTables      = "/router/:orgID"
 	DeleteOrgRoutingGroupTable  = "/router/:orgID/:groupName"
+
+	DeleteQnOrgAuthCache = "/router/qn/auth/:qnID"
 )
 
 func InitV1InternalRoutes(e *echo.Echo) {
@@ -44,4 +46,5 @@ func InitV1InternalRoutes(e *echo.Echo) {
 
 	eg.DELETE(DeleteOrgRoutingTables, InternalDeleteOrgRoutingTableRequestHandler)
 	eg.DELETE(DeleteOrgRoutingGroupTable, InternalDeleteOrgGroupRoutingTableRequestHandler)
+	eg.DELETE(DeleteQnOrgAuthCache, InternalDeleteQnOrgAuthCacheHandler)
 }

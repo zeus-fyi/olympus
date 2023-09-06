@@ -2,11 +2,15 @@ package v1internal_iris
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	util "github.com/wealdtech/go-eth2-util"
+	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 )
 
@@ -130,6 +134,43 @@ func InternalDeleteOrgGroupRoutingTableRequestHandler(c echo.Context) error {
 		return err
 	}
 	return request.DeleteOrgGroupRoutingTable(c)
+}
+
+func InternalDeleteQnOrgAuthCacheHandler(c echo.Context) error {
+	request := new(DeleteOrgRoutingTableRequest)
+	if err := c.Bind(&request); err != nil {
+		log.Err(err)
+		return err
+	}
+	return request.DeleteQnOrgAuthCache(c)
+}
+
+func (p *DeleteOrgRoutingTableRequest) DeleteQnOrgAuthCache(c echo.Context) error {
+	qnID := c.Param("qnID")
+	if len(qnID) == 0 {
+		log.Warn().Msg("DeleteQnOrgAuthCache: orgID is empty")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	key := read_keys.NewKeyReader()
+
+	_, keysFound, err := key.QueryUserAuthedServices(context.Background(), qnID)
+	if err != nil {
+		log.Err(err).Msg("DeleteQnOrgAuthCache: QueryUserAuthedServices error")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	for k, _ := range keysFound {
+		tokenDel := fmt.Sprintf("{%x}.plan", util.Keccak256([]byte(k)))
+		err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		tokenDel = fmt.Sprintf("{%x}", util.Keccak256([]byte(k)))
+		err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+	}
+	return c.JSON(http.StatusOK, "ok")
 }
 
 func (p *DeleteOrgRoutingTableRequest) DeleteOrgGroupRoutingTable(c echo.Context) error {

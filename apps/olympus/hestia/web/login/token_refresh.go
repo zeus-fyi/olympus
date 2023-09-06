@@ -83,7 +83,7 @@ func (l *UserAuthedServicesRequest) GetAuthedServices(c echo.Context) error {
 		sessionToken = cookie.Value
 	}
 	k := read_keys.NewKeyReader()
-	services, err := k.QueryUserAuthedServices(ctx, sessionToken)
+	services, _, err := k.QueryUserAuthedServices(ctx, sessionToken)
 	if err != nil {
 		log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
 		return c.JSON(http.StatusInternalServerError, nil)

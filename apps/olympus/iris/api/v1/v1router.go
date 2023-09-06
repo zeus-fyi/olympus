@@ -45,6 +45,7 @@ func InitV1Routes(e *echo.Echo) {
 
 			orgID, plan, err := iris_redis.IrisRedisClient.GetAuthCacheIfExists(ctx, token)
 			if err == nil && orgID > 0 && plan != "" {
+				c.Set("lbDefault", getDefaultLB(plan))
 				c.Set("servicePlan", plan)
 				c.Set("orgUser", org_users.NewOrgUserWithID(int(orgID), 0))
 				c.Set("bearer", token)
@@ -68,6 +69,7 @@ func InitV1Routes(e *echo.Echo) {
 				return false, errors.New("marketplace plan not found")
 			}
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("lbDefault", getDefaultLB(plan))
 			c.Set("servicePlan", plan)
 			c.Set("orgUser", ou)
 			c.Set("bearer", token)

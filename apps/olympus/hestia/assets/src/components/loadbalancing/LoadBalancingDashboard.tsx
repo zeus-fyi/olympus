@@ -339,6 +339,9 @@ function LoadBalancingDashboardContent(props: any) {
         setSelectedMainTab(newValue);
     };
 
+    if (loading) {
+        return <div></div>
+    }
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>

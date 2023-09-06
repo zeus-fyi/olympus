@@ -28,6 +28,7 @@ const (
 const (
 	LoadBalancingStrategy    = "X-Load-Balancing-Strategy"
 	Adaptive                 = "Adaptive"
+	RoundRobin               = "RoundRobin"
 	AdaptiveLoadBalancingKey = "X-Adaptive-Metrics-Key"
 	EthereumJsonRPC          = "Ethereum"
 	QuickNodeJsonRPC         = "QuickNode"
@@ -49,6 +50,15 @@ var (
 	RpcLoadBalancerDELETERequestHandler = RpcLoadBalancerRequestHandler("DELETE")
 )
 
+func getDefaultLB(plan string) string {
+	switch plan {
+	case "enterprise", "standard", "performance":
+		return Adaptive
+	default:
+		return RoundRobin
+	}
+}
+
 func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		bodyBytes, err := io.ReadAll(c.Request().Body)
@@ -66,7 +76,17 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 			return err
 		}
+
 		lbStrategy := c.Request().Header.Get(LoadBalancingStrategy)
+		if lbStrategy == "" {
+			lbDefault := c.Get("lbDefault")
+			if lbDefault != nil {
+				lbStrategyTmp, ok := lbDefault.(string)
+				if ok {
+					lbStrategy = lbStrategyTmp
+				}
+			}
+		}
 		if lbStrategy == Adaptive {
 			metric := ""
 			adaptiveMetricKeyValue := c.Request().Header.Get(AdaptiveLoadBalancingKey)
@@ -81,7 +101,15 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 				}
 				c.Set("adaptiveMetricKeyValue", adaptiveMetricKeyValue)
 			default:
-				metric = ""
+				metricName := request.Body["method"]
+				if metricName != nil {
+					metricNameStr, ok := metricName.(string)
+					if ok {
+						metric = metricNameStr
+					}
+				}
+				adaptiveMetricKeyValue = JsonRpcAdaptiveMetrics
+				c.Set("adaptiveMetricKeyValue", adaptiveMetricKeyValue)
 			}
 			return request.ProcessAdaptiveLoadBalancerRequest(c, payloadSizingMeter, method, metric, adaptiveMetricKeyValue)
 		}

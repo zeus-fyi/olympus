@@ -104,17 +104,22 @@ func (m *IrisCache) DeleteOrgRoutingGroup(ctx context.Context, orgID int, rgName
 	// Generate the key
 	tag := getOrgRouteKey(orgID, rgName)
 	endpointPriorityScoreKey := createAdaptiveEndpointPriorityScoreKey(orgID, rgName)
-
+	latSfKey := createAdaptiveEndpointPriorityScoreLatencyScaleFactorKey(orgID, rgName)
+	errSfKey := createAdaptiveEndpointPriorityScoreErrorScaleFactorKey(orgID, rgName)
+	decaySfKey := createAdaptiveEndpointPriorityScoreDecayScaleFactorKey(orgID, rgName)
 	// Start a new transaction
 	pipe := m.Writer.TxPipeline()
 
 	// Remove the old key if it exists
 	pipe.Del(ctx, tag)
 	pipe.Del(ctx, endpointPriorityScoreKey)
+	pipe.Del(ctx, latSfKey)
+	pipe.Del(ctx, errSfKey)
+	pipe.Del(ctx, decaySfKey)
 
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
-	if err != nil {
+	if err != nil && err != redis.Nil {
 		log.Err(err).Msgf("DeleteOrgRoutingGroup: %s", tag)
 		return err
 	}

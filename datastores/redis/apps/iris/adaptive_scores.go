@@ -51,6 +51,10 @@ type StatTable struct {
 	MetricSampleCount             int     `json:"metricSampleCount,omitempty"`
 	ScaleFactor                   float64 `json:"scaleFactor,omitempty"`
 
+	LatencyScaleFactor float64 `json:"latencyScaleFactor,omitempty"`
+	ErrorScaleFactor   float64 `json:"errorScaleFactor,omitempty"`
+	DecayScaleFactor   float64 `json:"decayScaleFactor,omitempty"`
+
 	Meter *iris_usage_meters.PayloadSizeMeter `json:""`
 }
 
@@ -92,11 +96,47 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 	minElemCmd := pipe.ZRangeWithScores(ctx, endpointPriorityScoreKey, 0, 0)
 	pipe.Expire(ctx, endpointPriorityScoreKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 	// Execute the transaction
+	latSfKey := createAdaptiveEndpointPriorityScoreLatencyScaleFactorKey(stats.OrgID, stats.TableName)
+	errSfKey := createAdaptiveEndpointPriorityScoreErrorScaleFactorKey(stats.OrgID, stats.TableName)
+	decaySfKey := createAdaptiveEndpointPriorityScoreDecayScaleFactorKey(stats.OrgID, stats.TableName)
+	latSfCmd := pipe.Get(ctx, latSfKey)
+	errSfCmd := pipe.Get(ctx, errSfKey)
+	decaySfCmd := pipe.Get(ctx, decaySfKey)
+
 	_, err := pipe.Exec(ctx)
 	if err != nil && err != redis.Nil {
 		log.Warn().Err(err).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
 		return err
 	}
+
+	latSfValue, err := latSfCmd.Float64()
+	if err == redis.Nil {
+		latSfValue = 0.6
+		stats.LatencyScaleFactor = latSfValue
+	} else if err != nil {
+		log.Warn().Err(err).Msgf("Failed to get latSfKey")
+	} else {
+		stats.LatencyScaleFactor = latSfValue
+	}
+
+	errSfValue, err := errSfCmd.Float64()
+	if err == redis.Nil {
+		errSfValue = 3.0
+	} else if err != nil {
+		log.Warn().Err(err).Msgf("Failed to get errSfKey")
+	} else {
+		stats.ErrorScaleFactor = errSfValue
+	}
+
+	decaySfValue, err := decaySfCmd.Float64()
+	if err == redis.Nil {
+		decaySfValue = 0.95
+	} else if err != nil {
+		log.Warn().Err(err).Msgf("Failed to get decaySfKey")
+	} else {
+		stats.DecayScaleFactor = decaySfValue
+	}
+
 	score, err := scoreInCmd.Result()
 	if err != nil {
 		log.Err(err).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")

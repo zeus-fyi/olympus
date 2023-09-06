@@ -6,11 +6,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-/*
-todo, needs some sort of range scan
-
-*/
-
 func (m *IrisCache) GetDetailedTableStats(ctx context.Context, orgID int, tableName, metricName string, percentile float64) (float64, int64, error) {
 	metricTdigestKey := getMetricTdigestKey(orgID, tableName, metricName)
 	metricTdigestSampleCount := getMetricTdigestMetricSamplesKey(orgID, tableName, metricName)

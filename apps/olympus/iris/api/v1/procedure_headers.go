@@ -47,6 +47,7 @@ type ProcedureHeaders struct {
 	XAggFilterPayload    string
 	XAggFilterFanIn      *string
 
+	StageOnePathExt          string
 	StageOneAggregateMapName string
 	ForwardPayload           echo.Map
 }
@@ -128,9 +129,13 @@ func (p *ProcedureHeaders) GetGeneratedProcedure(rg string, req *iris_api_reques
 			Rule: iris_programmable_proxy_v1_beta.BroadcastRules(*p.XAggFanIn),
 		}
 	}
+	extPath := req.ExtRoutePath
+	if len(p.StageOnePathExt) > 0 {
+		extPath = p.StageOnePathExt
+	}
 	step := iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{
 		BroadcastInstructions: iris_programmable_proxy_v1_beta.BroadcastInstructions{
-			RoutingPath:  req.ExtRoutePath,
+			RoutingPath:  extPath,
 			RestType:     req.PayloadTypeREST,
 			Payload:      req.Payload,
 			MaxDuration:  req.Timeout,

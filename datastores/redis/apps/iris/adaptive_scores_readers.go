@@ -9,12 +9,10 @@ import (
 )
 
 type TableMetricsSummary struct {
-	TableName          string                 `json:"tableName"`
-	LatencyScaleFactor float64                `json:"latencyScaleFactor,omitempty"`
-	ErrorScaleFactor   float64                `json:"errorScaleFactor,omitempty"`
-	DecayScaleFactor   float64                `json:"decayScaleFactor,omitempty"`
-	Routes             []redis.Z              `json:"routes"`
-	Metrics            map[string]TableMetric `json:"metrics"`
+	TableName    string `json:"tableName"`
+	ScaleFactors `json:"scaleFactors"`
+	Routes       []redis.Z              `json:"routes"`
+	Metrics      map[string]TableMetric `json:"metrics"`
 }
 
 type TableMetric struct {
@@ -58,16 +56,15 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 	latSfKey := createAdaptiveEndpointPriorityScoreLatencyScaleFactorKey(orgID, rgName)
 	errSfKey := createAdaptiveEndpointPriorityScoreErrorScaleFactorKey(orgID, rgName)
 	decaySfKey := createAdaptiveEndpointPriorityScoreDecayScaleFactorKey(orgID, rgName)
-	latSfCmd := pipe.Get(ctx, latSfKey)
-	errSfCmd := pipe.Get(ctx, errSfKey)
-	decaySfCmd := pipe.Get(ctx, decaySfKey)
 	pipe = m.Reader.TxPipeline()
 	ts := TableMetricsSummary{
 		TableName: rgName,
 		Routes:    routesWithScores,
 		Metrics:   make(map[string]TableMetric),
 	}
-
+	latSfCmd := pipe.Get(ctx, latSfKey)
+	errSfCmd := pipe.Get(ctx, errSfKey)
+	decaySfCmd := pipe.Get(ctx, decaySfKey)
 	for _, tbm := range tblMetrics {
 		histogramBins := 7
 		metricKey := getTableMetricKey(orgID, rgName, tbm)

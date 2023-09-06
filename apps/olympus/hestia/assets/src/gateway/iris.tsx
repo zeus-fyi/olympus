@@ -9,7 +9,8 @@ class IrisLoadBalancingApiGateway {
             let config = {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`,
-                    'X-Route-Group': `${routeGroup}`
+                    'X-Route-Group': `${routeGroup}`,
+                    'Content-Type': 'application/json'
                 },
                 withCredentials: true,
             }

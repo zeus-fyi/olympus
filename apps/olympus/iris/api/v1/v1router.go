@@ -12,6 +12,7 @@ import (
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_service_plans "github.com/zeus-fyi/olympus/iris/api/v1/service_plans"
+	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 )
 
 const QuickNodeMarketPlace = "quickNodeMarketPlace"
@@ -35,6 +36,13 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set(QuickNodeEndpointID, qnEndpointID)
 			c.Set(QuickNodeChain, qnChain)
 			c.Set(QuickNodeNetwork, qnNetwork)
+
+			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+			if err == nil && cookie != nil {
+				log.Info().Msg("InitV1Routes: Cookie found")
+				token = cookie.Value
+			}
+
 			orgID, plan, err := iris_redis.IrisRedisClient.GetAuthCacheIfExists(ctx, token)
 			if err == nil && orgID > 0 && plan != "" {
 				c.Set("servicePlan", plan)

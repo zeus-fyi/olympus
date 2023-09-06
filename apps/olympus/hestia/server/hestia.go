@@ -130,6 +130,7 @@ func Hestia() {
 		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)
 		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = tc.PagerDutyRoutingKey
 		platform_service_orchestrations.IrisApiUrl = "http://localhost:8080"
+		quicknode_orchestrations.IrisApiUrl = "http://localhost:8080"
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -149,6 +150,7 @@ func Hestia() {
 		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)
 		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = tc.PagerDutyRoutingKey
 		platform_service_orchestrations.IrisApiUrl = "http://localhost:8080"
+		quicknode_orchestrations.IrisApiUrl = "http://localhost:8080"
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

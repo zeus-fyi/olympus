@@ -131,6 +131,13 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 		logger.Error("failed to provision QuickNode services", "Error", err)
 		return err
 	}
+	aCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(aCtx, h.DeleteAuthCache, pr.QuickNodeID).Get(aCtx, nil)
+	if err != nil {
+		logger.Warn("params", pr)
+		return err
+	}
+
 	var excessGroups []string
 	oCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(oCtx, h.CheckPlanOverages, pr).Get(oCtx, &excessGroups)

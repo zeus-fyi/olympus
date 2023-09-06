@@ -22,7 +22,7 @@ import (
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
-const (
+var (
 	IrisApiUrl = "https://iris.zeus.fyi"
 )
 
@@ -45,7 +45,7 @@ func (h *HestiaQuickNodeActivities) GetActivities() ActivitiesSlice {
 		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
 		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey, h.DeleteOrgGroupRoutingTable, h.InsertQuickNodeApiKey,
 		h.UpsertQuickNodeRoutingEndpoint, h.IrisPlatformDeleteEndpointRequest, h.UpsertQuickNodeGroupTableRoutingEndpoints,
-		h.RefreshOrgGroupTables,
+		h.RefreshOrgGroupTables, h.DeleteAuthCache,
 	}
 	actSlice = append(actSlice, kr.GetActivities()...)
 	return actSlice
@@ -62,6 +62,23 @@ func (h *HestiaQuickNodeActivities) RefreshOrgGroupTables(ctx context.Context, o
 	}
 	if resp.StatusCode() >= 400 {
 		log.Err(err).Int("orgID", orgID).Msg("IrisPlatformSetupCacheUpdateRequest")
+		return err
+	}
+	return nil
+
+}
+
+func (h *HestiaQuickNodeActivities) DeleteAuthCache(ctx context.Context, qnID string) error {
+	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
+
+	refreshEndpoint := fmt.Sprintf("/v1/internal/router/qn/auth/%s", qnID)
+	resp, err := rc.R().Delete(refreshEndpoint)
+	if err != nil {
+		log.Err(err).Msg("DeleteAuthCache")
+		return err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Str("qnID", qnID).Msg("IrisPlatformSetupCacheUpdateRequest")
 		return err
 	}
 	return nil

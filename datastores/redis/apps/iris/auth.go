@@ -64,3 +64,21 @@ func (m *IrisCache) SetAuthCache(ctx context.Context, orgID int, token, plan str
 	}
 	return nil
 }
+
+func (m *IrisCache) DeleteAuthCache(ctx context.Context, token string) error {
+	// Generate the rate limiter key with the Unix timestamp
+	hashedToken := getHashedTokenKey(token)
+	hashedTokenPlan := getHashedTokenPlanKey(token)
+
+	// Use Redis transaction (pipeline) to perform all operations atomically
+	pipe := m.Writer.TxPipeline()
+	pipe.Del(ctx, hashedToken)
+	pipe.Del(ctx, hashedTokenPlan)
+	// Execute the transaction
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Err(err).Msgf("DeleteAuthCache")
+		return err
+	}
+	return nil
+}

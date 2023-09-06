@@ -20,3 +20,7 @@ export const zeusApi = axios.create({
 export const heraApi = axios.create({
     baseURL: configService.getHeraApiUrl(),
 });
+
+export const irisApi = axios.create({
+    baseURL: configService.getIrisApiUrl(),
+});

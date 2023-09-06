@@ -20,6 +20,7 @@ import {
     ethMaxBlockAggReduceExample,
     nearMaxBlockAggReduceExample
 } from "../markdown/ExampleRequests";
+import {IrisApiGateway} from "../../../gateway/iris";
 
 export function ProceduresCatalogTable(props: any) {
     const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
@@ -98,17 +99,16 @@ export function ProceduresCatalogTable(props: any) {
     };
 
     const onSubmitPayload = async () => {
-        // todo submit payload
-        // try {
-        //     setLoadingProcedures(true); // Set loading to true
-        //     const response = await loadBalancingApiGateway.getProceduresCatalog();
-        //     console.log("response", response.data)
-        //     dispatch(setProceduresCatalog(response.data));
-        // } catch (error) {
-        //     console.log("error", error);
-        // } finally {
-        //     setLoadingProcedures(false); // Set loading to false regardless of success or failure.
-        // }
+        try {
+            setLoadingProcedures(true); // Set loading to true
+            const response = await IrisApiGateway.sendJsonRpcRequest(groupName, code);
+            console.log("response", response.data)
+            setCode(response.data);
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoadingProcedures(false); // Set loading to false regardless of success or failure.
+        }
     };
 
     return (

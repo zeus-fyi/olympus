@@ -216,6 +216,44 @@ func (k *OrgUserKey) GetUserAuthedServices() sql_query_templates.QueryParams {
 	return q
 }
 
+func (k *OrgUserKey) GetUserKeysToServicesQuery() sql_query_templates.QueryParams {
+	var q sql_query_templates.QueryParams
+	query := fmt.Sprintf(`
+	WITH cte_get_user_key AS (
+		SELECT usk.user_id AS user_id
+		FROM users_keys usk
+		WHERE usk.public_key = $1
+	)
+	SELECT usk.public_key
+	FROM users_keys usk
+	WHERE usk.user_id = (SELECT user_id FROM cte_get_user_key)
+	`)
+	q.RawQuery = query
+	return q
+}
+
+func (k *OrgUserKey) GetUserKeysToServices(ctx context.Context, token string) (map[string]string, error) {
+	q := k.GetUserKeysToServicesQuery()
+	log.Debug().Interface("QueryUserAuthedServices:", q.LogHeader(Sn))
+
+	keysFound := make(map[string]string)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, token)
+	log.Err(err).Interface("QueryUserAuthedServices: Query: ", q.RawQuery)
+	if err != nil {
+		return keysFound, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		rowErr := rows.Scan(&k.PublicKey)
+		if rowErr != nil {
+			log.Err(rowErr).Interface("QueryUserAuthedServices: Query: ", q.RawQuery)
+			return keysFound, rowErr
+		}
+		keysFound[k.PublicKey] = k.PublicKey
+	}
+	return keysFound, misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
 func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) ([]string, map[string]string, error) {
 	q := k.GetUserAuthedServices()
 	log.Debug().Interface("QueryUserAuthedServices:", q.LogHeader(Sn))
@@ -237,6 +275,7 @@ func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) 
 			log.Err(rowErr).Interface("QueryUserAuthedServices: Query: ", q.RawQuery)
 			return services, keysFound, rowErr
 		}
+		// todo fix, this is not getting unique keys
 		keysFound[k.PublicKey] = k.PublicKey
 		services = append(services, serviceName)
 		m[serviceName] = plan

@@ -100,7 +100,7 @@ export function ProceduresCatalogTable(props: any) {
     const onSubmitPayload = async () => {
         try {
             setLoadingProcedures(true); // Set loading to true
-            const response = await IrisApiGateway.sendJsonRpcRequest(groupName, code);
+            const response = await IrisApiGateway.sendJsonRpcRequest(groupName, code, "standard");
             if (response.data != null) {
                 const result = JSON.stringify(response.data, null, 2);
                 setCode(result);

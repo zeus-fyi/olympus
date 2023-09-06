@@ -18,10 +18,10 @@ const (
 	StatusErrorCodePriorityScoreScaleFactor = 3.0
 )
 
-func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, metricName string) error {
+func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, metricName, adaptiveKeyName string) error {
 	procName := p.ExtractProcedureIfExists(c)
 	if procName != "" {
-		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName)
+		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName, metricName, adaptiveKeyName)
 	}
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {

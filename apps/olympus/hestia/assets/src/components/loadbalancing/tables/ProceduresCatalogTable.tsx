@@ -38,12 +38,11 @@ export function ProceduresCatalogTable(props: any) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                if (selectedMainTab !== 1) {
-                    return
-                }
+                // if (selectedMainTab !== 1 && selectedTab !== 4) {
+                //     return
+                // }
                 setLoadingProcedures(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getProceduresCatalog();
-                console.log("response", response.data)
                 dispatch(setProceduresCatalog(response.data));
             } catch (error) {
                 console.log("error", error);
@@ -52,7 +51,7 @@ export function ProceduresCatalogTable(props: any) {
             }
         }
         fetchData();
-    }, [selectedMainTab]);
+    }, [selectedMainTab, selectedTab]);
 
     if (loadingProcedures) {
         return <div>Loading...</div> // Display loading message while data is fetching

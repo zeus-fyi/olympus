@@ -71,6 +71,13 @@ var (
 	}
 )
 
+const (
+	SelectedRouteHeader        = "X-Selected-Route"
+	SelectedLatencyHeader      = "X-Response-Latency-Milliseconds"
+	SelectedRouteGroupHeader   = "X-Route-Group"
+	SelectedResponseReceivedAt = "X-Response-Received-At-UTC"
+)
+
 func Hestia() {
 	cfg.Host = "0.0.0.0"
 	srv := NewHestiaServer(cfg)
@@ -241,9 +248,12 @@ func Hestia() {
 	if env == "local" || env == "production-local" {
 		irisHost := "http://localhost:8080"
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"http://localhost:3000", irisHost},
-			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding"},
+			AllowOrigins: []string{"http://localhost:3000", irisHost},
+			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
+				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",
+				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt,
+			},
 			AllowCredentials: true,
 		}))
 		hestia_login.Domain = "localhost"
@@ -251,9 +261,12 @@ func Hestia() {
 		v1_ethereum_aws.LambdaBaseDirIn = "/"
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://iris.zeus.fyi", "https://quicknode.com"},
-			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding"},
+			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://iris.zeus.fyi", "https://quicknode.com"},
+			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
+				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",
+				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt,
+			},
 			AllowCredentials: true,
 		}))
 		hestia_login.Domain = "zeus.fyi"

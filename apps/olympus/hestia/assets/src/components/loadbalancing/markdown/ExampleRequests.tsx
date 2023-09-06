@@ -31,7 +31,7 @@ export const avaxPlatformMaxBlockAggReduceExample = `{
     "jsonrpc": "2.0",
     "procedure": "avax_platformMaxHeightAggReduce",
     "method": "platform.getCurrentSupply",
-    "params": {},
+    "params": [],
     "id": 1
 }`
 

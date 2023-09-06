@@ -61,6 +61,8 @@ var (
 	AvaxPlatformChainGetBlockNumberPayload = echo.Map{
 		"jsonrpc": "2.0",
 		"method":  "platform.getHeight",
+		"params":  []interface{}{},
+		"id":      1,
 	}
 	AvaxContractChainGetBlockNumberPayload = echo.Map{
 		"method":  "eth_blockNumber",

@@ -107,10 +107,10 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					), cte_marketplace_customer AS (
 						  INSERT INTO quicknode_marketplace_customer (quicknode_id, plan, is_test)
 						  SELECT $1, $2, $8
-						  FROM cte_insert_org
 						  ON CONFLICT (quicknode_id) 
 						  DO UPDATE SET 
-						  plan = EXCLUDED.plan
+						  plan = EXCLUDED.plan,
+						  is_test = EXCLUDED.is_test
 				  ), cte_update_service AS (
 					  INSERT INTO provisioned_quicknode_services(quicknode_id, endpoint_id, http_url, network, wss_url, chain)
 					  VALUES ($1, $3, $4, $9, $5, $10)
@@ -119,7 +119,8 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  http_url = EXCLUDED.http_url,
 					  network = EXCLUDED.network,
 					  wss_url = EXCLUDED.wss_url,
-					  chain = EXCLUDED.chain
+					  chain = EXCLUDED.chain,
+					  endpoint_id = EXCLUDED.endpoint_id
 					  RETURNING quicknode_id, endpoint_id
 				  ), cte_delete_ca AS (
 					  DELETE FROM provisioned_quicknode_services_contract_addresses

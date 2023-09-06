@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -135,9 +134,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 
 	ext := ""
 	if pr.ExtRoutePath != "" {
-		ext = path.Join(pr.ExtRoutePath, pr.Url)
-	} else {
-		ext = pr.Url
+		ext = pr.ExtRoutePath
 	}
 	if pr.Payload != nil {
 		switch method {

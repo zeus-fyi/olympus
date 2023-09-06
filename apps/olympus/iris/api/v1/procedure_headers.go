@@ -24,6 +24,7 @@ func (p *ProxyRequest) ExtractProcedureIfExists(c echo.Context) string {
 		if ok {
 			procedureName = procNameStr
 		}
+		delete(p.Body, "procedure")
 	}
 	return procedureName
 }

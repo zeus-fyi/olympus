@@ -654,7 +654,7 @@ function LoadBalancingDashboardContent(props: any) {
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
                                                 Adjust the slider to change the latency scale factor for the priority score.
-                                                Your adjusted priority score is calculated as newScore = currentScore x (latency(percentile) + scale factor).
+                                                Your adjusted priority score is calculated as newScore = currentScore x (latency(percentile) + latencyScaleFactor).
                                             </Typography>
                                         </CardContent>
                                         <Box
@@ -693,8 +693,8 @@ function LoadBalancingDashboardContent(props: any) {
                                                 Error Scale Factor
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
-                                                Your adjusted priority score is calculated as newScore = currentScore x (latency(percentile) + scale factor).
                                                 Whenever a 4xx or 5xx error is returned, the error scale factor is used to adjust the priority score.
+                                                Your adjusted priority score is calculated as newScore = currentScore x errorScaleFactor.
                                             </Typography>
                                         </CardContent>
                                         <Box

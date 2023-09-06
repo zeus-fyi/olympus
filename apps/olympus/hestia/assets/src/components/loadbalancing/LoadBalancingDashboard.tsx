@@ -17,7 +17,7 @@ import Button from "@mui/material/Button";
 import {useNavigate, useParams} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs} from "@mui/material";
+import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Slider, Stack, Tab, Tabs} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {RootState} from "../../redux/store";
@@ -30,6 +30,7 @@ import {LoadBalancingRoutesTable} from "./tables/LoadBalancingRoutesTable";
 import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
 import {ProceduresCatalogTable} from "./tables/ProceduresCatalogTable";
+import {IrisApiGateway} from "../../gateway/iris";
 
 const drawerWidth: number = 240;
 
@@ -115,6 +116,11 @@ function LoadBalancingDashboardContent(props: any) {
     const [selectedTab, setSelectedTab] = useState(0);
     const [tabCount, setTabCount] = useState(2);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
+    const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
+    const [loadingMetrics, setLoadingMetrics] = React.useState(false);
+    const [sliderLatencyValue, setSliderLatencyValue] = useState( tableMetrics?.scaleFactors?.latencyScaleFactor ?? 0.6);
+    const [sliderErrorValue, setSliderErrorValue] = useState(tableMetrics?.scaleFactors?.errorScaleFactor ?? 3.0);
+    const [sliderDecayValue, setSliderDecayValue] = useState(tableMetrics?.scaleFactors?.decayScaleFactor ?? 0.95);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -137,13 +143,21 @@ function LoadBalancingDashboardContent(props: any) {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                if (groupName === "-all" || groupName === "unused") {
+                    return
+                }
                 setLoading(true); // Set loading to true
+                setLoadingMetrics(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getTableMetrics(groupName);
                 dispatch(setTableMetrics(response.data));
+                setSliderLatencyValue(response.data.scaleFactors.latencyScaleFactor);
+                setSliderErrorValue(response.data.scaleFactors.errorScaleFactor);
+                setSliderDecayValue(response.data.scaleFactors.decayScaleFactor);
             } catch (error) {
                 console.log("error", error);
             } finally {
-                setLoading(false); // Set loading to false regardless of success or failure.
+                setLoading(false)
+                setLoadingMetrics(false); // Set loading to false regardless of success or failure.
             }
         }
         fetchData();
@@ -168,7 +182,8 @@ function LoadBalancingDashboardContent(props: any) {
         }
         try {
             setLoading(true); // Set loading to false regardless of success or failure.
-            const selectedSet = new Set(selected); // Create a Set for O(1) lookup
+            const selectedSet = new Set(selected); // Create a Set
+            // for O(1) lookup
             if (groupName === "-all"  || groupName === "unused") {
                 const payload = {
                     routes: selected // Filter tableRoutes
@@ -301,7 +316,6 @@ function LoadBalancingDashboardContent(props: any) {
             setLoading(true); // Set loading to true
             const selectedSet = new Set(selected); // Create a Set for O(1) lookup
             groups[groupName].forEach(route => selectedSet.add(route)); // Add each route from tableRoutes to selectedSet
-
             const payload: IrisOrgGroupRoutesRequest = {
                 groupName: groupName,
                 routes: Array.from(selectedSet) // Convert the Set back to an array
@@ -311,6 +325,31 @@ function LoadBalancingDashboardContent(props: any) {
             console.log("error", error);
         } finally {
             setLoading(false); // Set loading to false regardless of success or failure.
+            setReload(!reload); // Trigger reload by flipping the state
+        }
+    }
+    const handleScaleFactorChange = async (sf: string) => {
+        let value: number;
+        switch (sf) {
+            case "latency":
+                value = sliderLatencyValue;
+                break;
+            case "error":
+                value = sliderErrorValue;
+                break;
+            case "decay":
+                value = sliderDecayValue;
+                break;
+            default:
+                return;
+        }
+        try {
+            setLoadingMetrics(true); // Set loading to true
+            const response = await IrisApiGateway.updateTableScaleFactor(groupName, sf, value);
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoadingMetrics(false); // Set loading to false regardless of success or failure.
             setReload(!reload); // Trigger reload by flipping the state
         }
     }
@@ -339,7 +378,32 @@ function LoadBalancingDashboardContent(props: any) {
         setSelectedMainTab(newValue);
     };
 
+    // Handler for updating the slider value
+    const onChangeLatencySlider = (event: any, newValue: number) => {
+        setSliderLatencyValue(newValue);
+    };
+    // Handler for the "Set Default" button
+    const handleSetDefaultLatency = () => {
+        setSliderLatencyValue(0.6); // or some other default value
+    };
+
+    const onChangeErrorSlider = (event: any, newValue: number) => {
+        setSliderErrorValue(newValue);
+    };
+    const handleSetDefaultError = () => {
+        setSliderErrorValue(3.0); // or some other default value
+    };
+
+    const onChangeDecaySlider = (event: any, newValue: number) => {
+        setSliderDecayValue(newValue);
+    };
+    const handleSetDefaultDecay= () => {
+        setSliderDecayValue(0.95); // or some other default value
+    };
     if (loading) {
+        return <div></div>
+    }
+    if (loadingMetrics) {
         return <div></div>
     }
     return (
@@ -554,6 +618,7 @@ function LoadBalancingDashboardContent(props: any) {
                         />)}
                         {selectedTab === 1 && groupName !== "-all" && groupName !== "unused" &&  (
                             <LoadBalancingMetricsTable
+                                loadingMetrics={loadingMetrics}
                                 selectedTab={selectedTab}
                                 handleTabChange={handleTabChange}
                                 page={page}
@@ -578,30 +643,156 @@ function LoadBalancingDashboardContent(props: any) {
                                 handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
                             />)}
                         {selectedTab === 2 && groupName !== "-all" && groupName !== "unused" && (
-                            <LoadBalancingPriorityScoreMetricsTable
-                                selectedTab={selectedTab}
-                                handleTabChange={handleTabChange}
-                                page={page}
-                                rowsPerPage={rowsPerPage}
-                                loading={loading}
-                                endpoints={tableRoutes}
-                                groups={groups}
-                                groupName={groupName}
-                                selected={selected}
-                                handleSelectAllClick={handleSelectAllClick}
-                                handleClick={handleClick}
-                                handleChangeRowsPerPage={handleChangeRowsPerPage}
-                                handleChangePage={handleChangePage}
-                                isAdding={isAdding}
-                                setIsAdding={setIsAdding}
-                                newEndpoint={newEndpoint}
-                                isUpdatingGroup={isUpdatingGroup}
-                                setNewEndpoint={setNewEndpoint}
-                                handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
-                                handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
-                                handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
-                                handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
-                            />)}
+                            <div>
+                                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                    <Stack direction={"row"}>
+                                    <Card sx={{ maxWidth: 700, minHeight: 125, mr: 2}}>
+                                        <Stack direction={"column"}>
+                                        <CardContent>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Priority Score Latency Scale Factor
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Adjust the slider to change the latency scale factor for the priority score.
+                                                Your adjusted priority score is calculated as newScore = currentScore x (latency(percentile) + latencyScaleFactor).
+                                            </Typography>
+                                        </CardContent>
+                                        <Box
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            height="100%"
+                                        >
+                                            <Slider
+                                                sx={{ mt: 4, mb: 10, ml:4, mr:4 }}
+                                                aria-label="Always visible"
+                                                min={0}
+                                                max={1}
+                                                step={0.001}
+                                                value={sliderLatencyValue}
+                                                onChange={(e, newValue) => onChangeLatencySlider(e, newValue as number)}
+                                                valueLabelDisplay="on"
+                                            />
+                                        </Box>
+                                            <CardContent>
+                                                <Stack direction={"row"} spacing={2}>
+                                                <Button variant="contained" fullWidth color="primary" onClick={handleSetDefaultLatency}>
+                                                    Set Default
+                                                </Button>
+                                                <Button variant="contained" fullWidth color="primary" onClick={() => handleScaleFactorChange("latency")}>
+                                                    Update
+                                                </Button>
+                                                </Stack>
+                                            </CardContent>
+                                    </Stack>
+                                    </Card>
+                                    <Card sx={{ maxWidth: 700, minHeight: 125,  mr: 2}}>
+                                        <Stack direction={"column"}>
+                                        <CardContent>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Error Scale Factor
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Whenever a 4xx or 5xx error is returned, the error scale factor is used to adjust the priority score.
+                                                Your adjusted priority score is calculated as newScore = currentScore x errorScaleFactor.
+                                            </Typography>
+                                        </CardContent>
+                                        <Box
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            height="100%"
+                                        >
+                                            <Slider
+                                                sx={{ mt: 4, mb: 10, ml:4, mr:4 }}
+                                                aria-label="Always visible"
+                                                min={0}
+                                                max={10}
+                                                onChange={(e, newValue) => onChangeErrorSlider(e, newValue as number)}
+                                                step={0.001}
+                                                value={sliderErrorValue}
+                                                valueLabelDisplay="on"
+                                            />
+                                        </Box>
+                                        <CardContent>
+                                            <Stack direction={"row"} spacing={2}>
+                                                <Button variant="contained" fullWidth color="primary" onClick={handleSetDefaultError}>
+                                                    Set Default
+                                                </Button>
+                                                <Button variant="contained" fullWidth color="primary" onClick={() => handleScaleFactorChange("error")}>
+                                                    Update
+                                                </Button>
+                                            </Stack>
+                                        </CardContent>
+                                        </Stack>
+                                    </Card>
+                                    <Card sx={{ maxWidth: 700, minHeight: 125}}>
+                                        <Stack direction={"column"}>
+                                            <CardContent>
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Decay Scale Factor
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Whenever N (number of table endpoints == adaptive requests) have been made relative to an endpoint,
+                                                    your adjusted priority score is calculated as newScore = currentScore x decayScaleFactor
+                                                </Typography>
+                                            </CardContent>
+                                            <Box
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                height="100%"
+                                            >
+                                                <Slider
+                                                    sx={{ mt: 4, mb: 10, ml:4, mr:4 }}
+                                                    aria-label="Always visible"
+                                                    min={0}
+                                                    max={1}
+                                                    step={0.001}
+                                                    value={sliderDecayValue}
+                                                    onChange={(e, newValue) => onChangeDecaySlider(e, newValue as number)}
+                                                    valueLabelDisplay="on"
+                                                />
+                                            </Box>
+                                            <CardContent>
+                                                <Stack direction={"row"} spacing={2}>
+                                                    <Button variant="contained" fullWidth color="primary" onClick={handleSetDefaultDecay}>
+                                                        Set Default
+                                                    </Button>
+                                                    <Button variant="contained" fullWidth color="primary" onClick={() => handleScaleFactorChange("decay")}>
+                                                        Update
+                                                    </Button>
+                                                </Stack>
+                                            </CardContent>
+                                        </Stack>
+                                    </Card>
+                                </Stack>
+                                </Container>
+                                <LoadBalancingPriorityScoreMetricsTable
+                                    selectedTab={selectedTab}
+                                    handleTabChange={handleTabChange}
+                                    page={page}
+                                    rowsPerPage={rowsPerPage}
+                                    loading={loading}
+                                    endpoints={tableRoutes}
+                                    groups={groups}
+                                    groupName={groupName}
+                                    selected={selected}
+                                    handleSelectAllClick={handleSelectAllClick}
+                                    handleClick={handleClick}
+                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                    handleChangePage={handleChangePage}
+                                    isAdding={isAdding}
+                                    setIsAdding={setIsAdding}
+                                    newEndpoint={newEndpoint}
+                                    isUpdatingGroup={isUpdatingGroup}
+                                    setNewEndpoint={setNewEndpoint}
+                                    handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                                    handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                                    handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                                    handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
+                                />
+                            </div>)}
                         {( selectedTab === tabCount +1 || selectedMainTab === 1 && groupName == "-all") && (
                             <ProceduresCatalogTable
                                 selectedMainTab={selectedMainTab}

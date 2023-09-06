@@ -44,6 +44,18 @@ func createAdaptiveEndpointPriorityScoreKey(orgID int, tableName string) string 
 	return fmt.Sprintf("{%d}.%s:priority", orgID, tableName)
 }
 
+func createAdaptiveEndpointPriorityScoreLatencyScaleFactorKey(orgID int, tableName string) string {
+	return fmt.Sprintf("{%d}.%s:priority:latency:sf", orgID, tableName)
+}
+
+func createAdaptiveEndpointPriorityScoreErrorScaleFactorKey(orgID int, tableName string) string {
+	return fmt.Sprintf("{%d}.%s:priority:error:sf", orgID, tableName)
+}
+
+func createAdaptiveEndpointPriorityScoreDecayScaleFactorKey(orgID int, tableName string) string {
+	return fmt.Sprintf("{%d}.%s:priority:decay:sf", orgID, tableName)
+}
+
 func getHashedTokenKey(token string) string {
 	return fmt.Sprintf("{%x}", util.Keccak256([]byte(token)))
 }

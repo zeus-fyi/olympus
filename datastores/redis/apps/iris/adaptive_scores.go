@@ -32,7 +32,9 @@ import (
 
 const (
 	DecayConstant                   = 0.95
+	LatencyScaleFactorDefault       = 0.6
 	TailPercentage                  = 0.95
+	ErrorDefaultScaleFactor         = 3.0
 	MinSamplesBeforeAdaptiveScoring = 20
 	StatsTimeToLiveAfterLastUsage   = 60 * time.Minute
 )
@@ -50,6 +52,10 @@ type StatTable struct {
 	MetricLatencyTail             float64 `json:"metricLatencyTail,omitempty"`
 	MetricSampleCount             int     `json:"metricSampleCount,omitempty"`
 	ScaleFactor                   float64 `json:"scaleFactor,omitempty"`
+
+	LatencyScaleFactor float64 `json:"latencyScaleFactor,omitempty"`
+	ErrorScaleFactor   float64 `json:"errorScaleFactor,omitempty"`
+	DecayScaleFactor   float64 `json:"decayScaleFactor,omitempty"`
 
 	Meter *iris_usage_meters.PayloadSizeMeter `json:""`
 }
@@ -92,11 +98,47 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 	minElemCmd := pipe.ZRangeWithScores(ctx, endpointPriorityScoreKey, 0, 0)
 	pipe.Expire(ctx, endpointPriorityScoreKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
 	// Execute the transaction
+	latSfKey := createAdaptiveEndpointPriorityScoreLatencyScaleFactorKey(stats.OrgID, stats.TableName)
+	errSfKey := createAdaptiveEndpointPriorityScoreErrorScaleFactorKey(stats.OrgID, stats.TableName)
+	decaySfKey := createAdaptiveEndpointPriorityScoreDecayScaleFactorKey(stats.OrgID, stats.TableName)
+	latSfCmd := pipe.Get(ctx, latSfKey)
+	errSfCmd := pipe.Get(ctx, errSfKey)
+	decaySfCmd := pipe.Get(ctx, decaySfKey)
+
 	_, err := pipe.Exec(ctx)
 	if err != nil && err != redis.Nil {
 		log.Warn().Err(err).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
 		return err
 	}
+
+	latSfValue, err := latSfCmd.Float64()
+	if err == redis.Nil {
+		latSfValue = LatencyScaleFactorDefault
+		stats.LatencyScaleFactor = latSfValue
+	} else if err != nil {
+		log.Warn().Err(err).Msgf("Failed to get latSfKey")
+	} else {
+		stats.LatencyScaleFactor = latSfValue
+	}
+
+	errSfValue, err := errSfCmd.Float64()
+	if err == redis.Nil {
+		errSfValue = ErrorDefaultScaleFactor
+	} else if err != nil {
+		log.Warn().Err(err).Msgf("Failed to get errSfKey")
+	} else {
+		stats.ErrorScaleFactor = errSfValue
+	}
+
+	decaySfValue, err := decaySfCmd.Float64()
+	if err == redis.Nil {
+		decaySfValue = DecayConstant
+	} else if err != nil {
+		log.Warn().Err(err).Msgf("Failed to get decaySfKey")
+	} else {
+		stats.DecayScaleFactor = decaySfValue
+	}
+
 	score, err := scoreInCmd.Result()
 	if err != nil {
 		log.Err(err).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
@@ -179,7 +221,12 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	//log.Info().Float64(" stats.MetricLatencyTail", stats.MetricLatencyTail).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
 	//log.Info().Int64(" stats.LatencyMilliseconds", stats.LatencyMilliseconds).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
 
-	rate := stats.LatencyQuartilePercentageRank + 0.6
+	/* this is being set upstream
+	if resp.StatusCode >= 400 {
+		tableStats.LatencyScaleFactor = tableStats.ErrorScaleFactor
+	}
+	*/
+	rate := stats.LatencyQuartilePercentageRank + stats.LatencyScaleFactor
 	// essentially this just multiplies the score by the priority rate growth
 	scoreAdjustmentMemberOut := rate * stats.MemberRankScoreOut.Score
 	stats.MemberRankScoreOut.Score = scoreAdjustmentMemberOut
@@ -197,7 +244,7 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreOut)
 	}
 	if stats.MemberRankScoreIn.Score > 1 {
-		stats.MemberRankScoreIn.Score *= DecayConstant
+		stats.MemberRankScoreIn.Score *= stats.DecayScaleFactor
 		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreIn)
 	}
 

@@ -32,8 +32,15 @@ export type TableUsage = {
     monthlyBudgetTableCount: number;
 }
 
+export interface ScaleFactors {
+    latencyScaleFactor: number;
+    errorScaleFactor: number;
+    decayScaleFactor: number;
+}
+
 export interface TableMetricsSummary {
     tableName: string;
+    scaleFactors: ScaleFactors;
     routes: Z[];
     metrics: Record<string, TableMetric>;
 }

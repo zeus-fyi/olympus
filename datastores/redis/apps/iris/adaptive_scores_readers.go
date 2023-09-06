@@ -9,9 +9,10 @@ import (
 )
 
 type TableMetricsSummary struct {
-	TableName string                 `json:"tableName"`
-	Routes    []redis.Z              `json:"routes"`
-	Metrics   map[string]TableMetric `json:"metrics"`
+	TableName    string `json:"tableName"`
+	ScaleFactors `json:"scaleFactors"`
+	Routes       []redis.Z              `json:"routes"`
+	Metrics      map[string]TableMetric `json:"metrics"`
 }
 
 type TableMetric struct {
@@ -51,13 +52,19 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 		log.Err(err).Msgf("GetPriorityScoresAndTdigestMetrics: failed to get routes with scores")
 		return TableMetricsSummary{}, err
 	}
+
+	latSfKey := createAdaptiveEndpointPriorityScoreLatencyScaleFactorKey(orgID, rgName)
+	errSfKey := createAdaptiveEndpointPriorityScoreErrorScaleFactorKey(orgID, rgName)
+	decaySfKey := createAdaptiveEndpointPriorityScoreDecayScaleFactorKey(orgID, rgName)
 	pipe = m.Reader.TxPipeline()
 	ts := TableMetricsSummary{
 		TableName: rgName,
 		Routes:    routesWithScores,
 		Metrics:   make(map[string]TableMetric),
 	}
-
+	latSfCmd := pipe.Get(ctx, latSfKey)
+	errSfCmd := pipe.Get(ctx, errSfKey)
+	decaySfCmd := pipe.Get(ctx, decaySfKey)
 	for _, tbm := range tblMetrics {
 		histogramBins := 7
 		metricKey := getTableMetricKey(orgID, rgName, tbm)
@@ -122,5 +129,36 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 		}
 		ts.Metrics[metricKey] = tmp
 	}
+
+	latSfValue, err := latSfCmd.Float64()
+	if err == redis.Nil {
+		latSfValue = 0.6
+		ts.LatencyScaleFactor = latSfValue
+	} else if err != nil {
+		log.Warn().Err(err).Msgf("Failed to get latSfKey")
+	} else {
+		ts.LatencyScaleFactor = latSfValue
+	}
+
+	errSfValue, err := errSfCmd.Float64()
+	if err == redis.Nil {
+		errSfValue = 3.0
+		ts.ErrorScaleFactor = errSfValue
+	} else if err != nil {
+		log.Warn().Err(err).Msgf("Failed to get errSfKey")
+	} else {
+		ts.ErrorScaleFactor = errSfValue
+	}
+
+	decaySfValue, err := decaySfCmd.Float64()
+	if err == redis.Nil {
+		decaySfValue = 0.95
+		ts.DecayScaleFactor = decaySfValue
+	} else if err != nil {
+		log.Warn().Err(err).Msgf("Failed to get decaySfKey")
+	} else {
+		ts.DecayScaleFactor = decaySfValue
+	}
+
 	return ts, nil
 }

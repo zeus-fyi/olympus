@@ -100,6 +100,10 @@ func InitV1Routes(e *echo.Echo) {
 
 	eg.GET(iris_service_plans.PlanUsageDetailsRoute, iris_service_plans.PlanUsageDetailsRequestHandler)
 	eg.GET(iris_service_plans.TableMetricsDetailsRoute, iris_service_plans.TableMetricsDetailsRequestHandler)
+
+	eg.PUT(iris_service_plans.UpdateTableLatencyScaleFactor, iris_service_plans.UpdateLatencyScaleFactorRequestHandler)
+	eg.PUT(iris_service_plans.UpdateTableErrorScaleFactor, iris_service_plans.UpdateErrorScaleFactorRequestHandler)
+	eg.PUT(iris_service_plans.UpdateTableDecayScaleFactor, iris_service_plans.UpdateDecayScaleFactorRequestHandler)
 }
 
 func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {

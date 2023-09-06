@@ -117,6 +117,9 @@ function LoadBalancingDashboardContent(props: any) {
     const [selectedMainTab, setSelectedMainTab] = useState(0);
     const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
     const [loadingMetrics, setLoadinMetrics] = React.useState(false);
+    const [sliderLatencyValue, setSliderLatencyValue] = useState(0.6); // Initial value could be set to some default
+    const [sliderErrorValue, setSliderErrorValue] = useState(3); // Initial value could be set to some default
+    const [sliderDecayValue, setSliderDecayValue] = useState(0.95); // Initial value could be set to some default
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -145,6 +148,9 @@ function LoadBalancingDashboardContent(props: any) {
                 setLoadinMetrics(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getTableMetrics(groupName);
                 dispatch(setTableMetrics(response.data));
+                setSliderDecayValue(tableMetrics.scaleFactors.decayScaleFactor)
+                setSliderErrorValue(tableMetrics.scaleFactors.errorScaleFactor)
+                setSliderLatencyValue(tableMetrics.scaleFactors.latencyScaleFactor)
             } catch (error) {
                 console.log("error", error);
             } finally {
@@ -192,7 +198,8 @@ function LoadBalancingDashboardContent(props: any) {
         }
         try {
             setLoading(true); // Set loading to false regardless of success or failure.
-            const selectedSet = new Set(selected); // Create a Set for O(1) lookup
+            const selectedSet = new Set(selected); // Create a Set
+            // for O(1) lookup
             if (groupName === "-all"  || groupName === "unused") {
                 const payload = {
                     routes: selected // Filter tableRoutes
@@ -363,7 +370,32 @@ function LoadBalancingDashboardContent(props: any) {
         setSelectedMainTab(newValue);
     };
 
+    // Handler for updating the slider value
+    const onChangeLatencySlider = (event: any, newValue: number) => {
+        setSliderLatencyValue(newValue);
+    };
+    // Handler for the "Set Default" button
+    const handleSetDefaultLatency = () => {
+        setSliderLatencyValue(0.6); // or some other default value
+    };
+
+    const onChangeErrorSlider = (event: any, newValue: number) => {
+        setSliderErrorValue(newValue);
+    };
+    const handleSetDefaultError = () => {
+        setSliderErrorValue(3.0); // or some other default value
+    };
+
+    const onChangeDecaySlider = (event: any, newValue: number) => {
+        setSliderDecayValue(newValue);
+    };
+    const handleSetDefaultDecay= () => {
+        setSliderDecayValue(0.95); // or some other default value
+    };
     if (loading) {
+        return <div></div>
+    }
+    if (loadingMetrics) {
         return <div></div>
     }
     return (
@@ -628,15 +660,17 @@ function LoadBalancingDashboardContent(props: any) {
                                                 aria-label="Always visible"
                                                 min={0}
                                                 max={1}
-                                                defaultValue={tableMetrics.scaleFactors.latencyScaleFactor}
                                                 step={0.001}
+                                                defaultValue={tableMetrics.scaleFactors.latencyScaleFactor}
+                                                value={sliderLatencyValue}
+                                                onChange={(e, newValue) => onChangeLatencySlider(e, newValue as number)}
                                                 valueLabelDisplay="on"
                                             />
                                         </Box>
                                             <CardContent>
                                                 <Stack direction={"row"} spacing={2}>
-                                                <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
-                                                    Restore Default
+                                                <Button variant="contained" fullWidth color="primary" onClick={handleSetDefaultLatency}>
+                                                    Set Default
                                                 </Button>
                                                 <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
                                                     Update
@@ -668,14 +702,16 @@ function LoadBalancingDashboardContent(props: any) {
                                                 min={0}
                                                 max={10}
                                                 defaultValue={tableMetrics.scaleFactors.errorScaleFactor}
+                                                onChange={(e, newValue) => onChangeErrorSlider(e, newValue as number)}
                                                 step={0.001}
+                                                value={sliderErrorValue}
                                                 valueLabelDisplay="on"
                                             />
                                         </Box>
                                         <CardContent>
                                             <Stack direction={"row"} spacing={2}>
-                                                <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
-                                                    Restore Default
+                                                <Button variant="contained" fullWidth color="primary" onClick={handleSetDefaultError}>
+                                                    Set Default
                                                 </Button>
                                                 <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
                                                     Update
@@ -708,13 +744,15 @@ function LoadBalancingDashboardContent(props: any) {
                                                     max={1}
                                                     defaultValue={tableMetrics.scaleFactors.decayScaleFactor}
                                                     step={0.001}
+                                                    value={sliderDecayValue}
+                                                    onChange={(e, newValue) => onChangeDecaySlider(e, newValue as number)}
                                                     valueLabelDisplay="on"
                                                 />
                                             </Box>
                                             <CardContent>
                                                 <Stack direction={"row"} spacing={2}>
-                                                    <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
-                                                        Restore Default
+                                                    <Button variant="contained" fullWidth color="primary" onClick={handleSetDefaultDecay}>
+                                                        Set Default
                                                     </Button>
                                                     <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
                                                         Update

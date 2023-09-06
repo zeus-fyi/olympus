@@ -113,6 +113,7 @@ function LoadBalancingDashboardContent(props: any) {
     const [reload, setReload] = useState(false); // State to trigger reload
     const [createGroupName, setCreateGroupName] = React.useState("");
     const [selectedTab, setSelectedTab] = useState(0);
+    const [tabCount, setTabCount] = useState(2);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
 
     useEffect(() => {
@@ -598,7 +599,7 @@ function LoadBalancingDashboardContent(props: any) {
                                 handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
                                 handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
                             />)}
-                        {selectedMainTab === 1 && groupName === "-all" && (
+                        {( selectedTab === tabCount +1 || selectedMainTab === 1 && groupName == "-all") && (
                             <ProceduresCatalogTable
                                 selectedMainTab={selectedMainTab}
                                 selectedTab={selectedTab}

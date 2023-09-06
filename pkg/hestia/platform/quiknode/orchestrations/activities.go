@@ -22,7 +22,7 @@ import (
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
-const (
+var (
 	IrisApiUrl = "https://iris.zeus.fyi"
 )
 

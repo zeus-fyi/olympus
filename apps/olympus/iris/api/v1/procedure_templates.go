@@ -58,13 +58,13 @@ func GetBtcMaxBlockAggReduceTemplate(rgName string, req *iris_api_requests.ApiPr
 	fnRule := iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse
 	ph := ProcedureHeaders{
 		XAggOp:                   "max",
-		XAggKey:                  "result,sync_info,latest_block_height",
+		XAggKey:                  "result",
 		XAggKeyValueDataType:     "int",
 		XAggFilterFanIn:          &fnRule,
 		ForwardPayload:           stageTwoPayload,
 		StageOneAggregateMapName: iris_catalog_procedures.BtcMaxBlockAggReduce,
 	}
-	req.Payload = iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.AvaxMaxBlockAggReduce)
+	req.Payload = iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.BtcMaxBlockAggReduce)
 	return ph.GetGeneratedProcedure(rgName, req)
 }
 

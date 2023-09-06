@@ -17,7 +17,7 @@ import Button from "@mui/material/Button";
 import {useNavigate, useParams} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs} from "@mui/material";
+import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Slider, Stack, Tab, Tabs} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {RootState} from "../../redux/store";
@@ -578,30 +578,114 @@ function LoadBalancingDashboardContent(props: any) {
                                 handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
                             />)}
                         {selectedTab === 2 && groupName !== "-all" && groupName !== "unused" && (
-                            <LoadBalancingPriorityScoreMetricsTable
-                                selectedTab={selectedTab}
-                                handleTabChange={handleTabChange}
-                                page={page}
-                                rowsPerPage={rowsPerPage}
-                                loading={loading}
-                                endpoints={tableRoutes}
-                                groups={groups}
-                                groupName={groupName}
-                                selected={selected}
-                                handleSelectAllClick={handleSelectAllClick}
-                                handleClick={handleClick}
-                                handleChangeRowsPerPage={handleChangeRowsPerPage}
-                                handleChangePage={handleChangePage}
-                                isAdding={isAdding}
-                                setIsAdding={setIsAdding}
-                                newEndpoint={newEndpoint}
-                                isUpdatingGroup={isUpdatingGroup}
-                                setNewEndpoint={setNewEndpoint}
-                                handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
-                                handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
-                                handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
-                                handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
-                            />)}
+                            <div>
+                                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                    <Stack direction={"row"}>
+                                    <Card sx={{ maxWidth: 700, minHeight: 100, mr: 2}}>
+                                        <Stack direction={"column"}>
+                                        <CardContent>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Priority Score Latency Scale Factor
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Adjust the slider to change the latency scale factor for the priority score.
+                                                Your adjusted priority score is calculated as newScore = currentScore x (latency(percentile) + scale factor).
+                                            </Typography>
+                                        </CardContent>
+                                        <Box
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            height="100%"
+                                        >
+                                            <Slider
+                                                sx={{ mt: 4, mb: 10, ml:4, mr:4 }}
+                                                aria-label="Always visible"
+                                                min={0}
+                                                max={10}
+                                                defaultValue={0.6}
+                                                step={0.001}
+                                                valueLabelDisplay="on"
+                                            />
+                                        </Box>
+                                            <CardContent>
+                                                <Stack direction={"row"} spacing={2}>
+                                                <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
+                                                    Restore Default
+                                                </Button>
+                                                <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
+                                                    Update
+                                                </Button>
+                                                </Stack>
+                                            </CardContent>
+                                    </Stack>
+                                    </Card>
+                                    <Card sx={{ maxWidth: 700, minHeight: 100}}>
+                                        <Stack direction={"column"}>
+                                        <CardContent>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Error Scale Factor
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Your adjusted priority score is calculated as newScore = currentScore x (latency(percentile) + scale factor).
+                                                Whenever a 4xx or 5xx error is returned, the error scale factor is used to adjust the priority score.
+                                            </Typography>
+                                        </CardContent>
+                                        <Box
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            height="100%"
+                                        >
+                                            <Slider
+                                                sx={{ mt: 4, mb: 10, ml:4, mr:4 }}
+                                                aria-label="Always visible"
+                                                min={0}
+                                                max={10}
+                                                defaultValue={3}
+                                                step={0.001}
+                                                valueLabelDisplay="on"
+                                            />
+                                        </Box>
+                                        <CardContent>
+                                            <Stack direction={"row"} spacing={2}>
+                                                <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
+                                                    Restore Default
+                                                </Button>
+                                                <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
+                                                    Update
+                                                </Button>
+                                            </Stack>
+                                        </CardContent>
+                                        </Stack>
+                                    </Card>
+                                </Stack>
+                                </Container>
+                                <LoadBalancingPriorityScoreMetricsTable
+                                    selectedTab={selectedTab}
+                                    handleTabChange={handleTabChange}
+                                    page={page}
+                                    rowsPerPage={rowsPerPage}
+                                    loading={loading}
+                                    endpoints={tableRoutes}
+                                    groups={groups}
+                                    groupName={groupName}
+                                    selected={selected}
+                                    handleSelectAllClick={handleSelectAllClick}
+                                    handleClick={handleClick}
+                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                    handleChangePage={handleChangePage}
+                                    isAdding={isAdding}
+                                    setIsAdding={setIsAdding}
+                                    newEndpoint={newEndpoint}
+                                    isUpdatingGroup={isUpdatingGroup}
+                                    setNewEndpoint={setNewEndpoint}
+                                    handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                                    handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                                    handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                                    handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
+                                />
+                            </div>)}
                         {( selectedTab === tabCount +1 || selectedMainTab === 1 && groupName == "-all") && (
                             <ProceduresCatalogTable
                                 selectedMainTab={selectedMainTab}

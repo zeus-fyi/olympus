@@ -119,7 +119,7 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		sendRawResponse = true
 	}
 	if resp.StatusCode >= 400 {
-		tableStats.LatencyQuartilePercentageRank = StatusErrorCodePriorityScoreScaleFactor
+		tableStats.LatencyScaleFactor = tableStats.ErrorScaleFactor
 	}
 	tableStats.Meter = resp.PayloadSizeMeter
 	tableStats.LatencyMilliseconds = resp.Latency.Milliseconds()

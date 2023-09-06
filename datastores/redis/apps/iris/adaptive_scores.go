@@ -32,7 +32,9 @@ import (
 
 const (
 	DecayConstant                   = 0.95
+	LatencyScaleFactorDefault       = 0.6
 	TailPercentage                  = 0.95
+	ErrorDefaultScaleFactor         = 3.0
 	MinSamplesBeforeAdaptiveScoring = 20
 	StatsTimeToLiveAfterLastUsage   = 60 * time.Minute
 )
@@ -111,7 +113,7 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 
 	latSfValue, err := latSfCmd.Float64()
 	if err == redis.Nil {
-		latSfValue = 0.6
+		latSfValue = LatencyScaleFactorDefault
 		stats.LatencyScaleFactor = latSfValue
 	} else if err != nil {
 		log.Warn().Err(err).Msgf("Failed to get latSfKey")
@@ -121,7 +123,7 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 
 	errSfValue, err := errSfCmd.Float64()
 	if err == redis.Nil {
-		errSfValue = 3.0
+		errSfValue = ErrorDefaultScaleFactor
 	} else if err != nil {
 		log.Warn().Err(err).Msgf("Failed to get errSfKey")
 	} else {
@@ -130,7 +132,7 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 
 	decaySfValue, err := decaySfCmd.Float64()
 	if err == redis.Nil {
-		decaySfValue = 0.95
+		decaySfValue = DecayConstant
 	} else if err != nil {
 		log.Warn().Err(err).Msgf("Failed to get decaySfKey")
 	} else {
@@ -219,7 +221,12 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	//log.Info().Float64(" stats.MetricLatencyTail", stats.MetricLatencyTail).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
 	//log.Info().Int64(" stats.LatencyMilliseconds", stats.LatencyMilliseconds).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
 
-	rate := stats.LatencyQuartilePercentageRank + 0.6
+	/* this is being set upstream
+	if resp.StatusCode >= 400 {
+		tableStats.LatencyScaleFactor = tableStats.ErrorScaleFactor
+	}
+	*/
+	rate := stats.LatencyQuartilePercentageRank + stats.LatencyScaleFactor
 	// essentially this just multiplies the score by the priority rate growth
 	scoreAdjustmentMemberOut := rate * stats.MemberRankScoreOut.Score
 	stats.MemberRankScoreOut.Score = scoreAdjustmentMemberOut
@@ -237,7 +244,7 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreOut)
 	}
 	if stats.MemberRankScoreIn.Score > 1 {
-		stats.MemberRankScoreIn.Score *= DecayConstant
+		stats.MemberRankScoreIn.Score *= stats.DecayScaleFactor
 		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreIn)
 	}
 

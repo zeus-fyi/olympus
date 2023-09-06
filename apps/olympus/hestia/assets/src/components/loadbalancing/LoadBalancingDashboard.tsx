@@ -137,7 +137,7 @@ function LoadBalancingDashboardContent(props: any) {
             }
         }
         fetchData(params);
-    }, [reload]);
+    }, [reload,groupName]);
 
 
     useEffect(() => {

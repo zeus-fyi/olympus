@@ -117,10 +117,10 @@ function LoadBalancingDashboardContent(props: any) {
     const [tabCount, setTabCount] = useState(2);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
     const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
-    const [loadingMetrics, setLoadinMetrics] = React.useState(false);
-    const [sliderLatencyValue, setSliderLatencyValue] = useState(0.6); // Initial value could be set to some default
-    const [sliderErrorValue, setSliderErrorValue] = useState(3); // Initial value could be set to some default
-    const [sliderDecayValue, setSliderDecayValue] = useState(0.95); // Initial value could be set to some default
+    const [loadingMetrics, setLoadingMetrics] = React.useState(false);
+    const [sliderLatencyValue, setSliderLatencyValue] = useState( tableMetrics?.scaleFactors?.latencyScaleFactor ?? 0.6);
+    const [sliderErrorValue, setSliderErrorValue] = useState(tableMetrics?.scaleFactors?.errorScaleFactor ?? 3.0);
+    const [sliderDecayValue, setSliderDecayValue] = useState(tableMetrics?.scaleFactors?.decayScaleFactor ?? 0.95);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -146,39 +146,22 @@ function LoadBalancingDashboardContent(props: any) {
                 if (groupName === "-all" || groupName === "unused") {
                     return
                 }
-                setLoadinMetrics(true); // Set loading to true
+                setLoading(true); // Set loading to true
+                setLoadingMetrics(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getTableMetrics(groupName);
                 dispatch(setTableMetrics(response.data));
-                setSliderDecayValue(tableMetrics.scaleFactors.decayScaleFactor)
-                setSliderErrorValue(tableMetrics.scaleFactors.errorScaleFactor)
-                setSliderLatencyValue(tableMetrics.scaleFactors.latencyScaleFactor)
+                setSliderLatencyValue(response.data.scaleFactors.latencyScaleFactor);
+                setSliderErrorValue(response.data.scaleFactors.errorScaleFactor);
+                setSliderDecayValue(response.data.scaleFactors.decayScaleFactor);
             } catch (error) {
                 console.log("error", error);
             } finally {
-                setLoadinMetrics(false); // Set loading to false regardless of success or failure.
+                setLoading(false)
+                setLoadingMetrics(false); // Set loading to false regardless of success or failure.
             }
         }
         fetchData();
     }, [groupName]);
-
-    const handleUpdateScaleFactor = async () => {
-        if (newEndpoint) {
-            setLoading(true); // Set loading to false regardless of success or failure.
-            const payload: IrisOrgGroupRoutesRequest = {
-                routes: [newEndpoint]
-            };
-            try {
-                const response = await loadBalancingApiGateway.createEndpoints(payload);
-                console.log(response.status)
-                // handle the response accordingly
-            } catch (error) {
-                console.log("error", error);
-            } finally {
-                setLoading(false); // Set loading to false regardless of success or failure.
-                setReload(!reload); // Trigger reload by flipping the state
-            }
-        }
-    };
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
@@ -333,7 +316,6 @@ function LoadBalancingDashboardContent(props: any) {
             setLoading(true); // Set loading to true
             const selectedSet = new Set(selected); // Create a Set for O(1) lookup
             groups[groupName].forEach(route => selectedSet.add(route)); // Add each route from tableRoutes to selectedSet
-
             const payload: IrisOrgGroupRoutesRequest = {
                 groupName: groupName,
                 routes: Array.from(selectedSet) // Convert the Set back to an array
@@ -362,12 +344,12 @@ function LoadBalancingDashboardContent(props: any) {
                 return;
         }
         try {
-            setLoading(true); // Set loading to true
+            setLoadingMetrics(true); // Set loading to true
             const response = await IrisApiGateway.updateTableScaleFactor(groupName, sf, value);
         } catch (error) {
             console.log("error", error);
         } finally {
-            setLoading(false); // Set loading to false regardless of success or failure.
+            setLoadingMetrics(false); // Set loading to false regardless of success or failure.
             setReload(!reload); // Trigger reload by flipping the state
         }
     }
@@ -687,7 +669,6 @@ function LoadBalancingDashboardContent(props: any) {
                                                 min={0}
                                                 max={1}
                                                 step={0.001}
-                                                defaultValue={tableMetrics.scaleFactors.latencyScaleFactor}
                                                 value={sliderLatencyValue}
                                                 onChange={(e, newValue) => onChangeLatencySlider(e, newValue as number)}
                                                 valueLabelDisplay="on"
@@ -727,7 +708,6 @@ function LoadBalancingDashboardContent(props: any) {
                                                 aria-label="Always visible"
                                                 min={0}
                                                 max={10}
-                                                defaultValue={tableMetrics.scaleFactors.errorScaleFactor}
                                                 onChange={(e, newValue) => onChangeErrorSlider(e, newValue as number)}
                                                 step={0.001}
                                                 value={sliderErrorValue}
@@ -768,7 +748,6 @@ function LoadBalancingDashboardContent(props: any) {
                                                     aria-label="Always visible"
                                                     min={0}
                                                     max={1}
-                                                    defaultValue={tableMetrics.scaleFactors.decayScaleFactor}
                                                     step={0.001}
                                                     value={sliderDecayValue}
                                                     onChange={(e, newValue) => onChangeDecaySlider(e, newValue as number)}

@@ -149,6 +149,25 @@ function LoadBalancingDashboardContent(props: any) {
         fetchData();
     }, [groupName]);
 
+    const handleUpdateScaleFactor = async () => {
+        if (newEndpoint) {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            const payload: IrisOrgGroupRoutesRequest = {
+                routes: [newEndpoint]
+            };
+            try {
+                const response = await loadBalancingApiGateway.createEndpoints(payload);
+                console.log(response.status)
+                // handle the response accordingly
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or failure.
+                setReload(!reload); // Trigger reload by flipping the state
+            }
+        }
+    };
+
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
         const newSelected = [...selected];
@@ -581,7 +600,7 @@ function LoadBalancingDashboardContent(props: any) {
                             <div>
                                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                     <Stack direction={"row"}>
-                                    <Card sx={{ maxWidth: 700, minHeight: 100, mr: 2}}>
+                                    <Card sx={{ maxWidth: 700, minHeight: 125, mr: 2}}>
                                         <Stack direction={"column"}>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
@@ -602,7 +621,7 @@ function LoadBalancingDashboardContent(props: any) {
                                                 sx={{ mt: 4, mb: 10, ml:4, mr:4 }}
                                                 aria-label="Always visible"
                                                 min={0}
-                                                max={10}
+                                                max={1}
                                                 defaultValue={0.6}
                                                 step={0.001}
                                                 valueLabelDisplay="on"
@@ -620,7 +639,7 @@ function LoadBalancingDashboardContent(props: any) {
                                             </CardContent>
                                     </Stack>
                                     </Card>
-                                    <Card sx={{ maxWidth: 700, minHeight: 100}}>
+                                    <Card sx={{ maxWidth: 700, minHeight: 125,  mr: 2}}>
                                         <Stack direction={"column"}>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
@@ -657,6 +676,45 @@ function LoadBalancingDashboardContent(props: any) {
                                                 </Button>
                                             </Stack>
                                         </CardContent>
+                                        </Stack>
+                                    </Card>
+                                    <Card sx={{ maxWidth: 700, minHeight: 125}}>
+                                        <Stack direction={"column"}>
+                                            <CardContent>
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Decay Scale Factor
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Whenever N (number of table endpoints == adaptive requests) have been made relative to an endpoint,
+                                                    your adjusted priority score is calculated as newScore = currentScore x decayScaleFactor
+                                                </Typography>
+                                            </CardContent>
+                                            <Box
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                height="100%"
+                                            >
+                                                <Slider
+                                                    sx={{ mt: 4, mb: 10, ml:4, mr:4 }}
+                                                    aria-label="Always visible"
+                                                    min={0}
+                                                    max={1}
+                                                    defaultValue={.95}
+                                                    step={0.001}
+                                                    valueLabelDisplay="on"
+                                                />
+                                            </Box>
+                                            <CardContent>
+                                                <Stack direction={"row"} spacing={2}>
+                                                    <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
+                                                        Restore Default
+                                                    </Button>
+                                                    <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
+                                                        Update
+                                                    </Button>
+                                                </Stack>
+                                            </CardContent>
                                         </Stack>
                                     </Card>
                                 </Stack>

@@ -21,6 +21,11 @@ const initialState: LoadBalancingState = {
     },
     tableMetrics: {
         tableName: '',
+        scaleFactors: {
+            latencyScaleFactor: 0.6,
+            errorScaleFactor: 3.0,
+            decayScaleFactor: 0.95,
+        },
         routes: [],
         metrics: {},
     },

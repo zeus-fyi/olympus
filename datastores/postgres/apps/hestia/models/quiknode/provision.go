@@ -3,6 +3,7 @@ package hestia_quicknode_models
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
@@ -60,9 +61,6 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  FROM cte_insert_service, cte_unnest_ca
 					  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != '' 
  			 		  ON CONFLICT (endpoint_id) DO UPDATE SET contract_address = EXCLUDED.contract_address
-				  ), cte_delete_ref AS (
-					  DELETE FROM provisioned_quicknode_services_referers
-					  WHERE endpoint_id = (SELECT endpoint_id FROM cte_insert_service)
 				  ), cte_unnest_ref AS (
 					  SELECT column1 AS referer
  					  FROM UNNEST($10::text[]) AS column1
@@ -97,11 +95,22 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 
 func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `WITH cte_insert_plan AS (
-					 UPDATE quicknode_marketplace_customer
-					 SET plan = $2
-					 WHERE quicknode_id = $1
- 					 RETURNING quicknode_id
+	q.RawQuery = `WITH cte_insert_org AS (
+					  INSERT INTO orgs (name, metadata)
+					  SELECT $1, '{}'
+						WHERE NOT EXISTS (
+							SELECT 1
+							FROM orgs
+							WHERE name = $1
+						)
+					   RETURNING org_id, name AS quicknode_id
+					), cte_marketplace_customer AS (
+						  INSERT INTO quicknode_marketplace_customer (quicknode_id, plan, is_test)
+						  SELECT $1, $2, $8
+						  FROM cte_insert_org
+						  ON CONFLICT (quicknode_id) 
+						  DO UPDATE SET 
+						  plan = EXCLUDED.plan
 				  ), cte_update_service AS (
 					  UPDATE provisioned_quicknode_services
 					  SET http_url = $4, wss_url = $5
@@ -118,10 +127,7 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  SELECT $3, cte_unnest_ca.contract_address
 					  FROM cte_unnest_ca
 					  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != ''
-					  ON CONFLICT (endpoint_id) DO UPDATE SET contract_address = EXCLUDED.contract_address	
-				  ), cte_delete_ref AS (
-					  DELETE FROM provisioned_quicknode_services_referers
-					  WHERE endpoint_id = $3
+					  ON CONFLICT (endpoint_id) DO UPDATE SET contract_address = EXCLUDED.contract_address
 				  ), cte_unnest_ref AS (
 					  SELECT column1 AS referer
  					  FROM UNNEST($7::text[]) AS column1
@@ -131,7 +137,7 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  FROM cte_unnest_ref
 					  WHERE cte_unnest_ref.referer IS NOT NULL AND cte_unnest_ref.referer != ''
 					  ON CONFLICT (endpoint_id) DO UPDATE SET referer = EXCLUDED.referer
-				  ) SELECT quicknode_id FROM cte_insert_plan;`
+				  ) SELECT true;`
 	cas := make([]string, len(ps.ProvisionedQuickNodeServicesContractAddresses))
 	for _, ca := range ps.ProvisionedQuickNodeServicesContractAddresses {
 		cas = append(cas, ca.ContractAddress)
@@ -140,12 +146,15 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 	for _, ref := range ps.ProvisionedQuickNodeServicesReferrers {
 		refs = append(refs, ref.Referer)
 	}
-	qnID := ""
+	updated := false
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ps.QuickNodeID, ps.Plan, ps.EndpointID, ps.HttpURL, ps.WssURL,
-		pq.Array(cas), pq.Array(refs)).Scan(&qnID)
+		pq.Array(cas), pq.Array(refs), ps.IsTest).Scan(&updated)
 	if err != nil {
 		log.Error().Err(err).Msg("UpdateProvisionedQuickNodeService: failed to execute query")
 		return err
+	}
+	if !updated {
+		return errors.New("failed to update provisioned quicknode service")
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("UpdateProvisionedQuickNodeService"))
 }

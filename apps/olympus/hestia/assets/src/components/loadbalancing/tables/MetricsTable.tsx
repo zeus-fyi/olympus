@@ -1,5 +1,4 @@
 import * as React from "react";
-import {useEffect} from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
@@ -11,33 +10,16 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../redux/store";
-import {loadBalancingApiGateway} from "../../../gateway/loadbalancing";
-import {setTableMetrics} from "../../../redux/loadbalancing/loadbalancing.reducer";
 import {generateMetricSlices, MetricAggregateRow} from "../../../redux/loadbalancing/loadbalancing.types";
 
 export function LoadBalancingMetricsTable(props: any) {
-    const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
+    const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick, loadingMetrics,
         handleChangeRowsPerPage,handleChangePage, groupName, selectedTab, handleTabChange,
         isAdding, setIsAdding, newEndpoint, setNewEndpoint, isUpdatingGroup, handleAddGroupTableEndpointsSubmission,
         handleSubmitNewEndpointSubmission, handleDeleteEndpointsSubmission, handleUpdateGroupTableEndpointsSubmission
     } = props
     const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
     const dispatch = useDispatch();
-    const [loadingMetrics, setLoadinMetrics] = React.useState(false);
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoadinMetrics(true); // Set loading to true
-                const response = await loadBalancingApiGateway.getTableMetrics(groupName);
-                dispatch(setTableMetrics(response.data));
-            } catch (error) {
-                console.log("error", error);
-            } finally {
-                setLoadinMetrics(false); // Set loading to false regardless of success or failure.
-            }
-        }
-        fetchData();
-    }, [groupName]);
 
     if (loadingMetrics) {
         return <div>Loading...</div> // Display loading message while data is fetching

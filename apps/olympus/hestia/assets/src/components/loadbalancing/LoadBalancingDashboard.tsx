@@ -115,6 +115,8 @@ function LoadBalancingDashboardContent(props: any) {
     const [selectedTab, setSelectedTab] = useState(0);
     const [tabCount, setTabCount] = useState(2);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
+    const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
+    const [loadingMetrics, setLoadinMetrics] = React.useState(false);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -137,13 +139,16 @@ function LoadBalancingDashboardContent(props: any) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setLoading(true); // Set loading to true
+                if (groupName === "-all" || groupName === "unused") {
+                    return
+                }
+                setLoadinMetrics(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getTableMetrics(groupName);
                 dispatch(setTableMetrics(response.data));
             } catch (error) {
                 console.log("error", error);
             } finally {
-                setLoading(false); // Set loading to false regardless of success or failure.
+                setLoadinMetrics(false); // Set loading to false regardless of success or failure.
             }
         }
         fetchData();
@@ -573,6 +578,7 @@ function LoadBalancingDashboardContent(props: any) {
                         />)}
                         {selectedTab === 1 && groupName !== "-all" && groupName !== "unused" &&  (
                             <LoadBalancingMetricsTable
+                                loadingMetrics={loadingMetrics}
                                 selectedTab={selectedTab}
                                 handleTabChange={handleTabChange}
                                 page={page}
@@ -622,7 +628,7 @@ function LoadBalancingDashboardContent(props: any) {
                                                 aria-label="Always visible"
                                                 min={0}
                                                 max={1}
-                                                defaultValue={0.6}
+                                                defaultValue={tableMetrics.scaleFactors.latencyScaleFactor}
                                                 step={0.001}
                                                 valueLabelDisplay="on"
                                             />
@@ -661,7 +667,7 @@ function LoadBalancingDashboardContent(props: any) {
                                                 aria-label="Always visible"
                                                 min={0}
                                                 max={10}
-                                                defaultValue={3}
+                                                defaultValue={tableMetrics.scaleFactors.errorScaleFactor}
                                                 step={0.001}
                                                 valueLabelDisplay="on"
                                             />
@@ -700,7 +706,7 @@ function LoadBalancingDashboardContent(props: any) {
                                                     aria-label="Always visible"
                                                     min={0}
                                                     max={1}
-                                                    defaultValue={.95}
+                                                    defaultValue={tableMetrics.scaleFactors.decayScaleFactor}
                                                     step={0.001}
                                                     valueLabelDisplay="on"
                                                 />

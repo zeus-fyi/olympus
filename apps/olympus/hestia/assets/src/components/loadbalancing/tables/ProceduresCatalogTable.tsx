@@ -38,9 +38,6 @@ export function ProceduresCatalogTable(props: any) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // if (selectedMainTab !== 1 && selectedTab !== 4) {
-                //     return
-                // }
                 setLoadingProcedures(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getProceduresCatalog();
                 dispatch(setProceduresCatalog(response.data));
@@ -112,6 +109,9 @@ export function ProceduresCatalogTable(props: any) {
         }
     };
 
+    if (loadingProcedures) {
+        return <div></div>
+    }
     return (
         <div>
             <Box sx={{ mt: 4, mb: 4 }}>

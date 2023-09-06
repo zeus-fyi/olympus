@@ -82,6 +82,9 @@ func GetAvaxMaxBlockAggReduceTemplate(rgName string, req *iris_api_requests.ApiP
 		StageOneAggregateMapName: iris_catalog_procedures.AvaxContractChainMaxBlockAggReduce,
 		StageOnePathExt:          "/ext/bc/C/rpc",
 	}
+	if req.ExtRoutePath == "/" {
+		req.ExtRoutePath = "/ext/bc/C/rpc"
+	}
 	req.Payload = iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.AvaxContractChainMaxBlockAggReduce)
 	return ph.GetGeneratedProcedure(rgName, req)
 }
@@ -96,6 +99,9 @@ func GetAvaxPlatformMaxHeightAggReduceTemplate(rgName string, req *iris_api_requ
 		ForwardPayload:           stageTwoPayload,
 		StageOneAggregateMapName: iris_catalog_procedures.AvaxPlatformChainMaxBlockAggReduce,
 		StageOnePathExt:          "/ext/bc/P",
+	}
+	if req.ExtRoutePath == "/" {
+		req.ExtRoutePath = "/ext/bc/P"
 	}
 	req.Payload = iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.AvaxPlatformChainMaxBlockAggReduce)
 	return ph.GetGeneratedProcedure(rgName, req)

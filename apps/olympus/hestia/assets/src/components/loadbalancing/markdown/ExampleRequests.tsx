@@ -22,8 +22,16 @@ export const nearMaxBlockAggReduceExample = `{
 export const avaxMaxBlockAggReduceExample = `{
     "jsonrpc": "2.0",
     "procedure": "avax_maxBlockAggReduce",
-    "method": "eth_getBlockByNumber",
-    "params": ["latest", true],
+    "method": "eth_gasPrice",
+    "params": [],
+    "id": 1
+}`
+
+export const avaxPlatformMaxBlockAggReduceExample = `{
+    "jsonrpc": "2.0",
+    "procedure": "avax_platformMaxHeightAggReduce",
+    "method": "platform.getCurrentSupply",
+    "params": {},
     "id": 1
 }`
 

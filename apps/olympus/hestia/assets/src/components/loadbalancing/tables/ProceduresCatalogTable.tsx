@@ -16,6 +16,7 @@ import {setProceduresCatalog} from "../../../redux/loadbalancing/loadbalancing.r
 import ExamplePageMarkdownText from "../markdown/ExamplePageMarkdown";
 import {
     avaxMaxBlockAggReduceExample,
+    avaxPlatformMaxBlockAggReduceExample,
     btcMaxBlockAggReduceExample,
     ethMaxBlockAggReduceExample,
     nearMaxBlockAggReduceExample
@@ -81,6 +82,9 @@ export function ProceduresCatalogTable(props: any) {
                 break;
             case 'avax_maxBlockAggReduce':
                 setCode(avaxMaxBlockAggReduceExample);
+                break;
+            case 'avax_platformMaxHeightAggReduce':
+                setCode(avaxPlatformMaxBlockAggReduceExample);
                 break;
             case 'near_maxBlockAggReduce':
                 setCode(nearMaxBlockAggReduceExample);

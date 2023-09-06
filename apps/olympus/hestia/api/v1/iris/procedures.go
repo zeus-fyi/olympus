@@ -108,12 +108,18 @@ func (p *ProceduresRequest) GetProceduresCatalog(c echo.Context) error {
 			" to routes at the max block number seen and then return the first successful response.",
 		Protocol:     "ethereum, arbitrum, arbitrum-nova, bsc, base, celo, optimism, polygon, zkSync",
 		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
-		//}, {
-		//	Name:     "avax_maxBlockAggReduce",
-		//	Protocol: "avax",
-		//	Description: "This procedure will poll your table routes for the latest block number, and then send the request" +
-		//		" to routes at the max block number seen and then return the first successful response.",
-		//	OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
+	}, {
+		Name:     "avax_maxBlockAggReduce",
+		Protocol: "avax",
+		Description: "This procedure will poll your table routes on the contract chain for the latest block number, and then send the request" +
+			" to routes at the max block number seen and then return the first successful response.",
+		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
+	}, {
+		Name:     "avax_platformMaxHeightAggReduce",
+		Protocol: "avax",
+		Description: "This procedure will poll your table routes for max height on the platform chain, and then send the request" +
+			" to routes at the max block number seen and then return the first successful response.",
+		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
 	}, {
 		Name:     "near_maxBlockAggReduce",
 		Protocol: "near",
@@ -121,13 +127,13 @@ func (p *ProceduresRequest) GetProceduresCatalog(c echo.Context) error {
 			" to routes at the max block number seen and then return the first successful response.",
 		OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
 	},
-	//{
-	//	Name:     "btc_maxBlockAggReduce",
-	//	Protocol: "btc",
-	//	Description: "This procedure will poll your table routes for the latest block number, and then send the request" +
-	//		" to routes at the max block number seen and then return the first successful response.",
-	//	OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
-	//},
+		{
+			Name:     "btc_maxBlockAggReduce",
+			Protocol: "btc",
+			Description: "This procedure will poll your table routes for the latest block number, and then send the request" +
+				" to routes at the max block number seen and then return the first successful response.",
+			OrderedSteps: []iris_programmable_proxy_v1_beta.IrisRoutingProcedureStep{getBlockHeightProcedure, getBlockProcedure},
+		},
 	}
 
 	return c.JSON(http.StatusOK, resp)

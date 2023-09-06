@@ -12,9 +12,12 @@ func GetProcedureTemplateJsonRPC(rgName, procName string, req *iris_api_requests
 	case iris_catalog_procedures.EthMaxBlockAggReduce:
 		delete(stageTwoPayload, "procedure")
 		return GetEthMaxBlockAggReduceTemplate(rgName, req, stageTwoPayload)
-	case iris_catalog_procedures.AvaxMaxBlockAggReduce:
+	case iris_catalog_procedures.AvaxContractChainMaxBlockAggReduce:
 		delete(stageTwoPayload, "procedure")
 		return GetAvaxMaxBlockAggReduceTemplate(rgName, req, stageTwoPayload)
+	case iris_catalog_procedures.AvaxPlatformChainMaxBlockAggReduce:
+		delete(stageTwoPayload, "procedure")
+		return GetAvaxPlatformMaxHeightAggReduceTemplate(rgName, req, stageTwoPayload)
 	case iris_catalog_procedures.NearMaxBlockAggReduce:
 		delete(stageTwoPayload, "procedure")
 		return GetNearMaxBlockAggReduceTemplate(rgName, req, stageTwoPayload)
@@ -58,13 +61,13 @@ func GetBtcMaxBlockAggReduceTemplate(rgName string, req *iris_api_requests.ApiPr
 	fnRule := iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse
 	ph := ProcedureHeaders{
 		XAggOp:                   "max",
-		XAggKey:                  "result,sync_info,latest_block_height",
+		XAggKey:                  "result",
 		XAggKeyValueDataType:     "int",
 		XAggFilterFanIn:          &fnRule,
 		ForwardPayload:           stageTwoPayload,
 		StageOneAggregateMapName: iris_catalog_procedures.BtcMaxBlockAggReduce,
 	}
-	req.Payload = iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.AvaxMaxBlockAggReduce)
+	req.Payload = iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.BtcMaxBlockAggReduce)
 	return ph.GetGeneratedProcedure(rgName, req)
 }
 
@@ -72,12 +75,34 @@ func GetAvaxMaxBlockAggReduceTemplate(rgName string, req *iris_api_requests.ApiP
 	fnRule := iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse
 	ph := ProcedureHeaders{
 		XAggOp:                   "max",
-		XAggKey:                  "result,sync_info,latest_block_height",
+		XAggKey:                  "result",
 		XAggKeyValueDataType:     "int",
 		XAggFilterFanIn:          &fnRule,
 		ForwardPayload:           stageTwoPayload,
-		StageOneAggregateMapName: iris_catalog_procedures.AvaxMaxBlockAggReduce,
+		StageOneAggregateMapName: iris_catalog_procedures.AvaxContractChainMaxBlockAggReduce,
+		StageOnePathExt:          "/ext/bc/C/rpc",
 	}
-	req.Payload = iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.AvaxMaxBlockAggReduce)
+	if req.ExtRoutePath == "/" {
+		req.ExtRoutePath = "/ext/bc/C/rpc"
+	}
+	req.Payload = iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.AvaxContractChainMaxBlockAggReduce)
+	return ph.GetGeneratedProcedure(rgName, req)
+}
+
+func GetAvaxPlatformMaxHeightAggReduceTemplate(rgName string, req *iris_api_requests.ApiProxyRequest, stageTwoPayload echo.Map) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, error) {
+	fnRule := iris_programmable_proxy_v1_beta.FanInRuleFirstValidResponse
+	ph := ProcedureHeaders{
+		XAggOp:                   "max",
+		XAggKey:                  "result,height",
+		XAggKeyValueDataType:     "int",
+		XAggFilterFanIn:          &fnRule,
+		ForwardPayload:           stageTwoPayload,
+		StageOneAggregateMapName: iris_catalog_procedures.AvaxPlatformChainMaxBlockAggReduce,
+		StageOnePathExt:          "/ext/bc/P",
+	}
+	if req.ExtRoutePath == "/" {
+		req.ExtRoutePath = "/ext/bc/P"
+	}
+	req.Payload = iris_catalog_procedures.ProcedureStageOnePayload(iris_catalog_procedures.AvaxPlatformChainMaxBlockAggReduce)
 	return ph.GetGeneratedProcedure(rgName, req)
 }

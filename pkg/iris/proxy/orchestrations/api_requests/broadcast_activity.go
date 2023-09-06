@@ -75,7 +75,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 			// Make a copy of the ApiProxyRequest to avoid race conditions
 			req := *pr
 			req.Url = r
-
+			fmt.Println(req.Payload, "req.Payload")
 			// Call ExtLoadBalancerRequest with the modified request
 			resp, err := i.ExtLoadBalancerRequest(ctx, &req)
 			go func(orgID int, latency int64, adaptiveKeyName string, req echo.Map) {

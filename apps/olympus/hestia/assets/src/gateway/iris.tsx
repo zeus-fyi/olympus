@@ -2,8 +2,8 @@ import {irisApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
 
 class IrisLoadBalancingApiGateway {
-    async sendJsonRpcRequest(routeGroup: string, payload: any, planName: string): Promise<any>  {
-        const url = `/v1/router`;
+    async sendJsonRpcRequest(routeGroup: string, payload: any, planName: string, ext: string): Promise<any>  {
+        const url = `/v1/router/${ext}`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

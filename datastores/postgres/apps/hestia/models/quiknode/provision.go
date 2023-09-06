@@ -112,28 +112,32 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 						  DO UPDATE SET 
 						  plan = EXCLUDED.plan
 				  ), cte_update_service AS (
-					  UPDATE provisioned_quicknode_services
-					  SET http_url = $4, wss_url = $5
-					  WHERE quicknode_id = $1 AND endpoint_id = $3
+					  INSERT INTO provisioned_quicknode_services(quicknode_id, endpoint_id, http_url, network, wss_url, chain)
+					  VALUES ($1, $3, $4, $9, $5, $10)
+					  ON CONFLICT (quicknode_id, endpoint_id) 
+					  DO UPDATE SET 
+					  http_url = EXCLUDED.http_url,
+					  network = EXCLUDED.network,
+					  wss_url = EXCLUDED.wss_url,
+					  chain = EXCLUDED.chain
 					  RETURNING quicknode_id, endpoint_id
 				  ), cte_delete_ca AS (
 					  DELETE FROM provisioned_quicknode_services_contract_addresses
 					  WHERE endpoint_id = $3
 				  ), cte_unnest_ca AS (
-					  SELECT column1 AS contract_address
+					  SELECT column1 AS contract_address, $3 AS endpoint_id
  					  FROM UNNEST($6::text[]) AS column1
 				  ), cte_insert_contract_addresses AS (
 					  INSERT INTO provisioned_quicknode_services_contract_addresses(endpoint_id, contract_address)
-					  SELECT $3, cte_unnest_ca.contract_address
+					  SELECT (SELECT $3 as endpoint_id), cte_unnest_ca.contract_address
 					  FROM cte_unnest_ca
 					  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != ''
 					  ON CONFLICT (endpoint_id) DO UPDATE SET contract_address = EXCLUDED.contract_address
 				  ), cte_unnest_ref AS (
-					  SELECT column1 AS referer
- 					  FROM UNNEST($7::text[]) AS column1
+					  SELECT column1 AS referer, $3 AS endpoint_id FROM UNNEST($7::text[]) AS column1
 				  ), cte_insert_referers AS (
 					  INSERT INTO provisioned_quicknode_services_referers(endpoint_id, referer)
-					  SELECT $3, cte_unnest_ref.referer
+					  SELECT (SELECT $3 as endpoint_id), cte_unnest_ref.referer
 					  FROM cte_unnest_ref
 					  WHERE cte_unnest_ref.referer IS NOT NULL AND cte_unnest_ref.referer != ''
 					  ON CONFLICT (endpoint_id) DO UPDATE SET referer = EXCLUDED.referer
@@ -147,8 +151,9 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 		refs = append(refs, ref.Referer)
 	}
 	updated := false
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ps.QuickNodeID, ps.Plan, ps.EndpointID, ps.HttpURL, ps.WssURL,
-		pq.Array(cas), pq.Array(refs), ps.IsTest).Scan(&updated)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery,
+		ps.QuickNodeID, ps.Plan, ps.EndpointID, ps.HttpURL, ps.WssURL,
+		pq.Array(cas), pq.Array(refs), ps.IsTest, ps.Network, ps.Chain).Scan(&updated)
 	if err != nil {
 		log.Error().Err(err).Msg("UpdateProvisionedQuickNodeService: failed to execute query")
 		return err

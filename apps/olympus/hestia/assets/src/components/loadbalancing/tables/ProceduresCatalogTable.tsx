@@ -35,6 +35,7 @@ export function ProceduresCatalogTable(props: any) {
     const [code, setCode] = React.useState('');
     const [showDetails, setShowDetails] = React.useState(false);
     const [showDetailsRow, setShowDetailsRow] = React.useState(-1);
+    const [ext, setExt] = React.useState('/');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -79,20 +80,26 @@ export function ProceduresCatalogTable(props: any) {
         switch (procName) {
             case 'eth_maxBlockAggReduce':
                 setCode(ethMaxBlockAggReduceExample);
+                setExt('/');
                 break;
             case 'avax_maxBlockAggReduce':
                 setCode(avaxMaxBlockAggReduceExample);
+                setExt('/ext/bc/C/rpc')
                 break;
             case 'avax_platformMaxHeightAggReduce':
                 setCode(avaxPlatformMaxBlockAggReduceExample);
+                setExt('/ext/bc/P');
                 break;
             case 'near_maxBlockAggReduce':
                 setCode(nearMaxBlockAggReduceExample);
+                setExt('/');
                 break;
             case 'btc_maxBlockAggReduce':
                 setCode(btcMaxBlockAggReduceExample);
+                setExt('/');
                 break;
             default:
+                setExt('/');
                 break;
         }
         setShowDetailsRow(index);
@@ -101,7 +108,9 @@ export function ProceduresCatalogTable(props: any) {
     const onSubmitPayload = async () => {
         try {
             setLoadingProcedures(true); // Set loading to true
-            const response = await IrisApiGateway.sendJsonRpcRequest(groupName, code, "standard");
+
+
+            const response = await IrisApiGateway.sendJsonRpcRequest(groupName, code, "standard", ext);
             if (response.data != null) {
                 const result = JSON.stringify(response.data, null, 2);
                 setCode(result);

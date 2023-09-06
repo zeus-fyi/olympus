@@ -37,10 +37,12 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set(QuickNodeChain, qnChain)
 			c.Set(QuickNodeNetwork, qnNetwork)
 
+			usingCookie := false
 			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
 			if err == nil && cookie != nil {
 				log.Info().Msg("InitV1Routes: Cookie found")
 				token = cookie.Value
+				usingCookie = true
 			}
 
 			orgID, plan, err := iris_redis.IrisRedisClient.GetAuthCacheIfExists(ctx, token)
@@ -74,13 +76,13 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set("orgUser", ou)
 			c.Set("bearer", token)
 			if err == nil && ou.OrgID > 0 && plan != "" {
-				go func(oID int, token, plan string) {
+				go func(oID int, token, plan string, usingCookie bool) {
 					log.Info().Int("orgID", oID).Str("plan", plan).Msg("InitV1Routes: SetAuthCache")
-					err = iris_redis.IrisRedisClient.SetAuthCache(context.Background(), oID, token, plan)
+					err = iris_redis.IrisRedisClient.SetAuthCache(context.Background(), oID, token, plan, usingCookie)
 					if err != nil {
 						log.Err(err).Msg("InitV1Routes: SetAuthCache")
 					}
-				}(ou.OrgID, token, plan)
+				}(ou.OrgID, token, plan, usingCookie)
 			}
 			return len(services) > 0, err
 		},

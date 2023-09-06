@@ -152,7 +152,6 @@ func (p *DeleteOrgRoutingTableRequest) DeleteQnOrgAuthCache(c echo.Context) erro
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	key := read_keys.NewKeyReader()
-
 	_, keysFound, err := key.QueryUserAuthedServices(context.Background(), qnID)
 	if err != nil {
 		log.Err(err).Msg("DeleteQnOrgAuthCache: QueryUserAuthedServices error")

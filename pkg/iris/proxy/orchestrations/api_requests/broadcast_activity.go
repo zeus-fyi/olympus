@@ -78,14 +78,14 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 
 			// Call ExtLoadBalancerRequest with the modified request
 			resp, err := i.ExtLoadBalancerRequest(ctx, &req)
-			go func(orgID int, latency int64, adaptiveKeyName string, resp echo.Map) {
+			go func(orgID int, latency int64, adaptiveKeyName string, req echo.Map) {
 				if len(adaptiveKeyName) <= 0 {
 					return
 				}
 				metric := ""
 				switch adaptiveKeyName {
 				case EthereumJsonRPC, QuickNodeJsonRPC, JsonRpcAdaptiveMetrics:
-					metricName := resp["method"]
+					metricName := req["method"]
 					if metricName != nil {
 						metricNameStr, aok := metricName.(string)
 						if aok {
@@ -99,7 +99,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 					log.Err(err).Int("orgID", orgID).Interface("st", st).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 					return
 				}
-			}(req.OrgID, resp.Latency.Milliseconds(), req.AdaptiveKeyName, resp.Response)
+			}(req.OrgID, resp.Latency.Milliseconds(), req.AdaptiveKeyName, req.Payload)
 			if err == nil && resp.StatusCode < 400 {
 				for _, transform := range procedureStep.TransformSlice {
 					// Assuming that resp.Response contains the data from which to extract the key value
@@ -125,6 +125,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 							pr = resp
 							mutex.Unlock()
 							cancel()
+							ctx.Done()
 							return
 						}
 					}

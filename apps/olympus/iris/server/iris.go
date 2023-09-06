@@ -3,6 +3,8 @@ package iris_server
 import (
 	"context"
 
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -12,6 +14,7 @@ import (
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 )
 
 var (
@@ -19,6 +22,13 @@ var (
 	temporalAuthCfg temporal_auth.TemporalAuth
 	env             string
 	authKeysCfg     auth_keys_config.AuthKeysCfg
+)
+
+const (
+	SelectedRouteHeader        = "X-Selected-Route"
+	SelectedLatencyHeader      = "X-Response-Latency-Milliseconds"
+	SelectedRouteGroupHeader   = "X-Route-Group"
+	SelectedResponseReceivedAt = "X-Response-Received-At-UTC"
 )
 
 func Iris() {
@@ -57,6 +67,31 @@ func Iris() {
 	go func() {
 		metricsSrv.Start()
 	}()
+
+	if env == "local" || env == "production-local" {
+		hestiaHost := "http://localhost:9002"
+		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"http://localhost:3000", hestiaHost, "http://localhost:8080"},
+			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders,
+				"X-CSRF-Token", "Accept-Encoding", "X-Route-Group",
+				iris_programmable_proxy_v1_beta.DurableExecutionID, iris_programmable_proxy_v1_beta.LoadBalancingStrategy,
+				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt,
+			},
+			AllowCredentials: true,
+		}))
+	} else {
+		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://iris.zeus.fyi", "https://quicknode.com"},
+			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
+				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding", "X-Route-Group",
+				iris_programmable_proxy_v1_beta.DurableExecutionID, iris_programmable_proxy_v1_beta.LoadBalancingStrategy,
+				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt,
+			},
+			AllowCredentials: true,
+		}))
+	}
 	srv.Start()
 }
 

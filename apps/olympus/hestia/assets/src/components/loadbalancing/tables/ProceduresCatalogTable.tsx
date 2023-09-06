@@ -20,6 +20,7 @@ import {
     ethMaxBlockAggReduceExample,
     nearMaxBlockAggReduceExample
 } from "../markdown/ExampleRequests";
+import {IrisApiGateway} from "../../../gateway/iris";
 
 export function ProceduresCatalogTable(props: any) {
     const { loading, rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
@@ -37,12 +38,11 @@ export function ProceduresCatalogTable(props: any) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                if (selectedMainTab !== 1) {
-                    return
-                }
+                // if (selectedMainTab !== 1 && selectedTab !== 4) {
+                //     return
+                // }
                 setLoadingProcedures(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getProceduresCatalog();
-                console.log("response", response.data)
                 dispatch(setProceduresCatalog(response.data));
             } catch (error) {
                 console.log("error", error);
@@ -51,7 +51,7 @@ export function ProceduresCatalogTable(props: any) {
             }
         }
         fetchData();
-    }, [selectedMainTab]);
+    }, [selectedMainTab, selectedTab]);
 
     if (loadingProcedures) {
         return <div>Loading...</div> // Display loading message while data is fetching
@@ -98,17 +98,18 @@ export function ProceduresCatalogTable(props: any) {
     };
 
     const onSubmitPayload = async () => {
-        // todo submit payload
-        // try {
-        //     setLoadingProcedures(true); // Set loading to true
-        //     const response = await loadBalancingApiGateway.getProceduresCatalog();
-        //     console.log("response", response.data)
-        //     dispatch(setProceduresCatalog(response.data));
-        // } catch (error) {
-        //     console.log("error", error);
-        // } finally {
-        //     setLoadingProcedures(false); // Set loading to false regardless of success or failure.
-        // }
+        try {
+            setLoadingProcedures(true); // Set loading to true
+            const response = await IrisApiGateway.sendJsonRpcRequest(groupName, code);
+            if (response.data != null) {
+                const result = JSON.stringify(response.data, null, 2);
+                setCode(result);
+            }
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoadingProcedures(false); // Set loading to false regardless of success or failure.
+        }
     };
 
     return (
@@ -176,11 +177,13 @@ export function ProceduresCatalogTable(props: any) {
                                                 <div>
                                                     <Stack direction={"column"} spacing={2}>
                                                         <ExamplePageMarkdownText onChange={onChange} code={code} setCode={setCode}/>
-                                                        {/*<Box sx={{ mt: 4, mb: 4 }}>*/}
-                                                        {/*    <Button variant="contained" fullWidth={true} color="primary"  onClick={onSubmitPayload}>*/}
-                                                        {/*        Send Request*/}
-                                                        {/*    </Button>*/}
-                                                        {/*</Box>*/}
+                                                        {(groupName !== "-all" && groupName !== "unused") && (
+                                                            <Box sx={{ mt: 4, mb: 4 }}>
+                                                                <Button variant="contained" fullWidth={true} color="primary"  onClick={onSubmitPayload}>
+                                                                    Send Request
+                                                                </Button>
+                                                            </Box>
+                                                        )}
                                                     </Stack>
                                                 </div>
                                             )

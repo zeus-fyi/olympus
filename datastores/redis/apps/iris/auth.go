@@ -47,15 +47,24 @@ func (m *IrisCache) GetAuthCacheIfExists(ctx context.Context, token string) (int
 	return orgID, plan, nil
 }
 
-func (m *IrisCache) SetAuthCache(ctx context.Context, orgID int, token, plan string) error {
+const (
+	CacheApiKeyTTL  = time.Minute * 15
+	CacheSessionTTL = time.Second * 3
+)
+
+func (m *IrisCache) SetAuthCache(ctx context.Context, orgID int, token, plan string, usingCookie bool) error {
 	// Generate the rate limiter key with the Unix timestamp
 	hashedToken := getHashedTokenKey(token)
 	hashedTokenPlan := getHashedTokenPlanKey(token)
 
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
-	pipe.Set(ctx, hashedToken, orgID, time.Minute*15)
-	pipe.Set(ctx, hashedTokenPlan, plan, time.Minute*15)
+	ttl := CacheApiKeyTTL
+	if usingCookie {
+		ttl = CacheSessionTTL
+	}
+	pipe.Set(ctx, hashedToken, orgID, ttl)
+	pipe.Set(ctx, hashedTokenPlan, plan, ttl)
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {

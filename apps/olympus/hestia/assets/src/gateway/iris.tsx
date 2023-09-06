@@ -35,6 +35,24 @@ class IrisLoadBalancingApiGateway {
             return
         }
     }
+    async updateTableScaleFactor(routeGroup: string, factorName: string, score: number): Promise<any>  {
+        const url = `/v1/table/${routeGroup}/scale/${factorName}`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true,
+            }
+            return await irisApi.put(url, {score: score}, config)
+        } catch (exc) {
+            console.error('error sending endpoints table request');
+            console.error(exc);
+            return
+        }
+    }
 }
 export const IrisApiGateway = new IrisLoadBalancingApiGateway();
 

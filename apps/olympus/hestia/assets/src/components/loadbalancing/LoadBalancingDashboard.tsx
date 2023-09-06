@@ -30,6 +30,7 @@ import {LoadBalancingRoutesTable} from "./tables/LoadBalancingRoutesTable";
 import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
 import {ProceduresCatalogTable} from "./tables/ProceduresCatalogTable";
+import {IrisApiGateway} from "../../gateway/iris";
 
 const drawerWidth: number = 240;
 
@@ -338,6 +339,31 @@ function LoadBalancingDashboardContent(props: any) {
                 routes: Array.from(selectedSet) // Convert the Set back to an array
             };
             const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoading(false); // Set loading to false regardless of success or failure.
+            setReload(!reload); // Trigger reload by flipping the state
+        }
+    }
+    const handleScaleFactorChange = async (sf: string) => {
+        let value: number;
+        switch (sf) {
+            case "latency":
+                value = sliderLatencyValue;
+                break;
+            case "error":
+                value = sliderErrorValue;
+                break;
+            case "decay":
+                value = sliderDecayValue;
+                break;
+            default:
+                return;
+        }
+        try {
+            setLoading(true); // Set loading to true
+            const response = await IrisApiGateway.updateTableScaleFactor(groupName, sf, value);
         } catch (error) {
             console.log("error", error);
         } finally {
@@ -672,7 +698,7 @@ function LoadBalancingDashboardContent(props: any) {
                                                 <Button variant="contained" fullWidth color="primary" onClick={handleSetDefaultLatency}>
                                                     Set Default
                                                 </Button>
-                                                <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
+                                                <Button variant="contained" fullWidth color="primary" onClick={() => handleScaleFactorChange("latency")}>
                                                     Update
                                                 </Button>
                                                 </Stack>
@@ -713,7 +739,7 @@ function LoadBalancingDashboardContent(props: any) {
                                                 <Button variant="contained" fullWidth color="primary" onClick={handleSetDefaultError}>
                                                     Set Default
                                                 </Button>
-                                                <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
+                                                <Button variant="contained" fullWidth color="primary" onClick={() => handleScaleFactorChange("error")}>
                                                     Update
                                                 </Button>
                                             </Stack>
@@ -754,7 +780,7 @@ function LoadBalancingDashboardContent(props: any) {
                                                     <Button variant="contained" fullWidth color="primary" onClick={handleSetDefaultDecay}>
                                                         Set Default
                                                     </Button>
-                                                    <Button variant="contained" fullWidth color="primary" onClick={() => {}}>
+                                                    <Button variant="contained" fullWidth color="primary" onClick={() => handleScaleFactorChange("decay")}>
                                                         Update
                                                     </Button>
                                                 </Stack>

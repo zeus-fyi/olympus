@@ -108,6 +108,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 						metric = metricNameStr
 					}
 				}
+				adaptiveMetricKeyValue = JsonRpcAdaptiveMetrics
 				c.Set("adaptiveMetricKeyValue", adaptiveMetricKeyValue)
 			}
 			return request.ProcessAdaptiveLoadBalancerRequest(c, payloadSizingMeter, method, metric, adaptiveMetricKeyValue)

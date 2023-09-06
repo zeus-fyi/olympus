@@ -76,6 +76,7 @@ const (
 	SelectedLatencyHeader      = "X-Response-Latency-Milliseconds"
 	SelectedRouteGroupHeader   = "X-Route-Group"
 	SelectedResponseReceivedAt = "X-Response-Received-At-UTC"
+	AdaptiveMetricsKey         = "X-Adaptive-Metrics-Key"
 )
 
 func Hestia() {
@@ -252,7 +253,7 @@ func Hestia() {
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",
-				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt,
+				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt, AdaptiveMetricsKey,
 			},
 			AllowCredentials: true,
 		}))
@@ -265,7 +266,7 @@ func Hestia() {
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",
-				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt,
+				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt, AdaptiveMetricsKey,
 			},
 			AllowCredentials: true,
 		}))

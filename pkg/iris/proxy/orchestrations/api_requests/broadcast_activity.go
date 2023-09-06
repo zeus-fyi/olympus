@@ -7,11 +7,22 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/go-redis/redis/v9"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
+)
+
+const (
+	LoadBalancingStrategy    = "X-Load-Balancing-Strategy"
+	Adaptive                 = "Adaptive"
+	AdaptiveLoadBalancingKey = "X-Adaptive-Metrics-Key"
+	EthereumJsonRPC          = "Ethereum"
+	QuickNodeJsonRPC         = "QuickNode"
+	JsonRpcAdaptiveMetrics   = "JSON-RPC"
 )
 
 func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
@@ -67,6 +78,28 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 
 			// Call ExtLoadBalancerRequest with the modified request
 			resp, err := i.ExtLoadBalancerRequest(ctx, &req)
+			go func(orgID int, latency int64, adaptiveKeyName string, resp echo.Map) {
+				if len(adaptiveKeyName) <= 0 {
+					return
+				}
+				metric := ""
+				switch adaptiveKeyName {
+				case EthereumJsonRPC, QuickNodeJsonRPC, JsonRpcAdaptiveMetrics:
+					metricName := resp["method"]
+					if metricName != nil {
+						metricNameStr, aok := metricName.(string)
+						if aok {
+							metric = metricNameStr
+						}
+					}
+				}
+				st := MakeStatTable(orgID, procedureStep.BroadcastInstructions.RoutingTable, r, metric, latency)
+				err = iris_redis.IrisRedisClient.SetLatestAdaptiveEndpointPriorityScore(context.Background(), &st)
+				if err != nil {
+					log.Err(err).Int("orgID", orgID).Interface("st", st).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
+					return
+				}
+			}(req.OrgID, resp.Latency.Milliseconds(), req.AdaptiveKeyName, resp.Response)
 			if err == nil && resp.StatusCode < 400 {
 				for _, transform := range procedureStep.TransformSlice {
 					// Assuming that resp.Response contains the data from which to extract the key value
@@ -140,4 +173,23 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 		}
 	}
 	return pr, nil
+}
+
+func MakeStatTable(orgID int, rgName, r, metricName string, latencyMs int64) iris_redis.StatTable {
+	ts := iris_redis.StatTable{
+		OrgID:     orgID,
+		TableName: rgName,
+		MemberRankScoreIn: redis.Z{
+			Score:  1,
+			Member: r,
+		},
+		MemberRankScoreOut:            redis.Z{},
+		LatencyQuartilePercentageRank: 0,
+		LatencyMilliseconds:           latencyMs,
+		Metric:                        metricName,
+		MetricLatencyMedian:           0,
+		MetricLatencyTail:             0,
+		MetricSampleCount:             0,
+	}
+	return ts
 }

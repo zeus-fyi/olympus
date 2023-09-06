@@ -49,6 +49,7 @@ type StatTable struct {
 	MetricLatencyMedian           float64 `json:"metricLatencyMedian,omitempty"`
 	MetricLatencyTail             float64 `json:"metricLatencyTail,omitempty"`
 	MetricSampleCount             int     `json:"metricSampleCount,omitempty"`
+	ScaleFactor                   float64 `json:"scaleFactor,omitempty"`
 
 	Meter *iris_usage_meters.PayloadSizeMeter `json:""`
 }
@@ -253,5 +254,76 @@ func (m *IrisCache) GetNextAdaptiveRoute(ctx context.Context, orgID int, rgName,
 		return nil, err
 	}
 	return ts, nil
+}
 
+const RateLimitTTL = 2 * time.Second
+
+func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScore(ctx context.Context, stats *StatTable) error {
+	if stats == nil {
+		return fmt.Errorf("stats is nil")
+	}
+	if stats.TableName == "" {
+		return fmt.Errorf("stats.TableName is empty")
+	}
+
+	//endpointPriorityScoreKey := createAdaptiveEndpointPriorityScoreKey(stats.OrgID, stats.TableName)
+	//if stats.LatencyQuartilePercentageRank <= 0.0 {
+	//	if stats.LatencyMilliseconds > int64(stats.MetricLatencyTail) {
+	//		stats.LatencyQuartilePercentageRank = 1.0
+	//	} else if stats.LatencyMilliseconds < int64(stats.MetricLatencyMedian) {
+	//		stats.LatencyQuartilePercentageRank = 0.5
+	//	} else {
+	//		stats.LatencyQuartilePercentageRank = 0.75
+	//	}
+	//}
+
+	//log.Info().Float64(" stats.MetricLatencyMedian", stats.MetricLatencyMedian).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
+	//log.Info().Float64(" stats.MetricLatencyTail", stats.MetricLatencyTail).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
+	//log.Info().Int64(" stats.LatencyMilliseconds", stats.LatencyMilliseconds).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage: latency metrics")
+	//stats.ScaleFactor = 0.6
+	//rate := stats.LatencyQuartilePercentageRank + stats.ScaleFactor
+	// essentially this just multiplies the score by the priority rate growth
+	//scoreAdjustmentMemberOut := rate * stats.MemberRankScoreOut.Score
+	//stats.MemberRankScoreOut.Score = scoreAdjustmentMemberOut
+	pipe := m.Writer.TxPipeline()
+
+	//rateLimiterKey := getOrgRateLimitKey(stats.OrgID)
+	//pipe.Expire(ctx, rateLimiterKey, RateLimitTTL)
+
+	//if stats.MetricSampleCount >= MinSamplesBeforeAdaptiveScoring {
+	//	pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreOut)
+	//}
+	//if stats.MemberRankScoreIn.Score > 1 {
+	//	stats.MemberRankScoreIn.Score *= DecayConstant
+	//	pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreIn)
+	//}
+
+	var tdigestResp *redis.Cmd
+	if stats.Metric != "" && stats.LatencyMilliseconds > 0 {
+		tableMetricKey := getMetricTdigestKey(stats.OrgID, stats.TableName, stats.Metric)
+		metricTdigestSampleCountKey := getMetricTdigestMetricSamplesKey(stats.OrgID, stats.TableName, stats.Metric)
+		pipe.Incr(ctx, metricTdigestSampleCountKey)
+		pipe.Expire(ctx, metricTdigestSampleCountKey, StatsTimeToLiveAfterLastUsage)
+		tdigestResp = pipe.Do(ctx, "PERCENTILE.MERGE", tableMetricKey, stats.LatencyMilliseconds)
+		pipe.Expire(ctx, tableMetricKey, StatsTimeToLiveAfterLastUsage) // Set the TTL to 15 minutes
+
+		tblMetricSet := getTableMetricSetKey(stats.OrgID, stats.TableName)
+		pipe.SAdd(ctx, tblMetricSet, stats.Metric)
+		pipe.Expire(ctx, tblMetricSet, StatsTimeToLiveAfterLastUsage)
+	}
+	// Execute the transaction
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Err(err).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage")
+		return err
+	}
+
+	if tdigestResp != nil {
+		err = tdigestResp.Err()
+		if err != nil {
+			log.Err(err).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage")
+			return err
+		}
+	}
+	return err
 }

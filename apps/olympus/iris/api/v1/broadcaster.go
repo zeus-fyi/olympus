@@ -14,7 +14,7 @@ import (
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
-func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, procName string) error {
+func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, procName, metricName, adaptiveKeyName string) error {
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
@@ -80,9 +80,12 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
 		Procedure:        proc,
+		OrgID:            ou.OrgID,
+		AdaptiveKeyName:  adaptiveKeyName,
 		Routes:           routes,
 		ExtRoutePath:     extPath,
 		ServicePlan:      plan,
+		MetricName:       metricName,
 		PayloadTypeREST:  restType,
 		RequestHeaders:   headers,
 		Payload:          p.Body,

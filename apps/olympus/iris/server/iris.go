@@ -29,6 +29,7 @@ const (
 	SelectedLatencyHeader      = "X-Response-Latency-Milliseconds"
 	SelectedRouteGroupHeader   = "X-Route-Group"
 	SelectedResponseReceivedAt = "X-Response-Received-At-UTC"
+	AdaptiveMetricsKey         = "X-Adaptive-Metrics-Key"
 )
 
 func Iris() {
@@ -76,7 +77,7 @@ func Iris() {
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders,
 				"X-CSRF-Token", "Accept-Encoding", "X-Route-Group",
 				iris_programmable_proxy_v1_beta.DurableExecutionID, iris_programmable_proxy_v1_beta.LoadBalancingStrategy,
-				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt,
+				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt, AdaptiveMetricsKey,
 			},
 			AllowCredentials: true,
 		}))
@@ -87,7 +88,7 @@ func Iris() {
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding", "X-Route-Group",
 				iris_programmable_proxy_v1_beta.DurableExecutionID, iris_programmable_proxy_v1_beta.LoadBalancingStrategy,
-				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt,
+				SelectedRouteHeader, SelectedLatencyHeader, SelectedRouteGroupHeader, SelectedResponseReceivedAt, AdaptiveMetricsKey,
 			},
 			AllowCredentials: true,
 		}))

@@ -10,6 +10,7 @@ class IrisLoadBalancingApiGateway {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`,
                     'X-Route-Group': `${routeGroup}`,
+                    'X-Adaptive-Metrics-Key': 'JSON-RPC',
                     'Content-Type': 'application/json'
                 },
                 withCredentials: true,

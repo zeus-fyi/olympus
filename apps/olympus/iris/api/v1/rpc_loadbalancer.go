@@ -79,10 +79,11 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 						metric = metricNameStr
 					}
 				}
+				c.Set("adaptiveMetricKeyValue", adaptiveMetricKeyValue)
 			default:
 				metric = ""
 			}
-			return request.ProcessAdaptiveLoadBalancerRequest(c, payloadSizingMeter, method, metric)
+			return request.ProcessAdaptiveLoadBalancerRequest(c, payloadSizingMeter, method, metric, adaptiveMetricKeyValue)
 		}
 		return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
 	}
@@ -91,7 +92,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType string) error {
 	procName := p.ExtractProcedureIfExists(c)
 	if procName != "" {
-		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName)
+		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName, "", "")
 	}
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
 	if routeGroup == "" {

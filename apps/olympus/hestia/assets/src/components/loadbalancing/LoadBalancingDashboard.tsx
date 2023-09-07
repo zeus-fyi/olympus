@@ -589,7 +589,7 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Tabs>
                             </Box>
                         )}
-                        { selectedMainTab == 0 && selectedTab === 0 && (
+                        { selectedTab === 0 && (
                         <LoadBalancingRoutesTable
                             selectedTab={selectedTab}
                             handleTabChange={handleTabChange}

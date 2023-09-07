@@ -20,7 +20,7 @@ type ProvisionedQuickNodeServices struct {
 	WssURL      sql.NullString `db:"wss_url" json:"wssUrl"`
 	Chain       sql.NullString `db:"chain" json:"chain"`
 }
-type ProvisionedQuicknodeServicesSlice []ProvisionedQuickNodeServices
+type ProvisionedQuickNodeServicesSlice []ProvisionedQuickNodeServices
 
 func (p *ProvisionedQuickNodeServices) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}

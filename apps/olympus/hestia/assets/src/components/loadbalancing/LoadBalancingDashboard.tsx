@@ -17,12 +17,30 @@ import Button from "@mui/material/Button";
 import {useNavigate, useParams} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Slider, Stack, Tab, Tabs} from "@mui/material";
+import {
+    Card,
+    CardContent,
+    FormControl,
+    FormControlLabel,
+    InputLabel,
+    MenuItem,
+    Select,
+    Slider,
+    Stack,
+    Switch,
+    Tab,
+    Tabs
+} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
-import {setEndpoints, setGroupEndpoints, setTableMetrics} from "../../redux/loadbalancing/loadbalancing.reducer";
+import {
+    setEndpoints,
+    setGroupEndpoints,
+    setTableMetrics,
+    setUserPlanDetails,
+} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
 import {PlanUsagePieCharts} from "./charts/pie/UsagePieChart";
 import {MetricsChart, TableMetricsCharts} from "./charts/radar/MetricsCharts";
@@ -31,6 +49,10 @@ import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
 import {ProceduresCatalogTable} from "./tables/ProceduresCatalogTable";
 import {IrisApiGateway} from "../../gateway/iris";
+import JoyrideTutorialBegin, {State} from "./joyride/Joyride";
+import {CallBackProps, STATUS} from "react-joyride";
+import {useSetState} from "react-use";
+import Checkbox from "@mui/material/Checkbox";
 
 const drawerWidth: number = 240;
 
@@ -99,6 +121,8 @@ function LoadBalancingDashboardContent(props: any) {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+    const planDetails = useSelector((state: RootState) => state.loadBalancing.planUsageDetails);
+    const [runTutorial, setRunTutorial] = useState<boolean>(planDetails?.tableUsage?.tutorialOn ?? true);
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(false);
@@ -161,7 +185,7 @@ function LoadBalancingDashboardContent(props: any) {
             }
         }
         fetchData();
-    }, [groupName]);
+    }, []);
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
@@ -396,17 +420,160 @@ function LoadBalancingDashboardContent(props: any) {
     const onChangeDecaySlider = (event: any, newValue: number) => {
         setSliderDecayValue(newValue);
     };
+
     const handleSetDefaultDecay= () => {
         setSliderDecayValue(0.95); // or some other default value
     };
+
+    const onToggleTutorialSetting = async () => {
+        try {
+            const response = await loadBalancingApiGateway.updateTutorialSetting();
+            if (response.data === null) {
+                return;
+            }
+            let tmp = JSON.parse(JSON.stringify(planDetails));
+            tmp.tableUsage.tutorialOn = response.data;
+            dispatch(setUserPlanDetails(tmp));
+            setRunTutorial(tmp.tableUsage.tutorialOn);
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+        }
+    }
+
+    function CustomContent() {
+        return (
+            <div>
+                    <CardContent>
+                        <Typography gutterBottom variant="h5" component="div">
+                            Load Balancing Dashboard: How to Get Started
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            <FormControlLabel
+                                control={<Checkbox color="primary" onChange={onToggleTutorialSetting} />}
+                                label="Disable and don't show this again"
+                                style={{ fontSize: '1.2em' }}
+                            />
+                        </Typography>
+                    </CardContent>
+            </div>
+        );
+    }
+    const [{ run, steps }, setState] = useSetState<State>({
+        run: runTutorial,
+        steps: [
+            {
+                content: <CustomContent />,
+                locale: { skip: <strong aria-label="skip"></strong> },
+                placement: 'center',
+                target: 'body',
+            },
+            {
+                content: 'This view shows all the routes you have registered for use with the Load Balancer.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-all-routes', // css class we'll add to the Card for targeting
+                title: 'All Routes',
+            },
+            {
+                content: 'This read-only view shows all registered routing procedures you have access to.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-all-procedures',
+                title: 'All Procedures',
+            },
+            {
+                content: 'Select a routing table to toggle the table view.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-qn-routing-table',
+                title: 'QuickNode Generated Routing Table',
+            },
+            {
+                content: 'Click on view details for your matching protocol and send request.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-procedures',
+                title: 'Procedure Demo',
+            },
+            {
+                content: 'You\'ll see the metrics from this request shortly after the request is sent.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-procedures',
+                title: 'Procedure Demo',
+            },
+            {
+                content: 'This view shows your priority score routes table & scale factors.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-priority-scores',
+                title: 'Priority Scores',
+            },
+            {
+                content: 'This view shows your route metrics.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-metrics',
+                title: 'Metrics',
+            },
+        ],
+    });
+
+    const handleJoyrideCallback = (data: CallBackProps) => {
+        const { status, index } = data;
+        const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+
+        if (status === STATUS.RUNNING) {
+            switch (index) {
+                case 0:
+                    setSelectedMainTab(0);
+                    setSelectedTab(0);
+                    const gnAll = '-all'
+                    setGroupName((gnAll));
+                    setTableRoutes(endpoints);
+                    break;
+                case 2:
+                    setSelectedMainTab(1);
+                    break;
+                case 3:
+                    setSelectedMainTab(0);
+                    setSelectedTab(0);
+                    const gn = 'ethereum-mainnet'
+                    setGroupName((gn));
+                    break;
+                case 4:
+                    setSelectedMainTab(0);
+                    setSelectedTab(3);
+                    break;
+                case 5:
+                    setSelectedTab(3);
+                    break;
+                case 6:
+                    setSelectedTab(2);
+                    break;
+                case 7:
+                    setSelectedTab(1);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (finishedStatuses.includes(status)) {
+            setState({ run: false });
+        }
+    };
+
     if (loading) {
         return <div></div>
     }
     if (loadingMetrics) {
         return <div></div>
     }
+
     return (
         <ThemeProvider theme={mdTheme}>
+            <JoyrideTutorialBegin handleChangeGroup={handleChangeGroup}
+                                  run={runTutorial}
+                                  steps={steps}
+                                  groups={groups}
+                                  groupName={groupName}
+                                  handleJoyrideCallback={handleJoyrideCallback}
+            />
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
                 <AppBar position="absolute" open={open} style={{ backgroundColor: '#333'}}>
@@ -477,7 +644,7 @@ function LoadBalancingDashboardContent(props: any) {
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction={"row"} spacing={2} >
-                        <Card sx={{ maxWidth: 700 }}>
+                        <Card  className="onboarding-card-highlight-qn-routing-table"  sx={{ maxWidth: 700 }}>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="div">
                                     Load Balancing Management
@@ -575,18 +742,19 @@ function LoadBalancingDashboardContent(props: any) {
                         {groupName !== "-all" && groupName !== "unused" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs">
-                                    <Tab label="Endpoints"  />
-                                    <Tab label="Metrics"  />
-                                    <Tab label="Priority Scores" />
-                                    <Tab label="Procedures" />
+                                    <Tab label="Routes"  />
+                                    <Tab label="Metrics" className="onboarding-card-highlight-metrics" />
+                                    <Tab label="Priority Scores" className="onboarding-card-highlight-priority-scores"/>
+                                    <Tab className="onboarding-card-highlight-procedures" label="Procedures" />
                                 </Tabs>
                             </Box>
                         )}
                         {groupName === "-all" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
-                                    <Tab label="Endpoints"  />
-                                    <Tab label="Procedures" />
+                                    <Tab className="onboarding-card-highlight-all-routes" label="Routes"  />
+                                    <Tab className="onboarding-card-highlight-all-procedures" label="Procedures" />
+                                    <Tab label="Settings" />
                                 </Tabs>
                             </Box>
                         )}
@@ -794,32 +962,54 @@ function LoadBalancingDashboardContent(props: any) {
                                 />
                             </div>)}
                         {( selectedTab === tabCount +1 || selectedMainTab === 1 && groupName == "-all") && (
-                            <ProceduresCatalogTable
-                                selectedMainTab={selectedMainTab}
-                                selectedTab={selectedTab}
-                                handleTabChange={handleTabChange}
-                                page={page}
-                                rowsPerPage={rowsPerPage}
-                                loading={loading}
-                                endpoints={tableRoutes}
-                                groups={groups}
-                                groupName={groupName}
-                                selected={selected}
-                                handleSelectAllClick={handleSelectAllClick}
-                                handleClick={handleClick}
-                                handleChangeRowsPerPage={handleChangeRowsPerPage}
-                                handleChangePage={handleChangePage}
-                                isAdding={isAdding}
-                                setIsAdding={setIsAdding}
-                                newEndpoint={newEndpoint}
-                                isUpdatingGroup={isUpdatingGroup}
-                                setNewEndpoint={setNewEndpoint}
-                                handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
-                                handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
-                                handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
-                                handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
-                            />)}
-                    </Container>
+                                <ProceduresCatalogTable
+                                    selectedMainTab={selectedMainTab}
+                                    selectedTab={selectedTab}
+                                    handleTabChange={handleTabChange}
+                                    page={page}
+                                    rowsPerPage={rowsPerPage}
+                                    loading={loading}
+                                    endpoints={tableRoutes}
+                                    groups={groups}
+                                    groupName={groupName}
+                                    selected={selected}
+                                    handleSelectAllClick={handleSelectAllClick}
+                                    handleClick={handleClick}
+                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                    handleChangePage={handleChangePage}
+                                    isAdding={isAdding}
+                                    setIsAdding={setIsAdding}
+                                    newEndpoint={newEndpoint}
+                                    isUpdatingGroup={isUpdatingGroup}
+                                    setNewEndpoint={setNewEndpoint}
+                                    handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                                    handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                                    handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                                    handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
+                                />
+                            )}
+                        {( selectedMainTab === 2 && groupName == "-all") && (
+                            <div>
+                                <Box width="50%" sx={{ mt: 4, display: 'flex' }}>
+                                    <Card >
+                                        <CardContent>
+                                            <Stack direction={"row"} spacing={2} alignItems="center">
+                                                <Typography variant="body2" color="text.secondary" sx={{mt: 4}}>
+                                                    Toggle on to re-enable the tutorial.
+                                                </Typography>
+                                                <Switch
+                                                    sx={{ml: 2}}
+                                                    checked={runTutorial}
+                                                    onChange={onToggleTutorialSetting}
+                                                    inputProps={{ 'aria-label': 'controlled' }}
+                                                />
+                                            </Stack>
+                                        </CardContent>
+                                    </Card>
+                                </Box>
+                            </div>
+                        )}
+                            </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>
             </Box>
@@ -827,6 +1017,6 @@ function LoadBalancingDashboardContent(props: any) {
     );
 }
 
-export default function LoadBalancingDashboard() {
-    return <LoadBalancingDashboardContent />;
+export default function LoadBalancingDashboard(props: any) {
+    return <LoadBalancingDashboardContent/>;
 }

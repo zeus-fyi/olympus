@@ -51,7 +51,7 @@ func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
 	s.Require().Equal("https://google1.com", qns.ProvisionedQuickNodeServicesReferrers[0].Referer)
 	s.Require().Equal("0x01", qns.ProvisionedQuickNodeServicesContractAddresses[0].ContractAddress)
 
-	ps.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{
+	ps.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuickNodeServicesReferersSlice{
 		{
 			Referer: "https://google2.com",
 		},
@@ -124,7 +124,7 @@ func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 	s.Require().Equal(eId, qnsLookup.EndpointMap[eId].EndpointID)
 
 	ps.Plan = "standard"
-	ps.ProvisionedQuickNodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice{
+	ps.ProvisionedQuickNodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddressesSlice{
 		{
 			ContractAddress: "0x01",
 		},
@@ -142,12 +142,12 @@ func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 	s.Require().Equal("0x01", qnsLookup.EndpointMap[eId].ProvisionedQuickNodeServicesContractAddresses[0].ContractAddress)
 
 	ps.Plan = "performance"
-	ps.ProvisionedQuickNodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice{
+	ps.ProvisionedQuickNodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddressesSlice{
 		{
 			ContractAddress: "0x02",
 		},
 	}
-	ps.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{
+	ps.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuickNodeServicesReferersSlice{
 		{
 			Referer: "https://zeus.fyi",
 		},
@@ -179,7 +179,7 @@ func (s *QuickNodeProvisioningTestSuite) TestDeactiveEndpointService() {
 
 	eid2 := uuid.New().String()
 	ps2 := createQnService(qid, eid2, "lite")
-	ps2.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{
+	ps2.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuickNodeServicesReferersSlice{
 		{
 			Referer: "https://zeus2.fyi",
 		},
@@ -212,12 +212,12 @@ func (s *QuickNodeProvisioningTestSuite) TestDeprovisionedService() {
 	eid1 := uuid.New().String()
 	ps := createQnService(qid, eid1, "performance")
 	ps.Plan = "performance"
-	ps.ProvisionedQuickNodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice{
+	ps.ProvisionedQuickNodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddressesSlice{
 		{
 			ContractAddress: "0x000000001",
 		},
 	}
-	ps.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{
+	ps.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuickNodeServicesReferersSlice{
 		{
 			Referer: "https://zeus2.fyi",
 		},
@@ -225,7 +225,7 @@ func (s *QuickNodeProvisioningTestSuite) TestDeprovisionedService() {
 	err := InsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
 	ps2 := createQnService(qid, uuid.New().String(), "performance")
-	ps2.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{
+	ps2.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuickNodeServicesReferersSlice{
 		{
 			Referer: "https://zeus2.fyi",
 		},
@@ -285,7 +285,7 @@ func createQnService(qnId, eId, plan string) QuickNodeService {
 
 func createQnServiceContractAddr(qs *QuickNodeService, ca string) *QuickNodeService {
 	if qs.ProvisionedQuickNodeServicesContractAddresses == nil {
-		qs.ProvisionedQuickNodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice{}
+		qs.ProvisionedQuickNodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddressesSlice{}
 	}
 	qs.ProvisionedQuickNodeServicesContractAddresses = append(qs.ProvisionedQuickNodeServicesContractAddresses,
 		hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses{
@@ -297,7 +297,7 @@ func createQnServiceContractAddr(qs *QuickNodeService, ca string) *QuickNodeServ
 
 func createQnServiceReferer(qs *QuickNodeService, re string) *QuickNodeService {
 	if qs.ProvisionedQuickNodeServicesReferrers == nil {
-		qs.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{}
+		qs.ProvisionedQuickNodeServicesReferrers = hestia_autogen_bases.ProvisionedQuickNodeServicesReferersSlice{}
 	}
 	qs.ProvisionedQuickNodeServicesReferrers = append(qs.ProvisionedQuickNodeServicesReferrers,
 		hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers{

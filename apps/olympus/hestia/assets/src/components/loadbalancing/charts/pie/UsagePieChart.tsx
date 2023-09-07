@@ -72,7 +72,7 @@ export function PlanTableCountUsagePieChart(props: any) {
         <Card>
             <CardContent>
                 <Typography variant="h5" gutterBottom>
-                   Table, Endpoint Usage
+                   Table & Route Usage
                 </Typography>
                 <PieChart width={400} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60} fill="#8884d8" />

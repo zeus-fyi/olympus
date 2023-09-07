@@ -143,8 +143,8 @@ class LoadBalancingApiGateway {
             return
         }
     }
-    async updateRoutingTableScaleFactor(payload: any): Promise<any>  {
-        const url = `/v1/iris/routes/group/${payload.groupName}/scale/update`;
+    async updateTutorialSetting(): Promise<any>  {
+        const url = `/v1/quicknode/tutorial`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -153,7 +153,7 @@ class LoadBalancingApiGateway {
                 },
                 withCredentials: true,
             }
-            return await hestiaApi.put(url, payload, config)
+            return await hestiaApi.put(url, {}, config)
         } catch (exc) {
             console.error('error sending put customer endpoints request');
             console.error(exc);

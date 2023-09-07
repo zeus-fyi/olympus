@@ -8,7 +8,6 @@ export const ethMaxBlockAggReduceExample = `{
     "id": 1
 }`
 
-
 export const nearMaxBlockAggReduceExample = `{
     "jsonrpc": "2.0",
     "procedure": "near_maxBlockAggReduce",

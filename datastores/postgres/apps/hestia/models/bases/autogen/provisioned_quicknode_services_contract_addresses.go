@@ -3,16 +3,16 @@ package hestia_autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ProvisionedQuickNodeServicesContractAddresses struct {
-	QuicknodeID     string `db:"quicknode_id" json:"quicknodeID"`
+	QuickNodeID     string `db:"quicknode_id" json:"quicknodeID"`
 	ContractAddress string `db:"contract_address" json:"contractAddress"`
 }
-type ProvisionedQuicknodeServicesContractAddressesSlice []ProvisionedQuickNodeServicesContractAddresses
+type ProvisionedQuickNodeServicesContractAddressesSlice []ProvisionedQuickNodeServicesContractAddresses
 
 func (p *ProvisionedQuickNodeServicesContractAddresses) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{p.QuicknodeID, p.ContractAddress}
+		pgValues = apps.RowValues{p.QuickNodeID, p.ContractAddress}
 	}
 	return pgValues
 }

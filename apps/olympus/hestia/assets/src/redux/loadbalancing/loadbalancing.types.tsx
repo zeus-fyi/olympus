@@ -27,6 +27,7 @@ export type UsageMeter = {
 }
 
 export type TableUsage = {
+    tutorialOn: true,
     endpointCount: number;
     tableCount: number;
     monthlyBudgetTableCount: number;

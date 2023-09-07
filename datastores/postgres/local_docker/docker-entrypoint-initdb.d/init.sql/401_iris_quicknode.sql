@@ -2,8 +2,10 @@ CREATE TABLE "public"."quicknode_marketplace_customer" (
     quicknode_id text NOT NULL,
     plan text NOT NULL CHECK (plan IN ('test', 'free', 'lite', 'standard', 'performance')),
     is_test bool NOT NULL DEFAULT false,
+    tutorial_on bool NOT NULL DEFAULT true,
     PRIMARY KEY (quicknode_id)
 );
+
 ALTER TABLE "public"."quicknode_marketplace_customer" ADD CONSTRAINT "mp_org_qid_uniq2" UNIQUE ("quicknode_id", "plan");
 CREATE INDEX quicknode_marketplace_customer_test_users ON quicknode_marketplace_customer ("is_test");
 

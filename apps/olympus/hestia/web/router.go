@@ -31,7 +31,10 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	return e
 }
 
-const QuickNodeMarketPlace = "quickNodeMarketPlace"
+const (
+	QuickNodeMarketPlace        = "quickNodeMarketPlace"
+	IrisQuickNodeTutorialToggle = "/quicknode/tutorial"
+)
 
 func InitV1Routes(e *echo.Echo) {
 	eg := e.Group("/v1")
@@ -58,6 +61,7 @@ func InitV1Routes(e *echo.Echo) {
 			return len(services) > 0, nil
 		},
 	}))
+	eg.PUT(IrisQuickNodeTutorialToggle, hestia_quicknode_dashboard.TutorialToggleRequestHandler)
 	eg.GET("/auth/status", hestia_access_keygen.AccessRequestHandler)
 	eg.GET("/api/key/create", hestia_access_keygen.AccessKeyGenRequestHandler)
 	eg.GET("/resources", hestia_resources.ResourceListRequestHandler)

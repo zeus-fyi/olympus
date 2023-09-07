@@ -3,16 +3,16 @@ package hestia_autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ProvisionedQuickNodeServicesReferrers struct {
-	QuicknodeID string `db:"quicknode_id" json:"quicknodeID"`
+	QuickNodeID string `db:"quicknode_id" json:"quicknodeID"`
 	Referer     string `db:"referer" json:"referer"`
 }
-type ProvisionedQuicknodeServicesReferersSlice []ProvisionedQuickNodeServicesReferrers
+type ProvisionedQuickNodeServicesReferersSlice []ProvisionedQuickNodeServicesReferrers
 
 func (p *ProvisionedQuickNodeServicesReferrers) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{p.QuicknodeID, p.Referer}
+		pgValues = apps.RowValues{p.QuickNodeID, p.Referer}
 	}
 	return pgValues
 }

@@ -8,8 +8,6 @@ export interface State {
 
 export default function JoyrideTutorialBegin(props: any) {
     const { run, steps, handleJoyrideCallback } = props;
-
-
     return (
             <Joyride
                 callback={handleJoyrideCallback}

@@ -34,7 +34,7 @@ import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
-import {setEndpoints, setGroupEndpoints, setTableMetrics} from "../../redux/loadbalancing/loadbalancing.reducer";
+import {setEndpoints, setGroupEndpoints, setTableMetrics,} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
 import {PlanUsagePieCharts} from "./charts/pie/UsagePieChart";
 import {MetricsChart, TableMetricsCharts} from "./charts/radar/MetricsCharts";
@@ -516,9 +516,14 @@ function LoadBalancingDashboardContent(props: any) {
         }
     };
 
-    const onToggleTutorialSetting = (event: any) => {
-
-    };
+    const onToggleTutorialSetting = async () => {
+        try {
+            const response = await loadBalancingApiGateway.updateTutorialSetting();
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+        }
+    }
     if (loading) {
         return <div></div>
     }
@@ -979,6 +984,7 @@ function LoadBalancingDashboardContent(props: any) {
 }
 
 export default function LoadBalancingDashboard(props: any) {
-    const runTutorial = useSelector((state: RootState) => state.loadBalancing.planUsageDetails.runTutorial);
-    return <LoadBalancingDashboardContent runTutorial={runTutorial}/>;
+    const runT = useSelector((state: RootState) => state.loadBalancing.planUsageDetails.runTutorial);
+    const [runTutorial, setRunTutorial] = React.useState(runT);
+    return <LoadBalancingDashboardContent runTutorial={runTutorial} setRunTutorial={setRunTutorial}/>;
 }

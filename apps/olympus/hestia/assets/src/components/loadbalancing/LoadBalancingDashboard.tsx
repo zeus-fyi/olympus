@@ -17,7 +17,19 @@ import Button from "@mui/material/Button";
 import {useNavigate, useParams} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Slider, Stack, Tab, Tabs} from "@mui/material";
+import {
+    Card,
+    CardContent,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    Slider,
+    Stack,
+    Switch,
+    Tab,
+    Tabs
+} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {RootState} from "../../redux/store";
@@ -427,7 +439,7 @@ function LoadBalancingDashboardContent(props: any) {
                 title: 'All Procedures',
             },
             {
-                content: 'This view your generated routing table.',
+                content: 'Select a routing table to toggle the table view.',
                 placement: 'bottom',
                 target: '.onboarding-card-highlight-qn-routing-table',
                 title: 'QuickNode Generated Routing Table',
@@ -485,10 +497,13 @@ function LoadBalancingDashboardContent(props: any) {
                     setSelectedMainTab(0);
                     setSelectedTab(tabCount+1);
                     break;
-                case 5:
+                case 6:
                     setSelectedTab(tabCount);
                     break;
-                case 6:
+                case 7:
+                    setSelectedTab(tabCount-1);
+                    break;
+                case 8:
                     setSelectedTab(tabCount-1);
                     break;
                 default:
@@ -501,6 +516,9 @@ function LoadBalancingDashboardContent(props: any) {
         }
     };
 
+    const onToggleTutorialSetting = (event: any) => {
+
+    };
     if (loading) {
         return <div></div>
     }
@@ -697,6 +715,7 @@ function LoadBalancingDashboardContent(props: any) {
                                 <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
                                     <Tab className="onboarding-card-highlight-all-routes" label="Routes"  />
                                     <Tab className="onboarding-card-highlight-all-procedures" label="Procedures" />
+                                    <Tab label="Settings" />
                                 </Tabs>
                             </Box>
                         )}
@@ -930,7 +949,28 @@ function LoadBalancingDashboardContent(props: any) {
                                     handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
                                 />
                             )}
-                    </Container>
+                        {( selectedMainTab === 2 && groupName == "-all") && (
+                            <div>
+                                <Box width="50%" sx={{ mt: 4, display: 'flex' }}>
+                                    <Card >
+                                        <CardContent>
+                                            <Stack direction={"row"} spacing={2} alignItems="center">
+                                                <Typography variant="body2" color="text.secondary" sx={{mt: 4}}>
+                                                    Toggle on to re-enable the tutorial.
+                                                </Typography>
+                                                <Switch
+                                                    sx={{ml: 2}}
+                                                    checked={runTutorial}
+                                                    onChange={onToggleTutorialSetting}
+                                                    inputProps={{ 'aria-label': 'controlled' }}
+                                                />
+                                            </Stack>
+                                        </CardContent>
+                                    </Card>
+                                </Box>
+                            </div>
+                        )}
+                            </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>
             </Box>

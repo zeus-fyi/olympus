@@ -31,6 +31,7 @@ import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
 import {ProceduresCatalogTable} from "./tables/ProceduresCatalogTable";
 import {IrisApiGateway} from "../../gateway/iris";
+import BasicDemo from "./joyride/Joyride";
 
 const drawerWidth: number = 240;
 
@@ -564,6 +565,7 @@ function LoadBalancingDashboardContent(props: any) {
                             )}
                         </Stack>
                     </Container>
+                    <BasicDemo  />
                     {groupName !== "-all" && groupName !== "unused" && (
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Box sx={{ mb: 2 }}>
@@ -575,7 +577,7 @@ function LoadBalancingDashboardContent(props: any) {
                         {groupName !== "-all" && groupName !== "unused" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs">
-                                    <Tab label="Endpoints"  />
+                                    <Tab label="Routes"  />
                                     <Tab label="Metrics"  />
                                     <Tab label="Priority Scores" />
                                     <Tab label="Procedures" />
@@ -585,8 +587,8 @@ function LoadBalancingDashboardContent(props: any) {
                         {groupName === "-all" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
-                                    <Tab label="Endpoints"  />
-                                    <Tab label="Procedures" />
+                                    <Tab className="onboarding-card-highlight-all-routes" label="Routes"  />
+                                    <Tab className="onboarding-card-highlight-all-procedures" label="Procedures" />
                                 </Tabs>
                             </Box>
                         )}

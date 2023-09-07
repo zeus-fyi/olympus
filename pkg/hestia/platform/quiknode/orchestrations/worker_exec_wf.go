@@ -27,6 +27,23 @@ func (h *HestiaQuickNodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, 
 	return err
 }
 
+func (h *HestiaQuickNodeWorker) ExecuteDeleteSessionCacheWorkflowWorkflow(ctx context.Context, sessionID string) error {
+	tc := h.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
+		TaskQueue: h.TaskQueueName,
+	}
+	txWf := NewHestiaQuickNodeWorkflow()
+	wf := txWf.DeleteSessionCacheWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, sessionID)
+	if err != nil {
+		log.Err(err).Msg("ExecuteQnProvisionWorkflow")
+		return err
+	}
+	return err
+}
+
 func (h *HestiaQuickNodeWorker) ExecuteQnUpdateProvisionWorkflow(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()

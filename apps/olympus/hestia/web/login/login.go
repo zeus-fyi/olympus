@@ -13,6 +13,7 @@ import (
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	iris_service_plans "github.com/zeus-fyi/olympus/iris/api/v1/service_plans"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
+	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -57,10 +58,17 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 	sessionKey.PublicKeyVerified = true
 	sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
 	sessionKey.PublicKeyName = "sessionID"
-	err = sessionKey.InsertUserSessionKey(ctx)
+	oldKey, err := sessionKey.InsertUserSessionKey(ctx)
 	if err != nil {
 		log.Err(err).Interface("email", l.Email).Msg("InsertUserSessionKey error")
 		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if oldKey != "" {
+		err = quicknode_orchestrations.HestiaQnWorker.ExecuteDeleteSessionCacheWorkflowWorkflow(ctx, oldKey)
+		if err != nil {
+			log.Err(err).Msg("ExecuteDeleteSessionCacheWorkflowWorkflow error")
+			err = nil
+		}
 	}
 	resp := LoginResponse{
 		UserID:    key.UserID,

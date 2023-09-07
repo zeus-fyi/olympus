@@ -2,13 +2,11 @@ package v1internal_iris
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	util "github.com/wealdtech/go-eth2-util"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
@@ -144,6 +142,27 @@ func InternalDeleteQnOrgAuthCacheHandler(c echo.Context) error {
 	}
 	return request.DeleteQnOrgAuthCache(c)
 }
+func InternalDeleteSessionAuthCacheHandler(c echo.Context) error {
+	request := new(DeleteOrgRoutingTableRequest)
+	if err := c.Bind(&request); err != nil {
+		log.Err(err)
+		return err
+	}
+	return request.DeleteSessionIDAuthCache(c)
+}
+
+func (p *DeleteOrgRoutingTableRequest) DeleteSessionIDAuthCache(c echo.Context) error {
+	sessionID := c.Param("sessionID")
+	if len(sessionID) == 0 {
+		log.Warn().Msg("DeleteQnOrgAuthCache: orgID is empty")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	err := iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), sessionID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, "ok")
+}
 
 func (p *DeleteOrgRoutingTableRequest) DeleteQnOrgAuthCache(c echo.Context) error {
 	qnID := c.Param("qnID")
@@ -158,13 +177,7 @@ func (p *DeleteOrgRoutingTableRequest) DeleteQnOrgAuthCache(c echo.Context) erro
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	for k, _ := range keysFound {
-		tokenDel := fmt.Sprintf("{%x}.plan", util.Keccak256([]byte(k)))
-		err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, nil)
-		}
-		tokenDel = fmt.Sprintf("{%x}", util.Keccak256([]byte(k)))
-		err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
+		err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), k)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, nil)
 		}

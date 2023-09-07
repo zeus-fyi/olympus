@@ -108,6 +108,18 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID s
 	return nil
 }
 
+func (h *HestiaQuickNodeWorkflow) DeleteSessionCacheWorkflow(ctx workflow.Context, sessionID string) error {
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: defaultTimeout,
+	}
+	aCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(aCtx, h.DeleteSessionAuthCache, sessionID).Get(aCtx, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{

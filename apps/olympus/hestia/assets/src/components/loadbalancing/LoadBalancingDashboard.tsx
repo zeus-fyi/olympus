@@ -287,6 +287,8 @@ function LoadBalancingDashboardContent(props: any) {
 
         if (name === "-all" || name === "unused") {
             setSelectedTab(0);
+        } else {
+            setSelectedMainTab(0)
         }
         setTableRoutes(name === "-all" ? endpoints : groups[name]);
     };
@@ -588,7 +590,7 @@ function LoadBalancingDashboardContent(props: any) {
                                 </Tabs>
                             </Box>
                         )}
-                        { (selectedTab === 0 || selectedMainTab === 0) && (
+                        { (selectedTab === 0 && selectedMainTab === 0) && (
                         <LoadBalancingRoutesTable
                             selectedMainTab={selectedMainTab}
                             selectedTab={selectedTab}

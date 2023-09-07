@@ -9,7 +9,8 @@ export interface State {
 
 export default function JoyrideTutorialBegin(props: any) {
     const { runTutorial, setSelectedMainTab, handleChangeGroup, setSelectedTab,
-        setTableRoutes, groups, handleJoyrideCallback } = props;
+        setTableRoutes, groups, groupName, handleJoyrideCallback } = props;
+
     const [{ run, steps }, setState] = useSetState<State>({
         run: runTutorial,
         steps: [
@@ -32,14 +33,31 @@ export default function JoyrideTutorialBegin(props: any) {
                 title: 'All Procedures',
             },
             {
-                content: 'This view your generated routing table.',
+                content: 'This view shows your generated routing table.',
                 placement: 'bottom',
-                target: '.onboarding-card-highlight-qn-routing-table', // css class we'll add to the Card for targeting
+                target: '.onboarding-card-highlight-qn-routing-table',
                 title: 'QuickNode Generated Routing Table',
+            },
+            {
+                content: 'When you\'re on the table view, you\'ll be able to submit a sample request with the procedure. Send one now, so you can see the metrics chart!',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-procedures',
+                title: 'Procedures',
+            },
+            {
+                content: 'This view shows your priority score routes table & scale factors. You can adjust the scale factors to change the priority scoring weights if desired.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-priority-scores',
+                title: 'Priority Scores',
+            },
+            {
+                content: 'This view shows your route latency metrics.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-metrics',
+                title: 'Metrics',
             },
         ],
     });
-
 
     return (
             <Joyride

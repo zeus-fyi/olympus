@@ -53,18 +53,18 @@ const loadBalancingSlice = createSlice({
         setGroupEndpoints: (state, action: PayloadAction<Groups>) => {
             state.groups = action.payload;
         },
-        setUserPlanDetails: (state, action: PayloadAction<PlanUsageDetails>) => {
-            state.planUsageDetails = action.payload;
-        },
-        setTableMetrics: (state, action: PayloadAction<TableMetricsSummary>) => {
-            state.tableMetrics = action.payload;
-        },
         setProceduresCatalog: (state, action: PayloadAction<IrisRoutingProcedure[]>) => {
             state.proceduresCatalog = action.payload;
         },
         setProceduresOnTable: (state, action: PayloadAction<IrisRoutingProcedure[]>) => {
             state.proceduresOnTable = action.payload;
-        }
+        },
+        setTableMetrics: (state, action: PayloadAction<TableMetricsSummary>) => {
+            state.tableMetrics = action.payload;
+        },
+        setUserPlanDetails: (state, action: PayloadAction<PlanUsageDetails>) => {
+            state.planUsageDetails = action.payload;
+        },
     }
 });
 

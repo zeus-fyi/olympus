@@ -125,6 +125,7 @@ function LoadBalancingDashboardContent(props: any) {
     const [sliderErrorValue, setSliderErrorValue] = useState(tableMetrics?.scaleFactors?.errorScaleFactor ?? 3.0);
     const [sliderDecayValue, setSliderDecayValue] = useState(tableMetrics?.scaleFactors?.decayScaleFactor ?? 0.95);
     const runTutorial = true
+    const [showDetailsRow, setShowDetailsRow] = React.useState(-1);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -146,6 +147,9 @@ function LoadBalancingDashboardContent(props: any) {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (runTutorial){
+                return
+            }
             try {
                 setLoading(true); // Set loading to true
                 setLoadingMetrics(true); // Set loading to true
@@ -400,9 +404,11 @@ function LoadBalancingDashboardContent(props: any) {
     const onChangeDecaySlider = (event: any, newValue: number) => {
         setSliderDecayValue(newValue);
     };
+
     const handleSetDefaultDecay= () => {
         setSliderDecayValue(0.95); // or some other default value
     };
+
     const [{ run, steps }, setState] = useSetState<State>({
         run: runTutorial,
         steps: [
@@ -421,14 +427,38 @@ function LoadBalancingDashboardContent(props: any) {
             {
                 content: 'This view shows all registered routing procedures you have access to.',
                 placement: 'bottom',
-                target: '.onboarding-card-highlight-all-procedures', // css class we'll add to the Card for targeting
+                target: '.onboarding-card-highlight-all-procedures',
                 title: 'All Procedures',
             },
             {
                 content: 'This view your generated routing table.',
                 placement: 'bottom',
-                target: '.onboarding-card-highlight-qn-routing-table', // css class we'll add to the Card for targeting
+                target: '.onboarding-card-highlight-qn-routing-table',
                 title: 'QuickNode Generated Routing Table',
+            },
+            {
+                content: 'This view shows your available procedures.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-procedures',
+                title: 'Procedures',
+            },
+            {
+                content: 'See example procedures in action.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-procedures',
+                title: 'Procedure Demo',
+            },
+            {
+                content: 'This view shows your priority score routes table & scale factors.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-priority-scores',
+                title: 'Priority Scores',
+            },
+            {
+                content: 'This view shows your route metrics.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-metrics',
+                title: 'Metrics',
             },
         ],
     });
@@ -437,33 +467,52 @@ function LoadBalancingDashboardContent(props: any) {
         const { status, index } = data;
         const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-        if (status === STATUS.WAITING && index === 1) {
-            setSelectedMainTab(0);
-            setSelectedTab(0);
-            // Just before the last step starts, we call the handleChangeGroup function
-            //handleChangeGroup('ethereum-mainnet');
+        if (status === STATUS.RUNNING) {
+            switch (index) {
+                case 0:
+                    setSelectedMainTab(0);
+                    setSelectedTab(0);
+                    const gnAll = '-all'
+                    setGroupName((gnAll));
+                    setTableRoutes(endpoints);
+                    break;
+                case 2:
+                    setSelectedMainTab(1);
+                    break;
+                case 3:
+                    setSelectedMainTab(0);
+                    setSelectedTab(0);
+                    const gn = 'ethereum-mainnet'
+                    setGroupName((gn));
+                    setTableRoutes(groups[gn]);
+                    break;
+                case 4:
+                    setSelectedMainTab(0);
+                    setSelectedTab(tabCount+1);
+                    break;
+                case 5:
+                    setSelectedTab(tabCount);
+                    break;
+                case 6:
+                    setSelectedTab(tabCount-1);
+                    break;
+                default:
+                    break;
+            }
         }
 
-        if (status === STATUS.RUNNING && index === 1) {
-            setSelectedMainTab(1);
-            // Just before the last step starts, we call the handleChangeGroup function
-            //handleChangeGroup('ethereum-mainnet');
-        }
-        if (status === STATUS.RUNNING && index === 3) {
-            setSelectedMainTab(0);
-            setSelectedTab(0);
-            handleChangeGroup('ethereum-mainnet');
-        }
         if (finishedStatuses.includes(status)) {
             setState({ run: false });
         }
     };
+
     if (loading) {
         return <div></div>
     }
     if (loadingMetrics) {
         return <div></div>
     }
+
     return (
         <ThemeProvider theme={mdTheme}>
             <JoyrideTutorialBegin handleChangeGroup={handleChangeGroup}
@@ -644,9 +693,9 @@ function LoadBalancingDashboardContent(props: any) {
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs">
                                     <Tab label="Routes"  />
-                                    <Tab label="Metrics"  />
-                                    <Tab label="Priority Scores" />
-                                    <Tab label="Procedures" />
+                                    <Tab label="Metrics" className="onboarding-card-highlight-metrics" />
+                                    <Tab label="Priority Scores" className="onboarding-card-highlight-priority-scores"/>
+                                    <Tab className="onboarding-card-highlight-procedures" label="Procedures" />
                                 </Tabs>
                             </Box>
                         )}
@@ -862,31 +911,32 @@ function LoadBalancingDashboardContent(props: any) {
                                 />
                             </div>)}
                         {( selectedTab === tabCount +1 || selectedMainTab === 1 && groupName == "-all") && (
-                            <ProceduresCatalogTable
-                                selectedMainTab={selectedMainTab}
-                                selectedTab={selectedTab}
-                                handleTabChange={handleTabChange}
-                                page={page}
-                                rowsPerPage={rowsPerPage}
-                                loading={loading}
-                                endpoints={tableRoutes}
-                                groups={groups}
-                                groupName={groupName}
-                                selected={selected}
-                                handleSelectAllClick={handleSelectAllClick}
-                                handleClick={handleClick}
-                                handleChangeRowsPerPage={handleChangeRowsPerPage}
-                                handleChangePage={handleChangePage}
-                                isAdding={isAdding}
-                                setIsAdding={setIsAdding}
-                                newEndpoint={newEndpoint}
-                                isUpdatingGroup={isUpdatingGroup}
-                                setNewEndpoint={setNewEndpoint}
-                                handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
-                                handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
-                                handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
-                                handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
-                            />)}
+                                <ProceduresCatalogTable
+                                    selectedMainTab={selectedMainTab}
+                                    selectedTab={selectedTab}
+                                    handleTabChange={handleTabChange}
+                                    page={page}
+                                    rowsPerPage={rowsPerPage}
+                                    loading={loading}
+                                    endpoints={tableRoutes}
+                                    groups={groups}
+                                    groupName={groupName}
+                                    selected={selected}
+                                    handleSelectAllClick={handleSelectAllClick}
+                                    handleClick={handleClick}
+                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                    handleChangePage={handleChangePage}
+                                    isAdding={isAdding}
+                                    setIsAdding={setIsAdding}
+                                    newEndpoint={newEndpoint}
+                                    isUpdatingGroup={isUpdatingGroup}
+                                    setNewEndpoint={setNewEndpoint}
+                                    handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                                    handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                                    handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                                    handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
+                                />
+                            )}
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

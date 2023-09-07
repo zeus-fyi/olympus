@@ -30,7 +30,7 @@ func NewHestiaQuickNodeWorkflow() HestiaQuickNodeWorkflow {
 }
 
 func (h *HestiaQuickNodeWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{h.ProvisionWorkflow, h.UpdateProvisionWorkflow, h.DeprovisionWorkflow, h.DeactivateWorkflow}
+	return []interface{}{h.ProvisionWorkflow, h.UpdateProvisionWorkflow, h.DeprovisionWorkflow, h.DeactivateWorkflow, h.DeleteSessionCacheWorkflow}
 }
 
 func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest, user hestia_quicknode.QuickNodeUserInfo) error {

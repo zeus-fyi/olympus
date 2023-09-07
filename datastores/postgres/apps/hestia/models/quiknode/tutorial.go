@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func ToggleTutorialSetting(ctx context.Context, qnID string) (bool, error) {
+func ToggleTutorialSetting(ctx context.Context, orgID int) (bool, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_tutorial AS (
 					SELECT public_key AS quicknode_id
@@ -23,7 +23,7 @@ func ToggleTutorialSetting(ctx context.Context, qnID string) (bool, error) {
 				  RETURNING tutorial_on`
 
 	var tutorialOn bool
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, qnID).Scan(&tutorialOn)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&tutorialOn)
 	if err != nil {
 		return tutorialOn, misc.ReturnIfErr(err, q.LogHeader("InsertProvisionedQuickNodeService"))
 	}

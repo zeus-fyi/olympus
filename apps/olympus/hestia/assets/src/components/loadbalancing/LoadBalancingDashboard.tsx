@@ -1005,7 +1005,7 @@ function LoadBalancingDashboardContent(props: any) {
 }
 
 export default function LoadBalancingDashboard(props: any) {
-    const runT = useSelector((state: RootState) => state.loadBalancing.planUsageDetails.runTutorial);
+    const runT = useSelector((state: RootState) => state.loadBalancing.planUsageDetails.tableUsage.tutorialOn);
     const [runTutorial, setRunTutorial] = React.useState(runT);
     return <LoadBalancingDashboardContent runTutorial={runTutorial} setRunTutorial={setRunTutorial}/>;
 }

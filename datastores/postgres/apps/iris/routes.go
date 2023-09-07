@@ -441,13 +441,14 @@ func SelectOrgRoutesByOrgAndGroupName(ctx context.Context, orgID int, groupName 
 	return og, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
 }
 
-type TableUsage struct {
-	EndpointCount           int `json:"endpointCount"`
-	TableCount              int `json:"tableCount"`
-	MonthlyBudgetTableCount int `json:"monthlyBudgetTableCount,omitempty"`
+type TableUsageAndUserSettings struct {
+	TutorialOn              bool `json:"tutorialOn,omitempty"`
+	EndpointCount           int  `json:"endpointCount"`
+	TableCount              int  `json:"tableCount"`
+	MonthlyBudgetTableCount int  `json:"monthlyBudgetTableCount,omitempty"`
 }
 
-func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsage, error) {
+func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsageAndUserSettings, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
 		SELECT COALESCE(COUNT(*), 0) as endpoint_count, 
@@ -455,22 +456,28 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
        		   (SELECT COUNT(*)
        		    FROM org_route_groups WHERE org_id = $1  AND auto_generated = false
        		    AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id))
-       		    ,0) as table_count
+       		    ,0) as table_count, (SELECT tutorial_on
+									FROM orgs o 
+									INNER JOIN org_users ou ON ou.org_id = o.org_id
+									INNER JOIN users_keys usk ON usk.user_id = ou.user_id
+									INNER JOIN quicknode_marketplace_customer qm ON qm.quicknode_id = usk.public_key
+									WHERE o.org_id = $1 AND public_key_name = 'quickNodeMarketPlace' AND public_key_verified = true) AS tutorial_on
 		FROM org_routes 
 		WHERE org_id = $1
 	`
 
 	endpointCount, groupTablesCount := 0, 0
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&endpointCount, &groupTablesCount)
+	var tutorialOn bool
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&endpointCount, &groupTablesCount, &tutorialOn)
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("OrgEndpointsAndGroupTablesCount has no entries")
-		return &TableUsage{0, 0, 25}, nil
+		return &TableUsageAndUserSettings{false, 0, 0, 25}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return &TableUsage{endpointCount, groupTablesCount, 25}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
+	return &TableUsageAndUserSettings{tutorialOn, endpointCount, groupTablesCount, 25}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
 }
 
 /*
@@ -487,14 +494,14 @@ const (
 	PerformanceGroupTables = 250
 )
 
-func (t *TableUsage) CheckEndpointLimits() error {
+func (t *TableUsageAndUserSettings) CheckEndpointLimits() error {
 	if t.EndpointCount > 1000 {
 		return errors.New("exceeds plan endpoints")
 	}
 	return nil
 }
 
-func (t *TableUsage) SetMaxTableCountByPlan(plan string) error {
+func (t *TableUsageAndUserSettings) SetMaxTableCountByPlan(plan string) error {
 	switch strings.ToLower(plan) {
 	case "performance":
 		// check 100k ZU/s
@@ -525,7 +532,7 @@ func (t *TableUsage) SetMaxTableCountByPlan(plan string) error {
 	return nil
 }
 
-func (t *TableUsage) CheckPlanLimits(plan string) error {
+func (t *TableUsageAndUserSettings) CheckPlanLimits(plan string) error {
 	err := t.CheckEndpointLimits()
 	if err != nil {
 		log.Err(err).Msg("CheckPlanLimits")

@@ -34,9 +34,9 @@ type PlanUsageDetailsRequest struct {
 }
 
 type PlanUsageDetailsResponse struct {
-	PlanName     string                        `json:"planName"`
-	ComputeUsage *iris_usage_meters.UsageMeter `json:"computeUsage,omitempty"`
-	TableUsage   iris_models.TableUsage        `json:"tableUsage"`
+	PlanName     string                                `json:"planName"`
+	ComputeUsage *iris_usage_meters.UsageMeter         `json:"computeUsage,omitempty"`
+	TableUsage   iris_models.TableUsageAndUserSettings `json:"tableUsage"`
 }
 
 func PlanUsageDetailsRequestHandler(c echo.Context) error {

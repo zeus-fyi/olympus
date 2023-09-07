@@ -7,7 +7,6 @@ const initialState: LoadBalancingState = {
     groups: {},
     planUsageDetails: {
         planName: '',
-        runTutorial: true,
         computeUsage: {
             rateLimit: 0,
             currentRate: 0,
@@ -15,6 +14,7 @@ const initialState: LoadBalancingState = {
             monthlyBudgetZU: 0
         },
         tableUsage: {
+            tutorialOn: true,
             monthlyBudgetTableCount: 0,
             endpointCount: 0,
             tableCount: 0

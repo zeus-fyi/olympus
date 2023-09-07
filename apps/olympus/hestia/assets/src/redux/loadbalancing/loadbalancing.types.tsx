@@ -15,7 +15,6 @@ export interface Groups {
 
 export type PlanUsageDetails = {
     planName: string;
-    runTutorial: boolean;
     computeUsage?: UsageMeter | null;
     tableUsage: TableUsage;
 }
@@ -28,6 +27,7 @@ export type UsageMeter = {
 }
 
 export type TableUsage = {
+    tutorialOn: true,
     endpointCount: number;
     tableCount: number;
     monthlyBudgetTableCount: number;

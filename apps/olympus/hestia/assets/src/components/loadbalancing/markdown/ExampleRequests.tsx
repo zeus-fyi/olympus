@@ -1,4 +1,31 @@
+import {Groups} from "../../../redux/loadbalancing/loadbalancing.types";
 
+
+export function findKeyWithPrefix(groups: Groups): string  {
+    let fallbackKey = ''
+
+    for (const key in groups) {
+        switch (true) {
+            case key.startsWith('ethereum') || key.startsWith('celo') || key.startsWith('polygon')
+            || key.startsWith('zk') || key.startsWith('base') || key.startsWith('opt') || key.startsWith('arb') || key.startsWith('bsc') || key.startsWith('bnb'):
+                if (key.startsWith(key)) return key;
+                break;
+            case key.startsWith('btc'):
+                if (key.startsWith(key)) return key;
+                break;
+            case key.startsWith('near'):
+                if (key.startsWith(key)) return key;
+                break;
+            case key.startsWith('avalanche'):
+                if (key.startsWith(key)) return key;
+                break;
+        }
+        if (key !== '-all' && key !== 'unused') {
+            fallbackKey = key;
+        }
+    }
+    return fallbackKey;
+}
 
 export const ethMaxBlockAggReduceExample = `{
     "jsonrpc": "2.0",

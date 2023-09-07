@@ -53,6 +53,7 @@ import JoyrideTutorialBegin, {State} from "./joyride/Joyride";
 import {CallBackProps, STATUS} from "react-joyride";
 import {useSetState} from "react-use";
 import Checkbox from "@mui/material/Checkbox";
+import {findKeyWithPrefix} from "./markdown/ExampleRequests";
 
 const drawerWidth: number = 240;
 
@@ -517,6 +518,7 @@ function LoadBalancingDashboardContent(props: any) {
         const { status, index } = data;
         const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
+
         if (status === STATUS.RUNNING) {
             switch (index) {
                 case 0:
@@ -532,7 +534,7 @@ function LoadBalancingDashboardContent(props: any) {
                 case 3:
                     setSelectedMainTab(0);
                     setSelectedTab(0);
-                    const gn = 'ethereum-mainnet'
+                    const gn = findKeyWithPrefix(groups);
                     setGroupName((gn));
                     break;
                 case 4:

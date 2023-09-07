@@ -2,13 +2,11 @@ package v1internal_iris
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	util "github.com/wealdtech/go-eth2-util"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
@@ -159,13 +157,7 @@ func (p *DeleteOrgRoutingTableRequest) DeleteSessionIDAuthCache(c echo.Context) 
 		log.Warn().Msg("DeleteQnOrgAuthCache: orgID is empty")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	tokenDel := fmt.Sprintf("{%x}.plan", util.Keccak256([]byte(sessionID)))
-	err := iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	tokenDel = fmt.Sprintf("{%x}", util.Keccak256([]byte(sessionID)))
-	err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
+	err := iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), sessionID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
@@ -185,13 +177,7 @@ func (p *DeleteOrgRoutingTableRequest) DeleteQnOrgAuthCache(c echo.Context) erro
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	for k, _ := range keysFound {
-		tokenDel := fmt.Sprintf("{%x}.plan", util.Keccak256([]byte(k)))
-		err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, nil)
-		}
-		tokenDel = fmt.Sprintf("{%x}", util.Keccak256([]byte(k)))
-		err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
+		err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), k)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, nil)
 		}

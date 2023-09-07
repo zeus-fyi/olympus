@@ -143,9 +143,6 @@ function LoadBalancingDashboardContent(props: any) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                if (groupName === "-all" || groupName === "unused") {
-                    return
-                }
                 setLoading(true); // Set loading to true
                 setLoadingMetrics(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getTableMetrics(groupName);
@@ -284,9 +281,7 @@ function LoadBalancingDashboardContent(props: any) {
         setSelected([]);
         setGroupName(name);
         setIsUpdatingGroup(false);
-        if (endpoints == null || endpoints.length == 0) {
-            setReload(!reload); // Trigger reload by flipping the state
-        }
+
         if (name === "-all" || name === "unused") {
             setSelectedTab(0);
             setSelectedMainTab(0);

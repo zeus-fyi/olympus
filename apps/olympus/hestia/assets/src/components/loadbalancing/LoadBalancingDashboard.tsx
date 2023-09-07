@@ -939,6 +939,6 @@ function LoadBalancingDashboardContent(props: any) {
 }
 
 export default function LoadBalancingDashboard(props: any) {
-    const {runTutorial} = props;
+    const runTutorial = useSelector((state: RootState) => state.loadBalancing.planUsageDetails.runTutorial);
     return <LoadBalancingDashboardContent runTutorial={runTutorial}/>;
 }

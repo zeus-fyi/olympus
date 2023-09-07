@@ -123,6 +123,7 @@ function LoadBalancingDashboardContent(props: any) {
         navigate('/login');
     }
     const planDetails = useSelector((state: RootState) => state.loadBalancing.planUsageDetails);
+    const [planName, setPlanName] = useState<string>(planDetails?.planName ?? "standard");
     const [runTutorial, setRunTutorial] = useState<boolean>(planDetails?.tableUsage?.tutorialOn ?? true);
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
@@ -460,66 +461,75 @@ function LoadBalancingDashboardContent(props: any) {
             </div>
         );
     }
+
+    const allSteps = [
+        {
+            content: <CustomContent />,
+            locale: { skip: <strong aria-label="skip"></strong> },
+            placement: 'center',
+            target: 'body',
+        },
+        {
+            content: 'This view shows all the routes you have registered for use with the Load Balancer.',
+            placement: 'bottom',
+            target: '.onboarding-card-highlight-all-routes',
+            title: 'All Routes',
+        },
+        {
+            content: 'This read-only view shows all registered routing procedures you have access to.',
+            placement: 'bottom',
+            target: '.onboarding-card-highlight-all-procedures',
+            title: 'All Procedures',
+        },
+        {
+            content: 'Select a routing table to toggle the table view.',
+            placement: 'bottom',
+            target: '.onboarding-card-highlight-qn-routing-table',
+            title: 'QuickNode Generated Routing Table',
+        },
+        {
+            content: 'Click on view details for your matching protocol and send request.',
+            placement: 'bottom',
+            target: '.onboarding-card-highlight-procedures',
+            title: 'Procedure Demo',
+        },
+        {
+            content: 'You\'ll see the metrics from this request shortly after the request is sent.',
+            placement: 'bottom',
+            target: '.onboarding-card-highlight-procedures',
+            title: 'Procedure Demo',
+        },
+        {
+            content: 'This view shows your priority score routes table & scale factors.',
+            placement: 'bottom',
+            target: '.onboarding-card-highlight-priority-scores',
+            title: 'Priority Scores',
+        },
+        {
+            content: 'This view shows your route metrics.',
+            placement: 'bottom',
+            target: '.onboarding-card-highlight-metrics',
+            title: 'Metrics',
+        },
+    ];
+
+    const stepsForPlan = planName === 'lite' ? allSteps.slice(0, 4) : allSteps;
+
     const [{ run, steps }, setState] = useSetState<State>({
         run: runTutorial,
-        steps: [
-            {
-                content: <CustomContent />,
-                locale: { skip: <strong aria-label="skip"></strong> },
-                placement: 'center',
-                target: 'body',
-            },
-            {
-                content: 'This view shows all the routes you have registered for use with the Load Balancer.',
-                placement: 'bottom',
-                target: '.onboarding-card-highlight-all-routes', // css class we'll add to the Card for targeting
-                title: 'All Routes',
-            },
-            {
-                content: 'This read-only view shows all registered routing procedures you have access to.',
-                placement: 'bottom',
-                target: '.onboarding-card-highlight-all-procedures',
-                title: 'All Procedures',
-            },
-            {
-                content: 'Select a routing table to toggle the table view.',
-                placement: 'bottom',
-                target: '.onboarding-card-highlight-qn-routing-table',
-                title: 'QuickNode Generated Routing Table',
-            },
-            {
-                content: 'Click on view details for your matching protocol and send request.',
-                placement: 'bottom',
-                target: '.onboarding-card-highlight-procedures',
-                title: 'Procedure Demo',
-            },
-            {
-                content: 'You\'ll see the metrics from this request shortly after the request is sent.',
-                placement: 'bottom',
-                target: '.onboarding-card-highlight-procedures',
-                title: 'Procedure Demo',
-            },
-            {
-                content: 'This view shows your priority score routes table & scale factors.',
-                placement: 'bottom',
-                target: '.onboarding-card-highlight-priority-scores',
-                title: 'Priority Scores',
-            },
-            {
-                content: 'This view shows your route metrics.',
-                placement: 'bottom',
-                target: '.onboarding-card-highlight-metrics',
-                title: 'Metrics',
-            },
-        ],
+        // @ts-ignore
+        steps: stepsForPlan,
     });
 
-    const handleJoyrideCallback = (data: CallBackProps) => {
+    const createJoyrideCallback = (plan: string) => (data: CallBackProps) => {
         const { status, index } = data;
         const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-
         if (status === STATUS.RUNNING) {
+            if (plan === 'lite' && index > 3) {
+                setState({ run: false });
+                return;
+            }
             switch (index) {
                 case 0:
                     setSelectedMainTab(0);
@@ -574,7 +584,7 @@ function LoadBalancingDashboardContent(props: any) {
                                   steps={steps}
                                   groups={groups}
                                   groupName={groupName}
-                                  handleJoyrideCallback={handleJoyrideCallback}
+                                  handleJoyrideCallback={createJoyrideCallback(planName)}
             />
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />

@@ -89,6 +89,7 @@ const mdTheme = createTheme();
 
 function LoadBalancingDashboardContent(props: any) {
     const params = useParams();
+    const { runTutorial } = props;
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -124,8 +125,6 @@ function LoadBalancingDashboardContent(props: any) {
     const [sliderLatencyValue, setSliderLatencyValue] = useState( tableMetrics?.scaleFactors?.latencyScaleFactor ?? 0.6);
     const [sliderErrorValue, setSliderErrorValue] = useState(tableMetrics?.scaleFactors?.errorScaleFactor ?? 3.0);
     const [sliderDecayValue, setSliderDecayValue] = useState(tableMetrics?.scaleFactors?.decayScaleFactor ?? 0.95);
-    const runTutorial = true
-    const [showDetailsRow, setShowDetailsRow] = React.useState(-1);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -147,9 +146,6 @@ function LoadBalancingDashboardContent(props: any) {
 
     useEffect(() => {
         const fetchData = async () => {
-            if (runTutorial){
-                return
-            }
             try {
                 setLoading(true); // Set loading to true
                 setLoadingMetrics(true); // Set loading to true
@@ -169,7 +165,7 @@ function LoadBalancingDashboardContent(props: any) {
             }
         }
         fetchData();
-    }, [groupName]);
+    }, []);
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
@@ -425,7 +421,7 @@ function LoadBalancingDashboardContent(props: any) {
                 title: 'All Routes',
             },
             {
-                content: 'This view shows all registered routing procedures you have access to.',
+                content: 'This read-only view shows all registered routing procedures you have access to.',
                 placement: 'bottom',
                 target: '.onboarding-card-highlight-all-procedures',
                 title: 'All Procedures',
@@ -484,7 +480,6 @@ function LoadBalancingDashboardContent(props: any) {
                     setSelectedTab(0);
                     const gn = 'ethereum-mainnet'
                     setGroupName((gn));
-                    setTableRoutes(groups[gn]);
                     break;
                 case 4:
                     setSelectedMainTab(0);
@@ -516,10 +511,8 @@ function LoadBalancingDashboardContent(props: any) {
     return (
         <ThemeProvider theme={mdTheme}>
             <JoyrideTutorialBegin handleChangeGroup={handleChangeGroup}
-                                  runTutorial={runTutorial}
-                                  setSelectedMainTab={setSelectedMainTab}
-                                  setSelectedTab={setSelectedTab}
-                                  setTableRoutes={setTableRoutes}
+                                  run={runTutorial}
+                                  steps={steps}
                                   groups={groups}
                                   groupName={groupName}
                                   handleJoyrideCallback={handleJoyrideCallback}
@@ -945,6 +938,7 @@ function LoadBalancingDashboardContent(props: any) {
     );
 }
 
-export default function LoadBalancingDashboard() {
-    return <LoadBalancingDashboardContent />;
+export default function LoadBalancingDashboard(props: any) {
+    const {runTutorial} = props;
+    return <LoadBalancingDashboardContent runTutorial={runTutorial}/>;
 }

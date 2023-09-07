@@ -21,6 +21,7 @@ import {
     Card,
     CardContent,
     FormControl,
+    FormControlLabel,
     InputLabel,
     MenuItem,
     Select,
@@ -46,6 +47,7 @@ import {IrisApiGateway} from "../../gateway/iris";
 import JoyrideTutorialBegin, {State} from "./joyride/Joyride";
 import {CallBackProps, STATUS} from "react-joyride";
 import {useSetState} from "react-use";
+import Checkbox from "@mui/material/Checkbox";
 
 const drawerWidth: number = 240;
 
@@ -417,11 +419,38 @@ function LoadBalancingDashboardContent(props: any) {
         setSliderDecayValue(0.95); // or some other default value
     };
 
+    const onToggleTutorialSetting = async () => {
+        try {
+            const response = await loadBalancingApiGateway.updateTutorialSetting();
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+        }
+    }
+
+    function CustomContent() {
+        return (
+            <div>
+                    <CardContent>
+                        <Typography gutterBottom variant="h5" component="div">
+                            Load Balancing Dashboard: How to Get Started
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            <FormControlLabel
+                                control={<Checkbox color="primary" onChange={onToggleTutorialSetting} />}
+                                label="Don't show this again"
+                                style={{ fontSize: '1.2em' }}
+                            />
+                        </Typography>
+                    </CardContent>
+            </div>
+        );
+    }
     const [{ run, steps }, setState] = useSetState<State>({
         run: runTutorial,
         steps: [
             {
-                content: <h2>Let's get started!</h2>,
+                content: <CustomContent />,
                 locale: { skip: <strong aria-label="skip"></strong> },
                 placement: 'center',
                 target: 'body',
@@ -516,14 +545,6 @@ function LoadBalancingDashboardContent(props: any) {
         }
     };
 
-    const onToggleTutorialSetting = async () => {
-        try {
-            const response = await loadBalancingApiGateway.updateTutorialSetting();
-        } catch (error) {
-            console.log("error", error);
-        } finally {
-        }
-    }
     if (loading) {
         return <div></div>
     }

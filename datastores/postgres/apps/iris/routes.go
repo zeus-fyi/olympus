@@ -442,7 +442,7 @@ func SelectOrgRoutesByOrgAndGroupName(ctx context.Context, orgID int, groupName 
 }
 
 type TableUsageAndUserSettings struct {
-	TutorialOn              bool `json:"tutorialOn,omitempty"`
+	TutorialOn              bool `json:"tutorialOn"`
 	EndpointCount           int  `json:"endpointCount"`
 	TableCount              int  `json:"tableCount"`
 	MonthlyBudgetTableCount int  `json:"monthlyBudgetTableCount,omitempty"`
@@ -480,13 +480,6 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
 	return &TableUsageAndUserSettings{tutorialOn, endpointCount, groupTablesCount, 25}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
 }
 
-/*
-SELECT route_group_id, route_group_name
-FROM org_route_groups
-WHERE org_id = 7138983863666903883
-AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id)
-ORDER BY route_group_id
-*/
 const (
 	FreeGroupTables        = 1
 	LiteGroupTables        = 25

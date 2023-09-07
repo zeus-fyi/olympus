@@ -35,7 +35,12 @@ import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
-import {setEndpoints, setGroupEndpoints, setTableMetrics,} from "../../redux/loadbalancing/loadbalancing.reducer";
+import {
+    setEndpoints,
+    setGroupEndpoints,
+    setTableMetrics,
+    setUserPlanDetails,
+} from "../../redux/loadbalancing/loadbalancing.reducer";
 import TextField from "@mui/material/TextField";
 import {PlanUsagePieCharts} from "./charts/pie/UsagePieChart";
 import {MetricsChart, TableMetricsCharts} from "./charts/radar/MetricsCharts";
@@ -103,7 +108,6 @@ const mdTheme = createTheme();
 
 function LoadBalancingDashboardContent(props: any) {
     const params = useParams();
-    const { runTutorial } = props;
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -117,6 +121,8 @@ function LoadBalancingDashboardContent(props: any) {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+    const planDetails = useSelector((state: RootState) => state.loadBalancing.planUsageDetails);
+    const [runTutorial, setRunTutorial] = useState<boolean>(planDetails?.tableUsage?.tutorialOn ?? true);
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(false);
@@ -422,6 +428,13 @@ function LoadBalancingDashboardContent(props: any) {
     const onToggleTutorialSetting = async () => {
         try {
             const response = await loadBalancingApiGateway.updateTutorialSetting();
+            if (response.data === null) {
+                return;
+            }
+            let tmp = JSON.parse(JSON.stringify(planDetails));
+            tmp.tableUsage.tutorialOn = response.data;
+            dispatch(setUserPlanDetails(tmp));
+            setRunTutorial(tmp.tableUsage.tutorialOn);
         } catch (error) {
             console.log("error", error);
         } finally {
@@ -438,7 +451,7 @@ function LoadBalancingDashboardContent(props: any) {
                         <Typography variant="body2" color="text.secondary">
                             <FormControlLabel
                                 control={<Checkbox color="primary" onChange={onToggleTutorialSetting} />}
-                                label="Don't show this again"
+                                label="Disable and don't show this again"
                                 style={{ fontSize: '1.2em' }}
                             />
                         </Typography>
@@ -474,13 +487,13 @@ function LoadBalancingDashboardContent(props: any) {
                 title: 'QuickNode Generated Routing Table',
             },
             {
-                content: 'This view shows your available procedures.',
+                content: 'Click on view details for your matching protocol and send request.',
                 placement: 'bottom',
                 target: '.onboarding-card-highlight-procedures',
-                title: 'Procedures',
+                title: 'Procedure Demo',
             },
             {
-                content: 'See example procedures in action.',
+                content: 'You\'ll see the metrics from this request shortly after the request is sent.',
                 placement: 'bottom',
                 target: '.onboarding-card-highlight-procedures',
                 title: 'Procedure Demo',
@@ -524,16 +537,16 @@ function LoadBalancingDashboardContent(props: any) {
                     break;
                 case 4:
                     setSelectedMainTab(0);
-                    setSelectedTab(tabCount+1);
+                    setSelectedTab(3);
+                    break;
+                case 5:
+                    setSelectedTab(3);
                     break;
                 case 6:
-                    setSelectedTab(tabCount);
+                    setSelectedTab(2);
                     break;
                 case 7:
-                    setSelectedTab(tabCount-1);
-                    break;
-                case 8:
-                    setSelectedTab(tabCount-1);
+                    setSelectedTab(1);
                     break;
                 default:
                     break;
@@ -1005,7 +1018,5 @@ function LoadBalancingDashboardContent(props: any) {
 }
 
 export default function LoadBalancingDashboard(props: any) {
-    const runT = useSelector((state: RootState) => state.loadBalancing.planUsageDetails.tableUsage.tutorialOn);
-    const [runTutorial, setRunTutorial] = React.useState(runT);
-    return <LoadBalancingDashboardContent runTutorial={runTutorial} setRunTutorial={setRunTutorial}/>;
+    return <LoadBalancingDashboardContent/>;
 }

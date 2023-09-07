@@ -31,7 +31,9 @@ import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
 import {ProceduresCatalogTable} from "./tables/ProceduresCatalogTable";
 import {IrisApiGateway} from "../../gateway/iris";
-import JoyrideTutorialBegin from "./joyride/Joyride";
+import JoyrideTutorialBegin, {State} from "./joyride/Joyride";
+import {CallBackProps, STATUS} from "react-joyride";
+import {useSetState} from "react-use";
 
 const drawerWidth: number = 240;
 
@@ -401,6 +403,61 @@ function LoadBalancingDashboardContent(props: any) {
     const handleSetDefaultDecay= () => {
         setSliderDecayValue(0.95); // or some other default value
     };
+    const [{ run, steps }, setState] = useSetState<State>({
+        run: runTutorial,
+        steps: [
+            {
+                content: <h2>Let's get started!</h2>,
+                locale: { skip: <strong aria-label="skip"></strong> },
+                placement: 'center',
+                target: 'body',
+            },
+            {
+                content: 'This view shows all the routes you have registered for use with the Load Balancer.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-all-routes', // css class we'll add to the Card for targeting
+                title: 'All Routes',
+            },
+            {
+                content: 'This view shows all registered routing procedures you have access to.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-all-procedures', // css class we'll add to the Card for targeting
+                title: 'All Procedures',
+            },
+            {
+                content: 'This view your generated routing table.',
+                placement: 'bottom',
+                target: '.onboarding-card-highlight-qn-routing-table', // css class we'll add to the Card for targeting
+                title: 'QuickNode Generated Routing Table',
+            },
+        ],
+    });
+
+    const handleJoyrideCallback = (data: CallBackProps) => {
+        const { status, index } = data;
+        const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+
+        if (status === STATUS.WAITING && index === 1) {
+            setSelectedMainTab(0);
+            setSelectedTab(0);
+            // Just before the last step starts, we call the handleChangeGroup function
+            //handleChangeGroup('ethereum-mainnet');
+        }
+
+        if (status === STATUS.RUNNING && index === 1) {
+            setSelectedMainTab(1);
+            // Just before the last step starts, we call the handleChangeGroup function
+            //handleChangeGroup('ethereum-mainnet');
+        }
+        if (status === STATUS.RUNNING && index === 3) {
+            setSelectedMainTab(0);
+            setSelectedTab(0);
+            handleChangeGroup('ethereum-mainnet');
+        }
+        if (finishedStatuses.includes(status)) {
+            setState({ run: false });
+        }
+    };
     if (loading) {
         return <div></div>
     }
@@ -409,6 +466,15 @@ function LoadBalancingDashboardContent(props: any) {
     }
     return (
         <ThemeProvider theme={mdTheme}>
+            <JoyrideTutorialBegin handleChangeGroup={handleChangeGroup}
+                                  runTutorial={runTutorial}
+                                  setSelectedMainTab={setSelectedMainTab}
+                                  setSelectedTab={setSelectedTab}
+                                  setTableRoutes={setTableRoutes}
+                                  groups={groups}
+                                  groupName={groupName}
+                                  handleJoyrideCallback={handleJoyrideCallback}
+            />
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
                 <AppBar position="absolute" open={open} style={{ backgroundColor: '#333'}}>
@@ -479,7 +545,7 @@ function LoadBalancingDashboardContent(props: any) {
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction={"row"} spacing={2} >
-                        <Card sx={{ maxWidth: 700 }}>
+                        <Card  className="onboarding-card-highlight-qn-routing-table"  sx={{ maxWidth: 700 }}>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="div">
                                     Load Balancing Management
@@ -566,7 +632,6 @@ function LoadBalancingDashboardContent(props: any) {
                             )}
                         </Stack>
                     </Container>
-                    <JoyrideTutorialBegin handleChangeGroup={handleChangeGroup} runTutorial={runTutorial} setSelectedMainTab={setSelectedMainTab}/>
                     {groupName !== "-all" && groupName !== "unused" && (
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Box sx={{ mb: 2 }}>

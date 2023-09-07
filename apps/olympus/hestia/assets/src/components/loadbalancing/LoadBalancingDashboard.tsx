@@ -31,7 +31,7 @@ import {LoadBalancingMetricsTable} from "./tables/MetricsTable";
 import {LoadBalancingPriorityScoreMetricsTable} from "./tables/PriorityScoreMetricsTable";
 import {ProceduresCatalogTable} from "./tables/ProceduresCatalogTable";
 import {IrisApiGateway} from "../../gateway/iris";
-import BasicDemo from "./joyride/Joyride";
+import JoyrideTutorialBegin from "./joyride/Joyride";
 
 const drawerWidth: number = 240;
 
@@ -122,6 +122,7 @@ function LoadBalancingDashboardContent(props: any) {
     const [sliderLatencyValue, setSliderLatencyValue] = useState( tableMetrics?.scaleFactors?.latencyScaleFactor ?? 0.6);
     const [sliderErrorValue, setSliderErrorValue] = useState(tableMetrics?.scaleFactors?.errorScaleFactor ?? 3.0);
     const [sliderDecayValue, setSliderDecayValue] = useState(tableMetrics?.scaleFactors?.decayScaleFactor ?? 0.95);
+    const runTutorial = true
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -565,7 +566,7 @@ function LoadBalancingDashboardContent(props: any) {
                             )}
                         </Stack>
                     </Container>
-                    <BasicDemo  />
+                    <JoyrideTutorialBegin handleChangeGroup={handleChangeGroup} runTutorial={runTutorial} setSelectedMainTab={setSelectedMainTab}/>
                     {groupName !== "-all" && groupName !== "unused" && (
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Box sx={{ mb: 2 }}>

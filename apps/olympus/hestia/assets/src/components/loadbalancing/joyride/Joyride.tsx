@@ -8,8 +8,9 @@ interface State {
 }
 
 export default function JoyrideTutorialBegin(props: any) {
+    const { runTutorial, setSelectedMainTab, handleChangeGroup } = props;
     const [{ run, steps }, setState] = useSetState<State>({
-        run: true,
+        run: runTutorial,
         steps: [
             {
                 content: <h2>Let's get started!</h2>,
@@ -32,9 +33,14 @@ export default function JoyrideTutorialBegin(props: any) {
         ],
     });
     const handleJoyrideCallback = (data: CallBackProps) => {
-        const { status, type } = data;
+        const { status, index } = data;
         const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
+        if (status === STATUS.RUNNING && index === 1) {
+            setSelectedMainTab(1);
+            // Just before the last step starts, we call the handleChangeGroup function
+            //handleChangeGroup('ethereum-mainnet');
+        }
         if (finishedStatuses.includes(status)) {
             setState({ run: false });
         }

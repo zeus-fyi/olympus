@@ -45,7 +45,7 @@ func (h *HestiaQuickNodeActivities) GetActivities() ActivitiesSlice {
 		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
 		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey, h.DeleteOrgGroupRoutingTable, h.InsertQuickNodeApiKey,
 		h.UpsertQuickNodeRoutingEndpoint, h.IrisPlatformDeleteEndpointRequest, h.UpsertQuickNodeGroupTableRoutingEndpoints,
-		h.RefreshOrgGroupTables, h.DeleteAuthCache,
+		h.RefreshOrgGroupTables, h.DeleteAuthCache, h.DeleteSessionAuthCache,
 	}
 	actSlice = append(actSlice, kr.GetActivities()...)
 	return actSlice
@@ -79,6 +79,21 @@ func (h *HestiaQuickNodeActivities) DeleteAuthCache(ctx context.Context, qnID st
 	}
 	if resp.StatusCode() >= 400 {
 		log.Err(err).Str("qnID", qnID).Msg("IrisPlatformSetupCacheUpdateRequest")
+		return err
+	}
+	return nil
+}
+
+func (h *HestiaQuickNodeActivities) DeleteSessionAuthCache(ctx context.Context, sessionID string) error {
+	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
+	refreshEndpoint := fmt.Sprintf("/v1/internal/session/auth//%s", sessionID)
+	resp, err := rc.R().Delete(refreshEndpoint)
+	if err != nil {
+		log.Err(err).Msg("DeleteSessionAuthCache")
+		return err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Str("sessionID", sessionID).Msg("IrisPlatformSetupCacheUpdateRequest")
 		return err
 	}
 	return nil

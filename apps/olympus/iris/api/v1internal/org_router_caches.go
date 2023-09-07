@@ -144,6 +144,33 @@ func InternalDeleteQnOrgAuthCacheHandler(c echo.Context) error {
 	}
 	return request.DeleteQnOrgAuthCache(c)
 }
+func InternalDeleteSessionAuthCacheHandler(c echo.Context) error {
+	request := new(DeleteOrgRoutingTableRequest)
+	if err := c.Bind(&request); err != nil {
+		log.Err(err)
+		return err
+	}
+	return request.DeleteSessionIDAuthCache(c)
+}
+
+func (p *DeleteOrgRoutingTableRequest) DeleteSessionIDAuthCache(c echo.Context) error {
+	sessionID := c.Param("sessionID")
+	if len(sessionID) == 0 {
+		log.Warn().Msg("DeleteQnOrgAuthCache: orgID is empty")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	tokenDel := fmt.Sprintf("{%x}.plan", util.Keccak256([]byte(sessionID)))
+	err := iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	tokenDel = fmt.Sprintf("{%x}", util.Keccak256([]byte(sessionID)))
+	err = iris_redis.IrisRedisClient.DeleteAuthCache(context.Background(), tokenDel)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, "ok")
+}
 
 func (p *DeleteOrgRoutingTableRequest) DeleteQnOrgAuthCache(c echo.Context) error {
 	qnID := c.Param("qnID")

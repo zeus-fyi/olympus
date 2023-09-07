@@ -11,6 +11,7 @@ import (
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
+	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -42,10 +43,17 @@ func (l *TokenRefreshRequest) RefreshToken(c echo.Context) error {
 	sessionKey.PublicKeyVerified = true
 	sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
 	sessionKey.PublicKeyName = "sessionID"
-	err := sessionKey.InsertUserSessionKey(ctx)
+	oldKey, err := sessionKey.InsertUserSessionKey(ctx)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("InsertUserSessionKey error")
 		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if oldKey != "" {
+		err = quicknode_orchestrations.HestiaQnWorker.ExecuteDeleteSessionCacheWorkflowWorkflow(ctx, oldKey)
+		if err != nil {
+			log.Err(err).Msg("ExecuteDeleteSessionCacheWorkflowWorkflow error")
+			err = nil
+		}
 	}
 	resp := LoginResponse{
 		UserID:    key.UserID,

@@ -15,6 +15,7 @@ import (
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
+	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -82,9 +83,17 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 		sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)
 		sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
 		sessionKey.PublicKeyName = "sessionID"
-		err = sessionKey.InsertUserSessionKey(ctx)
+		oldKey, err := sessionKey.InsertUserSessionKey(ctx)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, nil)
+		}
+
+		if oldKey != "" {
+			err = quicknode_orchestrations.HestiaQnWorker.ExecuteDeleteSessionCacheWorkflowWorkflow(ctx, oldKey)
+			if err != nil {
+				log.Err(err).Msg("ExecuteDeleteSessionCacheWorkflowWorkflow error")
+				err = nil
+			}
 		}
 		cookie := &http.Cookie{
 			Name:     aegis_sessions.SessionIDNickname,
@@ -172,9 +181,16 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 		sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)
 		sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
 		sessionKey.PublicKeyName = "sessionID"
-		err = sessionKey.InsertUserSessionKey(ctx)
+		oldKey, err := sessionKey.InsertUserSessionKey(ctx)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		if oldKey != "" {
+			err = quicknode_orchestrations.HestiaQnWorker.ExecuteDeleteSessionCacheWorkflowWorkflow(ctx, oldKey)
+			if err != nil {
+				log.Err(err).Msg("ExecuteDeleteSessionCacheWorkflowWorkflow error")
+				err = nil
+			}
 		}
 		cookie := &http.Cookie{
 			Name:     aegis_sessions.SessionIDNickname,

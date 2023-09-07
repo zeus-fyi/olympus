@@ -146,6 +146,9 @@ function LoadBalancingDashboardContent(props: any) {
                 setLoading(true); // Set loading to true
                 setLoadingMetrics(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getTableMetrics(groupName);
+                if (response.data === null) {
+                    return;
+                }
                 dispatch(setTableMetrics(response.data));
                 setSliderLatencyValue(response.data.scaleFactors.latencyScaleFactor);
                 setSliderErrorValue(response.data.scaleFactors.errorScaleFactor);

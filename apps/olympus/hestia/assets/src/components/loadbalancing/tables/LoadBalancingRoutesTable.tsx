@@ -13,7 +13,7 @@ import TextField from "@mui/material/TextField";
 
 export function LoadBalancingRoutesTable(props: any) {
     const { loading,rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
-        handleChangeRowsPerPage,handleChangePage, groupName, selectedTab, handleTabChange,
+        handleChangeRowsPerPage,handleChangePage, groupName, selectedTab, handleTabChange, selectedMainTab,
         isAdding, setIsAdding, newEndpoint, setNewEndpoint, isUpdatingGroup, handleAddGroupTableEndpointsSubmission,
         handleSubmitNewEndpointSubmission, handleDeleteEndpointsSubmission, handleUpdateGroupTableEndpointsSubmission
     } = props
@@ -25,6 +25,9 @@ export function LoadBalancingRoutesTable(props: any) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - safeEndpoints.length) : 0;
 
+    // if (selectedMainTab === 1 ) {
+    //     return <div></div>
+    // }
     return (
         <div>
             <Box sx={{ mt: 4, mb: 4 }}>

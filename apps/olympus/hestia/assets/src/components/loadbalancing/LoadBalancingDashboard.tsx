@@ -123,7 +123,7 @@ function LoadBalancingDashboardContent(props: any) {
         navigate('/login');
     }
     const planDetails = useSelector((state: RootState) => state.loadBalancing.planUsageDetails);
-    const [planName, setPlanName] = useState<string>(planDetails?.planName ?? "standard");
+    const [planName, setPlanName] = useState<string>(planDetails?.planName.toLowerCase() ?? "standard");
     const [runTutorial, setRunTutorial] = useState<boolean>(planDetails?.tableUsage?.tutorialOn ?? true);
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
@@ -476,7 +476,7 @@ function LoadBalancingDashboardContent(props: any) {
             title: 'All Routes',
         },
         {
-            content: 'This read-only view shows all registered routing procedures you have access to.',
+            content: 'This read-only view shows all registered routing procedures, only standard plans or higher can use procedures.',
             placement: 'bottom',
             target: '.onboarding-card-highlight-all-procedures',
             title: 'All Procedures',
@@ -514,7 +514,6 @@ function LoadBalancingDashboardContent(props: any) {
     ];
 
     const stepsForPlan = planName.toLowerCase() === 'lite' ? allSteps.slice(0, 4) : allSteps;
-
     const [{ run, steps }, setState] = useSetState<State>({
         run: runTutorial,
         // @ts-ignore
@@ -526,7 +525,7 @@ function LoadBalancingDashboardContent(props: any) {
         const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
         if (status === STATUS.RUNNING) {
-            if (plan === 'lite' && index > 3) {
+            if (plan.toLowerCase() === 'lite' && index > 3) {
                 setState({ run: false });
                 return;
             }
@@ -585,7 +584,7 @@ function LoadBalancingDashboardContent(props: any) {
                                   steps={steps}
                                   groups={groups}
                                   groupName={groupName}
-                                  handleJoyrideCallback={createJoyrideCallback(planName)}
+                                  handleJoyrideCallback={createJoyrideCallback(planName.toLowerCase())}
             />
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
@@ -756,9 +755,12 @@ function LoadBalancingDashboardContent(props: any) {
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs">
                                     <Tab label="Routes"  />
-                                    <Tab label="Metrics" className="onboarding-card-highlight-metrics" />
-                                    <Tab label="Priority Scores" className="onboarding-card-highlight-priority-scores"/>
-                                    <Tab className="onboarding-card-highlight-procedures" label="Procedures" />
+                                    {planName.toLowerCase() !== "lite" && (
+                                        <div>
+                                            <Tab label="Metrics" className="onboarding-card-highlight-metrics" />
+                                            <Tab label="Priority Scores" className="onboarding-card-highlight-priority-scores"/>
+                                            <Tab className="onboarding-card-highlight-procedures" label="Procedures" />
+                                        </div>)}
                                 </Tabs>
                             </Box>
                         )}

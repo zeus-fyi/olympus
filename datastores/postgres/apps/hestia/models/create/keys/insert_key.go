@@ -3,6 +3,7 @@ package create_keys
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
@@ -76,8 +77,8 @@ func (k *Key) InsertUserSessionKey(ctx context.Context) (string, error) {
 
 	oldKey := ""
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, k.UserID, k.PublicKeyName, true, keys.SessionIDKeyTypeID).Scan(&oldKey)
-	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
-		return oldKey, err
+	if err == pgx.ErrNoRows {
+		return oldKey, nil
 	}
 	return oldKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

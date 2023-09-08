@@ -187,7 +187,7 @@ function LoadBalancingDashboardContent(props: any) {
             }
         }
         fetchData();
-    }, []);
+    }, [groupName]);
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);

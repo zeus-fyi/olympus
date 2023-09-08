@@ -69,7 +69,6 @@ const Login = () => {
             } else {
                 dispatch(setSessionAuth(false))
                 dispatch({type: 'LOGIN_FAIL', payload: res.data})
-                setRequestStatus('error');
             }
         } catch (e) {
             dispatch(setSessionAuth(false))

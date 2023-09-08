@@ -169,8 +169,6 @@ function LoadBalancingDashboardContent(props: any) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setLoading(true); // Set loading to true
-                setLoadingMetrics(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getTableMetrics(groupName);
                 if (response.data === null) {
                     return;
@@ -182,8 +180,6 @@ function LoadBalancingDashboardContent(props: any) {
             } catch (error) {
                 console.log("error", error);
             } finally {
-                setLoading(false)
-                setLoadingMetrics(false); // Set loading to false regardless of success or failure.
             }
         }
         fetchData();

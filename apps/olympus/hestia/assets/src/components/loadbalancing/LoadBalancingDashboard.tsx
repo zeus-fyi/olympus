@@ -513,7 +513,7 @@ function LoadBalancingDashboardContent(props: any) {
         },
     ];
 
-    const stepsForPlan = planName === 'lite' ? allSteps.slice(0, 4) : allSteps;
+    const stepsForPlan = planName.toLowerCase() === 'lite' ? allSteps.slice(0, 4) : allSteps;
 
     const [{ run, steps }, setState] = useSetState<State>({
         run: runTutorial,

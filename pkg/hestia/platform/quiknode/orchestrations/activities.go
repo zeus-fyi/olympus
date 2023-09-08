@@ -51,6 +51,28 @@ func (h *HestiaQuickNodeActivities) GetActivities() ActivitiesSlice {
 	return actSlice
 }
 
+func DeduplicateNetworkChain(chain, network string) string {
+	suffixChain := strings.Split(chain, "-") // Extract last part of chain
+	prefix := strings.Split(network, "-")
+
+	m := map[string]bool{}
+
+	tmp := []string{}
+	for _, v := range suffixChain {
+		if _, ok := m[v]; !ok {
+			m[v] = true
+			tmp = append(tmp, v)
+		}
+	}
+	for _, v := range prefix {
+		if _, ok := m[v]; !ok {
+			m[v] = true
+			tmp = append(tmp, v)
+		}
+	}
+	return strings.Join(tmp, "-")
+}
+
 func (h *HestiaQuickNodeActivities) RefreshOrgGroupTables(ctx context.Context, orgID int) error {
 	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
 
@@ -107,13 +129,7 @@ func (h *HestiaQuickNodeActivities) UpsertQuickNodeGroupTableRoutingEndpoints(ct
 		RoutePath: pr.HttpUrl,
 	},
 	}
-	var groupName string
-	prefix := strings.Split(pr.Network, "-")[0]
-	if pr.Chain == prefix {
-		groupName = pr.Network
-	} else {
-		groupName = fmt.Sprintf("%s-%s", pr.Chain, pr.Network)
-	}
+	groupName := DeduplicateNetworkChain(pr.Chain, pr.Network)
 	ogr := iris_autogen_bases.OrgRouteGroups{
 		RouteGroupName: groupName,
 	}

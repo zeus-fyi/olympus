@@ -30,14 +30,36 @@ func (t *HestiaQuickNodeOrchestrationsTestSuite) TestSeed() {
 			Source:    "HestiaQuickNodeWorkflow",
 			Component: "ProvisionWorkflow",
 		},
-		Trigger: kronos_helix.TriggerInstructions{
-			AlertAfterTime: defaultAlertTimeout,
-		},
 	}
 	b, err := json.Marshal(ai)
 	t.Require().NoError(err)
 	artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplateWithInstructions(
 		7138983863666903883, "HestiaQuickNodeWorkflow", "alerts", "temporal", string(b))
+}
+
+func (t *HestiaQuickNodeOrchestrationsTestSuite) TestDeduplicateNetworkChain() {
+	network := "arb-nova"
+	chain := "nova-mainnet"
+
+	groupName := DeduplicateNetworkChain(network, chain)
+	t.Require().Equal("arb-nova-mainnet", groupName)
+
+	network = "ethereum-mainnet"
+	chain = "mainnet"
+
+	groupName = DeduplicateNetworkChain(network, chain)
+	t.Require().Equal("ethereum-mainnet", groupName)
+
+	network = "ethereum"
+	chain = "ethereum-mainnet"
+
+	groupName = DeduplicateNetworkChain(network, chain)
+	t.Require().Equal("ethereum-mainnet", groupName)
+
+	network = "bsc"
+	chain = "bnb-smart-chain"
+	groupName = DeduplicateNetworkChain(network, chain)
+	t.Require().Equal("bsc-bnb-smart-chain", groupName)
 }
 
 func TestHestiaQuickNodeOrchestrationsTestSuite(t *testing.T) {

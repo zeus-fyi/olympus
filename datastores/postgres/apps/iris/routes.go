@@ -456,12 +456,12 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
        		   (SELECT COUNT(*)
        		    FROM org_route_groups WHERE org_id = $1  AND auto_generated = false
        		    AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id))
-       		    ,0) as table_count, (SELECT tutorial_on
+       		    ,0) as table_count, COALESCE((SELECT tutorial_on
 									FROM orgs o 
 									INNER JOIN org_users ou ON ou.org_id = o.org_id
 									INNER JOIN users_keys usk ON usk.user_id = ou.user_id
 									INNER JOIN quicknode_marketplace_customer qm ON qm.quicknode_id = usk.public_key
-									WHERE o.org_id = $1 AND public_key_name = 'quickNodeMarketPlace' AND public_key_verified = true) AS tutorial_on
+									WHERE o.org_id = $1 AND public_key_name = 'quickNodeMarketplaceCustomer' AND public_key_verified = true), false) AS tutorial_on
 		FROM org_routes 
 		WHERE org_id = $1
 	`

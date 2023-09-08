@@ -15,7 +15,7 @@ func ToggleTutorialSetting(ctx context.Context, orgID int) (bool, error) {
 					FROM orgs o 
 					INNER JOIN org_users ou ON ou.org_id = o.org_id
 					INNER JOIN users_keys usk ON usk.user_id = ou.user_id
-					WHERE o.org_id = $1 AND public_key_name = 'quickNodeMarketPlace' AND public_key_verified = true
+					WHERE o.org_id = $1 AND public_key_name = 'quickNodeMarketplaceCustomer' AND public_key_verified = true
 	   	          )
 				  UPDATE quicknode_marketplace_customer
 				  SET tutorial_on = NOT tutorial_on

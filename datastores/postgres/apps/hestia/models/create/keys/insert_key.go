@@ -70,7 +70,7 @@ func (k *Key) InsertUserSessionKey(ctx context.Context) (string, error) {
 				  ), cte_insert_session_key AS (
 				  INSERT INTO users_keys(public_key, user_id, public_key_name, public_key_verified, public_key_type_id)
 				  VALUES ($1, $2, $3, $4, $5)
-				  ) SELECT public_key FROM cte_delete_prev_session_keys
+				  ) SELECT (COALESCE(public_key, '') FROM cte_delete_prev_session_keys, '') as old_key
 				  `
 
 	oldKey := ""

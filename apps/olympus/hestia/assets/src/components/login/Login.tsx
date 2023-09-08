@@ -27,7 +27,7 @@ const Login = () => {
     let buttonDisabled;
     let statusMessage;
     const [requestStatus, setRequestStatus] = useState('');
-
+    const [loading, setLoading] = useState(false);
     switch (requestStatus) {
         case 'pending':
             buttonLabel = <CircularProgress size={20} />;
@@ -54,10 +54,11 @@ const Login = () => {
         let email = data.get('email') as string
         let password = data.get('password') as string
         try {
+            setLoading(true);
             setRequestStatus('pending');
             let res: any = await authProvider.login(email, password)
             const statusCode = res.status;
-            if (statusCode === 200 || statusCode === 204) {
+            if (statusCode < 300) {
                 setRequestStatus('success');
                 dispatch(setSessionAuth(true))
                 if (res.data.planUsageDetails != null && res.data.planUsageDetails.plan != undefined){
@@ -73,8 +74,12 @@ const Login = () => {
         } catch (e) {
             dispatch(setSessionAuth(false))
             setRequestStatus('error');
+        } finally {
+            setLoading(false);
+            setRequestStatus('done')
         }
     }
+    if (loading) return (<div></div>)
     return (
         <ThemeProvider theme={theme}>
             <Grid container component="main" sx={{height: '100vh'}}>

@@ -755,12 +755,9 @@ function LoadBalancingDashboardContent(props: any) {
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs">
                                     <Tab label="Routes"  />
-                                    {planName.toLowerCase() !== "lite" && (
-                                        <div>
-                                            <Tab label="Metrics" className="onboarding-card-highlight-metrics" />
-                                            <Tab label="Priority Scores" className="onboarding-card-highlight-priority-scores"/>
-                                            <Tab className="onboarding-card-highlight-procedures" label="Procedures" />
-                                        </div>)}
+                                    {planName.toLowerCase() !== "lite" && (<Tab label="Metrics" className="onboarding-card-highlight-metrics" />)}
+                                    {planName.toLowerCase() !== "lite" && (<Tab label="Priority Scores" className="onboarding-card-highlight-priority-scores"/>)}
+                                    {planName.toLowerCase() !== "lite" && (<Tab className="onboarding-card-highlight-procedures" label="Procedures" />)}
                                 </Tabs>
                             </Box>
                         )}

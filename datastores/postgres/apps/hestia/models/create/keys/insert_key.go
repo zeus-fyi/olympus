@@ -65,13 +65,14 @@ func (k *Key) UpdateUserSignInKey(ctx context.Context) error {
 func (k *Key) InsertUserSessionKey(ctx context.Context) (string, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_delete_prev_session_keys AS (
-				  	DELETE FROM users_keys WHERE user_id = $2 AND public_key_type_id = $5
+					DELETE FROM users_keys 
+					WHERE user_id = $2 AND public_key_type_id = $5
 					RETURNING public_key
-				  ), cte_insert_session_key AS (
-				  INSERT INTO users_keys(public_key, user_id, public_key_name, public_key_verified, public_key_type_id)
-				  VALUES ($1, $2, $3, $4, $5)
-				  ) SELECT public_key FROM cte_delete_prev_session_keys
-				  `
+				), cte_insert_session_key AS (
+					INSERT INTO users_keys(public_key, user_id, public_key_name, public_key_verified, public_key_type_id)
+					VALUES ($1, $2, $3, $4, $5)
+				)
+				SELECT COALESCE(public_key, '') AS old_key FROM cte_delete_prev_session_keys;`
 
 	oldKey := ""
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, k.UserID, k.PublicKeyName, true, keys.SessionIDKeyTypeID).Scan(&oldKey)

@@ -88,6 +88,7 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 	pd, err := hestia_billing.GetPlan(ctx, sessionID)
 	if err != nil {
 		log.Err(err).Msg("GetPlan error")
+		err = nil
 	} else {
 		resp.PlanDetailsUsage = &pd
 	}

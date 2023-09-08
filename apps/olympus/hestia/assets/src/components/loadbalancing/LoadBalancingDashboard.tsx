@@ -546,6 +546,7 @@ function LoadBalancingDashboardContent(props: any) {
                     setSelectedTab(0);
                     const gn = findKeyWithPrefix(groups);
                     setGroupName((gn));
+                    setTableRoutes(groups[gn]);
                     break;
                 case 4:
                     setSelectedMainTab(0);

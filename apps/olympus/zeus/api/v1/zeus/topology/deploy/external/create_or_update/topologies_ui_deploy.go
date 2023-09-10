@@ -175,6 +175,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				switch t.NamespaceAlias {
 				case "redis", "redis-master", "redis-replicas":
 					namespace = "redis"
+				case "redis-cluster":
+					namespace = "redis-cluster"
 				case "mainnet-staking":
 					namespace = "mainnet-staking"
 				case "ephemeral-staking":

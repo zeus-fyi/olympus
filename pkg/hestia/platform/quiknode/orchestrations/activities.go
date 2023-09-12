@@ -179,8 +179,8 @@ func (h *HestiaQuickNodeActivities) InsertQuickNodeApiKey(ctx context.Context, p
 
 func (h *HestiaQuickNodeActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx context.Context, ou org_users.OrgUser, groupName string) error {
 	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
-	refreshEndpoint := fmt.Sprintf("/v1/internal/router/delete/%d/%s", ou.OrgID, groupName)
-	resp, err := rc.R().Get(refreshEndpoint)
+	refreshEndpoint := fmt.Sprintf("/v1/internal/router/%d/%s", ou.OrgID, groupName)
+	resp, err := rc.R().Delete(refreshEndpoint)
 	if err != nil {
 		log.Err(err).Msg("HestiaQuickNodeActivities: IrisPlatformDeleteGroupTableCacheRequest")
 		return err
@@ -194,7 +194,7 @@ func (h *HestiaQuickNodeActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx
 
 func (h *HestiaQuickNodeActivities) IrisPlatformDeleteEndpointRequest(ctx context.Context, ou org_users.OrgUser, route string) error {
 	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
-	removeEndpoint := fmt.Sprintf("/v1/internal/router/delete/%d", ou.OrgID)
+	removeEndpoint := fmt.Sprintf("/v1/internal/router/%d", ou.OrgID)
 	rr := hestia_req_types.IrisOrgGroupRoutesRequest{
 		Routes: []string{route},
 	}

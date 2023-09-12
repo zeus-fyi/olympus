@@ -252,7 +252,7 @@ func (h *HestiaQuickNodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, ou o
 func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: defaultTimeout,
+		StartToCloseTimeout: defaultTimeout * 10,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
 	currentTime := time.Now().Unix() // get current Unix timestamp

@@ -3,6 +3,7 @@ package quicknode_orchestrations
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -18,7 +19,6 @@ import (
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
-	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
@@ -82,12 +82,14 @@ func (h *HestiaQuickNodeActivities) RefreshOrgGroupTables(ctx context.Context, o
 		log.Err(err).Msg("RefreshOrgGroupTables")
 		return err
 	}
-	if resp.StatusCode() >= 400 {
-		log.Err(err).Int("orgID", orgID).Msg("IrisPlatformSetupCacheUpdateRequest")
+	if resp.StatusCode() >= 300 {
+		if err == nil {
+			err = errors.New("non-OK status code")
+		}
+		log.Err(err).Int("orgID", orgID).Interface("respErr", resp.Error()).Msg("IrisPlatformSetupCacheUpdateRequest")
 		return err
 	}
 	return nil
-
 }
 
 func (h *HestiaQuickNodeActivities) DeleteAuthCache(ctx context.Context, qnID string) error {
@@ -193,19 +195,9 @@ func (h *HestiaQuickNodeActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx
 }
 
 func (h *HestiaQuickNodeActivities) IrisPlatformDeleteEndpointRequest(ctx context.Context, ou org_users.OrgUser, route string) error {
-	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
-	removeEndpoint := fmt.Sprintf("/v1/internal/router/%d", ou.OrgID)
-	rr := hestia_req_types.IrisOrgGroupRoutesRequest{
-		Routes: []string{route},
-	}
-	resp, err := rc.R().
-		SetBody(rr).
-		Delete(removeEndpoint)
-	if err != nil || resp.StatusCode() >= 400 {
-		if err == nil {
-			err = fmt.Errorf("%e non-OK status code: %d", resp.Error(), resp.StatusCode())
-			log.Err(err).Interface("orgUser", ou).Msg("HestiaQuickNodeActivities: IrisPlatformDeleteEndpointRequest")
-		}
+	err := iris_models.DeleteOrgRoutes(context.Background(), ou.OrgID, []string{route})
+	if err != nil {
+		log.Err(err).Msg("HestiaQuickNodeActivities: IrisPlatformDeleteEndpointRequest")
 		return err
 	}
 	return nil

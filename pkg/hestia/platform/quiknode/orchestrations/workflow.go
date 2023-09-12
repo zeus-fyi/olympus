@@ -248,6 +248,7 @@ func (h *HestiaQuickNodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, ou o
 	return nil
 }
 
+// DeactivateWorkflow removes just an endpoint
 func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
@@ -283,6 +284,15 @@ func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou or
 		logger.Warn("params", da)
 		logger.Warn("ou", ou)
 		logger.Error("HestiaQuickNodeWorkflow: failed to call IrisPlatformDeleteEndpointRequest", "Error", err)
+		return err
+	}
+
+	cacheRefreshCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(rmEndpointCtx, h.RefreshOrgGroupTables, ou.OrgID).Get(cacheRefreshCtx, nil)
+	if err != nil {
+		logger.Warn("params", da)
+		logger.Warn("ou", ou)
+		logger.Error("HestiaQuickNodeWorkflow: failed to call RefreshOrgGroupTables", "Error", err)
 		return err
 	}
 	return nil

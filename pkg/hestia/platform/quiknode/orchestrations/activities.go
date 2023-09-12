@@ -154,7 +154,6 @@ func (h *HestiaQuickNodeActivities) UpsertQuickNodeRoutingEndpoint(ctx context.C
 		log.Err(err).Msg("UpsertQuickNodeRoutingEndpoint")
 		return err
 	}
-
 	return nil
 }
 
@@ -186,6 +185,7 @@ func (h *HestiaQuickNodeActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx
 		return err
 	}
 	if resp.StatusCode() >= 400 {
+		err = fmt.Errorf("%e non-OK status code: %d", resp.Error(), resp.StatusCode())
 		log.Err(err).Interface("orgUser", ou).Msg("HestiaQuickNodeActivities: IrisPlatformDeleteGroupTableCacheRequest")
 		return err
 	}
@@ -203,7 +203,8 @@ func (h *HestiaQuickNodeActivities) IrisPlatformDeleteEndpointRequest(ctx contex
 		Delete(removeEndpoint)
 	if err != nil || resp.StatusCode() >= 400 {
 		if err == nil {
-			err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())
+			err = fmt.Errorf("%e non-OK status code: %d", resp.Error(), resp.StatusCode())
+			log.Err(err).Interface("orgUser", ou).Msg("HestiaQuickNodeActivities: IrisPlatformDeleteEndpointRequest")
 		}
 		return err
 	}

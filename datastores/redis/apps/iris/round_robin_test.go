@@ -8,6 +8,12 @@ import (
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
+func (r *IrisRedisTestSuite) TestDeleteOrgRoutingGroup() {
+	rgName := "aptos-testnet"
+	err := IrisRedisClient.DeleteOrgRoutingGroup(context.Background(), 1694205135884287000, rgName)
+	r.NoError(err)
+}
+
 func (r *IrisRedisTestSuite) TestInitOrgTables() {
 	rgName := "testGroupZ"
 	routes := []iris_models.RouteInfo{
@@ -108,6 +114,7 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 	r.Error(rerr)
 }
 
+// DeleteOrgRoutingGroup
 func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 	rgName := "testGroupZ"
 	routes := []iris_models.RouteInfo{

@@ -16,8 +16,11 @@ const (
 	RefreshOrgRoutingTable     = "/router/refresh/:orgID"
 
 	RefreshOrgGroupRoutingTable = "/router/refresh/:orgID/:groupName"
-	DeleteOrgRoutingTables      = "/router/:orgID"
-	DeleteOrgRoutingGroupTable  = "/router/:orgID/:groupName"
+
+	/* DELETE ROUTES */
+
+	DeleteOrgRoutingTables     = "/router/:orgID"
+	DeleteOrgRoutingGroupTable = "/router/:orgID/:groupName"
 
 	DeleteQnOrgAuthCache = "/router/qn/auth/:qnID"
 

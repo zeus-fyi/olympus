@@ -32,7 +32,7 @@ func NewIrisApiRequestsWorkflow() IrisApiRequestsWorkflow {
 func (i *IrisApiRequestsWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{i.ProxyRequest, i.ProxyInternalRequest,
 		i.CacheRefreshAllOrgRoutingTablesWorkflow, i.CacheRefreshOrgRoutingTablesWorkflow, i.CacheRefreshOrgGroupTableWorkflow,
-		i.DeleteRoutingGroupWorkflow, i.DeleteAllOrgRoutingGroupsWorkflow,
+		i.DeleteRoutingGroupWorkflow, i.DeleteAllOrgRoutingGroupsWorkflow, i.DeleteOrgRoutesWorkflow,
 	}
 }
 

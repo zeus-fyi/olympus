@@ -136,6 +136,9 @@ func (m *IrisCache) RecordRequestUsage(ctx context.Context, orgID int, meter *ir
 }
 
 func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx context.Context, orgID int, procedureName, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, []iris_models.RouteInfo, iris_usage_meters.UsageMeter, error) {
+	if meter == nil {
+		meter = &iris_usage_meters.PayloadSizeMeter{}
+	}
 	// Generate the rate limiter key with the Unix timestamp
 	orgIDStr := fmt.Sprintf("%d", orgID)
 
@@ -161,9 +164,7 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 		procedureCmd = pipe.Get(ctx, procedureKey)
 		procedureStepsKeyCmd = pipe.Get(ctx, procedureStepsKey)
 	}
-	if meter == nil {
-		meter = &iris_usage_meters.PayloadSizeMeter{}
-	}
+
 	// rate limiter key expires after 3 seconds
 	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
 

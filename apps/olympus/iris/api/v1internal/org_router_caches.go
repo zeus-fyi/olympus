@@ -114,7 +114,7 @@ func (p *DeleteOrgRoutingTableRequest) DeleteOrgRoutingTables(c echo.Context) er
 	}
 	oi, err := strconv.Atoi(orgID)
 	if err != nil {
-		log.Err(err).Msg("DeleteOrgRoutingTables: strconv.Atoi(orgID)")
+		log.Err(err).Interface("orgID", orgID).Msg("DeleteOrgRoutingTables: strconv.Atoi(orgID)")
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	err = iris_api_requests.IrisCacheWorker.ExecuteIrisCacheDeleteOrgRoutingGroupTablesWorkflow(context.Background(), oi)

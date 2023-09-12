@@ -10,9 +10,16 @@ import (
 func (s *IrisTestSuite) TestSelectOrgRoute() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
-	routes, err := SelectOrgRoutes(ctx, 1694205135884287000)
+	routes, err := SelectAllOrgRoutesByOrg(ctx, 1694205135884287000)
 	s.Require().Nil(err)
 	s.Require().NotNil(routes)
+
+	for rgName, _ := range routes {
+		if len(rgName) <= 0 {
+			continue
+		}
+		fmt.Println(rgName)
+	}
 }
 
 func (s *IrisTestSuite) TestInsertOrgRoute() {

@@ -252,7 +252,7 @@ func (h *HestiaQuickNodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, ou o
 func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: defaultTimeout,
+		StartToCloseTimeout: defaultTimeout * 10,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
 	currentTime := time.Now().Unix() // get current Unix timestamp
@@ -288,7 +288,7 @@ func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou or
 	}
 
 	cacheRefreshCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(rmEndpointCtx, h.RefreshOrgGroupTables, ou.OrgID).Get(cacheRefreshCtx, nil)
+	err = workflow.ExecuteActivity(cacheRefreshCtx, h.RefreshOrgGroupTables, ou.OrgID).Get(cacheRefreshCtx, nil)
 	if err != nil {
 		logger.Warn("params", da)
 		logger.Warn("ou", ou)

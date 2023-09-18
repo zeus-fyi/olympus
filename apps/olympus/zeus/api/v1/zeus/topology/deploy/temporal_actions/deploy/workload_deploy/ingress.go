@@ -29,9 +29,19 @@ func DeployIngressHandler(c echo.Context) error {
 			if request.Ingress.Spec.TLS != nil {
 				for ind, _ := range request.Ingress.Spec.TLS {
 					for ind2, _ := range request.Ingress.Spec.TLS[ind].Hosts {
-						request.Ingress.Spec.TLS[ind].Hosts[ind2] = fmt.Sprintf("%s.zeus.fyi", ns)
+						prefix := ns
+						// TODO update later on so manual whitelisting not needed
+						if ns == "docusaurus" && request.Kns.CloudProvider == "ovh" && request.Kns.Context == "zeusfyi" {
+							prefix = "docs"
+						}
+						request.Ingress.Spec.TLS[ind].Hosts[ind2] = fmt.Sprintf("%s.zeus.fyi", prefix)
 					}
-					request.Ingress.Spec.TLS[ind].SecretName = fmt.Sprintf("%s-tls", ns)
+					// TODO update later on so manual whitelisting not needed
+					prefix := ns
+					if ns == "docusaurus" && request.Kns.CloudProvider == "ovh" && request.Kns.Context == "zeusfyi" {
+						prefix = "docs"
+					}
+					request.Ingress.Spec.TLS[ind].SecretName = fmt.Sprintf("%s-tls", prefix)
 				}
 			}
 		}

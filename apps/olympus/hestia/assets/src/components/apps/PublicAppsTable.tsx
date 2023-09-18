@@ -10,6 +10,8 @@ import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
+// @ts-ignore
+import {ReactComponent as AvaxLogo} from '../../static/avax-logo.svg';
 
 export function PublicAppsTable(props: any) {
     const [page, setPage] = React.useState(0);
@@ -66,7 +68,7 @@ export function PublicAppsTable(props: any) {
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell style={{ width: 200 }}>
-                                <img src={require("../../static/avax-logo.png")} alt={'web3'} style={{ width: '25%', height: '40%'}} />
+                                <AvaxLogo style={{ width: '25%', height: '40%'}} alt='web3' />
                             </TableCell>
                             <TableCell component="th" scope="row">
                                 {'web3'}

@@ -212,7 +212,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				case "hardhat":
 					namespace = "hardhat"
 					appTaint = false
-				case "docusaurus":
+				case "docs":
 					namespace = "docs"
 					appTaint = false
 				case "olympus":

@@ -243,7 +243,15 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	if stats.MetricSampleCount >= MinSamplesBeforeAdaptiveScoring {
 		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreOut)
 	}
+
+	// todo tune this
 	if stats.MemberRankScoreIn.Score > 1 {
+		if stats.MemberRankScoreIn.Score > 10000 && stats.DecayScaleFactor > 0.80 {
+			stats.DecayScaleFactor = 0.80
+		}
+		if stats.MemberRankScoreIn.Score > 100000 && stats.DecayScaleFactor >= 0.80 {
+			stats.DecayScaleFactor = 0.60
+		}
 		stats.MemberRankScoreIn.Score *= stats.DecayScaleFactor
 		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreIn)
 	}

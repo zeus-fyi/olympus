@@ -176,6 +176,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
 		ServicePlan:      plan,
+		OrgID:            ou.OrgID,
 		PayloadTypeREST:  restType,
 		RequestHeaders:   headers,
 		Referrers:        routeInfo.Referrers,

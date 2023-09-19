@@ -1,6 +1,6 @@
 CREATE TABLE "public"."quicknode_marketplace_customer" (
     quicknode_id text NOT NULL,
-    plan text NOT NULL CHECK (plan IN ('test', 'free', 'lite', 'standard', 'performance')),
+    plan text NOT NULL CHECK (plan IN ('test', 'free', 'lite', 'standard', 'performance','enterprise')),
     is_test bool NOT NULL DEFAULT false,
     tutorial_on bool NOT NULL DEFAULT true,
     PRIMARY KEY (quicknode_id)

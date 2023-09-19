@@ -81,8 +81,12 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		return pr, err
 	}
 
-	if parsedURL.Scheme != "https" {
-		return pr, fmt.Errorf("error: URL must be an HTTPS URL")
+	if pr.OrgID == 7138983863666903883 {
+		// for internal
+	} else {
+		if parsedURL.Scheme != "https" {
+			return pr, fmt.Errorf("error: URL must be an HTTPS URL")
+		}
 	}
 
 	if len(pr.QueryParams) > 0 {

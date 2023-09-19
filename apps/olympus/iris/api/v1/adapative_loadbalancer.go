@@ -93,6 +93,7 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
 		ServicePlan:      plan,
+		OrgID:            ou.OrgID,
 		PayloadTypeREST:  restType,
 		RequestHeaders:   headers,
 		Referrers:        ri.Referrers,

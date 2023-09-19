@@ -278,7 +278,10 @@ func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) 
 		// todo fix, this is not getting unique keys
 		keysFound[k.PublicKey] = k.PublicKey
 		services = append(services, serviceName)
-		m[serviceName] = plan
+
+		if m[serviceName] == "" || m[serviceName] == "generic" {
+			m[serviceName] = plan
+		}
 	}
 	k.Services = m
 	return services, keysFound, misc.ReturnIfErr(err, q.LogHeader(Sn))

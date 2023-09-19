@@ -72,8 +72,11 @@ func (m *IrisCache) CheckRateLimitBroadcast(ctx context.Context, orgID int, proc
 	switch plan {
 	case "enterprise":
 		// todo
+		// check 100k ZU/s
+		// check max 3B ZU/month
+		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
 	case "performance":
-		// check 50k ZU/s
+		// check 100k ZU/s
 		// check max 3B ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
 	case "standard":
@@ -110,9 +113,11 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGr
 	rateLimited, monthlyLimited := false, false
 	switch plan {
 	case "enterprise":
-		// todo
+		// check 100k ZU/s
+		// check max 3B ZU/month
+		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
 	case "performance":
-		// check 50k ZU/s
+		// check 100k ZU/s
 		// check max 3B ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
 	case "standard":

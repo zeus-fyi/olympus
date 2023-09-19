@@ -56,6 +56,7 @@ func InitTokenFilter(ctx context.Context) {
 func InitWeb3Client() {
 	Wc = web3_actions.NewWeb3ActionsClient(irisSvcBeacons)
 	Wc.AddDefaultEthereumMainnetTableHeader()
+	Wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 	if len(artemis_orchestration_auth.Bearer) == 0 {
 		panic(fmt.Errorf("bearer token is empty"))
 	}

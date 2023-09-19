@@ -16,11 +16,11 @@ import (
 )
 
 const (
-	irisSvc                = "https://iris.zeus.fyi/v1/internal/"
-	irisBetaSvc            = "https://iris.zeus.fyi/v1beta/internal/"
+	irisSvc                = "https://iris.zeus.fyi/v2/internal/router"
+	irisBetaSvc            = "https://iris.zeus.fyi/v2/internal/router"
 	hardhatSvc             = "https://hardhat.zeus.fyi/"
-	irisSvcBeaconsInternal = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
-	irisBetaSvcInternal    = "http://iris.iris.svc.cluster.local/v1beta/internal/"
+	irisSvcBeaconsInternal = "http://iris.iris.svc.cluster.local/v2/internal/router/"
+	irisBetaSvcInternal    = "http://iris.iris.svc.cluster.local/v2/internal/router/"
 )
 
 var (
@@ -36,15 +36,15 @@ func InitArtemisUniswap(ctx context.Context, authHeader string) {
 }
 
 func InitTycheUniswap(ctx context.Context, authHeader string) {
-
 }
 func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.UniswapClient {
 	acc, err := accounts.CreateAccount()
 	if err != nil {
 		panic(err)
 	}
-	wc := web3_client.NewWeb3Client(irisBetaSvcInternal, acc)
+	wc := web3_client.NewWeb3Client(irisSvcBeaconsInternal, acc)
 	wc.Network = hestia_req_types.Mainnet
+	wc.AddMaxBlockHeightProcedureEthJsonRpcHeader()
 	wc.AddBearerToken(AuthHeader)
 	wc.AddSessionLockHeader(sessionID)
 	uni := web3_client.InitUniswapClient(ctx, wc)
@@ -55,8 +55,8 @@ func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.Unisw
 	return &uni
 }
 
-func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
-	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+func InitNewUniswapQuikNode(ctx context.Context) *web3_client.UniswapClient {
+	wc := web3_client.NewWeb3Client(irisSvcBeaconsInternal, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	wc.Network = hestia_req_types.Mainnet
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
@@ -71,7 +71,9 @@ func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
 		case t := <-timestampChan:
 			// todo: margin needed for now, but should remove via refactor
 			time.Sleep(25 * time.Millisecond)
-			wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+			wc := web3_actions.NewWeb3ActionsClient(irisSvcBeaconsInternal)
+			wc.AddDefaultEthereumMainnetTableHeader()
+
 			wc.Network = hestia_req_types.Mainnet
 			wc.Dial()
 			bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)

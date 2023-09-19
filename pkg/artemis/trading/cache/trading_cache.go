@@ -132,6 +132,7 @@ func SetActiveTradingBlockCache(ctx context.Context, timestampChan chan time.Tim
 		case t := <-timestampChan:
 			Wc = web3_actions.NewWeb3ActionsClient(irisSvcBeacons)
 			Wc.AddDefaultEthereumMainnetTableHeader()
+			Wc.AddMaxBlockHeightProcedureEthJsonRpcHeader()
 			Wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 			Wc.Dial()
 			bn, berr := Wc.C.BlockNumber(context.Background())

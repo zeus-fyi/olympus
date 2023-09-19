@@ -45,19 +45,19 @@ func InitV1Routes(e *echo.Echo) {
 				usingCookie = true
 			}
 
-			//orgID, plan, err := iris_redis.IrisRedisClient.GetAuthCacheIfExists(ctx, token)
-			//if err == nil && orgID > 0 && plan != "" {
-			//	c.Set("lbDefault", getDefaultLB(plan))
-			//	c.Set("servicePlan", plan)
-			//	c.Set("orgUser", org_users.NewOrgUserWithID(int(orgID), 0))
-			//	c.Set("bearer", token)
-			//	return true, nil
-			//} else {
-			//	plan = ""
-			//	orgID = -1
-			//	err = nil
-			//}
-			plan := ""
+			orgU, plan, err := iris_redis.IrisRedisClient.GetAuthCacheIfExists(ctx, token)
+			if err == nil && orgU.OrgID > 0 && plan != "" {
+				c.Set("lbDefault", getDefaultLB(plan))
+				c.Set("servicePlan", plan)
+				c.Set("orgUser", org_users.NewOrgUserWithID(int(orgU.OrgID), orgU.UserID))
+				c.Set("bearer", token)
+				return true, nil
+			} else {
+				plan = ""
+				orgU.OrgID = -1
+				orgU.UserID = -1
+				err = nil
+			}
 			key := read_keys.NewKeyReader()
 			services, _, err := key.QueryUserAuthedServices(ctx, token)
 			if err != nil {

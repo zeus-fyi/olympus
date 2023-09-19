@@ -25,12 +25,13 @@ var (
 	ActiveTraderW3c      web3_client.Web3Client
 )
 
-const irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
+const irisSvcBeacons = "http://iris.iris.svc.cluster.local/v2/internal/router"
 
 func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age) artemis_trading_auxiliary.AuxiliaryTradingUtils {
 	tm := tyche_metrics.TycheMetrics
 	acc := InitTradingAccount2(ctx, age)
 	wc := web3_client.NewWeb3Client(irisSvcBeacons, &acc)
+	wc.AddDefaultEthereumMainnetTableHeader()
 	wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 	if len(artemis_orchestration_auth.Bearer) == 0 {
 		panic("bearer token not set")

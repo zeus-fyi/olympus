@@ -76,6 +76,7 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 	log.Info().Str("w3_sessionID", w3SessionHeader).Str("wc_sessionID", wcSessionHeader).Msg("different session lock header, using provided source")
 	w3.Dial()
 	defer w3.Close()
+	w3.AddMaxBlockHeightProcedureEthJsonRpcHeader()
 	bn, berr := w3.C.BlockNumber(context.Background())
 	if berr != nil {
 		log.Err(berr).Str("w3_sessionID", w3SessionHeader).Str("wc_sessionID", wcSessionHeader).Msg("GetLatestBlockFromCacheOrProvidedSource: failed to get block number")
@@ -103,6 +104,7 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 	}
 	Wc.Dial()
 	defer Wc.Close()
+	Wc.AddMaxBlockHeightProcedureEthJsonRpcHeader()
 	bn, berr := Wc.C.BlockNumber(context.Background())
 	if berr != nil {
 		log.Err(berr).Msg("GetLatestBlock: failed to get block number")

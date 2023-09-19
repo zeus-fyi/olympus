@@ -25,12 +25,12 @@ export function PlanRateUsagePieChart(props: any) {
     const [planBudgetZU, setPlanBudgetZU] = useState(planUsageDetails?.computeUsage?.monthlyBudgetZU ?? 0);
     const [monthlyUsage, setMonthlyUsage] = useState(planUsageDetails?.computeUsage?.monthlyUsage ?? 0);
     const data02 = [
-        { name: `ZU ${(rateLimit - currentRate).toFixed(0)}k/s  limit`, value: rateLimit - currentRate, fill: "#4db375"},
-        { name: `ZU ${currentRate} k/s`, value: currentRate.toFixed(2), fill: "#ff4d4d"},
+        { name: `ZU ${(rateLimit - currentRate).toFixed(0)}k/s  limit`, value: (rateLimit - currentRate).toFixed(0), fill: "#4db375"},
+        { name: `ZU ${currentRate.toFixed(3)} k/s`, value: currentRate.toFixed(3), fill: "#ff4d4d"},
     ];
     const data01 = [
-        { name: `ZU ${(planBudgetZU-monthlyUsage).toFixed(0)}M`, value: planBudgetZU-monthlyUsage, fill: "#4db375"},
-        { name: `ZU ${(monthlyUsage).toFixed(0)}M used`, value: monthlyUsage, fill: "#ff4d4d"},
+        { name: `ZU ${(planBudgetZU-monthlyUsage).toFixed(0)}M`, value: (planBudgetZU-monthlyUsage).toFixed(0), fill: "#4db375"},
+        { name: `ZU ${(monthlyUsage).toFixed(1)}M used`, value: (monthlyUsage).toFixed(1), fill: "#ff4d4d"},
     ];
 
     return (

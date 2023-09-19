@@ -26,11 +26,11 @@ export function PlanRateUsagePieChart(props: any) {
     const [monthlyUsage, setMonthlyUsage] = useState(planUsageDetails?.computeUsage?.monthlyUsage ?? 0);
 
     const data02 = [
-        { name: `ZU ${(rateLimit - currentRate).toFixed(2)}k/s  limit`, value: rateLimit - currentRate, fill: "#4db375"},
+        { name: `ZU ${(rateLimit - currentRate).toFixed(2)}k/s  limit`, value: (rateLimit - currentRate), fill: "#4db375"},
         { name: `ZU ${(currentRate).toFixed(2)} k/s`, value: currentRate, fill: "#ff4d4d"},
     ];
     const data01 = [
-        { name: `ZU ${(planBudgetZU-monthlyUsage).toFixed(2)}M`, value: planBudgetZU-monthlyUsage, fill: "#4db375"},
+        { name: `ZU ${(planBudgetZU-monthlyUsage).toFixed(2)}M`, value: (planBudgetZU-monthlyUsage), fill: "#4db375"},
         { name: `ZU ${(monthlyUsage).toFixed(2)}M used`, value: monthlyUsage, fill: "#ff4d4d"},
     ];
 

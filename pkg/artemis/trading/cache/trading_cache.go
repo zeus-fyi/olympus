@@ -60,7 +60,6 @@ func InitWeb3Client() {
 	if len(artemis_orchestration_auth.Bearer) == 0 {
 		panic(fmt.Errorf("bearer token is empty"))
 	}
-	Wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 }
 
 func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_actions.Web3Actions) (uint64, error) {
@@ -78,6 +77,9 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 	w3.Dial()
 	defer w3.Close()
 	w3.AddMaxBlockHeightProcedureEthJsonRpcHeader()
+	if w3.NodeURL == irisSvcBeacons {
+		w3.AddBearerToken(artemis_orchestration_auth.Bearer)
+	}
 	bn, berr := w3.C.BlockNumber(context.Background())
 	if berr != nil {
 		log.Err(berr).Str("w3_sessionID", w3SessionHeader).Str("wc_sessionID", wcSessionHeader).Msg("GetLatestBlockFromCacheOrProvidedSource: failed to get block number")
@@ -105,6 +107,10 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 	}
 	Wc.Dial()
 	defer Wc.Close()
+
+	if Wc.NodeURL == irisSvcBeacons {
+		Wc.AddBearerToken(artemis_orchestration_auth.Bearer)
+	}
 	Wc.AddMaxBlockHeightProcedureEthJsonRpcHeader()
 	bn, berr := Wc.C.BlockNumber(context.Background())
 	if berr != nil {

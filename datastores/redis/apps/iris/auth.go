@@ -7,12 +7,19 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
-func (m *IrisCache) GetAuthCacheIfExists(ctx context.Context, token string) (int64, string, error) {
+func (m *IrisCache) GetAuthCacheIfExists(ctx context.Context, token string) (org_users.OrgUser, string, error) {
 	// Generate the rate limiter key with the Unix timestamp
 	hashedToken := getHashedTokenKey(token)
 	hashedTokenPlan := getHashedTokenPlanKey(token)
+	hashedTokenUserID := getHashedTokenUserID(token)
+
+	ou := org_users.OrgUser{
+		OrgUsers: autogen_bases.OrgUsers{UserID: int(-1), OrgID: int(-1)},
+	}
 
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Reader.TxPipeline()
@@ -20,31 +27,42 @@ func (m *IrisCache) GetAuthCacheIfExists(ctx context.Context, token string) (int
 	// Get the values from Redis
 	orgIDCmd := pipe.Get(ctx, hashedToken)
 	orgPlanCmd := pipe.Get(ctx, hashedTokenPlan)
-
+	orgUserIDCmd := pipe.Get(ctx, hashedTokenUserID)
 	// Execute the pipeline
 	_, err := pipe.Exec(ctx)
 	if err != nil && err != redis.Nil {
-		return -1, "", err
+		return ou, "", err
 	}
 
 	// Get the values from the commands
 	orgID, err := orgIDCmd.Int64()
 	if err != nil {
 		if err == redis.Nil {
-			return 0, "", fmt.Errorf("no value found for token: %s", token)
+			return ou, "", fmt.Errorf("no value found for hashedToken: %s", hashedToken)
 		}
-		return -1, "", err
+		return ou, "", err
 	}
 
 	plan, err := orgPlanCmd.Result()
 	if err != nil {
 		if err == redis.Nil {
-			return 0, "", fmt.Errorf("no value found for token: %s", token)
+			return ou, "", fmt.Errorf("no value found for hashedTokenPlan: %s", hashedTokenPlan)
 		}
-		return -1, "", err
+		return ou, "", err
 	}
 
-	return orgID, plan, nil
+	userID, err := orgUserIDCmd.Int64()
+	if err != nil {
+		if err == redis.Nil {
+			return ou, "", fmt.Errorf("no value found for hashedTokenUserID: %s", hashedTokenUserID)
+		}
+		return ou, "", err
+	}
+
+	ou = org_users.OrgUser{
+		OrgUsers: autogen_bases.OrgUsers{UserID: int(userID), OrgID: int(orgID)},
+	}
+	return ou, plan, nil
 }
 
 const (
@@ -52,10 +70,11 @@ const (
 	CacheSessionTTL = time.Second * 3
 )
 
-func (m *IrisCache) SetAuthCache(ctx context.Context, orgID int, token, plan string, usingCookie bool) error {
+func (m *IrisCache) SetAuthCache(ctx context.Context, ou org_users.OrgUser, token, plan string, usingCookie bool) error {
 	// Generate the rate limiter key with the Unix timestamp
 	hashedToken := getHashedTokenKey(token)
 	hashedTokenPlan := getHashedTokenPlanKey(token)
+	hashedTokenUserID := getHashedTokenUserID(token)
 
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
@@ -63,8 +82,9 @@ func (m *IrisCache) SetAuthCache(ctx context.Context, orgID int, token, plan str
 	if usingCookie {
 		ttl = CacheSessionTTL
 	}
-	pipe.Set(ctx, hashedToken, orgID, ttl)
+	pipe.Set(ctx, hashedToken, ou.OrgID, ttl)
 	pipe.Set(ctx, hashedTokenPlan, plan, ttl)
+	pipe.Set(ctx, hashedTokenUserID, ou.UserID, ttl)
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
@@ -78,11 +98,13 @@ func (m *IrisCache) DeleteAuthCache(ctx context.Context, token string) error {
 	// Generate the rate limiter key with the Unix timestamp
 	hashedToken := getHashedTokenKey(token)
 	hashedTokenPlan := getHashedTokenPlanKey(token)
+	hashedTokenUserID := getHashedTokenUserID(token)
 
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
 	pipe.Del(ctx, hashedToken)
 	pipe.Del(ctx, hashedTokenPlan)
+	pipe.Del(ctx, hashedTokenUserID)
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {

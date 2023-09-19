@@ -88,7 +88,7 @@ func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
 	usage.GetMonthlyBudgetZUM()
 	usage.GetCurrentRateZUk()
 	usage.GetRateLimitZUk()
-	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
+	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID, ou.UserID)
 	if err != nil {
 		log.Err(err).Msg("GetUserPlanInfo: OrgEndpointsAndGroupTablesCount")
 		return c.JSON(http.StatusInternalServerError, nil)

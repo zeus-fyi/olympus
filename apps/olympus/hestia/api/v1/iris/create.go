@@ -25,7 +25,7 @@ func CreateOrgRoutesRequestHandler(c echo.Context) error {
 
 func (r *OrgGroupRoutesRequest) Create(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
+	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID, ou.UserID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
@@ -79,7 +79,7 @@ func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
 		log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("CreateGroupRoute: marketplace not found")
 		return c.JSON(http.StatusUnprocessableEntity, nil)
 	}
-	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
+	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID, ou.UserID)
 	if err != nil {
 		log.Err(err).Msg("CreateGroupRoute: OrgEndpointsAndGroupTablesCount")
 		return c.JSON(http.StatusInternalServerError, nil)

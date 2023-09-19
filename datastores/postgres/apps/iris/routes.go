@@ -448,7 +448,7 @@ type TableUsageAndUserSettings struct {
 	MonthlyBudgetTableCount int  `json:"monthlyBudgetTableCount,omitempty"`
 }
 
-func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsageAndUserSettings, error) {
+func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID, userID int) (*TableUsageAndUserSettings, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
 		SELECT COALESCE(COUNT(*), 0) as endpoint_count, 
@@ -461,14 +461,14 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
 									INNER JOIN org_users ou ON ou.org_id = o.org_id
 									INNER JOIN users_keys usk ON usk.user_id = ou.user_id
 									INNER JOIN quicknode_marketplace_customer qm ON qm.quicknode_id = usk.public_key
-									WHERE o.org_id = $1 AND public_key_name = 'quickNodeMarketplaceCustomer' AND public_key_verified = true), false) AS tutorial_on
+									WHERE o.org_id = $1 AND ou.user_id = $2 AND public_key_name = 'quickNodeMarketplaceCustomer' AND public_key_verified = true), false) AS tutorial_on
 		FROM org_routes 
 		WHERE org_id = $1
 	`
 
 	endpointCount, groupTablesCount := 0, 0
 	var tutorialOn bool
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&endpointCount, &groupTablesCount, &tutorialOn)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, userID).Scan(&endpointCount, &groupTablesCount, &tutorialOn)
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("OrgEndpointsAndGroupTablesCount has no entries")
 		return &TableUsageAndUserSettings{false, 0, 0, 25}, nil
@@ -496,6 +496,12 @@ func (t *TableUsageAndUserSettings) CheckEndpointLimits() error {
 
 func (t *TableUsageAndUserSettings) SetMaxTableCountByPlan(plan string) error {
 	switch strings.ToLower(plan) {
+	case "enterprise":
+		// todo
+		// check 100k ZU/s
+		// check max 3B ZU/month
+		t.MonthlyBudgetTableCount = PerformanceGroupTables
+		return nil
 	case "performance":
 		// check 100k ZU/s
 		// check max 3B ZU/month
@@ -532,6 +538,15 @@ func (t *TableUsageAndUserSettings) CheckPlanLimits(plan string) error {
 		return err
 	}
 	switch strings.ToLower(plan) {
+	case "enterprise":
+		// todo
+		// check 100k ZU/s
+		// check max 3B ZU/month
+		t.MonthlyBudgetTableCount = PerformanceGroupTables
+		if t.TableCount >= PerformanceGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
+		return nil
 	case "performance":
 		// check 100k ZU/s
 		// check max 3B ZU/month

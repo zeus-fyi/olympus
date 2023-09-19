@@ -27,8 +27,11 @@ func (r *OrgGroupRoutesRequest) UpdateOrgGroup(c echo.Context) error {
 	if len(r.Routes) <= 0 {
 		return r.DeleteOrgRoutingGroup(c)
 	}
-	ou := c.Get("orgUser").(org_users.OrgUser)
-	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID, ou.UserID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}

@@ -128,7 +128,7 @@ func (s *IrisTestSuite) TestInsertOrgRoutes() {
 func (s *IrisTestSuite) TestSelectOrgEndpointsAndGroupTablesCount() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
-	resp, err := OrgEndpointsAndGroupTablesCount(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	resp, err := OrgEndpointsAndGroupTablesCount(ctx, s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
 	s.Require().Nil(err)
 	s.Require().NotNil(resp)
 

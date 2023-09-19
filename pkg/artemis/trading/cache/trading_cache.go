@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
+	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v2/internal/router"
 )
 
 var (
@@ -55,6 +55,7 @@ func InitTokenFilter(ctx context.Context) {
 
 func InitWeb3Client() {
 	Wc = web3_actions.NewWeb3ActionsClient(irisSvcBeacons)
+	Wc.AddDefaultEthereumMainnetTableHeader()
 	if len(artemis_orchestration_auth.Bearer) == 0 {
 		panic(fmt.Errorf("bearer token is empty"))
 	}
@@ -130,6 +131,7 @@ func SetActiveTradingBlockCache(ctx context.Context, timestampChan chan time.Tim
 		select {
 		case t := <-timestampChan:
 			Wc = web3_actions.NewWeb3ActionsClient(irisSvcBeacons)
+			Wc.AddDefaultEthereumMainnetTableHeader()
 			Wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 			Wc.Dial()
 			bn, berr := Wc.C.BlockNumber(context.Background())

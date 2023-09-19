@@ -39,6 +39,7 @@ func (i *IrisApiRequestsWorkflow) GetWorkflows() []interface{} {
 type ApiProxyRequest struct {
 	Url                  string
 	OrgID                int
+	UserID               int
 	Routes               []iris_models.RouteInfo
 	AdaptiveKeyName      string
 	MetricName           string

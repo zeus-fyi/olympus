@@ -252,6 +252,12 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 		if stats.MemberRankScoreIn.Score > 100000 && stats.DecayScaleFactor >= 0.80 {
 			stats.DecayScaleFactor = 0.60
 		}
+		if stats.MemberRankScoreIn.Score > 1000000 && stats.DecayScaleFactor >= 0.60 {
+			stats.DecayScaleFactor = 0.50
+		}
+		if stats.MemberRankScoreIn.Score > 10000000 && stats.DecayScaleFactor >= 0.50 {
+			stats.DecayScaleFactor = 0.40
+		}
 		stats.MemberRankScoreIn.Score *= stats.DecayScaleFactor
 		pipe.ZAdd(ctx, endpointPriorityScoreKey, stats.MemberRankScoreIn)
 	}

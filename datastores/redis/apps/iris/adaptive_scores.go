@@ -246,7 +246,7 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 
 	// todo tune this
 	if stats.MemberRankScoreIn.Score > 1 {
-		if stats.MemberRankScoreIn.Score > 10000 && stats.DecayScaleFactor > 0.90 {
+		if stats.MemberRankScoreIn.Score > 10000 && stats.DecayScaleFactor > 0.80 {
 			stats.DecayScaleFactor = 0.80
 		}
 		stats.MemberRankScoreIn.Score *= stats.DecayScaleFactor

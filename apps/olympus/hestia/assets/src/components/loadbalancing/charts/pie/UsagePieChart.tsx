@@ -40,7 +40,7 @@ export function PlanRateUsagePieChart(props: any) {
                 <Typography variant="h5" gutterBottom>
                     {title}
                 </Typography>
-                <PieChart width={425} height={275}>
+                <PieChart width={450} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60}  />
                     <Pie data={data02} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={90} label />
                     <Legend align="left" verticalAlign="bottom" layout="vertical" />
@@ -75,7 +75,7 @@ export function PlanTableCountUsagePieChart(props: any) {
                 <Typography variant="h5" gutterBottom>
                    Table & Route Usage
                 </Typography>
-                <PieChart width={425} height={275}>
+                <PieChart width={450} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60} fill="#8884d8" />
                     <Pie data={data02} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={90} fill="#82ca9d" label />
                     <Legend align="left" verticalAlign="bottom" layout="vertical" />

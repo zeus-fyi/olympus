@@ -45,16 +45,17 @@ func InitV1Routes(e *echo.Echo) {
 				usingCookie = true
 			}
 
-			orgID, plan, err := iris_redis.IrisRedisClient.GetAuthCacheIfExists(ctx, token)
-			if err == nil && orgID > 0 && plan != "" {
+			orgU, plan, err := iris_redis.IrisRedisClient.GetAuthCacheIfExists(ctx, token)
+			if err == nil && orgU.OrgID > 0 && plan != "" {
 				c.Set("lbDefault", getDefaultLB(plan))
 				c.Set("servicePlan", plan)
-				c.Set("orgUser", org_users.NewOrgUserWithID(int(orgID), 0))
+				c.Set("orgUser", org_users.NewOrgUserWithID(int(orgU.OrgID), orgU.UserID))
 				c.Set("bearer", token)
 				return true, nil
 			} else {
 				plan = ""
-				orgID = -1
+				orgU.OrgID = -1
+				orgU.UserID = -1
 				err = nil
 			}
 			key := read_keys.NewKeyReader()
@@ -78,7 +79,7 @@ func InitV1Routes(e *echo.Echo) {
 			if err == nil && ou.OrgID > 0 && plan != "" {
 				go func(oID int, token, plan string, usingCookie bool) {
 					log.Info().Int("orgID", oID).Str("plan", plan).Msg("InitV1Routes: SetAuthCache")
-					err = iris_redis.IrisRedisClient.SetAuthCache(context.Background(), oID, token, plan, usingCookie)
+					err = iris_redis.IrisRedisClient.SetAuthCache(context.Background(), ou, token, plan, usingCookie)
 					if err != nil {
 						log.Err(err).Msg("InitV1Routes: SetAuthCache")
 					}

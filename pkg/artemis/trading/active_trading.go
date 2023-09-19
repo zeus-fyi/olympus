@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	irisBetaSvcExt = "https://iris.zeus.fyi/v1beta/internal/"
-	irisBetaSvc    = "http://iris.iris.svc.cluster.local/v1beta/internal/"
-	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
+	irisBetaSvcExt = "https://iris.zeus.fyi/v1/router/"
+	irisBetaSvc    = "http://iris.iris.svc.cluster.local/v2/internal/router"
+	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v2/internal/router"
 )
 
 var (

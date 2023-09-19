@@ -88,6 +88,10 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 
+	AddIrisRouter(eg)
+}
+
+func AddIrisRouter(eg *echo.Group) {
 	eg.POST("/router", RpcLoadBalancerPOSTRequestHandler)
 	eg.POST("/router/*", wrapHandlerWithCapture(RpcLoadBalancerPOSTRequestHandler))
 

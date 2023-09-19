@@ -148,7 +148,7 @@ func (d *ArtemisMevActivities) ConvertMempoolTxs(ctx context.Context, mempoolTxs
 }
 
 func (d *ArtemisMevActivities) ProcessMempoolTxs(ctx context.Context, mempoolTxs map[string]map[string]*types.Transaction) ([]artemis_autogen_bases.EthMempoolMevTx, error) {
-	uni := InitNewUniswapQuiknode(ctx)
+	uni := InitNewUniswapQuikNode(ctx)
 	err := uni.ProcessMempoolTxs(ctx, mempoolTxs)
 	if err != nil {
 		log.Err(err).Msg("ProcessMempoolTxs failed")

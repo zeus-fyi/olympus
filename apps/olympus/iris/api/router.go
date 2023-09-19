@@ -19,6 +19,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	v1_iris.InitV1Routes(e)
 	v1internal_iris.InitV1InternalRoutes(e)
 	v1Beta_iris.InitV1BetaInternalRoutes(e)
+	v1internal_iris.InitV2InternalRoutes1(e)
 	return e
 }
 

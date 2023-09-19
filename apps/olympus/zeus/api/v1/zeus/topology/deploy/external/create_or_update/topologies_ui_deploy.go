@@ -200,6 +200,9 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				case "iris":
 					namespace = "iris"
 					appTaint = false
+				case "txFetcher":
+					namespace = "tx-fetcher"
+					appTaint = true
 				case "hestia":
 					namespace = "hestia"
 					appTaint = false

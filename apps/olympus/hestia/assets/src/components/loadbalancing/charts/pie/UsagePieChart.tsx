@@ -24,13 +24,14 @@ export function PlanRateUsagePieChart(props: any) {
     const [currentRate, setCurrentRate] = useState(planUsageDetails?.computeUsage?.currentRate ?? 0);
     const [planBudgetZU, setPlanBudgetZU] = useState(planUsageDetails?.computeUsage?.monthlyBudgetZU ?? 0);
     const [monthlyUsage, setMonthlyUsage] = useState(planUsageDetails?.computeUsage?.monthlyUsage ?? 0);
+
     const data02 = [
-        { name: `ZU ${(rateLimit - currentRate).toFixed(0)}k/s  limit`, value: (rateLimit - currentRate).toFixed(0), fill: "#4db375"},
-        { name: `ZU ${currentRate.toFixed(3)} k/s`, value: currentRate.toFixed(3), fill: "#ff4d4d"},
+        { name: `ZU ${(rateLimit - currentRate).toFixed(2)}k/s  limit`, value: rateLimit - currentRate, fill: "#4db375"},
+        { name: `ZU ${(currentRate).toFixed(2)} k/s`, value: currentRate, fill: "#ff4d4d"},
     ];
     const data01 = [
-        { name: `ZU ${(planBudgetZU-monthlyUsage).toFixed(0)}M`, value: (planBudgetZU-monthlyUsage).toFixed(0), fill: "#4db375"},
-        { name: `ZU ${(monthlyUsage).toFixed(1)}M used`, value: (monthlyUsage).toFixed(1), fill: "#ff4d4d"},
+        { name: `ZU ${(planBudgetZU-monthlyUsage).toFixed(2)}M`, value: planBudgetZU-monthlyUsage, fill: "#4db375"},
+        { name: `ZU ${(monthlyUsage).toFixed(2)}M used`, value: monthlyUsage, fill: "#ff4d4d"},
     ];
 
     return (
@@ -39,7 +40,7 @@ export function PlanRateUsagePieChart(props: any) {
                 <Typography variant="h5" gutterBottom>
                     {title}
                 </Typography>
-                <PieChart width={400} height={275}>
+                <PieChart width={425} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60}  />
                     <Pie data={data02} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={90} label />
                     <Legend align="left" verticalAlign="bottom" layout="vertical" />
@@ -74,7 +75,7 @@ export function PlanTableCountUsagePieChart(props: any) {
                 <Typography variant="h5" gutterBottom>
                    Table & Route Usage
                 </Typography>
-                <PieChart width={400} height={275}>
+                <PieChart width={425} height={275}>
                     <Pie data={data01} dataKey="value" cx="50%" cy="50%" outerRadius={60} fill="#8884d8" />
                     <Pie data={data02} dataKey="value" cx="50%" cy="50%" innerRadius={70} outerRadius={90} fill="#82ca9d" label />
                     <Legend align="left" verticalAlign="bottom" layout="vertical" />

@@ -42,7 +42,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 	bn, berr := artemis_trading_cache.GetLatestBlock(ctx)
 	if berr != nil {
 		log.Err(berr).Msg("RealTimeProcessUniswapV2RouterTx: failed to get latest block")
-		return nil, errors.New("ailed to get latest block")
+		return nil, errors.New("RealTimeProcessUniswapV2RouterTx: failed to get latest block")
 	}
 	toAddr := tx.Tx.To().String()
 	var tfSlice []web3_client.TradeExecutionFlow
@@ -53,7 +53,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		}
 	case addLiquidityETH:
 		if tx.Tx.Value() == nil {
-			return nil, errors.New("addLiquidityETH tx has no value")
+			return nil, errors.New("RealTimeProcessUniswapV2RouterTx: addLiquidityETH tx has no value")
 		}
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(toAddr, addLiquidityETH)

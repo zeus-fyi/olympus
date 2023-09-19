@@ -40,6 +40,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		cfg.PGConnStr = sw.PostgresAuth
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
+		artemis_orchestration_auth.Bearer = sw.BearerToken
 		price_quoter.ZeroXApiKey = sw.ZeroXApiKey
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 		artemis_trading_cache.InitProductionRedis(ctx)
@@ -52,6 +53,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		price_quoter.ZeroXApiKey = sw.ZeroXApiKey
+		artemis_orchestration_auth.Bearer = sw.BearerToken
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "local":
@@ -61,6 +63,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessKey = tc.AwsAccessKeyDynamoDB
 		dynamoDBCreds.AccessSecret = tc.AwsSecretKeyDynamoDB
 		price_quoter.ZeroXApiKey = tc.ZeroXApiKey
+		artemis_orchestration_auth.Bearer = tc.ProductionLocalTemporalBearerToken
 		authKeysCfg = tc.DevAuthKeysCfg
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
@@ -79,10 +82,6 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msg("Tyche: InitTokenFilter starting")
 	artemis_trading_cache.InitTokenFilter(ctx)
 	log.Info().Msg("Tyche: InitTokenFilter succeeded")
-
-	log.Info().Msgf("Tyche %s orchestration retrieving auth token", env)
-	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
-	log.Info().Msgf("Tyche %s orchestration retrieving auth token done", env)
 
 	log.Info().Msg("Tyche: InitFlashbots starting")
 	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)

@@ -50,7 +50,7 @@ var (
 	RpcLoadBalancerDELETERequestHandler = RpcLoadBalancerRequestHandler("DELETE")
 )
 
-func getDefaultLB(plan string) string {
+func GetDefaultLB(plan string) string {
 	switch plan {
 	case "enterprise", "standard", "performance":
 		return Adaptive

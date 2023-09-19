@@ -111,7 +111,7 @@ func InitV2InternalRoutes1(e *echo.Echo) {
 			c.Set("servicePlan", plan)
 			c.Set("orgUser", ou)
 			c.Set("bearer", token)
-			if err == nil && ou.OrgID > 0 && plan != "" {
+			if err == nil && ou.OrgID > 0 && ou.UserID > 0 && plan != "" {
 				go func(oID int, token, plan string, usingCookie bool) {
 					log.Info().Int("orgID", oID).Str("plan", plan).Msg("InitV1Routes: SetAuthCache")
 					err = iris_redis.IrisRedisClient.SetAuthCache(context.Background(), ou, token, plan, usingCookie)

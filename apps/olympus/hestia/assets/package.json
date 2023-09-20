@@ -58,6 +58,7 @@
     "rambda": "^7.5.0",
     "ramda": "^0.28.0",
     "react-dom": "^18.2.0",
+    "react-gtm-module": "^2.0.11",
     "react-joyride": "^2.5.5",
     "react-monaco-editor": "^0.52.0",
     "react-redux": "^8.0.5",
@@ -103,6 +104,7 @@
     "@types/js-yaml": "^4.0.5",
     "@types/lodash": "^4.14.194",
     "@types/node": "^16.18.14",
+    "@types/react-gtm-module": "^2.0.1",
     "@types/ungap__structured-clone": "^0.3.0"
   }
 }

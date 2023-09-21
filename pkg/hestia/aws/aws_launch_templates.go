@@ -36,7 +36,7 @@ func GetLaunchTemplate(slug string) *eksTypes.LaunchTemplateSpecification {
 	// todo
 	lt := &eksTypes.LaunchTemplateSpecification{
 		Id:      nil,
-		Name:    nil,
+		Name:    aws.String(GetLaunchTemplateName(slug)),
 		Version: nil,
 	}
 	return lt

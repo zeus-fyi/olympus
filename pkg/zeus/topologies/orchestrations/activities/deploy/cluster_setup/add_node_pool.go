@@ -133,9 +133,12 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 }
 
 func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
-	label := make(map[string]string)
-	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
-	label["app"] = params.Cluster.ClusterName
+	labels := make(map[string]string)
+	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
+	labels["app"] = params.Cluster.ClusterName
+	if params.Nodes.DiskType == "nvme" {
+		labels = hestia_eks_aws.AddAwsEksNvmeLabels(labels)
+	}
 	suffix := strings.Split(params.Namespace, "-")[0]
 	orgTaint := types.Taint{
 		Effect: "NO_SCHEDULE",
@@ -163,7 +166,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 		CapacityType:       "",
 		ClientRequestToken: aws.String(nodeGroupName),
 		InstanceTypes:      []string{params.Nodes.Slug},
-		Labels:             label,
+		Labels:             labels,
 		ReleaseVersion:     nil,
 		ScalingConfig: &types.NodegroupScalingConfig{
 			DesiredSize: aws.Int32(int32(params.NodesQuantity)),

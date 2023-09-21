@@ -16,7 +16,8 @@ var ctx = context.Background()
 
 type AwsEKSTestSuite struct {
 	test_suites_base.TestSuite
-	ek AwsEKS
+	ek  AwsEKS
+	ecc AwsEc2
 }
 
 func (s *AwsEKSTestSuite) SetupTest() {
@@ -30,6 +31,10 @@ func (s *AwsEKSTestSuite) SetupTest() {
 	s.Require().NoError(err)
 	s.ek = eka
 	s.Require().NotNil(s.ek.Client)
+
+	ecc, err := InitAwsEc2(ctx, eksCreds)
+	s.Require().NoError(err)
+	s.ecc = ecc
 }
 
 func (s *AwsEKSTestSuite) TestCreateNodeGroup() {

@@ -1,13 +1,35 @@
 package hestia_eks_aws
 
 import (
+	"context"
 	"encoding/base64"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	eksTypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/rs/zerolog/log"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
+
+type AwsEc2 struct {
+	*ec2.Client
+}
+
+func InitAwsEc2(ctx context.Context, accessCred aegis_aws_auth.AuthAWS) (AwsEc2, error) {
+	creds := credentials.NewStaticCredentialsProvider(accessCred.AccessKey, accessCred.SecretKey, "")
+	cfg, err := config.LoadDefaultConfig(
+		ctx,
+		config.WithCredentialsProvider(creds),
+		config.WithRegion(accessCred.Region),
+	)
+	if err != nil {
+		return AwsEc2{}, err
+	}
+	return AwsEc2{ec2.NewFromConfig(cfg)}, nil
+}
 
 func GetLaunchTemplate(slug string) *eksTypes.LaunchTemplateSpecification {
 	// todo
@@ -19,8 +41,14 @@ func GetLaunchTemplate(slug string) *eksTypes.LaunchTemplateSpecification {
 	return lt
 }
 
-func RegisterInstanceTemplate(input *ec2.CreateLaunchTemplateInput) {
-	// todo
+func (a *AwsEc2) RegisterInstanceTemplate(slug string) (*ec2.CreateLaunchTemplateOutput, error) {
+	lti := CreateNvmeLaunchTemplate(slug)
+	launchTemplateOutput, err := a.CreateLaunchTemplate(context.Background(), lti)
+	if err != nil {
+		log.Err(err).Interface("lto", launchTemplateOutput).Msg("failed to create launch template")
+		return launchTemplateOutput, err
+	}
+	return launchTemplateOutput, err
 }
 
 func CreateNvmeLaunchTemplate(instanceType string) *ec2.CreateLaunchTemplateInput {
@@ -59,6 +87,7 @@ func CreateNvmeLaunchTemplate(instanceType string) *ec2.CreateLaunchTemplateInpu
 	`
 	encodedUserData := base64.StdEncoding.EncodeToString([]byte(userData))
 	lt := &ec2.CreateLaunchTemplateInput{
+
 		LaunchTemplateName: aws.String("eks-pv-raid-launch-template"),
 		VersionDescription: aws.String("eks nvme bootstrap"),
 		LaunchTemplateData: &types.RequestLaunchTemplateData{

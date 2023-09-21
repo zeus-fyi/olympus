@@ -9,10 +9,6 @@ import (
 	eksTypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
-func RegisterInstanceTemplate(input *ec2.CreateLaunchTemplateInput) {
-	// todo
-}
-
 func GetLaunchTemplate(slug string) *eksTypes.LaunchTemplateSpecification {
 	// todo
 	lt := &eksTypes.LaunchTemplateSpecification{
@@ -21,6 +17,10 @@ func GetLaunchTemplate(slug string) *eksTypes.LaunchTemplateSpecification {
 		Version: nil,
 	}
 	return lt
+}
+
+func RegisterInstanceTemplate(input *ec2.CreateLaunchTemplateInput) {
+	// todo
 }
 
 func CreateNvmeLaunchTemplate(instanceType string) *ec2.CreateLaunchTemplateInput {

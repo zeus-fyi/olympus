@@ -8,6 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
+func SubmitInstanceTemplate(input *ec2.CreateLaunchTemplateInput) {
+}
+
 func CreateNvmeLaunchTemplate(instanceType string) *ec2.CreateLaunchTemplateInput {
 	// Create EC2 Launch Template with User Data
 	userData := `#!/bin/bash

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
-	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
@@ -35,19 +35,24 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Products() {
 	err := s.pc.GetAllProducts(ctx, UsWest1)
 	s.Require().NoError(err)
 }
+
+/*
+gen 3
+1.376 USD per Hour
+2.752 USD per Hour
+
+gen 4
+
+1.514 USD per Hour
+3.027 USD per Hour
+*/
 func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
-	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	instanceTypes := []string{
-		//"t2.nano",
-		"t2.micro",
-		"t2.small",
-		"t2.medium",
-		"t2.large",
-		"t2.2xlarge",
-		"t3.micro",
-		"t3.small",
-		"t3.medium",
-		"t3.xlarge",
+		"i3.4xlarge",
+		"i3.8xlarge",
+		"i4i.4xlarge",
+		"i4i.8xlarge",
 	}
 
 	n := hestia_autogen_bases.NodesSlice{}
@@ -84,6 +89,7 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 			dbSize.Slug = instanceType
 			dbSize.Disk = 20
 			dbSize.DiskUnits = "GiB"
+			dbSize.DiskType = "nvme"
 			dbSize.PriceHourly = usdCost
 			dbSize.CloudProvider = "aws"
 			dbSize.Vcpus = vcpus
@@ -95,9 +101,9 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 			n = append(n, dbSize)
 		}
 	}
-
-	err := hestia_compute_resources.InsertNodes(ctx, n)
-	s.Require().NoError(err)
+	//
+	//err := hestia_compute_resources.InsertNodes(ctx, n)
+	//s.Require().NoError(err)
 }
 
 func TestAwsPricingClientTestSuite(t *testing.T) {

@@ -14,6 +14,7 @@ CREATE TABLE nodes (
    vcpus float4 NOT NULL,
    disk int NOT NULL,
    disk_units text NOT NULL,
+   disk_type text NOT NULL DEFAULT 'ssd',
    price_monthly float8 NOT NULL,
    price_hourly float8 NOT NULL,
    region text NOT NULL,
@@ -23,13 +24,17 @@ CREATE TABLE nodes (
    PRIMARY KEY (resource_id)
 );
 
+-- bandwidth (if specified, 0 means data is missing) todo add bandwidth later
+
 CREATE INDEX nodes_region_idx ON nodes (region);
 CREATE INDEX nodes_vcpus_idx ON nodes (vcpus);
 CREATE INDEX nodes_memory_idx ON nodes (memory);
 CREATE INDEX nodes_cloud_provider_idx ON nodes (cloud_provider);
 CREATE INDEX nodes_price_monthly_idx ON nodes (price_monthly);
 CREATE INDEX nodes_price_hourly_idx ON nodes (price_hourly);
+CREATE INDEX nodes_disk_type_idx ON nodes (disk_type);
 
+-- this is block storage, not local node volumes
 CREATE TABLE disks (
    resource_id int8 NOT NULL REFERENCES resources(resource_id),
    description text NOT NULL,

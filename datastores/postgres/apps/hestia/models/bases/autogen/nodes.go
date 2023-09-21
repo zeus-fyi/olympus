@@ -7,6 +7,7 @@ type Nodes struct {
 	Vcpus         float64 `db:"vcpus" json:"vcpus"`
 	Disk          int     `db:"disk" json:"disk"`
 	DiskUnits     string  `db:"disk_units" json:"diskUnits"`
+	DiskType      string  `db:"disk_type" json:"diskType"`
 	PriceHourly   float64 `db:"price_hourly" json:"priceHourly"`
 	Region        string  `db:"region" json:"region"`
 	CloudProvider string  `db:"cloud_provider" json:"cloudProvider"`
@@ -24,12 +25,12 @@ func (n *Nodes) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{n.Memory, n.Vcpus, n.Disk, n.DiskUnits, n.PriceHourly, n.Region, n.CloudProvider, n.ResourceID, n.Description, n.Slug, n.MemoryUnits, n.PriceMonthly, n.Gpus, n.GpuType}
+		pgValues = apps.RowValues{n.Memory, n.Vcpus, n.Disk, n.DiskUnits, n.DiskType, n.PriceHourly, n.Region, n.CloudProvider, n.ResourceID, n.Description, n.Slug, n.MemoryUnits, n.PriceMonthly, n.Gpus, n.GpuType}
 	}
 	return pgValues
 }
 func (n *Nodes) GetTableColumns() (columnValues []string) {
-	columnValues = []string{"memory", "vcpus", "disk", "disk_units", "price_hourly", "region", "cloud_provider", "resource_id", "description", "slug", "memory_units", "price_monthly", "gpus", "gpu_type"}
+	columnValues = []string{"memory", "vcpus", "disk", "disk_units", "disk_type", "price_hourly", "region", "cloud_provider", "resource_id", "description", "slug", "memory_units", "price_monthly", "gpus", "gpu_type"}
 	return columnValues
 }
 func (n *Nodes) GetTableName() (tableName string) {

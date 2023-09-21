@@ -6,9 +6,21 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	eksTypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
-func SubmitInstanceTemplate(input *ec2.CreateLaunchTemplateInput) {
+func RegisterInstanceTemplate(input *ec2.CreateLaunchTemplateInput) {
+	// todo
+}
+
+func GetLaunchTemplate(slug string) *eksTypes.LaunchTemplateSpecification {
+	// todo
+	lt := &eksTypes.LaunchTemplateSpecification{
+		Id:      nil,
+		Name:    nil,
+		Version: nil,
+	}
+	return lt
 }
 
 func CreateNvmeLaunchTemplate(instanceType string) *ec2.CreateLaunchTemplateInput {

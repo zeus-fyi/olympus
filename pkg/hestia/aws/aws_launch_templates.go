@@ -3,6 +3,7 @@ package hestia_eks_aws
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -41,6 +42,10 @@ func GetLaunchTemplate(slug string) *eksTypes.LaunchTemplateSpecification {
 	return lt
 }
 
+func GetLaunchTemplateName(slug string) string {
+	return fmt.Sprintf("eks-pv-raid-launch-template-%s", slug)
+}
+
 func (a *AwsEc2) RegisterInstanceTemplate(slug string) (*ec2.CreateLaunchTemplateOutput, error) {
 	lti := CreateNvmeLaunchTemplate(slug)
 	launchTemplateOutput, err := a.CreateLaunchTemplate(context.Background(), lti)
@@ -51,7 +56,7 @@ func (a *AwsEc2) RegisterInstanceTemplate(slug string) (*ec2.CreateLaunchTemplat
 	return launchTemplateOutput, err
 }
 
-func CreateNvmeLaunchTemplate(instanceType string) *ec2.CreateLaunchTemplateInput {
+func CreateNvmeLaunchTemplate(slug string) *ec2.CreateLaunchTemplateInput {
 	// Create EC2 Launch Template with User Data
 	userData := `#!/bin/bash
 		# Install NVMe CLI
@@ -87,12 +92,11 @@ func CreateNvmeLaunchTemplate(instanceType string) *ec2.CreateLaunchTemplateInpu
 	`
 	encodedUserData := base64.StdEncoding.EncodeToString([]byte(userData))
 	lt := &ec2.CreateLaunchTemplateInput{
-
-		LaunchTemplateName: aws.String("eks-pv-raid-launch-template"),
+		LaunchTemplateName: aws.String(fmt.Sprintf("eks-pv-raid-launch-template-%s", slug)),
 		VersionDescription: aws.String("eks nvme bootstrap"),
 		LaunchTemplateData: &types.RequestLaunchTemplateData{
 			UserData:     aws.String(encodedUserData),
-			InstanceType: types.InstanceType(instanceType),
+			InstanceType: types.InstanceType(slug),
 		},
 	}
 	return lt

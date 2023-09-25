@@ -67,7 +67,14 @@ func (a *AwsEc2) RegisterInstanceTemplate(slug string) (*ec2.CreateLaunchTemplat
 
 func CreateNvmeLaunchTemplate(slug string) *ec2.CreateLaunchTemplateInput {
 	// Create EC2 Launch Template with User Data
-	userData := `#!/bin/bash
+	userData := `
+		MIME-Version: 1.0
+		Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+		
+		--==MYBOUNDARY==
+		Content-Type: text/x-shellscript; charset="us-ascii"
+
+		#!/bin/bash
 		# Install NVMe CLI
         yum install nvme-cli -y
         
@@ -98,14 +105,15 @@ func CreateNvmeLaunchTemplate(slug string) *ec2.CreateLaunchTemplateInput {
         # Have disk be mounted on reboot
         mdadm --detail --scan >> /etc/mdadm.conf 
         echo /dev/md0 $mount_location ext4 defaults,noatime 0 2 >> /etc/fstab
-	`
+		--==MYBOUNDARY==--`
 	encodedUserData := base64.StdEncoding.EncodeToString([]byte(userData))
 	lt := &ec2.CreateLaunchTemplateInput{
 		LaunchTemplateName: aws.String(fmt.Sprintf("eks-pv-raid-launch-template-%s", slug)),
 		VersionDescription: aws.String("eks nvme bootstrap"),
 		LaunchTemplateData: &types.RequestLaunchTemplateData{
-			UserData:     aws.String(encodedUserData),
-			InstanceType: types.InstanceType(slug),
+			BlockDeviceMappings: make([]types.LaunchTemplateBlockDeviceMappingRequest, 0),
+			UserData:            aws.String(encodedUserData),
+			InstanceType:        types.InstanceType(slug),
 		},
 	}
 	return lt

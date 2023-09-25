@@ -65,6 +65,7 @@ func (a *AwsEc2) RegisterInstanceTemplate(slug string) (*ec2.CreateLaunchTemplat
 	return launchTemplateOutput, err
 }
 
+// CreateNvmeLaunchTemplate to read how retarded this is refer to: https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html
 func CreateNvmeLaunchTemplate(slug string) *ec2.CreateLaunchTemplateInput {
 	// Create EC2 Launch Template with User Data
 	userData := `

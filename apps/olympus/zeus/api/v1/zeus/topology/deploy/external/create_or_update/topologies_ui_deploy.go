@@ -141,6 +141,10 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		}
 		diskResourceID = 1683165785839881000
 	case "aws":
+		switch strings.HasPrefix("i", t.Node.Slug) {
+		case true:
+			t.Node.DiskType = "nvme"
+		}
 		cr = base_deploy_params.ClusterSetupRequest{
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,

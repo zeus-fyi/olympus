@@ -21,9 +21,9 @@ type AwsEc2 struct {
 
 var (
 	SlugToInstanceID = map[string]string{
-		"i3.8xlarge":  "lt-0771704151829d8a4",
-		"i3.4xlarge":  "lt-0ac0b5e68f7a9d490",
-		"i4i.4xlarge": "lt-01f4c81c082c5c7a4",
+		"i3.4xlarge":  "lt-0e97987981123738a",
+		"i3.8xlarge":  "lt-0a2a4a58163737e16",
+		"i4i.4xlarge": "lt-0872c2f0aff238f9a",
 	}
 
 	SlugToInstanceTemplateName = map[string]string{
@@ -65,56 +65,73 @@ func (a *AwsEc2) RegisterInstanceTemplate(slug string) (*ec2.CreateLaunchTemplat
 	return launchTemplateOutput, err
 }
 
+func (a *AwsEc2) UpdateInstanceTemplate(templateID string) (*ec2.ModifyLaunchTemplateOutput, error) {
+	mti := &ec2.ModifyLaunchTemplateInput{
+		ClientToken:        nil,
+		DefaultVersion:     nil,
+		DryRun:             nil,
+		LaunchTemplateId:   aws.String(templateID),
+		LaunchTemplateName: nil,
+	}
+
+	launchTemplateOutput, err := a.ModifyLaunchTemplate(context.Background(), mti)
+	if err != nil {
+		log.Err(err).Interface("lto", launchTemplateOutput).Msg("failed to create launch template")
+		return launchTemplateOutput, err
+	}
+	return launchTemplateOutput, err
+}
+
 // CreateNvmeLaunchTemplate to read how retarded this is refer to: https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html
 func CreateNvmeLaunchTemplate(slug string) *ec2.CreateLaunchTemplateInput {
 	// Create EC2 Launch Template with User Data
-	userData := `
-		MIME-Version: 1.0
-		Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
-		
-		--==MYBOUNDARY==
-		Content-Type: text/x-shellscript; charset="us-ascii"
+	userData := `MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
 
-		#!/bin/bash
-		# Install NVMe CLI
-        yum install nvme-cli -y
-        
-        # Get list of NVMe Drives
-        nvme_drives=$(nvme list | grep "Amazon EC2 NVMe Instance Storage" | cut -d " " -f 1 || true)
-        readarray -t nvme_drives <<< "$nvme_drives"
-        num_drives=${#nvme_drives[@]}
-        
-        # Install software RAID utility
-        yum install mdadm -y
-        
-        # Create RAID-0 array across the instance store NVMe SSDs
-        mdadm --create /dev/md0 --level=0 --name=md0 --raid-devices=$num_drives "${nvme_drives[@]}"
+--==MYBOUNDARY==
+Content-Type: text/x-shellscript; charset="us-ascii"
 
-        # Format drive with Ext4
-        mkfs.ext4 /dev/md0
+#!/bin/bash
+# Install NVMe CLI
+yum install nvme-cli -y
 
-        # Get RAID array's UUID
-        uuid=$(blkid -o value -s UUID /dev/md0)
-        
-        # Create a filesystem path to mount the disk
-        mount_location="/mnt/fast-disks/${uuid}"
-        mkdir -p $mount_location
-        
-        # Mount RAID device
-        mount /dev/md0 $mount_location
-        
-        # Have disk be mounted on reboot
-        mdadm --detail --scan >> /etc/mdadm.conf 
-        echo /dev/md0 $mount_location ext4 defaults,noatime 0 2 >> /etc/fstab
-		--==MYBOUNDARY==--`
+# Get list of NVMe Drives
+nvme_drives=$(nvme list | grep "Amazon EC2 NVMe Instance Storage" | cut -d " " -f 1 || true)
+readarray -t nvme_drives <<< "$nvme_drives"
+num_drives=${#nvme_drives[@]}
+
+# Install software RAID utility
+yum install mdadm -y
+
+# Create RAID-0 array across the instance store NVMe SSDs
+mdadm --create /dev/md0 --level=0 --name=md0 --raid-devices=$num_drives "${nvme_drives[@]}"
+
+# Format drive with Ext4
+mkfs.ext4 /dev/md0
+
+# Get RAID array's UUID
+uuid=$(blkid -o value -s UUID /dev/md0)
+
+# Create a filesystem path to mount the disk
+mount_location="/mnt/fast-disks/${uuid}"
+mkdir -p $mount_location
+
+# Mount RAID device
+mount /dev/md0 $mount_location
+
+# Have disk be mounted on reboot
+mdadm --detail --scan >> /etc/mdadm.conf 
+echo /dev/md0 $mount_location ext4 defaults,noatime 0 2 >> /etc/fstab
+
+--==MYBOUNDARY==--`
+
 	encodedUserData := base64.StdEncoding.EncodeToString([]byte(userData))
 	lt := &ec2.CreateLaunchTemplateInput{
 		LaunchTemplateName: aws.String(fmt.Sprintf("eks-pv-raid-launch-template-%s", slug)),
 		VersionDescription: aws.String("eks nvme bootstrap"),
 		LaunchTemplateData: &types.RequestLaunchTemplateData{
-			BlockDeviceMappings: make([]types.LaunchTemplateBlockDeviceMappingRequest, 0),
-			UserData:            aws.String(encodedUserData),
-			InstanceType:        types.InstanceType(slug),
+			UserData:     aws.String(encodedUserData),
+			InstanceType: types.InstanceType(slug),
 		},
 	}
 	return lt

@@ -48,8 +48,8 @@ func InitAwsEc2(ctx context.Context, accessCred aegis_aws_auth.AuthAWS) (AwsEc2,
 
 func GetLaunchTemplate(id, instanceName string) *eksTypes.LaunchTemplateSpecification {
 	lt := &eksTypes.LaunchTemplateSpecification{
-		Id:      aws.String(id),
-		Name:    aws.String(instanceName),
+		Id: aws.String(id),
+		//Name:    aws.String(instanceName),
 		Version: nil,
 	}
 	return lt

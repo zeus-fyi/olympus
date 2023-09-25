@@ -19,6 +19,16 @@ type AwsEc2 struct {
 	*ec2.Client
 }
 
+var (
+	SlugToInstanceID = map[string]string{
+		"i3.4xlarge": "lt-0ac0b5e68f7a9d490",
+	}
+
+	SlugToInstanceTemplateName = map[string]string{
+		"i3.4xlarge": "eks-pv-raid-launch-template-i3.4xlarge",
+	}
+)
+
 func InitAwsEc2(ctx context.Context, accessCred aegis_aws_auth.AuthAWS) (AwsEc2, error) {
 	creds := credentials.NewStaticCredentialsProvider(accessCred.AccessKey, accessCred.SecretKey, "")
 	cfg, err := config.LoadDefaultConfig(
@@ -32,18 +42,13 @@ func InitAwsEc2(ctx context.Context, accessCred aegis_aws_auth.AuthAWS) (AwsEc2,
 	return AwsEc2{ec2.NewFromConfig(cfg)}, nil
 }
 
-func GetLaunchTemplate(slug string) *eksTypes.LaunchTemplateSpecification {
-	// todo
+func GetLaunchTemplate(id, instanceName string) *eksTypes.LaunchTemplateSpecification {
 	lt := &eksTypes.LaunchTemplateSpecification{
-		Id:      nil,
-		Name:    aws.String(GetLaunchTemplateName(slug)),
+		Id:      aws.String(id),
+		Name:    aws.String(instanceName),
 		Version: nil,
 	}
 	return lt
-}
-
-func GetLaunchTemplateName(slug string) string {
-	return fmt.Sprintf("eks-pv-raid-launch-template-%s", slug)
 }
 
 func (a *AwsEc2) RegisterInstanceTemplate(slug string) (*ec2.CreateLaunchTemplateOutput, error) {

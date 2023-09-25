@@ -159,9 +159,13 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	instanceTypes := []string{params.Nodes.Slug}
 	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
 	if params.Nodes.DiskType == "nvme" {
-		labels = hestia_eks_aws.AddAwsEksNvmeLabels(labels)
-		instanceTypes = nil
-		lt = hestia_eks_aws.GetLaunchTemplate(params.Nodes.Slug)
+		id := hestia_eks_aws.SlugToInstanceID[params.Nodes.Slug]
+		if id != "" {
+			labels = hestia_eks_aws.AddAwsEksNvmeLabels(labels)
+			instanceTypes = nil
+			st := hestia_eks_aws.SlugToInstanceTemplateName[params.Nodes.Slug]
+			lt = hestia_eks_aws.GetLaunchTemplate(id, st)
+		}
 	}
 
 	nr := &eks.CreateNodegroupInput{

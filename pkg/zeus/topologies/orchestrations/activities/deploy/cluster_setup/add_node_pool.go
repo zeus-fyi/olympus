@@ -133,9 +133,10 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 }
 
 func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
-	label := make(map[string]string)
-	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
-	label["app"] = params.Cluster.ClusterName
+	labels := make(map[string]string)
+	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
+	labels["app"] = params.Cluster.ClusterName
+
 	suffix := strings.Split(params.Namespace, "-")[0]
 	orgTaint := types.Taint{
 		Effect: "NO_SCHEDULE",
@@ -153,17 +154,30 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	if params.AppTaint {
 		taints = append(taints, appTaint)
 	}
+
+	var lt *types.LaunchTemplateSpecification
+	instanceTypes := []string{params.Nodes.Slug}
 	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
+	if params.Nodes.DiskType == "nvme" {
+		id := hestia_eks_aws.SlugToInstanceID[params.Nodes.Slug]
+		if id != "" {
+			labels = hestia_eks_aws.AddAwsEksNvmeLabels(labels)
+			instanceTypes = nil
+			st := hestia_eks_aws.SlugToInstanceTemplateName[params.Nodes.Slug]
+			lt = hestia_eks_aws.GetLaunchTemplate(id, st)
+		}
+	}
+
 	nr := &eks.CreateNodegroupInput{
 		ClusterName:        aws.String(hestia_eks_aws.AwsUsWest1Context),
 		NodeRole:           aws.String(hestia_eks_aws.AwsEksRole),
 		NodegroupName:      aws.String(nodeGroupName),
 		AmiType:            types.AMITypesAl2X8664,
 		Subnets:            hestia_eks_aws.UsWestSubnetIDs,
-		CapacityType:       "",
 		ClientRequestToken: aws.String(nodeGroupName),
-		InstanceTypes:      []string{params.Nodes.Slug},
-		Labels:             label,
+		InstanceTypes:      instanceTypes,
+		LaunchTemplate:     lt,
+		Labels:             labels,
 		ReleaseVersion:     nil,
 		ScalingConfig: &types.NodegroupScalingConfig{
 			DesiredSize: aws.Int32(int32(params.NodesQuantity)),

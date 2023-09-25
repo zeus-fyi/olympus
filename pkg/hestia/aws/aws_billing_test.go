@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
@@ -35,19 +36,25 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Products() {
 	err := s.pc.GetAllProducts(ctx, UsWest1)
 	s.Require().NoError(err)
 }
+
+/*
+gen 3
+
+i3.4xlarge	$1.376	16	122 GiB	2 x 1900 NVMe SSD	Up to 10 Gigabit
+i3.8xlarge	$2.752	32	244 GiB	4 x 1900 NVMe SSD	10 Gigabit
+
+gen 4
+i4i.4xlarge	$1.514	16	128 GiB	1 x 3750 NVMe SSD	Up to 25 Gigabit
+i4i.8xlarge	$3.027	32	256 GiB	2 x 3750 NVMe SSD	18750 Megabit
+*/
+
 func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
-	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	instanceTypes := []string{
-		//"t2.nano",
-		"t2.micro",
-		"t2.small",
-		"t2.medium",
-		"t2.large",
-		"t2.2xlarge",
-		"t3.micro",
-		"t3.small",
-		"t3.medium",
-		"t3.xlarge",
+		//"i3.4xlarge",
+		//"i3.8xlarge",
+		//"i4i.4xlarge",
+		//"i4i.8xlarge",
 	}
 
 	n := hestia_autogen_bases.NodesSlice{}
@@ -57,6 +64,7 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 		fmt.Printf("%s\n", instanceType)
 		for _, price := range prices {
 			desc := price.GetDescription()
+			fmt.Println(desc)
 			if !strings.Contains(desc, fmt.Sprintf("per On Demand Linux %s Instance Hour", instanceType)) {
 				continue
 			}
@@ -83,7 +91,8 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 			dbSize := hestia_autogen_bases.Nodes{}
 			dbSize.Slug = instanceType
 			dbSize.Disk = 20
-			dbSize.DiskUnits = "GiB"
+			dbSize.DiskUnits = "GB"
+			dbSize.DiskType = "nvme"
 			dbSize.PriceHourly = usdCost
 			dbSize.CloudProvider = "aws"
 			dbSize.Vcpus = vcpus
@@ -95,7 +104,7 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 			n = append(n, dbSize)
 		}
 	}
-
+	//
 	err := hestia_compute_resources.InsertNodes(ctx, n)
 	s.Require().NoError(err)
 }

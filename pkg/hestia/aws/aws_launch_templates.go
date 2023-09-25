@@ -21,11 +21,15 @@ type AwsEc2 struct {
 
 var (
 	SlugToInstanceID = map[string]string{
-		"i3.4xlarge": "lt-0ac0b5e68f7a9d490",
+		"i3.8xlarge":  "lt-0771704151829d8a4",
+		"i3.4xlarge":  "lt-0ac0b5e68f7a9d490",
+		"i4i.4xlarge": "lt-01f4c81c082c5c7a4",
 	}
 
 	SlugToInstanceTemplateName = map[string]string{
-		"i3.4xlarge": "eks-pv-raid-launch-template-i3.4xlarge",
+		"i3.4xlarge":  "eks-pv-raid-launch-template-i3.4xlarge",
+		"i3.8xlarge":  "eks-pv-raid-launch-template-i3.8xlarge",
+		"i4i.4xlarge": "eks-pv-raid-launch-template-i4i.4xlarge",
 	}
 )
 

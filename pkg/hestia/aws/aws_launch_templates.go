@@ -21,9 +21,9 @@ type AwsEc2 struct {
 
 var (
 	SlugToInstanceID = map[string]string{
-		"i3.8xlarge":  "lt-0771704151829d8a4",
-		"i3.4xlarge":  "lt-0ac0b5e68f7a9d490",
-		"i4i.4xlarge": "lt-01f4c81c082c5c7a4",
+		"i3.8xlarge":  "lt-0b8fc8d357177f732",
+		"i3.4xlarge":  "lt-026b4c092b2683dc4",
+		"i4i.4xlarge": "lt-08f6c9bbdd39aefda",
 	}
 
 	SlugToInstanceTemplateName = map[string]string{
@@ -58,6 +58,23 @@ func GetLaunchTemplate(id, instanceName string) *eksTypes.LaunchTemplateSpecific
 func (a *AwsEc2) RegisterInstanceTemplate(slug string) (*ec2.CreateLaunchTemplateOutput, error) {
 	lti := CreateNvmeLaunchTemplate(slug)
 	launchTemplateOutput, err := a.CreateLaunchTemplate(context.Background(), lti)
+	if err != nil {
+		log.Err(err).Interface("lto", launchTemplateOutput).Msg("failed to create launch template")
+		return launchTemplateOutput, err
+	}
+	return launchTemplateOutput, err
+}
+
+func (a *AwsEc2) UpdateInstanceTemplate(templateID string) (*ec2.ModifyLaunchTemplateOutput, error) {
+	mti := &ec2.ModifyLaunchTemplateInput{
+		ClientToken:        nil,
+		DefaultVersion:     nil,
+		DryRun:             nil,
+		LaunchTemplateId:   aws.String(templateID),
+		LaunchTemplateName: nil,
+	}
+
+	launchTemplateOutput, err := a.ModifyLaunchTemplate(context.Background(), mti)
 	if err != nil {
 		log.Err(err).Interface("lto", launchTemplateOutput).Msg("failed to create launch template")
 		return launchTemplateOutput, err
@@ -106,15 +123,15 @@ func CreateNvmeLaunchTemplate(slug string) *ec2.CreateLaunchTemplateInput {
         # Have disk be mounted on reboot
         mdadm --detail --scan >> /etc/mdadm.conf 
         echo /dev/md0 $mount_location ext4 defaults,noatime 0 2 >> /etc/fstab
-		--==MYBOUNDARY==--`
+		--==MYBOUNDARY==--
+`
 	encodedUserData := base64.StdEncoding.EncodeToString([]byte(userData))
 	lt := &ec2.CreateLaunchTemplateInput{
 		LaunchTemplateName: aws.String(fmt.Sprintf("eks-pv-raid-launch-template-%s", slug)),
 		VersionDescription: aws.String("eks nvme bootstrap"),
 		LaunchTemplateData: &types.RequestLaunchTemplateData{
-			BlockDeviceMappings: make([]types.LaunchTemplateBlockDeviceMappingRequest, 0),
-			UserData:            aws.String(encodedUserData),
-			InstanceType:        types.InstanceType(slug),
+			UserData:     aws.String(encodedUserData),
+			InstanceType: types.InstanceType(slug),
 		},
 	}
 	return lt

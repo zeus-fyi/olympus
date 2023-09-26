@@ -25,6 +25,23 @@ func DeployStatefulSetHandler(c echo.Context) error {
 				Name: "zeus-fyi-ext",
 			}}
 		}
+		if request.Kns.CloudProvider == "aws" {
+			if request.StatefulSet.Spec.Template.Spec.Tolerations == nil {
+				request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}
+			}
+
+			for _, v := range request.StatefulSet.Spec.VolumeClaimTemplates {
+				if v.Spec.StorageClassName != nil {
+					if *v.Spec.StorageClassName == "fast-disks" {
+						request.StatefulSet.Spec.Template.Spec.Tolerations = append(request.StatefulSet.Spec.Template.Spec.Tolerations, v1.Toleration{
+							Key:      "node.kubernetes.io/disk-pressure",
+							Operator: "Exists",
+							Effect:   "NoSchedule",
+						})
+					}
+				}
+			}
+		}
 		if request.Kns.CloudCtxNs.Context != "do-sfo3-dev-do-sfo3-zeus" {
 			if request.StatefulSet.Spec.Template.Spec.Tolerations == nil {
 				request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}

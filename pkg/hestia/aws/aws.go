@@ -13,11 +13,12 @@ import (
 )
 
 const (
-	UsWest1           = "us-west-1"
-	AwsUsWest1Context = "zeus-us-west-1"
-	AwsEksRole        = "arn:aws:iam::480391564655:role/AWS-EKS-Role"
-	AwsSubnetIDWest1A = "subnet-024b0ed90f92a7240"
-	AwsSubnetIDWest1B = "subnet-086538f99779ddbc5"
+	UsWest1                  = "us-west-1"
+	AwsUsWest1Context        = "zeus-us-west-1"
+	AwsEksRole               = "arn:aws:iam::480391564655:role/AWS-EKS-Role"
+	AwsUsWestSecurityGroupID = "sg-0f62afc9340e7df70"
+	AwsSubnetIDWest1A        = "subnet-024b0ed90f92a7240"
+	AwsSubnetIDWest1B        = "subnet-086538f99779ddbc5"
 )
 
 var UsWestSubnetIDs = []string{AwsSubnetIDWest1A, AwsSubnetIDWest1B}

@@ -86,12 +86,12 @@ func (a *AwsEc2) UpdateInstanceTemplate(templateID string) (*ec2.ModifyLaunchTem
 func CreateNvmeLaunchTemplate(slug string) *ec2.CreateLaunchTemplateInput {
 	// Create EC2 Launch Template with User Data
 	userData := `MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+Content-Type: multipart/mixed; boundary=3bfcfdaa6a583f7487ad3c90c4853b64cdf474e9b43f0b14b706e557e015
 
---==MYBOUNDARY==
-Content-Type: text/x-shellscript; charset="us-ascii"
+--3bfcfdaa6a583f7487ad3c90c4853b64cdf474e9b43f0b14b706e557e015
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
 
-#!/bin/bash
 # Install NVMe CLI
 yum install nvme-cli -y
 
@@ -123,7 +123,7 @@ mount /dev/md0 $mount_location
 mdadm --detail --scan >> /etc/mdadm.conf 
 echo /dev/md0 $mount_location ext4 defaults,noatime 0 2 >> /etc/fstab
 
---==MYBOUNDARY==--`
+--3bfcfdaa6a583f7487ad3c90c4853b64cdf474e9b43f0b14b706e557e015--`
 
 	encodedUserData := base64.StdEncoding.EncodeToString([]byte(userData))
 	lt := &ec2.CreateLaunchTemplateInput{

@@ -18,6 +18,7 @@ import (
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 type DiskResourceRequirements struct {
@@ -91,6 +92,11 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	suffix := strings.Split(clusterID.String(), "-")[0]
 	var cr base_deploy_params.ClusterSetupRequest
 	var diskResourceID int
+	alias := fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix)
+	clusterNs := clusterID.String()
+	if validation.IsDNS1123Label(alias) == nil {
+		clusterNs = alias
+	}
 	switch t.CloudProvider {
 	case "do":
 		cr = base_deploy_params.ClusterSetupRequest{
@@ -100,8 +106,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				CloudProvider: "do",
 				Region:        "nyc1",
 				Context:       "do-nyc1-do-nyc1-zeus-demo", // hardcoded for now
-				Namespace:     clusterID.String(),
-				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
+				Namespace:     clusterNs,
+				Alias:         alias,
 				Env:           "",
 			},
 			Nodes: autogen_bases.Nodes{
@@ -124,8 +130,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				CloudProvider: "gcp",
 				Region:        "us-central1",
 				Context:       "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0", // hardcoded for now
-				Namespace:     clusterID.String(),
-				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
+				Namespace:     clusterNs,
+				Alias:         alias,
 				Env:           "",
 			},
 			Nodes: autogen_bases.Nodes{
@@ -145,6 +151,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		case true:
 			t.Node.DiskType = "nvme"
 		}
+
 		cr = base_deploy_params.ClusterSetupRequest{
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,
@@ -152,8 +159,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				CloudProvider: "aws",
 				Region:        "us-west-1",
 				Context:       "zeus-us-west-1", // hardcoded for now
-				Namespace:     clusterID.String(),
-				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
+				Namespace:     clusterNs,
+				Alias:         alias,
 				Env:           "",
 			},
 			Nodes: autogen_bases.Nodes{
@@ -170,7 +177,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		diskResourceID = 1683860918169422000
 	case "ovh":
 		ovhContext := hestia_ovhcloud.OvhSharedContext
-		namespace := clusterID.String()
+		namespace := clusterNs
 		appTaint := true
 		switch ou.UserID {
 		case 7138958574876245565:
@@ -237,7 +244,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				Region:        hestia_ovhcloud.OvhRegionUsWestOr1,
 				Context:       ovhContext, // hardcoded for now
 				Namespace:     namespace,
-				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
+				Alias:         alias,
 				Env:           "",
 			},
 			Nodes: autogen_bases.Nodes{

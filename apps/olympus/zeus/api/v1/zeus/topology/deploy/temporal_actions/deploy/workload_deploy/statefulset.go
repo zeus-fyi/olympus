@@ -46,6 +46,24 @@ func DeployStatefulSetHandler(c echo.Context) error {
 				})
 			}
 		}
+		if request.Kns.CloudProvider == "aws" {
+			if request.StatefulSet.Spec.Template.Spec.Tolerations == nil {
+				request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}
+			}
+			count := 0
+			for _, v := range request.StatefulSet.Spec.VolumeClaimTemplates {
+				if v.Spec.StorageClassName != nil {
+					if *v.Spec.StorageClassName == "fast-disks" && count == 0 {
+						request.StatefulSet.Spec.Template.Spec.Tolerations = append(request.StatefulSet.Spec.Template.Spec.Tolerations, v1.Toleration{
+							Key:      "node.kubernetes.io/disk-pressure",
+							Operator: "Exists",
+							Effect:   "NoSchedule",
+						})
+						count++
+					}
+				}
+			}
+		}
 		log.Debug().Interface("kns", request.Kns).Msg("DeployStatefulSetHandler: CreateStatefulSetIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.StatefulSet, nil)
 		if err != nil {

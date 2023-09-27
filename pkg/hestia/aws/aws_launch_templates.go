@@ -125,13 +125,27 @@ echo /dev/md0 $mount_location ext4 defaults,noatime 0 2 >> /etc/fstab
 
 --3bfcfdaa6a583f7487ad3c90c4853b64cdf474e9b43f0b14b706e557e015--`
 
+	ebs := &types.LaunchTemplateEbsBlockDeviceRequest{
+		Encrypted:           aws.Bool(false), // Modify this as per your requirement
+		DeleteOnTermination: aws.Bool(true),
+		Iops:                aws.Int32(3000),
+		VolumeSize:          aws.Int32(20),
+		VolumeType:          types.VolumeTypeGp3,
+		Throughput:          aws.Int32(125),
+	}
+	blockDeviceMapping := types.LaunchTemplateBlockDeviceMappingRequest{
+		DeviceName: aws.String("/dev/xvda"),
+		Ebs:        ebs,
+	}
 	encodedUserData := base64.StdEncoding.EncodeToString([]byte(userData))
 	lt := &ec2.CreateLaunchTemplateInput{
 		LaunchTemplateName: aws.String(fmt.Sprintf("eks-pv-raid-launch-template-%s", slug)),
 		VersionDescription: aws.String("eks nvme bootstrap"),
 		LaunchTemplateData: &types.RequestLaunchTemplateData{
-			UserData:     aws.String(encodedUserData),
-			InstanceType: types.InstanceType(slug),
+			BlockDeviceMappings: []types.LaunchTemplateBlockDeviceMappingRequest{blockDeviceMapping},
+			InstanceType:        types.InstanceType(slug),
+			SecurityGroupIds:    []string{AwsUsWestSecurityGroupID},
+			UserData:            aws.String(encodedUserData),
 		},
 	}
 	return lt

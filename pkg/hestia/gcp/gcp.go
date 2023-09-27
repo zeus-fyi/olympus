@@ -140,6 +140,7 @@ type GkeNodePoolInfo struct {
 	Name             string `json:"name"`
 	MachineType      string `json:"machineType"`
 	InitialNodeCount int64  `json:"initialNodeCount"`
+	NvmeDisks        int64  `json:"nvmeDisks,omitempty"`
 }
 
 func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo) (any, error) {
@@ -152,6 +153,10 @@ func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni Gk
 }
 
 func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo, taints []*container.NodeTaint, labels map[string]string) (*container.Operation, error) {
+	if ni.MachineType == "n2-highmem-16" {
+		ni.NvmeDisks = 16
+		log.Info().Msg("n2-highmem-16 has 16 nvme disks")
+	}
 	cnReq := &container.CreateNodePoolRequest{
 		ClusterId: ci.ClusterName,
 		NodePool: &container.NodePool{
@@ -162,15 +167,13 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 				Enabled:         false,
 			},
 			Config: &container.NodeConfig{
-				Labels:         labels,
-				MachineType:    ni.MachineType,
-				Metadata:       nil,
-				NodeGroup:      "",
-				ResourceLabels: nil,
-				ServiceAccount: "",
-				Spot:           false,
-				Tags:           nil,
-				Taints:         taints,
+				Labels:          labels,
+				LinuxNodeConfig: nil,
+				LocalNvmeSsdBlockConfig: &container.LocalNvmeSsdBlockConfig{
+					LocalSsdCount: ni.NvmeDisks,
+				},
+				MachineType: ni.MachineType,
+				Taints:      taints,
 			},
 		},
 		ProjectId: ci.ProjectID,

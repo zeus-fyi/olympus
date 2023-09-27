@@ -236,6 +236,7 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 		MachineType:      params.Nodes.Slug,
 		InitialNodeCount: int64(params.NodesQuantity),
 	}
+
 	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints, label)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {

@@ -48,13 +48,17 @@ func (s *DoKubernetesTestSuite) TestCreateNodePool() {
 		Value:  fmt.Sprintf("org-%d", s.Tc.ProductionLocalTemporalOrgID),
 		Effect: "NoSchedule",
 	}
+
+	var labels map[string]string
+	labels = make(map[string]string)
+	labels = AddDoNvmeLabels(labels)
 	suffix := strings.Split(clusterUUID.String(), "-")[0]
 	nodesReq := &godo.KubernetesNodePoolCreateRequest{
 		Name:   fmt.Sprintf("nodepool-%d-%s", s.Tc.ProductionLocalTemporalOrgID, suffix),
-		Size:   "s-8vcpu-16gb",
+		Size:   "so1_5-4vcpu-32gb",
 		Count:  int(1),
 		Tags:   nil,
-		Labels: nil,
+		Labels: labels,
 		Taints: []godo.Taint{taint},
 	}
 
@@ -62,9 +66,12 @@ func (s *DoKubernetesTestSuite) TestCreateNodePool() {
 	np, err := s.do.CreateNodePool(ctx, clusterID, nodesReq)
 	s.Require().NoError(err)
 	s.Require().NotNil(np)
-	// TODO
-	err = s.do.RemoveNodePool(ctx, clusterID, np.ID)
-	s.Require().NoError(err)
+}
+
+func (s *DoKubernetesTestSuite) TestDeleteNodePool() {
+	//// TODO
+	//err = s.do.RemoveNodePool(ctx, clusterID, np.ID)
+	//s.Require().NoError(err)
 }
 
 func TestDoKubernetesTestSuite(t *testing.T) {

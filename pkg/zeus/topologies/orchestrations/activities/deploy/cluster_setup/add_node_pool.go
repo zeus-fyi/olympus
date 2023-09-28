@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	hestia_eks_aws "github.com/zeus-fyi/olympus/pkg/hestia/aws"
+	hestia_digitalocean "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	hestia_gcp "github.com/zeus-fyi/olympus/pkg/hestia/gcp"
 	hestia_ovhcloud "github.com/zeus-fyi/olympus/pkg/hestia/ovhcloud"
@@ -267,20 +268,25 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 		Value:  params.Cluster.ClusterName,
 		Effect: "NoSchedule",
 	}
-	label := make(map[string]string)
-	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
-	label["app"] = params.Cluster.ClusterName
+	labels := make(map[string]string)
+	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
+	labels["app"] = params.Cluster.ClusterName
 	suffix := strings.Split(params.Namespace, "-")[0]
 	taints := []godo.Taint{taint}
 	if params.AppTaint {
 		taints = append(taints, appTaint)
 	}
+
+	if strings.HasPrefix(params.Nodes.Slug, "so") {
+		labels = hestia_digitalocean.AddDoNvmeLabels(labels)
+	}
+
 	nodesReq := &godo.KubernetesNodePoolCreateRequest{
 		Name:   fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix),
 		Size:   params.Nodes.Slug,
 		Count:  int(params.NodesQuantity),
 		Tags:   nil,
-		Labels: label,
+		Labels: labels,
 		Taints: taints,
 	}
 	// TODO remove hard code cluster id

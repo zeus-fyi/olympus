@@ -8,6 +8,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func AddDoNvmeLabels(labels map[string]string) map[string]string {
+	labels["fast-disk-node"] = "pv-raid"
+	return labels
+}
+
 func (d *DigitalOcean) CreateNodePool(ctx context.Context, context string, nodesReq *godo.KubernetesNodePoolCreateRequest) (*godo.KubernetesNodePool, error) {
 	nodePool, _, err := d.Kubernetes.CreateNodePool(ctx, context, nodesReq)
 	if err != nil {

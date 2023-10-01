@@ -17,6 +17,7 @@ import Link from "@mui/material/Link";
 import {CircularProgress} from "@mui/material";
 import {setSessionAuth} from "../../redux/auth/session.reducer";
 import {setUserPlanDetails} from "../../redux/loadbalancing/loadbalancing.reducer";
+import GoogleLoginPage from "./GoogleLoginPage";
 
 const theme = createTheme();
 
@@ -157,6 +158,9 @@ const Login = () => {
                                     </Link>
                                 </Grid>
                             </Grid>
+                            <Box sx={{mt: 5}}>
+                                <GoogleLoginPage />
+                            </Box>
                             <ZeusCopyright sx={{mt: 5}}/>
                         </Box>
                     </Box>

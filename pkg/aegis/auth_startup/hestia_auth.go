@@ -45,6 +45,9 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	sw.QuickNodeBearer = sw.MustReadSecret(ctx, inMemSecrets, quicknodeBearer)
 	sw.QuickNodeJWT = sw.MustReadSecret(ctx, inMemSecrets, quicknodeJWT)
 	sw.QuickNodePassword = sw.MustReadSecret(ctx, inMemSecrets, quicknodePassword)
+
+	sw.GoogClientID = sw.MustReadSecret(ctx, inMemSecrets, googClientID)
+	sw.GoogClientSecret = sw.MustReadSecret(ctx, inMemSecrets, googClientSecret)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }

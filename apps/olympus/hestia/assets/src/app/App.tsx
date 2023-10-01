@@ -21,10 +21,13 @@ import {ChatGPTPage} from "../components/chatgpt/ChatGPTWrapper";
 import Dashboard from "../components/dashboard/Dashboard";
 import {VerifyQuickNodeLoginJWT} from "../components/login/VerifyLoginJWT";
 import LoadBalancingDashboard from "../components/loadbalancing/LoadBalancingDashboard";
+import {GoogleOAuthProvider} from '@react-oauth/google';
+import {configService} from "../config/config";
 
 export const App = () => {
     return (
-            <Provider store={store}>
+        <GoogleOAuthProvider clientId={configService.getGoogClientID()}>
+        <Provider store={store}>
                 <BrowserRouter>
                     <Routes>
                             <Route path="/" element={<HomeLayout />} />
@@ -57,6 +60,6 @@ export const App = () => {
                     </Routes>
                 </BrowserRouter>
             </Provider>
-        );
+        </GoogleOAuthProvider>);
 }
 

@@ -58,6 +58,30 @@ func (k *OrgUserKey) VerifyUserPassword(ctx context.Context, email string) error
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
+func (k *OrgUserKey) QueryUserByEmail() sql_query_templates.QueryParams {
+	var q sql_query_templates.QueryParams
+	query := fmt.Sprintf(`
+	SELECT ou.org_id, ou.user_id
+	FROM users u
+	INNER JOIN org_users ou ON ou.user_id = u.user_id
+	INNER JOIN users_keys usk ON usk.user_id = ou.user_id
+	WHERE u.email = $1
+	`)
+	q.RawQuery = query
+	return q
+}
+
+func (k *OrgUserKey) GetUserFromEmail(ctx context.Context, email string) error {
+	q := k.QueryUserByEmail()
+	log.Debug().Interface("VerifyUserBearerToken:", q.LogHeader(Sn))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, email).Scan(&k.OrgID, &k.UserID)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("VerifyUserPassword error")
+		return err
+	}
+	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
 func (k *OrgUserKey) VerifyQuickNodeToken(ctx context.Context) error {
 	var q sql_query_templates.QueryParams
 	query := fmt.Sprintf(`

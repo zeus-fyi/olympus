@@ -159,7 +159,7 @@ const Login = () => {
                                 </Grid>
                             </Grid>
                             <Box sx={{mt: 5}}>
-                                <GoogleLoginPage />
+                                <GoogleLoginPage setRequestStatus={setRequestStatus} loading={loading} setLoading={setLoading}/>
                             </Box>
                             <ZeusCopyright sx={{mt: 5}}/>
                         </Box>

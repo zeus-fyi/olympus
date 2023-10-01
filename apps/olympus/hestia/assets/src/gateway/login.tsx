@@ -22,7 +22,7 @@ class AuthApiGateway {
         const url = `/google/login`;
         try {
             return await hestiaApi.post(url, {
-                payload
+                credential: payload.credential
             }, config)
         } catch (exc) {
             console.error('error sending google login request');

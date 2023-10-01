@@ -141,6 +141,9 @@ type TestContainer struct {
 	EtherScanAPIKey string
 
 	QuikNodeURLS QuickNodeURLS
+
+	GoogClientID     string
+	GoogClientSecret string
 }
 
 type ArtemisHexKeys struct {
@@ -199,6 +202,8 @@ func InitLocalTestConfigs() TestContainer {
 		qn.Routes = append(qn.Routes, viper.GetString(fmt.Sprintf("QUIKNODE_%d", i)))
 	}
 
+	testCont.GoogClientID = viper.GetString("GOOGLE_CLIENT_ID")
+	testCont.GoogClientSecret = viper.GetString("GOOGLE_CLIENT_SECRET")
 	testCont.QuickNodeMarketplace.Password = viper.GetString("QUICKNODE_PASSWORD")
 	testCont.QuickNodeMarketplace.JWTToken = viper.GetString("QUICKNODE_JWT")
 	testCont.QuickNodeMarketplace.AuthToken = viper.GetString("QUICKNODE_AUTH_TOKEN")

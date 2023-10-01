@@ -109,6 +109,8 @@ func Hestia() {
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 		kronos_helix.InitPagerDutyAlertClient(sw.PagerDutyApiKey)
 		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = sw.PagerDutyRoutingKey
+		hestia_login.GoogleOAuthConfig.ClientID = sw.GoogClientID
+		hestia_login.GoogleOAuthConfig.ClientSecret = sw.GoogClientSecret
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -131,6 +133,8 @@ func Hestia() {
 		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = tc.PagerDutyRoutingKey
 		platform_service_orchestrations.IrisApiUrl = "http://localhost:8080"
 		quicknode_orchestrations.IrisApiUrl = "http://localhost:8080"
+		hestia_login.GoogleOAuthConfig.ClientID = tc.GoogClientID
+		hestia_login.GoogleOAuthConfig.ClientSecret = tc.GoogClientSecret
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -151,6 +155,8 @@ func Hestia() {
 		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = tc.PagerDutyRoutingKey
 		platform_service_orchestrations.IrisApiUrl = "http://localhost:8080"
 		quicknode_orchestrations.IrisApiUrl = "http://localhost:8080"
+		hestia_login.GoogleOAuthConfig.ClientID = tc.GoogClientID
+		hestia_login.GoogleOAuthConfig.ClientSecret = tc.GoogClientSecret
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
@@ -251,7 +257,7 @@ func Hestia() {
 	if env == "local" || env == "production-local" {
 		irisHost := "http://localhost:8080"
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins: []string{"http://localhost:3000", irisHost, "https://accounts.google.com"},
+			AllowOrigins: []string{"http://localhost:3000", irisHost, "https://accounts.google.com", "https://oauth2.googleapis.com"},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",
@@ -264,7 +270,8 @@ func Hestia() {
 		v1_ethereum_aws.LambdaBaseDirIn = "/"
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://iris.zeus.fyi", "https://quicknode.com", "https://accounts.google.com"},
+			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi",
+				"https://iris.zeus.fyi", "https://quicknode.com", "https://accounts.google.com", "https://oauth2.googleapis.com"},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",

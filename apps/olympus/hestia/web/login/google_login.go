@@ -13,8 +13,16 @@ import (
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	oauth2api "google.golang.org/api/oauth2/v2"
+	"google.golang.org/api/option"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
+
+var GoogleOAuthConfig = &oauth2.Config{
+	Endpoint: google.Endpoint,
+}
 
 func GoogleLoginHandler(c echo.Context) error {
 	request := new(GoogleLoginRequest)
@@ -26,17 +34,34 @@ func GoogleLoginHandler(c echo.Context) error {
 
 type GoogleLoginRequest struct {
 	Credential string `json:"credential"`
-	ClientId   string `json:"clientId"`
-	SelectBy   string `json:"select_by"`
 }
 
 func (g *GoogleLoginRequest) VerifyGoogleLogin(c echo.Context) error {
 	ctx := context.Background()
 	key := read_keys.NewKeyReader()
 
-	// TODO verify here
-
-	// TODO get user info, then look up user by email
+	oauth2Service, err := oauth2api.NewService(ctx, option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: GoogleOAuthConfig.ClientSecret})))
+	if err != nil {
+		log.Err(err).Msg("VerifyGoogleLogin: oauth2api.NewService error")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	tokenInfoCall := oauth2Service.Tokeninfo()
+	tokenInfoCall.AccessToken(g.Credential)
+	tokenInfo, err := tokenInfoCall.Do()
+	if err != nil {
+		log.Err(err).Msg("VerifyGoogleLogin: tokenInfoCall.Do error")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	// Ensure that the token is issued to your application
+	if tokenInfo.Audience != GoogleOAuthConfig.ClientID {
+		log.Err(err).Msg("VerifyGoogleLogin: tokenInfo.Audience != clientID")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	err = key.GetUserFromEmail(ctx, tokenInfo.Email)
+	if err != nil {
+		log.Err(err).Interface("email", tokenInfo.Email).Msg("GetUserFromEmail error")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 	sessionID := rand.String(64)
 	sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)
 	sessionKey.PublicKeyVerified = true

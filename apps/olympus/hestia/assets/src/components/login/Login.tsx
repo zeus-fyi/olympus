@@ -61,7 +61,6 @@ const Login = () => {
             setLoading(true);
             setRequestStatus('pending');
             let res: any = await authProvider.googleLogin(credentialResponse)
-            console.log(res)
             const statusCode = res.status;
             if (statusCode < 300) {
                 setRequestStatus('success');

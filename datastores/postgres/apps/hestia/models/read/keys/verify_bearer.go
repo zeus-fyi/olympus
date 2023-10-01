@@ -73,10 +73,10 @@ func (k *OrgUserKey) QueryUserByEmail() sql_query_templates.QueryParams {
 
 func (k *OrgUserKey) GetUserFromEmail(ctx context.Context, email string) error {
 	q := k.QueryUserByEmail()
-	log.Debug().Interface("VerifyUserBearerToken:", q.LogHeader(Sn))
+	log.Debug().Interface("GetUserFromEmail:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, email).Scan(&k.OrgID, &k.UserID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("VerifyUserPassword error")
+		log.Ctx(ctx).Err(err).Msg("GetUserFromEmail error")
 		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))

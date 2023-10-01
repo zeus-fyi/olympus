@@ -16,7 +16,7 @@ export const ProtectedLayout = (props: any) => {
         const fetchData = async () => {
             try {
                 const response = await accessApiGateway.checkAuth();
-                if (response.status !== 200) {
+                if (response.status >= 300 || response.status < 200) {
                     dispatch(setSessionAuth(false));
                     return;
                 }

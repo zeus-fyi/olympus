@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
@@ -48,6 +48,40 @@ const Login = () => {
             buttonLabel = 'Login';
             buttonDisabled = false;
             break;
+    }
+    useEffect(() => {
+        if (requestStatus === 'success') {
+            navigate('/apps');
+        }
+    }, [requestStatus]);
+
+
+    const handleGoogleLogin = async (credentialResponse: any) =>  {
+        try {
+            setLoading(true);
+            setRequestStatus('pending');
+            let res: any = await authProvider.googleLogin(credentialResponse)
+            console.log(res)
+            const statusCode = res.status;
+            if (statusCode < 300) {
+                setRequestStatus('success');
+                dispatch(setSessionAuth(true))
+                if (res.data.planUsageDetails != null && res.data.planUsageDetails.plan != undefined){
+                    dispatch(setUserPlanDetails(res.data.planUsageDetails))
+                }
+                dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
+                navigate('/apps');
+            } else {
+                dispatch(setSessionAuth(false))
+                dispatch({type: 'LOGIN_FAIL', payload: res.data})
+            }
+        } catch (e) {
+            dispatch(setSessionAuth(false))
+            setRequestStatus('error');
+        } finally {
+            setLoading(false);
+            setRequestStatus('done')
+        }
     }
     const handleLogin = async (event: React.FormEvent<HTMLFormElement>) =>  {
         event.preventDefault();
@@ -154,12 +188,12 @@ const Login = () => {
                                 {/*</Grid>*/}
                                 <Grid item>
                                     <Link href="/signup" variant="body2" color="text.primary">
-                                        {"Don't have an account? Sign Up"}
+                                        {"Don't have an google account? Sign Up"}
                                     </Link>
                                 </Grid>
                             </Grid>
                             <Box sx={{mt: 5}}>
-                                <GoogleLoginPage setRequestStatus={setRequestStatus} loading={loading} setLoading={setLoading}/>
+                                <GoogleLoginPage handleGoogleLogin={handleGoogleLogin}/>
                             </Box>
                             <ZeusCopyright sx={{mt: 5}}/>
                         </Box>

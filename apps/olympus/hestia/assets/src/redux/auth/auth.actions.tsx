@@ -29,6 +29,27 @@ const authProvider = {
         }
     },
 
+    googleLogin: async (payload: any) =>  {
+        try {
+            const res = await authApiGateway.sendGoogleLoginRequest(payload);
+            const statusCode = res.status;
+            if (statusCode >= 300) {
+                inMemoryJWT.ereaseToken();
+            }
+            if (statusCode >= 200 && statusCode < 300) {
+                const sessionID = sessionIDParse(res);
+                const tokenExpiry = ttlSeconds(res);
+                const userID = userIDParse(res);
+                inMemoryJWT.setToken(sessionID, tokenExpiry);
+                localStorage.setItem("userID", userID);
+            }
+            return res
+        } catch (e) {
+            console.log(e);
+            return e;
+        }
+    },
+
     logout: async () =>  {
         let token = inMemoryJWT.getToken()
         let id = String(token)

@@ -3,20 +3,22 @@ package hestia_login
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	oauth2api "google.golang.org/api/oauth2/v2"
-	"google.golang.org/api/option"
+	"google.golang.org/api/idtoken"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -39,27 +41,56 @@ type GoogleLoginRequest struct {
 func (g *GoogleLoginRequest) VerifyGoogleLogin(c echo.Context) error {
 	ctx := context.Background()
 	key := read_keys.NewKeyReader()
-
-	oauth2Service, err := oauth2api.NewService(ctx, option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: GoogleOAuthConfig.ClientSecret})))
+	pl, err := idtoken.Validate(ctx, g.Credential, GoogleOAuthConfig.ClientID)
 	if err != nil {
-		log.Err(err).Msg("VerifyGoogleLogin: oauth2api.NewService error")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	tokenInfoCall := oauth2Service.Tokeninfo()
-	tokenInfoCall.AccessToken(g.Credential)
-	tokenInfo, err := tokenInfoCall.Do()
-	if err != nil {
-		log.Err(err).Msg("VerifyGoogleLogin: tokenInfoCall.Do error")
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
-	// Ensure that the token is issued to your application
-	if tokenInfo.Audience != GoogleOAuthConfig.ClientID {
-		log.Err(err).Msg("VerifyGoogleLogin: tokenInfo.Audience != clientID")
+	if pl.Audience != GoogleOAuthConfig.ClientID {
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
-	err = key.GetUserFromEmail(ctx, tokenInfo.Email)
+	claims := pl.Claims
+	email, ok1 := claims["email"].(string)
+	if !ok1 {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	name, ok2 := claims["name"].(string)
+	if !ok2 {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	lastName, ok2 := claims["family_name"].(string)
+	if !ok2 {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	firstName := ""
+	fullName := strings.Split(name, " ")
+	if len(fullName) > 0 {
+		firstName = fullName[0]
+	}
+	us := create_org_users.UserSignup{
+		FirstName:        firstName,
+		LastName:         lastName,
+		EmailAddress:     email,
+		Password:         rand.String(64),
+		VerifyEmailToken: "",
+	}
+	err = key.GetUserFromEmail(ctx, email)
+	if err == pgx.ErrNoRows {
+		ou := create_org_users.OrgUser{}
+		verifyToken, verr := ou.InsertSignUpOrgUserAndVerifyEmail(ctx, us)
+		if verr != nil {
+			log.Err(verr).Interface("user", us).Msg("SignupRequest, SignUp error")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		us.VerifyEmailToken = verifyToken
+		err = create_keys.UpdateKeysFromVerifyEmail(ctx, us.VerifyEmailToken)
+		if err != nil {
+			log.Err(err).Str("token", us.VerifyEmailToken).Msg("VerifyEmailHandler, VerifyEmail error")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		err = key.GetUserFromEmail(ctx, email)
+	}
 	if err != nil {
-		log.Err(err).Interface("email", tokenInfo.Email).Msg("GetUserFromEmail error")
+		log.Err(err).Interface("email", email).Msg("GetUserFromEmail error")
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	sessionID := rand.String(64)
@@ -69,7 +100,7 @@ func (g *GoogleLoginRequest) VerifyGoogleLogin(c echo.Context) error {
 	sessionKey.PublicKeyName = "sessionID"
 	oldKey, err := sessionKey.InsertUserSessionKey(ctx)
 	if err != nil {
-		//log.Err(err).Interface("email", l.Email).Msg("InsertUserSessionKey error")
+		log.Err(err).Interface("email", email).Msg("InsertUserSessionKey error")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	if oldKey != "" {
@@ -79,11 +110,6 @@ func (g *GoogleLoginRequest) VerifyGoogleLogin(c echo.Context) error {
 			err = nil
 		}
 	}
-	resp := LoginResponse{
-		UserID:    key.UserID,
-		SessionID: sessionID,
-		TTL:       3600,
-	}
 	cookie := &http.Cookie{
 		Name:     aegis_sessions.SessionIDNickname,
 		Value:    sessionID,
@@ -92,14 +118,19 @@ func (g *GoogleLoginRequest) VerifyGoogleLogin(c echo.Context) error {
 		Domain:   Domain,
 		SameSite: http.SameSiteNoneMode,
 		Expires:  time.Now().Add(24 * time.Hour),
+		Path:     "/",
 	}
 	c.SetCookie(cookie)
+	li := LoginResponse{
+		UserID:    key.UserID,
+		SessionID: sessionID,
+		TTL:       3600,
+	}
 	pd, err := hestia_billing.GetPlan(ctx, sessionID)
 	if err != nil {
 		log.Err(err).Msg("GetPlan error")
-		err = nil
 	} else {
-		resp.PlanDetailsUsage = &pd
+		li.PlanDetailsUsage = &pd
 	}
-	return c.JSON(http.StatusOK, resp)
+	return c.JSON(http.StatusOK, li)
 }

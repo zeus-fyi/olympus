@@ -34,6 +34,9 @@ const (
 	ovhConsumerKey = "secrets/ovh.consumer.key.txt"
 
 	zeroXApiKey = "secrets/zero.x.api.key.txt"
+
+	googClientID     = "secrets/google.client.id.txt"
+	googClientSecret = "secrets/google.client.secret.txt"
 )
 
 type SecretsWrapper struct {
@@ -52,6 +55,9 @@ type SecretsWrapper struct {
 	PagerDutyRoutingKey    string
 	SendGridAPIKey         string
 	GcpAuthJsonBytes       []byte
+
+	GoogClientID     string
+	GoogClientSecret string
 
 	QuickNodePassword string
 	QuickNodeBearer   string

@@ -50,9 +50,6 @@ type TopologyBaseInfraWorkload struct {
 }
 
 A Cluster is how you can link related building blocks.
- 
-Your apps are all compatible with any Cloud Provider, On-Premise, Hybrid, etc. You can route your app deploys
-using this routing structure.
 
 type CloudCtxNs struct {
     CloudProvider string \`json:"cloudProvider"\`
@@ -61,4 +58,6 @@ type CloudCtxNs struct {
     Namespace     string \`json:"namespace"\`
     Env           string \`json:"env"\`
 }
+
+You route your app deploys using this routing structure.
 `

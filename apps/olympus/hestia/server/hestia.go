@@ -251,7 +251,7 @@ func Hestia() {
 	if env == "local" || env == "production-local" {
 		irisHost := "http://localhost:8080"
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins: []string{"http://localhost:3000", irisHost},
+			AllowOrigins: []string{"http://localhost:3000", irisHost, "https://accounts.google.com"},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",
@@ -264,7 +264,7 @@ func Hestia() {
 		v1_ethereum_aws.LambdaBaseDirIn = "/"
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://iris.zeus.fyi", "https://quicknode.com"},
+			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://iris.zeus.fyi", "https://quicknode.com", "https://accounts.google.com"},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",

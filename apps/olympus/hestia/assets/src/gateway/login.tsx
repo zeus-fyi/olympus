@@ -18,6 +18,18 @@ class AuthApiGateway {
             return
         }
     }
+    async sendGoogleLoginRequest(payload: any): Promise<any>  {
+        const url = `/google/login`;
+        try {
+            return await hestiaApi.post(url, {
+                payload
+            }, config)
+        } catch (exc) {
+            console.error('error sending google login request');
+            console.error(exc);
+            return
+        }
+    }
     async sendTokenRefreshRequest(): Promise<any>  {
         const url = `/v1/refresh/token`;
         try {

@@ -19,6 +19,8 @@ import {setSessionAuth} from "../../redux/auth/session.reducer";
 import {setUserPlanDetails} from "../../redux/loadbalancing/loadbalancing.reducer";
 import GoogleLoginPage from "./GoogleLoginPage";
 
+const loginArt = require("../../static/login-art.svg");
+
 const theme = createTheme();
 
 const Login = () => {

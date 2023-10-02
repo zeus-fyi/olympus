@@ -19,11 +19,11 @@ import (
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 )
 
-type AvaxAppsPageRequest struct {
+type PublicAppsPageRequest struct {
 }
 
 func MicroserviceAppsHandler(c echo.Context) error {
-	request := new(AvaxAppsPageRequest)
+	request := new(PublicAppsPageRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func MicroserviceAppsHandler(c echo.Context) error {
 }
 
 func AvaxAppsHandler(c echo.Context) error {
-	request := new(AvaxAppsPageRequest)
+	request := new(PublicAppsPageRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
@@ -39,35 +39,51 @@ func AvaxAppsHandler(c echo.Context) error {
 }
 
 func EthAppsHandler(c echo.Context) error {
-	request := new(AvaxAppsPageRequest)
+	request := new(PublicAppsPageRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
 	return request.GetEphemeralBeaconsApp(c)
 }
 
+func SuiAppsHandler(c echo.Context) error {
+	request := new(PublicAppsPageRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.GetAvaxApp(c)
+}
+
 const (
 	AvaxAppID                = 1680924257606485000
 	EphemeralEthBeaconsAppID = 1670997020811171000
 	MicroserviceAppID        = 1681932523630136000
+	SuiAppID                 = 1694727626052689000
 
 	AppsOrgID  = 7138983863666903883
 	AppsUserID = 7138958574876245565
 )
 
-func (a *AvaxAppsPageRequest) GetMicroserviceApp(c echo.Context) error {
+func (a *PublicAppsPageRequest) GetMicroserviceApp(c echo.Context) error {
 	return a.GetApp(c, AppsOrgID, MicroserviceAppID)
 }
-func (a *AvaxAppsPageRequest) GetEphemeralBeaconsApp(c echo.Context) error {
+func (a *PublicAppsPageRequest) GetEphemeralBeaconsApp(c echo.Context) error {
 	return a.GetApp(c, AppsOrgID, EphemeralEthBeaconsAppID)
 }
-func (a *AvaxAppsPageRequest) GetAvaxApp(c echo.Context) error {
+func (a *PublicAppsPageRequest) GetAvaxApp(c echo.Context) error {
 	return a.GetApp(c, AppsOrgID, AvaxAppID)
 }
-func (a *AvaxAppsPageRequest) GetApp(c echo.Context, AppsOrgID, AppID int) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
-	ctx := context.Background()
+func (a *PublicAppsPageRequest) GetSuiApp(c echo.Context) error {
+	return a.GetApp(c, AppsOrgID, SuiAppID)
+}
 
+func (a *PublicAppsPageRequest) GetApp(c echo.Context, AppsOrgID, AppID int) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Err(fmt.Errorf("orgUser not found")).Msg("ListPrivateAppsRequest: Get")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	ctx := context.Background()
 	selectedApp, err := read_topology.SelectAppTopologyByID(ctx, AppsOrgID, AppID)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")

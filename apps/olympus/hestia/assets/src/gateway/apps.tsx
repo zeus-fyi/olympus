@@ -33,6 +33,9 @@ class AppsApiGateway {
         if (id == 'microservice') {
             return this.getMicroserviceAppsDetails()
         }
+        if (id == 'sui') {
+            return this.getSuiAppsDetails()
+        }
         const url = `/v1/infra/ui/private/app/${id}`;
         try {
             const sessionID = inMemoryJWT.getToken();
@@ -53,6 +56,25 @@ class AppsApiGateway {
     }
     async getMicroserviceAppsDetails(): Promise<AppPageResponse>  {
         const url = `/v1/infra/ui/apps/microservice`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config).then((response) => {
+                return response.data;
+            })
+        } catch (exc) {
+            console.error('error sending get private apps request');
+            console.error(exc);
+            return {} as AppPageResponse
+        }
+    }
+    async getSuiAppsDetails(): Promise<AppPageResponse>  {
+        const url = `/v1/infra/ui/apps/sui`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

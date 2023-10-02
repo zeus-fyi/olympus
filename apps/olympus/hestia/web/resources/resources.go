@@ -21,7 +21,10 @@ func ResourceListRequestHandler(c echo.Context) error {
 }
 
 func (r *ResourceListRequest) List(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 	ctx := context.Background()
 	nl, err := hestia_compute_resources.SelectOrgResourcesNodes(ctx, ou.OrgID)
 	if err != nil {

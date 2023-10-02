@@ -38,7 +38,11 @@ type TopologyActionUpdateRequest struct {
 
 func (t *TopologyActionUpdateRequest) UpdateClusterFromUI(c echo.Context) error {
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Err(errors.New("unable to get orgUser from context")).Msg("TopologyActionCreateRequest: CreateTopology, GetOrgUserFromContext")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {

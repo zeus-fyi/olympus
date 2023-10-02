@@ -189,7 +189,7 @@ const Login = () => {
                                 {/*</Grid>*/}
                                 <Grid item>
                                     <Link href="/signup" variant="body2" color="text.primary">
-                                        {"Don't have an Google account or prefer traditional logins? Sign Up"}
+                                        {"Don't have a Google account? Sign Up With Any Email"}
                                     </Link>
                                 </Grid>
                             </Grid>

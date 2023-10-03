@@ -69,8 +69,8 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 		}
 	}
 	autoscaleEnabled := false
-	suffix := strings.Split(params.Namespace, "-")[0]
-
+	tmp := strings.Split(params.Namespace, "-")
+	suffix := tmp[len(tmp)-1]
 	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
 	label := make(map[string]string)
 	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
@@ -138,7 +138,8 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
 	labels["app"] = params.Cluster.ClusterName
 
-	suffix := strings.Split(params.Namespace, "-")[0]
+	tmp := strings.Split(params.Namespace, "-")
+	suffix := tmp[len(tmp)-1]
 	orgTaint := types.Taint{
 		Effect: "NO_SCHEDULE",
 		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
@@ -210,7 +211,9 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 	label := make(map[string]string)
 	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
 	label["app"] = params.Cluster.ClusterName
-	suffix := strings.Split(params.Namespace, "-")[0]
+
+	tmp := strings.Split(params.Namespace, "-")
+	suffix := tmp[len(tmp)-1]
 	tOrg := container.NodeTaint{
 		Effect: "NO_SCHEDULE",
 		Key:    fmt.Sprintf("org-%d", params.Ou.OrgID),
@@ -271,16 +274,15 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	labels := make(map[string]string)
 	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
 	labels["app"] = params.Cluster.ClusterName
-	suffix := strings.Split(params.Namespace, "-")[0]
+	tmp := strings.Split(params.Namespace, "-")
+	suffix := tmp[len(tmp)-1]
 	taints := []godo.Taint{taint}
 	if params.AppTaint {
 		taints = append(taints, appTaint)
 	}
-
 	if strings.HasPrefix(params.Nodes.Slug, "so") {
 		labels = hestia_digitalocean.AddDoNvmeLabels(labels)
 	}
-
 	nodePoolName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
 	log.Info().Interface("nodePoolName", nodePoolName).Msg("MakeNodePoolRequest")
 	nodesReq := &godo.KubernetesNodePoolCreateRequest{

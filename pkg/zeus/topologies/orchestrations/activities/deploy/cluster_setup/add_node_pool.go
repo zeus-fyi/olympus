@@ -281,11 +281,12 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 		labels = hestia_digitalocean.AddDoNvmeLabels(labels)
 	}
 
+	nodePoolName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
+	log.Info().Interface("nodePoolName", nodePoolName).Msg("MakeNodePoolRequest")
 	nodesReq := &godo.KubernetesNodePoolCreateRequest{
-		Name:   fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix),
+		Name:   nodePoolName,
 		Size:   params.Nodes.Slug,
 		Count:  int(params.NodesQuantity),
-		Tags:   nil,
 		Labels: labels,
 		Taints: taints,
 	}

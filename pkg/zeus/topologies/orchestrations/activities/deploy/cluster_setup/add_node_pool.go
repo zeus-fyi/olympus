@@ -27,7 +27,7 @@ import (
 func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
 	err := hestia_compute_resources.AddDigitalOceanNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("AddNodePoolToOrgResources error")
+		log.Err(err).Interface("nodes", params.Nodes).Msg("AddNodePoolToOrgResources error")
 		return err
 	}
 	return nil
@@ -36,7 +36,7 @@ func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Co
 func (c *CreateSetupTopologyActivities) GkeAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
 	err := hestia_compute_resources.AddGkeNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("GkeAddNodePoolToOrgResources error")
+		log.Err(err).Interface("nodes", params.Nodes).Msg("GkeAddNodePoolToOrgResources error")
 		return err
 	}
 	return nil
@@ -45,7 +45,7 @@ func (c *CreateSetupTopologyActivities) GkeAddNodePoolToOrgResources(ctx context
 func (c *CreateSetupTopologyActivities) EksAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
 	err := hestia_compute_resources.AddEksNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("EksAddNodePoolToOrgResources error")
+		log.Err(err).Interface("nodes", params.Nodes).Msg("EksAddNodePoolToOrgResources error")
 		return err
 	}
 	return nil
@@ -54,7 +54,7 @@ func (c *CreateSetupTopologyActivities) EksAddNodePoolToOrgResources(ctx context
 func (c *CreateSetupTopologyActivities) OvhAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
 	err := hestia_compute_resources.AddOvhNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("OvhAddNodePoolToOrgResources error")
+		log.Err(err).Interface("nodes", params.Nodes).Msg("OvhAddNodePoolToOrgResources error")
 		return err
 	}
 	return nil
@@ -69,8 +69,8 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 		}
 	}
 	autoscaleEnabled := false
-	suffix := strings.Split(params.Namespace, "-")[0]
-
+	tmp := strings.Split(params.Namespace, "-")
+	suffix := tmp[len(tmp)-1]
 	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
 	label := make(map[string]string)
 	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
@@ -124,7 +124,7 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 				NodePoolID: resp.Id,
 			}, nil
 		}
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("OvhMakeNodePoolRequest error")
+		log.Err(err).Interface("nodes", params.Nodes).Msg("OvhMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	return do_types.DigitalOceanNodePoolRequestStatus{
@@ -138,7 +138,8 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
 	labels["app"] = params.Cluster.ClusterName
 
-	suffix := strings.Split(params.Namespace, "-")[0]
+	tmp := strings.Split(params.Namespace, "-")
+	suffix := tmp[len(tmp)-1]
 	orgTaint := types.Taint{
 		Effect: "NO_SCHEDULE",
 		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
@@ -191,13 +192,13 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 		httpErr := errSmithy.Err.(*http.ResponseError)
 		httpResponse := httpErr.HTTPStatusCode()
 		if httpResponse == ht.StatusConflict {
-			log.Ctx(ctx).Info().Interface("nodeGroup", nodeGroupName).Msg("EksMakeNodePoolRequest already exists")
+			log.Info().Interface("nodeGroup", nodeGroupName).Msg("EksMakeNodePoolRequest already exists")
 			return do_types.DigitalOceanNodePoolRequestStatus{
 				ClusterID:  hestia_eks_aws.AwsUsWest1Context,
 				NodePoolID: nodeGroupName,
 			}, nil
 		}
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
+		log.Err(err).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	return do_types.DigitalOceanNodePoolRequestStatus{
@@ -210,7 +211,9 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 	label := make(map[string]string)
 	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
 	label["app"] = params.Cluster.ClusterName
-	suffix := strings.Split(params.Namespace, "-")[0]
+
+	tmp := strings.Split(params.Namespace, "-")
+	suffix := tmp[len(tmp)-1]
 	tOrg := container.NodeTaint{
 		Effect: "NO_SCHEDULE",
 		Key:    fmt.Sprintf("org-%d", params.Ou.OrgID),
@@ -241,13 +244,13 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints, label)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
-			log.Ctx(ctx).Info().Interface("nodeGroup", ni.Name).Msg("GkeMakeNodePoolRequest already exists")
+			log.Info().Interface("nodeGroup", ni.Name).Msg("GkeMakeNodePoolRequest already exists")
 			return do_types.DigitalOceanNodePoolRequestStatus{
 				ClusterID:  clusterID,
 				NodePoolID: ni.Name,
 			}, nil
 		}
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("GkeMakeNodePoolRequest error")
+		log.Err(err).Interface("nodes", params.Nodes).Msg("GkeMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	fmt.Println(node)
@@ -271,21 +274,21 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	labels := make(map[string]string)
 	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
 	labels["app"] = params.Cluster.ClusterName
-	suffix := strings.Split(params.Namespace, "-")[0]
+	tmp := strings.Split(params.Namespace, "-")
+	suffix := tmp[len(tmp)-1]
 	taints := []godo.Taint{taint}
 	if params.AppTaint {
 		taints = append(taints, appTaint)
 	}
-
 	if strings.HasPrefix(params.Nodes.Slug, "so") {
 		labels = hestia_digitalocean.AddDoNvmeLabels(labels)
 	}
-
+	nodePoolName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
+	log.Info().Interface("nodePoolName", nodePoolName).Msg("MakeNodePoolRequest")
 	nodesReq := &godo.KubernetesNodePoolCreateRequest{
-		Name:   fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix),
+		Name:   nodePoolName,
 		Size:   params.Nodes.Slug,
 		Count:  int(params.NodesQuantity),
-		Tags:   nil,
 		Labels: labels,
 		Taints: taints,
 	}
@@ -294,13 +297,13 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	node, err := api_auth_temporal.DigitalOcean.CreateNodePool(ctx, clusterID, nodesReq)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
-			log.Ctx(ctx).Info().Interface("nodesReq", nodesReq).Msg("CreateNodePool already exists")
+			log.Info().Interface("nodesReq", nodesReq).Msg("CreateNodePool already exists")
 			return do_types.DigitalOceanNodePoolRequestStatus{
 				ClusterID:  clusterID,
 				NodePoolID: node.ID,
 			}, nil
 		}
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("CreateNodePool error")
+		log.Err(err).Interface("nodes", params.Nodes).Msg("CreateNodePool error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	return do_types.DigitalOceanNodePoolRequestStatus{
@@ -310,50 +313,50 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 }
 
 func (c *CreateSetupTopologyActivities) SelectOvhNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
-	log.Ctx(ctx).Info().Interface("request", request).Msg("SelectOvhNodeResources")
+	log.Info().Interface("request", request).Msg("SelectOvhNodeResources")
 	nps, err := hestia_compute_resources.OvhSelectNodeResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("request", request).Msg("SelectOvhNodeResources: OvhSelectNodeResources error")
+		log.Err(err).Interface("request", request).Msg("SelectOvhNodeResources: OvhSelectNodeResources error")
 		return nps, err
 	}
 	return nps, err
 }
 
 func (c *CreateSetupTopologyActivities) SelectEksNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
-	log.Ctx(ctx).Info().Interface("request", request).Msg("SelectEksNodeResources")
+	log.Info().Interface("request", request).Msg("SelectEksNodeResources")
 	nps, err := hestia_compute_resources.EksSelectNodeResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("request", request).Msg("SelectEksNodeResources: EksSelectNodeResources error")
+		log.Err(err).Interface("request", request).Msg("SelectEksNodeResources: EksSelectNodeResources error")
 		return nps, err
 	}
 	return nps, err
 }
 
 func (c *CreateSetupTopologyActivities) SelectGkeNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
-	log.Ctx(ctx).Info().Interface("request", request).Msg("SelectGkeNodeResources")
+	log.Info().Interface("request", request).Msg("SelectGkeNodeResources")
 	nps, err := hestia_compute_resources.GkeSelectNodeResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("request", request).Msg("GkeSelectNodeResources: GkeSelectNodeResources error")
+		log.Err(err).Interface("request", request).Msg("GkeSelectNodeResources: GkeSelectNodeResources error")
 		return nps, err
 	}
 	return nps, err
 }
 
 func (c *CreateSetupTopologyActivities) SelectNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
-	log.Ctx(ctx).Info().Interface("request", request).Msg("SelectNodeResources")
+	log.Info().Interface("request", request).Msg("SelectNodeResources")
 	nps, err := hestia_compute_resources.SelectNodeResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("request", request).Msg("SelectNodeResources: SelectNodeResources error")
+		log.Err(err).Interface("request", request).Msg("SelectNodeResources: SelectNodeResources error")
 		return nps, err
 	}
 	return nps, err
 }
 
 func (c *CreateSetupTopologyActivities) EndResourceService(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) error {
-	log.Ctx(ctx).Info().Interface("request", request).Msg("EndResourceService")
+	log.Info().Interface("request", request).Msg("EndResourceService")
 	err := hestia_compute_resources.UpdateEndServiceOrgResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("request", request).Msg("EndResourceService: UpdateEndServiceOrgResources error")
+		log.Err(err).Interface("request", request).Msg("EndResourceService: UpdateEndServiceOrgResources error")
 		return err
 	}
 	return err
@@ -362,21 +365,21 @@ func (c *CreateSetupTopologyActivities) EndResourceService(ctx context.Context, 
 // clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
 
 func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
-	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
+	log.Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
 	err := api_auth_temporal.DigitalOcean.RemoveNodePool(ctx, nodePool.ClusterID, nodePool.NodePoolID)
 	if err != nil {
 		if strings.Contains(err.Error(), "Not found") {
-			log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest: node pool not found")
+			log.Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest: node pool not found")
 			return nil
 		}
-		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("RemoveNodePool error")
+		log.Err(err).Interface("nodePool", nodePool).Msg("RemoveNodePool error")
 		return err
 	}
 	return err
 }
 
 func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
-	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
+	log.Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
 	ci := hestia_gcp.GcpClusterInfo{
 		ClusterName: nodePool.ClusterID,
 		ProjectID:   "zeusfyi",
@@ -388,10 +391,10 @@ func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Con
 	_, err := api_auth_temporal.GCP.RemoveNodePool(ctx, ci, ni)
 	if err != nil {
 		if strings.Contains(err.Error(), "Not found") {
-			log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest: node pool not found")
+			log.Info().Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest: node pool not found")
 			return nil
 		}
-		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest error")
+		log.Err(err).Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest error")
 		return err
 	}
 	return err
@@ -408,10 +411,10 @@ func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Con
 		httpErr := errSmithy.Err.(*http.ResponseError)
 		httpResponse := httpErr.HTTPStatusCode()
 		if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
-			log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
+			log.Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
 			return nil
 		} else {
-			log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
+			log.Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
 			return err
 		}
 	}
@@ -422,10 +425,10 @@ func (c *CreateSetupTopologyActivities) OvhRemoveNodePoolRequest(ctx context.Con
 	err := api_auth_temporal.OvhCloud.RemoveNodePool(ctx, nodePool.ClusterID, nodePool.NodePoolID)
 	if err != nil {
 		if strings.Contains(err.Error(), "Not found") {
-			log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("OvhRemoveNodePoolRequest: node pool not found")
+			log.Info().Interface("nodePool", nodePool).Msg("OvhRemoveNodePoolRequest: node pool not found")
 			return nil
 		}
-		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("OvhRemoveNodePoolRequest error")
+		log.Err(err).Interface("nodePool", nodePool).Msg("OvhRemoveNodePoolRequest error")
 		return err
 	}
 	return nil
@@ -434,7 +437,7 @@ func (c *CreateSetupTopologyActivities) OvhRemoveNodePoolRequest(ctx context.Con
 func (c *CreateSetupTopologyActivities) RemoveFreeTrialOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	err := hestia_compute_resources.RemoveFreeTrialOrgResources(ctx, params.Ou.OrgID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", params.Ou).Msg("RemoveFreeTrialOrgResources error")
+		log.Err(err).Interface("ou", params.Ou).Msg("RemoveFreeTrialOrgResources error")
 		return err
 	}
 	return nil
@@ -443,7 +446,7 @@ func (c *CreateSetupTopologyActivities) RemoveFreeTrialOrgResources(ctx context.
 func (c *CreateSetupTopologyActivities) UpdateFreeTrialOrgResourcesToPaid(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	err := hestia_compute_resources.UpdateFreeTrialOrgResourcesToPaid(ctx, params.Ou.OrgID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", params.Ou).Msg("RemoveFreeTrialOrgResources error")
+		log.Err(err).Interface("ou", params.Ou).Msg("RemoveFreeTrialOrgResources error")
 		return err
 	}
 	return nil
@@ -452,7 +455,7 @@ func (c *CreateSetupTopologyActivities) UpdateFreeTrialOrgResourcesToPaid(ctx co
 func (c *CreateSetupTopologyActivities) SelectFreeTrialNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	nps, err := hestia_compute_resources.SelectFreeTrialDigitalOceanNodes(ctx, orgID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Int("orgID", orgID).Msg("SelectFreeTrialNodes: SelectFreeTrialDigitalOceanNodes error")
+		log.Err(err).Int("orgID", orgID).Msg("SelectFreeTrialNodes: SelectFreeTrialDigitalOceanNodes error")
 		return nps, err
 	}
 	return nps, err
@@ -461,7 +464,7 @@ func (c *CreateSetupTopologyActivities) SelectFreeTrialNodes(ctx context.Context
 func (c *CreateSetupTopologyActivities) GkeSelectFreeTrialNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	gkeNps, err := hestia_compute_resources.GkeSelectFreeTrialNodes(ctx, orgID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Int("orgID", orgID).Msg("GkeSelectFreeTrialNodes: GkeSelectFreeTrialNodes error")
+		log.Err(err).Int("orgID", orgID).Msg("GkeSelectFreeTrialNodes: GkeSelectFreeTrialNodes error")
 		return gkeNps, err
 	}
 	return gkeNps, err
@@ -470,7 +473,7 @@ func (c *CreateSetupTopologyActivities) GkeSelectFreeTrialNodes(ctx context.Cont
 func (c *CreateSetupTopologyActivities) EksSelectFreeTrialNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	eksNps, err := hestia_compute_resources.EksSelectFreeTrialNodes(ctx, orgID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Int("orgID", orgID).Msg("EksSelectFreeTrialNodes: EksSelectFreeTrialNodes error")
+		log.Err(err).Int("orgID", orgID).Msg("EksSelectFreeTrialNodes: EksSelectFreeTrialNodes error")
 		return eksNps, err
 	}
 	return eksNps, err
@@ -479,7 +482,7 @@ func (c *CreateSetupTopologyActivities) EksSelectFreeTrialNodes(ctx context.Cont
 func (c *CreateSetupTopologyActivities) OvhSelectFreeTrialNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	eksNps, err := hestia_compute_resources.OvhSelectFreeTrialNodes(ctx, orgID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Int("orgID", orgID).Msg("OvhSelectFreeTrialNodes: OvhSelectFreeTrialNodes error")
+		log.Err(err).Int("orgID", orgID).Msg("OvhSelectFreeTrialNodes: OvhSelectFreeTrialNodes error")
 		return eksNps, err
 	}
 	return eksNps, err

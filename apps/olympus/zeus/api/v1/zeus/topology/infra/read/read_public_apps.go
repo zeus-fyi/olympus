@@ -51,7 +51,7 @@ func SuiAppsHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.GetAvaxApp(c)
+	return request.GetSuiApp(c)
 }
 
 const (

@@ -43,9 +43,24 @@ func (s *GcpTestSuite) TestAddNodePool() {
 	r, err := s.g.AddNodePool(ctx, ci, ni, nil, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(r)
-
 }
 
+func (s *GcpTestSuite) TestAddNodePoolWithNvme() {
+	ci := GcpClusterInfo{
+		ClusterName: "zeus-gcp-pilot-0",
+		ProjectID:   "zeusfyi",
+		Zone:        "us-central1-a",
+	}
+	mt := "n1-highmem-16"
+	ni := GkeNodePoolInfo{
+		Name:             "test-node-pool-nvme",
+		MachineType:      mt,
+		InitialNodeCount: 1,
+	}
+	r, err := s.g.AddNodePool(ctx, ci, ni, nil, nil)
+	s.Require().NoError(err)
+	s.Require().NotNil(r)
+}
 func (s *GcpTestSuite) TestRemoveNodePool() {
 	ci := GcpClusterInfo{
 		ClusterName: "zeus-gcp-pilot-0",

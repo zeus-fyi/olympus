@@ -152,14 +152,20 @@ func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni Gk
 	return resp, err
 }
 
+// https://cloud.google.com/compute/docs/disks/local-ssd
+
 func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo, taints []*container.NodeTaint, labels map[string]string) (*container.Operation, error) {
-	if ni.MachineType == "n2-highmem-16" {
-		ni.NvmeDisks = 16
-		log.Info().Msg("n2-highmem-16 has 16 nvme disks")
-	}
-	if ni.MachineType == "n1-highmem-16" {
-		ni.NvmeDisks = 16
-		log.Info().Msg("n1-highmem-16 has 16 nvme disks")
+	appName := labels["app"]
+	// TODO update to make nvme support more global
+	if strings.HasPrefix(appName, "sui") {
+		if strings.HasPrefix(ni.MachineType, "n2") {
+			ni.NvmeDisks = 16
+			log.Info().Msgf("%s has 16 nvme disks", ni.MachineType)
+		}
+		if strings.HasPrefix(ni.MachineType, "n1") {
+			ni.NvmeDisks = 16
+			log.Info().Msgf("%s has 16 nvme disks", ni.MachineType)
+		}
 	}
 	cnReq := &container.CreateNodePoolRequest{
 		ClusterId: ci.ClusterName,

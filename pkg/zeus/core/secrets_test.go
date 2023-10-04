@@ -253,6 +253,33 @@ func (s *SecretsTestSuite) TestCreateWeb3SignerSecret() {
 	s.Require().NotEmpty(newSecret)
 }
 
+func (s *SecretsTestSuite) TestCreateS3AwsSecret() {
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "nyc1", Context: "do-nyc1-do-nyc1-zeus-demo", Namespace: "sui-testnet-do-1daf4b8e"}
+	m := make(map[string]string)
+	m["AWS_ACCESS_KEY_ID"] = s.Tc.AwsS3AccessKey
+	m["AWS_SECRET_ACCESS_KEY"] = s.Tc.AwsS3SecretKey
+	m["AWS_REGION"] = "us-west-1"
+	sec := v1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "aws-credentials",
+			Namespace: kns.Namespace,
+		},
+		StringData: m,
+		Type:       "Opaque",
+	}
+
+	_, err := s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
+	s.Require().Nil(err)
+
+	newSecret, err := s.K.CreateSecretWithKns(ctx, kns, &sec, nil)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(newSecret)
+}
+
 func TestSecretsTestSuite(t *testing.T) {
 	suite.Run(t, new(SecretsTestSuite))
 }

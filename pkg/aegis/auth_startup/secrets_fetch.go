@@ -37,6 +37,9 @@ const (
 
 	googClientID     = "secrets/google.client.id.txt"
 	googClientSecret = "secrets/google.client.secret.txt"
+
+	awsS3ReaderAccessKey = "secrets/aws.s3.reader.access.key.txt"
+	awsS3ReaderSecretKey = "secrets/aws.s3.reader.secret.key.txt"
 )
 
 type SecretsWrapper struct {
@@ -71,6 +74,9 @@ type SecretsWrapper struct {
 	EksAuthAWS            aegis_aws_auth.AuthAWS
 
 	TemporalAuth temporal_auth.TemporalAuth
+
+	AwsS3AccessKey string
+	AwsS3SecretKey string
 }
 
 var secretsBucket = &s3.GetObjectInput{

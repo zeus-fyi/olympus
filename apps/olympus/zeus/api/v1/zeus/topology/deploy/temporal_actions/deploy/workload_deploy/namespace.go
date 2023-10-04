@@ -3,9 +3,11 @@ package internal_deploy
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
@@ -23,6 +25,16 @@ func DeployNamespaceHandler(c echo.Context) error {
 		log.Err(err).Msg("DeployNamespaceHandler")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+
+	if strings.HasPrefix(request.Kns.CloudCtxNs.Namespace, "sui") {
+		sec := dynamic_secrets.GetS3SecretSui(ctx, request.Kns.CloudCtxNs)
+		_, serr := zeus.K8Util.CreateSecretWithKnsIfDoesNotExist(ctx, request.Kns.CloudCtxNs, &sec, nil)
+		if serr != nil {
+			log.Err(serr).Msg("DeployNamespaceHandler")
+			return c.JSON(http.StatusInternalServerError, serr)
+		}
+	}
+
 	if request.Kns.CloudCtxNs.Context == "zeusfyi" && request.Kns.CloudCtxNs.CloudProvider == "ovh" {
 		fromKns := zeus_common_types.CloudCtxNs{
 			CloudProvider: "do",

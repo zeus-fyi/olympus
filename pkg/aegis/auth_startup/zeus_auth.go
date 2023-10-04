@@ -22,6 +22,8 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	sw.OvhAppKey = sw.MustReadSecret(ctx, inMemSecrets, ovhAppKey)
 	sw.OvhSecretKey = sw.MustReadSecret(ctx, inMemSecrets, ovhSecretKey)
 	sw.OvhConsumerKey = sw.MustReadSecret(ctx, inMemSecrets, ovhConsumerKey)
+	sw.AwsS3AccessKey = sw.MustReadSecret(ctx, inMemSecrets, awsS3ReaderAccessKey)
+	sw.AwsS3SecretKey = sw.MustReadSecret(ctx, inMemSecrets, awsS3ReaderSecretKey)
 	sw.EksAuthAWS.Region = "us-west-1"
 	return inMemSecrets, sw
 }

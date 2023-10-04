@@ -157,6 +157,10 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 		ni.NvmeDisks = 16
 		log.Info().Msg("n2-highmem-16 has 16 nvme disks")
 	}
+	if ni.MachineType == "n1-highmem-16" {
+		ni.NvmeDisks = 16
+		log.Info().Msg("n1-highmem-16 has 16 nvme disks")
+	}
 	cnReq := &container.CreateNodePoolRequest{
 		ClusterId: ci.ClusterName,
 		NodePool: &container.NodePool{
@@ -167,8 +171,7 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 				Enabled:         false,
 			},
 			Config: &container.NodeConfig{
-				Labels:          labels,
-				LinuxNodeConfig: nil,
+				Labels: labels,
 				LocalNvmeSsdBlockConfig: &container.LocalNvmeSsdBlockConfig{
 					LocalSsdCount: ni.NvmeDisks,
 				},

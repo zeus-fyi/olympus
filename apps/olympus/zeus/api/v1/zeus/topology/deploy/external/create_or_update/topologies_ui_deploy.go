@@ -123,6 +123,9 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		}
 		diskResourceID = 1681408541855876000
 	case "gcp":
+		if strings.HasPrefix(t.Cluster.ClusterName, "sui") {
+			t.Node.DiskType = "nvme"
+		}
 		cr = base_deploy_params.ClusterSetupRequest{
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,

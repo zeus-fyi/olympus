@@ -33,6 +33,9 @@ type QuickNodeMarketplace struct {
 type TestContainer struct {
 	Env string
 
+	AwsS3AccessKey string
+	AwsS3SecretKey string
+
 	QuickNodeMarketplace        QuickNodeMarketplace
 	ZeroXApiKey                 string
 	OvhAppKey                   string
@@ -201,6 +204,9 @@ func InitLocalTestConfigs() TestContainer {
 	for i := 1; i < 9; i++ {
 		qn.Routes = append(qn.Routes, viper.GetString(fmt.Sprintf("QUIKNODE_%d", i)))
 	}
+
+	testCont.AwsS3AccessKey = viper.GetString("AWS_S3_ACCESS_KEY")
+	testCont.AwsS3SecretKey = viper.GetString("AWS_S3_SECRET_KEY")
 
 	testCont.GoogClientID = viper.GetString("GOOGLE_CLIENT_ID")
 	testCont.GoogClientSecret = viper.GetString("GOOGLE_CLIENT_SECRET")

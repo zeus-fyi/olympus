@@ -88,12 +88,12 @@ func NonSupported(name string) float64 {
 func InitGcpClient(ctx context.Context, authJsonBytes []byte) (GcpClient, error) {
 	client, err := container.NewService(ctx, option.WithCredentialsJSON(authJsonBytes), option.WithScopes(container.CloudPlatformScope))
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("Failed to create GKE API client")
+		log.Err(err).Msg("Failed to create GKE API client")
 		return GcpClient{}, err
 	}
 	jwtConfig, jerr := google.JWTConfigFromJSON(authJsonBytes, container.CloudPlatformScope, ComputeScope, ComputeReadOnlyScope)
 	if jerr != nil {
-		log.Ctx(ctx).Err(jerr).Msgf("Error creating JWT config: %v\n", jerr)
+		log.Err(jerr).Msgf("Error creating JWT config: %v\n", jerr)
 		return GcpClient{}, jerr
 	}
 	httpClient := jwtConfig.Client(ctx)
@@ -146,7 +146,7 @@ type GkeNodePoolInfo struct {
 func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo) (any, error) {
 	resp, err := g.Projects.Zones.Clusters.NodePools.Delete(ci.ProjectID, ci.Zone, ci.ClusterName, ni.Name).Context(ctx).Do()
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("failed to delete node pool")
+		log.Err(err).Msg("failed to delete node pool")
 		return nil, err
 	}
 	return resp, err
@@ -190,7 +190,7 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 	}
 	resp, err := g.Projects.Zones.Clusters.NodePools.Create(ci.ProjectID, ci.Zone, ci.ClusterName, cnReq).Context(ctx).Do()
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("failed to create node pool")
+		log.Err(err).Msg("failed to create node pool")
 		return nil, err
 	}
 	return resp, err
@@ -199,7 +199,7 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 func (g *GcpClient) ListNodes(ctx context.Context, ci GcpClusterInfo) ([]*container.NodePool, error) {
 	nodePools, err := g.Projects.Zones.Clusters.NodePools.List(ci.ProjectID, ci.Zone, ci.ClusterName).Context(ctx).Do()
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("Failed to retrieve node pools")
+		log.Err(err).Msg("Failed to retrieve node pools")
 		return nil, err
 	}
 	return nodePools.NodePools, err

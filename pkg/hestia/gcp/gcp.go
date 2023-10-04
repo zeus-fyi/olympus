@@ -88,12 +88,12 @@ func NonSupported(name string) float64 {
 func InitGcpClient(ctx context.Context, authJsonBytes []byte) (GcpClient, error) {
 	client, err := container.NewService(ctx, option.WithCredentialsJSON(authJsonBytes), option.WithScopes(container.CloudPlatformScope))
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("Failed to create GKE API client")
+		log.Err(err).Msg("Failed to create GKE API client")
 		return GcpClient{}, err
 	}
 	jwtConfig, jerr := google.JWTConfigFromJSON(authJsonBytes, container.CloudPlatformScope, ComputeScope, ComputeReadOnlyScope)
 	if jerr != nil {
-		log.Ctx(ctx).Err(jerr).Msgf("Error creating JWT config: %v\n", jerr)
+		log.Err(jerr).Msgf("Error creating JWT config: %v\n", jerr)
 		return GcpClient{}, jerr
 	}
 	httpClient := jwtConfig.Client(ctx)
@@ -146,16 +146,26 @@ type GkeNodePoolInfo struct {
 func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo) (any, error) {
 	resp, err := g.Projects.Zones.Clusters.NodePools.Delete(ci.ProjectID, ci.Zone, ci.ClusterName, ni.Name).Context(ctx).Do()
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("failed to delete node pool")
+		log.Err(err).Msg("failed to delete node pool")
 		return nil, err
 	}
 	return resp, err
 }
 
+// https://cloud.google.com/compute/docs/disks/local-ssd
+
 func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo, taints []*container.NodeTaint, labels map[string]string) (*container.Operation, error) {
-	if ni.MachineType == "n2-highmem-16" {
-		ni.NvmeDisks = 16
-		log.Info().Msg("n2-highmem-16 has 16 nvme disks")
+	appName := labels["app"]
+	// TODO update to make nvme support more global
+	if strings.HasPrefix(appName, "sui") {
+		if strings.HasPrefix(ni.MachineType, "n2") {
+			ni.NvmeDisks = 16
+			log.Info().Msgf("%s has 16 nvme disks", ni.MachineType)
+		}
+		if strings.HasPrefix(ni.MachineType, "n1") {
+			ni.NvmeDisks = 16
+			log.Info().Msgf("%s has 16 nvme disks", ni.MachineType)
+		}
 	}
 	cnReq := &container.CreateNodePoolRequest{
 		ClusterId: ci.ClusterName,
@@ -167,8 +177,7 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 				Enabled:         false,
 			},
 			Config: &container.NodeConfig{
-				Labels:          labels,
-				LinuxNodeConfig: nil,
+				Labels: labels,
 				LocalNvmeSsdBlockConfig: &container.LocalNvmeSsdBlockConfig{
 					LocalSsdCount: ni.NvmeDisks,
 				},
@@ -181,7 +190,7 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 	}
 	resp, err := g.Projects.Zones.Clusters.NodePools.Create(ci.ProjectID, ci.Zone, ci.ClusterName, cnReq).Context(ctx).Do()
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("failed to create node pool")
+		log.Err(err).Msg("failed to create node pool")
 		return nil, err
 	}
 	return resp, err
@@ -190,7 +199,7 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 func (g *GcpClient) ListNodes(ctx context.Context, ci GcpClusterInfo) ([]*container.NodePool, error) {
 	nodePools, err := g.Projects.Zones.Clusters.NodePools.List(ci.ProjectID, ci.Zone, ci.ClusterName).Context(ctx).Do()
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("Failed to retrieve node pools")
+		log.Err(err).Msg("Failed to retrieve node pools")
 		return nil, err
 	}
 	return nodePools.NodePools, err

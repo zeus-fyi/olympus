@@ -10,6 +10,7 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	"google.golang.org/api/container/v1"
 )
 
 type GcpTestSuite struct {
@@ -53,14 +54,23 @@ func (s *GcpTestSuite) TestAddNodePoolWithNvme() {
 	}
 	mt := "n1-highmem-16"
 	ni := GkeNodePoolInfo{
-		Name:             "test-node-pool-nvme",
+		Name:             "test-node-pool-nvme-1234",
 		MachineType:      mt,
 		InitialNodeCount: 1,
 	}
-	r, err := s.g.AddNodePool(ctx, ci, ni, nil, nil)
+	tApp := &container.NodeTaint{
+		Effect: "NO_SCHEDULE",
+		Key:    "app",
+		Value:  "sui-devnet-gcp",
+	}
+	labels := map[string]string{
+		"app": "sui-devnet-gcp",
+	}
+	r, err := s.g.AddNodePool(ctx, ci, ni, []*container.NodeTaint{tApp}, labels)
 	s.Require().NoError(err)
 	s.Require().NotNil(r)
 }
+
 func (s *GcpTestSuite) TestRemoveNodePool() {
 	ci := GcpClusterInfo{
 		ClusterName: "zeus-gcp-pilot-0",

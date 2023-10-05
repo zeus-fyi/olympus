@@ -208,9 +208,9 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 }
 
 func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
-	label := make(map[string]string)
-	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
-	label["app"] = params.Cluster.ClusterName
+	labels := make(map[string]string)
+	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
+	labels["app"] = params.Cluster.ClusterName
 
 	tmp := strings.Split(params.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
@@ -241,7 +241,7 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 		InitialNodeCount: int64(params.NodesQuantity),
 	}
 
-	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints, label)
+	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints, labels)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			log.Info().Interface("nodeGroup", ni.Name).Msg("GkeMakeNodePoolRequest already exists")

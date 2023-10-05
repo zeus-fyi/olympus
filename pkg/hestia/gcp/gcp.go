@@ -157,8 +157,6 @@ func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni Gk
 func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo, taints []*container.NodeTaint, labels map[string]string) (*container.Operation, error) {
 	appName := labels["app"]
 	// TODO update to make nvme support more global
-
-	var ephemeralDiskConfig *container.EphemeralStorageLocalSsdConfig
 	var nvmeDiskConfig *container.LocalNvmeSsdBlockConfig
 	if strings.HasPrefix(appName, "sui") {
 		if strings.HasPrefix(ni.MachineType, "n2") {
@@ -169,12 +167,15 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 			ni.NvmeDisks = 16
 			log.Info().Msgf("%s has 16 nvme disks", ni.MachineType)
 		}
-		ephemeralDiskConfig = &container.EphemeralStorageLocalSsdConfig{
-			LocalSsdCount: ni.NvmeDisks,
-		}
 		nvmeDiskConfig = &container.LocalNvmeSsdBlockConfig{
 			LocalSsdCount: ni.NvmeDisks,
 		}
+		if labels == nil {
+			labels = map[string]string{}
+		}
+		//diskType := "nvme-ssd-block"
+		labels["cloud.google.com/gke-local-nvme-ssd"] = "true"
+		log.Info().Msgf("adding %d nvme disks to %s", ni.NvmeDisks, ni.MachineType)
 	}
 	cnReq := &container.CreateNodePoolRequest{
 		ClusterId: ci.ClusterName,
@@ -186,11 +187,10 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 				Enabled:         false,
 			},
 			Config: &container.NodeConfig{
-				Labels:                         labels,
-				EphemeralStorageLocalSsdConfig: ephemeralDiskConfig,
-				LocalNvmeSsdBlockConfig:        nvmeDiskConfig,
-				MachineType:                    ni.MachineType,
-				Taints:                         taints,
+				Labels:                  labels,
+				LocalNvmeSsdBlockConfig: nvmeDiskConfig,
+				MachineType:             ni.MachineType,
+				Taints:                  taints,
 			},
 		},
 		ProjectId: ci.ProjectID,

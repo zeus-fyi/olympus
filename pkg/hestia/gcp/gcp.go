@@ -173,7 +173,6 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 		if labels == nil {
 			labels = map[string]string{}
 		}
-		//diskType := "nvme-ssd-block"
 		labels["cloud.google.com/gke-local-nvme-ssd"] = "true"
 		log.Info().Msgf("adding %d nvme disks to %s", ni.NvmeDisks, ni.MachineType)
 	}

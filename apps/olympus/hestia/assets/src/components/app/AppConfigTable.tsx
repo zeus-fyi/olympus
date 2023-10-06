@@ -48,7 +48,7 @@ export function AppConfigsTable(props: any) {
 
     const handleClick = async (event: any, app: any) => {
         event.preventDefault();
-        navigate('/app/'+app.topologySystemComponentID);
+        navigate('/app/'+app.topologySystemComponentName);
     }
 
     if (matrixApps == null) {

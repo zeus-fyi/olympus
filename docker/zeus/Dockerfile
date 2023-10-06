@@ -70,6 +70,13 @@ WORKDIR /app
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 
+FROM ubuntu:22.04 as cookbooks
+RUN apt-get update && apt-get install -y git
+WORKDIR /app
+
+RUN git clone https://github.com/zeus-fyi/zeus.git --branch main --single-branch
+RUN cp -r zeus/cookbooks .
+
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates unzip less
 
@@ -99,4 +106,5 @@ RUN chmod +x /google-cloud-sdk/bin/gke-gcloud-auth-plugin
 
 ENV PATH $PATH:/google-cloud-sdk/bin
 
+COPY --from=cookbooks /app/cookbooks /etc/cookbooks
 EXPOSE 9001

@@ -68,7 +68,6 @@ export function AppPageWrapper(props: any) {
                 if (app === "sui" ){
                     id = 'sui'
                 }
-                console.log('gdssdfsdf')
                 const response = await appsApiGateway.getPrivateAppDetails(id);
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));

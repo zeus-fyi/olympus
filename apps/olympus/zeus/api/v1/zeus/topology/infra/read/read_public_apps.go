@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -17,6 +18,7 @@ import (
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
+	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/zeus/cluster_config_drivers"
 )
 
 type PublicAppsPageRequest struct {
@@ -54,6 +56,14 @@ func SuiAppsHandler(c echo.Context) error {
 	return request.GetSuiApp(c)
 }
 
+//func AppsByNameHandler(c echo.Context) error {
+//	request := new(PublicAppsPageRequest)
+//	if err := c.Bind(request); err != nil {
+//		return err
+//	}
+//	return request.GetAppByName(c)
+//}
+
 const (
 	AvaxAppID                = 1680924257606485000
 	EphemeralEthBeaconsAppID = 1670997020811171000
@@ -65,30 +75,55 @@ const (
 )
 
 func (a *PublicAppsPageRequest) GetMicroserviceApp(c echo.Context) error {
-	return a.GetApp(c, AppsOrgID, MicroserviceAppID)
+	return a.GetAppByID(c, MicroserviceAppID)
 }
 func (a *PublicAppsPageRequest) GetEphemeralBeaconsApp(c echo.Context) error {
-	return a.GetApp(c, AppsOrgID, EphemeralEthBeaconsAppID)
+	return a.GetAppByID(c, EphemeralEthBeaconsAppID)
 }
 func (a *PublicAppsPageRequest) GetAvaxApp(c echo.Context) error {
-	return a.GetApp(c, AppsOrgID, AvaxAppID)
+	return a.GetAppByID(c, AvaxAppID)
 }
 func (a *PublicAppsPageRequest) GetSuiApp(c echo.Context) error {
-	return a.GetApp(c, AppsOrgID, SuiAppID)
+	return a.GetAppByID(c, SuiAppID)
 }
 
-func (a *PublicAppsPageRequest) GetApp(c echo.Context, AppsOrgID, AppID int) error {
+func (a *PublicAppsPageRequest) GetAppByName(c echo.Context, appName string) error {
+	ctx := context.Background()
+	if !strings.HasPrefix(appName, "sui-") || len(appName) == 0 {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	token, ok := c.Get("bearer").(string)
+	if ok {
+		err := CopySuiApp(ctx, appName, token)
+		if err != nil {
+			log.Err(err).Msg("ListPrivateAppsRequest: CopySuiApp")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+	}
+	selectedApp, err := read_topology.SelectAppTopologyByName(ctx, AppsOrgID, appName)
+	if err != nil {
+		log.Err(err).Msg("ListPrivateAppsRequest: SelectOrgApps")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return a.GetApp(c, selectedApp)
+}
+
+func (a *PublicAppsPageRequest) GetAppByID(c echo.Context, appID int) error {
+	ctx := context.Background()
+	selectedApp, err := read_topology.SelectAppTopologyByID(ctx, AppsOrgID, appID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return a.GetApp(c, selectedApp)
+}
+
+func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_config_drivers.ClusterDefinition) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		log.Err(fmt.Errorf("orgUser not found")).Msg("ListPrivateAppsRequest: Get")
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	ctx := context.Background()
-	selectedApp, err := read_topology.SelectAppTopologyByID(ctx, AppsOrgID, AppID)
-	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
 	resp := TopologyUIAppDetailsResponse{
 		Cluster: zeus_templates.Cluster{
 			ClusterName:     selectedApp.ClusterClassName,

@@ -20,10 +20,10 @@ type AwsEc2 struct {
 }
 
 var (
-	SlugToInstanceID = map[string]string{
-		"i3.4xlarge":  "lt-0e97987981123738a",
-		"i3.8xlarge":  "lt-0a2a4a58163737e16",
-		"i4i.4xlarge": "lt-0872c2f0aff238f9a",
+	SlugToLaunchTemplateID = map[string]string{
+		"i3.4xlarge":  "lt-0d2ce398c9302a55c",
+		"i3.8xlarge":  "lt-0c7e19d4f8bd4da23",
+		"i4i.4xlarge": "lt-03df8dddbc9464e83",
 	}
 
 	SlugToInstanceTemplateName = map[string]string{
@@ -138,14 +138,59 @@ echo /dev/md0 $mount_location ext4 defaults,noatime 0 2 >> /etc/fstab
 		Ebs:        ebs,
 	}
 	encodedUserData := base64.StdEncoding.EncodeToString([]byte(userData))
+
+	// Metadata Options
+	metadataOptions := &types.LaunchTemplateInstanceMetadataOptionsRequest{
+		HttpPutResponseHopLimit: aws.Int32(2),
+		HttpTokens:              types.LaunchTemplateHttpTokensStateRequired,
+	}
+
+	ltName := aws.String(fmt.Sprintf("eks-pv-raid-launch-template-%s", slug))
 	lt := &ec2.CreateLaunchTemplateInput{
-		LaunchTemplateName: aws.String(fmt.Sprintf("eks-pv-raid-launch-template-%s", slug)),
+		LaunchTemplateName: ltName,
 		VersionDescription: aws.String("eks nvme bootstrap"),
 		LaunchTemplateData: &types.RequestLaunchTemplateData{
-			BlockDeviceMappings: []types.LaunchTemplateBlockDeviceMappingRequest{blockDeviceMapping},
-			InstanceType:        types.InstanceType(slug),
-			SecurityGroupIds:    []string{AwsUsWestSecurityGroupID},
-			UserData:            aws.String(encodedUserData),
+			BlockDeviceMappings:          []types.LaunchTemplateBlockDeviceMappingRequest{blockDeviceMapping},
+			ElasticInferenceAccelerators: nil,
+			IamInstanceProfile:           nil,
+			InstanceType:                 types.InstanceType(slug),
+			KeyName:                      nil,
+			MaintenanceOptions:           nil,
+			MetadataOptions:              metadataOptions,
+			Monitoring:                   nil,
+			NetworkInterfaces:            nil,
+			RamDiskId:                    nil,
+			SecurityGroupIds:             []string{AwsUsWestSecurityGroupID},
+			TagSpecifications: []types.LaunchTemplateTagSpecificationRequest{
+				{
+					ResourceType: types.ResourceTypeInstance,
+					Tags: []types.Tag{
+						{
+							Key:   aws.String("Name"),
+							Value: ltName,
+						},
+					},
+				},
+				{
+					ResourceType: types.ResourceTypeVolume,
+					Tags: []types.Tag{
+						{
+							Key:   aws.String("Name"),
+							Value: ltName,
+						},
+					},
+				},
+				{
+					ResourceType: types.ResourceTypeNetworkInterface,
+					Tags: []types.Tag{
+						{
+							Key:   aws.String("Name"),
+							Value: ltName,
+						},
+					},
+				},
+			},
+			UserData: aws.String(encodedUserData),
 		},
 	}
 	return lt

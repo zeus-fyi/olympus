@@ -160,7 +160,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	var lt *types.LaunchTemplateSpecification
 	instanceTypes := []string{params.Nodes.Slug}
 	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
-	id := hestia_eks_aws.SlugToInstanceID[params.Nodes.Slug]
+	id := hestia_eks_aws.SlugToLaunchTemplateID[params.Nodes.Slug]
 	if id != "" {
 		labels = hestia_eks_aws.AddAwsEksNvmeLabels(labels)
 		instanceTypes = nil

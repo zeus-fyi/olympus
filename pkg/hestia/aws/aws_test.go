@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -56,6 +57,35 @@ func (s *AwsEKSTestSuite) TestCreateNodeGroup() {
 			MaxSize:     aws.Int32(1),
 			MinSize:     aws.Int32(1),
 		},
+		Taints: nil,
+	}
+	ngs, err := s.ek.AddNodeGroup(ctx, params)
+	s.Require().Nil(err)
+	s.Require().NotNil(ngs)
+}
+
+func (s *AwsEKSTestSuite) TestCreateNvmeNodeGroup() {
+	nodeGroupName := "test-" + uuid.New().String()
+	ltID := SlugToLaunchTemplateID["i3.4xlarge"]
+	labels := make(map[string]string)
+	labels = AddAwsEksNvmeLabels(labels)
+
+	params := &eks.CreateNodegroupInput{
+		ClusterName:   aws.String(AwsUsWest1Context),
+		NodeRole:      aws.String(AwsEksRole),
+		NodegroupName: aws.String(nodeGroupName),
+		AmiType:       types.AMITypesAl2X8664,
+		Subnets:       UsWestSubnetIDs,
+		LaunchTemplate: &types.LaunchTemplateSpecification{
+			Id: aws.String(ltID),
+		},
+		ClientRequestToken: aws.String(nodeGroupName),
+		ScalingConfig: &types.NodegroupScalingConfig{
+			DesiredSize: aws.Int32(1),
+			MaxSize:     aws.Int32(1),
+			MinSize:     aws.Int32(1),
+		},
+		Labels: labels,
 		Taints: nil,
 	}
 	ngs, err := s.ek.AddNodeGroup(ctx, params)

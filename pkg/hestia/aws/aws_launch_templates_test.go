@@ -5,7 +5,7 @@ import "fmt"
 func (s *AwsEKSTestSuite) TestCreateInstanceTemplate() {
 	instanceTypes := []string{
 		//"i3.4xlarge",
-		"i3.8xlarge",
+		//"i3.8xlarge",
 		"i4i.4xlarge",
 	}
 

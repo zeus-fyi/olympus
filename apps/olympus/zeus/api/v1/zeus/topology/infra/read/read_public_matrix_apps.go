@@ -33,5 +33,14 @@ func (a *PublicAppsMatrixRequest) GetPublicAppFamily(c echo.Context) error {
 		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	token, ok := c.Get("bearer").(string)
+	if ok {
+		go func() {
+			err = CopySuiApp(ctx, token)
+			if err != nil {
+				log.Err(err).Msg("GetPublicAppFamily: CopySuiApp")
+			}
+		}()
+	}
 	return c.JSON(http.StatusOK, appList)
 }

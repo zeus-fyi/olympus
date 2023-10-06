@@ -20,6 +20,7 @@ import (
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
+	read_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/read"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
@@ -103,6 +104,8 @@ func Zeus() {
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
+
+		read_infra.CookbooksDirIn = "/Users/alex/go/Olympus/olympus/apps/zeus/cookbooks"
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()

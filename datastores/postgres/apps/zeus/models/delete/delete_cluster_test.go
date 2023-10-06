@@ -2,6 +2,7 @@ package delete_cluster
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -19,10 +20,18 @@ type DeleteClusterTestSuite struct {
 
 func (t *DeleteClusterTestSuite) TestDeleteCluster() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
-	name := "sui-devnet-aws"
-	oi := 1696626403975334000
-	err := DeleteCluster(ctx, oi, name)
-	t.Require().Nil(err)
+
+	cps := []string{"aws", "gcp", "do"}
+	networks := []string{"mainnet", "testnet", "devnet"}
+
+	for _, net := range networks {
+		for _, cp := range cps {
+			name := fmt.Sprintf("sui-%s-%s", net, cp)
+			oi := 1696626403975334000
+			err := DeleteCluster(ctx, oi, name)
+			t.Require().Nil(err)
+		}
+	}
 }
 
 func TestDeleteClusterTestSuite(t *testing.T) {

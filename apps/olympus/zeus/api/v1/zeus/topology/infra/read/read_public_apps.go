@@ -92,6 +92,14 @@ func (a *PublicAppsPageRequest) GetAppByName(c echo.Context, appName string) err
 	if !strings.HasPrefix(appName, "sui-") || len(appName) == 0 {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	token, ok := c.Get("bearer").(string)
+	if ok {
+		err := CopySuiApp(ctx, appName, token)
+		if err != nil {
+			log.Err(err).Msg("ListPrivateAppsRequest: CopySuiApp")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+	}
 	selectedApp, err := read_topology.SelectAppTopologyByName(ctx, AppsOrgID, appName)
 	if err != nil {
 		log.Err(err).Msg("ListPrivateAppsRequest: SelectOrgApps")

@@ -72,9 +72,8 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 	tmp := strings.Split(params.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
 	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
-	label := make(map[string]string)
-	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
-	label["app"] = params.Cluster.ClusterName
+	labels := CreateBaseNodeLabels(params)
+
 	taints := []hestia_ovhcloud.KubernetesTaint{
 		{
 			Key:    fmt.Sprintf("org-%d", params.Ou.OrgID),
@@ -106,7 +105,7 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 				Metadata: &hestia_ovhcloud.Metadata{
 					Annotations: make(map[string]string),
 					Finalizers:  []string{},
-					Labels:      label,
+					Labels:      labels,
 				},
 				Spec: &hestia_ovhcloud.Spec{
 					Taints:        taints,
@@ -133,11 +132,18 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 	}, nil
 }
 
-func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
+func CreateBaseNodeLabels(params base_deploy_params.ClusterSetupRequest) map[string]string {
 	labels := make(map[string]string)
 	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
-	labels["app"] = params.Cluster.ClusterName
 
+	if params.Cluster.ClusterName != "" {
+		labels["app"] = params.Cluster.ClusterName
+	}
+	return labels
+}
+
+func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
+	labels := CreateBaseNodeLabels(params)
 	tmp := strings.Split(params.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
 	orgTaint := types.Taint{
@@ -208,9 +214,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 }
 
 func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
-	labels := make(map[string]string)
-	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
-	labels["app"] = params.Cluster.ClusterName
+	labels := CreateBaseNodeLabels(params)
 
 	tmp := strings.Split(params.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
@@ -271,9 +275,7 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 		Value:  params.Cluster.ClusterName,
 		Effect: "NoSchedule",
 	}
-	labels := make(map[string]string)
-	labels["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
-	labels["app"] = params.Cluster.ClusterName
+	labels := CreateBaseNodeLabels(params)
 	tmp := strings.Split(params.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
 	taints := []godo.Taint{taint}

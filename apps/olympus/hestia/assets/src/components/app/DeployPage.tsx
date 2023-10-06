@@ -71,6 +71,9 @@ export function DeployPage(props: any) {
                 if (app === "microservice") {
                     id = "microservice"
                 }
+                if (app === "sui") {
+                    id = "sui"
+                }
                 const response = await appsApiGateway.getPrivateAppDetails(id);
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));

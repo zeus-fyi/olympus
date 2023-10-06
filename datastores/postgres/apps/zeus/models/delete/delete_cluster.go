@@ -9,7 +9,7 @@ import (
 
 var q = `WITH cte_delete_cluster_id AS (
 			SELECT topology_system_component_id
-			FROM topology_system_components WHERE topology_system_component_name = $1
+			FROM topology_system_components WHERE topology_system_component_name = $2 AND org_id = $1
 		), cte_delete_bases_id AS (
 			SELECT topology_base_component_id
 			FROM topology_base_components tb
@@ -35,8 +35,8 @@ var q = `WITH cte_delete_cluster_id AS (
 		FROM topology_system_components
 		WHERE topology_system_component_id = (SELECT topology_system_component_id FROM cte_delete_cluster_id)`
 
-func DeleteCluster(ctx context.Context, name string) error {
-	_, err := apps.Pg.Exec(ctx, q, name)
+func DeleteCluster(ctx context.Context, orgID int, name string) error {
+	_, err := apps.Pg.Exec(ctx, q, orgID, name)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("DeleteCluster: failed to delete cluster")
 		return err

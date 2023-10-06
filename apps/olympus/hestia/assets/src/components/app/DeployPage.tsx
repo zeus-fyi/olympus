@@ -557,20 +557,20 @@ export function DeployPage(props: any) {
                             </Stack>
                         </Container>
                     </Card>
-                    <Card sx={{ width: '20%' }}>
-                        <CardContent>
-                            <Typography gutterBottom variant="h5" component="div">
-                                Config Options
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                Select which components and config options you want to deploy for this app. This will create a copy of the config into your private apps
-                                and will automatically navigate to the app deployment page for that configuration.
-                            </Typography>
-                        </CardContent>
-                        {cluster.clusterName && cluster.clusterName === 'sui' &&
+                    {cluster.clusterName && cluster.clusterName === 'sui' &&
+                        <Card sx={{ width: '20%' }}>
+                            <CardContent>
+                                <Typography gutterBottom variant="h5" component="div">
+                                    Config Options
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Select which components and config options you want to deploy for this app. This will create a copy of the config into your private apps
+                                    and will automatically navigate to the app deployment page for that configuration.
+                                </Typography>
+                            </CardContent>
                             <AppConfigsTable />
-                        }
-                    </Card>
+                        </Card>
+                    }
                 </Stack>
             </Container>
             </ThemeProvider>

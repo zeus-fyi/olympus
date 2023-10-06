@@ -11,7 +11,11 @@ import (
 )
 
 func (t *TopologyReadRequest) ReadTopologiesOrgCloudCtxNs(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Err(nil).Msg("ReadClusterAppViewOrgCloudCtxNs: orgUser not found")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 	ctx := context.Background()
 	resp, err := read_topologies.SelectTopologiesMetadata(ctx, ou.OrgID)
 	if err != nil {
@@ -22,7 +26,11 @@ func (t *TopologyReadRequest) ReadTopologiesOrgCloudCtxNs(c echo.Context) error 
 }
 
 func (t *TopologyReadRequest) ReadClusterAppViewOrgCloudCtxNs(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Err(nil).Msg("ReadClusterAppViewOrgCloudCtxNs: orgUser not found")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 	ctx := context.Background()
 	resp, err := read_topologies.SelectClusterAppView(ctx, ou.OrgID)
 	if err != nil {

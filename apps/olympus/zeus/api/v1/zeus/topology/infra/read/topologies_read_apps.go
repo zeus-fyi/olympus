@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"unicode"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -14,6 +15,7 @@ import (
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
+	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/zeus/cluster_config_drivers"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
@@ -22,8 +24,20 @@ type TopologyReadPrivateAppsRequest struct {
 	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 }
 
+func startsWithLetter(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	firstRune := rune(s[0])
+	return unicode.IsLetter(firstRune)
+}
+
 func (t *TopologyReadPrivateAppsRequest) ListPrivateAppsRequest(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Err(nil).Msg("GetAppFamily: orgUser not found")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 	ctx := context.Background()
 	apps, err := read_topology.SelectOrgApps(ctx, ou.OrgID)
 	if err != nil {
@@ -41,9 +55,32 @@ type TopologyUIAppDetailsResponse struct {
 	Nodes                                         hestia_autogen_bases.NodesSlice `json:"nodes,omitempty"`
 }
 
-func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Context) error {
+func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequest(c echo.Context) error {
 	appID := c.Param("id")
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Err(nil).Msg("GetAppFamily: orgUser not found")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	if startsWithLetter(appID) {
+		pr := PublicAppsPageRequest{}
+		return pr.GetAppByName(c, appID)
+	} else {
+		return t.GetPrivateAppDetailsByIdRequest(c, ou, appID)
+	}
+}
+
+func (t *TopologyReadPrivateAppsRequest) GetPublicAppDetailsByNameRequest(c echo.Context, ou org_users.OrgUser, name string) error {
+	ctx := context.Background()
+	apps, err := read_topology.SelectAppTopologyByName(ctx, ou.OrgID, name)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return t.GetAppDetailsRequestLookup(c, ou, apps)
+}
+
+func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsByIdRequest(c echo.Context, ou org_users.OrgUser, appID string) error {
 	ctx := context.Background()
 	id, err := strconv.Atoi(appID)
 	if err != nil {
@@ -55,6 +92,11 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	return t.GetAppDetailsRequestLookup(c, ou, apps)
+}
+
+func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Context, ou org_users.OrgUser, apps zeus_cluster_config_drivers.ClusterDefinition) error {
+	ctx := context.Background()
 	resp := TopologyUIAppDetailsResponse{
 		Cluster: zeus_templates.Cluster{
 			ClusterName:     apps.ClusterClassName,
@@ -87,7 +129,7 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 			// from auth lookup
 			tr.OrgID = ou.OrgID
 			tr.UserID = ou.UserID
-			err = tr.SelectTopologyForOrg(ctx)
+			err := tr.SelectTopologyForOrg(ctx)
 			if err != nil {
 				log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectTopology")
 				return c.JSON(http.StatusInternalServerError, nil)

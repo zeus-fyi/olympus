@@ -55,6 +55,25 @@ func selectAllClusterTopologiesQByID(cte *sql_query_templates.CTE, orgID int, ap
 	return q
 }
 
+func selectAllClusterTopologiesQByName(cte *sql_query_templates.CTE, orgID int, appName string) sql_query_templates.QueryParams {
+	var q sql_query_templates.QueryParams
+	q.QueryName = "SelectInfraTopologyQuery"
+	cond := "WHERE (ts.org_id = $1 AND ts.topology_system_component_name = $2)"
+	cte.Params = append(cte.Params, orgID)
+	cte.Params = append(cte.Params, appName)
+
+	query := fmt.Sprintf(`SELECT ts.topology_system_component_name, tb.topology_base_name, sb.topology_skeleton_base_name, MAX(topology_id)
+				FROM topology_system_components ts
+				INNER JOIN topology_base_components tb ON tb.topology_system_component_id = ts.topology_system_component_id
+				INNER JOIN topology_skeleton_base_components sb ON tb.topology_base_component_id = sb.topology_base_component_id
+				INNER JOIN topology_infrastructure_components ti ON ti.topology_skeleton_base_id = sb.topology_skeleton_base_id
+				%s
+				GROUP BY ts.topology_system_component_name, tb.topology_base_name, sb.topology_skeleton_base_name`, cond)
+
+	q.RawQuery = query
+	return q
+}
+
 type ClusterTopology struct {
 	ClusterClassName string              `json:"clusterName"`
 	Topologies       []ClusterTopologies `json:"topologies"`
@@ -132,6 +151,44 @@ func SelectAppTopologyByID(ctx context.Context, orgID int, appID int) (zeus_clus
 		ComponentBases: make(map[string]zeus_cluster_config_drivers.ComponentBaseDefinition),
 	}
 	q := selectAllClusterTopologiesQByID(&cte, orgID, appID)
+	log.Debug().Interface("SelectAppTopologyByID:", q.LogHeader(Sn))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, cte.Params...)
+	if err != nil {
+		log.Err(err).Msg(q.LogHeader(Sn))
+		return cl, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var componentBaseName, skeletonBaseName string
+		var topologyID int
+		rowErr := rows.Scan(
+			&cl.ClusterClassName, &componentBaseName, &skeletonBaseName, &topologyID,
+		)
+		if _, ok := cl.ComponentBases[componentBaseName]; !ok {
+			cl.ComponentBases[componentBaseName] = zeus_cluster_config_drivers.ComponentBaseDefinition{
+				SkeletonBases: make(map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition),
+			}
+		}
+		if _, ok := cl.ComponentBases[componentBaseName].SkeletonBases[skeletonBaseName]; !ok {
+			cl.ComponentBases[componentBaseName].SkeletonBases[skeletonBaseName] = zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{}
+		}
+		tmp := cl.ComponentBases[componentBaseName].SkeletonBases[skeletonBaseName]
+		tmp.TopologyID = topologyID
+		cl.ComponentBases[componentBaseName].SkeletonBases[skeletonBaseName] = tmp
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(Sn))
+			return cl, rowErr
+		}
+	}
+	return cl, misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
+func SelectAppTopologyByName(ctx context.Context, orgID int, appName string) (zeus_cluster_config_drivers.ClusterDefinition, error) {
+	cte := sql_query_templates.CTE{}
+	cl := zeus_cluster_config_drivers.ClusterDefinition{
+		ComponentBases: make(map[string]zeus_cluster_config_drivers.ComponentBaseDefinition),
+	}
+	q := selectAllClusterTopologiesQByName(&cte, orgID, appName)
 	log.Debug().Interface("SelectAppTopologyByID:", q.LogHeader(Sn))
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, cte.Params...)
 	if err != nil {

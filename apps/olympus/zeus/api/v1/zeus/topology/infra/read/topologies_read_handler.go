@@ -31,7 +31,7 @@ func ReadOrgAppDetailsHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.GetPrivateAppDetailsRequest(c)
+	return request.GetAppDetailsRequest(c)
 }
 
 func ReadClusterAppViewOrgCloudCtxNsHandler(c echo.Context) error {

@@ -41,6 +41,7 @@ export const App = () => {
                             <Route path="apps/avax" element={<ProtectedLayout children={<AppPageWrapper app={"avax"} />}/>} />
                             <Route path="apps/eth" element={<ProtectedLayout children={<AppPageWrapper app={"ethereumEphemeralBeacons"} />}/>} />
                             <Route path="apps/sui" element={<ProtectedLayout children={<AppPageWrapper app={"sui"} />}/>} />
+                            <Route path="apps/sui" element={<ProtectedLayout children={<AppPageWrapper app={"sui"} />}/>} />
                             <Route path="apps" element={<ProtectedLayout children={<AppsPage />}/>}/>
                             <Route path="apps/builder" element={<ProtectedLayout children={<ClusterBuilderPage />}/>}/>
                             <Route path="app/:id" element={<ProtectedLayout children={<AppPageWrapper />}/>}/>

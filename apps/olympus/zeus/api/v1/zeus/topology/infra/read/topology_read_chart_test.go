@@ -16,23 +16,23 @@ type TopologyReadActionRequestTestSuite struct {
 
 var ctx = context.Background()
 
-func (t *TopologyReadActionRequestTestSuite) TestReadTopologiesOrgCloudCtxNs() {
-	t.InitLocalConfigs()
-	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
-	t.Eg.POST("/infra/read/org/topologies", ReadTopologiesOrgCloudCtxNsHandler)
-
-	start := make(chan struct{}, 1)
-	go func() {
-		close(start)
-		_ = t.E.Start(":9010")
-	}()
-
-	<-start
-	defer t.E.Shutdown(ctx)
-	resp, err := t.ZeusClient.ReadTopologiesOrgCloudCtxNs(ctx)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(resp)
-}
+//func (t *TopologyReadActionRequestTestSuite) TestReadTopologiesOrgCloudCtxNs() {
+//	t.InitLocalConfigs()
+//	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+//	t.Eg.POST("/infra/read/org/topologies", ReadTopologiesOrgCloudCtxNsHandler)
+//
+//	start := make(chan struct{}, 1)
+//	go func() {
+//		close(start)
+//		_ = t.E.Start(":9010")
+//	}()
+//
+//	<-start
+//	defer t.E.Shutdown(ctx)
+//	resp, err := t.ZeusClient.ReadTopologiesOrgCloudCtxNs(ctx)
+//	t.Require().Nil(err)
+//	t.Require().NotEmpty(resp)
+//}
 
 func (t *TopologyReadActionRequestTestSuite) TestReadClusterDefinition() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)

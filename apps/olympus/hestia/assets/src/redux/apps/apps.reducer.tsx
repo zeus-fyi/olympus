@@ -4,6 +4,7 @@ import {Cluster, ClusterPreview, ComponentBases, Ingress, IngressPaths} from "..
 
 const initialState: AppsState = {
     privateOrgApps: [],
+    publicMatrixFamilyApps: [],
     cluster: {
         clusterName: '',
         componentBases: {} as ComponentBases,
@@ -39,6 +40,9 @@ const appsSlice = createSlice({
         setPrivateOrgApps: (state, action: PayloadAction<TopologySystemComponentsSlice>) => {
             state.privateOrgApps = action.payload;
         },
+        setPublicMatrixFamilyApps: (state, action: PayloadAction<TopologySystemComponentsSlice>) => {
+            state.publicMatrixFamilyApps = action.payload;
+        },
         setCluster: (state, action: PayloadAction<Cluster>) => {
             state.cluster = action.payload;
         },
@@ -54,5 +58,5 @@ const appsSlice = createSlice({
     }
 });
 
-export const { setNodes, setPrivateOrgApps,setClusterPreview, setCluster, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
+export const { setPublicMatrixFamilyApps, setNodes, setPrivateOrgApps,setClusterPreview, setCluster, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
 export default appsSlice.reducer;

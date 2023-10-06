@@ -23,6 +23,25 @@ class AppsApiGateway {
             return []
         }
     }
+    async getMatrixPublicAppFamily(name: string): Promise<TopologySystemComponents[]>  {
+        const url = `/v1/infra/ui/matrix/public/apps/${name}`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config).then((response) => {
+                return response.data;
+            })
+        } catch (exc) {
+            console.error('error sending get private apps request');
+            console.error(exc);
+            return []
+        }
+    }
     async getPrivateAppDetails(id: string): Promise<AppPageResponse>  {
         if (id == 'avax') {
             return this.getAvaxAppsDetails()

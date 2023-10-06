@@ -7,6 +7,7 @@ export interface TopologySystemComponents {
 }
 
 export interface AppsState {
+    publicMatrixFamilyApps: TopologySystemComponentsSlice;
     privateOrgApps: TopologySystemComponentsSlice;
     cluster: Cluster;
     clusterPreview: ClusterPreview;

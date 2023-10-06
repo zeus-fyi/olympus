@@ -27,6 +27,9 @@ func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 func UIRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 
+	// matrix
+	e.GET("/infra/ui/matrix/public/apps/:name", read_infra.PublicAppsMatrixRequestHandler)
+
 	e.GET("/infra/ui/apps/microservice", read_infra.MicroserviceAppsHandler)
 	e.GET("/infra/ui/apps/avax", read_infra.AvaxAppsHandler)
 	e.GET("/infra/ui/apps/sui", read_infra.SuiAppsHandler)

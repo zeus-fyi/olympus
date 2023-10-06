@@ -34,6 +34,7 @@ import {
     setSelectedComponentBaseName,
     setSelectedSkeletonBaseName
 } from "../../redux/apps/apps.reducer";
+import {AppConfigsTable} from "./AppConfigTable";
 
 const mdTheme = createTheme();
 
@@ -307,257 +308,272 @@ export function DeployPage(props: any) {
     return (
         <div>
             <ThemeProvider theme={mdTheme}>
-            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <Card sx={{ maxWidth: 700 }}>
-                    <CardContent>
-                        <Typography gutterBottom variant="h5" component="div">
-                            Deployment & Management
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Without setting up a payment method you can only deploy a maximum of one app with a monthly cost up to $500/month, and if a payment method is not set within one hour it will automatically delete your app.
-                            You can set a payment option on the billing page. Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
-                            The node sizing selection filter adds an additional 0.1 vCPU and 1.5Gi as overhead from the server to prevent selecting nodes that won't schedule this workload.
-                            If a machine type you'd like isn't listed please contact us at alex@zeus.fyi
-                        </Typography>
-                    </CardContent>
-                    <Divider />
-                    <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-                        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="h6" color="text.secondary">
-                                Node Selection
+            <Container maxWidth="xl" sx={{ mt: 4, mb: 4}}>
+                <Stack direction="row" >
+                    <Card sx={{ maxWidth: 700 }}>
+                        <CardContent>
+                            <Typography gutterBottom variant="h5" component="div">
+                                Deployment & Management
                             </Typography>
-                        </Box>
-                        <Stack direction="column" spacing={2}>
-                            <Stack direction="row" >
-                                <FormControl sx={{ mr: 2 }} fullWidth variant="outlined">
-                                    <InputLabel key={`cloudProviderLabel`} id={`cloudProvider`}>
-                                        Cloud Provider
-                                    </InputLabel>
-                                    <Select
-                                        labelId={`cloudProviderLabel`}
-                                        id={`cloudProvider`}
-                                        name="cloudProvider"
-                                        value={cloudProvider}
-                                        onChange={(event) => handleChangeSelectCloudProvider(event.target.value)}
-                                        label="Cloud Provider"
-                                    >
-                                        <MenuItem value="do">DigitalOcean</MenuItem>
-                                        <MenuItem value="gcp">Google Cloud Platform</MenuItem>
-                                        <MenuItem value="aws">Amazon Web Services</MenuItem>
-                                        <MenuItem value="ovh">Ovh Cloud</MenuItem>
-                                        <MenuItem value="azure">Azure (Coming soon)</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
-                                    <InputLabel key={`regionLabel`} id={`region`}>
-                                        Region
-                                    </InputLabel>
-                                    <Select
-                                        labelId={`regionLabel`}
-                                        id={`region`}
-                                        name="region"
-                                        value={region}
-                                        onChange={(event) => handleChangeSelectRegion(event.target.value)}
-                                        label="Region"
-                                    >
-                                        {
-                                            (() => {
-                                                switch (cloudProvider) {
-                                                    case 'gcp':
-                                                        return <MenuItem value="us-central1">us-central1</MenuItem>;
-                                                    case 'aws':
-                                                        return <MenuItem value="us-west-1">us-west-1</MenuItem>; // Add the respective region for AWS
-                                                    case 'ovh':
-                                                        return <MenuItem value="us-west-or-1">us-west-or-1</MenuItem>;
-                                                    default:
-                                                        return <MenuItem value="nyc1">nyc1</MenuItem>; // Default is for any other provider
-                                                }
-                                            })()
-                                        }
-                                    </Select>
-                                </FormControl>
-                            </Stack>
-                            <Stack direction="row" >
-                                {node && isNodeInMap(node.resourceID) &&
-                                <FormControl  sx={{ mr: 1 }} fullWidth variant="outlined">
-                                    <InputLabel key={`nodesLabel`} id={`nodes`}>
-                                        Nodes
-                                    </InputLabel>
-                                    <Select
-                                        labelId={`nodesLabel`}
-                                        id={`nodes`}
-                                        name="nodes"
-                                        value={node.resourceID}
-                                        onChange={(event) => handleAddNode(event.target.value as number)}
-                                        label="Nodes"
-                                    >
-                                        {nodes
-                                            .filter((node) => node.cloudProvider === cloudProvider && node.region === region)
-                                            .map((node) => (
-                                            <MenuItem key={node.resourceID} value={node.resourceID}>
-                                                {node.slug + ' ($' + node.priceMonthly.toFixed(2) + '/month)'}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                                }
-                                <CardActions >
-                                    <Stack direction="row" >
-                                        <IconButton onClick={handleDecrement} aria-label="decrement" >
-                                            <Remove />
-                                        </IconButton>
-                                        <TextField
-                                            value={count}
-                                            variant="outlined"
-                                            size="small"
-                                            inputProps={{ style: { textAlign: 'center' }, min: 0 }}
-                                        />
-                                        <IconButton onClick={handleIncrement} aria-label="increment">
-                                            <Add />
-                                        </IconButton>
-                                    </Stack>
-                                </CardActions>
-                            </Stack>
-                            <TextField
-                                fullWidth
-                                id="description"
-                                label="Description"
-                                variant="outlined"
-                                value={node ? node.description : ""}
-                                style={{ width: "100%" }}
-                            />
-                            <Stack direction="row" >
+                            <Typography variant="body2" color="text.secondary">
+                                Deploy a maximum of one app with a monthly cost up to $500/month for free. However, if a payment method is not set within one hour it will automatically delete your app.
+                                You can set a payment option on the billing page. Once you've deployed an app you can view it on the clusters page within a few minutes.
+                                The node sizing selection filter adds an additional 0.1 vCPU and 100Mi as overhead to help prevent selecting nodes that won't schedule this workload.
+                                If a machine type you'd like isn't listed, or out of stock please contact us at support@zeus.fyi
+                            </Typography>
+                        </CardContent>
+                        <Divider />
+                        <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+                            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="h6" color="text.secondary">
+                                    Node Selection
+                                </Typography>
+                            </Box>
+                            <Stack direction="column" spacing={2}>
+                                <Stack direction="row" >
+                                    <FormControl sx={{ mr: 2 }} fullWidth variant="outlined">
+                                        <InputLabel key={`cloudProviderLabel`} id={`cloudProvider`}>
+                                            Cloud Provider
+                                        </InputLabel>
+                                        <Select
+                                            labelId={`cloudProviderLabel`}
+                                            id={`cloudProvider`}
+                                            name="cloudProvider"
+                                            value={cloudProvider}
+                                            onChange={(event) => handleChangeSelectCloudProvider(event.target.value)}
+                                            label="Cloud Provider"
+                                        >
+                                            <MenuItem value="do">DigitalOcean</MenuItem>
+                                            <MenuItem value="gcp">Google Cloud Platform</MenuItem>
+                                            <MenuItem value="aws">Amazon Web Services</MenuItem>
+                                            <MenuItem value="ovh">Ovh Cloud</MenuItem>
+                                            <MenuItem value="azure">Azure (Coming soon)</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                    <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
+                                        <InputLabel key={`regionLabel`} id={`region`}>
+                                            Region
+                                        </InputLabel>
+                                        <Select
+                                            labelId={`regionLabel`}
+                                            id={`region`}
+                                            name="region"
+                                            value={region}
+                                            onChange={(event) => handleChangeSelectRegion(event.target.value)}
+                                            label="Region"
+                                        >
+                                            {
+                                                (() => {
+                                                    switch (cloudProvider) {
+                                                        case 'gcp':
+                                                            return <MenuItem value="us-central1">us-central1</MenuItem>;
+                                                        case 'aws':
+                                                            return <MenuItem value="us-west-1">us-west-1</MenuItem>; // Add the respective region for AWS
+                                                        case 'ovh':
+                                                            return <MenuItem value="us-west-or-1">us-west-or-1</MenuItem>;
+                                                        default:
+                                                            return <MenuItem value="nyc1">nyc1</MenuItem>; // Default is for any other provider
+                                                    }
+                                                })()
+                                            }
+                                        </Select>
+                                    </FormControl>
+                                </Stack>
+                                <Stack direction="row" >
+                                    {node && isNodeInMap(node.resourceID) &&
+                                        <FormControl  sx={{ mr: 1 }} fullWidth variant="outlined">
+                                            <InputLabel key={`nodesLabel`} id={`nodes`}>
+                                                Nodes
+                                            </InputLabel>
+                                            <Select
+                                                labelId={`nodesLabel`}
+                                                id={`nodes`}
+                                                name="nodes"
+                                                value={node.resourceID}
+                                                onChange={(event) => handleAddNode(event.target.value as number)}
+                                                label="Nodes"
+                                            >
+                                                {nodes
+                                                    .filter((node) => node.cloudProvider === cloudProvider && node.region === region)
+                                                    .map((node) => (
+                                                        <MenuItem key={node.resourceID} value={node.resourceID}>
+                                                            {node.slug + ' ($' + node.priceMonthly.toFixed(2) + '/month)'}
+                                                        </MenuItem>
+                                                    ))}
+                                            </Select>
+                                        </FormControl>
+                                    }
+                                    <CardActions >
+                                        <Stack direction="row" >
+                                            <IconButton onClick={handleDecrement} aria-label="decrement" >
+                                                <Remove />
+                                            </IconButton>
+                                            <TextField
+                                                value={count}
+                                                variant="outlined"
+                                                size="small"
+                                                inputProps={{ style: { textAlign: 'center' }, min: 0 }}
+                                            />
+                                            <IconButton onClick={handleIncrement} aria-label="increment">
+                                                <Add />
+                                            </IconButton>
+                                        </Stack>
+                                    </CardActions>
+                                </Stack>
                                 <TextField
-                                    id="vcpus"
-                                    label="vCPUs"
+                                    fullWidth
+                                    id="description"
+                                    label="Description"
                                     variant="outlined"
-                                    value={node ? node.vcpus : ""}
-                                    sx={{ flex: 1, mr: 2 }}
+                                    value={node ? node.description : ""}
+                                    style={{ width: "100%" }}
                                 />
-                                <TextField
-                                    id="memory"
-                                    label="Memory (GB)"
-                                    variant="outlined"
-                                    value={node ? Math.floor(node.memory/1000) : ""}
-                                    sx={{ flex: 1, mr: 2 }}
-                                />
-                                <TextField
-                                    id="localDiskSize"
-                                    label="Local Disk Size (GB)"
-                                    variant="outlined"
-                                    value={node ? node.disk : ""}
-                                    sx={{ flex: 1, mr: 2 }}
-                                />
-                            </Stack>
-                            {node && node.gpus > 0 &&
                                 <Stack direction="row" >
                                     <TextField
-                                        id="gpuType"
-                                        label="gpuType"
+                                        id="vcpus"
+                                        label="vCPUs"
                                         variant="outlined"
-                                        value={node.gpuType}
+                                        value={node ? node.vcpus : ""}
                                         sx={{ flex: 1, mr: 2 }}
                                     />
                                     <TextField
-                                        id="gpus"
-                                        label="gpus"
+                                        id="memory"
+                                        label="Memory (GB)"
                                         variant="outlined"
-                                        value={node.gpus}
+                                        value={node ? Math.floor(node.memory/1000) : ""}
+                                        sx={{ flex: 1, mr: 2 }}
+                                    />
+                                    <TextField
+                                        id="localDiskSize"
+                                        label="Local Disk Size (GB)"
+                                        variant="outlined"
+                                        value={node ? node.disk : ""}
                                         sx={{ flex: 1, mr: 2 }}
                                     />
                                 </Stack>
-                            }
-                            <Divider />
-                            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="h6" color="text.secondary">
-                                    Block Storage
-                                </Typography>
-                            </Box>
-                            {resourceRequirements.map((resourceRequirement, index) => (
-                                <div key={index}>
+                                {node && node.gpus > 0 &&
                                     <Stack direction="row" >
                                         <TextField
-                                            fullWidth
-                                            id={`componentName-${index}`}
-                                            label="Cluster Base"
+                                            id="gpuType"
+                                            label="gpuType"
                                             variant="outlined"
-                                            value={resourceRequirement.componentBaseName}
+                                            value={node.gpuType}
                                             sx={{ flex: 1, mr: 2 }}
                                         />
                                         <TextField
-                                            fullWidth
-                                            id={`blockStorageSize-${index}`}
-                                            label="PVC Disk Size SSD"
+                                            id="gpus"
+                                            label="gpus"
                                             variant="outlined"
-                                            value={resourceRequirement.resourceSumsDisk}
-                                            sx={{ flex: 1, mr: 2 }}
-                                        />
-                                        <TextField
-                                            value={resourceRequirement.replicas}
-                                            fullWidth
-                                            id={`replicas-${index}`}
-                                            label="Replicas"
-                                            variant="outlined"
+                                            value={node.gpus}
                                             sx={{ flex: 1, mr: 2 }}
                                         />
                                     </Stack>
-                                </div>
-                            ))}
-                            <Divider />
-                            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="h6" color="text.secondary">
-                                    Total Costs
-                                </Typography>
-                            </Box>
-                            <Stack direction="row" >
-                                <TextField
-                                    fullWidth
-                                    id="monthlyCost"
-                                    label="Monthly Cost ($)"
-                                    variant="outlined"
-                                    value={node ? totalCost().toFixed(2) : ""}
-                                    sx={{ flex: 1, mr: 2 }}
-                                />
-                                <TextField
-                                    fullWidth
-                                    id="hourlyCost"
-                                    label="Hourly Cost ($)"
-                                    variant="outlined"
-                                    value={node ? totalHourlyCost().toFixed(2) : ""}
-                                    sx={{ flex: 1, mr: 2 }}
-                                />
-                                <CardActions >
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                        <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
-                                    </div>
-                                </CardActions>
-                            </Stack>
-                            <Box >
-                                {statusMessage && (
-                                    <Typography variant="body2" color={requestStatus === 'error' || requestStatus === 'missingBilling' || requestStatus === 'outOfCredits' ? 'error' : 'success'}>
-                                        {statusMessage}
+                                }
+                                <Divider />
+                                <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
+                                    <Typography variant="h6" color="text.secondary">
+                                        Block Storage
                                     </Typography>
-                                )}
-                            </Box>
-                        </Stack>
-                    </Container>
-                    <CardContent>
-                        <Typography gutterBottom variant="h5" component="div">
-                            Config Options
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Select which components and config options you want to deploy for this app.
-                        </Typography>
-                    </CardContent>
-                    <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-                        <Box sx={{ mt: 2, display: 'flex' }}>
-                            <ResourceRequirementsTable />
-                        </Box>
-                    </Container>
-                </Card>
+                                </Box>
+                                {resourceRequirements.map((resourceRequirement, index) => (
+                                    <div key={index}>
+                                        <Stack direction="row" >
+                                            <TextField
+                                                fullWidth
+                                                id={`componentName-${index}`}
+                                                label="Cluster Base"
+                                                variant="outlined"
+                                                value={resourceRequirement.componentBaseName}
+                                                sx={{ flex: 1, mr: 2 }}
+                                            />
+                                            <TextField
+                                                fullWidth
+                                                id={`blockStorageSize-${index}`}
+                                                label="PVC Disk Size SSD"
+                                                variant="outlined"
+                                                value={resourceRequirement.resourceSumsDisk}
+                                                sx={{ flex: 1, mr: 2 }}
+                                            />
+                                            <TextField
+                                                value={resourceRequirement.replicas}
+                                                fullWidth
+                                                id={`replicas-${index}`}
+                                                label="Replicas"
+                                                variant="outlined"
+                                                sx={{ flex: 1, mr: 2 }}
+                                            />
+                                        </Stack>
+                                    </div>
+                                ))}
+                                <Divider />
+                                <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
+                                    <Typography variant="h6" color="text.secondary">
+                                        Total Costs
+                                    </Typography>
+                                </Box>
+                                <Stack direction="row" >
+                                    <TextField
+                                        fullWidth
+                                        id="monthlyCost"
+                                        label="Monthly Cost ($)"
+                                        variant="outlined"
+                                        value={node ? totalCost().toFixed(2) : ""}
+                                        sx={{ flex: 1, mr: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        id="hourlyCost"
+                                        label="Hourly Cost ($)"
+                                        variant="outlined"
+                                        value={node ? totalHourlyCost().toFixed(2) : ""}
+                                        sx={{ flex: 1, mr: 2 }}
+                                    />
+                                    <CardActions >
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                            <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
+                                        </div>
+                                    </CardActions>
+                                </Stack>
+                                <Box >
+                                    {statusMessage && (
+                                        <Typography variant="body2" color={requestStatus === 'error' || requestStatus === 'missingBilling' || requestStatus === 'outOfCredits' ? 'error' : 'success'}>
+                                            {statusMessage}
+                                        </Typography>
+                                    )}
+                                </Box>
+                                <CardContent>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        Requested Resource Summary
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Reads your Kubernetes workloads and summarizes the requested resources to deploy this app.
+                                    </Typography>
+                                </CardContent>
+                                <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+                                    <Box sx={{ mt: 2, display: 'flex' }}>
+                                        <ResourceRequirementsTable />
+                                    </Box>
+                                </Container>
+                            </Stack>
+                        </Container>
+                    </Card>
+                    <Card sx={{ width: '20%' }}>
+                        <CardContent>
+                            <Typography gutterBottom variant="h5" component="div">
+                                Config Options
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Select which components and config options you want to deploy for this app. This will create a copy of the config into your private apps
+                                and will automatically navigate to the app deployment page for that configuration.
+                            </Typography>
+                        </CardContent>
+                        {cluster.clusterName && cluster.clusterName === 'sui' &&
+                            <AppConfigsTable />
+                        }
+                    </Card>
+                </Stack>
             </Container>
             </ThemeProvider>
-
         </div>
     );
 }

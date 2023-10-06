@@ -12,8 +12,8 @@ import {AppResourceNodesResourcesTable} from "./AppResourceNodesTable";
 
 export const appBuildToggleSteps = [
     'Deploy App',
-    'Preview Configs',
-    'Resource Management'
+    'Configs',
+    'Resources'
 ];
 
 export function appPageStepComponents(activeStep: number, app: string, cloudProvider: any, setCloudProvider: any, region: any, setRegion:any) {

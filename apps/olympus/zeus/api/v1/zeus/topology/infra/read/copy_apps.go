@@ -22,11 +22,12 @@ func CopySuiApp(ctx context.Context, appName, bearer string) error {
 	}
 	cfg := sui_cookbooks.SuiConfigOpts{
 		WithLocalNvme:        true,
-		DownloadSnapshot:     true,
+		DownloadSnapshot:     false,
 		WithIngress:          true,
 		WithServiceMonitor:   true,
 		WithArchivalFallback: true,
 	}
+	sui_cookbooks.RootPath = CookbooksDirIn
 	sui_cookbooks.SuiMasterChartPath.DirIn = path.Join(CookbooksDirIn, "/sui/node/infra")
 	sui_cookbooks.SuiIngressChartPath.DirIn = path.Join(CookbooksDirIn, "/sui/node/ingress")
 	sui_cookbooks.SuiServiceMonitorChartPath.DirIn = path.Join(CookbooksDirIn, "/sui/node/servicemonitor")

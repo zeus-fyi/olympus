@@ -180,7 +180,7 @@ func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_
 					rs.Replicas = fmt.Sprintf("%d", *nk.StatefulSet.Spec.Replicas)
 				}
 				zeus_core.GetResourceRequirements(ctx, nk.StatefulSet.Spec.Template.Spec, &rs)
-				zeus_core.GetDiskRequirements(ctx, nk.StatefulSet.Spec.VolumeClaimTemplates, &rs)
+				zeus_core.GetBlockStorageDiskRequirements(ctx, nk.StatefulSet.Spec.VolumeClaimTemplates, &rs)
 			}
 			if nk.Deployment != nil {
 				sb.AddDeployment = true
@@ -212,19 +212,61 @@ func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_
 		resp.Cluster.ComponentBases[cbName] = sbUI
 		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = uiSbs
 	}
+
+	cp := "do"
+	region := "nyc1"
+	diskType := "ssd"
+	switch {
+	case strings.Contains(selectedApp.ClusterClassName, "-aws"):
+		cp = "aws"
+		region = "us-west-1"
+		diskType = setNvmeType(selectedApp.ClusterClassName)
+	case strings.Contains(selectedApp.ClusterClassName, "-do"):
+		cp = "do"
+		region = "nyc1"
+		diskType = setNvmeType(selectedApp.ClusterClassName)
+	case strings.Contains(selectedApp.ClusterClassName, "-gcp"):
+		cp = "gcp"
+		region = "us-central1"
+		diskType = setNvmeType(selectedApp.ClusterClassName)
+	case strings.Contains(selectedApp.ClusterClassName, "-ovh"):
+		cp = "ovh"
+		region = "us-west-or-1"
+		diskType = setNvmeType(selectedApp.ClusterClassName)
+	default:
+		cp = "ovh"
+		region = "us-west-or-1"
+	}
+
 	nf := hestia_compute_resources.NodeFilter{
-		CloudProvider: "do",
-		Region:        "nyc1",
+		CloudProvider: cp,
+		Region:        region,
 		ResourceSums: zeus_core.ResourceSums{
 			MemRequests: rsMinMax.Min.MemRequests,
 			CpuRequests: rsMinMax.Min.CpuRequests,
 		},
+		DiskType: diskType,
 	}
 	nodes, err := hestia_compute_resources.SelectNodes(ctx, nf)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	if strings.Contains(selectedApp.ClusterClassName, "sui-") {
+		for i, _ := range nodes {
+			switch {
+			case nodes[i].CloudProvider == "gcp":
+				nodes[i].Disk = 6000
+			}
+		}
+	}
 	resp.Nodes = nodes
 	return c.JSON(http.StatusOK, resp)
+}
+
+func setNvmeType(appName string) string {
+	if strings.Contains(appName, "sui-") {
+		return "nvme"
+	}
+	return "ssd"
 }

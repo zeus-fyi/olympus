@@ -163,6 +163,9 @@ function parseDiskSize(input: string): DiskSize {
 }
 
 function convertToBibiBytes(size: DiskSize): number {
+    if (size.value === 0) {
+        return 0;
+    }
     if (!size.unit) {
         return size.value;
     }

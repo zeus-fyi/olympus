@@ -255,6 +255,8 @@ export function DeployPage(props: any) {
             setRegion('us-central1')
         } else if (cloudProvider == 'ovh') {
             setRegion('us-west-or-1');
+        } else if (cloudProvider == 'do') {
+            setRegion('nyc1');
         } else {
             setRegion(region);
         }
@@ -281,6 +283,9 @@ export function DeployPage(props: any) {
         if (cloudProvider === 'ovh') {
             monthlyDiskCost = 12
         }
+        if (cloudProvider === 'do') {
+            monthlyDiskCost = 12
+        }
         for (const resource of resourceRequirements) {
             totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * monthlyDiskCost * parseInt(resource.replicas));
         }
@@ -290,6 +295,9 @@ export function DeployPage(props: any) {
         let totalBlockStorageCost = 0;
         // digitalOcean block storage
         let hourlyDiskCost = 0.0137
+        if (cloudProvider === 'do') {
+            hourlyDiskCost = 0.0137
+        }
         if (cloudProvider === 'gcp') {
             hourlyDiskCost = 0.02329
         }
@@ -365,6 +373,8 @@ export function DeployPage(props: any) {
                                             {
                                                 (() => {
                                                     switch (cloudProvider) {
+                                                        case 'do':
+                                                            return <MenuItem value="nyc1">nyc1</MenuItem>;
                                                         case 'gcp':
                                                             return <MenuItem value="us-central1">us-central1</MenuItem>;
                                                         case 'aws':

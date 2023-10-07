@@ -373,6 +373,8 @@ export function DeployPage(props: any) {
                                             {
                                                 (() => {
                                                     switch (cloudProvider) {
+                                                        case 'do':
+                                                            return <MenuItem value="nyc1">nyc1</MenuItem>;
                                                         case 'gcp':
                                                             return <MenuItem value="us-central1">us-central1</MenuItem>;
                                                         case 'aws':

@@ -252,6 +252,14 @@ func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_
 		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	if strings.Contains(selectedApp.ClusterClassName, "sui-") {
+		for _, node := range nodes {
+			switch {
+			case strings.Contains(selectedApp.ClusterClassName, "-gcp"):
+				node.Disk = 6000
+			}
+		}
+	}
 	resp.Nodes = nodes
 	return c.JSON(http.StatusOK, resp)
 }

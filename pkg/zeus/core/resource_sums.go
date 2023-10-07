@@ -22,13 +22,14 @@ type ResourceAggregate struct {
 }
 
 type ResourceSums struct {
-	Replicas     string `json:"replicas"`
-	MemRequests  string `json:"memRequests"`
-	MemLimits    string `json:"memLimits"`
-	CpuRequests  string `json:"cpuRequests"`
-	CpuLimits    string `json:"cpuLimits"`
-	DiskRequests string `json:"diskRequests"`
-	DiskLimits   string `json:"diskLimits"`
+	Replicas          string `json:"replicas"`
+	MemRequests       string `json:"memRequests"`
+	MemLimits         string `json:"memLimits"`
+	CpuRequests       string `json:"cpuRequests"`
+	CpuLimits         string `json:"cpuLimits"`
+	DiskRequests      string `json:"diskRequests"`
+	LocalDiskRequests string `json:"localDiskRequests"`
+	DiskLimits        string `json:"diskLimits"`
 }
 
 func ApplyMinMaxConstraints(sums ResourceSums, reMinMax ResourceMinMax) (ResourceMinMax, error) {
@@ -140,23 +141,36 @@ func GetResourceRequirements(ctx context.Context, spec v1.PodSpec, r *ResourceSu
 func GetBlockStorageDiskRequirements(ctx context.Context, pvcs []v1.PersistentVolumeClaim, r *ResourceSums) {
 	diskRequests := resource.NewQuantity(0, resource.BinarySI)
 	diskLimits := resource.NewQuantity(0, resource.BinarySI)
+	localDiskRequests := resource.NewQuantity(0, resource.BinarySI)
 
 	for _, pvc := range pvcs {
 		if pvc.Spec.StorageClassName != nil {
 			scName := *pvc.Spec.StorageClassName
 			switch *pvc.Spec.StorageClassName {
 			case aws_nvme.AwsStorageClass, gcp_nvme.GcpStorageClass:
+				sr := pvc.Spec.Resources.Requests.Storage()
+				if sr != nil {
+					localDiskRequests.Add(*sr)
+				}
 				continue
 			default:
 				if scName == do_nvme.DoStorageClass {
+					sr := pvc.Spec.Resources.Requests.Storage()
+					if sr != nil {
+						localDiskRequests.Add(*sr)
+					}
 					continue
 				}
 			}
 		}
 		dr := pvc.Spec.Resources.Requests.Storage()
-		diskRequests.Add(*dr)
 		dl := pvc.Spec.Resources.Limits.Storage()
-		diskLimits.Add(*dl)
+		if dr != nil {
+			diskRequests.Add(*dr)
+		}
+		if dl != nil {
+			diskLimits.Add(*dl)
+		}
 	}
 	r.DiskRequests = diskRequests.String()
 	r.DiskLimits = diskLimits.String()

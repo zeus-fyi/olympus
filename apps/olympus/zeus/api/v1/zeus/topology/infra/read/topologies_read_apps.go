@@ -117,7 +117,6 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 		Max: zeus_core.ResourceAggregate{},
 		Min: zeus_core.ResourceAggregate{},
 	}
-
 	for cbName, cb := range apps.ComponentBases {
 		uiSbs := make(map[string]any)
 		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = make(map[string]any)
@@ -216,6 +215,14 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")
 		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if strings.Contains(apps.ClusterClassName, "sui-") {
+		for _, node := range nodes {
+			switch {
+			case strings.Contains(apps.ClusterClassName, "-gcp"):
+				node.Disk = 6000
+			}
+		}
 	}
 	resp.Nodes = nodes
 	return c.JSON(http.StatusOK, resp)

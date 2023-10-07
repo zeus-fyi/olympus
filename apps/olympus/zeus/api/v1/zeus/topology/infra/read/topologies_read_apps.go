@@ -217,10 +217,10 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	if strings.Contains(apps.ClusterClassName, "sui-") {
-		for _, node := range nodes {
+		for i, _ := range nodes {
 			switch {
 			case strings.Contains(apps.ClusterClassName, "-gcp"):
-				node.Disk = 6000
+				nodes[i].Disk = 6000
 			}
 		}
 	}

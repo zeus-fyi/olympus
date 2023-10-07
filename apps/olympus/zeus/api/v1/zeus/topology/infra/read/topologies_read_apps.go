@@ -219,7 +219,7 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 	if strings.Contains(apps.ClusterClassName, "sui-") {
 		for i, _ := range nodes {
 			switch {
-			case strings.Contains(apps.ClusterClassName, "-gcp"):
+			case nodes[i].CloudProvider == "gcp":
 				nodes[i].Disk = 6000
 			}
 		}

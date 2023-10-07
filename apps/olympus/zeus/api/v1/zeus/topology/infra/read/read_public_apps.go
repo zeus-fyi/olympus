@@ -255,7 +255,7 @@ func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_
 	if strings.Contains(selectedApp.ClusterClassName, "sui-") {
 		for i, _ := range nodes {
 			switch {
-			case strings.Contains(selectedApp.ClusterClassName, "-gcp"):
+			case nodes[i].CloudProvider == "gcp":
 				nodes[i].Disk = 6000
 			}
 		}

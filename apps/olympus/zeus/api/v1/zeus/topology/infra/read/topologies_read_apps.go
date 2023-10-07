@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"unicode"
 
 	"github.com/labstack/echo/v4"
@@ -146,7 +147,7 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 					rs.Replicas = fmt.Sprintf("%d", *nk.StatefulSet.Spec.Replicas)
 				}
 				zeus_core.GetResourceRequirements(ctx, nk.StatefulSet.Spec.Template.Spec, &rs)
-				zeus_core.GetDiskRequirements(ctx, nk.StatefulSet.Spec.VolumeClaimTemplates, &rs)
+				zeus_core.GetBlockStorageDiskRequirements(ctx, nk.StatefulSet.Spec.VolumeClaimTemplates, &rs)
 			}
 			if nk.Deployment != nil {
 				sbTemplate.AddDeployment = true
@@ -178,11 +179,38 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 		resp.Cluster.ComponentBases[cbName] = sbUI
 		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = uiSbs
 	}
+	cp := "do"
+	region := "nyc1"
+	diskType := "ssd"
+
+	switch {
+	case strings.Contains(apps.ClusterClassName, "-aws"):
+		cp = "aws"
+		region = "us-west-1"
+		diskType = setNvmeType(apps.ClusterClassName)
+	case strings.Contains(apps.ClusterClassName, "-do"):
+		cp = "do"
+		region = "nyc1"
+		diskType = setNvmeType(apps.ClusterClassName)
+	case strings.Contains(apps.ClusterClassName, "-gcp"):
+		cp = "gcp"
+		region = "us-central1"
+		diskType = setNvmeType(apps.ClusterClassName)
+	case strings.Contains(apps.ClusterClassName, "-ovh"):
+		cp = "ovh"
+		region = "us-west-or-1"
+		diskType = setNvmeType(apps.ClusterClassName)
+	default:
+		cp = "ovh"
+		region = "us-west-or-1"
+	}
+	fmt.Println("cp", cp, "region", region, "diskType", diskType)
 	nf := hestia_compute_resources.NodeFilter{
 		ResourceSums: zeus_core.ResourceSums{
 			MemRequests: rsMinMax.Min.MemRequests,
 			CpuRequests: rsMinMax.Min.CpuRequests,
 		},
+		DiskType: diskType,
 	}
 	nodes, err := hestia_compute_resources.SelectNodes(ctx, nf)
 	if err != nil {

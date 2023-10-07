@@ -3,6 +3,9 @@ package zeus_core
 import (
 	"context"
 
+	aws_nvme "github.com/zeus-fyi/zeus/zeus/cluster_resources/nvme/aws"
+	do_nvme "github.com/zeus-fyi/zeus/zeus/cluster_resources/nvme/do"
+	gcp_nvme "github.com/zeus-fyi/zeus/zeus/cluster_resources/nvme/gcp"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -134,11 +137,22 @@ func GetResourceRequirements(ctx context.Context, spec v1.PodSpec, r *ResourceSu
 	r.CpuLimits = cpuLimits.String()
 }
 
-func GetDiskRequirements(ctx context.Context, pvcs []v1.PersistentVolumeClaim, r *ResourceSums) {
+func GetBlockStorageDiskRequirements(ctx context.Context, pvcs []v1.PersistentVolumeClaim, r *ResourceSums) {
 	diskRequests := resource.NewQuantity(0, resource.BinarySI)
 	diskLimits := resource.NewQuantity(0, resource.BinarySI)
 
 	for _, pvc := range pvcs {
+		if pvc.Spec.StorageClassName != nil {
+			scName := *pvc.Spec.StorageClassName
+			switch *pvc.Spec.StorageClassName {
+			case aws_nvme.AwsStorageClass, gcp_nvme.GcpStorageClass:
+				continue
+			default:
+				if scName == do_nvme.DoStorageClass {
+					continue
+				}
+			}
+		}
 		dr := pvc.Spec.Resources.Requests.Storage()
 		diskRequests.Add(*dr)
 		dl := pvc.Spec.Resources.Limits.Storage()

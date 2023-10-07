@@ -1,7 +1,6 @@
 package zeus_core
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -17,7 +16,6 @@ type ResourceSumsTestSuite struct {
 }
 
 func (s *ResourceSumsTestSuite) TestGetDiskRequirements() {
-	ctx := context.Background()
 	diskSizeOne := "20Gi"
 	sts := v1Apps.StatefulSet{
 		TypeMeta:   metav1.TypeMeta{},
@@ -40,13 +38,12 @@ func (s *ResourceSumsTestSuite) TestGetDiskRequirements() {
 		Status: v1Apps.StatefulSetStatus{},
 	}
 	rs := ResourceSums{}
-	GetDiskRequirements(ctx, sts.Spec.VolumeClaimTemplates, &rs)
+	GetBlockStorageDiskRequirements(ctx, sts.Spec.VolumeClaimTemplates, &rs)
 	s.Assert().NotEmpty(rs.DiskRequests)
 	s.Assert().NotEmpty(rs.DiskLimits)
 }
 
 func (s *ResourceSumsTestSuite) TestGetResourceRequirements() {
-	ctx := context.Background()
 	requestRAM := "12Gi"
 	requestLimitRAM := "12Gi"
 

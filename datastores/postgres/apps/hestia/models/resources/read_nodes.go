@@ -2,6 +2,7 @@ package hestia_compute_resources
 
 import (
 	"context"
+	"strings"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
@@ -12,6 +13,7 @@ import (
 type NodeFilter struct {
 	CloudProvider string                 `json:"cloudProvider"`
 	Region        string                 `json:"region"`
+	DiskType      string                 `json:"diskType,omitempty"`
 	ResourceSums  zeus_core.ResourceSums `json:"resourceSums"`
 }
 
@@ -31,15 +33,21 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 		return nil, err
 	}
 	// Convert to MegaBytes and vCores
-	// 1.5Gi = (1024*1024+1024) * 0.1 vCPU, adds this as overhead
-	memRequestsMegaBytes := (memRequests.Value() + ((1024 * 1024 * 1024) * 1.5)) / (1024 * 1024)
+	//0.5Gi = (1024*1024+512)*1 * 0.1 vCPU, adds this as overhead
+	memRequestsMegaBytes := (memRequests.Value() + ((1024 * 1024 * 512) * 1)) / (1024 * 1024)
 	cpuRequestsMilli := cpuRequests.MilliValue()
 	cpuRequestsCores := float64(cpuRequestsMilli) / 1000
-	// TODO need to add price filter only for Digital ocean
+
+	switch strings.ToLower(nf.DiskType) {
+	case "nvme":
+		nf.DiskType = "nvme"
+	default:
+		nf.DiskType = "ssd"
+	}
 	// Build the SQL query
 	q := `SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, region, cloud_provider, gpus, gpu_type
     	  FROM nodes
-    	  WHERE memory >= $1 AND (vcpus + .1) >= $2
+    	  WHERE memory >= $1 AND (vcpus + .1) >= $2 AND disk_type = $3
 		  AND (
 				(cloud_provider = 'do' AND price_monthly >= 12)
 				OR
@@ -55,6 +63,7 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 	args := []interface{}{
 		memRequestsMegaBytes,
 		cpuRequestsCores,
+		nf.DiskType,
 	}
 	// Execute the SQL query
 	rows, err := apps.Pg.Query(ctx, q, args...)
@@ -85,14 +94,14 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 		)
 		switch node.CloudProvider {
 		case "do":
-			node.PriceHourly *= 1.1  // Add 10% to the price
-			node.PriceMonthly *= 1.1 // Add 10% to the price
+			node.PriceHourly *= 1.2  // Add 10% to the price
+			node.PriceMonthly *= 1.2 // Add 10% to the price
 		case "gcp":
-			node.PriceHourly *= 1.40  // Add 40% to the price
-			node.PriceMonthly *= 1.40 // Add 40% to the price
+			node.PriceHourly *= 1.30  // Add 40% to the price
+			node.PriceMonthly *= 1.30 // Add 40% to the price
 		case "aws":
-			node.PriceHourly *= 1.40  // Add 40% to the price
-			node.PriceMonthly *= 1.40 // Add 40% to the price
+			node.PriceHourly *= 1.30  // Add 40% to the price
+			node.PriceMonthly *= 1.30 // Add 40% to the price
 		case "ovh":
 			node.PriceHourly *= 1.20  // Add 20% to the price
 			node.PriceMonthly *= 1.20 // Add 20% to the price

@@ -32,7 +32,7 @@ import (
 
 const (
 	DecayConstant                   = 0.95
-	LatencyScaleFactorDefault       = 0.5
+	LatencyScaleFactorDefault       = 0.52
 	TailPercentage                  = 0.95
 	ErrorDefaultScaleFactor         = 3.0
 	MinSamplesBeforeAdaptiveScoring = 20

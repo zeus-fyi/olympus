@@ -144,7 +144,7 @@ function LoadBalancingDashboardContent(props: any) {
     const [selectedMainTab, setSelectedMainTab] = useState(0);
     const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
     const [loadingMetrics, setLoadingMetrics] = React.useState(false);
-    const [sliderLatencyValue, setSliderLatencyValue] = useState( tableMetrics?.scaleFactors?.latencyScaleFactor ?? 0.5);
+    const [sliderLatencyValue, setSliderLatencyValue] = useState( tableMetrics?.scaleFactors?.latencyScaleFactor ?? 0.52);
     const [sliderErrorValue, setSliderErrorValue] = useState(tableMetrics?.scaleFactors?.errorScaleFactor ?? 3.0);
     const [sliderDecayValue, setSliderDecayValue] = useState(tableMetrics?.scaleFactors?.decayScaleFactor ?? 0.95);
 
@@ -405,7 +405,7 @@ function LoadBalancingDashboardContent(props: any) {
     };
     // Handler for the "Set Default" button
     const handleSetDefaultLatency = () => {
-        setSliderLatencyValue(0.5); // or some other default value
+        setSliderLatencyValue(0.52); // or some other default value
     };
 
     const onChangeErrorSlider = (event: any, newValue: number) => {

@@ -14,10 +14,6 @@ import (
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
-const (
-	StatusErrorCodePriorityScoreScaleFactor = 3.0
-)
-
 func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter, restType, metricName, adaptiveKeyName string) error {
 	procName := p.ExtractProcedureIfExists(c)
 	if procName != "" {

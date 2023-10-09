@@ -17,16 +17,9 @@ spec:
         app.kubernetes.io/name: "zeus-cloud"
         app.kubernetes.io/instance: "zeus-cloud"
     spec:
+      imagePullSecrets:
+        - name: zeus-fyi-ext
       containers:
-        - name: "tokenizer"
-          image: "registry.digitalocean.com/zeus-fyi/tokenizer:latest"
-          imagePullPolicy: Always
-          ports:
-            - name: "http-api"
-              containerPort: 5001
-              protocol: "TCP"
-          resources:
-            {}
         - name: "zeus-cloud"
           image: "registry.digitalocean.com/zeus-fyi/zeus-cloud:latest"
           imagePullPolicy: Always
@@ -43,7 +36,6 @@ spec:
               protocol: "TCP"
           resources:
             {}
-      volumes:
       nodeSelector:
         {}
       affinity:

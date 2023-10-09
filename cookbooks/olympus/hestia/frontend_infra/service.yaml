@@ -9,10 +9,6 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 5001
-      targetPort: http-api
-      protocol: TCP
-      name: http-api
     - port: 80
       targetPort: http
       protocol: TCP

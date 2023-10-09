@@ -198,7 +198,7 @@ func (s *SecretsTestSuite) TestCreateSecrets() {
 
 func (s *SecretsTestSuite) TestCopySecrets() {
 	//var knsFrom = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "zeus"}
-	var knsTo = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "zeus"}
+	var knsTo = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "hestia"}
 	fromKns := zeus_common_types.CloudCtxNs{
 		CloudProvider: "do",
 		Region:        "sfo3",
@@ -207,9 +207,14 @@ func (s *SecretsTestSuite) TestCopySecrets() {
 		Alias:         "zeus",
 		Env:           "",
 	}
-	_, err := s.K.CopySecretToAnotherKns(ctx, fromKns, knsTo, "aws-auth", nil)
-	s.Require().Nil(err)
 
+	secList := []string{"age-auth", "spaces-auth", "spaces-key", "zeus-fyi-ext"}
+	for _, se := range secList {
+		_, err := s.K.CopySecretToAnotherKns(ctx, fromKns, knsTo, se, nil)
+		s.Require().Nil(err)
+	}
+	//_, err := s.K.CopySecretToAnotherKns(ctx, fromKns, knsTo, "aws-auth", nil)
+	//s.Require().Nil(err)
 }
 
 func (s *SecretsTestSuite) TestCopySecretToAnotherNs() {

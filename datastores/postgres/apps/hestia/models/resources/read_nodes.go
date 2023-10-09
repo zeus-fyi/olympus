@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
@@ -92,6 +93,17 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 			&node.Gpus,
 			&node.GpuType,
 		)
+
+		if err != nil {
+			log.Err(err).Msg("Error scanning node")
+			return nil, err
+		}
+
+		if node.CloudProvider == "gcp" {
+			if strings.HasPrefix(node.Slug, "n2") {
+				continue
+			}
+		}
 		switch node.CloudProvider {
 		case "do":
 			node.PriceHourly *= 1.2  // Add 10% to the price

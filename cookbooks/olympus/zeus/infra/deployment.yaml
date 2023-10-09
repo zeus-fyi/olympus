@@ -33,11 +33,6 @@ spec:
           env:
             - name: USE_GKE_GCLOUD_AUTH_PLUGIN
               value: "true"
-            - name: PG_CONN_STR
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-auth
-                  key: postgres-conn-str
             - name: AGE_PKEY
               valueFrom:
                 secretKeyRef:

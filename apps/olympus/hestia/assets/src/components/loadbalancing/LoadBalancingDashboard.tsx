@@ -144,7 +144,7 @@ function LoadBalancingDashboardContent(props: any) {
     const [selectedMainTab, setSelectedMainTab] = useState(0);
     const tableMetrics = useSelector((state: RootState) => state.loadBalancing.tableMetrics);
     const [loadingMetrics, setLoadingMetrics] = React.useState(false);
-    const [sliderLatencyValue, setSliderLatencyValue] = useState( tableMetrics?.scaleFactors?.latencyScaleFactor ?? 0.6);
+    const [sliderLatencyValue, setSliderLatencyValue] = useState( tableMetrics?.scaleFactors?.latencyScaleFactor ?? 0.5);
     const [sliderErrorValue, setSliderErrorValue] = useState(tableMetrics?.scaleFactors?.errorScaleFactor ?? 3.0);
     const [sliderDecayValue, setSliderDecayValue] = useState(tableMetrics?.scaleFactors?.decayScaleFactor ?? 0.95);
 
@@ -752,9 +752,9 @@ function LoadBalancingDashboardContent(props: any) {
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedTab} onChange={handleTabChange} aria-label="basic tabs">
                                     <Tab label="Routes"  />
-                                    {planName.toLowerCase() !== "lite" && (<Tab label="Metrics" className="onboarding-card-highlight-metrics" />)}
-                                    {planName.toLowerCase() !== "lite" && (<Tab label="Priority Scores" className="onboarding-card-highlight-priority-scores"/>)}
-                                    {planName.toLowerCase() !== "lite" && (<Tab className="onboarding-card-highlight-procedures" label="Procedures" />)}
+                                    {planName.toLowerCase() !== "free" && (<Tab label="Metrics" className="onboarding-card-highlight-metrics" />)}
+                                    {planName.toLowerCase() !== "free" && (<Tab label="Priority Scores" className="onboarding-card-highlight-priority-scores"/>)}
+                                    {planName.toLowerCase() !== "free" && (<Tab className="onboarding-card-highlight-procedures" label="Procedures" />)}
                                 </Tabs>
                             </Box>
                         )}

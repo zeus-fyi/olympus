@@ -132,7 +132,7 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 
 	latSfValue, err := latSfCmd.Float64()
 	if err == redis.Nil {
-		latSfValue = 0.6
+		latSfValue = LatencyScaleFactorDefault
 		ts.LatencyScaleFactor = latSfValue
 	} else if err != nil {
 		log.Warn().Err(err).Msgf("Failed to get latSfKey")
@@ -142,7 +142,7 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 
 	errSfValue, err := errSfCmd.Float64()
 	if err == redis.Nil {
-		errSfValue = 3.0
+		errSfValue = ErrorDefaultScaleFactor
 		ts.ErrorScaleFactor = errSfValue
 	} else if err != nil {
 		log.Warn().Err(err).Msgf("Failed to get errSfKey")
@@ -152,7 +152,7 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 
 	decaySfValue, err := decaySfCmd.Float64()
 	if err == redis.Nil {
-		decaySfValue = 0.95
+		decaySfValue = DecayConstant
 		ts.DecayScaleFactor = decaySfValue
 	} else if err != nil {
 		log.Warn().Err(err).Msgf("Failed to get decaySfKey")

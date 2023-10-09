@@ -89,6 +89,7 @@ func Zeus() {
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
+		cfg.PGConnStr = sw.PostgresAuth
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()

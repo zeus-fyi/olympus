@@ -191,6 +191,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 			MinSize:     aws.Int32(int32(params.NodesQuantity)),
 		},
 		Taints: taints,
+		Tags:   labels,
 	}
 	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
 	if err != nil {

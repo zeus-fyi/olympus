@@ -67,17 +67,17 @@ func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes
 		orgResourceNodes.Nodes.ResourceID = orgResourceNodes.OrgResources.ResourceID
 		switch orgResourceNodes.CloudProvider {
 		case "aws":
-			orgResourceNodes.PriceHourly *= 1.40  // Add 40% to the price
-			orgResourceNodes.PriceMonthly *= 1.40 // Add 40% to the price
+			orgResourceNodes.PriceHourly *= 1.30  // Add 30% to the price
+			orgResourceNodes.PriceMonthly *= 1.30 // Add 30% to the price
 		case "gcp":
-			orgResourceNodes.PriceHourly *= 1.40  // Add 40% to the price
-			orgResourceNodes.PriceMonthly *= 1.40 // Add 40% to the price
+			orgResourceNodes.PriceHourly *= 1.30  // Add 30% to the price
+			orgResourceNodes.PriceMonthly *= 1.30 // Add 30% to the price
 		case "ovh":
 			orgResourceNodes.PriceHourly *= 1.20  // Add 20% to the price
 			orgResourceNodes.PriceMonthly *= 1.20 // Add 20% to the price
 		default:
-			orgResourceNodes.PriceHourly *= 1.1  // Add 10% to the price
-			orgResourceNodes.PriceMonthly *= 1.1 // Add 10% to the price
+			orgResourceNodes.PriceHourly *= 1.2  // Add 20% to the price
+			orgResourceNodes.PriceMonthly *= 1.2 // Add 20% to the price
 		}
 		if err != nil {
 			return nil, err
@@ -130,17 +130,17 @@ func SelectOrgResourcesDisks(ctx context.Context, orgID int) ([]OrgResourceDisks
 		)
 		switch orgResourceNodes.CloudProvider {
 		case "aws":
-			orgResourceNodes.PriceHourly *= 1.40  // Add 40% to the price
-			orgResourceNodes.PriceMonthly *= 1.40 // Add 40% to the price
+			orgResourceNodes.PriceHourly *= 1.30  // Add 30% to the price
+			orgResourceNodes.PriceMonthly *= 1.30 // Add 30% to the price
 		case "gcp":
-			orgResourceNodes.PriceHourly *= 1.40  // Add 40% to the price
-			orgResourceNodes.PriceMonthly *= 1.40 // Add 40% to the price
+			orgResourceNodes.PriceHourly *= 1.30  // Add 30% to the price
+			orgResourceNodes.PriceMonthly *= 1.30 // Add 30% to the price
 		case "ovh":
 			orgResourceNodes.PriceHourly *= 1.20  // Add 20% to the price
 			orgResourceNodes.PriceMonthly *= 1.20 // Add 20% to the price
 		default:
-			orgResourceNodes.PriceHourly *= 1.1  // Add 10% to the price
-			orgResourceNodes.PriceMonthly *= 1.1 // Add 10% to the price
+			orgResourceNodes.PriceHourly *= 1.2  // Add 20% to the price
+			orgResourceNodes.PriceMonthly *= 1.2 // Add 20% to the price
 		}
 		if err != nil {
 			return nil, err

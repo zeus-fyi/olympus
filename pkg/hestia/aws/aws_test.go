@@ -2,6 +2,7 @@ package hestia_eks_aws
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -66,9 +67,16 @@ func (s *AwsEKSTestSuite) TestCreateNodeGroup() {
 
 func (s *AwsEKSTestSuite) TestCreateNvmeNodeGroup() {
 	nodeGroupName := "test-" + uuid.New().String()
-	ltID := SlugToLaunchTemplateID["i3.4xlarge"]
+	ltID := SlugToLaunchTemplateID["i3.8xlarge"]
 	labels := make(map[string]string)
 	labels = AddAwsEksNvmeLabels(labels)
+
+	oid := 7138983863666903883
+	orgTaint := types.Taint{
+		Effect: "NO_SCHEDULE",
+		Key:    aws.String(fmt.Sprintf("org-%d", oid)),
+		Value:  aws.String(fmt.Sprintf("org-%d", oid)),
+	}
 
 	params := &eks.CreateNodegroupInput{
 		ClusterName:   aws.String(AwsUsWest1Context),
@@ -86,7 +94,7 @@ func (s *AwsEKSTestSuite) TestCreateNvmeNodeGroup() {
 			MinSize:     aws.Int32(1),
 		},
 		Labels: labels,
-		Taints: nil,
+		Taints: []types.Taint{orgTaint},
 	}
 	ngs, err := s.ek.AddNodeGroup(ctx, params)
 	s.Require().Nil(err)

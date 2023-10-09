@@ -197,15 +197,23 @@ func (s *SecretsTestSuite) TestCreateSecrets() {
 }
 
 func (s *SecretsTestSuite) TestCopySecrets() {
-	var knsFrom = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "zeus"}
-	var knsTo = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "beacon"}
-
-	_, err := s.K.CopySecretToAnotherKns(ctx, knsFrom, knsTo, "spaces-auth", nil)
+	//var knsFrom = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "zeus"}
+	var knsTo = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "zeus"}
+	fromKns := zeus_common_types.CloudCtxNs{
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     "zeus",
+		Alias:         "zeus",
+		Env:           "",
+	}
+	_, err := s.K.CopySecretToAnotherKns(ctx, fromKns, knsTo, "aws-auth", nil)
 	s.Require().Nil(err)
+
 }
 
 func (s *SecretsTestSuite) TestCopySecretToAnotherNs() {
-	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "zeus"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
 	s.Require().Nil(err)
@@ -214,8 +222,8 @@ func (s *SecretsTestSuite) TestCopySecretToAnotherNs() {
 	// change key & value here
 	kns.Namespace = "zeus"
 	secret.Namespace = kns.Namespace
-	_, err = s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
-	s.Require().Nil(err)
+	//_, err = s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
+	//s.Require().Nil(err)
 
 	secret.ResourceVersion = ""
 	newSecret, err := s.K.CreateSecretWithKns(ctx, kns, secret, nil)

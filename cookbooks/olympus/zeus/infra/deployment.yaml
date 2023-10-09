@@ -17,6 +17,8 @@ spec:
         app.kubernetes.io/name: "zeus"
         app.kubernetes.io/instance: "zeus"
     spec:
+      imagePullSecrets:
+        - name: zeus-fyi-ext
       containers:
         - name: "zeus"
           image: "registry.digitalocean.com/zeus-fyi/zeus:latest"

@@ -3,6 +3,7 @@ package iris_service_plans
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -67,7 +68,7 @@ func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
 		log.Err(err).Interface("usage", usage).Msg("GetPlanUsageInfo error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	switch planName {
+	switch strings.ToLower(planName) {
 	case "enterprise":
 		planName = "Enterprise"
 	case "performance":

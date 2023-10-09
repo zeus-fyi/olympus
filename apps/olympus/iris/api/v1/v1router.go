@@ -49,7 +49,7 @@ func InitV1Routes(e *echo.Echo) {
 			if err == nil && orgU.OrgID > 0 && plan != "" {
 				c.Set("lbDefault", GetDefaultLB(plan))
 				c.Set("servicePlan", plan)
-				c.Set("orgUser", org_users.NewOrgUserWithID(int(orgU.OrgID), orgU.UserID))
+				c.Set("orgUser", org_users.NewOrgUserWithID(orgU.OrgID, orgU.UserID))
 				c.Set("bearer", token)
 				return true, nil
 			} else {

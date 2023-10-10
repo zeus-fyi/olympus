@@ -8,14 +8,8 @@ import (
 	"time"
 )
 
-func zeusApi() {
-	// the following 4 are the actual values that pertain to your account and this specific metric
-	apiKey := "your-api-key-goes-here"
-	pageId := "m8lrv5w6wzsj"
-	metricId := "dkw068nmkg1j"
-	apiBase := "https://api.statuspage.io/v1"
-
-	url := fmt.Sprintf("%s/pages/%s/metrics/%s/data.json", apiBase, pageId, metricId)
+func StatusPageUpdate(apiKey, pageId, metricId string) {
+	url := fmt.Sprintf("%s/pages/%s/metrics/%s/data.json", StatusApi, pageId, metricId)
 
 	// need at least 1 data point for every 5 minutes
 	// submit random data for the whole day

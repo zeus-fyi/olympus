@@ -10,6 +10,9 @@ import (
 const (
 	apolloMainnetBeacon = "secrets/apollo.ethereum.mainnet.beacon.txt"
 	apolloPostgresAuth  = "secrets/apollo.ethereum.postgres.auth.txt"
+
+	apolloAtlassianOrgId  = "secrets/apollo.atlassian.org.id.txt"
+	apolloAtlassianApiKey = "secrets/apollo.atlassian.api.key.txt"
 )
 
 func RunApolloDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
@@ -29,4 +32,12 @@ func InitApolloEthereum(ctx context.Context, inMemSecrets memfs.MemFS) SecretsWr
 	secrets.AegisPostgresAuth = secrets.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	log.Info().Msg("Apollo: InitApolloEthereum done")
 	return secrets
+}
+
+func InitAtlassianKeys(ctx context.Context, inMemSecrets memfs.MemFS, secrets *SecretsWrapper) {
+	if secrets == nil {
+		secrets = &SecretsWrapper{}
+	}
+	secrets.AtlassianOrgId = secrets.MustReadSecret(ctx, inMemSecrets, apolloAtlassianOrgId)
+	secrets.AtlassianApiKey = secrets.MustReadSecret(ctx, inMemSecrets, apolloAtlassianApiKey)
 }

@@ -75,8 +75,10 @@ type SecretsWrapper struct {
 
 	TemporalAuth temporal_auth.TemporalAuth
 
-	AwsS3AccessKey string
-	AwsS3SecretKey string
+	AwsS3AccessKey  string
+	AwsS3SecretKey  string
+	AtlassianOrgId  string
+	AtlassianApiKey string
 }
 
 var secretsBucket = &s3.GetObjectInput{

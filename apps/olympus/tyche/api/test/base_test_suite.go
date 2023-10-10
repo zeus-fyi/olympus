@@ -35,9 +35,9 @@ func (t *TycheBaseTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	t.Assert().Nil(err)
-	t.MainnetWeb3User = web3_client.NewWeb3Client(t.Tc.QuiknodeLiveNode, newAccount)
+	t.MainnetWeb3User = web3_client.NewWeb3Client(t.Tc.QuikNodeLiveNode, newAccount)
 
-	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL = t.Tc.QuiknodeLiveNode
+	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL = t.Tc.QuikNodeLiveNode
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.Account = newAccount
 	tyche_metrics.InitTycheMetrics(ctx)
 	t.E = echo.New()

@@ -4,5 +4,5 @@ import "time"
 
 func (s *BeaconAPITestSuite) TestWebsocket() {
 	timestampChan := make(chan time.Time)
-	TriggerWorkflowOnNewBlockHeaderEvent(ctx, s.Tc.QuiknodeStreamWsNode, timestampChan)
+	TriggerWorkflowOnNewBlockHeaderEvent(ctx, s.Tc.QuikNodeStreamWsNode, timestampChan)
 }

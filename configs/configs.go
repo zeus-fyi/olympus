@@ -41,8 +41,8 @@ type TestContainer struct {
 	OvhAppKey                   string
 	OvhSecretKey                string
 	OvhConsumerKey              string
-	QuiknodeStreamWsNode        string
-	QuiknodeLiveNode            string
+	QuikNodeStreamWsNode        string
+	QuikNodeLiveNode            string
 	HardhatNode                 string
 	AwsAccessKeyEks             string
 	AwsSecretKeyEks             string
@@ -147,6 +147,13 @@ type TestContainer struct {
 
 	GoogClientID     string
 	GoogClientSecret string
+
+	AtlassianKeys
+}
+
+type AtlassianKeys struct {
+	OrgId  string
+	ApiKey string
 }
 
 type ArtemisHexKeys struct {
@@ -205,6 +212,9 @@ func InitLocalTestConfigs() TestContainer {
 		qn.Routes = append(qn.Routes, viper.GetString(fmt.Sprintf("QUIKNODE_%d", i)))
 	}
 
+	testCont.AtlassianKeys.ApiKey = viper.GetString("ATLASSIAN_API_KEY")
+	testCont.AtlassianKeys.OrgId = viper.GetString("ATLASSIAN_ORG_ID")
+
 	testCont.AwsS3AccessKey = viper.GetString("AWS_S3_ACCESS_KEY")
 	testCont.AwsS3SecretKey = viper.GetString("AWS_S3_SECRET_KEY")
 
@@ -222,11 +232,11 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.TwitterAccessTokenSecret = viper.GetString("TWITTER_ACCESS_TOKEN_SECRET_KEY")
 
 	testCont.ZeroXApiKey = viper.GetString("ZERO_X_API_KEY")
-	testCont.QuiknodeLiveNode = viper.GetString("QUIKNODE_LIVE_NODE_URL")
+	testCont.QuikNodeLiveNode = viper.GetString("QUIKNODE_LIVE_NODE_URL")
 	testCont.OvhAppKey = viper.GetString("OVH_APP_KEY")
 	testCont.OvhSecretKey = viper.GetString("OVH_SECRET_KEY")
 	testCont.OvhConsumerKey = viper.GetString("OVH_CONSUMER_KEY")
-	testCont.QuiknodeStreamWsNode = viper.GetString("QUIKNODE_STREAM_WS_URL")
+	testCont.QuikNodeStreamWsNode = viper.GetString("QUIKNODE_STREAM_WS_URL")
 	testCont.InfraCostAPIKey = viper.GetString("INFRA_COST_API_KEY")
 	testCont.TwitterBearerToken = viper.GetString("TWITTER_BEARER_TOKEN")
 	testCont.TwitterConsumerPublicAPIKey = viper.GetString("TWITTER_PUBLIC_API_KEY")

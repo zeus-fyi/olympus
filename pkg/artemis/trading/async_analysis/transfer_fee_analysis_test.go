@@ -129,7 +129,7 @@ func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	uni.Web3Client.IsAnvilNode = true
 	uni.Web3Client.DurableExecution = true
 	s.UserA = wc
-	// web3_client.NewWeb3Client(s.Tc.QuiknodeLiveNode, newAccount)
+	// web3_client.NewWeb3Client(s.Tc.QuikNodeLiveNode, newAccount)
 	//s.UserA = web3_client.NewWeb3Client("http://localhost:8545", newAccount)
 	s.UserB = web3_client.NewWeb3Client("http://localhost:8545", secondAccount)
 }

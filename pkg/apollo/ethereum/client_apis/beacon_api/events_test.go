@@ -12,7 +12,7 @@ type BeaconEventsAPITestSuite struct {
 
 func (s *BeaconEventsAPITestSuite) TestGetValidatorsByState() {
 	topic := "attestation"
-	err := beaconSubscriptionSSE(ctx, s.Tc.QuiknodeLiveNode, topic)
+	err := beaconSubscriptionSSE(ctx, s.Tc.QuikNodeLiveNode, topic)
 	s.Require().Nil(err)
 }
 

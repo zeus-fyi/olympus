@@ -52,8 +52,8 @@ export function DeployPage(props: any) {
     const [freeTrial, setFreeTrial] = useState(false);
     let filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
     const [node, setNode] = useState(filteredNodes[0]);
-    const params = useParams();
     const dispatch = useDispatch();
+    const params = useParams();
 
     useEffect(() => {
         async function fetchData() {
@@ -112,6 +112,23 @@ export function DeployPage(props: any) {
                 setNode(filteredNodes[0]);
             });
         }
+        if (params.id) {
+            if (getPrefix(params.id.toString()) === 'sui') {
+                if (getSuffix(params.id.toString()) === 'aws') {
+                    setRegion('us-west-1');
+                    setCloudProvider('aws');
+                }
+                if (getSuffix(params.id.toString()) === 'gcp') {
+                    setRegion('us-central1');
+                    setCloudProvider('gcp');
+                }
+                if (getSuffix(params.id.toString()) === 'do') {
+                    setRegion('nyc1');
+                    setCloudProvider('do');
+                }
+            }
+        }
+
     }, [params.id, nodes, filteredNodes, nodeMap, cloudProvider, region]);
 
     const handleIncrement = () => {
@@ -164,8 +181,14 @@ export function DeployPage(props: any) {
             statusMessage = 'An error occurred while attempting to deploy.';
             break;
         default:
-            buttonLabel = 'Deploy';
-            buttonDisabled = false;
+
+            if (cluster && cluster.clusterName === 'sui' ) {
+                buttonLabel = 'Select Config';
+                buttonDisabled = true;
+            } else {
+                buttonLabel = 'Deploy';
+                buttonDisabled = false;
+            }
             break;
     }
     const handleDeploy = async () => {
@@ -586,4 +609,21 @@ export function DeployPage(props: any) {
             </ThemeProvider>
         </div>
     );
+}
+
+
+function getSuffix(input: string): string {
+    if (input.length === 0) {
+        return '';
+    }
+    const parts = input.split('-');
+    return parts[parts.length - 1];
+}
+
+function getPrefix(input: string): string {
+    if (input.length === 0) {
+        return '';
+    }
+    const parts = input.split('-');
+    return parts[0];
 }

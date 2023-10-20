@@ -50,7 +50,6 @@ jobs:
       - uses: depot/build-push-action@v1
         with:
           project: vqj2qrzwgb
-          push: true
           platforms: linux/amd64,linux/arm64
           tags: zeusfyi/zeus:latest
 

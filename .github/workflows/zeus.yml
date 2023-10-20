@@ -84,4 +84,5 @@ jobs:
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           --token ${{ secrets.DEPOT_TOKEN }} \
+          --provenance=false \
           -f docker/zeus/Dockerfile . --push

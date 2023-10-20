@@ -73,7 +73,8 @@ jobs:
         run: |
           sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          depot build \
+          depot configure-docker
+          docker buildx build \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
           --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \
@@ -83,5 +84,4 @@ jobs:
           --build-arg CA_PEM="${{ secrets.CA_PEM }}" \
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
-          --token ${{ secrets.DEPOT_TOKEN }} \
           -f docker/zeus/Dockerfile . --push

@@ -13,7 +13,7 @@ import (
 	zeus_ecdsa "github.com/zeus-fyi/zeus/pkg/aegis/crypto/ecdsa"
 	artemis_client "github.com/zeus-fyi/zeus/pkg/artemis/client"
 	artemis_req_types "github.com/zeus-fyi/zeus/pkg/artemis/client/req_types"
-	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
+	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/web3/signing_automation/ethereum"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )

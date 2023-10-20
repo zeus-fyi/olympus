@@ -70,13 +70,12 @@ jobs:
           tar xf doctl.tar.gz -C /usr/local/bin
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-      - uses: depot/build-push-action@v1
+      - name: Build And Publish Zeus App
+        uses: depot/build-push-action@v1
         with:
           project: vqj2qrzwgb
           platforms: linux/amd64,linux/arm64
           tags: zeusfyi/zeus:latest
-
-      - name: Build And Publish Zeus App
         run: |
           sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           depot build \

@@ -71,11 +71,6 @@ jobs:
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
       - name: Build And Publish Zeus App
-        uses: depot/build-push-action@v1
-        with:
-          project: vqj2qrzwgb
-          push: true
-          tags: zeusfyi/zeus:latest
         run: |
           sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           depot build \
@@ -89,4 +84,3 @@ jobs:
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           -f docker/zeus/Dockerfile . --push
-

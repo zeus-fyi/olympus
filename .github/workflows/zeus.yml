@@ -14,6 +14,12 @@ on:
     branches:
       - main
       - dev
+
+# Configure a trust relationship on your Depot project for your git repository so you can use OIDC token auth between GHA and your Depot project.
+permissions:
+  contents: read
+  id-token: write
+
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: zeus
@@ -38,6 +44,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Depot CLI
+        uses: depot/setup-action@v1
+
       - name: Clone external repos into workspace
         run: |
           mkdir -p apps/external
@@ -60,18 +69,11 @@ jobs:
           wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
           tar xf doctl.tar.gz -C /usr/local/bin
 
-      - name: Pull latest Docker image
-        run: |
-          doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          docker pull ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG }} || true
-
       - name: Build And Publish Zeus App
         run: |
           sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          docker buildx build \
-          --cache-from=type=registry,ref=${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG }} \
-          --cache-to=type=inline \
+          depot build \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
           --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \

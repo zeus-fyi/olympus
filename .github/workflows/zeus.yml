@@ -46,6 +46,10 @@ jobs:
 
       - name: Set up Depot CLI
         uses: depot/setup-action@v1
+        with:
+          project: vqj2qrzwgb
+          push: true
+          tags: zeusfyi/zeus:latest
 
       - name: Clone external repos into workspace
         run: |

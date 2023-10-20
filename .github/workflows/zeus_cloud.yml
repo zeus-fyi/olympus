@@ -7,7 +7,6 @@ on:
       - apps/olympus/hestia/**
     branches:
       - main
-      - dev
 
 permissions:
   contents: read

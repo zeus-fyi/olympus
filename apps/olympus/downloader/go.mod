@@ -1,6 +1,6 @@
 module github.com/zeus-fyi/olympus/downloader
 
-go 1.20
+go 1.21
 
 require (
 	github.com/ghodss/yaml v1.0.0

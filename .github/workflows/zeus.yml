@@ -47,12 +47,6 @@ jobs:
       - name: Set up Depot CLI
         uses: depot/setup-action@v1
 
-      - uses: depot/build-push-action@v1
-        with:
-          project: vqj2qrzwgb
-          platforms: linux/amd64,linux/arm64
-          tags: zeusfyi/zeus:latest
-
       - name: Clone external repos into workspace
         run: |
           mkdir -p apps/external
@@ -75,6 +69,12 @@ jobs:
           wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
           tar xf doctl.tar.gz -C /usr/local/bin
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - uses: depot/build-push-action@v1
+        with:
+          project: vqj2qrzwgb
+          platforms: linux/amd64,linux/arm64
+          tags: zeusfyi/zeus:latest
 
       - name: Build And Publish Zeus App
         run: |

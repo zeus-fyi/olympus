@@ -46,8 +46,8 @@ func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
 			Message:   "A Zeus services workflow is stuck",
 		},
 		Trigger: TriggerInstructions{
-			AlertAfterTime:              time.Minute * 30,
-			ResetAlertAfterTimeDuration: time.Minute * 30,
+			AlertAfterTime:              time.Minute * 20,
+			ResetAlertAfterTimeDuration: time.Minute * 20,
 		},
 	}
 	b, err := json.Marshal(inst)

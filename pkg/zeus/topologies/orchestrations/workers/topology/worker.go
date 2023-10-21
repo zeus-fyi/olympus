@@ -3,6 +3,7 @@ package topology_worker
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
@@ -137,11 +138,12 @@ func (t *TopologyWorker) ExecuteCreateSetupCluster(ctx context.Context, params b
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
 		TaskQueue: t.TaskQueueName,
 	}
 	clusterSetupWf := deploy_workflow_cluster_setup.NewDeployCreateSetupTopologyWorkflow()
 	wf := clusterSetupWf.GetDeployClusterSetupWorkflow()
-	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteCreateSetupCluster")
 		return err

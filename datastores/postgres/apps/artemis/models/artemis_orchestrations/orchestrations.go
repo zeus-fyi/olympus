@@ -23,6 +23,14 @@ type OrchestrationJob struct {
 	zeus_common_types.CloudCtxNs
 }
 
+const (
+	internalOrgID = 7138983863666903883
+)
+
+func NewInternalActiveTemporalOrchestrationJobTemplate(orchName, groupName, orchType string) OrchestrationJob {
+	return NewActiveTemporalOrchestrationJobTemplate(internalOrgID, orchName, groupName, orchType)
+}
+
 func NewActiveTemporalOrchestrationJobTemplate(orgID int, orchName, groupName, orchType string) OrchestrationJob {
 	return OrchestrationJob{
 		Orchestrations: artemis_autogen_bases.Orchestrations{

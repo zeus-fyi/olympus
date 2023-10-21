@@ -30,6 +30,17 @@ func NewHestiaQuickNodeActivities() HestiaQuickNodeActivities {
 	}
 }
 
+func (h *HestiaQuickNodeActivities) GetActivities() ActivitiesSlice {
+    kr := kronos_helix.NewKronosActivities()
+    actSlice := []interface{}{
+        h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
+        h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey, h.DeleteOrgGroupRoutingTable, h.InsertQuickNodeApiKey,
+        h.UpsertQuickNodeRoutingEndpoint, h.IrisPlatformDeleteEndpointRequest, h.UpsertQuickNodeGroupTableRoutingEndpoints,
+        h.RefreshOrgGroupTables, h.DeleteAuthCache, h.DeleteSessionAuthCache,
+    }
+    actSlice = append(actSlice, kr.GetActivities()...)
+return actSlice
+}
 
 ```
 

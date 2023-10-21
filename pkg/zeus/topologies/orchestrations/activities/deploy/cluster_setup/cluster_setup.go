@@ -10,7 +10,7 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{
+	actSlice := []interface{}{
 		c.AddDiskResourcesToOrg,
 		c.AddDomainRecord,
 		c.SendEmailNotification,
@@ -44,4 +44,6 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.OvhRemoveNodePoolRequest,
 		c.OvhSelectFreeTrialNodes,
 	}
+	kr := kronos_helix.NewKronosActivities()
+	return append(actSlice, kr.GetActivities()...)
 }

@@ -12,32 +12,32 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type ClusterSetupWorkflow struct {
+type ClusterSetupWorkflows struct {
 	temporal_base.Workflow
 	deploy_topology_activities_create_setup.CreateSetupTopologyActivities
 }
 
 const defaultTimeout = 120 * time.Minute
 
-func NewDeployCreateSetupTopologyWorkflow() ClusterSetupWorkflow {
-	deployWf := ClusterSetupWorkflow{
+func NewDeployCreateSetupTopologyWorkflow() ClusterSetupWorkflows {
+	deployWf := ClusterSetupWorkflows{
 		Workflow:                      temporal_base.Workflow{},
 		CreateSetupTopologyActivities: deploy_topology_activities_create_setup.CreateSetupTopologyActivities{},
 	}
 	return deployWf
 }
 
-func (c *ClusterSetupWorkflow) GetDeployClusterSetupWorkflow() interface{} {
+func (c *ClusterSetupWorkflows) GetDeployClusterSetupWorkflow() interface{} {
 	return c.DeployClusterSetupWorkflow
 }
 
-func (c *ClusterSetupWorkflow) GetWorkflows() []interface{} {
+func (c *ClusterSetupWorkflows) GetWorkflows() []interface{} {
 	return []interface{}{c.DeployClusterSetupWorkflow}
 }
 
 // TODO, make app taints optional
 
-func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, params base_deploy_params.ClusterSetupRequest) error {
+func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context, params base_deploy_params.ClusterSetupRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,

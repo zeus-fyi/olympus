@@ -30,6 +30,45 @@ func (t *KronosInstructionsTestSuite) SetupTest() {
 // HestiaPlatformServiceWorkflows
 // IrisRoutingServiceRequestWorkflow, IrisDeleteOrgGroupRoutingTableWorkflow, IrisDeleteOrgRoutesWorkflow, IrisRemoveAllOrgRoutesFromCacheWorkflow
 
+// You can change any params for this, it is a template of the other test meant for creating alerts
+func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
+	groupName := "ClusterSetupWorkflows"
+	instType := "DeployClusterSetupWorkflow"
+
+	orchName := fmt.Sprintf("%s-%s", groupName, instType)
+	inst := Instructions{
+		GroupName: groupName,
+		Type:      instType,
+		Alerts: AlertInstructions{
+			Severity:  apollo_pagerduty.CRITICAL,
+			Source:    TemporalAlerts,
+			Component: "This is a cluster setup workflow for the Zeus subsystem",
+			Message:   "A Zeus services workflow is stuck",
+		},
+		Trigger: TriggerInstructions{
+			AlertAfterTime:              time.Minute * 30,
+			ResetAlertAfterTimeDuration: time.Minute * 30,
+		},
+	}
+	b, err := json.Marshal(inst)
+	t.Require().Nil(err)
+	groupName = olympus
+	instType = "alerts"
+	oj := artemis_orchestrations.OrchestrationJob{
+		Orchestrations: artemis_autogen_bases.Orchestrations{
+			OrgID:             t.Tc.ProductionLocalTemporalOrgID,
+			Active:            true,
+			GroupName:         groupName,
+			Type:              instType,
+			Instructions:      string(b),
+			OrchestrationName: orchName,
+		},
+	}
+	err = oj.UpsertOrchestrationWithInstructions(ctx)
+	t.Require().Nil(err)
+	t.Assert().NotZero(oj.OrchestrationID)
+}
+
 func (t *KronosWorkerTestSuite) TestInsertAlertOrchestrators() {
 	groupName := "HestiaPlatformServiceWorkflows"
 	instType := "IrisRemoveAllOrgRoutesFromCacheWorkflow"
@@ -40,7 +79,7 @@ func (t *KronosWorkerTestSuite) TestInsertAlertOrchestrators() {
 		Type:      instType,
 		Alerts: AlertInstructions{
 			Severity:  apollo_pagerduty.CRITICAL,
-			Source:    "TEMPORAL_ALERTS",
+			Source:    TemporalAlerts,
 			Component: "This is a workflow component",
 			Message:   "A QuickNode services workflow is stuck",
 		},

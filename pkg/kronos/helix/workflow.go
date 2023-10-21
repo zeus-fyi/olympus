@@ -81,7 +81,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 			}
 			childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
-			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "OrchestrationChildProcessReset", oj, inst)
+			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "OrchestrationChildProcessReset", &oj, inst)
 			var childWE workflow.Execution
 			if err = childWfFuture.GetChildWorkflowExecution().Get(childCtx, &childWE); err != nil {
 				logger.Error("Failed to get child workflow execution", "Error", err)
@@ -103,7 +103,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 	return nil
 }
 
-func (k *KronosWorkflow) OrchestrationChildProcessReset(ctx workflow.Context, oj artemis_orchestrations.OrchestrationJob, inst Instructions) error {
+func (k *KronosWorkflow) OrchestrationChildProcessReset(ctx workflow.Context, oj *artemis_orchestrations.OrchestrationJob, inst Instructions) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Hour * 730, // Setting a valid non-zero timeout
@@ -114,7 +114,7 @@ func (k *KronosWorkflow) OrchestrationChildProcessReset(ctx workflow.Context, oj
 		},
 	}
 	aCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(aCtx, k.UpdateAndMarkOrchestrationInactive, oj).Get(aCtx, nil)
+	err := workflow.ExecuteActivity(aCtx, k.UpdateAndMarkOrchestrationInactive, &oj).Get(aCtx, nil)
 	if err != nil {
 		logger.Error("failed to execute triggered alert", "Error", err)
 		return err
@@ -124,7 +124,7 @@ func (k *KronosWorkflow) OrchestrationChildProcessReset(ctx workflow.Context, oj
 		logger.Error("failed to sleep", "Error", err)
 		return err
 	}
-	err = workflow.ExecuteActivity(aCtx, k.UpdateAndMarkOrchestrationActive, oj).Get(aCtx, nil)
+	err = workflow.ExecuteActivity(aCtx, k.UpdateAndMarkOrchestrationActive, &oj).Get(aCtx, nil)
 	if err != nil {
 		logger.Error("failed to execute triggered alert", "Error", err)
 		return err

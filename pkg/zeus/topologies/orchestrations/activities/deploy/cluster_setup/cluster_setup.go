@@ -1,7 +1,10 @@
 package deploy_topology_activities_create_setup
 
+import kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
+
 type CreateSetupTopologyActivities struct {
 	Host string
+	kronos_helix.KronosActivities
 }
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}

@@ -15,7 +15,23 @@ func (k *KronosActivities) GetInternalAssignments(ctx context.Context) ([]artemi
 
 WRITE
 
-ALERTS
+ALERTS SETUP
+
+Add Kronos activities to your activities struct
+```go
+
+type HestiaQuickNodeActivities struct {
+	kronos_helix.KronosActivities
+}
+
+func NewHestiaQuickNodeActivities() HestiaQuickNodeActivities {
+	return HestiaQuickNodeActivities{
+		KronosActivities: kronos_helix.NewKronosActivities(),
+	}
+}
+
+
+```
 
 see TestInsertAlertOrchestrators. 
 

@@ -13,14 +13,14 @@ const (
 	TemporalAlerts = "TEMPORAL_ALERTS"
 )
 
-func (k *KronosActivities) GetAlertAssignmentFromInstructions(ctx context.Context, ins Instructions) (pagerduty.V2Event, error) {
+func (k *KronosActivities) GetAlertAssignmentFromInstructions(ctx context.Context, ins Instructions) (*pagerduty.V2Event, error) {
 	ojs, err := artemis_orchestrations.SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx, internalOrgID, ins.Type, ins.GroupName, ins.Trigger.AlertAfterTime)
 	if err != nil {
 		log.Err(err).Interface("ojs", ojs).Msg("GetAlertAssignmentFromInstructions failed")
-		return pagerduty.V2Event{}, err
+		return nil, err
 	}
 	if len(ojs) == 0 {
-		return pagerduty.V2Event{}, nil
+		return nil, nil
 	}
 	pdEvent := PdAlertGenericWfIssuesEvent
 	pdEvent.DedupKey = uuid.New().String()
@@ -34,11 +34,14 @@ func (k *KronosActivities) GetAlertAssignmentFromInstructions(ctx context.Contex
 		pdEvent.Payload.Details = ins.Alerts.Source
 	}
 	pdEvent.Payload.Severity = ins.Alerts.Severity.Critical()
-	return pdEvent, err
+	return &pdEvent, err
 }
 
-func (k *KronosActivities) ExecuteTriggeredAlert(ctx context.Context, pdEvent pagerduty.V2Event) error {
-	resp, err := PdAlertClient.SendAlert(ctx, pdEvent)
+func (k *KronosActivities) ExecuteTriggeredAlert(ctx context.Context, pdEvent *pagerduty.V2Event) error {
+	if pdEvent == nil {
+		return nil
+	}
+	resp, err := PdAlertClient.SendAlert(ctx, *pdEvent)
 	if err != nil {
 		log.Err(err).Interface("resp", resp).Msg("ExecuteTriggeredAlert: SendAlert failed")
 		return err

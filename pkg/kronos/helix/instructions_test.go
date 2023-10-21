@@ -30,6 +30,20 @@ func (t *KronosInstructionsTestSuite) SetupTest() {
 // HestiaPlatformServiceWorkflows
 // IrisRoutingServiceRequestWorkflow, IrisDeleteOrgGroupRoutingTableWorkflow, IrisDeleteOrgRoutesWorkflow, IrisRemoveAllOrgRoutesFromCacheWorkflow
 
+func (t *KronosWorkerTestSuite) TestWorkflowStep() {
+	ojs, jerr := artemis_orchestrations.SelectSystemOrchestrationsWithInstructionsByGroup(ctx, internalOrgID, "olympus")
+	t.Require().Nil(jerr)
+	for _, ojob := range ojs {
+		ins := Instructions{}
+		err := json.Unmarshal([]byte(ojob.Instructions), &ins)
+		t.Require().Nil(jerr)
+
+		ojsFound, err := artemis_orchestrations.SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx, internalOrgID, ins.Type, ins.GroupName, ins.Trigger.AlertAfterTime)
+		t.Require().Nil(err)
+		fmt.Println(ojsFound)
+	}
+}
+
 // You can change any params for this, it is a template of the other test meant for creating alerts
 func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
 	groupName := "ClusterSetupWorkflows"

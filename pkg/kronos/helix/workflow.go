@@ -52,7 +52,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 		return err
 	}
 	for _, oj := range ojs {
-		var pdV2Event pagerduty.V2Event
+		var pdV2Event *pagerduty.V2Event
 		var inst Instructions
 		instCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(instCtx, k.GetInstructionsFromJob, oj).Get(instCtx, &inst)
@@ -69,7 +69,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 			logger.Error("failed to get alert assignment from instructions", "Error", err)
 			return err
 		}
-		if pdV2Event.DedupKey != "" {
+		if pdV2Event != nil && pdV2Event.DedupKey != "" {
 			alertCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(alertCtx, k.ExecuteTriggeredAlert, pdV2Event).Get(alertCtx, nil)
 			if err != nil {

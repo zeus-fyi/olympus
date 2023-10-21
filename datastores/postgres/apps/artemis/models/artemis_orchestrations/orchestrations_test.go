@@ -23,9 +23,15 @@ type OrchestrationsTestSuite struct {
 func (s *OrchestrationsTestSuite) TestSelectActiveOrchestrationsWithInstructionsUsingTimeWindow() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
-	oj, err := SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx, s.Tc.ProductionLocalTemporalOrgID, "testType", "testGroup", time.Second)
+	// get internal assignments
+	ojs, err := SelectSystemOrchestrationsWithInstructionsByGroup(ctx, s.Tc.ProductionLocalTemporalOrgID, "olympus")
 	s.Require().Nil(err)
-	s.Require().NotEmpty(oj)
+	fmt.Println(ojs)
+
+	oj, err := SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx, s.Tc.ProductionLocalTemporalOrgID, "IrisDeleteOrgRoutesWorkflow", "HestiaPlatformServiceWorkflows", time.Second)
+	s.Require().Nil(err)
+
+	fmt.Println(oj)
 }
 
 func (s *OrchestrationsTestSuite) TestInsertOrchestrationDefinition() {

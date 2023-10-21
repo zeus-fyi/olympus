@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
@@ -20,12 +21,14 @@ import (
 
 type DeployTopologyActivities struct {
 	base_deploy_params.TopologyWorkflowRequest
+	kronos_helix.KronosActivities
 }
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{
+	kr := kronos_helix.NewKronosActivities()
+	actSlice := []interface{}{
 		d.CreateNamespace,
 		d.DeployDeployment,
 		d.DeployStatefulSet,
@@ -39,6 +42,7 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 		d.CreateJob,
 		d.CreateCronJob,
 	}
+	return append(actSlice, kr.GetActivities()...)
 }
 
 func (d *DeployTopologyActivities) postDeployTarget(target string, params base_request.InternalDeploymentActionRequest) error {

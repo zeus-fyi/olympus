@@ -64,7 +64,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 			continue
 		}
 		alertAssignmentCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(alertAssignmentCtx, k.GetAlertAssignmentFromInstructions, oj, inst).Get(alertAssignmentCtx, &pdV2Event)
+		err = workflow.ExecuteActivity(alertAssignmentCtx, k.GetAlertAssignmentFromInstructions, inst).Get(alertAssignmentCtx, &pdV2Event)
 		if err != nil {
 			logger.Error("failed to get alert assignment from instructions", "Error", err)
 			return err

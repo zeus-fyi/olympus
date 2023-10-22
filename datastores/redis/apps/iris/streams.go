@@ -2,12 +2,15 @@ package iris_redis
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-redis/redis/v9"
+	"github.com/rs/zerolog/log"
 )
 
-const maxStreamLen = 20
+const (
+	maxStreamLen         = 100
+	EthMempoolStreamName = "eth-mempool-mainnet"
+)
 
 // CreateOrAddToStream initializes a new stream topic if it doesn't already exist.
 func (m *IrisCache) CreateOrAddToStream(ctx context.Context, streamName string, payload map[string]interface{}) error {
@@ -18,7 +21,7 @@ func (m *IrisCache) CreateOrAddToStream(ctx context.Context, streamName string, 
 		MaxLen: maxStreamLen,
 	}).Result()
 	if err != nil {
-		fmt.Printf("error during stream creation: %s\n", err.Error())
+		log.Err(err).Msgf("error creating redis stream: %s\n", err.Error())
 		return err
 	}
 	return nil
@@ -33,7 +36,7 @@ func (m *IrisCache) Stream(ctx context.Context, streamName string, lastID string
 		Block:   0,
 	}).Result()
 	if err != nil {
-		fmt.Printf("error during stream read: %s\n", err.Error())
+		log.Err(err).Msgf("error reading redis stream: %s\n", err.Error())
 		return nil, err
 	}
 	if len(messages) == 0 {

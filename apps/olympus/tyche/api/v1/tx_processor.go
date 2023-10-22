@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -41,6 +42,23 @@ func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 				log.Err(werr.Err).Msg("error processing tx")
 			}
 		}(tx, w3cTrader)
+		go func(tx *types.Transaction) {
+			if tx == nil {
+				return
+			}
+			b, err := tx.MarshalBinary()
+			if err != nil {
+				log.Err(err).Msg("error marshalling tx")
+				return
+			}
+			err = iris_redis.IrisRedisClient.CreateOrAddToStream(context.Background(), iris_redis.EthMempoolStreamName, map[string]interface{}{
+				tx.Hash().Hex(): b,
+			})
+			if err != nil {
+				log.Err(err).Msg("error adding to redis mempool stream")
+				return
+			}
+		}(tx)
 	}
 	return c.JSON(http.StatusOK, "ok")
 }

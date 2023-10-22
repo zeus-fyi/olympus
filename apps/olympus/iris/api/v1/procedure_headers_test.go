@@ -17,6 +17,8 @@ import (
 )
 
 type IrisV1TestSuite struct {
+	E  *echo.Echo
+	Eg *echo.Group
 	test_suites_base.TestSuite
 }
 
@@ -155,6 +157,9 @@ func (s *IrisV1TestSuite) TestHeaders() {
 func (s *IrisV1TestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	s.E = echo.New()
+	eg := s.E.Group("/v1")
+	s.Eg = eg
 	//iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
 }
 

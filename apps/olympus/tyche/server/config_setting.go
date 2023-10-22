@@ -7,6 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_mev_tx_fetcher "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/mev"
@@ -44,6 +45,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		price_quoter.ZeroXApiKey = sw.ZeroXApiKey
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 		artemis_trading_cache.InitProductionRedis(ctx)
+		iris_redis.InitProductionRedisIrisCache(ctx)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -56,6 +58,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		artemis_orchestration_auth.Bearer = sw.BearerToken
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
+		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -66,6 +69,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		artemis_orchestration_auth.Bearer = tc.ProductionLocalTemporalBearerToken
 		authKeysCfg = tc.DevAuthKeysCfg
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
+		iris_redis.InitLocalTestRedisIrisCache(ctx)
 	}
 	dynamoDBCreds.Region = "us-west-1"
 	log.Info().Msg("Tyche: DynamoDB connection starting")

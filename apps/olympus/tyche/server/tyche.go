@@ -30,7 +30,7 @@ func Tyche() {
 	ctx := context.Background()
 	cfg.Host = "0.0.0.0"
 	srv := NewTycheServer(cfg)
-	log.Ctx(ctx).Info().Msg("Tyche: Initializing configs by environment type")
+	log.Info().Msgf("Tyche: Environment %s", env)
 	SetConfigByEnv(ctx, env)
 	srv.E = v1_tyche.Routes(srv.E)
 	srv.Start()

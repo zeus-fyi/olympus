@@ -74,7 +74,10 @@ func (s *IrisV1TestSuite) TestLiveWebsocket() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
+	//var addr = flag.String("addr", "localhost:8080", "ws service address")
+
 	var addr = flag.String("addr", "localhost:8080", "ws service address")
+
 	u := url.URL{Scheme: "ws", Host: *addr, Path: "/v1/mempool"}
 
 	requestHeader := http.Header{}

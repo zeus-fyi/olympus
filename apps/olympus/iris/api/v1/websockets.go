@@ -11,7 +11,7 @@ import (
 )
 
 // Step 1: Declare a channel outside the handler. This could be a global or part of a struct.
-var dataChannel = make(chan []byte, 100)
+var dataChannel = make(chan string, 100)
 
 // SendDataToWebSocket function that pushes data to the channel. Call this when you want to send data to the WebSocket.
 func SendDataToWebSocket() {
@@ -24,7 +24,7 @@ func SendDataToWebSocket() {
 		for _, msg := range messages {
 			for _, event := range msg.Messages {
 				for _, v := range event.Values {
-					dataChannel <- v.([]byte) // Assuming the Redis message can be directly converted to []byte
+					dataChannel <- v.(string) // Assuming the Redis message can be directly converted to []byte
 				}
 			}
 		}
@@ -44,7 +44,7 @@ func mempoolWebSocketHandler(c echo.Context) error {
 			// Step 2: Modify the WebSocket handler to listen to the channel in the goroutine.
 			case data := <-dataChannel:
 				// Step 3: Write data to the WebSocket when data is received from the channel.
-				err := wsutil.WriteServerMessage(conn, ws.OpBinary, data) // Assuming data is binary.
+				err := wsutil.WriteServerMessage(conn, ws.OpText, []byte(data)) // Assuming data is binary.
 				if err != nil {
 					log.Err(err).Msg("mempoolWebSocketHandler: wsutil.WriteServerMessage")
 					// Handle error

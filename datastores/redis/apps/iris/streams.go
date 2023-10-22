@@ -7,13 +7,15 @@ import (
 	"github.com/go-redis/redis/v9"
 )
 
+const maxStreamLen = 20
+
 // CreateOrAddToStream initializes a new stream topic if it doesn't already exist.
 func (m *IrisCache) CreateOrAddToStream(ctx context.Context, streamName string, payload map[string]interface{}) error {
 	// Use the XADD command with the special ID '*' to add an item and create the stream if it doesn't exist.
 	_, err := m.Writer.XAdd(ctx, &redis.XAddArgs{
 		Stream: streamName,
 		Values: payload,
-		MaxLen: 2,
+		MaxLen: maxStreamLen,
 	}).Result()
 	if err != nil {
 		fmt.Printf("error during stream creation: %s\n", err.Error())
@@ -27,7 +29,8 @@ func (m *IrisCache) Stream(ctx context.Context, streamName string, lastID string
 	// Use the XREAD command to read from the stream.
 	messages, err := m.Reader.XRead(ctx, &redis.XReadArgs{
 		Streams: []string{streamName, lastID},
-		Count:   10, // Or any number you prefer to limit the fetched messages.
+		Count:   maxStreamLen / 2, // Or any number you prefer to limit the fetched messages.
+		Block:   0,
 	}).Result()
 	if err != nil {
 		fmt.Printf("error during stream read: %s\n", err.Error())

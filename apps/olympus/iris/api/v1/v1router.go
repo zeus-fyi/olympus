@@ -111,6 +111,8 @@ func AddIrisRouter(eg *echo.Group) {
 	eg.PUT(iris_service_plans.UpdateTableLatencyScaleFactor, iris_service_plans.UpdateLatencyScaleFactorRequestHandler)
 	eg.PUT(iris_service_plans.UpdateTableErrorScaleFactor, iris_service_plans.UpdateErrorScaleFactorRequestHandler)
 	eg.PUT(iris_service_plans.UpdateTableDecayScaleFactor, iris_service_plans.UpdateDecayScaleFactorRequestHandler)
+
+	eg.GET("/mempool", mempoolWebSocketHandler)
 }
 
 func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {

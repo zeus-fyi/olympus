@@ -4,6 +4,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"go.temporal.io/sdk/workflow"
@@ -16,8 +17,10 @@ type DestroyResourcesWorkflows struct {
 
 func NewDestroyResourcesWorkflow() DestroyResourcesWorkflows {
 	deployWf := DestroyResourcesWorkflows{
-		Workflow:                      temporal_base.Workflow{},
-		CreateSetupTopologyActivities: deploy_topology_activities_create_setup.CreateSetupTopologyActivities{},
+		Workflow: temporal_base.Workflow{},
+		CreateSetupTopologyActivities: deploy_topology_activities_create_setup.CreateSetupTopologyActivities{
+			KronosActivities: kronos_helix.NewKronosActivities(),
+		},
 	}
 	return deployWf
 }

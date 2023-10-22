@@ -44,6 +44,5 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.OvhRemoveNodePoolRequest,
 		c.OvhSelectFreeTrialNodes,
 	}
-	kr := kronos_helix.NewKronosActivities()
-	return append(actSlice, kr.GetActivities()...)
+	return actSlice
 }

@@ -27,7 +27,6 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
-	kr := kronos_helix.NewKronosActivities()
 	actSlice := []interface{}{
 		d.CreateNamespace,
 		d.DeployDeployment,
@@ -42,7 +41,7 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 		d.CreateJob,
 		d.CreateCronJob,
 	}
-	return append(actSlice, kr.GetActivities()...)
+	return actSlice
 }
 
 func (d *DeployTopologyActivities) postDeployTarget(target string, params base_request.InternalDeploymentActionRequest) error {

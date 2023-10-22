@@ -44,7 +44,8 @@ func (s *IrisV1TestSuite) TestWebsocket() {
 	ticker := time.NewTicker(time.Second * 1)
 	defer ticker.Stop()
 
-	go SendDataToWebSocket([]byte("TestMessage"))
+	// todo needs to send expected data to websocket via redis or mock
+	go SendDataToWebSocket()
 
 	for {
 		select {

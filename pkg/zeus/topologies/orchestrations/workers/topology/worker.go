@@ -155,11 +155,12 @@ func (t *TopologyWorker) ExecuteDestroyResources(ctx context.Context, params bas
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
 		TaskQueue: t.TaskQueueName,
 	}
 	destroyResourcesWf := deploy_workflow_destroy_setup.NewDestroyResourcesWorkflow()
 	wf := destroyResourcesWf.GetWorkflow()
-	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteDestroyResources")
 		return err

@@ -46,8 +46,8 @@ func (t *KronosWorkerTestSuite) TestWorkflowStep() {
 
 // You can change any params for this, it is a template of the other test meant for creating alerts
 func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
-	groupName := "ClusterSetupWorkflows"
-	instType := "DeployClusterSetupWorkflow"
+	groupName := "DestroyResourcesWorkflows"
+	instType := "DestroyClusterResourcesWorkflow"
 
 	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	inst := Instructions{
@@ -56,12 +56,12 @@ func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
 		Alerts: AlertInstructions{
 			Severity:  apollo_pagerduty.CRITICAL,
 			Source:    TemporalAlerts,
-			Component: "This is a cluster setup workflow for the Zeus subsystem",
-			Message:   "A Zeus services workflow is stuck",
+			Component: orchName,
+			Message:   "A Zeus services workflow is stuck trying to deprovision resources",
 		},
 		Trigger: TriggerInstructions{
-			AlertAfterTime:              time.Minute * 20,
-			ResetAlertAfterTimeDuration: time.Minute * 20,
+			AlertAfterTime:              time.Minute * 30,
+			ResetAlertAfterTimeDuration: time.Minute * 30,
 		},
 	}
 	b, err := json.Marshal(inst)

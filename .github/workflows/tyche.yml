@@ -81,4 +81,4 @@ jobs:
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           --token ${{ secrets.DEPOT_TOKEN }} \
           --provenance=false \
-          -f docker/artemis/Dockerfile . --push
+          -f docker/tyche/Dockerfile . --push

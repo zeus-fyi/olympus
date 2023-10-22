@@ -5,6 +5,9 @@ metadata:
   namespace: "iris"
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.org/websocket-services: "iris-ws"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
   ingressClassName: "nginx"
   tls:
@@ -22,3 +25,10 @@ spec:
                 name: iris
                 port:
                   number: 80
+          - path: /v1/mempool
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: iris-ws
+                port:
+                  number: 8008

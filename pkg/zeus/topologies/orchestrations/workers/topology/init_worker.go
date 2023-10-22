@@ -4,6 +4,7 @@ import (
 	"github.com/rs/zerolog/log"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	deployment_status "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/status"
 	clean_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/clean"
@@ -51,6 +52,8 @@ func InitTopologyWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 	w.AddWorkflow(deployDestroyNamespaceWf.GetWorkflow())
 	w.AddWorkflows(upgradeFleetWf.GetWorkflows())
 	// activities added
+	kr := kronos_helix.NewKronosActivities()
+	w.AddActivities(kr.GetActivities())
 	w.AddActivities(statusActivity.GetActivities())
 	w.AddActivities(deployWf.GetActivities())
 	w.AddActivities(deployDestroyWf.GetActivities())

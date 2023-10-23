@@ -3,6 +3,7 @@ package v1_iris
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
@@ -50,6 +51,17 @@ func mempoolWebSocketHandler(c echo.Context) error {
 			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
 		}
 	}
+	plan := ""
+	if c.Get("servicePlan") != nil {
+		sp, ok := c.Get("servicePlan").(string)
+		if ok {
+			plan = MempoolPlan(sp)
+		}
+	}
+	if plan == "" {
+		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
+	}
+
 	go func(orgID int) {
 		defer conn.Close()
 		for {
@@ -87,4 +99,13 @@ func mempoolWebSocketHandler(c echo.Context) error {
 		}
 	}(ou.OrgID)
 	return nil
+}
+
+func MempoolPlan(plan string) string {
+	switch strings.ToLower(plan) {
+	case "enterprise", "standard", "performance", "lite":
+		return plan
+	default:
+		return ""
+	}
 }

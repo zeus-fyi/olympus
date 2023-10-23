@@ -96,6 +96,9 @@ func (o *OrgUser) InsertSignUpOrgUserAndVerifyEmail(ctx context.Context, us User
 }
 
 func UpdateUserEmail(ctx context.Context, userID int, email string) error {
+	if userID <= 0 {
+		return fmt.Errorf("UpdateUserEmail: userID <= 0")
+	}
 	q := sql_query_templates.NewQueryParam("UpdateUserEmail", "users", "where", 1000, []string{})
 	q.RawQuery = `UPDATE users
 				  SET email = $2

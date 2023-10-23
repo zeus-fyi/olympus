@@ -106,17 +106,17 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 		}
 		switch node.CloudProvider {
 		case "do":
-			node.PriceHourly *= 1.05  // Add 10% to the price
-			node.PriceMonthly *= 1.05 // Add 10% to the price
+			node.PriceHourly *= 1.00  // Add 10% to the price
+			node.PriceMonthly *= 1.00 // Add 10% to the price
 		case "gcp":
-			node.PriceHourly *= 1.10  // Add 40% to the price
-			node.PriceMonthly *= 1.10 // Add 40% to the price
+			node.PriceHourly *= 1.00  // Add 40% to the price
+			node.PriceMonthly *= 1.00 // Add 40% to the price
 		case "aws":
-			node.PriceHourly *= 1.10  // Add 40% to the price
-			node.PriceMonthly *= 1.10 // Add 40% to the price
+			node.PriceHourly *= 1.00  // Add 40% to the price
+			node.PriceMonthly *= 1.00 // Add 40% to the price
 		case "ovh":
-			node.PriceHourly *= 1.05  // Add 20% to the price
-			node.PriceMonthly *= 1.05 // Add 20% to the price
+			node.PriceHourly *= 1.00  // Add 20% to the price
+			node.PriceMonthly *= 1.00 // Add 20% to the price
 		}
 		if err != nil {
 			return nil, err

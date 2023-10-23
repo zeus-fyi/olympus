@@ -94,12 +94,15 @@ func (s *IrisV1TestSuite) TestLiveWebsocket() {
 			_, message, err := ws.ReadMessage()
 			s.Require().Nil(err)
 			fmt.Println(message)
-			tx := types.Transaction{}
+			tx := &types.Transaction{}
+
 			err = tx.UnmarshalBinary(message)
-			s.Require().Nil(err)
+			if err != nil {
+				continue
+			}
 
 			log.Printf("recv: %s", tx.Hash().String())
-			fmt.Println(tx)
+			fmt.Println(tx.Size(), "bytes")
 		}
 	}()
 

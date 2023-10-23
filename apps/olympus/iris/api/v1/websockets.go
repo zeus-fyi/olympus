@@ -2,12 +2,15 @@ package v1_iris
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
+	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
 // Step 1: Declare a channel outside the handler. This could be a global or part of a struct.
@@ -32,13 +35,22 @@ func SendDataToWebSocket() {
 }
 
 func mempoolWebSocketHandler(c echo.Context) error {
-	log.Info().Msg("mempoolWebSocketHandler: called")
 	conn, _, _, cerr := ws.UpgradeHTTP(c.Request(), c.Response().Writer)
 	if cerr != nil {
 		log.Err(cerr).Msg("mempoolWebSocketHandler: ws.UpgradeHTTP")
 		return cerr
 	}
-	go func() {
+	ou := org_users.OrgUser{}
+	ouc := c.Get("orgUser")
+	if ouc != nil {
+		ouser, ok := ouc.(org_users.OrgUser)
+		if ok && ouser.OrgID > 0 {
+			ou = ouser
+		} else {
+			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
+		}
+	}
+	go func(orgID int) {
 		defer conn.Close()
 		for {
 			select {
@@ -51,6 +63,13 @@ func mempoolWebSocketHandler(c echo.Context) error {
 					// Handle error
 					return
 				}
+				go func(orgID int, bodyBytes []byte) {
+					ps := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
+					err = iris_redis.IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), ou.OrgID, ps)
+					if err != nil {
+						log.Err(err).Interface("ou", ou).Msg("mempoolWebSocketHandler: IncrementResponseUsageRateMeter")
+					}
+				}(orgID, []byte(data))
 			default:
 				msg, op, err := wsutil.ReadClientData(conn)
 				if err != nil {
@@ -66,6 +85,6 @@ func mempoolWebSocketHandler(c echo.Context) error {
 				}
 			}
 		}
-	}()
+	}(ou.OrgID)
 	return nil
 }

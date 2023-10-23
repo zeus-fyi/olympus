@@ -74,6 +74,11 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string, 
 
 func (m *IrisCache) IncrementResponseUsageRateMeter(ctx context.Context, orgID int, meter *iris_usage_meters.PayloadSizeMeter) error {
 	// Generate the rate limiter key with the Unix timestamp
+	if meter == nil {
+		log.Warn().Msg("IncrementResponseUsageRateMeter: meter is nil")
+		return nil
+	}
+
 	rateLimiterKey := getOrgRateLimitKey(orgID)
 	orgRequests := getOrgTotalRequestsKey(orgID)
 	if meter != nil {

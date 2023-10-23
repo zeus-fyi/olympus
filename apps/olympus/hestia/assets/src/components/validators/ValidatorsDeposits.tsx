@@ -63,8 +63,8 @@ export function SubmitValidators(props: any) {
             statusMessage = 'An error occurred while sending validator deposits.';
             break;
         default:
-            buttonLabel = 'Submit Deposits';
-            buttonDisabled = false;
+            buttonLabel = 'Submit Deposits is Paused';
+            buttonDisabled = true;
             break;
     }
     const onClickSendValidatorsDeposits = async () => {

@@ -78,19 +78,19 @@ export function PublicAppsTable(props: any) {
                             <TableCell align="left">{'Avax'}</TableCell>
                             <TableCell align="left">{ 'Cluster'}</TableCell>
                         </TableRow>
-                        <TableRow
-                            onClick={(event) => handleClickApp(event, 'eth')}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                            <TableCell style={{ width: 200 }}>
-                                <img src={require("../../static/eth.png")} alt={'web3'} style={{ width: '18%', height: '5%', marginLeft: '5px'}} />
-                            </TableCell>
-                            <TableCell component="th" scope="row">
-                                {'web3'}
-                            </TableCell>
-                            <TableCell align="left">{'Ethereum'}</TableCell>
-                            <TableCell align="left">{ 'Cluster'}</TableCell>
-                        </TableRow>
+                        {/*<TableRow*/}
+                        {/*    onClick={(event) => handleClickApp(event, 'eth')}*/}
+                        {/*    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}*/}
+                        {/*>*/}
+                        {/*    <TableCell style={{ width: 200 }}>*/}
+                        {/*        <img src={require("../../static/eth.png")} alt={'web3'} style={{ width: '18%', height: '5%', marginLeft: '5px'}} />*/}
+                        {/*    </TableCell>*/}
+                        {/*    <TableCell component="th" scope="row">*/}
+                        {/*        {'web3'}*/}
+                        {/*    </TableCell>*/}
+                        {/*    <TableCell align="left">{'Ethereum'}</TableCell>*/}
+                        {/*    <TableCell align="left">{ 'Cluster'}</TableCell>*/}
+                        {/*</TableRow>*/}
                         <TableRow
                             onClick={(event) => handleClickApp(event, 'sui')}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}

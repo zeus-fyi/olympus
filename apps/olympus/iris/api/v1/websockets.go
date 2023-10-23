@@ -45,7 +45,7 @@ func mempoolWebSocketHandler(c echo.Context) error {
 			// Step 2: Modify the WebSocket handler to listen to the channel in the goroutine.
 			case data := <-dataChannel:
 				// Step 3: Write data to the WebSocket when data is received from the channel.
-				err := wsutil.WriteServerMessage(conn, ws.OpText, []byte(data))
+				err := wsutil.WriteServerMessage(conn, ws.OpBinary, []byte(data))
 				if err != nil {
 					log.Err(err).Msg("mempoolWebSocketHandler: wsutil.WriteServerMessage")
 					// Handle error

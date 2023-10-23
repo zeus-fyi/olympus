@@ -75,10 +75,10 @@ func (s *IrisV1TestSuite) TestLiveWebsocket() {
 	signal.Notify(interrupt, os.Interrupt)
 
 	//var addr = flag.String("addr", "localhost:8080", "ws service address")
+	//u := url.URL{Scheme: "ws", Host: *addr, Path: "/v1/mempool"}
 
-	var addr = flag.String("addr", "iris.zeus.fyi", "ws service address")
-
-	u := url.URL{Scheme: "ws", Host: *addr, Path: "/v1/mempool"}
+	addr := flag.String("addr", "iris.zeus.fyi", "ws service address")
+	u := url.URL{Scheme: "wss", Host: *addr, Path: "/v1/mempool"}
 
 	requestHeader := http.Header{}
 	requestHeader.Add("Authorization", "Bearer "+s.Tc.ProductionLocalTemporalBearerToken)

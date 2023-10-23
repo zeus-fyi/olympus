@@ -67,17 +67,17 @@ func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes
 		orgResourceNodes.Nodes.ResourceID = orgResourceNodes.OrgResources.ResourceID
 		switch orgResourceNodes.CloudProvider {
 		case "aws":
-			orgResourceNodes.PriceHourly *= 1.10  // Add 10, 30% to the price
-			orgResourceNodes.PriceMonthly *= 1.10 // Add 10, 30% to the price
+			orgResourceNodes.PriceHourly *= 1.0  // Add 10, 30% to the price
+			orgResourceNodes.PriceMonthly *= 1.0 // Add 10, 30% to the price
 		case "gcp":
-			orgResourceNodes.PriceHourly *= 1.10  // Add 10,30% to the price
-			orgResourceNodes.PriceMonthly *= 1.10 // Add 10,30% to the price
+			orgResourceNodes.PriceHourly *= 1.0  // Add 10,30% to the price
+			orgResourceNodes.PriceMonthly *= 1.0 // Add 10,30% to the price
 		case "ovh":
-			orgResourceNodes.PriceHourly *= 1.05  // Add 5, 20% to the price
-			orgResourceNodes.PriceMonthly *= 1.05 // Add 5, 20% to the price
+			orgResourceNodes.PriceHourly *= 1.0  // Add 5, 20% to the price
+			orgResourceNodes.PriceMonthly *= 1.0 // Add 5, 20% to the price
 		default:
-			orgResourceNodes.PriceHourly *= 1.05  // Add 5, 20% to the price
-			orgResourceNodes.PriceMonthly *= 1.05 // Add 5, 20% to the price
+			orgResourceNodes.PriceHourly *= 1.0  // Add 5, 20% to the price
+			orgResourceNodes.PriceMonthly *= 1.0 // Add 5, 20% to the price
 		}
 		if err != nil {
 			return nil, err
@@ -130,17 +130,17 @@ func SelectOrgResourcesDisks(ctx context.Context, orgID int) ([]OrgResourceDisks
 		)
 		switch orgResourceNodes.CloudProvider {
 		case "aws":
-			orgResourceNodes.PriceHourly *= 1.10  // Add 10,30% to the price
-			orgResourceNodes.PriceMonthly *= 1.10 // Add 10,30% to the price
+			orgResourceNodes.PriceHourly *= 1.0  // Add 10,30% to the price
+			orgResourceNodes.PriceMonthly *= 1.0 // Add 10,30% to the price
 		case "gcp":
-			orgResourceNodes.PriceHourly *= 1.10  // Add 10, 30% to the price
-			orgResourceNodes.PriceMonthly *= 1.10 // Add 10, 30% to the price
+			orgResourceNodes.PriceHourly *= 1.0  // Add 10, 30% to the price
+			orgResourceNodes.PriceMonthly *= 1.0 // Add 10, 30% to the price
 		case "ovh":
-			orgResourceNodes.PriceHourly *= 1.05  // Add 5,20% to the price
-			orgResourceNodes.PriceMonthly *= 1.05 // Add 5,20% to the price
+			orgResourceNodes.PriceHourly *= 1.00  // Add 5,20% to the price
+			orgResourceNodes.PriceMonthly *= 1.00 // Add 5,20% to the price
 		default:
-			orgResourceNodes.PriceHourly *= 1.05  // Add 5, 20% to the price
-			orgResourceNodes.PriceMonthly *= 1.05 // Add 5, 20% to the price
+			orgResourceNodes.PriceHourly *= 1.00  // Add 5, 20% to the price
+			orgResourceNodes.PriceMonthly *= 1.00 // Add 5, 20% to the price
 		}
 		if err != nil {
 			return nil, err

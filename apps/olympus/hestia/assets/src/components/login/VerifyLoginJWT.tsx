@@ -13,6 +13,17 @@ const ttlSeconds = pipe(getAxiosResponse, prop('ttl'));
 const userIDParse = pipe(getAxiosResponse, prop('userID'));
 const planUsageDetailsParse = pipe(getAxiosResponse, prop('planUsageDetails'));
 
+const insertTwitterTracking = (userID: number) => {
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.innerHTML = `
+        twq('event', 'tw-ogy3w-oh0kt', {
+            conversion_id: ${userID}
+        });
+    `;
+    document.body.appendChild(script);
+};
+
 export function VerifyQuickNodeLoginJWT() {
     let navigate = useNavigate();
     let location = useLocation(); // Missing in your code
@@ -41,6 +52,7 @@ export function VerifyQuickNodeLoginJWT() {
                     dispatch(setUserPlanDetails(planDetails));
                     inMemoryJWT.setToken(sessionID, tokenExpiry);
                     localStorage.setItem("userID", userID);
+                    insertTwitterTracking(userID);
                     dispatch(setSessionAuth(true))
                     dispatch({type: 'LOGIN_SUCCESS', payload: response.data})
                     navigate('/loadbalancing/dashboard');

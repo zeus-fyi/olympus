@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
@@ -92,4 +93,20 @@ func (o *OrgUser) InsertSignUpOrgUserAndVerifyEmail(ctx context.Context, us User
 	}
 	o.UserID = int(userID)
 	return signupKey.PublicKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
+func UpdateUserEmail(ctx context.Context, userID int, email string) error {
+	q := sql_query_templates.NewQueryParam("UpdateUserEmail", "users", "where", 1000, []string{})
+	q.RawQuery = `UPDATE users
+				  SET email = $2
+				  WHERE user_id = $1 AND email IS NULL;`
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, userID, email)
+	if err == pgx.ErrNoRows {
+		log.Warn().Int("userID", userID).Str("email", email).Msg("UpdateUserEmail: pgx.ErrNoRows")
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }

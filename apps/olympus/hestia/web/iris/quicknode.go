@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
@@ -78,6 +79,12 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 		}
 		if key.PublicKeyVerified == false {
 			return c.JSON(http.StatusInternalServerError, nil)
+		}
+
+		err = create_org_users.UpdateUserEmail(ctx, key.UserID, email)
+		if err != nil {
+			log.Err(err).Msg("UpdateUserEmail error")
+			err = nil
 		}
 		sessionID := rand.String(64)
 		sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)
@@ -176,6 +183,11 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 		}
 		if key.PublicKeyVerified == false {
 			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		err = create_org_users.UpdateUserEmail(ctx, key.UserID, email)
+		if err != nil {
+			log.Err(err).Msg("UpdateUserEmail error")
+			err = nil
 		}
 		sessionID := rand.String(64)
 		sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)

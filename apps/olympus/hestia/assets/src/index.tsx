@@ -4,14 +4,6 @@ import './index.css';
 import {App} from './app/App';
 import reportWebVitals from './app/reportWebVitals';
 
-import TagManager from 'react-gtm-module'
-
-const tagManagerArgs = {
-    gtmId: 'G-KZFWQL2CJN'
-}
-
-TagManager.initialize(tagManagerArgs)
-
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );

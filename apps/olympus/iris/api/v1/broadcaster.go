@@ -91,7 +91,7 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		Payload:          p.Body,
 		QueryParams:      qps,
 		IsInternal:       false,
-		Timeout:          4 * time.Second,
+		Timeout:          2 * time.Second,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
 	}

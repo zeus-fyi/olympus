@@ -150,8 +150,17 @@ func (m *IrisCache) GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing(ctx con
 		log.Err(err).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
 		return err
 	}
+
 	if len(member) > 0 {
-		stats.MemberRankScoreOut = redis.Z{Score: member[0].Score, Member: member[0].Member}
+		path, eok := member[0].Member.(string)
+		if !eok {
+			stats.MemberRankScoreOut = stats.MemberRankScoreIn
+		}
+		if len(path) != 0 {
+			stats.MemberRankScoreOut = redis.Z{Score: member[0].Score, Member: member[0].Member}
+		} else {
+			stats.MemberRankScoreOut = stats.MemberRankScoreIn
+		}
 	} else {
 		stats.MemberRankScoreOut = stats.MemberRankScoreIn
 	}

@@ -147,6 +147,7 @@ type TestContainer struct {
 
 	GoogClientID     string
 	GoogClientSecret string
+	GoogTagSecret    string
 
 	AtlassianKeys
 }
@@ -217,6 +218,8 @@ func InitLocalTestConfigs() TestContainer {
 
 	testCont.AwsS3AccessKey = viper.GetString("AWS_S3_ACCESS_KEY")
 	testCont.AwsS3SecretKey = viper.GetString("AWS_S3_SECRET_KEY")
+
+	testCont.GoogTagSecret = viper.GetString("GOOGLE_GTAG_SECRET")
 
 	testCont.GoogClientID = viper.GetString("GOOGLE_CLIENT_ID")
 	testCont.GoogClientSecret = viper.GetString("GOOGLE_CLIENT_SECRET")

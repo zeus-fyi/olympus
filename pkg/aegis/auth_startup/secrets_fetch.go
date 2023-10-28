@@ -37,6 +37,7 @@ const (
 
 	googClientID     = "secrets/google.client.id.txt"
 	googClientSecret = "secrets/google.client.secret.txt"
+	googGtagSecret   = "secrets/google.gtag.secret.txt"
 
 	awsS3ReaderAccessKey = "secrets/aws.s3.reader.access.key.txt"
 	awsS3ReaderSecretKey = "secrets/aws.s3.reader.secret.key.txt"
@@ -61,6 +62,7 @@ type SecretsWrapper struct {
 
 	GoogClientID     string
 	GoogClientSecret string
+	GoogGtagSecret   string
 
 	QuickNodePassword string
 	QuickNodeBearer   string

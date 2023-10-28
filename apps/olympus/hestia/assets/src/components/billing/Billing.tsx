@@ -22,6 +22,7 @@ import {AddressElement, Elements, PaymentElement, useElements, useStripe,} from 
 import {configService} from "../../config/config";
 import {Card, CardContent} from "@mui/material";
 import {stripeApiGateway} from "../../gateway/stripe";
+import ReactGA from "react-ga4";
 
 const mdTheme = createTheme();
 
@@ -205,6 +206,8 @@ export function CheckoutForm() {
 
         if (error) {
             handleError(error);
+        } else {
+            ReactGA.gtag('event','add_billing_info', { 'method': 'Stripe' });
         }
     };
 

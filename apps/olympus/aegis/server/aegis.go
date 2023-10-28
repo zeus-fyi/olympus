@@ -58,7 +58,6 @@ func Aegis() {
 	apps.Pg = apps.Db{}
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	srv.E = v1_aegis.Routes(srv.E)
-	// Start server
 
 	log.Info().Msg("Aegis: InitKronosWorker start")
 	kronos_helix.InitKronosHelixWorker(context.Background(), temporalAuthConfigKronos)
@@ -71,6 +70,8 @@ func Aegis() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Aegis: InitKronosWorker done")
+
+	// Start server
 	srv.Start()
 }
 

@@ -52,6 +52,9 @@ export function VerifyQuickNodeLoginJWT() {
                     dispatch(setUserPlanDetails(planDetails));
                     inMemoryJWT.setToken(sessionID, tokenExpiry);
                     localStorage.setItem("userID", userID);
+                    (window as any).gtag('config', 'G-KZFWQL2CJN', {
+                        'user_id': userID
+                    });
                     insertTwitterTracking(userID);
                     dispatch(setSessionAuth(true))
                     dispatch({type: 'LOGIN_SUCCESS', payload: response.data})

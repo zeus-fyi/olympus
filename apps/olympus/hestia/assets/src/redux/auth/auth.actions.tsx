@@ -21,6 +21,9 @@ const authProvider = {
                 const userID = userIDParse(res);
                 inMemoryJWT.setToken(sessionID, tokenExpiry);
                 localStorage.setItem("userID", userID);
+                (window as any).gtag('config', 'G-KZFWQL2CJN', {
+                    'user_id': userID
+                });
             }
             return res
         } catch (e) {
@@ -42,6 +45,9 @@ const authProvider = {
                 const userID = userIDParse(res);
                 inMemoryJWT.setToken(sessionID, tokenExpiry);
                 localStorage.setItem("userID", userID);
+                (window as any).gtag('config', 'G-KZFWQL2CJN', {
+                    'user_id': userID
+                });
             }
             return res
         } catch (e) {

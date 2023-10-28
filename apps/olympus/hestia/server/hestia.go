@@ -111,6 +111,7 @@ func Hestia() {
 		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = sw.PagerDutyRoutingKey
 		hestia_login.GoogleOAuthConfig.ClientID = sw.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = sw.GoogClientSecret
+		//hestia_analytics.GtagApiSecret = sw.GoogGtagSecret
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -135,6 +136,7 @@ func Hestia() {
 		quicknode_orchestrations.IrisApiUrl = "http://localhost:8080"
 		hestia_login.GoogleOAuthConfig.ClientID = tc.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = tc.GoogClientSecret
+		//hestia_analytics.GtagApiSecret = tc.GoogTagSecret
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -157,6 +159,7 @@ func Hestia() {
 		quicknode_orchestrations.IrisApiUrl = "http://localhost:8080"
 		hestia_login.GoogleOAuthConfig.ClientID = tc.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = tc.GoogClientSecret
+		//hestia_analytics.GtagApiSecret = tc.GoogTagSecret
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

@@ -242,7 +242,6 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 	pipe := m.Writer.TxPipeline()
 
 	rateLimiterKey := getOrgRateLimitKey(stats.OrgID)
-	pipe.Expire(ctx, rateLimiterKey, 2*time.Second)
 	if stats.Meter != nil {
 		_ = pipe.IncrByFloat(ctx, orgRequests, stats.Meter.ZeusResponseComputeUnitsConsumed())
 		// Increment the rate limiter key
@@ -289,13 +288,13 @@ func (m *IrisCache) SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage(ctx
 		pipe.SAdd(ctx, tblMetricSet, stats.Metric)
 		pipe.Expire(ctx, tblMetricSet, StatsTimeToLiveAfterLastUsage)
 	}
+	pipe.Expire(ctx, rateLimiterKey, 2*time.Second)
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
 		log.Err(err).Msgf("SetLatestAdaptiveEndpointPriorityScoreAndUpdateRateUsage")
 		return err
 	}
-
 	if tdigestResp != nil {
 		err = tdigestResp.Err()
 		if err != nil {

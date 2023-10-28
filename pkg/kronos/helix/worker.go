@@ -20,6 +20,7 @@ const (
 	KronosHelixTaskQueue = "KronosHelixTaskQueue"
 )
 
+// ExecuteKronosWorkflow starts the endless cycles of the Kronos workflow
 func (k *KronosWorker) ExecuteKronosWorkflow(ctx context.Context) error {
 	tc := k.ConnectTemporalClient()
 	defer tc.Close()
@@ -30,7 +31,7 @@ func (k *KronosWorker) ExecuteKronosWorkflow(ctx context.Context) error {
 	wf := txWf.Yin
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf)
 	if err != nil {
-		log.Err(err).Msg("ExecuteIrisPlatformSetupRequestWorkflow")
+		log.Err(err).Msg("ExecuteKronosWorkflow")
 		return err
 	}
 	return nil

@@ -1,5 +1,14 @@
 Kronos Readme
 
+```go
+
+type OrchestrationJob struct {
+	artemis_autogen_bases.Orchestrations
+	Scheduled artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs
+	zeus_common_types.CloudCtxNs
+}
+```
+
 READ
 
 use olympus group to get internal assignments
@@ -12,6 +21,8 @@ func (k *KronosActivities) GetInternalAssignments(ctx context.Context) ([]artemi
 	return ojs, err
 }
 ```
+
+// TODO https://iris.zeus.fyi/health
 
 WRITE
 

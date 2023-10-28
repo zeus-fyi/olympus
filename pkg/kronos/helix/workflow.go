@@ -19,6 +19,7 @@ type KronosWorkflow struct {
 const (
 	kronosLoopInterval = 10 * time.Minute
 	alerts             = "alerts"
+	monitoring         = "monitoring"
 )
 
 func NewKronosWorkflow() KronosWorkflow {
@@ -30,7 +31,7 @@ func NewKronosWorkflow() KronosWorkflow {
 }
 
 func (k *KronosWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{k.Yin, k.Yang, k.SignalFlow, k.OrchestrationChildProcessReset}
+	return []interface{}{k.Yin, k.Yang, k.SignalFlow, k.OrchestrationChildProcessReset, k.Monitor}
 }
 
 // SignalFlow should be used to place new control flows on the helix
@@ -60,28 +61,41 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 			logger.Error("failed to get alert assignment from instructions", "Error", err)
 			return err
 		}
-		if oj.Type != alerts {
-			continue
-		}
-		alertAssignmentCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(alertAssignmentCtx, k.GetAlertAssignmentFromInstructions, inst).Get(alertAssignmentCtx, &pdV2Event)
-		if err != nil {
-			logger.Error("failed to get alert assignment from instructions", "Error", err)
-			return err
-		}
-		if pdV2Event != nil && pdV2Event.DedupKey != "" {
-			alertCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(alertCtx, k.ExecuteTriggeredAlert, pdV2Event).Get(alertCtx, nil)
+
+		switch oj.Type {
+		case alerts:
+			alertAssignmentCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(alertAssignmentCtx, k.GetAlertAssignmentFromInstructions, inst).Get(alertAssignmentCtx, &pdV2Event)
 			if err != nil {
-				logger.Error("failed to execute triggered alert", "Error", err)
+				logger.Error("failed to get alert assignment from instructions", "Error", err)
 				return err
 			}
+			if pdV2Event != nil && pdV2Event.DedupKey != "" {
+				alertCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(alertCtx, k.ExecuteTriggeredAlert, pdV2Event).Get(alertCtx, nil)
+				if err != nil {
+					logger.Error("failed to execute triggered alert", "Error", err)
+					return err
+				}
+				childWorkflowOptions := workflow.ChildWorkflowOptions{
+					TaskQueue:         KronosHelixTaskQueue,
+					ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+				}
+				childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
+				childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "OrchestrationChildProcessReset", &oj, inst)
+				var childWE workflow.Execution
+				if err = childWfFuture.GetChildWorkflowExecution().Get(childCtx, &childWE); err != nil {
+					logger.Error("Failed to get child workflow execution", "Error", err)
+					return err
+				}
+			}
+		case monitoring:
 			childWorkflowOptions := workflow.ChildWorkflowOptions{
 				TaskQueue:         KronosHelixTaskQueue,
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 			}
 			childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
-			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "OrchestrationChildProcessReset", &oj, inst)
+			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "Monitor", &oj, inst, CalculatePollCycles(kronosLoopInterval, inst.Monitors.PollInterval))
 			var childWE workflow.Execution
 			if err = childWfFuture.GetChildWorkflowExecution().Get(childCtx, &childWE); err != nil {
 				logger.Error("Failed to get child workflow execution", "Error", err)

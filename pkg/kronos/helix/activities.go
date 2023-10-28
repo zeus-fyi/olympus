@@ -33,6 +33,7 @@ func (k *KronosActivities) GetActivities() ActivitiesSlice {
 		k.UpdateAndMarkOrchestrationInactive,
 		k.UpdateAndMarkOrchestrationActive,
 		k.GetInstructionsFromJob,
+		k.CheckEndpointHealth,
 	}
 }
 

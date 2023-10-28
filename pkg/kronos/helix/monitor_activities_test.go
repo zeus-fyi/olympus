@@ -68,12 +68,12 @@ func (t *KronosWorkerTestSuite) TestIrisMonitor() (*artemis_orchestrations.Orche
 
 func (t *KronosWorkerTestSuite) testCreateNewMonitorOrchestrationJob(groupName, endpoint string, pollInterval time.Duration) (*artemis_orchestrations.OrchestrationJob, Instructions) {
 	instType := "HealthMonitor"
-
+	alertThreshold := 12
 	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	inst := Instructions{
 		GroupName: groupName,
 		Type:      instType,
-		Monitors:  CreateNewMonitorInstructions(groupName, endpoint, pollInterval, 12),
+		Monitors:  CreateNewMonitorInstructions(groupName, endpoint, pollInterval, alertThreshold),
 	}
 	b, err := json.Marshal(inst)
 	t.Require().Nil(err)

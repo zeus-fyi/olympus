@@ -9,6 +9,12 @@ on:
       - .github/workflows/aegis.yml
     branches:
       - main
+      - dev
+
+permissions:
+  contents: read
+  id-token: write
+
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: aegis
@@ -32,6 +38,9 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set up Depot CLI
+        uses: depot/setup-action@v1
 
       - name: Clone external repos into workspace
         run: |
@@ -59,7 +68,7 @@ jobs:
         run: |
           sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          docker buildx build \
+          depot build \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
           --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \
@@ -69,5 +78,7 @@ jobs:
           --build-arg CA_PEM="${{ secrets.CA_PEM }}" \
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
+          --token ${{ secrets.DEPOT_TOKEN }} \
+          --provenance=false \
           -f docker/aegis/Dockerfile . --push
 

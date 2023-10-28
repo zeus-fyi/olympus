@@ -29,7 +29,7 @@ export const App = () => {
     ReactGA.initialize([
         {
             trackingId: "G-KZFWQL2CJN",
-            gaOptions: { 'debug_mode':true }, // optional
+            // gaOptions: { 'debug_mode':true }, // optional
             //gtagOptions: {...}, // optional
         },
     ]);

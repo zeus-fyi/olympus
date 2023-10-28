@@ -23,8 +23,16 @@ import {VerifyQuickNodeLoginJWT} from "../components/login/VerifyLoginJWT";
 import LoadBalancingDashboard from "../components/loadbalancing/LoadBalancingDashboard";
 import {GoogleOAuthProvider} from '@react-oauth/google';
 import {configService} from "../config/config";
+import ReactGA from "react-ga4";
 
 export const App = () => {
+    ReactGA.initialize([
+        {
+            trackingId: "G-KZFWQL2CJN",
+            gaOptions: { 'debug_mode':true }, // optional
+            //gtagOptions: {...}, // optional
+        },
+    ]);
     return (
         <GoogleOAuthProvider clientId={configService.getGoogClientID()}>
         <Provider store={store}>

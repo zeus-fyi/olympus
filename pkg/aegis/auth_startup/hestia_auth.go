@@ -48,6 +48,7 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 
 	sw.GoogClientID = sw.MustReadSecret(ctx, inMemSecrets, googClientID)
 	sw.GoogClientSecret = sw.MustReadSecret(ctx, inMemSecrets, googClientSecret)
+	sw.GoogGtagSecret = sw.MustReadSecret(ctx, inMemSecrets, googGtagSecret)
 
 	InitAtlassianKeys(ctx, inMemSecrets, &sw)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")

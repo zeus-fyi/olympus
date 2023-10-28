@@ -7,6 +7,7 @@ import inMemoryJWT from "../../auth/InMemoryJWT";
 import {pipe, prop} from "ramda";
 import {getAxiosResponse} from "../../helpers/get-axios-response";
 import {setUserPlanDetails} from "../../redux/loadbalancing/loadbalancing.reducer";
+import ReactGA from "react-ga4";
 
 const sessionIDParse = pipe(getAxiosResponse,prop('sessionID'));
 const ttlSeconds = pipe(getAxiosResponse, prop('ttl'));
@@ -52,6 +53,9 @@ export function VerifyQuickNodeLoginJWT() {
                     dispatch(setUserPlanDetails(planDetails));
                     inMemoryJWT.setToken(sessionID, tokenExpiry);
                     localStorage.setItem("userID", userID);
+                    ReactGA.gtag('set','user_id',userID);
+                    ReactGA.gtag('event','login', { 'method': 'QuickNode' });
+
                     insertTwitterTracking(userID);
                     dispatch(setSessionAuth(true))
                     dispatch({type: 'LOGIN_SUCCESS', payload: response.data})

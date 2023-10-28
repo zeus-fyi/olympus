@@ -12,6 +12,7 @@ import {createTheme, ThemeProvider} from '@mui/material/styles';
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import {CircularProgress} from "@mui/material";
 import {signUpApiGateway} from "../../gateway/signup";
+import ReactGA from "react-ga4";
 
 const theme = createTheme();
 
@@ -38,6 +39,7 @@ export default function SignUp() {
             }
             if (res.status === 200) {
                 setRequestStatus('success')
+                ReactGA.gtag('event','sign_up', { 'method': 'Website' });
             } else {
                 setRequestStatus('error')
             }

@@ -2,6 +2,7 @@ import {pipe, prop} from 'ramda';
 import {getAxiosResponse} from "../../helpers/get-axios-response";
 import {authApiGateway} from "../../gateway/login";
 import inMemoryJWT from "../../auth/InMemoryJWT";
+import ReactGA from "react-ga4";
 
 const sessionIDParse = pipe(getAxiosResponse,prop('sessionID'));
 const ttlSeconds = pipe(getAxiosResponse, prop('ttl'));
@@ -21,6 +22,8 @@ const authProvider = {
                 const userID = userIDParse(res);
                 inMemoryJWT.setToken(sessionID, tokenExpiry);
                 localStorage.setItem("userID", userID);
+                ReactGA.gtag('set','user_id',userID);
+                ReactGA.gtag('event','login', { 'method': 'Website' });
             }
             return res
         } catch (e) {
@@ -42,6 +45,8 @@ const authProvider = {
                 const userID = userIDParse(res);
                 inMemoryJWT.setToken(sessionID, tokenExpiry);
                 localStorage.setItem("userID", userID);
+                ReactGA.gtag('set','user_id',userID);
+                ReactGA.gtag('event','login', { 'method': 'Google' });
             }
             return res
         } catch (e) {

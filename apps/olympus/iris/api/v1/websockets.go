@@ -59,7 +59,7 @@ func mempoolWebSocketHandler(c echo.Context) error {
 		}
 	}
 	if plan == "" {
-		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
+		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found, signup on QuickNode Marketplace to get started"})
 	}
 
 	go func(orgID int) {

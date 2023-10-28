@@ -10,6 +10,7 @@ import (
 type Instructions struct {
 	GroupName string              `json:"groupName"`
 	Type      string              `json:"type"`
+	Monitors  MonitorInstructions `json:"monitors,omitempty"`
 	Alerts    AlertInstructions   `json:"alerts,omitempty"`
 	Trigger   TriggerInstructions `json:"trigger,omitempty"`
 }

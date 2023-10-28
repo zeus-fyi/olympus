@@ -31,9 +31,6 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string, 
 		_ = pipe.Incr(ctx, rateLimiterKey)
 	}
 
-	// Set the key to expire after 2 seconds
-	pipe.Expire(ctx, rateLimiterKey, 10*time.Second)
-
 	// Generate the route key
 	routeKey := getOrgRouteKey(orgID, rgName)
 
@@ -42,6 +39,9 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string, 
 
 	// Pop the endpoint from the head of the list and push it back to the tail, ensuring round-robin rotation
 	endpointCmd := pipe.LMove(ctx, routeKey, routeKey, "LEFT", "RIGHT")
+
+	// Set the key to expire after 2 seconds
+	pipe.Expire(ctx, rateLimiterKey, 2*time.Second)
 
 	// Execute pipeline
 	_, err := pipe.Exec(ctx)
@@ -96,6 +96,9 @@ func (m *IrisCache) IncrementResponseUsageRateMeter(ctx context.Context, orgID i
 		// Increment the rate limiter key
 		_ = pipe.Incr(ctx, rateLimiterKey)
 	}
+
+	pipe.Expire(ctx, rateLimiterKey, 2*time.Second)
+
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {

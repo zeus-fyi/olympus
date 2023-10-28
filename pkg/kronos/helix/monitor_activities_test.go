@@ -38,42 +38,41 @@ func (t *KronosWorkerTestSuite) TestZeusCloudMonitor() (*artemis_orchestrations.
 	groupName := "ZeusCloud"
 	endpoint := ZeusCloudHealthEndpoint
 	pollInterval := time.Second * 30
-
-	return t.testCreateNewMonitorOrchestrationJob(groupName, endpoint, pollInterval)
+	alertThreshold := 12
+	return t.testCreateNewMonitorOrchestrationJob(groupName, endpoint, pollInterval, alertThreshold)
 }
 
 func (t *KronosWorkerTestSuite) TestHestiaMonitor() (*artemis_orchestrations.OrchestrationJob, Instructions) {
 	groupName := "Hestia"
 	endpoint := HestiaHealthEndpoint
 	pollInterval := time.Second * 30
-
-	return t.testCreateNewMonitorOrchestrationJob(groupName, endpoint, pollInterval)
+	alertThreshold := 12
+	return t.testCreateNewMonitorOrchestrationJob(groupName, endpoint, pollInterval, alertThreshold)
 }
 
 func (t *KronosWorkerTestSuite) TestZeusMonitor() (*artemis_orchestrations.OrchestrationJob, Instructions) {
 	groupName := "Zeus"
 	endpoint := ZeusHealthEndpoint
 	pollInterval := time.Second * 30
-
-	return t.testCreateNewMonitorOrchestrationJob(groupName, endpoint, pollInterval)
+	alertThreshold := 12
+	return t.testCreateNewMonitorOrchestrationJob(groupName, endpoint, pollInterval, alertThreshold)
 }
 
 func (t *KronosWorkerTestSuite) TestIrisMonitor() (*artemis_orchestrations.OrchestrationJob, Instructions) {
 	groupName := "Iris"
 	endpoint := IrisHealthEndpoint
 	pollInterval := time.Second * 30
-
-	return t.testCreateNewMonitorOrchestrationJob(groupName, endpoint, pollInterval)
+	alertThreshold := 12
+	return t.testCreateNewMonitorOrchestrationJob(groupName, endpoint, pollInterval, alertThreshold)
 }
 
-func (t *KronosWorkerTestSuite) testCreateNewMonitorOrchestrationJob(groupName, endpoint string, pollInterval time.Duration) (*artemis_orchestrations.OrchestrationJob, Instructions) {
+func (t *KronosWorkerTestSuite) testCreateNewMonitorOrchestrationJob(groupName, endpoint string, pollInterval time.Duration, alertThreshold int) (*artemis_orchestrations.OrchestrationJob, Instructions) {
 	instType := "HealthMonitor"
-
 	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	inst := Instructions{
 		GroupName: groupName,
 		Type:      instType,
-		Monitors:  CreateNewMonitorInstructions(groupName, endpoint, pollInterval, 12),
+		Monitors:  CreateNewMonitorInstructions(groupName, endpoint, pollInterval, alertThreshold),
 	}
 	b, err := json.Marshal(inst)
 	t.Require().Nil(err)

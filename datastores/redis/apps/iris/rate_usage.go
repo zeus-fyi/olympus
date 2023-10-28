@@ -35,9 +35,6 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 	// Increment the rate limiter key
 	_ = pipe.IncrByFloat(ctx, rateLimiterKey, meter.ZeusRequestComputeUnitsConsumed())
 
-	// rate limiter key expires after 3 seconds
-	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
-
 	// Generate the route key
 	routeKey := getOrgRouteKey(orgID, rgName)
 
@@ -50,6 +47,9 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 	// Get the values from Redis
 	rateLimitCmd := pipe.Get(ctx, rateLimiterKey)
 	monthlyUsageCmd := pipe.Get(ctx, orgRequestsMonthly)
+
+	// rate limiter key expires after 3 seconds
+	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
 
 	// Execute the pipeline
 	_, err := pipe.Exec(ctx)
@@ -165,9 +165,6 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 		procedureStepsKeyCmd = pipe.Get(ctx, procedureStepsKey)
 	}
 
-	// rate limiter key expires after 3 seconds
-	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
-
 	// Generate the route key
 	routeKey := getOrgRouteKey(orgID, rgName)
 
@@ -179,6 +176,9 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx c
 	// Get the values from Redis
 	rateLimitCmd := pipe.Get(ctx, rateLimiterKey)
 	monthlyUsageCmd := pipe.Get(ctx, orgRequestsMonthly)
+
+	// rate limiter key expires after 2 seconds
+	pipe.Expire(ctx, rateLimiterKey, time.Second*2)
 
 	// Execute the pipeline
 	_, err := pipe.Exec(ctx)

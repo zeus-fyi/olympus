@@ -11,13 +11,24 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
-var cfg = Config{}
-var authKeysCfg auth_keys_config.AuthKeysCfg
-var env string
-var dataDir filepaths.Path
+var (
+	cfg                      = Config{}
+	temporalAuthConfigKronos = temporal_auth.TemporalAuth{
+		ClientCertPath:   "/etc/ssl/certs/ca.pem",
+		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
+		Namespace:        "kronos.ngb72",
+		HostPort:         "kronos.ngb72.tmprl.cloud:7233",
+	}
+	authKeysCfg auth_keys_config.AuthKeysCfg
+	env         string
+	dataDir     filepaths.Path
+)
 
 func Aegis() {
 	cfg.Host = "0.0.0.0"
@@ -31,11 +42,13 @@ func Aegis() {
 		cfg.PGConnStr = sw.PostgresAuth
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
+		temporalAuthConfigKronos = tc.DevTemporalAuth
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		dataDir.DirOut = "../"
 	case "local":
 		tc := configs.InitLocalTestConfigs()
+		temporalAuthConfigKronos = tc.DevTemporalAuth
 		authKeysCfg = tc.DevAuthKeysCfg
 		cfg.PGConnStr = tc.LocalDbPgconn
 		dataDir.DirOut = "../"
@@ -46,6 +59,18 @@ func Aegis() {
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	srv.E = v1_aegis.Routes(srv.E)
 	// Start server
+
+	log.Info().Msg("Aegis: InitKronosWorker start")
+	kronos_helix.InitKronosHelixWorker(context.Background(), temporalAuthConfigKronos)
+	cKronos := kronos_helix.KronosServiceWorker.Worker.ConnectTemporalClient()
+	defer cKronos.Close()
+	kronos_helix.KronosServiceWorker.Worker.RegisterWorker(cKronos)
+	err := kronos_helix.KronosServiceWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Hestia: %s InitKronosWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Aegis: InitKronosWorker done")
 	srv.Start()
 }
 

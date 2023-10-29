@@ -69,11 +69,11 @@ func (m *IrisCache) GetAndUpdateLatestSessionCacheTTLIfExists(ctx context.Contex
 	// Perform the Exists command
 	existsCmd := pipe.Exists(ctx, sessionID)
 
-	// Update the TTL
-	pipe.Expire(ctx, sessionID, ttl)
-
 	// Get the value
 	getCmd := pipe.Get(ctx, sessionID)
+
+	// Update the TTL
+	pipe.Expire(ctx, sessionID, ttl)
 
 	// Execute the pipeline
 	_, err := pipe.Exec(ctx)

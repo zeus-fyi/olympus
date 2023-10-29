@@ -191,10 +191,11 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 	// deletes session -> route cache key
 	pipe.Del(ctx, orgSessionToRouteKey)
 
+	tn := time.Now().Unix()
 	// Resets the timing of the route with some margin
 	if len(path) > 0 {
 		redisSet := redis.Z{
-			Score:  float64(time.Now().Unix()),
+			Score:  float64(tn),
 			Member: path,
 		}
 		// this is the user specific availability table
@@ -205,14 +206,13 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 		// XX: Update elements that already exist. Don't add new elements
 		serviceAvailabilityTable := getGlobalServerlessAvailabilityTableKey(serverlessRoutesTable)
 		pipe.ZAddXX(ctx, serviceAvailabilityTable, redisSet)
-		// this adds the route back to the set of available routes
 
+		// this adds the route back to the set of available routes
 		serverlessReadyRoutes := getGlobalServerlessTableKey(serverlessRoutesTable)
 		pipe.SAdd(ctx, serverlessReadyRoutes, path)
 	}
 
 	// Removes expired sessions
-	tn := time.Now().Unix()
 	sessionRateLimit := getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable)
 	pipe.ZRemRangeByScore(ctx, sessionRateLimit, "0", fmt.Sprintf("%d", tn))
 

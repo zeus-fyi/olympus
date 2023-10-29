@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
 
@@ -26,7 +27,17 @@ func (r *IrisRedisTestSuite) TestAddToServerlessTables() {
 }
 
 func (r *IrisRedisTestSuite) TestGetServerlessTableRoutes() {
-	route, err := IrisRedisClient.GetNextServerlessRoute(context.Background(), ServerlessAnvilTable)
+	sessionID := uuid.New().String()
+	route, err := IrisRedisClient.GetNextServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)
+	r.NoError(err)
+	r.NotEmpty(route)
+
+	fmt.Println(route)
+}
+
+func (r *IrisRedisTestSuite) TestReleaseServerlessRoute() {
+	sessionID := uuid.New().String()
+	route, err := IrisRedisClient.GetNextServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)
 	r.NoError(err)
 	r.NotEmpty(route)
 

@@ -97,3 +97,8 @@ func getOrgSessionIDKey(orgID int, sessionID string) string {
 func getGlobalServerlessTableKey(serverlessTable string) string {
 	return fmt.Sprintf("{global}.serverless.%s", serverlessTable)
 }
+
+// for time lock info
+func getGlobalServerlessAvailabilityTableKey(serverlessTable string) string {
+	return fmt.Sprintf("{global}.serverless.schedule.%s", serverlessTable)
+}

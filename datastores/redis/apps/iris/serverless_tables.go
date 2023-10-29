@@ -12,6 +12,7 @@ import (
 
 const (
 	ServerlessAnvilTable = "anvil"
+	ServerlessMaxRunTime = 10 * time.Minute
 )
 
 func (m *IrisCache) AddOrUpdateServerlessRoutingTable(ctx context.Context, serverlessRoutesTable string, routes []iris_models.RouteInfo) error {
@@ -19,7 +20,7 @@ func (m *IrisCache) AddOrUpdateServerlessRoutingTable(ctx context.Context, serve
 	pipe := m.Writer.TxPipeline()
 	for _, r := range routes {
 		redisSet := redis.Z{
-			Score:  float64(time.Now().Unix()),
+			Score:  float64(time.Now().Unix() + int64(ServerlessMaxRunTime.Seconds())),
 			Member: r.RoutePath,
 		}
 		pipe.ZAddNX(ctx, serviceTable, redisSet)
@@ -36,7 +37,11 @@ func (m *IrisCache) AddOrUpdateServerlessRoutingTable(ctx context.Context, serve
 func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, serverlessRoutesTable string) (string, error) {
 	serviceTable := getGlobalServerlessTableKey(serverlessRoutesTable)
 	pipe := m.Reader.TxPipeline()
-	minElemCmd := pipe.ZRangeWithScores(ctx, serviceTable, 0, 0)
+	minElemCmd := pipe.ZRangeByScoreWithScores(ctx, serviceTable, &redis.ZRangeBy{
+		Min:   "-inf",
+		Max:   fmt.Sprintf("%d", time.Now().Unix()),
+		Count: 1, // Get only the first route
+	})
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {

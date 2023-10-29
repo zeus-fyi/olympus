@@ -2,6 +2,7 @@ package iris_redis
 
 import (
 	"context"
+	"fmt"
 
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
@@ -20,6 +21,14 @@ func (r *IrisRedisTestSuite) TestAddToServerlessTables() {
 		},
 	}
 
-	err := IrisRedisClient.AddOrUpdateServerlessRoutingTable(context.Background(), "anvil", anvilRoutes)
+	err := IrisRedisClient.AddOrUpdateServerlessRoutingTable(context.Background(), ServerlessAnvilTable, anvilRoutes)
 	r.NoError(err)
+}
+
+func (r *IrisRedisTestSuite) TestGetServerlessTableRoutes() {
+	route, err := IrisRedisClient.GetNextServerlessRoute(context.Background(), ServerlessAnvilTable)
+	r.NoError(err)
+	r.NotEmpty(route)
+
+	fmt.Println(route)
 }

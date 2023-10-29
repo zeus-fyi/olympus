@@ -9,7 +9,7 @@ import (
 )
 
 /*
-AddOrUpdateServerlessRoutingTable
+AddRoutesToServerlessRoutingTable
 */
 
 func (r *IrisRedisTestSuite) TestAddToServerlessTables() {
@@ -22,7 +22,7 @@ func (r *IrisRedisTestSuite) TestAddToServerlessTables() {
 		},
 	}
 
-	err := IrisRedisClient.AddOrUpdateServerlessRoutingTable(context.Background(), ServerlessAnvilTable, anvilRoutes)
+	err := IrisRedisClient.AddRoutesToServerlessRoutingTable(context.Background(), ServerlessAnvilTable, anvilRoutes)
 	r.NoError(err)
 }
 
@@ -36,10 +36,7 @@ func (r *IrisRedisTestSuite) TestGetServerlessTableRoutes() {
 }
 
 func (r *IrisRedisTestSuite) TestReleaseServerlessRoute() {
-	sessionID := uuid.New().String()
-	route, err := IrisRedisClient.GetNextServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)
+	sessionID := "e6ed3599-c4fb-4ca5-8181-9cea50bcff21"
+	err := IrisRedisClient.ReleaseServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)
 	r.NoError(err)
-	r.NotEmpty(route)
-
-	fmt.Println(route)
 }

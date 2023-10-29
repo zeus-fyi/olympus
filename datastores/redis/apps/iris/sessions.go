@@ -6,7 +6,59 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v9"
+	"github.com/rs/zerolog/log"
 )
+
+//type ServerlessRoute struct {
+//	OrgID      int
+//	SessionID  string
+//	TableName  string
+//	TableRoute string
+//}
+
+func (m *IrisCache) AddSessionWithTTL(ctx context.Context, orgID int, sessionID, tableRoute, serverlessRoutesTable string, ttl time.Duration) error {
+	// Start a pipeline using the writer client
+	orgSessionID := getOrgSessionIDKey(orgID, sessionID)
+	pipe := m.Writer.Pipeline()
+	/*
+		user -> sessions map
+			getOrgSessionIDKey(orgID, sessionID) -> route
+
+		    1. add session -> tableRoute
+		    2. add session -> serverlessRoute
+	*/
+	//serviceTable := getGlobalServerlessTableKey(serverlessRoutesTable)
+
+	//minElemCmd := pipe.ZRangeWithScores(ctx, serviceTable, 0, 0)
+	//setSessionCmd := pipe.Set(ctx, orgSessionID, serverlessRoute, ttl)
+	setRouteCmd := pipe.Set(ctx, orgSessionID, tableRoute, ttl)
+
+	// Execute the pipeline
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		// If there's an error, log it and return it
+		log.Err(err).Msgf("AddSessionWithTTL: %s, %s", orgSessionID, tableRoute)
+		return err
+	}
+
+	// Check error for setSessionCmd
+	//err = setSessionCmd.Err()
+	//if err != nil {
+	//	// If there's an error, log it and return it
+	//	log.Err(err).Msgf("AddSessionWithTTL: %s, %s, %s", orgSessionID,  tableRoute)
+	//	return err
+	//}
+
+	// Check error for setRouteCmd
+	err = setRouteCmd.Err()
+	if err != nil {
+		// If there's an error, log it and return it
+		log.Err(err).Msgf("AddSessionWithTTL: %s, %s", orgSessionID, tableRoute)
+		return err
+	}
+	// No errors, return nil
+	return nil
+}
 
 func (m *IrisCache) DoesSessionIDExist(ctx context.Context, key string) (bool, error) {
 	// Check if the key exists
@@ -22,44 +74,6 @@ func (m *IrisCache) DoesSessionIDExist(ctx context.Context, key string) (bool, e
 
 	// Return whether the key exists
 	return existsCmd.Val() > 0, nil
-}
-
-func (m *IrisCache) AddSessionWithTTL(ctx context.Context, sessionID, route string, ttl time.Duration) error {
-	// Start a pipeline using the writer client
-	pipe := m.Writer.Pipeline()
-
-	// Add the sessionID with the provided TTL
-	setSessionCmd := pipe.Set(ctx, sessionID, route, ttl)
-
-	// Add the route with the provided TTL
-	setRouteCmd := pipe.Set(ctx, route, sessionID, ttl)
-
-	// Execute the pipeline
-	_, err := pipe.Exec(ctx)
-	if err != nil {
-		// If there's an error, log it and return it
-		fmt.Printf("AddSessionWithTTL: %s, %s", sessionID, route)
-		return err
-	}
-
-	// Check error for setSessionCmd
-	err = setSessionCmd.Err()
-	if err != nil {
-		// If there's an error, log it and return it
-		fmt.Printf("Error in setting sessionID: %s", sessionID)
-		return err
-	}
-
-	// Check error for setRouteCmd
-	err = setRouteCmd.Err()
-	if err != nil {
-		// If there's an error, log it and return it
-		fmt.Printf("Error in setting route: %s", route)
-		return err
-	}
-
-	// No errors, return nil
-	return nil
 }
 
 func (m *IrisCache) GetAndUpdateLatestSessionCacheTTLIfExists(ctx context.Context, sessionID string, ttl time.Duration) (string, error) {

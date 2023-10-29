@@ -13,7 +13,8 @@ import (
 const (
 	ServerlessAnvilTable = "anvil"
 
-	TimeMarginBuffer = time.Minute
+	MaxActiveServerlessSessions = 3
+	TimeMarginBuffer            = time.Minute
 
 	// ServerlessSessionMaxRunTime adds one minute of margin to release the route
 	ServerlessSessionMaxRunTime = 10 * time.Minute
@@ -110,14 +111,56 @@ func (m *IrisCache) RefreshServerlessRoutingTable(ctx context.Context, serverles
 	return nil
 }
 
-// GetNextServerlessRoute TODO: needs to session count limit before here
+// CheckServerlessSessionRateLimit TODO: move rate limit to auth
+func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID int, serverlessRoutesTable string) error {
+	pipe := m.Reader.TxPipeline()
+
+	// checks user's active sessions against max allowed
+	activeCount := pipe.ZCount(ctx, getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable), fmt.Sprintf("%d", time.Now().Unix()), "inf")
+	_, err := pipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		return err
+	}
+
+	activeCountResult, err := activeCount.Result()
+	if err != nil && err != redis.Nil {
+		log.Err(err)
+		return err
+	}
+	if activeCountResult > MaxActiveServerlessSessions {
+		return fmt.Errorf("GetNextServerlessRoute: max active sessions reached")
+	}
+	return nil
+}
+
 func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, error) {
+	pipe := m.Reader.TxPipeline()
+
+	// TODO: move rate limit to auth
+	// checks user's active sessions against max allowed
+	activeCount := pipe.ZCount(ctx, getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable), fmt.Sprintf("%d", time.Now().Unix()), "inf")
+	_, err := pipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		return "", err
+	}
+
+	activeCountResult, err := activeCount.Result()
+	if err != nil && err != redis.Nil {
+		log.Err(err)
+		return "", err
+	}
+	if activeCountResult > MaxActiveServerlessSessions {
+		return "", fmt.Errorf("GetNextServerlessRoute: max active sessions reached")
+	}
+
+	// done rate limit checks
+
 	serviceTable := getGlobalServerlessTableKey(serverlessRoutesTable)
-	pipe := m.Writer.TxPipeline()
+	pipe = m.Writer.TxPipeline()
 
 	// Pop the first item from the list
 	routeCmd := pipe.SPop(ctx, serviceTable)
-	_, err := pipe.Exec(ctx)
+	_, err = pipe.Exec(ctx)
 	if err != nil {
 		if err == redis.Nil {
 			return "", fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
@@ -133,9 +176,8 @@ func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessi
 		return "", fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
 	}
 	pipe = m.Writer.TxPipeline()
-	tn := time.Now().Add(ServerlessMaxRunTime).Unix()
 	redisSet := redis.Z{
-		Score:  float64(tn),
+		Score:  float64(time.Now().Add(ServerlessMaxRunTime).Unix()),
 		Member: path,
 	}
 	// XX: Only update elements that already exist. Don't add new elements

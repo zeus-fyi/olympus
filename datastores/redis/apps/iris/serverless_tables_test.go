@@ -9,7 +9,23 @@ import (
 )
 
 /*
-AddRoutesToServerlessRoutingTable
+
+rate limits
+user -> sessions count
+	getOrgSessionCountKey(orgID) -> count
+	need to determine max active sessions per user
+
+auto scaling up/down
+	needs to trigger based on threshold low anvil servers in router
+
+infra
+	needs a class config
+
+lb open questions
+	- need to determine if a load balanced route can be used for anvil
+
+needs user guide + examples
+
 */
 
 func (r *IrisRedisTestSuite) TestAddToServerlessTables() {
@@ -33,6 +49,11 @@ func (r *IrisRedisTestSuite) TestGetServerlessTableRoutes() {
 	r.NotEmpty(route)
 
 	fmt.Println(route)
+}
+
+func (r *IrisRedisTestSuite) TestServerlessRateLimit() {
+	err := IrisRedisClient.CheckServerlessSessionRateLimit(context.Background(), 1, ServerlessAnvilTable)
+	r.NoError(err)
 }
 
 func (r *IrisRedisTestSuite) TestReleaseServerlessRoute() {

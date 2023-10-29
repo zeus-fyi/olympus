@@ -60,6 +60,23 @@ func GetMonthlyPlanBudgetZU(planName string) int {
 	}
 }
 
+func GetMonthlyPlanMaxAnvilServerlessSessions(planName string) int {
+	switch strings.ToLower(planName) {
+	case "enterprise":
+		return MaxActiveServerlessSessions
+	case "performance":
+		return MaxActiveServerlessSessions
+	case "standard":
+		return MaxActiveServerlessSessions
+	case "lite":
+		return MaxActiveServerlessSessions
+	case "test":
+		return MaxActiveServerlessSessions
+	default:
+		return 0
+	}
+}
+
 func (m *IrisCache) CheckRateLimitBroadcast(ctx context.Context, orgID int, procedureName, plan, routeGroup string, meter *iris_usage_meters.PayloadSizeMeter) (iris_programmable_proxy_v1_beta.IrisRoutingProcedure, []iris_models.RouteInfo, error) {
 	// Generate the rate limiter key with the Unix timestamp
 	proc, ri, um, err := m.RecordRequestUsageRatesCheckLimitAndGetBroadcastRoutes(ctx, orgID, procedureName, routeGroup, meter)

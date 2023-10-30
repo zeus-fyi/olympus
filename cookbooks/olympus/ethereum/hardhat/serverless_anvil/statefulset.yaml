@@ -27,7 +27,7 @@ spec:
       containers:
         - name: anvil
           image: "ghcr.io/foundry-rs/foundry:latest"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
           volumeMounts:

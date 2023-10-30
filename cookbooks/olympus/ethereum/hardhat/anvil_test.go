@@ -20,3 +20,17 @@ func (t *HardhatCookbookTestSuite) TestChartUploadAnvil() {
 	_, err := cd.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
 	t.Require().Nil(err)
 }
+
+func (t *HardhatCookbookTestSuite) TestCreateClusterClassAnvilServerless() {
+	gcd := serverlessAnvilClusterDefinition.BuildClusterDefinitions()
+	t.Assert().NotEmpty(gcd)
+	fmt.Println(gcd)
+
+	err := gcd.CreateClusterClassDefinitions(context.Background(), t.ZeusTestClient)
+	t.Require().Nil(err)
+}
+
+func (t *HardhatCookbookTestSuite) TestChartUploadAnvilServerless() {
+	_, err := serverlessAnvilClusterDefinition.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
+	t.Require().Nil(err)
+}

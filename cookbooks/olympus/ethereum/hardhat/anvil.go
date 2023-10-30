@@ -70,4 +70,31 @@ var (
 		Env:         "",
 		FilterFiles: &strings_filter.FilterOpts{},
 	}
+
+	serverlessAnvilClusterDefinition = zeus_cluster_config_drivers.ClusterDefinition{
+		ClusterClassName: "anvil-serverless",
+		CloudCtxNs:       anvilCtxNs,
+		ComponentBases:   serverlessAnvilComponentBases,
+	}
+	serverlessAnvilComponentBases = map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
+		"anvil-serverless": serverlessAnvilComponentBase,
+	}
+	serverlessAnvilComponentBase = zeus_cluster_config_drivers.ComponentBaseDefinition{
+		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+			"anvil-serverless": serverlessAnvilSkeletonBaseConfig,
+		},
+	}
+	serverlessAnvilSkeletonBaseConfig = zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
+		SkeletonBaseNameChartPath: anvilServerlessChartPath,
+	}
+	anvilServerlessChartPath = filepaths.Path{
+		PackageName: "",
+		DirIn:       "./olympus/ethereum/hardhat/serverless_anvil",
+		DirOut:      "./olympus/outputs",
+		FnIn:        "anvil-serverless", // filename for your gzip workload
+		FnOut:       "",
+		Env:         "",
+		FilterFiles: &strings_filter.FilterOpts{},
+	}
 )

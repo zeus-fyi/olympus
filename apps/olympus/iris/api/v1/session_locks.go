@@ -83,7 +83,7 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:        routeURL,
 		Payload:    p.Body,
-		IsInternal: false,
+		IsInternal: true,
 		Timeout:    60 * time.Second,
 	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()

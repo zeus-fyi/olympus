@@ -9,21 +9,20 @@ import (
 )
 
 /*
-
-rate limits
-user -> sessions count
-
-auto scaling up/down
-	needs to trigger based on threshold low anvil servers in router
-
 infra
 	needs a class config
+
+needs to auto-populate the serverless routing table
 
 lb open questions
 	- need to determine if a load balanced route can be used for anvil
 
-needs user guide + examples
+auto-scaling up/down
+	needs to trigger based on threshold low anvil servers in router
 
+need to add garbage collection orchestration
+
+needs user guide + examples
 */
 
 func (r *IrisRedisTestSuite) TestAddToServerlessTables() {

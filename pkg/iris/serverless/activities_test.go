@@ -82,6 +82,8 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 	nodeInfo, err := wa.GetNodeInfo(ctx)
 	t.Require().Nil(err)
 	t.Require().NotNil(nodeInfo)
+
+	fmt.Println(nodeInfo)
 }
 
 // curl --location 'http://anvil-0.anvil.anvil-serverless-4d383226.svc.cluster.local:8545' --header 'Content-Type: application/json' --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'

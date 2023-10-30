@@ -26,9 +26,8 @@ const (
 )
 
 const (
-	LoadBalancingStrategy = "X-Load-Balancing-Strategy"
-
-	AnvilHeader              = "X-Anvil-Session-Lock-ID"
+	LoadBalancingStrategy    = "X-Load-Balancing-Strategy"
+	AnvilSessionLockHeader   = "X-Anvil-Session-Lock-ID"
 	Adaptive                 = "Adaptive"
 	RoundRobin               = "RoundRobin"
 	AdaptiveLoadBalancingKey = "X-Adaptive-Metrics-Key"
@@ -60,10 +59,6 @@ func GetDefaultLB(plan string) string {
 		return RoundRobin
 	}
 }
-
-const (
-	AnvilSessionLockHeader = "Anvil-Session-Lock-ID"
-)
 
 func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 	return func(c echo.Context) error {

@@ -1,6 +1,7 @@
 package kronos_helix
 
 import (
+	"strings"
 	"time"
 
 	"github.com/PagerDuty/go-pagerduty"
@@ -70,7 +71,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 			return err
 		}
 
-		switch oj.Type {
+		switch strings.ToLower(oj.Type) {
 		case alerts:
 			alertAssignmentCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(alertAssignmentCtx, k.GetAlertAssignmentFromInstructions, inst).Get(alertAssignmentCtx, &pdV2Event)

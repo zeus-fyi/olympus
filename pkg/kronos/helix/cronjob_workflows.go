@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (k *KronosWorkflow) CronJob(ctx workflow.Context, mi Instructions, pollCycles int) error {
+func (k *KronosWorkflow) KronosCronJob(ctx workflow.Context, mi Instructions, pollCycles int) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout

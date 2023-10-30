@@ -40,7 +40,7 @@ func (k *KronosWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{
 		k.Yin, k.Yang, k.SignalFlow,
 		k.OrchestrationChildProcessReset,
-		k.Monitor, k.CronJob,
+		k.Monitor, k.KronosCronJob,
 	}
 }
 
@@ -117,7 +117,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 			}
 			childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
-			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "CronJob", inst, CalculatePollCycles(kronosLoopInterval, inst.CronJob.PollInterval))
+			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "KronosCronJob", inst, CalculatePollCycles(kronosLoopInterval, inst.CronJob.PollInterval))
 			var childWE workflow.Execution
 			if err = childWfFuture.GetChildWorkflowExecution().Get(childCtx, &childWE); err != nil {
 				logger.Error("Failed to get child workflow execution", "Error", err)

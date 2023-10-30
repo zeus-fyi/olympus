@@ -24,7 +24,7 @@ func (k *KronosActivities) StartCronJobWorkflow(ctx context.Context, mi Instruct
 	rc.SetAuthToken(artemis_orchestration_auth.Bearer)
 	resp, err := rc.R().Get(mi.CronJob.Endpoint)
 	if err != nil {
-		log.Err(err).Msg("HestiaPlatformActivities: IrisPlatformRefreshOrgGroupTableCacheRequest")
+		log.Err(err).Msg("KronosActivities: StartCronJobWorkflow")
 		return err
 	}
 	if resp.StatusCode() >= 400 {

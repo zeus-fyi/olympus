@@ -3,7 +3,6 @@ package kronos_helix
 import (
 	"encoding/json"
 	"fmt"
-	"path"
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -37,7 +36,7 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 		GroupName: groupName,
 		Type:      instType,
 		CronJob: CronJobInstructions{
-			Endpoint:     path.Join("https://iris.zeus.fyi/v1/internal/", "/router/serverless/refresh"),
+			Endpoint:     fmt.Sprintf("https://iris.zeus.fyi/v1/internal/%s", "router/serverless/refresh"),
 			PollInterval: 5 * time.Minute,
 		},
 	}

@@ -6,6 +6,7 @@ on:
       - pkg/aegis/auth_startup/hestia_auth.go
       - pkg/aegis/sessions/**
       - pkg/artemis/**
+      - pkg/kronos/**
       - datastores/postgres/apps/hestia/**
       - docker/hestia/Dockerfile
       - .github/workflows/hestia.yml

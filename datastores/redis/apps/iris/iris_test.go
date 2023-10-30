@@ -17,9 +17,9 @@ func (r *IrisRedisTestSuite) SetupTest() {
 	ctx := context.Background()
 	r.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, r.Tc.ProdLocalDbPgconn)
-	//InitLocalTestProductionRedisIrisCache(ctx)
+	InitLocalTestProductionRedisIrisCache(ctx)
 
-	InitLocalTestRedisIrisCache(ctx)
+	//InitLocalTestRedisIrisCache(ctx)
 }
 
 func TestIrisRedisTestSuite(t *testing.T) {

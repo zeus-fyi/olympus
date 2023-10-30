@@ -323,3 +323,26 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 	}
 	return nil
 }
+
+// Currently used for debug
+
+func (m *IrisCache) GetServerlessRoutes(ctx context.Context, serverlessTableName string) ([]string, error) {
+	pipe := m.Reader.TxPipeline()
+	// Gets and removes session-to-route cache key
+
+	serviceTable := getGlobalServerlessTableKey(serverlessTableName)
+	getSessionRoutes := pipe.SMembers(ctx, serviceTable)
+	// Execute the transaction
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Err(err).Msg("GetServerlessSessionRoute: failed to get session route")
+		return nil, err
+	}
+	// Get the value from the result of the Get command
+	path, err := getSessionRoutes.Result()
+	if err != nil {
+		log.Err(err).Msg("GetServerlessSessionRoute: failed to get session route")
+		return nil, err
+	}
+	return path, err
+}

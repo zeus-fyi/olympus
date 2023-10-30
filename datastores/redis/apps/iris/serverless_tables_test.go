@@ -12,8 +12,6 @@ import (
 
 rate limits
 user -> sessions count
-	getOrgSessionCountKey(orgID) -> count
-	need to determine max active sessions per user
 
 auto scaling up/down
 	needs to trigger based on threshold low anvil servers in router

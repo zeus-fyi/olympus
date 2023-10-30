@@ -32,6 +32,8 @@ const (
 	DeleteQnOrgAuthCache = "/router/qn/auth/:qnID"
 
 	DeleteSessionAuthCache = "/session/auth/:sessionID"
+
+	RefreshServerlessTables = "/router/serverless/refresh"
 )
 
 func InitV1InternalRoutes(e *echo.Echo) {
@@ -52,6 +54,7 @@ func InitV1InternalRoutes(e *echo.Echo) {
 		},
 	}))
 
+	eg.GET(RefreshServerlessTables, InternalRefreshServerlessTablesHandler)
 	eg.GET(RefreshAllOrgsRoutingTable, InternalRestoreCacheForAllOrgsHandler)
 	eg.GET(RefreshOrgRoutingTable, InternalRefreshOrgRoutingTableHandler)
 	eg.GET(RefreshOrgGroupRoutingTable, InternalRefreshOrgGroupRoutingTableHandler)

@@ -67,9 +67,8 @@ func Iris() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Iris: IrisCacheWorker Started")
-	log.Info().Msg("Iris: Starting InitIrisPlatformServicesWorker")
 
-	iris_serverless.InitIrisPlatformServicesWorker(ctx, temporalAuthCfg)
+	log.Info().Msg("Iris: Starting InitIrisPlatformServicesWorker")
 	c2 := iris_serverless.IrisPlatformServicesWorker.ConnectTemporalClient()
 	defer c2.Close()
 	iris_serverless.IrisPlatformServicesWorker.Worker.RegisterWorker(c2)

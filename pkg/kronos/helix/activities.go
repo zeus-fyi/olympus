@@ -34,6 +34,7 @@ func (k *KronosActivities) GetActivities() ActivitiesSlice {
 		k.UpdateAndMarkOrchestrationActive,
 		k.GetInstructionsFromJob,
 		k.CheckEndpointHealth,
+		k.StartCronJobWorkflow,
 	}
 }
 

@@ -61,8 +61,9 @@ func (t *HardhatCookbookTestSuite) SetupTest() {
 	tc := api_configs.InitLocalTestConfigs()
 
 	// uses the bearer token from test/configs/config.yaml
-	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
-	//t.ZeusTestClient.SetBaseURL("http://localhost:9001")
+	//t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
+	t.ZeusTestClient = zeus_client.NewZeusClient("http://localhost:9001", tc.Bearer)
+
 	olympus_cookbooks.ChangeToCookbookDir()
 }
 

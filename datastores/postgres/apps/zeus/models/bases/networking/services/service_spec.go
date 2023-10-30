@@ -45,6 +45,7 @@ func (ss *ServiceSpec) CreateServiceSpecSubCTE(c *charts.Chart) sql_query_templa
 func (ss *ServiceSpec) SetParentIDs(id int) {
 	ss.ChartSubcomponentParentClassTypeID = id
 	ss.Type.ChartSubcomponentParentClassTypeID = id
+	ss.ClusterIP.ChartSubcomponentParentClassTypeID = id
 	ss.Selector.MatchLabels.ChartSubcomponentParentClassTypeID = id
 
 	for i, _ := range ss.Ports {

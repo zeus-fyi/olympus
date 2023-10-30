@@ -115,6 +115,9 @@ func (m *IrisCache) RefreshServerlessRoutingTable(ctx context.Context, serverles
 			log.Err(fmt.Errorf("RefreshServerlessRoutingTable: failed to convert member to string")).Msgf("Member: %v", routePath)
 			continue
 		}
+		if len(routePath) <= 0 {
+			continue
+		}
 		pipe.SAdd(ctx, serverlessReadyRoutes, routePath)
 	}
 	_, err = pipe.Exec(ctx)

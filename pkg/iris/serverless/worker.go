@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
@@ -36,6 +37,8 @@ func InitIrisPlatformServicesWorker(ctx context.Context, temporalAuthCfg tempora
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())
 
+	k := kronos_helix.NewKronosActivities()
+	w.AddActivities(k.GetActivities())
 	IrisPlatformServicesWorker.Worker = w
 	IrisPlatformServicesWorker.TemporalClient = tc
 	return

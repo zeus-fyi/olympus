@@ -70,6 +70,7 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 }
 
 func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	pr.IsInternal = true
 	return i.ExtLoadBalancerRequest(ctx, pr)
 }
 

@@ -31,7 +31,6 @@ func (h *HestiaPlatformActivities) GetActivities() ActivitiesSlice {
 		h.DeleteOrgRoutes, h.IrisPlatformDeleteGroupTableCacheRequest,
 		h.IrisPlatformDeleteOrgGroupTablesCacheRequest, h.DeleteOrgRoutesFromGroup,
 		h.IrisPlatformRefreshOrgGroupTableCacheRequest, h.DeleteOrgRoutingGroup,
-		h.ResyncServerlessRoutes,
 	}
 	actSlice = append(actSlice, h.KronosActivities.GetActivities()...)
 	return actSlice

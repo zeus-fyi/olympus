@@ -13,6 +13,7 @@ import (
 	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
+	iris_serverless "github.com/zeus-fyi/olympus/pkg/iris/serverless"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
@@ -57,15 +58,28 @@ func Iris() {
 	}
 	log.Info().Msg("Iris: Started IrisProxyWorker")
 	log.Info().Msg("Iris: Starting IrisCacheWorker")
-	c = iris_api_requests.IrisCacheWorker.ConnectTemporalClient()
-	defer c.Close()
-	iris_api_requests.IrisCacheWorker.Worker.RegisterWorker(c)
+	c1 := iris_api_requests.IrisCacheWorker.ConnectTemporalClient()
+	defer c1.Close()
+	iris_api_requests.IrisCacheWorker.Worker.RegisterWorker(c1)
 	err = iris_api_requests.IrisCacheWorker.Worker.Start()
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Iris: %s IrisCacheWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Iris: IrisCacheWorker Started")
+	log.Info().Msg("Iris: Starting InitIrisPlatformServicesWorker")
+
+	iris_serverless.InitIrisPlatformServicesWorker(ctx, temporalAuthCfg)
+	c2 := iris_serverless.IrisPlatformServicesWorker.ConnectTemporalClient()
+	defer c2.Close()
+	iris_serverless.IrisPlatformServicesWorker.Worker.RegisterWorker(c2)
+	err = iris_serverless.IrisPlatformServicesWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Iris: %s IrisPlatformServicesWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Iris: Started InitIrisPlatformServicesWorker")
+
 	go func() {
 		metricsSrv.Start()
 	}()

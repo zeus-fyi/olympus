@@ -1,4 +1,4 @@
-package platform_service_orchestrations
+package iris_serverless
 
 import (
 	"context"
@@ -8,12 +8,12 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (h *HestiaPlatformServicesWorker) ExecuteIrisServerlessResyncWorkflow(ctx context.Context) error {
-	tc := h.ConnectTemporalClient()
+func (i *IrisServicesWorker) ExecuteIrisServerlessResyncWorkflow(ctx context.Context) error {
+	tc := i.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		ID:        uuid.New().String(),
-		TaskQueue: h.TaskQueueName,
+		TaskQueue: i.TaskQueueName,
 	}
 	txWf := NewHestiaPlatformServiceWorkflows()
 	wf := txWf.IrisServerlessResyncWorkflow

@@ -92,7 +92,9 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		log.Info().Interface("pr.URL", pr.Url).Msg("ExtLoadBalancerRequest: anvil request")
 	} else {
 		if parsedURL.Scheme != "https" {
-			return pr, fmt.Errorf("error: URL must be an HTTPS URL")
+			err = fmt.Errorf("error: URL must be an HTTPS URL")
+			log.Err(err).Msg("ExtLoadBalancerRequest: http request unauthorized")
+			return pr, err
 		}
 	}
 

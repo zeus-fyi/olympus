@@ -50,12 +50,13 @@ func (m *IrisCache) AddRoutesToServerlessRoutingTable(ctx context.Context, serve
 		log.Err(err).Msg("AddRoutesToServerlessRoutingTable: failed to add routes to availability table")
 		return err
 	}
-
-	pipe = m.Writer.TxPipeline()
 	members, err := minElemsCmd.Result()
 	if err != nil {
-		log.Err(err).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
+		log.Err(err).Msgf("AddRoutesToServerlessRoutingTable")
 		return err
+	}
+	if len(members) <= 0 {
+		return nil
 	}
 	serverlessReadyRoutes := getGlobalServerlessTableKey(serverlessRoutesTable)
 	pipe = m.Writer.TxPipeline() // Starting a new pipeline for this batch of operations
@@ -69,7 +70,7 @@ func (m *IrisCache) AddRoutesToServerlessRoutingTable(ctx context.Context, serve
 	}
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("AddRoutesToServerlessRoutingTable: failed to add routes to availability table")
 		return err
 	}
 	return nil
@@ -88,24 +89,32 @@ func (m *IrisCache) RefreshServerlessRoutingTable(ctx context.Context, serverles
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("RefreshServerlessRoutingTable: failed to get routes from availability table")
 		return err
 	}
 
-	pipe = m.Writer.TxPipeline()
-	serverlessReadyRoutes := getGlobalServerlessTableKey(serverlessRoutesTable)
 	members, err := minElemsCmd.Result()
+	if err != nil {
+		log.Err(err).Msgf("RefreshServerlessRoutingTable")
+		return err
+	}
+	if len(members) <= 0 {
+		return nil
+	}
+	log.Info().Msgf("RefreshServerlessRoutingTable: found %d routes", len(members))
+	serverlessReadyRoutes := getGlobalServerlessTableKey(serverlessRoutesTable)
+	pipe = m.Writer.TxPipeline()
 	for _, member := range members {
 		routePath, eok := member.Member.(string)
 		if !eok {
-			log.Err(fmt.Errorf("failed to convert member to string")).Msgf("Member: %v", routePath)
+			log.Err(fmt.Errorf("RefreshServerlessRoutingTable: failed to convert member to string")).Msgf("Member: %v", routePath)
 			continue
 		}
 		pipe.SAdd(ctx, serverlessReadyRoutes, routePath)
 	}
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("RefreshServerlessRoutingTable: failed to refresh routes")
 		return err
 	}
 	return nil

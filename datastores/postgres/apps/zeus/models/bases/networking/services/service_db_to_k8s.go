@@ -40,6 +40,8 @@ func (s *Service) ConvertSpec(pcSlice []common_conversions.PC) error {
 		case "svcPortname":
 			tmp := portMap[ccTypeID]
 			portMap[ccTypeID] = append(tmp, pc)
+		case "clusterIP":
+			s.K8sService.Spec.ClusterIP = value
 		}
 	}
 	err := s.ParseSvcPorts(portMap)

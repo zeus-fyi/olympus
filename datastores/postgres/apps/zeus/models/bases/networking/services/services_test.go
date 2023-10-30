@@ -28,6 +28,11 @@ func (s *ServiceTestSuite) TestServiceParsing() {
 
 	svc.ConvertK8sServiceToDB()
 	s.Assert().NotEmpty(svc.ServicePorts)
+
+	// override the clusterIP at the file location above then run this test
+	// clusterIP: None
+	//svc.ConvertServiceSpecConfigToDB()
+	//s.Require().Equal("None", svc.ServiceSpec.ClusterIP.ChartSubcomponentValue)
 }
 
 func TestNetworkingTestSuite(t *testing.T) {

@@ -31,6 +31,9 @@ func (m *IrisCache) AddRoutesToServerlessRoutingTable(ctx context.Context, serve
 	pipe := m.Writer.TxPipeline()
 
 	for _, r := range routes {
+		if r.RoutePath == "" {
+			continue
+		}
 		redisSet := redis.Z{
 			Score:  float64(tn),
 			Member: r.RoutePath,
@@ -66,7 +69,9 @@ func (m *IrisCache) AddRoutesToServerlessRoutingTable(ctx context.Context, serve
 			log.Err(fmt.Errorf("failed to convert member to string")).Msgf("Member: %v", routePath)
 			continue
 		}
-		pipe.SAdd(ctx, serverlessReadyRoutes, routePath)
+		if len(routePath) > 0 {
+			pipe.SAdd(ctx, serverlessReadyRoutes, routePath)
+		}
 	}
 	_, err = pipe.Exec(ctx)
 	if err != nil {

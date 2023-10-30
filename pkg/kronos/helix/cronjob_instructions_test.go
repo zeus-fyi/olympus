@@ -24,7 +24,7 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 	t.Require().Nil(err)
 
 	groupName := "IrisPlatformServiceWorkflows"
-	instType := "Cronjob"
+	instType := "IrisServerlessResyncWorkflow-Cronjob"
 
 	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	oj := artemis_orchestrations.OrchestrationJob{

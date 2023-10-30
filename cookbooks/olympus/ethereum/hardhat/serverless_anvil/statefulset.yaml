@@ -9,7 +9,7 @@ metadata:
   name: anvil
 spec:
   podManagementPolicy: OrderedReady
-  replicas: 2
+  replicas: 50
   selector:
     matchLabels:
       app: anvil

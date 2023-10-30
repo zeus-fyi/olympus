@@ -48,7 +48,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
-		iris_redis.InitLocalTestRedisIrisCache(ctx)
+		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn

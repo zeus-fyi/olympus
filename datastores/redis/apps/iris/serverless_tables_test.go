@@ -64,7 +64,7 @@ func (r *IrisRedisTestSuite) TestServerlessRateLimit() {
 }
 
 func (r *IrisRedisTestSuite) TestReleaseServerlessRoute() {
-	sessionID := "e6ed3599-c4fb-4ca5-8181-9cea50bcff21"
+	sessionID := "sessionID"
 	err := IrisRedisClient.ReleaseServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)
 	r.NoError(err)
 }

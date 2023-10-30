@@ -31,6 +31,9 @@ func (m *IrisCache) AddRoutesToServerlessRoutingTable(ctx context.Context, serve
 	pipe := m.Writer.TxPipeline()
 
 	for _, r := range routes {
+		if r.RoutePath == "" {
+			continue
+		}
 		redisSet := redis.Z{
 			Score:  float64(tn),
 			Member: r.RoutePath,
@@ -66,7 +69,9 @@ func (m *IrisCache) AddRoutesToServerlessRoutingTable(ctx context.Context, serve
 			log.Err(fmt.Errorf("failed to convert member to string")).Msgf("Member: %v", routePath)
 			continue
 		}
-		pipe.SAdd(ctx, serverlessReadyRoutes, routePath)
+		if len(routePath) > 0 {
+			pipe.SAdd(ctx, serverlessReadyRoutes, routePath)
+		}
 	}
 	_, err = pipe.Exec(ctx)
 	if err != nil {
@@ -135,9 +140,7 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 		log.Err(err).Msg("IrisCache: CheckServerlessSessionRateLimit: failed to get active sessions ZCount")
 		return "", err
 	}
-	if activeCount == nil || err == redis.Nil {
-		return "", nil
-	}
+
 	// this is returning the session route if it exists, as it has first priority
 	getSessionRouteResult, rerr := getSessionRoute.Result()
 	if rerr != nil && rerr != redis.Nil {
@@ -147,6 +150,10 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 	// if it returns a valid route, then the session is already active, so we bypass the rate limit check
 	if len(getSessionRouteResult) > 0 {
 		return getSessionRouteResult, nil
+	}
+
+	if activeCount == nil || err == redis.Nil {
+		return "", nil
 	}
 	// now checking if the user is rate limited
 	activeCountResult, rerr := activeCount.Result()

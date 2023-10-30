@@ -57,6 +57,10 @@ func (t *IrisOrchestrationsTestSuite) TestAddAndResyncServerlessRoutes() {
 }
 
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
+	//route, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), t.Tc.ProductionLocalTemporalOrgID, "sessionID", AnvilServerlessRoutingTable)
+	//t.Require().NoError(err)
+	//t.Require().NotNil(route)
+
 	irisSvc := "https://iris.zeus.fyi/v1/router"
 	//irisSvc = "http://localhost:8080/v1/router"
 	//irisSvc = "http://localhost:8545"
@@ -65,7 +69,7 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 	wa.AddDefaultEthereumMainnetTableHeader()
 	wa.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
 	sessionHeader := "X-Anvil-Session-Lock-ID"
-	testID := "test-1"
+	testID := "sessionID"
 	wa.Headers[sessionHeader] = testID
 	wa.IsAnvilNode = true
 	wa.Dial()
@@ -73,8 +77,8 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 
 	nodeInfo, err := wa.GetNodeInfo(ctx)
 	t.Require().Nil(err)
-
 	t.Require().NotNil(nodeInfo)
+
 }
 
 func TestIrisOrchestrationsTestSuite(t *testing.T) {

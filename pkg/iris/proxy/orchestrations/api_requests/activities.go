@@ -71,6 +71,9 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 
 func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	pr.IsInternal = true
+	if pr.PayloadSizeMeter == nil {
+		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
+	}
 	return i.ExtLoadBalancerRequest(ctx, pr)
 }
 
@@ -82,15 +85,19 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	}
 	parsedURL, err := url.Parse(pr.Url)
 	if err != nil {
-		fmt.Println("Error parsing URL:", err)
+		log.Err(err).Msg("ExtLoadBalancerRequest: failed to parse url")
 		return pr, err
 	}
 
-	if pr.OrgID == 7138983863666903883 || (pr.IsInternal && strings.Contains(parsedURL.Host, "anvil")) {
+	if pr.OrgID == 7138983863666903883 {
 		// for internal
+	} else if pr.IsInternal && strings.HasPrefix(pr.Url, "http://anvil-") {
+		log.Info().Interface("pr.URL", pr.Url).Msg("ExtLoadBalancerRequest: anvil request")
 	} else {
 		if parsedURL.Scheme != "https" {
-			return pr, fmt.Errorf("error: URL must be an HTTPS URL")
+			err = fmt.Errorf("error: URL must be an HTTPS URL")
+			log.Err(err).Msg("ExtLoadBalancerRequest: http request unauthorized")
+			return pr, err
 		}
 	}
 
@@ -172,8 +179,15 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			resp, err = request.SetResult(&pr.Response).Post(ext)
 		}
 	}
+	if err != nil {
+		log.Err(err).Msg("Failed to relay api request")
+		return nil, err
+	}
 
 	if resp != nil {
+		if pr.PayloadSizeMeter == nil {
+			pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
+		}
 		pr.PayloadSizeMeter.Add(resp.Size())
 		pr.StatusCode = resp.StatusCode()
 		if resp.StatusCode() >= 400 || pr.Response == nil {

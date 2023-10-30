@@ -10,31 +10,11 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 )
 
-func (t *KronosWorkerTestSuite) TestCronJobWorkflowStep() {
-	ojs, jerr := artemis_orchestrations.SelectSystemOrchestrationsWithInstructionsByGroup(ctx, internalOrgID, olympus)
-	t.Require().Nil(jerr)
-	count := 0
-	for _, ojob := range ojs {
-		fmt.Println(ojob.Type, ojob.GroupName)
-		if ojob.Type != Cronjob {
-			continue
-		}
-		if ojob.GroupName == olympus && ojob.Type == Cronjob {
-			count++
-		}
-	}
-	t.Require().Equal(1, count)
-}
-
 // You can change any params for this, it is a template of the other test meant for creating alerts
 func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
-	groupName := "IrisPlatformServiceWorkflows"
-	instType := "Cronjob"
-
-	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	inst := Instructions{
-		GroupName: groupName,
-		Type:      instType,
+		GroupName: olympus,
+		Type:      Cronjob,
 		CronJob: CronJobInstructions{
 			Endpoint:     fmt.Sprintf("https://iris.zeus.fyi/v1/internal/%s", "router/serverless/refresh"),
 			PollInterval: 5 * time.Minute,
@@ -42,14 +22,17 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 	}
 	b, err := json.Marshal(inst)
 	t.Require().Nil(err)
-	groupName = olympus
-	instType = Cronjob
+
+	groupName := "IrisPlatformServiceWorkflows"
+	instType := "Cronjob"
+
+	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	oj := artemis_orchestrations.OrchestrationJob{
 		Orchestrations: artemis_autogen_bases.Orchestrations{
 			OrgID:             t.Tc.ProductionLocalTemporalOrgID,
 			Active:            true,
-			GroupName:         groupName,
-			Type:              instType,
+			GroupName:         olympus,
+			Type:              Cronjob,
 			Instructions:      string(b),
 			OrchestrationName: orchName,
 		},

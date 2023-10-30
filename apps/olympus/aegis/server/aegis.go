@@ -11,6 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -58,6 +59,10 @@ func Aegis() {
 	apps.Pg = apps.Db{}
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	srv.E = v1_aegis.Routes(srv.E)
+
+	log.Info().Msgf("Hestia %s artemis orchestration retrieving auth token", env)
+	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	log.Info().Msgf("Hestia %s artemis orchestration retrieving auth token done", env)
 
 	log.Info().Msg("Aegis: InitKronosWorker start")
 	kronos_helix.InitKronosHelixWorker(context.Background(), temporalAuthConfigKronos)

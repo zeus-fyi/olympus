@@ -77,7 +77,7 @@ and a CNAME of the pod of the form auto-generated-name.my-svc.my-namespace.svc.c
 //internalLB = "http://anvil.anvil-serverless-4d383226.svc.cluster.local/v2/internal/router"
 
 func (i *IrisPlatformActivities) FetchLatestServerlessRoutes(ctx context.Context) ([]iris_models.RouteInfo, error) {
-	count := 30
+	count := 50
 	var routes []iris_models.RouteInfo
 	for j := 0; j < count; j++ {
 		routes = append(routes, iris_models.RouteInfo{

@@ -31,7 +31,7 @@ func InitIrisPlatformServicesWorker(ctx context.Context, temporalAuthCfg tempora
 	taskQueueName := IrisPlatformServicesTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
 	activityDef := NewIrisPlatformActivities()
-	wf := NewHestiaPlatformServiceWorkflows()
+	wf := NewIrisPlatformServiceWorkflows()
 
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())

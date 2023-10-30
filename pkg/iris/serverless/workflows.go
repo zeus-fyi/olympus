@@ -15,7 +15,7 @@ type IrisPlatformServiceWorkflows struct {
 
 const defaultTimeout = 72 * time.Hour
 
-func NewHestiaPlatformServiceWorkflows() IrisPlatformServiceWorkflows {
+func NewIrisPlatformServiceWorkflows() IrisPlatformServiceWorkflows {
 	deployWf := IrisPlatformServiceWorkflows{
 		Workflow: temporal_base.Workflow{},
 	}
@@ -38,17 +38,15 @@ func (i *IrisPlatformServiceWorkflows) IrisServerlessResyncWorkflow(ctx workflow
 		logger.Error("failed to update QuickNode services", "Error", err)
 		return err
 	}
-
-	//pCtx := workflow.WithActivityOptions(ctx, ao)
-	//if err != nil {
-	//	logger.Error("HestiaPlatformServiceWorkflows: failed to ResyncServerlessRoutes", "Error", err)
-	//	return err
-	//}
-
+	pCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(pCtx, i.ResyncServerlessRoutes).Get(pCtx, nil)
+	if err != nil {
+		logger.Error("IrisPlatformServiceWorkflows: failed to ResyncServerlessRoutes", "Error", err)
+		return err
+	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {
-
 		logger.Error("failed to update cache for qn services", "Error", err)
 		return err
 	}

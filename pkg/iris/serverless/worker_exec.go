@@ -15,7 +15,7 @@ func (i *IrisServicesWorker) ExecuteIrisServerlessResyncWorkflow(ctx context.Con
 		ID:        uuid.New().String(),
 		TaskQueue: i.TaskQueueName,
 	}
-	txWf := NewHestiaPlatformServiceWorkflows()
+	txWf := NewIrisPlatformServiceWorkflows()
 	wf := txWf.IrisServerlessResyncWorkflow
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID)
 	if err != nil {

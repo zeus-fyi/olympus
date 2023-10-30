@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: "eth-indexer"
     app.kubernetes.io/managed-by: "zeus"
 spec:
-  type: ClusterIP
+  clusterIP: None
   ports:
     - port: 80
       targetPort: http

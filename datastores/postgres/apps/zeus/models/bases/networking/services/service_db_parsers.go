@@ -15,6 +15,7 @@ func (s *Service) ConvertServiceSpecConfigToDB() {
 	s.ServiceSpec = NewServiceSpec()
 	s.ServiceSpec.Selector = common_conversions.ConvertSelectorByFields(s.K8sService.Spec.Selector)
 	s.Type.ChartSubcomponentValue = string(s.K8sService.Spec.Type)
+	s.ClusterIP.ChartSubcomponentValue = s.K8sService.Spec.ClusterIP
 	s.ServicePortsToDB()
 	return
 }

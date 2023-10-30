@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: anvil
+    app.kubernetes.io/instance: anvil
+    app.kubernetes.io/managed-by: zeus
+    app.kubernetes.io/name: anvil
+  name: anvil
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 2
+  selector:
+    matchLabels:
+      app: anvil
+      app.kubernetes.io/instance: anvil
+      app.kubernetes.io/name: anvil
+  serviceName: anvil
+  template:
+    metadata:
+      labels:
+        app: anvil
+        app.kubernetes.io/instance: anvil
+        app.kubernetes.io/name: anvil
+    spec:
+      affinity: {}
+      containers:
+        - name: anvil
+          image: "ghcr.io/foundry-rs/foundry:latest"
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
+          resources:
+            limits:
+              cpu: 100m
+              memory: 250Mi
+            requests:
+              cpu: 100m
+              memory: 250Mi
+          volumeMounts:
+            - name: cm-anvil
+              mountPath: "/scripts"
+          ports:
+            - name: http-rpc
+              containerPort: 8545
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 60
+            periodSeconds: 120
+            tcpSocket:
+              port: http-rpc
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            tcpSocket:
+              port: http-rpc
+      terminationGracePeriodSeconds: 300
+      volumes:
+      - configMap:
+          defaultMode: 484
+          name: cm-anvil
+        name: cm-anvil
+  updateStrategy:
+    type: RollingUpdate

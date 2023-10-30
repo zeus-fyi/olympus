@@ -18,7 +18,11 @@ func (t *TopologyReadRequest) ReadTopologyChart(c echo.Context) error {
 	tr := read_topology.NewInfraTopologyReader()
 	tr.TopologyID = t.TopologyID
 	// from auth lookup
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Error().Msg("ReadTopologyChart: orgUser not found")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	tr.OrgID = ou.OrgID
 	tr.UserID = ou.UserID
 	ctx := context.Background()

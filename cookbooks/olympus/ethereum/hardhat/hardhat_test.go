@@ -9,8 +9,8 @@ import (
 	olympus_cookbooks "github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
-	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
+	zeus_client "github.com/zeus-fyi/zeus/zeus/z_client"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 var ctx = context.Background()
@@ -61,8 +61,9 @@ func (t *HardhatCookbookTestSuite) SetupTest() {
 	tc := api_configs.InitLocalTestConfigs()
 
 	// uses the bearer token from test/configs/config.yaml
-	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
-	//t.ZeusTestClient.SetBaseURL("http://localhost:9001")
+	//t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
+	t.ZeusTestClient = zeus_client.NewZeusClient("http://localhost:9001", tc.Bearer)
+
 	olympus_cookbooks.ChangeToCookbookDir()
 }
 

@@ -89,3 +89,20 @@ func getGlobalProcedureKey(procedureName string) string {
 func getGlobalProcedureStepsKey(procedureName string) string {
 	return fmt.Sprintf("%s:steps", getGlobalProcedureKey(procedureName))
 }
+
+func getOrgSessionIDKey(orgID int, sessionID string) string {
+	return fmt.Sprintf("{%d}.%s", orgID, sessionID)
+}
+
+func getGlobalServerlessTableKey(serverlessTable string) string {
+	return fmt.Sprintf("{global}.serverless.%s", serverlessTable)
+}
+
+// for time lock info
+func getGlobalServerlessAvailabilityTableKey(serverlessTable string) string {
+	return fmt.Sprintf("{global}.serverless.schedule.%s", serverlessTable)
+}
+
+func getOrgActiveServerlessCountKey(orgID int, serverlessTable string) string {
+	return fmt.Sprintf("{%d}.%s.count", orgID, serverlessTable)
+}

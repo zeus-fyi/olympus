@@ -26,7 +26,9 @@ func NewHestiaPlatformServiceWorkflows() HestiaPlatformServiceWorkflows {
 
 func (h *HestiaPlatformServiceWorkflows) GetWorkflows() []interface{} {
 	return []interface{}{h.IrisRoutingServiceRequestWorkflow, h.IrisDeleteOrgGroupRoutingTableWorkflow, h.IrisDeleteOrgRoutesWorkflow,
-		h.IrisRemoveAllOrgRoutesFromCacheWorkflow, h.IrisDeleteRoutesFromOrgGroupRoutingTableWorkflow}
+		h.IrisRemoveAllOrgRoutesFromCacheWorkflow, h.IrisDeleteRoutesFromOrgGroupRoutingTableWorkflow,
+		h.IrisServerlessResyncWorkflow,
+	}
 }
 
 const (

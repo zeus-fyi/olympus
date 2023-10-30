@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions/db_to_k8s_conversions"
 	v1 "k8s.io/api/core/v1"
@@ -12,6 +13,7 @@ func (s *Service) ParsePCGroupMap(pcSlice common_conversions.ParentChildDB) erro
 		case "Spec":
 			err := s.ConvertSpec(pc)
 			if err != nil {
+				log.Err(err).Msg("error converting service spec")
 				return err
 			}
 		case "ServiceParentMetadata":

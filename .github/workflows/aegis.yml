@@ -5,6 +5,7 @@ on:
       - apps/olympus/aegis/**
       - pkg/aegis/auth_startup/**
       - pkg/aegis/**
+      - pkg/kronos/**
       - docker/aegis/Dockerfile
       - .github/workflows/aegis.yml
     branches:

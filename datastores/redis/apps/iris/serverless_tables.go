@@ -175,6 +175,12 @@ func (m *IrisCache) GetOrgActiveSessionsCount(ctx context.Context, orgID int, se
 	return int(activeCountResult), nil
 }
 
+/*
+GetNextServerlessRoute returns the next available route from the serverless routing table in priority order
+ 1. Checks if the session is already active
+ 2. Checks if the session is rate limited
+ 3. Checks if there are any available routes
+*/
 func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, error) {
 	path, err := m.CheckServerlessSessionRateLimit(ctx, orgID, sessionID, serverlessRoutesTable)
 	if err != nil {

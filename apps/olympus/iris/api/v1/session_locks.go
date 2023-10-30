@@ -18,7 +18,7 @@ func ProcessLockedSessionsHandler(c echo.Context) error {
 	request := new(ProxyRequest)
 	request.Body = echo.Map{}
 	if err := c.Bind(&request.Body); err != nil {
-		log.Err(err)
+		log.Err(err).Msg("proxy_anvil.ProcessLockedSessionsHandler: c.Bind")
 		return err
 	}
 	anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
@@ -29,6 +29,7 @@ func ProcessLockedSessionsHandler(c echo.Context) error {
 		if ok {
 			ou = ouser
 		} else {
+			log.Warn().Interface("ou", ouser).Msg("proxy_anvil.ProcessLockedSessionsHandler: orgUser not found")
 			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
 		}
 	}
@@ -52,29 +53,27 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 3. needs to be able to dynamically add/remove anvil services
 */
 
-func GetSessionLockedRoute(ctx context.Context, sessionID, tableRoute string) (string, error) {
-	_, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), 1, sessionID, tableRoute)
-	if err != nil {
-		log.Err(err).Msg("proxy_anvil.SessionLocker.GetNextServerlessRoute")
-		return "", err
-	}
+func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute string) (string, error) {
 	if sessionID == "Zeus-Test" {
 		return "http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545", nil
 	}
-	return "", errors.New("not implemented")
+	route, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, tableRoute)
+	if err != nil {
+		log.Err(err).Msg("proxy_anvil.SessionLocker.GetNextServerlessRoute")
+		return route, err
+	}
+	return route, err
 }
 
 func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID string, pm *iris_usage_meters.PayloadSizeMeter) error {
 	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
 	if endLockedSessionLease == sessionID {
 		// todo remove hardcoded table name
-		serverlessRoutesTable := "anvil"
-
-		return p.ProcessEndSessionLock(c, orgID, endLockedSessionLease, serverlessRoutesTable)
+		return p.ProcessEndSessionLock(c, orgID, endLockedSessionLease, "anvil")
 	}
 	// TODO note should i be putting sessionID redirect here or up?
-	// TODO remove hardcoded table name
-	routeInfo, err := GetSessionLockedRoute(c.Request().Context(), sessionID, "anvil")
+
+	routeInfo, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, "anvil") // TODO remove hardcoded table name
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)

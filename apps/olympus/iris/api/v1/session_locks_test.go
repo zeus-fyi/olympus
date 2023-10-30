@@ -13,8 +13,7 @@ import (
 func (s *IrisV1TestSuite) TestAnvilSessionLock() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
-	p := ProxyRequest{}
-	s.E.POST("/v1/anvil", p.ProcessLockedSessionRoute)
+	s.E.POST("/v1/anvil", ProcessLockedSessionsHandler)
 	start := make(chan struct{}, 1)
 	go func() {
 		close(start)

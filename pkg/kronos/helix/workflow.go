@@ -110,7 +110,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 				return err
 			}
 		case Cronjob:
-			logger.Info("Cronjob", "GroupName", inst.GroupName)
+			logger.Info("Cronjob", "inst", inst)
 			childWorkflowOptions := workflow.ChildWorkflowOptions{
 				TaskQueue:         KronosHelixTaskQueue,
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,

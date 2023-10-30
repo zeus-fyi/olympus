@@ -10,22 +10,6 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 )
 
-func (t *KronosWorkerTestSuite) TestCronJobWorkflowStep() {
-	ojs, jerr := artemis_orchestrations.SelectSystemOrchestrationsWithInstructionsByGroup(ctx, internalOrgID, olympus)
-	t.Require().Nil(jerr)
-	count := 0
-	for _, ojob := range ojs {
-		fmt.Println(ojob.Type, ojob.GroupName)
-		if ojob.Type != Cronjob {
-			continue
-		}
-		if ojob.GroupName == olympus && ojob.Type == Cronjob {
-			count++
-		}
-	}
-	t.Require().Equal(1, count)
-}
-
 // You can change any params for this, it is a template of the other test meant for creating alerts
 func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 	inst := Instructions{

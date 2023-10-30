@@ -135,9 +135,7 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 		log.Err(err).Msg("IrisCache: CheckServerlessSessionRateLimit: failed to get active sessions ZCount")
 		return "", err
 	}
-	if activeCount == nil || err == redis.Nil {
-		return "", nil
-	}
+
 	// this is returning the session route if it exists, as it has first priority
 	getSessionRouteResult, rerr := getSessionRoute.Result()
 	if rerr != nil && rerr != redis.Nil {
@@ -147,6 +145,10 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 	// if it returns a valid route, then the session is already active, so we bypass the rate limit check
 	if len(getSessionRouteResult) > 0 {
 		return getSessionRouteResult, nil
+	}
+
+	if activeCount == nil || err == redis.Nil {
+		return "", nil
 	}
 	// now checking if the user is rate limited
 	activeCountResult, rerr := activeCount.Result()

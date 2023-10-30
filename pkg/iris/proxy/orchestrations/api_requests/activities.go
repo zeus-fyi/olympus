@@ -86,9 +86,10 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		return pr, err
 	}
 
-	if pr.OrgID == 7138983863666903883 || (pr.IsInternal && strings.HasPrefix(pr.Url, "http://anvil-")) {
+	if pr.OrgID == 7138983863666903883 {
 		// for internal
-		log.Info().Str("pr.Url", pr.Url).Msg("Internal request")
+	} else if pr.IsInternal && strings.HasPrefix(pr.Url, "http://anvil-") {
+		log.Info().Interface("pr.URL", pr.Url).Msg("ExtLoadBalancerRequest: anvil request")
 	} else {
 		if parsedURL.Scheme != "https" {
 			return pr, fmt.Errorf("error: URL must be an HTTPS URL")

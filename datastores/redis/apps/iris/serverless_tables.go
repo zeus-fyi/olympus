@@ -13,7 +13,7 @@ import (
 const (
 	ServerlessAnvilTable = "anvil"
 
-	MaxActiveServerlessSessions = 3
+	MaxActiveServerlessSessions = 5
 	TimeMarginBuffer            = time.Minute
 
 	// ServerlessSessionMaxRunTime adds one minute of margin to release the route
@@ -47,15 +47,16 @@ func (m *IrisCache) AddRoutesToServerlessRoutingTable(ctx context.Context, serve
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("AddRoutesToServerlessRoutingTable: failed to add routes to availability table")
 		return err
 	}
-
-	pipe = m.Writer.TxPipeline()
 	members, err := minElemsCmd.Result()
 	if err != nil {
-		log.Err(err).Msgf("GetAdaptiveEndpointByPriorityScoreAndInsertIfMissing")
+		log.Err(err).Msgf("AddRoutesToServerlessRoutingTable")
 		return err
+	}
+	if len(members) <= 0 {
+		return nil
 	}
 	serverlessReadyRoutes := getGlobalServerlessTableKey(serverlessRoutesTable)
 	pipe = m.Writer.TxPipeline() // Starting a new pipeline for this batch of operations
@@ -69,7 +70,7 @@ func (m *IrisCache) AddRoutesToServerlessRoutingTable(ctx context.Context, serve
 	}
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("AddRoutesToServerlessRoutingTable: failed to add routes to availability table")
 		return err
 	}
 	return nil
@@ -83,62 +84,122 @@ func (m *IrisCache) RefreshServerlessRoutingTable(ctx context.Context, serverles
 	minElemsCmd := pipe.ZRangeByScoreWithScores(ctx, serviceAvailabilityTable, &redis.ZRangeBy{
 		Min:   "-inf",
 		Max:   fmt.Sprintf("%d", tn),
-		Count: 100, // Get only the first route
+		Count: 100, // Get only the first routes
 	})
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("RefreshServerlessRoutingTable: failed to get routes from availability table")
 		return err
 	}
 
-	pipe = m.Writer.TxPipeline()
-	serverlessReadyRoutes := getGlobalServerlessTableKey(serverlessRoutesTable)
 	members, err := minElemsCmd.Result()
+	if err != nil {
+		log.Err(err).Msgf("RefreshServerlessRoutingTable")
+		return err
+	}
+	if len(members) <= 0 {
+		return nil
+	}
+	log.Info().Msgf("RefreshServerlessRoutingTable: found %d routes", len(members))
+	serverlessReadyRoutes := getGlobalServerlessTableKey(serverlessRoutesTable)
+	pipe = m.Writer.TxPipeline()
 	for _, member := range members {
 		routePath, eok := member.Member.(string)
 		if !eok {
-			log.Err(fmt.Errorf("failed to convert member to string")).Msgf("Member: %v", routePath)
+			log.Err(fmt.Errorf("RefreshServerlessRoutingTable: failed to convert member to string")).Msgf("Member: %v", routePath)
 			continue
 		}
 		pipe.SAdd(ctx, serverlessReadyRoutes, routePath)
 	}
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("RefreshServerlessRoutingTable: failed to refresh routes")
 		return err
 	}
 	return nil
 }
 
-// CheckServerlessSessionRateLimit TODO: move rate limit to auth
-func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID int, serverlessRoutesTable string) error {
+func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, error) {
+	pipe := m.Reader.TxPipeline()
+
+	var getSessionRoute *redis.StringCmd
+	if len(sessionID) > 0 {
+		// Add the session to the rate limit table
+		getSessionRoute = pipe.Get(ctx, getOrgSessionIDKey(orgID, sessionID))
+	}
+	// checks user's active sessions against max allowed
+	activeCount := pipe.ZCount(ctx, getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable), fmt.Sprintf("%d", time.Now().Unix()), "inf")
+	_, err := pipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		log.Err(err).Msg("IrisCache: CheckServerlessSessionRateLimit: failed to get active sessions ZCount")
+		return "", err
+	}
+	if activeCount == nil || err == redis.Nil {
+		return "", nil
+	}
+	// this is returning the session route if it exists, as it has first priority
+	getSessionRouteResult, rerr := getSessionRoute.Result()
+	if rerr != nil && rerr != redis.Nil {
+		log.Err(rerr).Msg("IrisCache: CheckServerlessSessionRateLimit: getSessionRouteResult failed to get session route")
+		return "", rerr
+	}
+	// if it returns a valid route, then the session is already active, so we bypass the rate limit check
+	if len(getSessionRouteResult) > 0 {
+		return getSessionRouteResult, nil
+	}
+	// now checking if the user is rate limited
+	activeCountResult, rerr := activeCount.Result()
+	if rerr != nil && rerr != redis.Nil {
+		log.Err(rerr).Msg("CheckServerlessSessionRateLimit: activeCountResult failed to get active session count")
+		return "", rerr
+	}
+	if activeCountResult < 0 && rerr != nil {
+		log.Err(rerr).Msg("CheckServerlessSessionRateLimit: error getting active session count")
+		return "", rerr
+	}
+	if activeCountResult >= MaxActiveServerlessSessions {
+		err = fmt.Errorf("GetNextServerlessRoute: max active sessions reached")
+		log.Err(err).Msgf("GetNextServerlessRoute orgID: %d", orgID)
+		return "", err
+	}
+	return "", nil
+}
+
+func (m *IrisCache) GetOrgActiveSessionsCount(ctx context.Context, orgID int, serverlessRoutesTable string) (int, error) {
 	pipe := m.Reader.TxPipeline()
 
 	// checks user's active sessions against max allowed
 	activeCount := pipe.ZCount(ctx, getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable), fmt.Sprintf("%d", time.Now().Unix()), "inf")
 	_, err := pipe.Exec(ctx)
 	if err != nil && err != redis.Nil {
-		return err
+		return -1, err
 	}
 
 	activeCountResult, err := activeCount.Result()
+	// redis == nil means there are no active sessions, so when that happens we skip and the implied zero return
 	if err != nil && err != redis.Nil {
 		log.Err(err)
-		return err
+		return -1, err
 	}
-	if activeCountResult > MaxActiveServerlessSessions {
-		err = fmt.Errorf("GetNextServerlessRoute: max active sessions reached")
-		log.Err(err).Msgf("GetNextServerlessRoute orgID: %d", orgID)
-		return err
-	}
-	return nil
+
+	return int(activeCountResult), nil
 }
 
+/*
+GetNextServerlessRoute returns the next available route from the serverless routing table in priority order
+ 1. Checks if the session is already active
+ 2. Checks if the session is rate limited
+ 3. Checks if there are any available routes
+*/
 func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, error) {
-	err := m.CheckServerlessSessionRateLimit(ctx, orgID, serverlessRoutesTable)
+	path, err := m.CheckServerlessSessionRateLimit(ctx, orgID, sessionID, serverlessRoutesTable)
 	if err != nil {
+		log.Err(err).Msg("GetNextServerlessRoute: CheckServerlessSessionRateLimit failed to check rate limit")
 		return "", err
+	}
+	if len(path) > 0 {
+		return path, nil
 	}
 	// done rate limit checks
 	serviceTable := getGlobalServerlessTableKey(serverlessRoutesTable)
@@ -149,16 +210,19 @@ func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessi
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		if err == redis.Nil {
+			// error code, server unavailable or something tbd
 			return "", fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
 		}
 		return "", err
 	}
-	path, err := routeCmd.Result()
+	path, err = routeCmd.Result()
 	if err != nil {
-		log.Err(err)
+		// error code, server unavailable or something tbd
+		log.Err(err).Msg("GetNextServerlessRoute: failed to pop route")
 		return "", err
 	}
 	if len(path) <= 0 {
+		// error code, server unavailable or something tbd
 		return "", fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
 	}
 	pipe = m.Writer.TxPipeline()
@@ -204,13 +268,13 @@ func (m *IrisCache) GetServerlessSessionRoute(ctx context.Context, orgID int, se
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("GetServerlessSessionRoute: failed to get session route")
 		return "", err
 	}
 	// Get the value from the result of the Get command
 	path, err := getSessionRoute.Result()
 	if err != nil {
-		log.Err(err).Msg("ReleaseServerlessRoute: failed to get session route")
+		log.Err(err).Msg("GetServerlessSessionRoute: failed to get session route")
 		return "", err
 	}
 	return path, err
@@ -254,7 +318,7 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("ReleaseServerlessRoute: failed to release route")
 		return err
 	}
 	return nil

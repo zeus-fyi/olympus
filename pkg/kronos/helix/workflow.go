@@ -30,8 +30,14 @@ func NewKronosWorkflow() KronosWorkflow {
 	return deployWf
 }
 
+func CalculatePollCycles(intervalResetTime time.Duration, pollInterval time.Duration) int {
+	return int(intervalResetTime / pollInterval)
+}
+
 func (k *KronosWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{k.Yin, k.Yang, k.SignalFlow, k.OrchestrationChildProcessReset, k.Monitor}
+	return []interface{}{k.Yin, k.Yang, k.SignalFlow, k.OrchestrationChildProcessReset,
+		k.Monitor, k.CronJob,
+	}
 }
 
 // SignalFlow should be used to place new control flows on the helix
@@ -96,6 +102,18 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 			}
 			childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
 			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "Monitor", &oj, inst, CalculatePollCycles(kronosLoopInterval, inst.Monitors.PollInterval))
+			var childWE workflow.Execution
+			if err = childWfFuture.GetChildWorkflowExecution().Get(childCtx, &childWE); err != nil {
+				logger.Error("Failed to get child workflow execution", "Error", err)
+				return err
+			}
+		case Cronjob:
+			childWorkflowOptions := workflow.ChildWorkflowOptions{
+				TaskQueue:         KronosHelixTaskQueue,
+				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+			}
+			childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
+			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "CronJob", inst, CalculatePollCycles(kronosLoopInterval, inst.CronJob.PollInterval))
 			var childWE workflow.Execution
 			if err = childWfFuture.GetChildWorkflowExecution().Get(childCtx, &childWE); err != nil {
 				logger.Error("Failed to get child workflow execution", "Error", err)

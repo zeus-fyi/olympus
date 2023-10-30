@@ -18,9 +18,9 @@ const (
 )
 
 type OrchestrationJob struct {
-	artemis_autogen_bases.Orchestrations
-	Scheduled artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs
-	zeus_common_types.CloudCtxNs
+	artemis_autogen_bases.Orchestrations `json:"orchestrations,omitempty"`
+	Scheduled                            artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs `json:"scheduled,omitempty"`
+	zeus_common_types.CloudCtxNs         `json:"cloud_ctx_ns,omitempty"`
 }
 
 const (

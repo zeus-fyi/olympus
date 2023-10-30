@@ -46,8 +46,8 @@ func (t *KronosWorkerTestSuite) TestWorkflowStep() {
 
 // You can change any params for this, it is a template of the other test meant for creating alerts
 func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
-	groupName := "DestroyResourcesWorkflows"
-	instType := "DestroyClusterResourcesWorkflow"
+	groupName := "IrisPlatformServiceWorkflows"
+	instType := "IrisServerlessResyncWorkflow"
 
 	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	inst := Instructions{
@@ -57,7 +57,7 @@ func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
 			Severity:  apollo_pagerduty.CRITICAL,
 			Source:    TemporalAlerts,
 			Component: orchName,
-			Message:   "A Zeus services workflow is stuck trying to deprovision resources",
+			Message:   "An Iris cronjob workflow is stuck",
 		},
 		Trigger: TriggerInstructions{
 			AlertAfterTime:              time.Minute * 30,
@@ -67,7 +67,7 @@ func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
 	b, err := json.Marshal(inst)
 	t.Require().Nil(err)
 	groupName = olympus
-	instType = "alerts"
+	instType = alerts
 	oj := artemis_orchestrations.OrchestrationJob{
 		Orchestrations: artemis_autogen_bases.Orchestrations{
 			OrgID:             t.Tc.ProductionLocalTemporalOrgID,

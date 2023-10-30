@@ -26,7 +26,7 @@ type ActivitiesSlice []interface{}
 func (i *IrisApiRequestsActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{i.RelayRequest, i.InternalSvcRelayRequest, i.ExtLoadBalancerRequest, i.UpdateOrgRoutingTable,
 		i.SelectSingleOrgGroupsRoutingTables, i.SelectOrgGroupRoutingTable, i.SelectAllRoutingTables,
-		i.DeleteOrgRoutingTable,
+		i.DeleteOrgRoutingTable, i.ExtToAnvilInternalSimForkRequest,
 	}
 }
 
@@ -57,6 +57,22 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 	if pr.IsInternal {
 		r.SetAuthToken(artemis_orchestration_auth.Bearer)
 	}
+	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
+	if err != nil {
+		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")
+		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")
+		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
+	}
+	return pr, err
+}
+
+func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	r := resty.New()
+	r.SetBaseURL(pr.Url)
+
 	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
 	if err != nil {
 		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")

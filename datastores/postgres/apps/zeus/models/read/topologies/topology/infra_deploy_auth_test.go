@@ -1,7 +1,6 @@
 package read_topology
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -15,7 +14,6 @@ type TopologyAuthTestSuite struct {
 
 func (s *TopologyTestSuite) TestDeployAuth() {
 	s.InitLocalConfigs()
-	ctx := context.Background()
 	tr := NewInfraTopologyReader()
 	tr.OrgID = 7138983863666903883
 

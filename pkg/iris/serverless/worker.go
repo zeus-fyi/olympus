@@ -36,8 +36,6 @@ func InitIrisPlatformServicesWorker(ctx context.Context, temporalAuthCfg tempora
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())
 
-	// TODO refactor into a central place
-	//w.AddActivities(activityDef.KronosActivities.GetActivities())
 	IrisPlatformServicesWorker.Worker = w
 	IrisPlatformServicesWorker.TemporalClient = tc
 	return

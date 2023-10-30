@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
-	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 const (
@@ -20,7 +20,8 @@ type CronJobInstructions struct {
 }
 
 func (k *KronosActivities) StartCronJobWorkflow(ctx context.Context, mi Instructions) error {
-	rc := resty_base.GetBaseRestyClient(mi.CronJob.Endpoint, artemis_orchestration_auth.Bearer)
+	rc := resty.New()
+	rc.SetAuthToken(artemis_orchestration_auth.Bearer)
 	resp, err := rc.R().Get(mi.CronJob.Endpoint)
 	if err != nil {
 		log.Err(err).Msg("HestiaPlatformActivities: IrisPlatformRefreshOrgGroupTableCacheRequest")

@@ -66,7 +66,7 @@ func (t *KronosWorkerTestSuite) TestStartCronJobWorkflow() {
 
 	//endpoint :=  path.Join("https://iris.zeus.fyi/v1/internal/", "/router/serverless/refresh")
 	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalTemporalBearerToken
-	endpoint := path.Join("http://localhost:8080/v1/internal/", "/router/serverless/refresh")
+	endpoint := fmt.Sprintf("http://localhost:8080/v1/internal/%s", "router/serverless/refresh")
 	inst := Instructions{
 		GroupName: groupName,
 		Type:      instType,

@@ -30,7 +30,8 @@ func (t *IrisOrchestrationsTestSuite) SetupTest() {
 
 func (t *IrisOrchestrationsTestSuite) TestFetchLatestServerlessRoutes() []iris_models.RouteInfo {
 	a := NewIrisPlatformActivities()
-	routes := a.FetchLatestServerlessRoutes(ctx)
+	routes, err := a.FetchLatestServerlessRoutes(ctx)
+	t.Require().NoError(err)
 	t.Require().NotNil(routes)
 	for _, route := range routes {
 		fmt.Println(route.RoutePath)

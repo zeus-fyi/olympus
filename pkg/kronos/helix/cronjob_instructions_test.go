@@ -28,13 +28,9 @@ func (t *KronosWorkerTestSuite) TestCronJobWorkflowStep() {
 
 // You can change any params for this, it is a template of the other test meant for creating alerts
 func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
-	groupName := "IrisPlatformServiceWorkflows"
-	instType := "Cronjob"
-
-	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	inst := Instructions{
-		GroupName: groupName,
-		Type:      instType,
+		GroupName: olympus,
+		Type:      Cronjob,
 		CronJob: CronJobInstructions{
 			Endpoint:     fmt.Sprintf("https://iris.zeus.fyi/v1/internal/%s", "router/serverless/refresh"),
 			PollInterval: 5 * time.Minute,
@@ -42,14 +38,17 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 	}
 	b, err := json.Marshal(inst)
 	t.Require().Nil(err)
-	groupName = olympus
-	instType = Cronjob
+
+	groupName := "IrisPlatformServiceWorkflows"
+	instType := "Cronjob"
+
+	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	oj := artemis_orchestrations.OrchestrationJob{
 		Orchestrations: artemis_autogen_bases.Orchestrations{
 			OrgID:             t.Tc.ProductionLocalTemporalOrgID,
 			Active:            true,
-			GroupName:         groupName,
-			Type:              instType,
+			GroupName:         olympus,
+			Type:              Cronjob,
 			Instructions:      string(b),
 			OrchestrationName: orchName,
 		},

@@ -104,5 +104,5 @@ func getGlobalServerlessAvailabilityTableKey(serverlessTable string) string {
 }
 
 func getOrgActiveServerlessCountKey(orgID int, serverlessTable string) string {
-	return fmt.Sprintf("{%d}.%s.count", orgID, serverlessTable)
+	return fmt.Sprintf("{%d}.%s.serverless.count", orgID, serverlessTable)
 }

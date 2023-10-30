@@ -57,8 +57,8 @@ func (t *IrisOrchestrationsTestSuite) TestAddAndResyncServerlessRoutes() {
 }
 
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
-
-	//err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), 1, "sessionID", AnvilServerlessRoutingTable)
+	// 7138983863666903883
+	//err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), 7138983863666903883, "sessionID", AnvilServerlessRoutingTable)
 	//t.Require().NoError(err)
 
 	//route, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), t.Tc.ProductionLocalTemporalOrgID, "sessionID", AnvilServerlessRoutingTable)
@@ -83,6 +83,8 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 	t.Require().Nil(err)
 	t.Require().NotNil(nodeInfo)
 }
+
+// curl --location 'http://anvil-0.anvil.anvil-serverless-4d383226.svc.cluster.local:8545' --header 'Content-Type: application/json' --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
 
 func TestIrisOrchestrationsTestSuite(t *testing.T) {
 	suite.Run(t, new(IrisOrchestrationsTestSuite))

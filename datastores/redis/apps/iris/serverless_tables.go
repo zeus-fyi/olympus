@@ -307,7 +307,7 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("ReleaseServerlessRoute: failed to release route")
 		return err
 	}
 	return nil

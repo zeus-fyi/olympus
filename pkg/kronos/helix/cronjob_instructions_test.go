@@ -14,7 +14,7 @@ import (
 func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 	inst := Instructions{
 		GroupName: olympus,
-		Type:      Cronjob,
+		Type:      cronjob,
 		CronJob: CronJobInstructions{
 			Endpoint:     fmt.Sprintf("https://iris.zeus.fyi/v1/internal/%s", "router/serverless/refresh"),
 			PollInterval: 5 * time.Minute,
@@ -32,7 +32,7 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 			OrgID:             t.Tc.ProductionLocalTemporalOrgID,
 			Active:            true,
 			GroupName:         olympus,
-			Type:              Cronjob,
+			Type:              cronjob,
 			Instructions:      string(b),
 			OrchestrationName: orchName,
 		},

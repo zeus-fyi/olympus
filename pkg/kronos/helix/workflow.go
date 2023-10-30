@@ -21,6 +21,7 @@ const (
 	kronosLoopInterval = 10 * time.Minute
 	alerts             = "alerts"
 	monitoring         = "monitoring"
+	cronjob            = "cronjob"
 )
 
 func NewKronosWorkflow() KronosWorkflow {
@@ -110,7 +111,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 				logger.Error("Failed to get child workflow execution", "Error", err)
 				return err
 			}
-		case Cronjob:
+		case cronjob:
 			childWorkflowOptions := workflow.ChildWorkflowOptions{
 				TaskQueue:         KronosHelixTaskQueue,
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,

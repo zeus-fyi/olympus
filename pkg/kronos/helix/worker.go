@@ -36,3 +36,20 @@ func (k *KronosWorker) ExecuteKronosWorkflow(ctx context.Context) error {
 	}
 	return nil
 }
+
+//// ExecuteKronosWorkflow2 starts the endless cycles of the Kronos workflow
+//func (k *KronosWorker) ExecuteKronosWorkflow2(ctx context.Context, inst Instructions) error {
+//	tc := k.ConnectTemporalClient()
+//	defer tc.Close()
+//	workflowOptions := client.StartWorkflowOptions{
+//		TaskQueue: k.TaskQueueName,
+//	}
+//	txWf := NewKronosWorkflow()
+//	wf := txWf.CronJob
+//	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, inst, 2)
+//	if err != nil {
+//		log.Err(err).Msg("ExecuteKronosWorkflow")
+//		return err
+//	}
+//	return nil
+//}

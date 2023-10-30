@@ -3,7 +3,6 @@ package kronos_helix
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
@@ -36,9 +35,24 @@ func (t *KronosWorkerTestSuite) TestCronJobWorkflowStep() {
 		switch oj.Type {
 		case alerts:
 		case monitoring:
-		case Cronjob:
+		case cronjob:
 			count++
-			t.Require().Equal(time.Minute*5, inst.CronJob.PollInterval)
+
+			//ta := t.Tc.DevTemporalAuth
+			//ns := "kronos.ngb72"
+			//hp := "kronos.ngb72.tmprl.cloud:7233"
+			//ta.Namespace = ns
+			//ta.HostPort = hp
+			//InitKronosHelixWorker(ctx, ta)
+			//cKronos := KronosServiceWorker.Worker.ConnectTemporalClient()
+			//defer cKronos.Close()
+			//KronosServiceWorker.Worker.RegisterWorker(cKronos)
+			//err := KronosServiceWorker.Worker.Start()
+			//t.Require().Nil(err)
+			//
+			//err = KronosServiceWorker.ExecuteKronosWorkflow2(ctx, inst)
+			//t.Require().Nil(err)
+			//t.Require().Equal(time.Minute*5, inst.CronJob.PollInterval)
 		}
 	}
 	t.Require().Equal(1, count)

@@ -10,10 +10,6 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 )
 
-const (
-	Cronjob = "cronjob"
-)
-
 type CronJobInstructions struct {
 	Endpoint     string        `json:"endpoint"`
 	PollInterval time.Duration `json:"pollInterval"` // can use 0 for no repeats?

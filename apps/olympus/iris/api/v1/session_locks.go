@@ -33,7 +33,7 @@ func ProcessLockedSessionsHandler(c echo.Context) error {
 			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
 		}
 	}
-	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader)
+	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, "")
 }
 
 /*
@@ -69,7 +69,7 @@ func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute
 	return route, err
 }
 
-func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID string) error {
+func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method string) error {
 	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
 	if endLockedSessionLease == sessionID {
 		// todo remove hardcoded table name
@@ -81,10 +81,12 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:        routeURL,
-		Payload:    p.Body,
-		IsInternal: false,
-		Timeout:    60 * time.Second,
+		Url:             routeURL,
+		OrgID:           orgID,
+		PayloadTypeREST: method,
+		Payload:         p.Body,
+		IsInternal:      true,
+		Timeout:         60 * time.Second,
 	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtToAnvilInternalSimForkRequest(c.Request().Context(), req)

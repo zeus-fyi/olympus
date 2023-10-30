@@ -62,7 +62,7 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 	//t.Require().NotNil(route)
 
 	irisSvc := "https://iris.zeus.fyi/v1/router"
-	irisSvc = "http://localhost:8080/v1/router"
+	//irisSvc = "http://localhost:8080/v1/router"
 	//irisSvc = "http://localhost:8545"
 
 	wa := web3_actions.NewWeb3ActionsClient(irisSvc)

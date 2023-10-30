@@ -196,28 +196,36 @@ func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessi
 	return path, nil
 }
 
-func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) error {
+func (m *IrisCache) GetServerlessSessionRoute(ctx context.Context, orgID int, sessionID string) (string, error) {
 	pipe := m.Reader.TxPipeline()
-
 	// Gets and removes session-to-route cache key
-	orgSessionToRouteKey := getOrgSessionIDKey(orgID, sessionID)
-	getSessionRoute := pipe.Get(ctx, orgSessionToRouteKey)
+	getSessionRoute := pipe.Get(ctx, getOrgSessionIDKey(orgID, sessionID))
 
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
 		log.Err(err)
-		return err
+		return "", err
 	}
 	// Get the value from the result of the Get command
 	path, err := getSessionRoute.Result()
 	if err != nil {
 		log.Err(err).Msg("ReleaseServerlessRoute: failed to get session route")
+		return "", err
+	}
+	return path, err
+}
+
+func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) error {
+	// Get the value from the result of the Get command
+	path, err := m.GetServerlessSessionRoute(ctx, orgID, sessionID)
+	if err != nil {
+		log.Err(err).Msg("ReleaseServerlessRoute: failed to get session route")
 		return err
 	}
-	pipe = m.Writer.TxPipeline()
+	pipe := m.Writer.TxPipeline()
 	// deletes session -> route cache key
-	pipe.Del(ctx, orgSessionToRouteKey)
+	pipe.Del(ctx, getOrgSessionIDKey(orgID, sessionID))
 
 	tn := time.Now().Unix()
 	// Resets the timing of the route with some margin

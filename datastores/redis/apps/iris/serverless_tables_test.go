@@ -49,6 +49,14 @@ func (r *IrisRedisTestSuite) TestGetServerlessTableRoutes() {
 	fmt.Println(route)
 }
 
+func (r *IrisRedisTestSuite) TestGetRouteFromSessionID() {
+	sessionID := "94ce8571-411d-440b-a913-8a98d634894e"
+	path, err := IrisRedisClient.GetServerlessSessionRoute(context.Background(), 1, sessionID)
+	r.NoError(err)
+	r.NotEmpty(path)
+	fmt.Println(path)
+}
+
 func (r *IrisRedisTestSuite) TestServerlessRateLimit() {
 	err := IrisRedisClient.CheckServerlessSessionRateLimit(context.Background(), 1, ServerlessAnvilTable)
 	r.NoError(err)

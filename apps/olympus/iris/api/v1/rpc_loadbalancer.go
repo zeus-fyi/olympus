@@ -26,7 +26,9 @@ const (
 )
 
 const (
-	LoadBalancingStrategy    = "X-Load-Balancing-Strategy"
+	LoadBalancingStrategy = "X-Load-Balancing-Strategy"
+
+	AnvilHeader              = "X-Anvil-Session-Lock-ID"
 	Adaptive                 = "Adaptive"
 	RoundRobin               = "RoundRobin"
 	AdaptiveLoadBalancingKey = "X-Adaptive-Metrics-Key"
@@ -59,6 +61,10 @@ func GetDefaultLB(plan string) string {
 	}
 }
 
+const (
+	AnvilSessionLockHeader = "Anvil-Session-Lock-ID"
+)
+
 func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		bodyBytes, err := io.ReadAll(c.Request().Body)
@@ -66,15 +72,33 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			log.Err(err)
 			return err
 		}
+
 		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 		request := new(ProxyRequest)
 		request.Body = echo.Map{}
-		if payloadSizingMeter.N() <= 0 {
-			return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
-		}
+
 		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
 			log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 			return err
+		}
+
+		anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
+		if anvilHeader != "" {
+			ou := org_users.OrgUser{}
+			ouc := c.Get("orgUser")
+			if ouc != nil {
+				ouser, ok := ouc.(org_users.OrgUser)
+				if ok {
+					ou = ouser
+				} else {
+					return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
+				}
+			}
+			return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, payloadSizingMeter)
+		}
+
+		if payloadSizingMeter.N() <= 0 {
+			return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter, method)
 		}
 
 		lbStrategy := c.Request().Header.Get(LoadBalancingStrategy)

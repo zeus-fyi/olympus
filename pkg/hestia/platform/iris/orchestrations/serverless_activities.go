@@ -16,7 +16,7 @@ TODO: need to add alert
 */
 
 func (h *HestiaPlatformActivities) ResyncServerlessRoutes(ctx context.Context) error {
-
+	//iris_redis.AddRoutesToServerlessRoutingTable
 	// TODO
 	return nil
 }

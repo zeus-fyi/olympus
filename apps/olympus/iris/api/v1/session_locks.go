@@ -8,8 +8,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	proxy_anvil "github.com/zeus-fyi/olympus/pkg/iris/proxy/anvil"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
+	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
 func ProcessLockedSessionsHandler(c echo.Context) error {
@@ -19,7 +21,18 @@ func ProcessLockedSessionsHandler(c echo.Context) error {
 		log.Err(err)
 		return err
 	}
-	return request.ProcessLockedSessionRoute(c)
+	anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
+	ou := org_users.OrgUser{}
+	ouc := c.Get("orgUser")
+	if ouc != nil {
+		ouser, ok := ouc.(org_users.OrgUser)
+		if ok {
+			ou = ouser
+		} else {
+			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
+		}
+	}
+	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, nil)
 }
 
 /*
@@ -39,23 +52,29 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 3. needs to be able to dynamically add/remove anvil services
 */
 
-func MockGetSessionLockedRoute(ctx context.Context, sessionID string) (string, error) {
+func GetSessionLockedRoute(ctx context.Context, sessionID, tableRoute string) (string, error) {
+	_, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), 1, sessionID, tableRoute)
+	if err != nil {
+		log.Err(err).Msg("proxy_anvil.SessionLocker.GetNextServerlessRoute")
+		return "", err
+	}
 	if sessionID == "Zeus-Test" {
 		return "http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545", nil
 	}
 	return "", errors.New("not implemented")
 }
 
-func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context) error {
-	sessionID := c.Request().Header.Get("Session-Lock-ID")
-	if sessionID == "" {
-		return c.JSON(http.StatusBadRequest, errors.New("Session-Lock-ID header is required"))
-	}
+func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID string, pm *iris_usage_meters.PayloadSizeMeter) error {
 	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
 	if endLockedSessionLease == sessionID {
-		return nil //p.ProcessEndSessionLock(c, endLockedSessionLease)
+		// todo remove hardcoded table name
+		serverlessRoutesTable := "anvil"
+
+		return p.ProcessEndSessionLock(c, orgID, endLockedSessionLease, serverlessRoutesTable)
 	}
-	routeInfo, err := MockGetSessionLockedRoute(c.Request().Context(), sessionID)
+	// TODO note should i be putting sessionID redirect here or up?
+	// TODO remove hardcoded table name
+	routeInfo, err := GetSessionLockedRoute(c.Request().Context(), sessionID, "anvil")
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
@@ -75,8 +94,12 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp.Response)
 }
 
-func (p *ProxyRequest) ProcessEndSessionLock(c echo.Context, sessionID string) error {
-	proxy_anvil.SessionLocker.RemoveSessionLockedRoute(c.Request().Context(), sessionID)
+func (p *ProxyRequest) ProcessEndSessionLock(c echo.Context, orgID int, sessionID, serverlessRoutesTable string) error {
+	err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), orgID, sessionID, serverlessRoutesTable)
+	if err != nil {
+		log.Err(err).Msg("proxy_anvil.SessionLocker.ReleaseServerlessRoute")
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 	return c.JSON(http.StatusOK, nil)
 }
 

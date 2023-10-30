@@ -49,7 +49,7 @@ func (r *IrisRedisTestSuite) TestGetRouteFromSessionID() {
 }
 
 func (r *IrisRedisTestSuite) TestServerlessRateLimit() {
-	err := IrisRedisClient.CheckServerlessSessionRateLimit(context.Background(), 1, ServerlessAnvilTable)
+	_, err := IrisRedisClient.CheckServerlessSessionRateLimit(context.Background(), 1, "sessionID", ServerlessAnvilTable)
 	r.NoError(err)
 }
 

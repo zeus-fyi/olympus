@@ -69,6 +69,24 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 	return pr, err
 }
 
+func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	r := resty.New()
+	r.SetBaseURL(pr.Url)
+	if pr.IsInternal {
+		r.SetAuthToken(artemis_orchestration_auth.Bearer)
+	}
+	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
+	if err != nil {
+		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")
+		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")
+		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
+	}
+	return pr, err
+}
+
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	r := resty.New()
 	r.SetBaseURL(pr.Url)

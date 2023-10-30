@@ -39,7 +39,7 @@ func (i *IrisPlatformServiceWorkflows) IrisServerlessResyncWorkflow(ctx workflow
 		return err
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(pCtx, i.ResyncServerlessRoutes).Get(pCtx, nil)
+	err = workflow.ExecuteActivity(pCtx, i.ResyncServerlessRoutes, nil).Get(pCtx, nil)
 	if err != nil {
 		logger.Error("IrisPlatformServiceWorkflows: failed to ResyncServerlessRoutes", "Error", err)
 		return err

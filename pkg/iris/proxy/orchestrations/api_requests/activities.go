@@ -71,6 +71,9 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 
 func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	pr.IsInternal = true
+	if pr.PayloadSizeMeter == nil {
+		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
+	}
 	return i.ExtLoadBalancerRequest(ctx, pr)
 }
 
@@ -82,7 +85,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	}
 	parsedURL, err := url.Parse(pr.Url)
 	if err != nil {
-		fmt.Println("Error parsing URL:", err)
+		log.Err(err).Msg("ExtLoadBalancerRequest: failed to parse url")
 		return pr, err
 	}
 
@@ -175,6 +178,10 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		default:
 			resp, err = request.SetResult(&pr.Response).Post(ext)
 		}
+	}
+	if err != nil {
+		log.Err(err).Msg("Failed to relay api request")
+		return nil, err
 	}
 
 	if resp != nil {

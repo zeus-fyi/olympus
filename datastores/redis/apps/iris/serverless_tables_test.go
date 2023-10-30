@@ -31,6 +31,16 @@ func (r *IrisRedisTestSuite) TestAddToServerlessTables() {
 	r.NoError(err)
 }
 
+func (r *IrisRedisTestSuite) TestReadServerlessTableEntries() {
+	routes, err := IrisRedisClient.GetServerlessRoutes(context.Background(), ServerlessAnvilTable)
+	r.NoError(err)
+	r.NotEmpty(routes)
+
+	for _, route := range routes {
+		fmt.Println(route)
+	}
+}
+
 func (r *IrisRedisTestSuite) TestGetServerlessTableRoutes() {
 	sessionID := uuid.New().String()
 	route, err := IrisRedisClient.GetNextServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)

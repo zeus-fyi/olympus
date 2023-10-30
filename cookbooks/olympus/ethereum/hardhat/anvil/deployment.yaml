@@ -59,7 +59,12 @@ spec:
               containerPort: 8545
               protocol: TCP
           resources:
-            {}
+            limits:
+              cpu: 200m
+              memory: 400Mi
+            requests:
+              cpu: 200m
+              memory: 400Mi
       volumes:
       - name: cm-anvil
         configMap:

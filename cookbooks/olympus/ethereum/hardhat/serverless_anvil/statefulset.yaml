@@ -30,6 +30,13 @@ spec:
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
+          resources:
+            limits:
+              cpu: 100m
+              memory: 250Mi
+            requests:
+              cpu: 100m
+              memory: 250Mi
           volumeMounts:
             - name: cm-anvil
               mountPath: "/scripts"

@@ -80,7 +80,7 @@ func (i *IrisPlatformActivities) FetchLatestServerlessRoutes(ctx context.Context
 	count := 2
 	routes := make([]iris_models.RouteInfo, count)
 	for j := 0; j < count; j++ {
-		routes[j].RoutePath = fmt.Sprintf("http://anvil-%d.anvil.anvil-serverless-4d383226.svc.cluster.local", j)
+		routes[j].RoutePath = fmt.Sprintf("http://anvil-%d.anvil.anvil-serverless-4d383226.svc.cluster.local:8545", j)
 	}
 	return routes, nil
 }

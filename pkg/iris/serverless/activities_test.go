@@ -57,6 +57,10 @@ func (t *IrisOrchestrationsTestSuite) TestAddAndResyncServerlessRoutes() {
 }
 
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
+
+	//err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), 1, "sessionID", AnvilServerlessRoutingTable)
+	//t.Require().NoError(err)
+
 	//route, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), t.Tc.ProductionLocalTemporalOrgID, "sessionID", AnvilServerlessRoutingTable)
 	//t.Require().NoError(err)
 	//t.Require().NotNil(route)

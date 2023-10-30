@@ -33,7 +33,7 @@ func ProcessLockedSessionsHandler(c echo.Context) error {
 			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
 		}
 	}
-	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, nil)
+	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader)
 }
 
 /*
@@ -47,11 +47,15 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 
 /*
 1. needs to have a registry of all anvil routes
-	- this should be auto inserted when new anvil services are deployed
+  - this should be auto inserted when new anvil services are deployed
+
 2a. needs to have a registry of all locked sessions
 2b. needs to have a registry of all locked routes
 3. needs to be able to dynamically add/remove anvil services
 */
+const (
+	anvilServerlessRoutesTableName = "anvil"
+)
 
 func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute string) (string, error) {
 	if sessionID == "Zeus-Test" {
@@ -65,31 +69,39 @@ func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute
 	return route, err
 }
 
-func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID string, pm *iris_usage_meters.PayloadSizeMeter) error {
+func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID string) error {
 	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
 	if endLockedSessionLease == sessionID {
 		// todo remove hardcoded table name
-		return p.ProcessEndSessionLock(c, orgID, endLockedSessionLease, "anvil")
+		return p.ProcessEndSessionLock(c, orgID, endLockedSessionLease, anvilServerlessRoutesTableName)
 	}
-	// TODO note should i be putting sessionID redirect here or up?
-
-	routeInfo, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, "anvil") // TODO remove hardcoded table name
+	routeURL, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, anvilServerlessRoutesTableName) // TODO remove hardcoded table name
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:        routeInfo,
+		Url:        routeURL,
 		Payload:    p.Body,
 		IsInternal: false,
-		Timeout:    30 * time.Second,
+		Timeout:    60 * time.Second,
 	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
-	resp, err := rw.InternalSvcRelayRequest(c.Request().Context(), req)
+	resp, err := rw.ExtToAnvilInternalSimForkRequest(c.Request().Context(), req)
 	if err != nil {
-		log.Err(err).Str("route", routeInfo).Msg("rw.InternalSvcRelayRequest")
+		log.Err(err).Str("routeURL", routeURL).Interface("resp", resp).Msg("rw.InternalSvcRelayRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+	go func(orgID int, usage *iris_usage_meters.PayloadSizeMeter) {
+		if usage == nil {
+			log.Warn().Msg("ProcessLockedSessionRoute: usage is nil")
+			return
+		}
+		err = iris_redis.IrisRedisClient.RecordRequestUsage(context.Background(), orgID, usage)
+		if err != nil {
+			log.Err(err).Interface("orgID", orgID).Interface("usage", usage).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
+		}
+	}(orgID, resp.PayloadSizeMeter)
 	return c.JSON(http.StatusOK, resp.Response)
 }
 

@@ -13,7 +13,7 @@ import (
 const (
 	ServerlessAnvilTable = "anvil"
 
-	MaxActiveServerlessSessions = 3
+	MaxActiveServerlessSessions = 5
 	TimeMarginBuffer            = time.Minute
 
 	// ServerlessSessionMaxRunTime adds one minute of margin to release the route
@@ -129,6 +129,7 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 	if activeCount == nil || err == redis.Nil {
 		return "", nil
 	}
+	// this is returning the session route if it exists, as it has first priority
 	getSessionRouteResult, rerr := getSessionRoute.Result()
 	if rerr != nil && rerr != redis.Nil {
 		log.Err(rerr).Msg("IrisCache: CheckServerlessSessionRateLimit: getSessionRouteResult failed to get session route")
@@ -138,6 +139,7 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 	if len(getSessionRouteResult) > 0 {
 		return getSessionRouteResult, nil
 	}
+	// now checking if the user is rate limited
 	activeCountResult, rerr := activeCount.Result()
 	if rerr != nil && rerr != redis.Nil {
 		log.Err(rerr).Msg("CheckServerlessSessionRateLimit: activeCountResult failed to get active session count")
@@ -147,7 +149,7 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 		log.Err(rerr).Msg("CheckServerlessSessionRateLimit: error getting active session count")
 		return "", rerr
 	}
-	if activeCountResult > MaxActiveServerlessSessions {
+	if activeCountResult >= MaxActiveServerlessSessions {
 		err = fmt.Errorf("GetNextServerlessRoute: max active sessions reached")
 		log.Err(err).Msgf("GetNextServerlessRoute orgID: %d", orgID)
 		return "", err

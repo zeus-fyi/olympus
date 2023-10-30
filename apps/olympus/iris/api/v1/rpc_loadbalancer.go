@@ -94,7 +94,13 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 					return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
 				}
 			}
-			return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, payloadSizingMeter)
+			go func(orgID int, usage *iris_usage_meters.PayloadSizeMeter) {
+				err = iris_redis.IrisRedisClient.RecordRequestUsage(context.Background(), orgID, usage)
+				if err != nil {
+					log.Err(err).Interface("orgID", orgID).Interface("usage", usage).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
+				}
+			}(ou.OrgID, payloadSizingMeter)
+			return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader)
 		}
 
 		if payloadSizingMeter.N() <= 0 {

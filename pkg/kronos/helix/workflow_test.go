@@ -3,6 +3,7 @@ package kronos_helix
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
@@ -27,11 +28,17 @@ func (t *KronosWorkerTestSuite) TestCronJobWorkflowStep() {
 	t.Require().Nil(jerr)
 	count := 0
 	for _, oj := range ojs {
+
+		inst, err := ka.GetInstructionsFromJob(ctx, oj)
+		t.Require().Nil(err)
+		t.Require().NotEmpty(inst)
+
 		switch oj.Type {
 		case alerts:
 		case monitoring:
 		case Cronjob:
 			count++
+			t.Require().Equal(time.Minute*5, inst.CronJob.PollInterval)
 		}
 	}
 	t.Require().Equal(1, count)

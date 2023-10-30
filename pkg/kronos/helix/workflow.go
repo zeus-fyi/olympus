@@ -35,7 +35,9 @@ func CalculatePollCycles(intervalResetTime time.Duration, pollInterval time.Dura
 }
 
 func (k *KronosWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{k.Yin, k.Yang, k.SignalFlow, k.OrchestrationChildProcessReset,
+	return []interface{}{
+		k.Yin, k.Yang, k.SignalFlow,
+		k.OrchestrationChildProcessReset,
 		k.Monitor, k.CronJob,
 	}
 }
@@ -108,6 +110,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 				return err
 			}
 		case Cronjob:
+			logger.Info("Cronjob", "GroupName", inst.GroupName)
 			childWorkflowOptions := workflow.ChildWorkflowOptions{
 				TaskQueue:         KronosHelixTaskQueue,
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,

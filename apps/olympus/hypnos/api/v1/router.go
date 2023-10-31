@@ -66,7 +66,9 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			}
 		}
 		// todo revist after pods deletion is confirmed
-		sessionID = anvilHeader
+		if sessionID == "" {
+			sessionID = anvilHeader
+		}
 		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 		request := new(v1_iris.ProxyRequest)
 		request.Body = echo.Map{}

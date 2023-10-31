@@ -45,8 +45,9 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		}
 
 		tableHeader := c.Request().Header.Get(RouteGroupHeader)
-		routeTable = tableHeader
-
+		if routeTable == "" {
+			routeTable = tableHeader
+		}
 		anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
 		if len(anvilHeader) <= 0 {
 			log.Info().Interface("anvilHeader", anvilHeader).Msgf("Hypnos: RpcLoadBalancerRequestHandler: anvil session lock id is required")
@@ -62,11 +63,6 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			if rerr != nil {
 				log.Err(rerr).Interface("resp", resp).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
 				return c.JSON(http.StatusInternalServerError, rerr)
-			}
-			err = wa.ResetNetwork(context.Background(), "", 0)
-			if err != nil {
-				log.Err(err).Interface("resp", resp).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
-				return c.JSON(http.StatusInternalServerError, err)
 			}
 		}
 		// todo revist after pods deletion is confirmed

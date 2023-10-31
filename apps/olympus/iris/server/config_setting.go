@@ -8,6 +8,7 @@ import (
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
+	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -28,6 +29,7 @@ var (
 )
 
 func SetConfigByEnv(ctx context.Context, env string) {
+	v1_iris.Env = env
 	switch env {
 	case "production":
 		log.Info().Msg("Iris: production auth procedure starting")

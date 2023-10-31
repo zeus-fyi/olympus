@@ -112,6 +112,8 @@ func extractPodName(s string) (string, error) {
 	return "", fmt.Errorf("cannot extract pod name from url: %s", s)
 }
 
+var Env = "production"
+
 func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method, tempToken string) error {
 	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
 	if endLockedSessionLease == sessionID {
@@ -130,7 +132,10 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		headers.Set(RouteGroupHeader, routeGroup)
 	}
 	// for local testing:
-	routeURL = "http://localhost:8888"
+	if Env == "production-local" || Env == "local" {
+		routeURL = "http://localhost:8888"
+	}
+
 	if isNewSession && routeGroup != "" {
 		// todo, just for anvil
 		wa := web3_client.NewWeb3ClientFakeSigner(routeURL)

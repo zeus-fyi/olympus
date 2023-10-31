@@ -40,7 +40,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		}
 		rw := iris_api_requests.NewIrisApiRequestsActivities()
 		req := &iris_api_requests.ApiProxyRequest{
-			Url:              "0.0.0.0:8545",
+			Url:              "http://localhost:8545",
 			Payload:          request.Body,
 			PayloadTypeREST:  method,
 			IsInternal:       false,

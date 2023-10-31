@@ -355,3 +355,21 @@ func (m *IrisCache) GetServerlessRoutes(ctx context.Context, serverlessTableName
 	}
 	return path, err
 }
+
+func (m *IrisCache) DeleteAllServerlessTableArtifacts(ctx context.Context, serverlessTableName string) error {
+	pipe := m.Writer.TxPipeline()
+	// Gets and removes session-to-route cache key
+	serviceTable := getGlobalServerlessTableKey(serverlessTableName)
+	serviceCalendar := getGlobalServerlessAvailabilityTableKey(serverlessTableName)
+	pipe.Del(ctx, serviceTable)
+	pipe.Del(ctx, serviceCalendar)
+
+	// Execute the transaction
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Err(err).Msg("GetServerlessSessionRoute: failed to get session route")
+		return err
+	}
+
+	return err
+}

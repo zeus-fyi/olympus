@@ -75,3 +75,21 @@ func (r *IrisRedisTestSuite) TestPodNameExtract() {
 	//r.Assert().Equal("anvil-0", pn)
 	//fmt.Println(pn)
 }
+
+func (r *IrisRedisTestSuite) TestRemoveAllServerlessTables() {
+	anvilRoutes := []iris_models.RouteInfo{
+		{
+			RoutePath: "https://anvil1.zeus.fyi",
+		},
+		{
+			RoutePath: "https://anvil2.zeus.fyi",
+		},
+	}
+
+	err := IrisRedisClient.AddRoutesToServerlessRoutingTable(context.Background(), ServerlessAnvilTable, anvilRoutes)
+	r.NoError(err)
+
+	err = IrisRedisClient.DeleteAllServerlessTableArtifacts(context.Background(), ServerlessAnvilTable)
+	r.NoError(err)
+
+}

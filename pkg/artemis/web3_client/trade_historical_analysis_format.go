@@ -186,6 +186,7 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	if currentBlockNum >= int(rx.BlockNumber.Int64()) {
 		return -1, fmt.Errorf("artmeis block number %d is greater than or equal to rx block number %d", currentBlockNum, int(rx.BlockNumber.Int64()))
 	}
+	u.Web3Client.NodeURL = "http://localhost:8080/v1/router"
 	u.Web3Client.Dial()
 	origInfo, err := u.Web3Client.GetNodeMetadata(ctx)
 	if err != nil {

@@ -20,6 +20,8 @@ type ArtemisTradingTestSuite struct {
 	MainnetWeb3User    web3_client.Web3Client
 	ProxiedMainnetUser web3_client.Web3Client
 	GoerliWeb3User     web3_client.Web3Client
+
+	IrisAnvilWeb3User web3_client.Web3Client
 }
 
 var ctx = context.Background()
@@ -35,6 +37,15 @@ func (s *ArtemisTradingTestSuite) SetupTest() {
 	pkHexString := s.Tc.LocalEcsdaTestPkey
 	newAccount, err := accounts.ParsePrivateKey(pkHexString)
 	s.Assert().Nil(err)
+
+	// artemis_trading_constants.IrisExtAnvilRoute
+	local := "http://localhost:8080/v1/router"
+	wa := web3_client.NewWeb3Client(local, newAccount)
+	wa.AddBearerToken(s.Tc.ProductionLocalTemporalBearerToken)
+	wa.AddSessionLockHeader("Zeus-Test")
+	wa.IsAnvilNode = true
+	s.IrisAnvilWeb3User = wa
+
 	s.MainnetWeb3User = web3_client.NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
 	wc := web3_client.NewWeb3Client(artemis_trading_constants.IrisAnvilRoute, newAccount)
 	wc.AddBearerToken(s.Tc.ProductionLocalTemporalBearerToken)

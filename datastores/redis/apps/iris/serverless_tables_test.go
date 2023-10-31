@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
 
@@ -42,7 +41,7 @@ func (r *IrisRedisTestSuite) TestReadServerlessTableEntries() {
 }
 
 func (r *IrisRedisTestSuite) TestGetServerlessTableRoutes() {
-	sessionID := uuid.New().String()
+	sessionID := "sessionID"
 	route, _, err := IrisRedisClient.GetNextServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)
 	r.NoError(err)
 	r.NotEmpty(route)
@@ -51,8 +50,8 @@ func (r *IrisRedisTestSuite) TestGetServerlessTableRoutes() {
 }
 
 func (r *IrisRedisTestSuite) TestGetRouteFromSessionID() {
-	sessionID := "94ce8571-411d-440b-a913-8a98d634894e"
-	path, err := IrisRedisClient.GetServerlessSessionRoute(context.Background(), 1, sessionID)
+	sessionID := "sessionID"
+	path, err := IrisRedisClient.GetServerlessSessionRoute(context.Background(), 1, ServerlessAnvilTable, sessionID)
 	r.NoError(err)
 	r.NotEmpty(path)
 	fmt.Println(path)
@@ -77,19 +76,8 @@ func (r *IrisRedisTestSuite) TestPodNameExtract() {
 }
 
 func (r *IrisRedisTestSuite) TestRemoveAllServerlessTables() {
-	anvilRoutes := []iris_models.RouteInfo{
-		{
-			RoutePath: "https://anvil1.zeus.fyi",
-		},
-		{
-			RoutePath: "https://anvil2.zeus.fyi",
-		},
-	}
+	sessionID := "sessionID"
 
-	err := IrisRedisClient.AddRoutesToServerlessRoutingTable(context.Background(), ServerlessAnvilTable, anvilRoutes)
+	err := IrisRedisClient.DeleteAllServerlessTableAndOrgArtifacts(context.Background(), 1, ServerlessAnvilTable, sessionID)
 	r.NoError(err)
-
-	err = IrisRedisClient.DeleteAllServerlessTableArtifacts(context.Background(), ServerlessAnvilTable)
-	r.NoError(err)
-
 }

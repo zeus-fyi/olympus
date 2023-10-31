@@ -54,20 +54,31 @@ func (i *IrisPlatformServiceWorkflows) IrisServerlessResyncWorkflow(ctx workflow
 	return nil
 }
 
-func (i *IrisPlatformServiceWorkflows) IrisServerlessPodRestartWorkflow(ctx workflow.Context, wfID string, cctx zeus_common_types.CloudCtxNs, podName string, delay time.Duration) error {
+func (i *IrisPlatformServiceWorkflows) IrisServerlessPodRestartWorkflow(ctx workflow.Context, wfID string, orgID int, cctx zeus_common_types.CloudCtxNs, podName, serverlessTable, sessionID string, delay time.Duration) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
+	}
+	err := workflow.Sleep(ctx, delay)
+	if err != nil {
+		logger.Error("IrisServerlessPodRestartWorkflow: failed to Sleep", "Error", err)
+		return err
 	}
 	oj := artemis_orchestrations.NewInternalActiveTemporalOrchestrationJobTemplate(wfID, "IrisPlatformServiceWorkflows", "IrisServerlessPodRestartWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	err = workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
 		logger.Error("failed to update QuickNode services", "Error", err)
 		return err
 	}
+	cCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(cCtx, i.ClearServerlessSessionRouteCache, orgID, serverlessTable, sessionID).Get(cCtx, nil)
+	if err != nil {
+		logger.Error("IrisPlatformServiceWorkflows: failed to RestartServerlessPod", "Error", err)
+		return err
+	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(pCtx, i.RestartServerlessPod, cctx, podName, delay).Get(pCtx, nil)
+	err = workflow.ExecuteActivity(pCtx, i.RestartServerlessPod, cctx, podName, 0).Get(pCtx, nil)
 	if err != nil {
 		logger.Error("IrisPlatformServiceWorkflows: failed to RestartServerlessPod", "Error", err)
 		return err

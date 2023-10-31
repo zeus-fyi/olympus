@@ -87,7 +87,7 @@ func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute
 			log.Err(perr).Str("route", route).Msg("GetSessionLockedRoute: extractPodName")
 			return "", isNewSession, perr
 		}
-		err = iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow(ctx, cctx, podName, iris_redis.ServerlessSessionMaxRunTime)
+		err = iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow(ctx, orgID, cctx, podName, tableRoute, sessionID, iris_redis.ServerlessSessionMaxRunTime)
 		if err != nil {
 			log.Err(err).Str("podName", podName).Msg("GetSessionLockedRoute: iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow")
 			return "", isNewSession, err
@@ -112,6 +112,8 @@ func extractPodName(s string) (string, error) {
 	return "", fmt.Errorf("cannot extract pod name from url: %s", s)
 }
 
+var Env = "production"
+
 func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method, tempToken string) error {
 	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
 	if endLockedSessionLease == sessionID {
@@ -129,7 +131,11 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 	if routeGroup != "" {
 		headers.Set(RouteGroupHeader, routeGroup)
 	}
-	// for local testing: routeURL = "http://localhost:8888"
+	// for local testing:
+	if Env == "production-local" || Env == "local" {
+		routeURL = "http://localhost:8888"
+	}
+
 	if isNewSession && routeGroup != "" {
 		// todo, just for anvil
 		wa := web3_client.NewWeb3ClientFakeSigner(routeURL)

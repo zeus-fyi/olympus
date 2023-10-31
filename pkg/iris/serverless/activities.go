@@ -48,6 +48,7 @@ type ActivitiesSlice []interface{}
 func (i *IrisPlatformActivities) GetActivities() ActivitiesSlice {
 	actSlice := []interface{}{
 		i.ResyncServerlessRoutes, i.FetchLatestServerlessRoutes, i.RestartServerlessPod,
+		i.ClearServerlessSessionRouteCache,
 	}
 	return actSlice
 }
@@ -107,6 +108,15 @@ func (i *IrisPlatformActivities) RestartServerlessPod(ctx context.Context, cctx 
 	_, err := pc.DeletePods(context.Background(), par)
 	if err != nil {
 		log.Err(err).Interface("par", par).Msg("RestartServerlessPod: DeletePods")
+		return err
+	}
+	return nil
+}
+
+func (i *IrisPlatformActivities) ClearServerlessSessionRouteCache(ctx context.Context, orgID int, serverlessTable, sessionID string) error {
+	err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(ctx, orgID, sessionID, serverlessTable)
+	if err != nil {
+		log.Err(err).Msg("ClearServerlessSessionRouteCache: ReleaseServerlessRoute")
 		return err
 	}
 	return nil

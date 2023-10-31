@@ -7,7 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
+	pods_workflows "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/pods"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
@@ -15,7 +15,7 @@ func PodsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Debug().Msg("PodsDeleteRequest")
 
-	err := topology_worker.Worker.ExecuteDeletePodWorkflow(ctx, request.CloudCtxNs, request.PodName, request.Delay)
+	err := pods_workflows.ExecuteDeletePodWorkflow(c, context.Background(), request.CloudCtxNs, request.PodName, request.Delay)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("PodsDeleteRequest: ExecuteDeletePodWorkflow")
 		return c.JSON(http.StatusInternalServerError, nil)

@@ -19,6 +19,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
+	pods_workflows "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/pods"
 	router "github.com/zeus-fyi/olympus/zeus/api"
 	read_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/read"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -144,6 +145,13 @@ func Zeus() {
 		log.Fatal().Err(err).Msgf("Zeus: %s topology_worker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
+
+	pods_workflows.InitPodsWorker(temporalAuthCfg)
+	c2 := pods_workflows.PodsServiceWorker.TemporalClient.ConnectTemporalClient()
+	defer c2.Close()
+	pods_workflows.PodsServiceWorker.RegisterWorker(c2)
+	err = pods_workflows.PodsServiceWorker.Start()
+
 	log.Info().Msgf("Zeus: %s temporal setup is complete", env)
 	log.Info().Msgf("Zeus: %s server starting", env)
 

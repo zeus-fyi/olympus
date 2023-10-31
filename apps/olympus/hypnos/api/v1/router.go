@@ -97,6 +97,7 @@ func RpcLoadBalancerRequestHandler2(method string) func(c echo.Context) error {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")
 			return err
 		}
+		log.Info().Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest: resp: %+v", resp)
 		return c.JSON(resp.StatusCode, resp.Response)
 	}
 }

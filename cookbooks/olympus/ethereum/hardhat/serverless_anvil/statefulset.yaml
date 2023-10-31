@@ -73,8 +73,8 @@ spec:
             tcpSocket:
               port: http-rpc
           readinessProbe:
-            initialDelaySeconds: 60
-            periodSeconds: 120
+            initialDelaySeconds: 10
+            periodSeconds: 30
             tcpSocket:
               port: http-rpc
       terminationGracePeriodSeconds: 300

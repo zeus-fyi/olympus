@@ -18,9 +18,9 @@ func Routes(e *echo.Echo) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 
-	e.POST("/resp", RpcLoadBalancerRequestHandler("POST"))
+	e.POST("/resp", RpcLoadBalancerRequestHandler2("POST"))
 
-	e.POST("/", RpcLoadBalancerRequestHandler2("POST"))
+	e.POST("/", RpcLoadBalancerRequestHandler("POST"))
 	return e
 }
 

@@ -14,6 +14,8 @@ import (
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
+// only used in tests
+
 func ProcessLockedSessionsHandler(c echo.Context) error {
 	request := new(ProxyRequest)
 	request.Body = echo.Map{}
@@ -33,7 +35,7 @@ func ProcessLockedSessionsHandler(c echo.Context) error {
 			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
 		}
 	}
-	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, "")
+	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, c.Request().Method, "")
 }
 
 /*
@@ -69,7 +71,7 @@ func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute
 	return route, err
 }
 
-func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method string) error {
+func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method, tempToken string) error {
 	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
 	if endLockedSessionLease == sessionID {
 		// todo remove hardcoded table name
@@ -80,6 +82,9 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+
+	headers := make(http.Header)
+	headers.Set(AnvilSessionLockHeader, tempToken)
 
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             routeURL + "/req",

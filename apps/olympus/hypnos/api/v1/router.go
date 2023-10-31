@@ -18,11 +18,21 @@ func Routes(e *echo.Echo) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 
-	e.POST("/resp", RpcLoadBalancerRequestHandler2("POST"))
+	e.POST("/node", RpcLoadBalancerRequestHandler2("POST"))
 
 	e.POST("/", RpcLoadBalancerRequestHandler("POST"))
 	return e
 }
+
+var (
+	sessionID  = ""
+	routeTable = ""
+)
+
+const (
+	AnvilSessionLockHeader = "X-Anvil-Session-Lock-ID"
+	RouteGroupHeader       = "X-Route-Group"
+)
 
 func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 	return func(c echo.Context) error {
@@ -31,6 +41,12 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			log.Err(err)
 			return err
 		}
+
+		tableHeader := c.Request().Header.Get(RouteGroupHeader)
+		routeTable = tableHeader
+
+		anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
+		sessionID = anvilHeader
 
 		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 		request := new(v1_iris.ProxyRequest)
@@ -50,6 +66,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			StatusCode:       http.StatusOK, // default
 			PayloadSizeMeter: payloadSizingMeter,
 		}
+
 		resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 		if err != nil {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")
@@ -87,11 +104,15 @@ func RpcLoadBalancerRequestHandler2(method string) func(c echo.Context) error {
 			StatusCode:       http.StatusOK, // default
 			PayloadSizeMeter: payloadSizingMeter,
 		}
-
 		req.RequestHeaders = http.Header{}
-		req.RequestHeaders.Add("X-Route-Group", "ethereum-mainnet") // Joining all values with a comma
-		req.RequestHeaders.Add("Authorization", "Bearer "+"fgjlsdjgmklosadmgslkasdmglkasm")
-
+		if routeTable != "" {
+			req.RequestHeaders.Add("X-Route-Group", routeTable)
+		} else {
+			req.RequestHeaders.Add("X-Route-Group", "ethereum-mainnet")
+		}
+		if sessionID != "" {
+			req.RequestHeaders.Add("Authorization", "Bearer "+sessionID)
+		}
 		resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 		if err != nil {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")

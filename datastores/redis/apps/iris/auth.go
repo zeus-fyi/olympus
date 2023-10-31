@@ -3,6 +3,7 @@ package iris_redis
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v9"
@@ -92,6 +93,85 @@ func (m *IrisCache) SetAuthCache(ctx context.Context, ou org_users.OrgUser, toke
 		return err
 	}
 	return nil
+}
+
+func (m *IrisCache) SetInternalAuthCache(ctx context.Context, ou org_users.OrgUser, token, plan, sessionID string) (string, error) {
+	// Generate the rate limiter key with the Unix timestamp
+	hashedToken := getHashedTokenKey(token + sessionID)
+	hashedTokenPlan := getHashedTokenPlanKey(token + plan)
+	hashedTokenUserID := getHashedTokenUserID(token + sessionID + plan)
+
+	tempToken := fmt.Sprintf("%s-%s-%s", hashedToken, hashedTokenPlan, hashedTokenUserID)
+	// Use Redis transaction (pipeline) to perform all operations atomically
+	pipe := m.Writer.TxPipeline()
+	ttl := time.Minute * 10
+	pipe.Set(ctx, hashedToken, ou.OrgID, ttl)
+	pipe.Set(ctx, hashedTokenPlan, plan, ttl)
+	pipe.Set(ctx, hashedTokenUserID, ou.UserID, ttl)
+	// Execute the transaction
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Err(err).Msgf("SetAuthCache")
+		return tempToken, err
+	}
+	return tempToken, nil
+}
+
+func (m *IrisCache) GetInternalAuthCacheIfExists(ctx context.Context, tempToken string) (org_users.OrgUser, string, error) {
+	// Generate the rate limiter key with the Unix timestamp
+	ou := org_users.OrgUser{
+		OrgUsers: autogen_bases.OrgUsers{UserID: int(-1), OrgID: int(-1)},
+	}
+
+	tokens := strings.Split(tempToken, "-")
+	if len(tokens) != 3 {
+		return ou, "", fmt.Errorf("invalid token")
+	}
+	hashedToken := tokens[0]
+	hashedTokenPlan := tokens[1]
+	hashedTokenUserID := tokens[2]
+
+	// Use Redis transaction (pipeline) to perform all operations atomically
+	pipe := m.Reader.TxPipeline()
+	// Get the values from Redis
+	orgIDCmd := pipe.Get(ctx, hashedToken)
+	orgPlanCmd := pipe.Get(ctx, hashedTokenPlan)
+	orgUserIDCmd := pipe.Get(ctx, hashedTokenUserID)
+	// Execute the pipeline
+	_, err := pipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		return ou, "", err
+	}
+
+	// Get the values from the commands
+	orgID, err := orgIDCmd.Int64()
+	if err != nil {
+		if err == redis.Nil {
+			return ou, "", fmt.Errorf("no value found for hashedToken: %s", hashedToken)
+		}
+		return ou, "", err
+	}
+
+	plan, err := orgPlanCmd.Result()
+	if err != nil {
+		if err == redis.Nil {
+			return ou, "", fmt.Errorf("no value found for hashedTokenPlan: %s", hashedTokenPlan)
+		}
+		return ou, "", err
+	}
+
+	userID, err := orgUserIDCmd.Int64()
+	if err != nil {
+		if err == redis.Nil {
+			return ou, "", fmt.Errorf("no value found for hashedTokenUserID: %s", hashedTokenUserID)
+		}
+		return ou, "", err
+	}
+
+	ou = org_users.OrgUser{
+		OrgUsers: autogen_bases.OrgUsers{UserID: int(userID), OrgID: int(orgID)},
+	}
+	return ou, plan, nil
 }
 
 func (m *IrisCache) DeleteAuthCache(ctx context.Context, token string) error {

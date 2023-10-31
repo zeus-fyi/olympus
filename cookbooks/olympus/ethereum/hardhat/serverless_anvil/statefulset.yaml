@@ -9,7 +9,7 @@ metadata:
   name: anvil
 spec:
   podManagementPolicy: OrderedReady
-  replicas: 50
+  replicas: 2
   selector:
     matchLabels:
       app: anvil
@@ -24,6 +24,7 @@ spec:
         app.kubernetes.io/name: anvil
     spec:
       affinity: {}
+      shareProcessNamespace: true
       containers:
         - name: hypnos
           image: "registry.digitalocean.com/zeus-fyi/hypnos:latest"
@@ -43,8 +44,8 @@ spec:
             tcpSocket:
               port: hypnos
           readinessProbe:
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            initialDelaySeconds: 60
+            periodSeconds: 120
             tcpSocket:
               port: hypnos
         - name: anvil
@@ -72,8 +73,8 @@ spec:
             tcpSocket:
               port: http-rpc
           readinessProbe:
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            initialDelaySeconds: 60
+            periodSeconds: 120
             tcpSocket:
               port: http-rpc
       terminationGracePeriodSeconds: 300

@@ -86,7 +86,60 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 	fmt.Println(nodeInfo.ForkConfig.ForkUrl)
 
 }
+func (t *IrisOrchestrationsTestSuite) TestAnvilRpcReset() {
+	na := "http://localhost:8545"
+	wa := web3_actions.NewWeb3ActionsClient(na)
+	wa.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
+	wa.IsAnvilNode = true
+	wa.Dial()
+	defer wa.Close()
+	err := wa.ResetNetwork(context.Background(), na, 0)
+	t.Require().NoError(err)
+}
 
+func (t *IrisOrchestrationsTestSuite) TestAnvilRpcInfo() {
+	na := "http://localhost:8545"
+	wa := web3_actions.NewWeb3ActionsClient(na)
+	wa.IsAnvilNode = true
+	wa.Dial()
+	defer wa.Close()
+
+	nodeInfo, err := wa.GetNodeInfo(ctx)
+	t.Require().Nil(err)
+	t.Require().NotNil(nodeInfo)
+
+	fmt.Println(nodeInfo.ForkConfig.ForkUrl)
+}
+
+/*
+	wa := web3_actions.NewWeb3ActionsClient(irisSvc)
+	wa.AddDefaultEthereumMainnetTableHeader()
+	wa.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
+	sessionHeader := "X-Anvil-Session-Lock-ID"
+	testID := "sessionID"
+	wa.Headers[sessionHeader] = testID
+	wa.IsAnvilNode = true
+
+	//nodeInfo, err := wa.GetNodeInfo(ctx)
+	//t.Require().Nil(err)
+	//t.Require().NotNil(nodeInfo)
+	//
+	//fmt.Println(nodeInfo.ForkConfig.ForkUrl)
+	na := "http://localhost:8545"
+
+	wa := web3_actions.NewWeb3ActionsClient(na)
+	wa.Dial()
+	defer wa.Close()
+
+	err := wa.ResetNetwork(context.Background(), na, 0)
+	t.Require().NoError(err)
+
+	nodeInfo, err := wa.GetNodeInfo(ctx)
+	t.Require().Nil(err)
+	t.Require().NotNil(nodeInfo)
+
+	fmt.Println(nodeInfo.ForkConfig.ForkUrl)
+*/
 // curl --location 'http://anvil-0.anvil.anvil-serverless-4d383226.svc.cluster.local:8545' --header 'Content-Type: application/json' --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
 
 func TestIrisOrchestrationsTestSuite(t *testing.T) {

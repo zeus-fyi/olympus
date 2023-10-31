@@ -1,4 +1,4 @@
-package v3_iris
+package v3_iris_internal
 
 import (
 	"context"

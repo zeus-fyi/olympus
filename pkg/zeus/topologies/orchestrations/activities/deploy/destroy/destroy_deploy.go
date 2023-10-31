@@ -1,6 +1,7 @@
 package destroy_deploy_activities
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 type DestroyDeployTopologyActivities struct {
@@ -31,6 +34,7 @@ func (d *DestroyDeployTopologyActivities) GetActivities() ActivitiesSlice {
 		d.DestroyDeployServiceMonitor,
 		d.DestroyJob,
 		d.DestroyCronJob,
+		d.DeletePod,
 	}
 }
 
@@ -55,4 +59,13 @@ func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string,
 
 func (d *DestroyDeployTopologyActivities) GetDestroyDeployURL(target string) url.URL {
 	return d.GetURL(zeus_endpoints.InternalDestroyDeployPath, target)
+}
+
+func (d *DestroyDeployTopologyActivities) DeletePod(ctx context.Context, podName string, cctx zeus_common_types.CloudCtxNs) error {
+	err := zeus.K8Util.DeleteFirstPodLike(ctx, cctx, podName, nil, nil)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("DestroyDeployTopologyActivities: PodsDeleteRequest: DeleteFirstPodLike")
+		return err
+	}
+	return nil
 }

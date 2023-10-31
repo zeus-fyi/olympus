@@ -2,6 +2,7 @@ package topology_worker
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
@@ -13,6 +14,7 @@ import (
 	destroy_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy"
 	deploy_workflow_destroy_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy_setup"
 	deploy_workflow_cluster_updates "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/update"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"go.temporal.io/sdk/client"
 )
 
@@ -20,6 +22,23 @@ var Worker TopologyWorker
 
 type TopologyWorker struct {
 	temporal_base.Worker
+}
+
+func (t *TopologyWorker) ExecuteDeletePodWorkflow(ctx context.Context, cctx zeus_common_types.CloudCtxNs, podName string, delay time.Duration) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+		ID:        uuid.New().String(),
+	}
+	deployWf := destroy_deployed_workflow.NewDestroyDeployTopologyWorkflow()
+	wf := deployWf.DeletePodWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, cctx, podName, delay)
+	if err != nil {
+		log.Err(err).Msg("ExecuteDeployFleetUpgrade")
+		return err
+	}
+	return err
 }
 
 func (t *TopologyWorker) ExecuteDeployFleetUpgrade(ctx context.Context, params base_deploy_params.FleetUpgradeWorkflowRequest) error {

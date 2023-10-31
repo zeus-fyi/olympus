@@ -15,6 +15,7 @@ type PodActionRequest struct {
 	PodName       string `json:"podName,omitempty"`
 	ContainerName string `json:"containerName,omitempty"`
 
+	Delay      time.Duration `json:"delay,omitempty"`
 	FilterOpts *string_utils.FilterOpts
 	ClientReq  *ClientRequest
 	LogOpts    *v1.PodLogOptions

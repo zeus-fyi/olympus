@@ -14,7 +14,7 @@ const (
 	ServerlessAnvilTable = "anvil"
 
 	MaxActiveServerlessSessions = 5
-	TimeMarginBuffer            = time.Minute
+	TimeMarginBuffer            = 2 * time.Minute
 
 	// ServerlessSessionMaxRunTime adds one minute of margin to release the route
 	ServerlessSessionMaxRunTime = 10 * time.Minute
@@ -199,14 +199,14 @@ GetNextServerlessRoute returns the next available route from the serverless rout
  2. Checks if the session is rate limited
  3. Checks if there are any available routes
 */
-func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, error) {
+func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, bool, error) {
 	path, err := m.CheckServerlessSessionRateLimit(ctx, orgID, sessionID, serverlessRoutesTable)
 	if err != nil {
 		log.Err(err).Msg("GetNextServerlessRoute: CheckServerlessSessionRateLimit failed to check rate limit")
-		return "", err
+		return "", false, err
 	}
 	if len(path) > 0 {
-		return path, nil
+		return path, false, nil
 	}
 	// done rate limit checks
 	serviceTable := getGlobalServerlessTableKey(serverlessRoutesTable)
@@ -218,19 +218,19 @@ func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessi
 	if err != nil {
 		if err == redis.Nil {
 			// error code, server unavailable or something tbd
-			return "", fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
+			return "", false, fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
 		}
-		return "", err
+		return "", false, err
 	}
 	path, err = routeCmd.Result()
 	if err != nil {
 		// error code, server unavailable or something tbd
 		log.Err(err).Msg("GetNextServerlessRoute: failed to pop route")
-		return "", err
+		return "", false, err
 	}
 	if len(path) <= 0 {
 		// error code, server unavailable or something tbd
-		return "", fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
+		return "", false, fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
 	}
 	pipe = m.Writer.TxPipeline()
 	redisSet := redis.Z{
@@ -261,10 +261,9 @@ func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessi
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		log.Err(err).Msg("GetNextServerlessRoute: failed to update availability table")
-		return "", err
+		return "", false, err
 	}
-
-	return path, nil
+	return path, true, nil
 }
 
 func (m *IrisCache) GetServerlessSessionRoute(ctx context.Context, orgID int, sessionID string) (string, error) {

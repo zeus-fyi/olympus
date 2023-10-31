@@ -43,7 +43,7 @@ func (r *IrisRedisTestSuite) TestReadServerlessTableEntries() {
 
 func (r *IrisRedisTestSuite) TestGetServerlessTableRoutes() {
 	sessionID := uuid.New().String()
-	route, err := IrisRedisClient.GetNextServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)
+	route, _, err := IrisRedisClient.GetNextServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)
 	r.NoError(err)
 	r.NotEmpty(route)
 
@@ -67,4 +67,11 @@ func (r *IrisRedisTestSuite) TestReleaseServerlessRoute() {
 	sessionID := "sessionID"
 	err := IrisRedisClient.ReleaseServerlessRoute(context.Background(), 1, sessionID, ServerlessAnvilTable)
 	r.NoError(err)
+}
+
+func (r *IrisRedisTestSuite) TestPodNameExtract() {
+	//pn, err := extractPodName("http://anvil-0.anvil.anvil-serverless-4d383226.svc.cluster.local:8545")
+	//r.Require().NoError(err)
+	//r.Assert().Equal("anvil-0", pn)
+	//fmt.Println(pn)
 }

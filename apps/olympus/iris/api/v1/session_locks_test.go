@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 
+	"github.com/labstack/echo/v4"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	"github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
@@ -42,4 +44,17 @@ func (s *IrisV1TestSuite) TestAnvilSessionLock() {
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 	s.Require().NotEqual(http.StatusNotFound, resp.StatusCode())
+}
+
+func (s *IrisV1TestSuite) TestSwitch() {
+	b := echo.Map{
+		"jsonrpc": "2.0",
+		"method":  "hardhat_reset",
+	}
+	method, ok := b["method"].(string)
+	if ok && strings.HasPrefix(method, "hardhat_") {
+		b["method"] = replacePrefix(method, "hardhat_", "anvil_")
+	}
+
+	s.Require().Equal("anvil_reset", b["method"])
 }

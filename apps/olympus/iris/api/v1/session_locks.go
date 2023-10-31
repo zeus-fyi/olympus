@@ -150,7 +150,6 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 
 	// todo, just for anvil
 	p.Body = GetSanitizedForkPayload(p.Body)
-
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             routeURL,
 		OrgID:           orgID,
@@ -254,5 +253,15 @@ func GetSanitizedForkPayload(b echo.Map) echo.Map {
 		}
 		b["params"] = np
 	}
+	if ok && strings.HasPrefix(method, "hardhat_") {
+		b["method"] = replacePrefix(method, "hardhat_", "anvil_")
+	}
 	return b
+}
+
+func replacePrefix(input string, prefix string, replacement string) string {
+	if strings.HasPrefix(input, prefix) {
+		return replacement + input[len(prefix):]
+	}
+	return input
 }

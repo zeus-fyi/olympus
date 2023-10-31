@@ -21,7 +21,7 @@ func (p *PodsActivity) GetActivities() ActivitiesSlice {
 func (p *PodsActivity) DeletePod(ctx context.Context, podName string, cctx zeus_common_types.CloudCtxNs) error {
 	err := zeus.K8Util.DeleteFirstPodLike(ctx, cctx, podName, nil, nil)
 	if err != nil {
-		log.Err(err).Msg("DeletePod: DeleteFirstPodLike")
+		log.Err(err).Msg("PodsActivity: DeletePod: DeleteFirstPodLike")
 		return err
 	}
 	return nil

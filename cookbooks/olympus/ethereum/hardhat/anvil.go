@@ -90,7 +90,7 @@ var (
 	}
 	anvilServerlessChartPath = filepaths.Path{
 		PackageName: "",
-		DirIn:       "./olympus/ethereum/hardhat/serverless_anvil",
+		DirIn:       "./olympus/ethereum/hardhat/serverless_anvil_dev",
 		DirOut:      "./olympus/outputs",
 		FnIn:        "anvil-serverless", // filename for your gzip workload
 		FnOut:       "",

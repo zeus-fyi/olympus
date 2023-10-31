@@ -78,6 +78,6 @@ func (r *IrisRedisTestSuite) TestPodNameExtract() {
 func (r *IrisRedisTestSuite) TestRemoveAllServerlessTables() {
 	sessionID := "sessionID"
 
-	err := IrisRedisClient.DeleteAllServerlessTableAndOrgArtifacts(context.Background(), 1, ServerlessAnvilTable, sessionID)
+	err := IrisRedisClient.DeleteAllServerlessTableAndOrgArtifacts(context.Background(), r.Tc.ProductionLocalTemporalOrgID, ServerlessAnvilTable, sessionID)
 	r.NoError(err)
 }

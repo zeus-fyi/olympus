@@ -126,6 +126,12 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 	headers := make(http.Header)
 	headers.Set(AnvilSessionLockHeader, tempToken)
 
+	routeGroup := c.Request().Header.Get(RouteGroupHeader)
+
+	if routeGroup != "" {
+		headers.Set(RouteGroupHeader, routeGroup)
+	}
+	routeURL = "http://localhost:8888"
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             routeURL,
 		OrgID:           orgID,

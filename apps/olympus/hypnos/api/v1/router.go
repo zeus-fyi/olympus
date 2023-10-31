@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
@@ -31,6 +32,8 @@ const (
 	AnvilSessionLockHeader = "X-Anvil-Session-Lock-ID"
 	RouteGroupHeader       = "X-Route-Group"
 	NodeURL                = "http://localhost:8545"
+	InternalRouter         = "http://iris.iris.svc.cluster.local/v3/internal/router"
+	LocalProxiedRouter     = "http://localhost:8888/node"
 )
 
 func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
@@ -50,7 +53,15 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		}
 
 		if tableHeader != "" {
-			// TODO, set fork url to http://localhost:8888/node
+			wa := web3_client.NewWeb3ClientFakeSigner(NodeURL)
+			wa.IsAnvilNode = true
+			wa.Dial()
+			defer wa.Close()
+			err = wa.ResetNetwork(context.Background(), LocalProxiedRouter, 0)
+			if err != nil {
+				log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
+				return c.JSON(http.StatusInternalServerError, err)
+			}
 		}
 		sessionID = anvilHeader
 		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
@@ -97,11 +108,9 @@ func RpcLoadBalancerRequestHandlerNode(method string) func(c echo.Context) error
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 			return err
 		}
-		irisBetaSvc := "http://iris.iris.svc.cluster.local/v3/internal/router"
-
 		rw := iris_api_requests.NewIrisApiRequestsActivities()
 		req := &iris_api_requests.ApiProxyRequest{
-			Url:              irisBetaSvc,
+			Url:              InternalRouter,
 			Payload:          request.Body,
 			PayloadTypeREST:  method,
 			IsInternal:       true,

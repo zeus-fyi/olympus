@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
@@ -86,15 +87,21 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 	fmt.Println(nodeInfo.ForkConfig.ForkUrl)
 
 }
+
+const (
+	NodeURL            = "http://localhost:8545"
+	LocalProxiedRouter = "http://localhost:8888/node"
+)
+
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpcReset() {
-	na := "http://localhost:8545"
-	wa := web3_actions.NewWeb3ActionsClient(na)
-	wa.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
+	wa := web3_client.NewWeb3ClientFakeSigner(NodeURL)
 	wa.IsAnvilNode = true
+
 	wa.Dial()
 	defer wa.Close()
-	err := wa.ResetNetwork(context.Background(), na, 0)
+	err := wa.ResetNetwork(context.Background(), LocalProxiedRouter, 0)
 	t.Require().NoError(err)
+
 }
 
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpcInfo() {

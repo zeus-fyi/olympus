@@ -20,10 +20,6 @@ FROM ghcr.io/foundry-rs/foundry:latest as foundry
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
 
-COPY --from=builder /app/ca-certificate.crt /etc/ssl/certs
-COPY --from=builder /app/ca.pem /etc/ssl/certs
-COPY --from=builder /app/ca.key /etc/ssl/certs
-
 COPY --from=builder /app/hypnos /usr/bin/hypnos
 
 COPY --from=foundry /usr/local/bin/anvil /usr/bin/anvil

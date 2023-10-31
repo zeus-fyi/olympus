@@ -76,6 +76,7 @@ func RpcLoadBalancerRequestHandler2(method string) func(c echo.Context) error {
 			return err
 		}
 		irisBetaSvc := "http://iris.iris.svc.cluster.local/v1/internal/router"
+
 		rw := iris_api_requests.NewIrisApiRequestsActivities()
 		req := &iris_api_requests.ApiProxyRequest{
 			Url:              irisBetaSvc,
@@ -86,6 +87,10 @@ func RpcLoadBalancerRequestHandler2(method string) func(c echo.Context) error {
 			StatusCode:       http.StatusOK, // default
 			PayloadSizeMeter: payloadSizingMeter,
 		}
+
+		req.RequestHeaders.Add("X-Route-Group", "ethereum-mainnet") // Joining all values with a comma
+		req.RequestHeaders.Add("Authorization", "Bearer "+"fgjlsdjgmklosadmgslkasdmglkasm")
+
 		resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 		if err != nil {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")

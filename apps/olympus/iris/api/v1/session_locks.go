@@ -80,14 +80,16 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:             routeURL,
+		Url:             routeURL + "/req",
 		OrgID:           orgID,
 		PayloadTypeREST: method,
 		Payload:         p.Body,
 		IsInternal:      true,
 		Timeout:         60 * time.Second,
 	}
+
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtToAnvilInternalSimForkRequest(c.Request().Context(), req)
 	if err != nil {

@@ -1,12 +1,10 @@
 package v1_hypnos
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"io"
 	"net/http"
-	"os/exec"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -19,7 +17,6 @@ import (
 func Routes(e *echo.Echo) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
-	e.GET("/fork", ExecCmdHandler)
 	e.POST("/node", RpcLoadBalancerRequestHandlerNode("POST"))
 	e.POST("/", RpcLoadBalancerRequestHandler("POST"))
 	return e
@@ -37,29 +34,6 @@ const (
 	InternalRouter         = "http://iris.iris.svc.cluster.local/v3/internal/router"
 	LocalProxiedRouter     = "http://localhost:8888/node"
 )
-
-func ExecCmdHandler(c echo.Context) error {
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-
-	cmd := exec.Command(
-		"anvil",
-		"--host", "0.0.0.0",
-		"--port", "8545",
-		"--fork-url", "0.0.0.0:8888/node",
-	)
-
-	log.Info().Msgf("Exec: fork:", cmd.String())
-	routeTable = "ethereum-mainnet"
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Warn().Err(err).Str("stdout", out.String()).Str("stderr", stderr.String()).Msg("error forking node")
-		log.Err(err).Str("stdout", out.String()).Str("stderr", stderr.String()).Msg("error forking node")
-	}
-	return nil
-}
 
 func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 	return func(c echo.Context) error {

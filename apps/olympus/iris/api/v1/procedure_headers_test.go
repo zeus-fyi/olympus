@@ -99,8 +99,8 @@ func (s *IrisV1TestSuite) TestEthJsonRPC() {
 	groupName := "ethereum-mainnet"
 	irisClient := resty_base.GetBaseRestyClient("https://iris.zeus.fyi/v1/router", s.Tc.ProductionLocalTemporalBearerToken)
 	irisClient.Header.Set("Content-Type", "application/json")
-	//irisClient.Header.Set(AnvilSessionLockHeader, groupName)
-	irisClient.Header.Set(iris_programmable_proxy.RouteGroupHeader, groupName)
+	irisClient.Header.Set(AnvilSessionLockHeader, groupName)
+	irisClient.Header.Set(iris_programmable_proxy.RouteGroupHeader, "Zeus-Test")
 	irisClient.Header.Set(iris_programmable_proxy_v1_beta.LoadBalancingStrategy, iris_programmable_proxy_v1_beta.Adaptive)
 	payload := `{
 		"jsonrpc": "2.0",

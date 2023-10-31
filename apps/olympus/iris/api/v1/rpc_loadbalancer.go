@@ -89,6 +89,9 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 					return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
 				}
 			}
+			if ou.OrgID <= 0 {
+				return c.JSON(http.StatusUnauthorized, Response{Message: "org not found"})
+			}
 			plan, ok := c.Get("servicePlan").(string)
 			if !ok {
 				return c.JSON(http.StatusUnauthorized, Response{Message: "no service plan found"})

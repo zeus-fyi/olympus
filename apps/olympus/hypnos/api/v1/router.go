@@ -129,6 +129,7 @@ func RpcLoadBalancerRequestHandlerNode(method string) func(c echo.Context) error
 		if sessionID != "" {
 			req.RequestHeaders.Add("Authorization", "Bearer "+sessionID)
 		}
+		log.Info().Msgf("Hypnos: RpcLoadBalancerRequestHandler: req: %+v", sessionID)
 		resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 		if err != nil {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")

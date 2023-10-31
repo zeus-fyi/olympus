@@ -5,15 +5,17 @@ import (
 	"os"
 	"os/signal"
 
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	"github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy"
-	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 func (s *IrisV1TestSuite) TestAnvilSessionLock() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
-	s.E.POST("/v1/anvil", ProcessLockedSessionsHandler)
+	iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
+
+	InitV1Routes(s.E)
 	start := make(chan struct{}, 1)
 	go func() {
 		close(start)
@@ -24,18 +26,18 @@ func (s *IrisV1TestSuite) TestAnvilSessionLock() {
 	irisClient := resty_base.GetBaseRestyClient("http://localhost:9010", s.Tc.ProductionLocalTemporalBearerToken)
 	irisClient.Header.Set("Content-Type", "application/json")
 	irisClient.Header.Set(iris_programmable_proxy.RouteGroupHeader, groupName)
-	irisClient.Header.Set(iris_programmable_proxy_v1_beta.LoadBalancingStrategy, iris_programmable_proxy_v1_beta.Adaptive)
+	irisClient.Header.Set(AnvilSessionLockHeader, "Zeus-Test")
 	payload := `{
 		"jsonrpc": "2.0",
-		"procedure": "eth_maxBlockAggReduce",
 		"method": "eth_getBlockByNumber",
 		"params": ["latest", true],
 		"id": 1
 	}`
+
 	resp, err := irisClient.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(payload).
-		Post("/v1/anvil")
+		Post("/v1/router")
 
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)

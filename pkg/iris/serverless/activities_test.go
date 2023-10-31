@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
@@ -88,22 +90,42 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 }
 
 const (
+	NodeURL            = "http://localhost:8545"
 	HypnosURL          = "http://localhost:8888"
 	LocalProxiedRouter = "http://localhost:8888/node"
 )
 
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpcReset() {
-	wa := web3_actions.NewWeb3ActionsClient(HypnosURL)
+
+	token, err := iris_redis.IrisRedisClient.SetInternalAuthCache(ctx, org_users.OrgUser{
+		OrgUsers: hestia_autogen_bases.OrgUsers{
+			UserID: t.Tc.ProductionLocalTemporalUserID,
+			OrgID:  t.Tc.ProductionLocalTemporalOrgID,
+		},
+	}, "sessionID", "enterprise", "sessionID")
+	t.Require().NoError(err)
+
+	ous, plan, err := iris_redis.IrisRedisClient.GetInternalAuthCacheIfExists(ctx, token)
+	t.Require().NoError(err)
+	t.Require().NotNil(ous)
+	t.Require().NotNil(plan)
+	t.Assert().Equal(t.Tc.ProductionLocalTemporalOrgID, ous.OrgID)
+	t.Assert().Equal(t.Tc.ProductionLocalTemporalUserID, ous.UserID)
+	t.Assert().Equal("enterprise", plan)
+	wa := web3_actions.NewWeb3ActionsClient(NodeURL)
 	wa.IsAnvilNode = true
 
 	wa.Dial()
 	defer wa.Close()
 
 	//wa.AddDefaultEthereumMainnetTableHeader()
-	wa.NodeURL = HypnosURL
-	wa.Headers["X-Anvil-Session-Lock-ID"] = "sessionID-sessionID-sessionID"
-	err := wa.ResetNetwork(context.Background(), LocalProxiedRouter, 0)
+	wa.C.Client().SetHeader("X-Anvil-Session-Lock-ID", token)
+	wa.C.Client().SetHeader("X-Route-Group", "ethereum-mainnet")
+
+	res, err := wa.SetRpcUrl(ctx, LocalProxiedRouter)
+	//err = wa.ResetNetwork(context.Background(), LocalProxiedRouter, 0)
 	t.Require().NoError(err)
+	fmt.Println(res)
 }
 
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpcInfo() {

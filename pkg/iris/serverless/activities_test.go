@@ -65,9 +65,9 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 	//t.Require().NoError(err)
 	//t.Require().NotNil(route)
 
-	irisSvc := "https://iris.zeus.fyi/v1/router"
+	//irisSvc := "https://iris.zeus.fyi/v1/router"
 	//irisSvc = "http://localhost:8080/v1/router"
-	//irisSvc = "http://localhost:8545"
+	irisSvc := "http://localhost:8888"
 
 	wa := web3_actions.NewWeb3ActionsClient(irisSvc)
 	wa.AddDefaultEthereumMainnetTableHeader()

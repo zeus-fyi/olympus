@@ -43,7 +43,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			Url:              "http://localhost:8545",
 			Payload:          request.Body,
 			PayloadTypeREST:  method,
-			IsInternal:       false,
+			IsInternal:       true,
 			Timeout:          1 * time.Minute,
 			StatusCode:       http.StatusOK, // default
 			PayloadSizeMeter: payloadSizingMeter,

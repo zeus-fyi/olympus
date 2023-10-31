@@ -5,6 +5,7 @@ on:
     paths:
       - apps/olympus/hypnos/**
       - pkg/hypnos/**
+      - docker/hypnos/**
       - .github/workflows/hypnos.yml
     branches:
       - main

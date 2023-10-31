@@ -52,4 +52,4 @@ COPY --from=builder /app/ca.key /etc/ssl/certs
 COPY --from=builder /app/hypnos /usr/bin/hypnos
 COPY --from=foundry /app/anvil /usr/bin/anvil
 
-EXPOSE 8888, 8545
+EXPOSE 8888 8545

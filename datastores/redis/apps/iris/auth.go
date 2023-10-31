@@ -111,7 +111,7 @@ func (m *IrisCache) SetInternalAuthCache(ctx context.Context, ou org_users.OrgUs
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err).Msgf("SetAuthCache")
+		log.Err(err).Msgf("SetInternalAuthCache")
 		return tempToken, err
 	}
 	return tempToken, nil

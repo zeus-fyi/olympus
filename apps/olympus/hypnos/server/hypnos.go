@@ -19,12 +19,12 @@ func Hypnos() {
 
 func init() {
 	viper.AutomaticEnv()
-	Cmd.Flags().StringVar(&cfg.Port, "port", "9005", "server port")
+	Cmd.Flags().StringVar(&cfg.Port, "port", "8888", "server port")
 }
 
 // Cmd represents the base command when called without any subcommands
 var Cmd = &cobra.Command{
-	Use:   "Pausing a container, pod, network, or otherwise",
+	Use:   "Proxying a container, pod, network, or otherwise",
 	Short: "The god of hypnosis",
 	Run: func(cmd *cobra.Command, args []string) {
 		Hypnos()

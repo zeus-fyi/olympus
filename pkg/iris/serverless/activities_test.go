@@ -123,7 +123,7 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpcReset() {
 	wa.C.Client().SetHeader("X-Route-Group", "ethereum-mainnet")
 
 	res, err := wa.SetRpcUrl(ctx, LocalProxiedRouter)
-	//err = wa.ResetNetwork(context.Background(), LocalProxiedRouter, 0)
+	err = wa.ResetNetwork(context.Background(), LocalProxiedRouter, 1)
 	t.Require().NoError(err)
 	fmt.Println(res)
 }

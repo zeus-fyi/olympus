@@ -64,6 +64,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 				return c.JSON(http.StatusInternalServerError, rerr)
 			}
 		}
+		// todo revist after pods deletion is confirmed
 		sessionID = anvilHeader
 		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 		request := new(v1_iris.ProxyRequest)
@@ -83,7 +84,14 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			StatusCode:       http.StatusOK, // default
 			PayloadSizeMeter: payloadSizingMeter,
 		}
+		req.RequestHeaders = http.Header{}
+		if routeTable != "" {
+			req.RequestHeaders.Add("X-Route-Group", routeTable)
+		}
 
+		if sessionID != "" {
+			req.RequestHeaders.Add("Authorization", "Bearer "+sessionID)
+		}
 		resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 		if err != nil {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")

@@ -88,6 +88,7 @@ func RpcLoadBalancerRequestHandler2(method string) func(c echo.Context) error {
 			PayloadSizeMeter: payloadSizingMeter,
 		}
 
+		req.RequestHeaders = http.Header{}
 		req.RequestHeaders.Add("X-Route-Group", "ethereum-mainnet") // Joining all values with a comma
 		req.RequestHeaders.Add("Authorization", "Bearer "+"fgjlsdjgmklosadmgslkasdmglkasm")
 

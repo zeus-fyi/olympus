@@ -46,7 +46,7 @@ func ExecCmdHandler(c echo.Context) error {
 	cmd := exec.Command(
 		"anvil",
 		"--fork-url",
-		"http://localhost:8888/node",
+		"0.0.0.0:8888/node",
 	)
 
 	log.Info().Msgf("Exec: fork:", cmd.String())
@@ -55,9 +55,8 @@ func ExecCmdHandler(c echo.Context) error {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		log.Warn().Err(err).Str("stdout", out.String()).Str("stderr", stderr.String()).Msg("error downloading snapshot from S3")
-		log.Err(err).Str("stdout", out.String()).Str("stderr", stderr.String()).Msg("error downloading snapshot from S3")
-		return err
+		log.Warn().Err(err).Str("stdout", out.String()).Str("stderr", stderr.String()).Msg("error forking node")
+		log.Err(err).Str("stdout", out.String()).Str("stderr", stderr.String()).Msg("error forking node")
 	}
 	return nil
 }

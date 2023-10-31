@@ -54,7 +54,7 @@ func (p *PodsWorkflows) DeletePodWorkflow(ctx workflow.Context, wfId, podName st
 	}
 
 	dpCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(dpCtx, "", podName, cctx).Get(dpCtx, nil)
+	err = workflow.ExecuteActivity(dpCtx, p.DeletePod, podName, cctx).Get(dpCtx, nil)
 	if err != nil {
 		logger.Error("Failed to delete pod", "Error", err)
 		return err

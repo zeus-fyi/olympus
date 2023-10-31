@@ -75,7 +75,7 @@ func RpcLoadBalancerRequestHandler2(method string) func(c echo.Context) error {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 			return err
 		}
-		irisBetaSvc := "http://iris.iris.svc.cluster.local/v1/internal/router"
+		irisBetaSvc := "http://iris.iris.svc.cluster.local/v2/internal/router"
 
 		rw := iris_api_requests.NewIrisApiRequestsActivities()
 		req := &iris_api_requests.ApiProxyRequest{

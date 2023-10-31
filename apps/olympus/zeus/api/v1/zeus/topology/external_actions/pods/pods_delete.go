@@ -13,7 +13,7 @@ import (
 
 func PodsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("PodsDeleteRequest")
+	log.Debug().Msg("PodsDeleteRequest")
 
 	err := topology_worker.Worker.ExecuteDeletePodWorkflow(ctx, request.CloudCtxNs, request.PodName, request.Delay)
 	if err != nil {

@@ -147,7 +147,7 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		err = wa.ResetNetwork(context.Background(), rpcNew, 0)
 		if err != nil {
 			log.Err(err).Msg("ProxyRequest: ProcessLockedSessionRoute: wa.ResetNetwork")
-			return c.JSON(http.StatusInternalServerError, err)
+			return c.JSON(http.StatusInternalServerError, nil)
 		}
 	}
 

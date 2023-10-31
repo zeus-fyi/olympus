@@ -132,7 +132,7 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 	if routeGroup != "" {
 		headers.Set(RouteGroupHeader, routeGroup)
 	}
-
+	// for local testing: routeURL = "http://localhost:8888"
 	if isNewSession && routeGroup != "" {
 		// todo, just for anvil
 		wa := web3_client.NewWeb3ClientFakeSigner(routeURL)
@@ -150,6 +150,7 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 
 	// todo, just for anvil
 	p.Body = GetSanitizedForkPayload(p.Body)
+
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             routeURL,
 		OrgID:           orgID,

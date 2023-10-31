@@ -14,7 +14,6 @@ import (
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
-	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 )
 
 const (
@@ -79,9 +78,6 @@ func InitV2InternalRoutes1(e *echo.Echo) {
 				log.Info().Msg("InitV1Routes: Cookie found")
 				token = cookie.Value
 				usingCookie = true
-			}
-			if token == "fgjlsdjgmklosadmgslkasdmglkasm" {
-				token = artemis_orchestration_auth.Bearer
 			}
 
 			orgU, plan, err := iris_redis.IrisRedisClient.GetAuthCacheIfExists(ctx, token)

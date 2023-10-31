@@ -49,6 +49,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 
 		anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
 		if len(anvilHeader) <= 0 {
+			log.Info().Interface("anvilHeader", anvilHeader).Msgf("Hypnos: RpcLoadBalancerRequestHandler: anvil session lock id is required")
 			return c.JSON(http.StatusBadRequest, v1_iris.Response{Message: "anvil session lock id is required"})
 		}
 

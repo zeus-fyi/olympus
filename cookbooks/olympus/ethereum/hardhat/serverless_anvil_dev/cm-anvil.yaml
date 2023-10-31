@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-anvil
+data:
+  start.sh: |-
+    #!/bin/sh 
+    exec anvil --host 0.0.0.0
+  hypnos.sh: |-
+    #!/bin/sh 
+    hypnos

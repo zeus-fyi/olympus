@@ -10,9 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
+	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -54,14 +54,14 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		}
 
 		if tableHeader != "" {
-			wa := web3_client.NewWeb3ClientFakeSigner(NodeURL)
+			wa := web3_actions.NewWeb3ActionsClient(NodeURL)
 			wa.IsAnvilNode = true
 			wa.Dial()
 			defer wa.Close()
-			err = wa.ResetNetwork(context.Background(), LocalProxiedRouter, 0)
-			if err != nil {
-				log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
-				return c.JSON(http.StatusInternalServerError, err)
+			resp, rerr := wa.SetRpcUrl(context.Background(), LocalProxiedRouter)
+			if rerr != nil {
+				log.Err(rerr).Interface("resp", resp).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
+				return c.JSON(http.StatusInternalServerError, rerr)
 			}
 		}
 		sessionID = anvilHeader

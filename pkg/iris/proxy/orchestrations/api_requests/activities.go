@@ -91,7 +91,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 
 	if pr.OrgID == 7138983863666903883 {
 		// for internal
-	} else if pr.IsInternal && strings.HasPrefix(pr.Url, "http://anvil-") {
+	} else if pr.IsInternal {
 		log.Info().Interface("pr.URL", pr.Url).Msg("ExtLoadBalancerRequest: anvil request")
 	} else {
 		if parsedURL.Scheme != "https" {
@@ -108,7 +108,9 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	for k, v := range pr.RequestHeaders {
 		switch k {
 		case "Authorization":
-			continue
+			if !pr.IsInternal {
+				continue
+			}
 		}
 		r.SetHeader(k, strings.Join(v, ", ")) // Joining all values with a comma
 	}

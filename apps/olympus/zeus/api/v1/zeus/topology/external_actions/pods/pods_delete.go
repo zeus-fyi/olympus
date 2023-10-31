@@ -7,18 +7,19 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
 func PodsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("PodsDeleteRequest")
-	err := zeus.K8Util.DeleteFirstPodLike(ctx, request.CloudCtxNs, request.PodName, request.DeleteOpts, request.FilterOpts)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("PodsDeleteRequest: DeleteFirstPodLike")
-		return err
-	}
 
+	err := topology_worker.Worker.ExecuteDeletePodWorkflow(ctx, request.CloudCtxNs, request.PodName, request.Delay)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("PodsDeleteRequest: ExecuteDeletePodWorkflow")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	return c.JSON(http.StatusOK, fmt.Sprintf("pod %s deleted", request.PodName))
 }
 

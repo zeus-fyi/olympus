@@ -3,7 +3,10 @@ package v1_iris
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -12,7 +15,11 @@ import (
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
+	iris_serverless "github.com/zeus-fyi/olympus/pkg/iris/serverless"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
+
+// only used in tests
 
 func ProcessLockedSessionsHandler(c echo.Context) error {
 	request := new(ProxyRequest)
@@ -33,7 +40,7 @@ func ProcessLockedSessionsHandler(c echo.Context) error {
 			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
 		}
 	}
-	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, "")
+	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, c.Request().Method, "")
 }
 
 /*
@@ -57,19 +64,54 @@ const (
 	anvilServerlessRoutesTableName = "anvil"
 )
 
+var cctx = zeus_common_types.CloudCtxNs{
+	CloudProvider: "ovh",
+	Region:        "us-west-or-1",
+	Context:       "kubernetes-admin@zeusfyi",
+	Namespace:     "anvil-serverless-4d383226",
+}
+
 func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute string) (string, error) {
 	if sessionID == "Zeus-Test" {
 		return "http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545", nil
 	}
-	route, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, tableRoute)
+	route, isNewSession, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, tableRoute)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetNextServerlessRoute")
 		return route, err
 	}
+	if isNewSession {
+		podName, perr := extractPodName(route)
+		if perr != nil {
+			log.Err(perr).Str("route", route).Msg("GetSessionLockedRoute: extractPodName")
+			return "", perr
+		}
+		err = iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow(ctx, cctx, podName, iris_redis.ServerlessSessionMaxRunTime)
+		if err != nil {
+			log.Err(err).Str("podName", podName).Msg("GetSessionLockedRoute: iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow")
+			return "", err
+		}
+	}
 	return route, err
 }
 
-func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method string) error {
+func extractPodName(s string) (string, error) {
+	// Parse the URL
+	u, err := url.Parse(s)
+	if err != nil {
+		return "", err
+	}
+
+	// Split the host by "." to get the first part
+	parts := strings.Split(u.Hostname(), ".")
+	if len(parts) > 0 {
+		return parts[0], nil
+	}
+
+	return "", fmt.Errorf("cannot extract pod name from url: %s", s)
+}
+
+func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method, tempToken string) error {
 	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
 	if endLockedSessionLease == sessionID {
 		// todo remove hardcoded table name
@@ -80,14 +122,20 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+
+	headers := make(http.Header)
+	headers.Set(AnvilSessionLockHeader, tempToken)
+
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             routeURL,
 		OrgID:           orgID,
 		PayloadTypeREST: method,
 		Payload:         p.Body,
 		IsInternal:      true,
+		RequestHeaders:  headers,
 		Timeout:         60 * time.Second,
 	}
+
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtToAnvilInternalSimForkRequest(c.Request().Context(), req)
 	if err != nil {

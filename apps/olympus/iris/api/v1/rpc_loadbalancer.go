@@ -89,13 +89,27 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 					return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
 				}
 			}
+			plan, ok := c.Get("servicePlan").(string)
+			if !ok {
+				return c.JSON(http.StatusUnauthorized, Response{Message: "no service plan found"})
+			}
+			token, ok := c.Get("bearer").(string)
+			if !ok {
+				return c.JSON(http.StatusUnauthorized, Response{Message: "no bearer token found"})
+			}
+			tempToken, terr := iris_redis.IrisRedisClient.SetInternalAuthCache(context.Background(), ou, token, plan, anvilHeader)
+			if terr != nil {
+				log.Err(terr).Msg("ProcessRpcLoadBalancerRequest: SetInternalAuthCache")
+				return terr
+			}
+
 			go func(orgID int, usage *iris_usage_meters.PayloadSizeMeter) {
 				err = iris_redis.IrisRedisClient.RecordRequestUsage(context.Background(), orgID, usage)
 				if err != nil {
 					log.Err(err).Interface("orgID", orgID).Interface("usage", usage).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 				}
 			}(ou.OrgID, payloadSizingMeter)
-			return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, method)
+			return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, method, tempToken)
 		}
 
 		if payloadSizingMeter.N() <= 0 {

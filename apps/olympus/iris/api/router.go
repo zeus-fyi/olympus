@@ -8,6 +8,7 @@ import (
 	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
 	v1Beta_iris "github.com/zeus-fyi/olympus/iris/api/v1beta"
 	v1internal_iris "github.com/zeus-fyi/olympus/iris/api/v1internal"
+	v3_iris_internal "github.com/zeus-fyi/olympus/iris/api/v3internal"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -20,6 +21,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	v1internal_iris.InitV1InternalRoutes(e)
 	v1Beta_iris.InitV1BetaInternalRoutes(e)
 	v1internal_iris.InitV2InternalRoutes1(e)
+	v3_iris_internal.InitV3InternalRoutes1(e)
 	return e
 }
 

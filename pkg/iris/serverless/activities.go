@@ -3,11 +3,18 @@ package iris_serverless
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
+	zeus_client "github.com/zeus-fyi/zeus/zeus/z_client"
+	pods_client "github.com/zeus-fyi/zeus/zeus/z_client/workloads/pods"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
+	zeus_pods_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/pods"
 )
 
 /*
@@ -40,7 +47,7 @@ type ActivitiesSlice []interface{}
 
 func (i *IrisPlatformActivities) GetActivities() ActivitiesSlice {
 	actSlice := []interface{}{
-		i.ResyncServerlessRoutes, i.FetchLatestServerlessRoutes,
+		i.ResyncServerlessRoutes, i.FetchLatestServerlessRoutes, i.RestartServerlessPod,
 	}
 	return actSlice
 }
@@ -85,4 +92,22 @@ func (i *IrisPlatformActivities) FetchLatestServerlessRoutes(ctx context.Context
 		})
 	}
 	return routes, nil
+}
+
+func (i *IrisPlatformActivities) RestartServerlessPod(ctx context.Context, cctx zeus_common_types.CloudCtxNs, podName string, delay time.Duration) error {
+	par := zeus_pods_reqs.PodActionRequest{
+		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
+			CloudCtxNs: cctx,
+		},
+		PodName: podName,
+		Delay:   delay,
+	}
+	zc := zeus_client.NewDefaultZeusClient(artemis_orchestration_auth.Bearer)
+	pc := pods_client.NewPodsClientFromZeusClient(zc)
+	_, err := pc.DeletePods(context.Background(), par)
+	if err != nil {
+		log.Err(err).Interface("par", par).Msg("RestartServerlessPod: DeletePods")
+		return err
+	}
+	return nil
 }

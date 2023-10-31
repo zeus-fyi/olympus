@@ -14,8 +14,12 @@ spec:
       targetPort: http-rpc
       protocol: TCP
       name: http-rpc
+    - port: 8888
+      targetPort: hypnos
+      protocol: TCP
+      name: hypnos
     - port: 80
-      targetPort: http-rpc
+      targetPort: hypnos
       protocol: TCP
       name: http
   selector:

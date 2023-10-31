@@ -9,7 +9,7 @@ metadata:
   name: anvil
 spec:
   podManagementPolicy: OrderedReady
-  replicas: 50
+  replicas: 2
   selector:
     matchLabels:
       app: anvil
@@ -24,7 +24,30 @@ spec:
         app.kubernetes.io/name: anvil
     spec:
       affinity: {}
+      shareProcessNamespace: true
       containers:
+        - name: hypnos
+          image: "registry.digitalocean.com/zeus-fyi/hypnos:latest"
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/hypnos.sh" ]
+          volumeMounts:
+            - name: cm-anvil
+              mountPath: "/scripts"
+          ports:
+            - name: hypnos
+              containerPort: 8888
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 60
+            periodSeconds: 120
+            tcpSocket:
+              port: hypnos
+          readinessProbe:
+            initialDelaySeconds: 60
+            periodSeconds: 120
+            tcpSocket:
+              port: hypnos
         - name: anvil
           image: "ghcr.io/foundry-rs/foundry:latest"
           imagePullPolicy: IfNotPresent
@@ -50,8 +73,8 @@ spec:
             tcpSocket:
               port: http-rpc
           readinessProbe:
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            initialDelaySeconds: 60
+            periodSeconds: 120
             tcpSocket:
               port: http-rpc
       terminationGracePeriodSeconds: 300

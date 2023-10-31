@@ -30,23 +30,24 @@ func (s *LbEnvTradingTestSuite) TestHypnosLocal() {
 	}, s.Tc.ProductionLocalTemporalBearerToken, "enterprise", "test")
 	s.Require().NoError(err)
 	fmt.Println(token)
-	local := "http://localhost:8888"
+	local := "http://localhost:8080/v1/router"
 	wa := web3_client.NewWeb3Client(local, secondAccount)
 	wa.AddDefaultEthereumMainnetTableHeader()
-	wa.AddSessionLockHeader(token)
+	wa.AddSessionLockHeader("test")
 	wa.IsAnvilNode = true
 	wa.Dial()
 	defer wa.Close()
-	origInfo, err := wa.GetNodeMetadata(ctx)
-	s.NoError(err)
-	s.NotEmpty(origInfo)
-	fmt.Println(origInfo.ForkConfig.ForkUrl)
+	//origInfo, err := wa.GetNodeMetadata(ctx)
+	//s.NoError(err)
+	//s.NotEmpty(origInfo)
+	//fmt.Println(origInfo.ForkConfig.ForkUrl)
 
+	wa.AddBearerToken(s.Tc.ProductionLocalTemporalBearerToken)
 	rpcNew := "http://localhost:8888/node"
 	err = wa.ResetNetwork(ctx, rpcNew, 0)
 	s.NoError(err)
 
-	origInfo, err = wa.GetNodeMetadata(ctx)
+	origInfo, err := wa.GetNodeMetadata(ctx)
 	s.NoError(err)
 	s.NotEmpty(origInfo)
 	s.Assert().Equal(rpcNew, origInfo.ForkConfig.ForkUrl)

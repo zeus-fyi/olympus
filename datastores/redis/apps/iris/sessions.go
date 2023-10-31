@@ -18,7 +18,7 @@ import (
 
 func (m *IrisCache) AddSessionWithTTL(ctx context.Context, orgID int, sessionID, tableRoute, serverlessRoutesTable string, ttl time.Duration) error {
 	// Start a pipeline using the writer client
-	orgSessionID := getOrgSessionIDKey(orgID, sessionID)
+	orgSessionID := getOrgSessionIDKey(orgID, serverlessRoutesTable, sessionID)
 	pipe := m.Writer.Pipeline()
 	/*
 		user -> sessions map

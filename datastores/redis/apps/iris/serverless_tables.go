@@ -134,7 +134,7 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 	var getSessionRoute *redis.StringCmd
 	if len(sessionID) > 0 {
 		// Add the session to the rate limit table
-		getSessionRoute = pipe.Get(ctx, getOrgSessionIDKey(orgID, sessionID))
+		getSessionRoute = pipe.Get(ctx, getOrgSessionIDKey(orgID, serverlessRoutesTable, sessionID))
 	}
 	// checks user's active sessions against max allowed
 	activeCount := pipe.ZCount(ctx, getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable), fmt.Sprintf("%d", time.Now().Unix()), "inf")
@@ -245,7 +245,7 @@ func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessi
 
 	// NX: Set key to hold string value if key does not exist.
 	// this is used to k->v lookup for org-sessionID -> route
-	pipe.SetNX(ctx, getOrgSessionIDKey(orgID, sessionID), path, ServerlessSessionMaxRunTime)
+	pipe.SetNX(ctx, getOrgSessionIDKey(orgID, serverlessRoutesTable, sessionID), path, ServerlessSessionMaxRunTime)
 
 	// Add the session to the rate limit table
 	sessionRateLimit := getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable)
@@ -269,10 +269,10 @@ func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessi
 	return path, true, nil
 }
 
-func (m *IrisCache) GetServerlessSessionRoute(ctx context.Context, orgID int, sessionID string) (string, error) {
+func (m *IrisCache) GetServerlessSessionRoute(ctx context.Context, orgID int, serverlessRoutesTable, sessionID string) (string, error) {
 	pipe := m.Reader.TxPipeline()
 	// Gets and removes session-to-route cache key
-	getSessionRoute := pipe.Get(ctx, getOrgSessionIDKey(orgID, sessionID))
+	getSessionRoute := pipe.Get(ctx, getOrgSessionIDKey(orgID, serverlessRoutesTable, sessionID))
 
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
@@ -291,14 +291,14 @@ func (m *IrisCache) GetServerlessSessionRoute(ctx context.Context, orgID int, se
 
 func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) error {
 	// Get the value from the result of the Get command
-	path, err := m.GetServerlessSessionRoute(ctx, orgID, sessionID)
+	path, err := m.GetServerlessSessionRoute(ctx, orgID, serverlessRoutesTable, sessionID)
 	if err != nil {
 		log.Err(err).Msg("ReleaseServerlessRoute: failed to get session route")
 		return err
 	}
 	pipe := m.Writer.TxPipeline()
 	// deletes session -> route cache key
-	pipe.Del(ctx, getOrgSessionIDKey(orgID, sessionID))
+	pipe.Del(ctx, getOrgSessionIDKey(orgID, serverlessRoutesTable, sessionID))
 
 	tn := time.Now().Unix()
 	// Resets the timing of the route with some margin
@@ -354,4 +354,45 @@ func (m *IrisCache) GetServerlessRoutes(ctx context.Context, serverlessTableName
 		return nil, err
 	}
 	return path, err
+}
+
+func (m *IrisCache) DeleteAllServerlessTableArtifacts(ctx context.Context, serverlessTableName string) error {
+	pipe := m.Writer.TxPipeline()
+	// Gets and removes session-to-route cache key
+	serviceTable := getGlobalServerlessTableKey(serverlessTableName)
+	serviceCalendar := getGlobalServerlessAvailabilityTableKey(serverlessTableName)
+	pipe.Del(ctx, serviceTable)
+	pipe.Del(ctx, serviceCalendar)
+
+	// Execute the transaction
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Err(err).Msg("GetServerlessSessionRoute: failed to get session route")
+		return err
+	}
+
+	return err
+}
+
+func (m *IrisCache) DeleteAllServerlessTableAndOrgArtifacts(ctx context.Context, orgID int, serverlessTableName, sessionID string) error {
+	pipe := m.Writer.TxPipeline()
+	// Gets and removes session-to-route cache key
+
+	serviceTable := getGlobalServerlessTableKey(serverlessTableName)
+	serviceCalendar := getGlobalServerlessAvailabilityTableKey(serverlessTableName)
+	orgSession := getOrgSessionIDKey(orgID, serverlessTableName, sessionID)
+	orgSessionCount := getOrgActiveServerlessCountKey(orgID, serverlessTableName)
+	pipe.Del(ctx, serviceTable)
+	pipe.Del(ctx, serviceCalendar)
+	pipe.Del(ctx, orgSession)
+	pipe.Del(ctx, orgSessionCount)
+
+	// Execute the transaction
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Err(err).Msg("GetServerlessSessionRoute: failed to get session route")
+		return err
+	}
+
+	return err
 }

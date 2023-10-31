@@ -12,7 +12,6 @@ import (
 	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
-	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -45,32 +44,14 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		}
 
 		tableHeader := c.Request().Header.Get(RouteGroupHeader)
-		routeTable = tableHeader
-
 		anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
 		if len(anvilHeader) <= 0 {
 			log.Info().Interface("anvilHeader", anvilHeader).Msgf("Hypnos: RpcLoadBalancerRequestHandler: anvil session lock id is required")
 			return c.JSON(http.StatusBadRequest, v1_iris.Response{Message: "anvil session lock id is required"})
 		}
-
-		if tableHeader != "" {
-			wa := web3_actions.NewWeb3ActionsClient(NodeURL)
-			wa.IsAnvilNode = true
-			wa.Dial()
-			defer wa.Close()
-			resp, rerr := wa.SetRpcUrl(context.Background(), LocalProxiedRouter)
-			if rerr != nil {
-				log.Err(rerr).Interface("resp", resp).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
-				return c.JSON(http.StatusInternalServerError, rerr)
-			}
-			err = wa.ResetNetwork(context.Background(), "", 0)
-			if err != nil {
-				log.Err(err).Interface("resp", resp).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
-				return c.JSON(http.StatusInternalServerError, err)
-			}
-		}
 		// todo revist after pods deletion is confirmed
 		sessionID = anvilHeader
+
 		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 		request := new(v1_iris.ProxyRequest)
 		request.Body = echo.Map{}
@@ -80,13 +61,12 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			return err
 		}
 		reqHeaders := http.Header{}
-		if routeTable != "" {
-			reqHeaders.Add("X-Route-Group", routeTable)
+
+		if tableHeader != "" {
+			routeTable = tableHeader
 		}
 
-		if sessionID != "" {
-			reqHeaders.Add("Authorization", "Bearer "+sessionID)
-		}
+		reqHeaders.Add("Authorization", "Bearer "+sessionID)
 		rw := iris_api_requests.NewIrisApiRequestsActivities()
 		req := &iris_api_requests.ApiProxyRequest{
 			Url:              NodeURL,
@@ -140,6 +120,7 @@ func RpcLoadBalancerRequestHandlerNode(method string) func(c echo.Context) error
 		if sessionID != "" {
 			req.RequestHeaders.Add("Authorization", "Bearer "+sessionID)
 		}
+		log.Info().Msgf("Hypnos: RpcLoadBalancerRequestHandler: req: %+v", sessionID)
 		resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 		if err != nil {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")

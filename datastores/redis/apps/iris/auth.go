@@ -104,7 +104,7 @@ func (m *IrisCache) SetInternalAuthCache(ctx context.Context, ou org_users.OrgUs
 	tempToken := fmt.Sprintf("%s-%s-%s", hashedToken, hashedTokenPlan, hashedTokenUserID)
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
-	ttl := time.Minute * 10
+	ttl := ServerlessSessionMaxRunTime
 	pipe.Set(ctx, hashedToken, ou.OrgID, ttl)
 	pipe.Set(ctx, hashedTokenPlan, plan, ttl)
 	pipe.Set(ctx, hashedTokenUserID, ou.UserID, ttl)

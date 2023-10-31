@@ -13,6 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 	iris_serverless "github.com/zeus-fyi/olympus/pkg/iris/serverless"
@@ -71,28 +72,28 @@ var cctx = zeus_common_types.CloudCtxNs{
 	Namespace:     "anvil-serverless-4d383226",
 }
 
-func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute string) (string, error) {
+func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute string) (string, bool, error) {
 	if sessionID == "Zeus-Test" {
-		return "http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545", nil
+		return "http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545", false, nil
 	}
 	route, isNewSession, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, tableRoute)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetNextServerlessRoute")
-		return route, err
+		return route, isNewSession, err
 	}
 	if isNewSession {
 		podName, perr := extractPodName(route)
 		if perr != nil {
 			log.Err(perr).Str("route", route).Msg("GetSessionLockedRoute: extractPodName")
-			return "", perr
+			return "", isNewSession, perr
 		}
 		err = iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow(ctx, cctx, podName, iris_redis.ServerlessSessionMaxRunTime)
 		if err != nil {
 			log.Err(err).Str("podName", podName).Msg("GetSessionLockedRoute: iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow")
-			return "", err
+			return "", isNewSession, err
 		}
 	}
-	return route, err
+	return route, isNewSession, err
 }
 
 func extractPodName(s string) (string, error) {
@@ -117,7 +118,7 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		// todo remove hardcoded table name
 		return p.ProcessEndSessionLock(c, orgID, endLockedSessionLease, anvilServerlessRoutesTableName)
 	}
-	routeURL, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, anvilServerlessRoutesTableName) // TODO remove hardcoded table name
+	routeURL, isNewSession, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, anvilServerlessRoutesTableName) // TODO remove hardcoded table name
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
@@ -126,6 +127,29 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 	headers := make(http.Header)
 	headers.Set(AnvilSessionLockHeader, tempToken)
 
+	routeGroup := c.Request().Header.Get(RouteGroupHeader)
+
+	if routeGroup != "" {
+		headers.Set(RouteGroupHeader, routeGroup)
+	}
+
+	if isNewSession && routeGroup != "" {
+		// todo, just for anvil
+		wa := web3_client.NewWeb3ClientFakeSigner(routeURL)
+		wa.AddSessionLockHeader(tempToken)
+		wa.IsAnvilNode = true
+		wa.Dial()
+		defer wa.Close()
+		rpcNew := "http://localhost:8888/node"
+		err = wa.ResetNetwork(context.Background(), rpcNew, 0)
+		if err != nil {
+			log.Err(err).Msg("ProxyRequest: ProcessLockedSessionRoute: wa.ResetNetwork")
+			return c.JSON(http.StatusInternalServerError, err)
+		}
+	}
+
+	// todo, just for anvil
+	p.Body = GetSanitizedForkPayload(p.Body)
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             routeURL,
 		OrgID:           orgID,
@@ -135,7 +159,6 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		RequestHeaders:  headers,
 		Timeout:         60 * time.Second,
 	}
-
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtToAnvilInternalSimForkRequest(c.Request().Context(), req)
 	if err != nil {
@@ -180,4 +203,55 @@ func (p *ProxyRequest) Process(c echo.Context, r *iris_api_requests.ApiProxyRequ
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, resp.Response)
+}
+func toForkingArg(jsonRpcURL string, blockNumber int) interface{} {
+	arg := map[string]map[string]any{
+		"forking": {
+			"jsonRpcUrl":  jsonRpcURL,
+			"blockNumber": blockNumber,
+		},
+	}
+	return arg
+}
+
+func toForkingArgResetToLatest(jsonRpcURL string) interface{} {
+	arg := map[string]map[string]any{
+		"forking": {
+			"jsonRpcUrl": jsonRpcURL,
+		},
+	}
+	return arg
+}
+
+const (
+	NodeProxy = "http://localhost:8888/node"
+)
+
+func GetSanitizedForkPayload(b echo.Map) echo.Map {
+	method, ok := b["method"].(string)
+	if ok && (method == "anvil_reset" || method == "hardhat_reset") {
+		var np []interface{}
+		params, pok := b["params"].([]interface{})
+		if pok && len(params) > 0 {
+			bp, bok := params[0].(map[string]interface{})
+			if bok {
+				for k, v := range bp {
+					if k == "forking" {
+						nestedMap, mok := v.(map[string]interface{})
+						if mok {
+							np = []interface{}{toForkingArgResetToLatest(NodeProxy)}
+							for nk, nv := range nestedMap {
+								if nk == "blockNumber" {
+									np = []interface{}{toForkingArg(NodeProxy, int(nv.(float64)))}
+								}
+							}
+						}
+					}
+
+				}
+			}
+		}
+		b["params"] = np
+	}
+	return b
 }

@@ -14,7 +14,6 @@ import (
 	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
-	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -45,8 +44,9 @@ func ExecCmdHandler(c echo.Context) error {
 
 	cmd := exec.Command(
 		"anvil",
-		"--fork-url",
-		"0.0.0.0:8888/node",
+		"--host", "0.0.0.0",
+		"--port", "8545",
+		"--fork-url", "0.0.0.0:8888/node",
 	)
 
 	log.Info().Msgf("Exec: fork:", cmd.String())
@@ -77,18 +77,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		}
 		// todo revist after pods deletion is confirmed
 		sessionID = anvilHeader
-		if tableHeader != "" {
-			wa := web3_actions.NewWeb3ActionsClient(NodeURL)
-			wa.IsAnvilNode = true
-			wa.Dial()
-			defer wa.Close()
-			resp, rerr := wa.SetRpcUrl(context.Background(), LocalProxiedRouter)
-			if rerr != nil {
-				log.Err(rerr).Interface("resp", resp).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
-				return c.JSON(http.StatusInternalServerError, rerr)
-			}
 
-		}
 		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 		request := new(v1_iris.ProxyRequest)
 		request.Body = echo.Map{}
@@ -98,9 +87,11 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			return err
 		}
 		reqHeaders := http.Header{}
-		if routeTable != "" {
-			reqHeaders.Add("X-Route-Group", routeTable)
+
+		if tableHeader != "" {
+			routeTable = tableHeader
 		}
+
 		reqHeaders.Add("Authorization", "Bearer "+sessionID)
 		rw := iris_api_requests.NewIrisApiRequestsActivities()
 		req := &iris_api_requests.ApiProxyRequest{

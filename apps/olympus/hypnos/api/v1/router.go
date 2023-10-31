@@ -12,7 +12,6 @@ import (
 	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
-	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -50,14 +49,8 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, v1_iris.Response{Message: "anvil session lock id is required"})
 		}
 
-		if sessionID == "" {
-			wa := web3_actions.NewWeb3ActionsClient(NodeURL)
-			wa.IsAnvilNode = true
-			err = wa.ResetNetwork(context.Background(), NodeURL, 0)
-			if err != nil {
-				log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
-				return err
-			}
+		if tableHeader != "" {
+			// TODO, set fork url to http://localhost:8888/node
 		}
 		sessionID = anvilHeader
 		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)

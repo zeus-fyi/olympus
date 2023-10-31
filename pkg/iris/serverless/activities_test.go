@@ -93,6 +93,7 @@ const (
 	NodeURL            = "http://localhost:8545"
 	HypnosURL          = "http://localhost:8888"
 	LocalProxiedRouter = "http://localhost:8888/node"
+	InternalRouter     = "http://iris.iris.svc.cluster.local/v3/internal/router"
 )
 
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpcReset() {
@@ -112,7 +113,7 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpcReset() {
 	t.Assert().Equal(t.Tc.ProductionLocalTemporalOrgID, ous.OrgID)
 	t.Assert().Equal(t.Tc.ProductionLocalTemporalUserID, ous.UserID)
 	t.Assert().Equal("enterprise", plan)
-	wa := web3_actions.NewWeb3ActionsClient(NodeURL)
+	wa := web3_actions.NewWeb3ActionsClient(HypnosURL)
 	wa.IsAnvilNode = true
 
 	wa.Dial()
@@ -122,10 +123,10 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpcReset() {
 	wa.C.Client().SetHeader("X-Anvil-Session-Lock-ID", token)
 	wa.C.Client().SetHeader("X-Route-Group", "ethereum-mainnet")
 
-	res, err := wa.SetRpcUrl(ctx, LocalProxiedRouter)
+	//res, err := wa.SetRpcUrl(ctx, InternalRouter)
 	err = wa.ResetNetwork(context.Background(), "", 0)
 	t.Require().NoError(err)
-	fmt.Println(res)
+	//fmt.Println(res)
 }
 
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpcInfo() {

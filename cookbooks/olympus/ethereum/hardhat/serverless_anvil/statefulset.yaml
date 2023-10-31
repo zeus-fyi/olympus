@@ -44,8 +44,8 @@ spec:
             tcpSocket:
               port: hypnos
           readinessProbe:
-            initialDelaySeconds: 60
-            periodSeconds: 120
+            initialDelaySeconds: 3
+            periodSeconds: 5
             tcpSocket:
               port: hypnos
         - name: anvil

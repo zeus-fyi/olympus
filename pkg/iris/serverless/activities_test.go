@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
@@ -86,15 +88,45 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpc() {
 	fmt.Println(nodeInfo.ForkConfig.ForkUrl)
 
 }
+
+const (
+	NodeURL            = "http://localhost:8545"
+	HypnosURL          = "http://localhost:8888"
+	LocalProxiedRouter = "http://localhost:8888/node"
+	InternalRouter     = "http://iris.iris.svc.cluster.local/v3/internal/router"
+)
+
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpcReset() {
-	na := "http://localhost:8545"
-	wa := web3_actions.NewWeb3ActionsClient(na)
-	wa.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
+
+	token, err := iris_redis.IrisRedisClient.SetInternalAuthCache(ctx, org_users.OrgUser{
+		OrgUsers: hestia_autogen_bases.OrgUsers{
+			UserID: t.Tc.ProductionLocalTemporalUserID,
+			OrgID:  t.Tc.ProductionLocalTemporalOrgID,
+		},
+	}, "sessionID", "enterprise", "sessionID")
+	t.Require().NoError(err)
+
+	ous, plan, err := iris_redis.IrisRedisClient.GetInternalAuthCacheIfExists(ctx, token)
+	t.Require().NoError(err)
+	t.Require().NotNil(ous)
+	t.Require().NotNil(plan)
+	t.Assert().Equal(t.Tc.ProductionLocalTemporalOrgID, ous.OrgID)
+	t.Assert().Equal(t.Tc.ProductionLocalTemporalUserID, ous.UserID)
+	t.Assert().Equal("enterprise", plan)
+	wa := web3_actions.NewWeb3ActionsClient(HypnosURL)
 	wa.IsAnvilNode = true
+
 	wa.Dial()
 	defer wa.Close()
-	err := wa.ResetNetwork(context.Background(), na, 0)
+
+	//wa.AddDefaultEthereumMainnetTableHeader()
+	wa.C.Client().SetHeader("X-Anvil-Session-Lock-ID", token)
+	wa.C.Client().SetHeader("X-Route-Group", "ethereum-mainnet")
+
+	//res, err := wa.SetRpcUrl(ctx, InternalRouter)
+	err = wa.ResetNetwork(context.Background(), "", 0)
 	t.Require().NoError(err)
+	//fmt.Println(res)
 }
 
 func (t *IrisOrchestrationsTestSuite) TestAnvilRpcInfo() {

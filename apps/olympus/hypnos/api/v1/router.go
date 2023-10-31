@@ -45,15 +45,13 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		}
 
 		tableHeader := c.Request().Header.Get(RouteGroupHeader)
-		if routeTable == "" {
-			routeTable = tableHeader
-		}
 		anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
 		if len(anvilHeader) <= 0 {
 			log.Info().Interface("anvilHeader", anvilHeader).Msgf("Hypnos: RpcLoadBalancerRequestHandler: anvil session lock id is required")
 			return c.JSON(http.StatusBadRequest, v1_iris.Response{Message: "anvil session lock id is required"})
 		}
-
+		// todo revist after pods deletion is confirmed
+		sessionID = anvilHeader
 		if tableHeader != "" {
 			wa := web3_actions.NewWeb3ActionsClient(NodeURL)
 			wa.IsAnvilNode = true
@@ -64,10 +62,6 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 				log.Err(rerr).Interface("resp", resp).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
 				return c.JSON(http.StatusInternalServerError, rerr)
 			}
-		}
-		// todo revist after pods deletion is confirmed
-		if sessionID == "" {
-			sessionID = anvilHeader
 		}
 		payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 		request := new(v1_iris.ProxyRequest)
@@ -81,10 +75,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		if routeTable != "" {
 			reqHeaders.Add("X-Route-Group", routeTable)
 		}
-
-		if sessionID != "" {
-			reqHeaders.Add("Authorization", "Bearer "+sessionID)
-		}
+		reqHeaders.Add("Authorization", "Bearer "+sessionID)
 		rw := iris_api_requests.NewIrisApiRequestsActivities()
 		req := &iris_api_requests.ApiProxyRequest{
 			Url:              NodeURL,

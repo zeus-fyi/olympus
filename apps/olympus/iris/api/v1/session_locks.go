@@ -115,10 +115,10 @@ func extractPodName(s string) (string, error) {
 var Env = "production"
 
 func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method, tempToken string) error {
-	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
+	endLockedSessionLease := c.Request().Header.Get(EndSessionLockHeader)
 	if endLockedSessionLease == sessionID {
 		// todo remove hardcoded table name
-		return p.ProcessEndSessionLock(c, orgID, endLockedSessionLease, anvilServerlessRoutesTableName)
+		return p.ProcessEndSessionLock(c, orgID, sessionID, anvilServerlessRoutesTableName)
 	}
 	routeURL, isNewSession, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, anvilServerlessRoutesTableName) // TODO remove hardcoded table name
 	if err != nil {

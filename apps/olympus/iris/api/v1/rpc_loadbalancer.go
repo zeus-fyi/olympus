@@ -28,6 +28,7 @@ const (
 const (
 	LoadBalancingStrategy    = "X-Load-Balancing-Strategy"
 	AnvilSessionLockHeader   = "X-Anvil-Session-Lock-ID"
+	EndSessionLockHeader     = "X-End-Session-Lock-ID"
 	Adaptive                 = "Adaptive"
 	RoundRobin               = "RoundRobin"
 	AdaptiveLoadBalancingKey = "X-Adaptive-Metrics-Key"
@@ -76,7 +77,6 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 			return err
 		}
-
 		anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
 		if anvilHeader != "" {
 			ou := org_users.OrgUser{}

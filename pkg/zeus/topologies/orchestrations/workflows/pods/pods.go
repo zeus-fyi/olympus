@@ -98,7 +98,6 @@ func InitPodsWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 	w.AddActivities(podsWfs.GetActivities())
 	PodsServiceWorker = PodsWorker{w}
 	PodsServiceWorker.TemporalClient = tc
-
 	return
 }
 

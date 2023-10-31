@@ -151,6 +151,10 @@ func Zeus() {
 	defer c2.Close()
 	pods_workflows.PodsServiceWorker.RegisterWorker(c2)
 	err = pods_workflows.PodsServiceWorker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Zeus: %s topology_worker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
 
 	log.Info().Msgf("Zeus: %s temporal setup is complete", env)
 	log.Info().Msgf("Zeus: %s server starting", env)

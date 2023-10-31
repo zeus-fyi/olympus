@@ -63,6 +63,11 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 				log.Err(rerr).Interface("resp", resp).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
 				return c.JSON(http.StatusInternalServerError, rerr)
 			}
+			err = wa.ResetNetwork(context.Background(), "", 0)
+			if err != nil {
+				log.Err(err).Interface("resp", resp).Msgf("Hypnos: RpcLoadBalancerRequestHandler: wa.ResetNetwork")
+				return c.JSON(http.StatusInternalServerError, err)
+			}
 		}
 		// todo revist after pods deletion is confirmed
 		sessionID = anvilHeader
@@ -74,23 +79,24 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 			return err
 		}
+		reqHeaders := http.Header{}
+		if routeTable != "" {
+			reqHeaders.Add("X-Route-Group", routeTable)
+		}
+
+		if sessionID != "" {
+			reqHeaders.Add("Authorization", "Bearer "+sessionID)
+		}
 		rw := iris_api_requests.NewIrisApiRequestsActivities()
 		req := &iris_api_requests.ApiProxyRequest{
 			Url:              NodeURL,
 			Payload:          request.Body,
 			PayloadTypeREST:  method,
+			RequestHeaders:   reqHeaders,
 			IsInternal:       true,
 			Timeout:          1 * time.Minute,
 			StatusCode:       http.StatusOK, // default
 			PayloadSizeMeter: payloadSizingMeter,
-		}
-		req.RequestHeaders = http.Header{}
-		if routeTable != "" {
-			req.RequestHeaders.Add("X-Route-Group", routeTable)
-		}
-
-		if sessionID != "" {
-			req.RequestHeaders.Add("Authorization", "Bearer "+sessionID)
 		}
 		resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 		if err != nil {

@@ -123,12 +123,9 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-
 	headers := make(http.Header)
 	headers.Set(AnvilSessionLockHeader, tempToken)
-
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
-
 	if routeGroup != "" {
 		headers.Set(RouteGroupHeader, routeGroup)
 	}

@@ -27,7 +27,7 @@ func (i *IrisServicesWorker) ExecuteIrisServerlessResyncWorkflow(ctx context.Con
 	return err
 }
 
-func (i *IrisServicesWorker) ExecuteIrisServerlessPodRestartWorkflow(ctx context.Context, cctx zeus_common_types.CloudCtxNs, podName string, delay time.Duration) error {
+func (i *IrisServicesWorker) ExecuteIrisServerlessPodRestartWorkflow(ctx context.Context, orgID int, cctx zeus_common_types.CloudCtxNs, podName, serverlessTable, sessionID string, delay time.Duration) error {
 	tc := i.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -36,7 +36,7 @@ func (i *IrisServicesWorker) ExecuteIrisServerlessPodRestartWorkflow(ctx context
 	}
 	txWf := NewIrisPlatformServiceWorkflows()
 	wf := txWf.IrisServerlessPodRestartWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, cctx, podName, delay)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, orgID, cctx, podName, serverlessTable, sessionID, delay)
 	if err != nil {
 		log.Err(err).Msg("IrisServerlessPodRestartWorkflow")
 		return err

@@ -171,7 +171,7 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 		return "", rerr
 	}
 	if activeCountResult >= MaxActiveServerlessSessions {
-		err = fmt.Errorf("GetNextServerlessRoute: max active sessions reached")
+		err = fmt.Errorf("%d serverless %s sessions in use. max active sessions reached", activeCountResult, serverlessRoutesTable)
 		log.Err(err).Msgf("GetNextServerlessRoute orgID: %d", orgID)
 		return "", err
 	}

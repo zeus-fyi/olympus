@@ -93,10 +93,8 @@ func (s *LbEnvTradingTestSuite) TestFork() {
 	wa.Dial()
 	defer wa.Close()
 
-	origInfo, err := wa.GetNodeMetadata(ctx)
+	err := wa.ResetNetwork(ctx, "http://localhost:8545", 140000)
 	s.NoError(err)
-	s.NotEmpty(origInfo)
-	fmt.Println(origInfo.ForkConfig.ForkUrl)
 
 	/*
 		rpcNew := "https://iris.zeus.fyi/v1/router"

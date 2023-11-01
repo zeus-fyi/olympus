@@ -3,6 +3,7 @@ package artemis_mev_transcations
 import (
 	"time"
 
+	"github.com/google/uuid"
 	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"go.temporal.io/api/enums/v1"
@@ -33,8 +34,8 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 	}
 	for _, trade := range trades.Trades {
 		histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
-		var sessionID string
-		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade).Get(histSimTxCtx, &sessionID)
+		sessionID := uuid.New().String()
+		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade, sessionID).Get(histSimTxCtx, &sessionID)
 		if err != nil {
 			logger.Error("Failed to sim historical mempool tx", "Error", err)
 			return err

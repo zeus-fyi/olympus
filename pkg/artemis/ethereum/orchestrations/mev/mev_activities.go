@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/google/uuid"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
@@ -24,8 +23,7 @@ import (
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
-func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) (string, error) {
-	sessionID := uuid.New().String()
+func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx, sessionID string) (string, error) {
 	uni := InitNewUniHardhat(ctx, sessionID)
 	at := artemis_realtime_trading.NewActiveTradingDebugger(uni)
 	td := artemis_trade_debugger.NewTradeDebuggerWorkflowAnalysis(at, uni.Web3Client)
@@ -37,9 +35,9 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 			log.Err(serr).Msg("EndServerlessSession failed")
 			serr = nil
 		}
-		return sessionID, err
+		return "", err
 	}
-	return sessionID, err
+	return sessionID, nil
 }
 
 func (d *ArtemisMevActivities) EndServerlessSession(ctx context.Context, sessionID string) error {

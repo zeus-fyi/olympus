@@ -183,7 +183,9 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	u.TradeAnalysisReport.ArtemisBlockNumber = currentBlockNum
 	u.TradeAnalysisReport.RxBlockNumber = int(rx.BlockNumber.Int64())
 	if currentBlockNum >= int(rx.BlockNumber.Int64()) {
-		return -1, fmt.Errorf("artmeis block number %d is greater than or equal to rx block number %d", currentBlockNum, int(rx.BlockNumber.Int64()))
+		err = fmt.Errorf("artmeis block number %d is greater than or equal to rx block number %d", currentBlockNum, int(rx.BlockNumber.Int64()))
+		log.Err(err).Msg("CheckBlockRxAndNetworkReset: artemis block number is greater than or equal to rx block number")
+		return -1, err
 	}
 	//u.Web3Client.Dial()
 	//origInfo, err := u.Web3Client.GetNodeMetadata(ctx)

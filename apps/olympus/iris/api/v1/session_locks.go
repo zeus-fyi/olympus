@@ -126,7 +126,7 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		return c.JSON(http.StatusTooManyRequests, err)
 	}
 	if err != nil {
-		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
+		log.Err(err).Msg("ProcessLockedSessionRoute: GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	headers := make(http.Header)
@@ -155,7 +155,6 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		}
 	}
 
-	// todo, just for anvil
 	p.Body = GetSanitizedForkPayload(p.Body)
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             routeURL,

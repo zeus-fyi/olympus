@@ -54,6 +54,25 @@ func (s *LbEnvTradingTestSuite) TestHypnosLocal() {
 	fmt.Println(origInfo.ForkConfig.ForkUrl)
 }
 
+func (s *LbEnvTradingTestSuite) TestEndSessionID() {
+	rpcNew := "https://iris.zeus.fyi/v1/router"
+
+	wa := web3_client.NewWeb3ClientFakeSigner(rpcNew)
+	wa.AddDefaultEthereumMainnetTableHeader()
+	wa.AddSessionLockHeader("test")
+	wa.AddSessionLockHeader("test2")
+	wa.IsAnvilNode = true
+	wa.Dial()
+	defer wa.Close()
+
+	wa.AddBearerToken(s.Tc.ProductionLocalTemporalBearerToken)
+
+	origInfo, err := wa.GetNodeMetadata(ctx)
+	s.NoError(err)
+	s.NotEmpty(origInfo)
+	fmt.Println(origInfo.ForkConfig.ForkUrl)
+}
+
 func TestLbEnvTradingTestSuite(t *testing.T) {
 	suite.Run(t, new(LbEnvTradingTestSuite))
 }

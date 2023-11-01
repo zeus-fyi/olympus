@@ -328,13 +328,14 @@ func InitLocalTestConfigs() TestContainer {
 	// temporal artemis
 	testCont.ProdLocalTemporalAuthArtemis.Namespace = viper.GetString("PROD_LOCAL_ARTEMIS_TEMPORAL_NS")
 	testCont.ProdLocalTemporalAuthArtemis.HostPort = viper.GetString("PROD_LOCAL_ARTEMIS_TEMPORAL_HOST_PORT")
-	testCont.ProdLocalTemporalAuthArtemis.ClientPEMKeyPath = "./zeus.fyi/ca.key"
-	testCont.ProdLocalTemporalAuthArtemis.ClientCertPath = "./zeus.fyi/ca.pem"
+	testCont.ProdLocalTemporalAuthArtemis.ClientCertPath = certPath
+	testCont.ProdLocalTemporalAuthArtemis.ClientPEMKeyPath = pemPath
+
 	// temporal hestia
 	testCont.ProdLocalTemporalAuthHestia.Namespace = viper.GetString("PROD_LOCAL_HESTIA_TEMPORAL_NS")
 	testCont.ProdLocalTemporalAuthHestia.HostPort = viper.GetString("PROD_LOCAL_HESTIA_TEMPORAL_HOST_PORT")
-	testCont.ProdLocalTemporalAuthHestia.ClientPEMKeyPath = "./zeus.fyi/ca.key"
-	testCont.ProdLocalTemporalAuthHestia.ClientCertPath = "./zeus.fyi/ca.pem"
+	testCont.ProdLocalTemporalAuthHestia.ClientCertPath = certPath
+	testCont.ProdLocalTemporalAuthHestia.ClientPEMKeyPath = pemPath
 
 	// temporal poseidon
 	testCont.ProdLocalTemporalAuthPoseidon = testCont.DevTemporalAuth

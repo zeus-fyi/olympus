@@ -182,9 +182,9 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 }
 
 func (p *ProxyRequest) ProcessEndSessionLock(c echo.Context, orgID int, sessionID, serverlessRoutesTable string) error {
-	err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), orgID, sessionID, serverlessRoutesTable)
+	_, err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), orgID, sessionID, serverlessRoutesTable)
 	if err != nil {
-		log.Err(err).Msg("proxy_anvil.SessionLocker.ReleaseServerlessRoute")
+		log.Err(err).Msg("ProxyRequest: ProcessEndSessionLock")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, nil)

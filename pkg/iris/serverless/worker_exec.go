@@ -39,20 +39,20 @@ func (i *IrisServicesWorker) ExecuteIrisServerlessPodRestartWorkflow(ctx context
 		TaskQueue: i.TaskQueueName,
 	}
 
-	resp, err := tc.DescribeWorkflowExecution(ctx, wfID, "")
-	if err != nil {
-		return err
+	resp, _ := tc.DescribeWorkflowExecution(ctx, wfID, "")
+	if resp != nil {
+		// Check if the workflow is in a running state.
+		if resp.WorkflowExecutionInfo.Status == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+			log.Warn().Msg("ExecuteIrisServerlessPodRestartWorkflow: workflow already running")
+			return nil
+		}
 	}
-	// Check if the workflow is in a running state.
-	if resp.WorkflowExecutionInfo.Status == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		log.Warn().Msg("ExecuteIrisServerlessPodRestartWorkflow: workflow already running")
-		return nil
-	}
+
 	txWf := NewIrisPlatformServiceWorkflows()
 	wf := txWf.IrisServerlessPodRestartWorkflow
 
 	waitTill := time.Now().Add(delay)
-	_, err = tc.ExecuteWorkflow(ctx, workflowOptions, wf, wfID, orgID, cctx, podName, serverlessTable, sessionID, waitTill)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, wfID, orgID, cctx, podName, serverlessTable, sessionID, waitTill)
 	if err != nil {
 		log.Err(err).Msg("ExecuteIrisServerlessPodRestartWorkflow")
 		return err

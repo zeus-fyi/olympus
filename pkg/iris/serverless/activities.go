@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
@@ -114,8 +115,8 @@ func (i *IrisPlatformActivities) RestartServerlessPod(ctx context.Context, cctx 
 }
 
 func (i *IrisPlatformActivities) ClearServerlessSessionRouteCache(ctx context.Context, orgID int, serverlessTable, sessionID string) error {
-	err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(ctx, orgID, sessionID, serverlessTable)
-	if err != nil {
+	_, err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(ctx, orgID, sessionID, serverlessTable)
+	if err != nil && err != redis.Nil {
 		log.Err(err).Msg("ClearServerlessSessionRouteCache: ReleaseServerlessRoute")
 		return err
 	}

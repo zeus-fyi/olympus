@@ -10,7 +10,6 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
-	iris_serverless "github.com/zeus-fyi/olympus/pkg/iris/serverless"
 )
 
 const (
@@ -292,12 +291,12 @@ func (m *IrisCache) GetServerlessSessionRoute(ctx context.Context, orgID int, se
 	return path, err
 }
 
-func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) error {
+func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, error) {
 	// Get the value from the result of the Get command
 	path, err := m.GetServerlessSessionRoute(ctx, orgID, serverlessRoutesTable, sessionID)
 	if err != nil {
 		log.Err(err).Msg("ReleaseServerlessRoute: failed to get session route")
-		return err
+		return "", err
 	}
 	pipe := m.Writer.TxPipeline()
 	// deletes session -> route cache key
@@ -330,21 +329,15 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		log.Err(err).Msg("ReleaseServerlessRoute: failed to release route")
-		return err
+		return "", err
 	}
 
 	podName, err := extractPodName(path)
 	if err != nil {
 		log.Err(err).Msg("ReleaseServerlessRoute: failed to extract pod name")
-		return err
+		return "", err
 	}
-	err = iris_serverless.IrisPlatformServicesWorker.EarlyStart(context.Background(), orgID, podName, serverlessRoutesTable, sessionID)
-	if err != nil {
-		// todo, not sure if needed to return error here
-		log.Err(err).Msg("ReleaseServerlessRoute: failed to early start")
-		err = nil
-	}
-	return nil
+	return podName, nil
 }
 
 func extractPodName(s string) (string, error) {

@@ -98,44 +98,6 @@ func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, serverless
 	return route, isNewSession, err
 }
 
-/*
-	func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, serverlessTableName string) (string, bool, error) {
-		if sessionID == "Zeus-Test" {
-			return "http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545", false, nil
-		}
-		route, isNewSession, rerr := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, serverlessTableName)
-		if rerr != nil {
-			log.Err(rerr).Msg("proxy_anvil.SessionLocker.GetNextServerlessRoute")
-			return route, isNewSession, rerr
-		}
-
-		if isNewSession {
-			// health check first
-			resp, err := http.Get(route + "/health")
-			if err == nil && resp.StatusCode < 400 {
-				return route, isNewSession, rerr
-			}
-			if err != nil || resp.StatusCode >= 400 {
-				if err == nil {
-					err = fmt.Errorf("status code: %d", resp.StatusCode)
-				}
-			}
-			for i := 0; i < 5; i++ {
-				log.Err(err).Interface("resp", resp).Msg("CheckEndpointHealth: get health check failed")
-				// in case it's already in progress?
-				//err = iris_serverless.IrisPlatformServicesWorker.EarlyStart(ctx, orgID, podName, serverlessTableName, sessionID)
-				//if err != nil {
-				//	log.Err(err).Msg("GetSessionLockedRoute: iris_serverless.IrisPlatformServicesWorker.EarlyStart")
-				//}
-				err = iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow(context.Background(), orgID, cctx, podName, serverlessTableName, sessionID, iris_redis.ServerlessSessionMaxRunTime)
-				if err != nil {
-					log.Err(err).Str("podName", podName).Msg("GetSessionLockedRoute: iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow")
-				}
-			}
-		}
-		return route, isNewSession, rerr
-	}
-*/
 func extractPodName(s string) (string, error) {
 	// Parse the URL
 	u, err := url.Parse(s)

@@ -276,13 +276,15 @@ func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessi
 		if rerr == nil && resp.StatusCode < 400 && len(path) > 0 {
 			return path, true, nil
 		}
-		if err != nil || resp.StatusCode >= 400 {
-			if err == nil {
-				err = fmt.Errorf("status code: %d", resp.StatusCode)
-			}
+		if rerr != nil {
 			path = ""
-			err = nil
+			rerr = nil
+			log.Warn().Int("loopIndex", i).Msg("GetNextServerlessRoute: failed to get healthy route, retrying")
 		}
+		if resp != nil {
+			log.Warn().Int("loopIndex", i).Int("statusCode", resp.StatusCode).Msg("GetNextServerlessRoute: failed to get healthy route, retrying")
+		}
+
 	}
 	if len(path) <= 0 {
 		return "", false, fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")

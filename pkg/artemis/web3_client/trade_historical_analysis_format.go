@@ -196,6 +196,7 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	defer u.Web3Client.Close()
 	err = u.Web3Client.ResetNetwork(ctx, "https://localhost:8545", currentBlockNum)
 	if err != nil {
+		log.Err(err).Msg("CheckBlockRxAndNetworkReset: error resetting network")
 		return -1, err
 	}
 	//u.Web3Client.Close()

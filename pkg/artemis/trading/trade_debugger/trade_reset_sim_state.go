@@ -41,12 +41,13 @@ func (t *TradeDebugger) resetNetwork(ctx context.Context, tf web3_client.TradeEx
 	if tf.CurrentBlockNumber == nil {
 		return fmt.Errorf("current block number is nil")
 	}
+	sessionID := t.dat.GetSimUniswapClient().Web3Client.GetSessionLockHeader()
 	if t.dat.GetSimUniswapClient().Web3Client.GetSessionLockHeader() == "" {
 		t.dat.GetSimUniswapClient().Web3Client.AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
 	}
 	bn, err := t.dat.GetSimUniswapClient().CheckBlockRxAndNetworkReset(ctx, &tf)
 	if err != nil {
-		log.Err(err).Interface("blockNum", bn).Msg("error checking block and network reset")
+		log.Err(err).Interface("blockNum", bn).Str("sessionID", sessionID).Msg("error checking block and network reset")
 		return err
 	}
 

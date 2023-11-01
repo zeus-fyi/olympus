@@ -31,7 +31,12 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if sessionID == "" {
 		return c.JSON(http.StatusBadRequest, errors.New("Session-Lock-ID header is required"))
 	}
-	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
+
+	endLockedSessionLeaseOld := c.Request().Header.Get("End-Session-Lock-ID")
+	if endLockedSessionLeaseOld == sessionID {
+		return p.ProcessEndSessionLock(c, endLockedSessionLeaseOld)
+	}
+	endLockedSessionLease := c.Request().Header.Get("X-End-Session-Lock-ID")
 	if endLockedSessionLease == sessionID {
 		return p.ProcessEndSessionLock(c, endLockedSessionLease)
 	}

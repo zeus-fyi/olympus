@@ -1,6 +1,7 @@
 package v1_iris
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -40,6 +41,29 @@ func (s *IrisV1TestSuite) TestAnvilSessionLock() {
 		SetHeader("Content-Type", "application/json").
 		SetBody(payload).
 		Post("/v1/router")
+
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().NotEqual(http.StatusNotFound, resp.StatusCode())
+}
+
+func (s *IrisV1TestSuite) TestDeleteAnvilSessionLock() {
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+	iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
+
+	InitV1Routes(s.E)
+	start := make(chan struct{}, 1)
+	go func() {
+		close(start)
+		_ = s.E.Start(":9010")
+	}()
+
+	irisClient := resty_base.GetBaseRestyClient("http://localhost:9010", s.Tc.ProductionLocalTemporalBearerToken)
+
+	sessionID := "sessionID"
+	resp, err := irisClient.R().
+		Delete(fmt.Sprintf("/v1/serverless/%s", sessionID))
 
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)

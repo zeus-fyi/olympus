@@ -59,8 +59,9 @@ func (s *LbEnvTradingTestSuite) TestEndSessionID() {
 
 	wa := web3_client.NewWeb3ClientFakeSigner(rpcNew)
 	wa.AddDefaultEthereumMainnetTableHeader()
-	wa.AddSessionLockHeader("test")
-	wa.AddSessionLockHeader("test2")
+	sessionID := "672d8815-e6f2-4040-bbd9-d60337418d64"
+	wa.AddSessionLockHeader(sessionID)
+	wa.AddEndSessionLockHeader(sessionID)
 	wa.IsAnvilNode = true
 	wa.Dial()
 	defer wa.Close()

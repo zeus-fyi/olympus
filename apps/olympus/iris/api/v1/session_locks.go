@@ -293,3 +293,24 @@ func replacePrefix(input string, prefix string, replacement string) string {
 	}
 	return input
 }
+
+func DeleteSessionRequestHandler(c echo.Context) error {
+	ouc, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, "org not found")
+	}
+	if ouc.OrgID <= 0 {
+		return c.JSON(http.StatusBadRequest, "org not found")
+	}
+	endLockedSessionLease := c.Request().Header.Get(EndSessionLockHeader)
+	sessionID := c.Param("sessionID")
+	if len(sessionID) == 0 && len(endLockedSessionLease) == 0 {
+		return c.JSON(http.StatusBadRequest, "sessionID is required via header or route param")
+	}
+	if len(endLockedSessionLease) > 0 && len(sessionID) == 0 {
+		sessionID = endLockedSessionLease
+	}
+	p := ProxyRequest{}
+	return p.ProcessEndSessionLock(c, ouc.OrgID, sessionID, anvilServerlessRoutesTableName)
+
+}

@@ -73,11 +73,11 @@ var cctx = zeus_common_types.CloudCtxNs{
 	Namespace:     "anvil-serverless-4d383226",
 }
 
-func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute string) (string, bool, error) {
+func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, serverlessTableName string) (string, bool, error) {
 	if sessionID == "Zeus-Test" {
 		return "http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545", false, nil
 	}
-	route, isNewSession, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, tableRoute)
+	route, isNewSession, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, serverlessTableName)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetNextServerlessRoute")
 		return route, isNewSession, err
@@ -88,7 +88,7 @@ func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, tableRoute
 			log.Err(perr).Str("route", route).Msg("GetSessionLockedRoute: extractPodName")
 			return "", isNewSession, perr
 		}
-		err = iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow(ctx, orgID, cctx, podName, tableRoute, sessionID, iris_redis.ServerlessSessionMaxRunTime)
+		err = iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow(context.Background(), orgID, cctx, podName, serverlessTableName, sessionID, iris_redis.ServerlessSessionMaxRunTime)
 		if err != nil {
 			log.Err(err).Str("podName", podName).Msg("GetSessionLockedRoute: iris_serverless.IrisPlatformServicesWorker.ExecuteIrisServerlessPodRestartWorkflow")
 			return "", isNewSession, err

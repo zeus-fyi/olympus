@@ -53,6 +53,9 @@ spec:
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
+          env:
+            - name: NO_RATE_LIMITS
+              value: "true"
           resources:
             limits:
               cpu: 100m

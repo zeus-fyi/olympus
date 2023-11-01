@@ -115,9 +115,9 @@ func (i *IrisPlatformActivities) RestartServerlessPod(ctx context.Context, cctx 
 }
 
 func (i *IrisPlatformActivities) ClearServerlessSessionRouteCache(ctx context.Context, orgID int, serverlessTable, sessionID string) error {
-	_, err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(ctx, orgID, sessionID, serverlessTable)
+	path, err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(ctx, orgID, sessionID, serverlessTable)
 	if err != nil && err != redis.Nil {
-		log.Err(err).Msg("ClearServerlessSessionRouteCache: ReleaseServerlessRoute")
+		log.Err(err).Interface("path", path).Msg("ClearServerlessSessionRouteCache: ReleaseServerlessRoute")
 		return err
 	}
 	return nil

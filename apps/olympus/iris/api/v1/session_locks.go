@@ -122,6 +122,9 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		return p.ProcessEndSessionLock(c, orgID, sessionID, anvilServerlessRoutesTableName)
 	}
 	routeURL, isNewSession, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, anvilServerlessRoutesTableName) // TODO remove hardcoded table name
+	if len(routeURL) == 0 && strings.Contains(err.Error(), " max active sessions reached") {
+		return c.JSON(http.StatusTooManyRequests, err)
+	}
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
@@ -185,7 +188,7 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 func (p *ProxyRequest) ProcessEndSessionLock(c echo.Context, orgID int, sessionID, serverlessRoutesTable string) error {
 	path, perr := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), orgID, sessionID, serverlessRoutesTable)
 	if perr == redis.Nil {
-		return c.JSON(http.StatusOK, nil)
+		return c.JSON(http.StatusOK, "ok")
 	}
 	if perr != nil {
 		log.Err(perr).Msg("ProxyRequest: ProcessEndSessionLock")
@@ -207,7 +210,9 @@ func (p *ProxyRequest) ProcessEndSessionLock(c echo.Context, orgID int, sessionI
 			log.Err(err).Msg("ProxyRequest: ProcessEndSessionLock: iris_serverless.IrisPlatformServicesWorker.EarlyStart")
 			err = nil
 		}
+		return c.JSON(http.StatusOK, fmt.Sprintf("released session lock-id %s", sessionID))
 	}
+
 	return c.JSON(http.StatusOK, nil)
 }
 

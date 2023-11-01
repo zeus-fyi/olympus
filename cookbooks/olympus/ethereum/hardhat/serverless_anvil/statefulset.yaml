@@ -39,7 +39,7 @@ spec:
               containerPort: 8888
               protocol: TCP
           livenessProbe:
-            initialDelaySeconds: 60
+            initialDelaySeconds: 2
             periodSeconds: 120
             tcpSocket:
               port: hypnos

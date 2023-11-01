@@ -67,6 +67,7 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 func (d *ArtemisMevActivities) GetLookaheadPrices(ctx context.Context, bn uint64) error {
 	wc := web3_actions.NewWeb3ActionsClient(irisSvcBeaconsInternal)
 	wc.AddBearerToken(artemis_orchestration_auth.Bearer)
+	wc.AddDefaultEthereumMainnetTableHeader()
 	err := artemis_uniswap_pricing.FetchV2PairsToMulticall(ctx, wc, bn)
 	if err != nil {
 		return err

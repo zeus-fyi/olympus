@@ -142,7 +142,7 @@ func (w *Web3Client) GetNodeMetadata(ctx context.Context) (web3_actions.NodeInfo
 	info, err := w.GetNodeInfo(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to get node info")
-		return web3_actions.NodeInfo{}, err
+		return info, err
 	}
 	return info, nil
 }

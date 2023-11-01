@@ -24,7 +24,8 @@ import (
 )
 
 func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) error {
-	uni := InitNewUniHardhat(ctx, uuid.New().String())
+	sessionID := uuid.New().String()
+	uni := InitNewUniHardhat(ctx, sessionID)
 	at := artemis_realtime_trading.NewActiveTradingDebugger(uni)
 	td := artemis_trade_debugger.NewTradeDebuggerWorkflowAnalysis(at, uni.Web3Client)
 	err := td.Replay(context.Background(), trade.TxHash, true)
@@ -34,7 +35,7 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 	}
 	err = uni.Web3Client.EndHardHatSessionReset(ctx, uni.Web3Client.NodeURL, 0)
 	if err != nil {
-		log.Err(err).Str("sessionID", uni.Web3Client.GetSessionLockHeader()).Str("network", d.Network).Msg("EndHardHatSessionReset failed")
+		log.Err(err).Str("sessionID", sessionID).Str("network", d.Network).Msg("EndHardHatSessionReset failed")
 		err = nil
 	}
 	return err

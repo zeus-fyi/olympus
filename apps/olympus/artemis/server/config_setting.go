@@ -14,6 +14,7 @@ import (
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
+	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
@@ -76,6 +77,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 
 	log.Info().Msgf("Artemis %s orchestration retrieving auth token", env)
 	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	artemis_test_cache.LiveTestNetwork.AddBearerToken(artemis_orchestration_auth.Bearer)
 	log.Info().Msgf("Artemis %s orchestration retrieving auth token done", env)
 
 	log.Info().Msgf("Artemis InitEthereumBroadcasters: %s temporal auth and init procedure starting", env)

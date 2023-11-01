@@ -30,7 +30,8 @@ func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets 
 	}
 
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLiveTest.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuikNodeSecretLiveTest)
-	artemis_test_cache.InitLiveTestNetwork(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLiveTest.NodeURL)
+
+	artemis_test_cache.InitLiveTestNetwork("https://iris.zeus.fyi/v1/router")
 
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuiknodeHistoricalPrimarySecret)
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account = artemis_network_cfgs.ArtemisEthereumMainnet.Account

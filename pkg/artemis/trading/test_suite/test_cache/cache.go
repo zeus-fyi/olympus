@@ -8,4 +8,5 @@ var LiveTestNetwork = web3_actions.Web3Actions{}
 
 func InitLiveTestNetwork(nodeURL string) {
 	LiveTestNetwork = web3_actions.NewWeb3ActionsClient(nodeURL)
+	LiveTestNetwork.AddDefaultEthereumMainnetTableHeader()
 }

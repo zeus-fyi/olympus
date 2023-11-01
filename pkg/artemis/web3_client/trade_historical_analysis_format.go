@@ -189,21 +189,15 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	}
 	u.Web3Client.Dial()
 	u.Web3Client.AddDefaultEthereumMainnetTableHeader()
-	origInfo, err := u.Web3Client.GetNodeMetadata(ctx)
-	if err != nil {
-		log.Err(err).Msg("CheckBlockRxAndNetworkReset: error getting node metadata")
-		return -1, err
-	}
-	u.Web3Client.Close()
-	u.Web3Client.Dial()
 	defer u.Web3Client.Close()
-	err = u.Web3Client.ResetNetwork(ctx, origInfo.ForkConfig.ForkUrl, currentBlockNum)
+	err = u.Web3Client.ResetNetwork(ctx, "http://localhost:8545", currentBlockNum)
 	if err != nil {
-		log.Err(err).Msg("CheckBlockRxAndNetworkReset: error resetting network")
+		log.Err(err).Interface("sessionID", u.Web3Client.GetSessionLockHeader()).Msg("CheckBlockRxAndNetworkReset: error resetting network")
 		return -1, err
 	}
 	bh, err := u.Web3Client.GetBlockHeight(ctx)
 	if err != nil {
+		log.Err(err).Interface("sessionID", u.Web3Client.GetSessionLockHeader()).Msg("CheckBlockRxAndNetworkReset: GetBlockHeight error")
 		return -1, err
 	}
 	if bh.Int64() != int64(currentBlockNum) {

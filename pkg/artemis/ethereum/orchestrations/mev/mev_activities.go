@@ -46,16 +46,20 @@ func (d *ArtemisMevActivities) EndServerlessSession(ctx context.Context, session
 	if len(sessionID) == 0 {
 		return nil
 	}
+	return EndServerlessEnvironment(sessionID)
+}
+
+func EndServerlessEnvironment(sessionID string) error {
 	irisClient := resty_base.GetBaseRestyClient("https://iris.zeus.fyi", artemis_orchestration_auth.Bearer)
 	resp, err := irisClient.R().
 		Delete(fmt.Sprintf("/v1/serverless/%s", sessionID))
 	if err != nil {
-		log.Err(err).Str("network", d.Network).Msg("EndServerlessSession failed")
+		log.Err(err).Msg("EndServerlessSession failed")
 		return err
 	}
 	if resp.StatusCode() >= 400 {
 		err = fmt.Errorf("EndServerlessSession: status code: %d", resp.StatusCode())
-		log.Err(err).Str("network", d.Network).Msg("EndServerlessSession failed")
+		log.Err(err).Msg("EndServerlessSession failed")
 		return err
 	}
 	return nil
@@ -63,7 +67,6 @@ func (d *ArtemisMevActivities) EndServerlessSession(ctx context.Context, session
 
 /*
 	irisClient := resty_base.GetBaseRestyClient("http://localhost:9010", s.Tc.ProductionLocalTemporalBearerToken)
-
 	sessionID := "sessionID"
 	resp, err := irisClient.R().
 		Delete(fmt.Sprintf("/v1/serverless/%s", sessionID))

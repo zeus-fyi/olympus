@@ -3,11 +3,14 @@ package iris_redis
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	iris_serverless "github.com/zeus-fyi/olympus/pkg/iris/serverless"
 )
 
 const (
@@ -300,13 +303,8 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 	// deletes session -> route cache key
 	pipe.Del(ctx, getOrgSessionIDKey(orgID, serverlessRoutesTable, sessionID))
 
-	tn := time.Now().Unix()
 	// Resets the timing of the route with some margin
 	if len(path) > 0 {
-		redisSet := redis.Z{
-			Score:  float64(tn),
-			Member: path,
-		}
 		// this is the user specific availability table
 		sessionRateLimit := getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable)
 		pipe.ZRem(ctx, sessionRateLimit, path)
@@ -314,6 +312,10 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 		// this is the global availability table
 		// XX: Update elements that already exist. Don't add new elements
 		serviceAvailabilityTable := getGlobalServerlessAvailabilityTableKey(serverlessRoutesTable)
+		redisSet := redis.Z{
+			Score:  float64(time.Now().Add(TimeMarginBuffer).Unix()),
+			Member: path,
+		}
 		pipe.ZAddXX(ctx, serviceAvailabilityTable, redisSet)
 
 		// this adds the route back to the set of available routes
@@ -323,14 +325,42 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 
 	// Removes expired sessions
 	sessionRateLimit := getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable)
-	pipe.ZRemRangeByScore(ctx, sessionRateLimit, "0", fmt.Sprintf("%d", tn))
+	pipe.ZRemRangeByScore(ctx, sessionRateLimit, "0", fmt.Sprintf("%d", time.Now().Unix()))
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		log.Err(err).Msg("ReleaseServerlessRoute: failed to release route")
 		return err
 	}
+
+	podName, err := extractPodName(path)
+	if err != nil {
+		log.Err(err).Msg("ReleaseServerlessRoute: failed to extract pod name")
+		return err
+	}
+	err = iris_serverless.IrisPlatformServicesWorker.EarlyStart(context.Background(), orgID, podName, serverlessRoutesTable, sessionID)
+	if err != nil {
+		// todo, not sure if needed to return error here
+		log.Err(err).Msg("ReleaseServerlessRoute: failed to early start")
+		err = nil
+	}
 	return nil
+}
+
+func extractPodName(s string) (string, error) {
+	// Parse the URL
+	u, err := url.Parse(s)
+	if err != nil {
+		return "", err
+	}
+
+	// Split the host by "." to get the first part
+	parts := strings.Split(u.Hostname(), ".")
+	if len(parts) > 0 {
+		return parts[0], nil
+	}
+
+	return "", fmt.Errorf("cannot extract pod name from url: %s", s)
 }
 
 // Currently used for debug

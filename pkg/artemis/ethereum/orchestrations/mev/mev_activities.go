@@ -84,6 +84,8 @@ var c = cache.New(5*time.Hour, 10*time.Hour)
 func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 	wc := web3_client.NewWeb3Client(irisSvcBeaconsInternal, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	wc.AddBearerToken(artemis_orchestration_auth.Bearer)
+	wc.AddDefaultEthereumMainnetTableHeader()
+	wc.AddMaxBlockHeightProcedureEthJsonRpcHeader()
 	txs, terr := wc.GetBlockTxs(ctx)
 	if terr != nil {
 		log.Err(terr).Str("network", d.Network).Msg("BlacklistMinedTxs GetBlockTxs failed")

@@ -58,6 +58,7 @@ func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.Unisw
 
 func InitNewUniswapQuikNode(ctx context.Context) *web3_client.UniswapClient {
 	wc := web3_client.NewWeb3Client(irisSvcBeaconsInternal, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+	wc.AddDefaultEthereumMainnetTableHeader()
 	wc.Network = hestia_req_types.Mainnet
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
@@ -66,7 +67,6 @@ func InitNewUniswapQuikNode(ctx context.Context) *web3_client.UniswapClient {
 }
 
 func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
-
 	for {
 		select {
 		case t := <-timestampChan:
@@ -74,7 +74,7 @@ func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
 			time.Sleep(25 * time.Millisecond)
 			wc := web3_actions.NewWeb3ActionsClient(irisSvcBeaconsInternal)
 			wc.AddDefaultEthereumMainnetTableHeader()
-
+			wc.AddMaxBlockHeightProcedureEthJsonRpcHeader()
 			wc.Network = hestia_req_types.Mainnet
 			wc.Dial()
 			bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)

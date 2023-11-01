@@ -1,6 +1,7 @@
 package artemis_mev_transcations
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,10 +20,10 @@ type HistoricalTxAnalysis struct {
 func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context, trades HistoricalTxAnalysis) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 300,
+		StartToCloseTimeout: time.Second * 180,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts:    5,
-			InitialInterval:    time.Second * 60,
+			MaximumAttempts:    3,
+			InitialInterval:    time.Second * 10,
 			BackoffCoefficient: 2,
 		},
 		TaskQueue: EthereumMainnetMevHistoricalTxTaskQueue,
@@ -34,7 +35,7 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 	}
 	for _, trade := range trades.Trades {
 		histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
-		sessionID := uuid.New().String()
+		sessionID := fmt.Sprintf("%s-%s", trade.TxHash, uuid.New().String())
 		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade, sessionID).Get(histSimTxCtx, &sessionID)
 		if err != nil {
 			logger.Error("Failed to sim historical mempool tx", "Error", err)

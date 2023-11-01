@@ -3,6 +3,7 @@ package iris_redis
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -213,60 +214,78 @@ func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessi
 	if len(path) > 0 {
 		return path, false, nil
 	}
-	// done rate limit checks
-	serviceTable := getGlobalServerlessTableKey(serverlessRoutesTable)
-	pipe := m.Writer.TxPipeline()
 
-	// Pop the first item from the list
-	routeCmd := pipe.SPop(ctx, serviceTable)
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		if err == redis.Nil {
+	// tries to get a healthy route 3 times before failing
+	for i := 0; i < 3; i++ {
+		// done rate limit checks
+		serviceTable := getGlobalServerlessTableKey(serverlessRoutesTable)
+		pipe := m.Writer.TxPipeline()
+
+		// Pop the first item from the list
+		routeCmd := pipe.SPop(ctx, serviceTable)
+		_, err = pipe.Exec(ctx)
+		if err != nil {
+			if err == redis.Nil {
+				// error code, server unavailable or something tbd
+				return "", false, fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
+			}
+			return "", false, err
+		}
+		path, err = routeCmd.Result()
+		if err != nil {
+			// error code, server unavailable or something tbd
+			log.Err(err).Msg("GetNextServerlessRoute: failed to pop route")
+			return "", false, err
+		}
+		if len(path) <= 0 {
 			// error code, server unavailable or something tbd
 			return "", false, fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
 		}
-		return "", false, err
-	}
-	path, err = routeCmd.Result()
-	if err != nil {
-		// error code, server unavailable or something tbd
-		log.Err(err).Msg("GetNextServerlessRoute: failed to pop route")
-		return "", false, err
+		pipe = m.Writer.TxPipeline()
+		redisSet := redis.Z{
+			Score:  float64(time.Now().Add(ServerlessMaxRunTime).Unix()),
+			Member: path,
+		}
+		// XX: Only update elements that already exist. Don't add new elements
+		pipe.ZAddXX(ctx, getGlobalServerlessAvailabilityTableKey(serverlessRoutesTable), redisSet)
+
+		// NX: Set key to hold string value if key does not exist.
+		// this is used to k->v lookup for org-sessionID -> route
+		pipe.SetNX(ctx, getOrgSessionIDKey(orgID, serverlessRoutesTable, sessionID), path, ServerlessSessionMaxRunTime)
+
+		// Add the session to the rate limit table
+		sessionRateLimit := getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable)
+		tnUser := time.Now().Add(ServerlessSessionMaxRunTime).Unix()
+		redisSetUser := redis.Z{
+			Score:  float64(tnUser),
+			Member: path,
+		}
+		// NX: Add to sorted set if key doesn't exist
+		// Add the session to the rate limit table
+		pipe.ZAddNX(ctx, sessionRateLimit, redisSetUser)
+
+		// expires the session rate limit table, adds 2x margin on ttl
+		pipe.Expire(ctx, sessionRateLimit, ServerlessMaxRunTime*2)
+
+		_, err = pipe.Exec(ctx)
+		if err != nil {
+			log.Err(err).Msg("GetNextServerlessRoute: failed to update availability table")
+			return "", false, err
+		}
+		resp, rerr := http.Get(path + "/health")
+		if rerr == nil && resp.StatusCode < 400 && len(path) > 0 {
+			return path, true, nil
+		}
+		if err != nil || resp.StatusCode >= 400 {
+			if err == nil {
+				err = fmt.Errorf("status code: %d", resp.StatusCode)
+			}
+			path = ""
+			err = nil
+		}
 	}
 	if len(path) <= 0 {
-		// error code, server unavailable or something tbd
 		return "", false, fmt.Errorf("GetNextServerlessRoute: failed to find any available routes")
-	}
-	pipe = m.Writer.TxPipeline()
-	redisSet := redis.Z{
-		Score:  float64(time.Now().Add(ServerlessMaxRunTime).Unix()),
-		Member: path,
-	}
-	// XX: Only update elements that already exist. Don't add new elements
-	pipe.ZAddXX(ctx, getGlobalServerlessAvailabilityTableKey(serverlessRoutesTable), redisSet)
-
-	// NX: Set key to hold string value if key does not exist.
-	// this is used to k->v lookup for org-sessionID -> route
-	pipe.SetNX(ctx, getOrgSessionIDKey(orgID, serverlessRoutesTable, sessionID), path, ServerlessSessionMaxRunTime)
-
-	// Add the session to the rate limit table
-	sessionRateLimit := getOrgActiveServerlessCountKey(orgID, serverlessRoutesTable)
-	tnUser := time.Now().Add(ServerlessSessionMaxRunTime).Unix()
-	redisSetUser := redis.Z{
-		Score:  float64(tnUser),
-		Member: path,
-	}
-	// NX: Add to sorted set if key doesn't exist
-	// Add the session to the rate limit table
-	pipe.ZAddNX(ctx, sessionRateLimit, redisSetUser)
-
-	// expires the session rate limit table, adds 2x margin on ttl
-	pipe.Expire(ctx, sessionRateLimit, ServerlessMaxRunTime*2)
-
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		log.Err(err).Msg("GetNextServerlessRoute: failed to update availability table")
-		return "", false, err
 	}
 	return path, true, nil
 }

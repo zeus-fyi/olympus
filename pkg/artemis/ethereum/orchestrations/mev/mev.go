@@ -45,14 +45,13 @@ func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.Unisw
 	wc := web3_client.NewWeb3Client(irisSvcBeaconsInternal, acc)
 	wc.Network = hestia_req_types.Mainnet
 	wc.AddDefaultEthereumMainnetTableHeader()
-	wc.AddMaxBlockHeightProcedureEthJsonRpcHeader()
 	wc.AddBearerToken(AuthHeader)
 	wc.AddSessionLockHeader(sessionID)
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false
 	uni.Web3Client.IsAnvilNode = true
-	uni.Web3Client.DurableExecution = true
+	//uni.Web3Client.DurableExecution = true
 	return &uni
 }
 

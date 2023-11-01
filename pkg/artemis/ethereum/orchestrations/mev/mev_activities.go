@@ -32,8 +32,15 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 		log.Err(err).Str("sessionID", uni.Web3Client.GetSessionLockHeader()).Str("network", d.Network).Msg("Replay failed")
 		return err
 	}
+	err = uni.Web3Client.EndHardHatSessionReset(ctx, uni.Web3Client.NodeURL, 0)
+	if err != nil {
+		log.Err(err).Str("sessionID", uni.Web3Client.GetSessionLockHeader()).Str("network", d.Network).Msg("EndHardHatSessionReset failed")
+		err = nil
+	}
 	return err
 }
+
+// end block number
 
 func (d *ArtemisMevActivities) SimulateAndValidateBundle(ctx context.Context) error {
 	return nil

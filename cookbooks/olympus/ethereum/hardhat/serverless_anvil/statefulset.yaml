@@ -28,7 +28,7 @@ spec:
       containers:
         - name: hypnos
           image: "registry.digitalocean.com/zeus-fyi/hypnos:latest"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/hypnos.sh" ]
           volumeMounts:

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
@@ -203,24 +202,12 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 		log.Err(err).Msg("CheckBlockRxAndNetworkReset: error resetting network")
 		return -1, err
 	}
-	u.Web3Client.Close()
-	for i := 0; i < 10; i++ {
-		u.Web3Client.Dial()
-		nodeInfo, rerr := u.Web3Client.GetNodeMetadata(ctx)
-		if rerr != nil {
-			return -1, err
-		}
-		u.Web3Client.Close()
-		if nodeInfo.ForkConfig.ForkUrl != origInfo.ForkConfig.ForkUrl {
-			return -1, fmt.Errorf("CheckBlockRxAndNetworkReset: live network fork url %s is not equal to initial fork url %s", nodeInfo.ForkConfig.ForkUrl, nodeInfo.ForkConfig.ForkUrl)
-		}
-		if nodeInfo.ForkConfig.ForkBlockNumber != currentBlockNum {
-			fmt.Println("initForkUrl1", origInfo.ForkConfig.ForkUrl, "CurrentBlockNumber", origInfo.CurrentBlockNumber.ToInt().String(), "ForkBlockNumber", origInfo.ForkConfig.ForkBlockNumber)
-			fmt.Println("initForkUrl2", nodeInfo.ForkConfig.ForkUrl, "CurrentBlockNumber", nodeInfo.CurrentBlockNumber.ToInt().String(), "ForkBlockNumber", nodeInfo.ForkConfig.ForkBlockNumber)
-		} else {
-			return currentBlockNum, nil
-		}
-		time.Sleep(100 * time.Millisecond)
+	bh, err := u.Web3Client.GetBlockHeight(ctx)
+	if err != nil {
+		return -1, err
+	}
+	if bh.Int64() == int64(currentBlockNum) {
+		return currentBlockNum, nil
 	}
 	return -1, errors.New("CheckBlockRxAndNetworkReset: could not reset network")
 }

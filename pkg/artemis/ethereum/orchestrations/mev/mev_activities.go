@@ -32,6 +32,11 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 	err := td.Replay(context.Background(), trade.TxHash, true)
 	if err != nil {
 		log.Err(err).Str("sessionID", uni.Web3Client.GetSessionLockHeader()).Str("network", d.Network).Msg("Replay failed")
+		serr := d.EndServerlessSession(ctx, sessionID)
+		if serr != nil {
+			log.Err(serr).Msg("EndServerlessSession failed")
+			serr = nil
+		}
 		return sessionID, err
 	}
 	return sessionID, err

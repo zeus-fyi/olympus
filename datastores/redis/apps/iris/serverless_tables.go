@@ -332,12 +332,7 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 		return "", err
 	}
 
-	podName, err := extractPodName(path)
-	if err != nil {
-		log.Err(err).Msg("ReleaseServerlessRoute: failed to extract pod name")
-		return "", err
-	}
-	return podName, nil
+	return path, nil
 }
 
 func extractPodName(s string) (string, error) {

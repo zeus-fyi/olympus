@@ -182,10 +182,27 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 }
 
 func (p *ProxyRequest) ProcessEndSessionLock(c echo.Context, orgID int, sessionID, serverlessRoutesTable string) error {
-	_, err := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), orgID, sessionID, serverlessRoutesTable)
-	if err != nil {
-		log.Err(err).Msg("ProxyRequest: ProcessEndSessionLock")
-		return c.JSON(http.StatusInternalServerError, err)
+	path, perr := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), orgID, sessionID, serverlessRoutesTable)
+	if perr != nil {
+		log.Err(perr).Msg("ProxyRequest: ProcessEndSessionLock")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	if path != "" {
+		podName, err := extractPodName(path)
+		if err != nil {
+			log.Err(err).Msg("ReleaseServerlessRoute: failed to extract pod name")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		if len(podName) == 0 {
+			log.Err(err).Msg("ReleaseServerlessRoute: pod name is empty")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		err = iris_serverless.IrisPlatformServicesWorker.EarlyStart(context.Background(), orgID, podName, serverlessRoutesTable, sessionID)
+		if err != nil {
+			log.Err(err).Msg("ProxyRequest: ProcessEndSessionLock: iris_serverless.IrisPlatformServicesWorker.EarlyStart")
+			err = nil
+		}
 	}
 	return c.JSON(http.StatusOK, nil)
 }

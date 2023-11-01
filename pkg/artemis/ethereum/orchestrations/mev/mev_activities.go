@@ -38,7 +38,10 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 }
 
 func (d *ArtemisMevActivities) EndServerlessSession(ctx context.Context, sessionID string) error {
-	irisClient := resty_base.GetBaseRestyClient("https://iris.zeus.fyi/v1/serverless", artemis_orchestration_auth.Bearer)
+	if len(sessionID) == 0 {
+		return nil
+	}
+	irisClient := resty_base.GetBaseRestyClient("https://iris.zeus.fyi", artemis_orchestration_auth.Bearer)
 	resp, err := irisClient.R().
 		Delete(fmt.Sprintf("/v1/serverless/%s", sessionID))
 	if err != nil {

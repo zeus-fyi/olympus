@@ -3,6 +3,7 @@ package iris_serverless
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -141,6 +142,12 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpcInfo() {
 	t.Require().NotNil(nodeInfo)
 
 	fmt.Println(nodeInfo.ForkConfig.ForkUrl)
+
+}
+
+func (t *IrisOrchestrationsTestSuite) TestRateLimitErr() {
+	err := fmt.Errorf("%d serverless %s sessions in use. max active sessions reached", 5, "anvil")
+	t.Assert().True(strings.Contains(err.Error(), " max active sessions reached"))
 }
 
 /*
@@ -177,3 +184,7 @@ func (t *IrisOrchestrationsTestSuite) TestAnvilRpcInfo() {
 func TestIrisOrchestrationsTestSuite(t *testing.T) {
 	suite.Run(t, new(IrisOrchestrationsTestSuite))
 }
+
+/*
+
+ */

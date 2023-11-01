@@ -206,10 +206,11 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	if err != nil {
 		return -1, err
 	}
-	if bh.Int64() == int64(currentBlockNum) {
-		return currentBlockNum, nil
+	if bh.Int64() != int64(currentBlockNum) {
+		log.Warn().Int64("bh", bh.Int64()).Int("currentBlockNum", currentBlockNum).Msg("CheckBlockRxAndNetworkReset: block height is not equal to current block num")
+		return -1, errors.New("CheckBlockRxAndNetworkReset: could not reset network")
 	}
-	return -1, errors.New("CheckBlockRxAndNetworkReset: could not reset network")
+	return currentBlockNum, nil
 }
 
 func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {

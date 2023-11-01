@@ -188,7 +188,7 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 func (p *ProxyRequest) ProcessEndSessionLock(c echo.Context, orgID int, sessionID, serverlessRoutesTable string) error {
 	path, perr := iris_redis.IrisRedisClient.ReleaseServerlessRoute(context.Background(), orgID, sessionID, serverlessRoutesTable)
 	if perr == redis.Nil {
-		return c.JSON(http.StatusOK, nil)
+		return c.JSON(http.StatusOK, "ok")
 	}
 	if perr != nil {
 		log.Err(perr).Msg("ProxyRequest: ProcessEndSessionLock")
@@ -210,7 +210,9 @@ func (p *ProxyRequest) ProcessEndSessionLock(c echo.Context, orgID int, sessionI
 			log.Err(err).Msg("ProxyRequest: ProcessEndSessionLock: iris_serverless.IrisPlatformServicesWorker.EarlyStart")
 			err = nil
 		}
+		return c.JSON(http.StatusOK, fmt.Sprintf("released session lock-id %s", sessionID))
 	}
+
 	return c.JSON(http.StatusOK, nil)
 }
 

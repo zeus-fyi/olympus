@@ -295,7 +295,7 @@ func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessi
 	// Get the value from the result of the Get command
 	path, err := m.GetServerlessSessionRoute(ctx, orgID, serverlessRoutesTable, sessionID)
 	if err != nil {
-		log.Err(err).Msg("ReleaseServerlessRoute: failed to get session route")
+		log.Err(err).Str("serverlessRoutesTable", serverlessRoutesTable).Str("sessionID", sessionID).Msg("ReleaseServerlessRoute: failed to get session route")
 		return "", err
 	}
 	pipe := m.Writer.TxPipeline()

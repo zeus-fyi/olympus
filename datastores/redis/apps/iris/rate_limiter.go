@@ -17,6 +17,7 @@ const (
 	TwoHundredFifty        = 250
 	OneThousand            = 1_000
 	TenThousand            = 10_000
+	FiveThousand           = 5_000
 	TwentyFiveThousand     = 25_000
 	FiftyThousand          = 50_000
 	HundredThousand        = 100_000
@@ -36,6 +37,8 @@ func GetMonthlyPlanBudgetThroughputZU(planName string) int {
 		return FiftyThousand
 	case "lite":
 		return TwentyFiveThousand
+	case "discover":
+		return TwentyFiveThousand
 	case "test":
 		return 1000
 	default:
@@ -53,6 +56,8 @@ func GetMonthlyPlanBudgetZU(planName string) int {
 		return OneBillion
 	case "lite":
 		return TwoHundredFiftyMillion
+	case "discover":
+		return FiftyMillion
 	case "test":
 		return 1000
 	default:
@@ -69,6 +74,8 @@ func GetMonthlyPlanMaxAnvilServerlessSessions(planName string) int {
 	case "standard":
 		return MaxActiveServerlessSessions
 	case "lite":
+		return MaxActiveServerlessSessions
+	case "discover":
 		return MaxActiveServerlessSessions
 	case "test":
 		return MaxActiveServerlessSessions
@@ -97,16 +104,12 @@ func (m *IrisCache) CheckRateLimitBroadcast(ctx context.Context, orgID int, proc
 		// check max 3B ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
 	case "standard":
-		// check 25k ZU/s
-		// check max 1B ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(FiftyThousand, OneBillion)
 	case "lite":
-		// check 1k ZU/s
-		// check max 50M ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(TwentyFiveThousand, TwoHundredFiftyMillion)
+	case "discover":
+		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, FiftyMillion)
 	case "test":
-		// check 1k ZU/s
-		// check max 50M ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(100, 1000)
 	default:
 		rateLimited, monthlyLimited = um.IsRateLimited(0, 0)
@@ -138,13 +141,11 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGr
 		// check max 3B ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
 	case "standard":
-		// check 25k ZU/s
-		// check max 1B ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(FiftyThousand, OneBillion)
 	case "lite":
-		// check 1k ZU/s
-		// check max 50M ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(TwentyFiveThousand, TwoHundredFiftyMillion)
+	case "discover":
+		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, FiftyMillion)
 	case "test":
 		// check 1k ZU/s
 		// check max 50M ZU/month

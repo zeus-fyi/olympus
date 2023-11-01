@@ -16,27 +16,36 @@ type HistoricalTxAnalysis struct {
 }
 
 func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context, trades HistoricalTxAnalysis) error {
-	log := workflow.GetLogger(ctx)
+	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 180,
+		StartToCloseTimeout: time.Second * 300,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts:    2,
-			InitialInterval:    time.Second * 10,
+			MaximumAttempts:    5,
+			InitialInterval:    time.Second * 60,
 			BackoffCoefficient: 2,
 		},
 		TaskQueue: EthereumMainnetMevHistoricalTxTaskQueue,
 	}
 	srr := workflow.Sleep(ctx, trades.StartTimeDelay)
 	if srr != nil {
-		log.Error("Failed to sleep before tx analysis", "Error", srr)
+		logger.Error("Failed to sleep before tx analysis", "Error", srr)
 		return srr
 	}
 	for _, trade := range trades.Trades {
 		histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
-		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade).Get(histSimTxCtx, nil)
+		var sessionID string
+		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade).Get(histSimTxCtx, &sessionID)
 		if err != nil {
-			log.Error("Failed to sim historical mempool tx", "Error", err)
+			logger.Error("Failed to sim historical mempool tx", "Error", err)
 			return err
+		}
+		if len(sessionID) > 0 {
+			endSessionCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(endSessionCtx, t.EndServerlessSession, sessionID).Get(endSessionCtx, nil)
+			if err != nil {
+				logger.Error("Failed to end serverless session", "Error", err)
+				return err
+			}
 		}
 	}
 	return nil

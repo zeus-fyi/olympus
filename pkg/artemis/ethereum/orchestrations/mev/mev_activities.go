@@ -21,9 +21,10 @@ import (
 	artemis_uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trade_debugger "github.com/zeus-fyi/olympus/pkg/artemis/trading/trade_debugger"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
-func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) error {
+func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) (string, error) {
 	sessionID := uuid.New().String()
 	uni := InitNewUniHardhat(ctx, sessionID)
 	at := artemis_realtime_trading.NewActiveTradingDebugger(uni)
@@ -31,16 +32,35 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 	err := td.Replay(context.Background(), trade.TxHash, true)
 	if err != nil {
 		log.Err(err).Str("sessionID", uni.Web3Client.GetSessionLockHeader()).Str("network", d.Network).Msg("Replay failed")
-		return err
+		return sessionID, err
 	}
-	err = uni.Web3Client.EndHardHatSessionReset(ctx, uni.Web3Client.NodeURL, 0)
-	if err != nil {
-		log.Err(err).Str("sessionID", sessionID).Str("network", d.Network).Msg("EndHardHatSessionReset failed")
-		err = nil
-	}
-	return err
+	return sessionID, err
 }
 
+func (d *ArtemisMevActivities) EndServerlessSession(ctx context.Context, sessionID string) error {
+	irisClient := resty_base.GetBaseRestyClient("https://iris.zeus.fyi/v1/serverless", artemis_orchestration_auth.Bearer)
+	resp, err := irisClient.R().
+		Delete(fmt.Sprintf("/v1/serverless/%s", sessionID))
+	if err != nil {
+		log.Err(err).Str("network", d.Network).Msg("EndServerlessSession failed")
+		return err
+	}
+	if resp.StatusCode() >= 400 {
+		err = fmt.Errorf("EndServerlessSession: status code: %d", resp.StatusCode())
+		log.Err(err).Str("network", d.Network).Msg("EndServerlessSession failed")
+		return err
+	}
+	return nil
+}
+
+/*
+	irisClient := resty_base.GetBaseRestyClient("http://localhost:9010", s.Tc.ProductionLocalTemporalBearerToken)
+
+	sessionID := "sessionID"
+	resp, err := irisClient.R().
+		Delete(fmt.Sprintf("/v1/serverless/%s", sessionID))
+
+*/
 // end block number
 
 func (d *ArtemisMevActivities) SimulateAndValidateBundle(ctx context.Context) error {

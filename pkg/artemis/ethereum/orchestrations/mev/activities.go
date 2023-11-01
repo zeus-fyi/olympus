@@ -33,6 +33,7 @@ func (d *ArtemisMevActivities) GetActivities() ActivitiesSlice {
 		d.GetDynamoDBMempoolTxs, d.ProcessMempoolTxs, d.SimulateAndValidateBundle, d.SubmitFlashbotsBundle, d.RemoveProcessedTx,
 		d.HistoricalSimulateAndValidateTx, d.FetchERC20TokenInfo, d.FetchERC20TokenBalanceOfStorageSlot,
 		d.CalculateTransferTaxFee, d.BlacklistProcessedTxs, d.GetPostgresMempoolTxs, d.GetLookaheadPrices,
+		d.EndServerlessSession,
 	}
 }
 

@@ -315,7 +315,7 @@ func (m *IrisCache) GetServerlessSessionRoute(ctx context.Context, orgID int, se
 func (m *IrisCache) ReleaseServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, error) {
 	// Get the value from the result of the Get command
 	path, err := m.GetServerlessSessionRoute(ctx, orgID, serverlessRoutesTable, sessionID)
-	if err != nil {
+	if err != nil && err != redis.Nil {
 		log.Err(err).Str("serverlessRoutesTable", serverlessRoutesTable).Str("sessionID", sessionID).Msg("ReleaseServerlessRoute: failed to get session route")
 		return "", err
 	}

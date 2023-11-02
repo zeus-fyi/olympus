@@ -169,8 +169,8 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtToAnvilInternalSimForkRequest(c.Request().Context(), req)
 	if err != nil {
-		log.Err(err).Str("routeURL", routeURL).Interface("resp", resp).Msg("rw.InternalSvcRelayRequest")
-		return c.JSON(http.StatusInternalServerError, err)
+		log.Err(err).Str("routeURL", routeURL).Msg("rw.InternalSvcRelayRequest")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	go func(orgID int, usage *iris_usage_meters.PayloadSizeMeter) {
 		if usage == nil {

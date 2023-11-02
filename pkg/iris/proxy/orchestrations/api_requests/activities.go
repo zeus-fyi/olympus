@@ -41,11 +41,11 @@ func (i *IrisApiRequestsActivities) RelayRequest(ctx context.Context, pr *ApiPro
 	}
 	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
 	if err != nil {
-		log.Err(err).Msg("Failed to relay api request")
+		log.Err(err).Msg("IrisApiRequestsActivities: failed to relay api request")
 		return nil, err
 	}
 	if resp.StatusCode() >= 400 {
-		log.Err(err).Msg("Failed to relay api request")
+		log.Err(err).Msg("IrisApiRequestsActivities failed to relay api request")
 		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
 	}
 	return pr, err
@@ -59,12 +59,12 @@ func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context,
 	}
 	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
 	if err != nil {
-		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")
+		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("InternalSvcRelayRequest: failed to relay api request")
 		return nil, err
 	}
 	if resp.StatusCode() >= 400 {
 		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")
-		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
+		return nil, fmt.Errorf("InternalSvcRelayRequest: failed to relay api request: status code %d", resp.StatusCode())
 	}
 	return pr, err
 }
@@ -137,10 +137,10 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	}
 	if err != nil {
 		log.Err(err).Msg("ExtLoadBalancerRequest: Failed to relay api request")
-		return pr, err
+		return pr, fmt.Errorf("failed to relay api request")
 	}
 	if pr.StatusCode >= 400 {
-		log.Err(err).Msg("Failed to relay api request")
+		log.Err(err).Msg("IrisApiRequestsActivities: failed to relay api request")
 		return pr, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
 	}
 	return pr, err
@@ -182,8 +182,8 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		}
 	}
 	if err != nil {
-		log.Err(err).Msg("Failed to relay api request")
-		return nil, err
+		log.Err(err).Msg("sendRequest: failed to relay api request")
+		return nil, fmt.Errorf("failed to relay api request")
 	}
 
 	if resp != nil {
@@ -199,7 +199,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		pr.ReceivedAt = resp.ReceivedAt()
 		pr.Latency = resp.Time()
 	}
-	return resp, err
+	return resp, nil
 }
 
 func filterHeaders(headers http.Header) http.Header {

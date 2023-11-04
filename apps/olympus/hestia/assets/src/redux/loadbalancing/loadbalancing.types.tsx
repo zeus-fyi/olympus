@@ -88,6 +88,10 @@ export function generateMetricSlices(tableMetricsSummaries: TableMetricsSummary[
     for (const tableMetricsSummary of tableMetricsSummaries) {
         for (const metricName in tableMetricsSummary.metrics) {
             const tableMetric = tableMetricsSummary.metrics[metricName];
+            if (tableMetric.sampleCount < 1) {
+                continue
+            }
+
             const metricSlice: MetricAggregateRow = {
                 metricName,
                 sampleCount: tableMetric.sampleCount

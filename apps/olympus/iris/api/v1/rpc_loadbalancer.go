@@ -54,7 +54,7 @@ var (
 
 func GetDefaultLB(plan string) string {
 	switch plan {
-	case "enterprise", "standard", "performance", "lite":
+	case "enterprise", "standard", "performance", "lite", "discovery", "discover":
 		return Adaptive
 	default:
 		return RoundRobin

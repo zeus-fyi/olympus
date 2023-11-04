@@ -77,6 +77,8 @@ func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
 		planName = "Standard"
 	case "lite":
 		planName = "Lite"
+	case "discover", "discovery":
+		planName = "Discover"
 	case "test":
 		planName = "Test"
 	default:

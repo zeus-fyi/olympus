@@ -517,6 +517,9 @@ func (t *TableUsageAndUserSettings) SetMaxTableCountByPlan(plan string) error {
 		// check max 1B ZU/month
 		t.MonthlyBudgetTableCount = LiteGroupTables
 		return nil
+	case "discover", "discovery":
+		t.MonthlyBudgetTableCount = LiteGroupTables
+		return nil
 	case "free":
 		// check 1k ZU/s
 		// check max 50M ZU/month
@@ -571,6 +574,11 @@ func (t *TableUsageAndUserSettings) CheckPlanLimits(plan string) error {
 			return errors.New("exceeds plan group tables")
 		}
 		return nil
+	case "discover", "discovery":
+		t.MonthlyBudgetTableCount = LiteGroupTables
+		if t.TableCount >= LiteGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
 	case "free":
 		// check 1k ZU/s
 		// check max 50M ZU/month

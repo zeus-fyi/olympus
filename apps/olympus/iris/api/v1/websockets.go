@@ -103,7 +103,7 @@ func mempoolWebSocketHandler(c echo.Context) error {
 
 func MempoolPlan(plan string) string {
 	switch strings.ToLower(plan) {
-	case "enterprise", "standard", "performance", "lite":
+	case "enterprise", "standard", "performance", "lite", "discovery", "discover":
 		return plan
 	default:
 		return ""

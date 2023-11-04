@@ -24,6 +24,7 @@ import LoadBalancingDashboard from "../components/loadbalancing/LoadBalancingDas
 import {GoogleOAuthProvider} from '@react-oauth/google';
 import {configService} from "../config/config";
 import ReactGA from "react-ga4";
+import Mev from "../components/admin/mev/Mev";
 
 export const App = () => {
     ReactGA.initialize([
@@ -63,7 +64,7 @@ export const App = () => {
                                 <Route path="services/chatgpt" element={<ProtectedLayout children={<ChatGPTPage />}/>}/>
                                 <Route path="services/ethereum/validators" element={<ProtectedLayout children={<ValidatorsServices />}/>}/>
                                 <Route path="services/ethereum/aws" element={<ProtectedLayout children={<AwsWizard />}/>}/>
-                                <Route path="services/mev" element={<InternalProtectedLayout children={<AwsWizard />}/>}/>
+                                <Route path="services/mev" element={<InternalProtectedLayout children={<Mev />}/>}/>
                             </Route>
                             <Route path="billing" element={<ProtectedLayout children={<Billing />}/>}/>
                             <Route path="access"  element={<ProtectedLayout children={<Access />}/>}/>

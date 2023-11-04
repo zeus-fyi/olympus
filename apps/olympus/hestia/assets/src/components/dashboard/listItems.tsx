@@ -96,7 +96,7 @@ export default function MainListItems() {
                                     <ListItemIcon>
                                         <LeaderboardIcon />
                                     </ListItemIcon>
-                                    <ListItemText primary="Mev" />
+                                    <ListItemText primary="MEV" />
                                 </ListItemButton>
                                 <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/chatgpt">
                                     <ListItemIcon>

@@ -116,6 +116,10 @@ func (m *IrisCache) GetPriorityScoresAndTdigestMetrics(ctx context.Context, orgI
 		if serr == nil {
 			tmp.SampleCount = ci
 		}
+		if tmp.SampleCount == 0 {
+			delete(ts.Metrics, metricKey)
+			continue
+		}
 		for i, item := range tmp.MetricPercentiles {
 			val, rerr := item.RedisResult.Result()
 			if rerr != nil && rerr != redis.Nil {

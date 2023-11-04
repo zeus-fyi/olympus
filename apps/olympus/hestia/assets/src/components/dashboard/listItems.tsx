@@ -25,9 +25,7 @@ export default function MainListItems() {
     const [openClusters, setOpenClusters] = React.useState(true);
     const [openApps, setOpenApps] = React.useState(true);
     const isInternal = useSelector((state: RootState) => state.sessionState.isInternal);
-
-    console.log("isInternal: ", isInternal, 'main')
-
+    
     const handleClickServices = () => {
         setOpenServices(!openServices);
     };

@@ -31,9 +31,8 @@ func getBundlesQ() string {
 }
 
 type BundlesGroup struct {
-	Map             map[string][]Bundle `json:"bundles"`
-	bundleHashOrder []string
-	bundleHashToId  map[string]int
+	Map              map[string][]Bundle `json:"bundles"`
+	MapHashToEventID map[string]int      `json:"mapHashToEventID"`
 }
 
 type Bundle struct {
@@ -77,9 +76,8 @@ func (b *Bundle) PrintBundleInfo() {
 
 func GetBundleSubmissionHistory(ctx context.Context, eventID, protocolNetworkID int) (BundlesGroup, error) {
 	bg := BundlesGroup{
-		Map:             make(map[string][]Bundle),
-		bundleHashOrder: make([]string, 0),
-		bundleHashToId:  make(map[string]int),
+		Map:              make(map[string][]Bundle),
+		MapHashToEventID: make(map[string]int),
 	}
 	q := getBundlesQ()
 	rows, err := apps.Pg.Query(ctx, q, eventID, protocolNetworkID)
@@ -102,19 +100,13 @@ func GetBundleSubmissionHistory(ctx context.Context, eventID, protocolNetworkID 
 		bundle.EthTxGas.TxHash = bundle.EthTx.TxHash
 		if _, ok := bg.Map[bundle.BundleHash]; !ok {
 			bg.Map[bundle.BundleHash] = []Bundle{}
+			bg.MapHashToEventID[bundle.BundleHash] = bundle.EthTx.EventID
 		}
 		tmp := bg.Map[bundle.BundleHash]
 		tmp = append(tmp, bundle)
 		bg.Map[bundle.BundleHash] = tmp
 
-		if _, ok := bg.bundleHashToId[bundle.BundleHash]; !ok {
-			bg.bundleHashToId[bundle.BundleHash] = bundle.EthTx.EventID
-			bg.bundleHashOrder = append(bg.bundleHashOrder, bundle.BundleHash)
-		} else {
-			continue
-		}
 	}
-
 	return bg, nil
 }
 

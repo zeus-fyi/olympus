@@ -29,6 +29,12 @@ func (s *ChronosTestSuite) TestEthUtils() {
 	}
 }
 
+func (s *ChronosTestSuite) TestConvertToTime() {
+	c := Chronos{}
+	nt := c.ConvertUnixTimeStampToDate(1699137400414158691)
+	s.Require().NotEmpty(nt)
+	fmt.Println(nt.String())
+}
 func TestChronosTestSuite(t *testing.T) {
 	suite.Run(t, new(ChronosTestSuite))
 }

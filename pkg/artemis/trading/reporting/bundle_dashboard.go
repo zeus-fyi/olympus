@@ -1,5 +1,11 @@
 package artemis_reporting
 
+import (
+	"sort"
+
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
+)
+
 /*
 type BundlesGroup struct {
 	Map map[string][]Bundle
@@ -16,9 +22,10 @@ type Bundle struct {
 */
 
 type BundleSummary struct {
-	EventID    int      `json:"eventID"`
-	BundleHash string   `json:"bundleHash"`
-	BundleTxs  []Bundle `json:"bundledTxs"`
+	EventID        int      `json:"eventID"`
+	SubmissionTime string   `json:"submissionTime"`
+	BundleHash     string   `json:"bundleHash"`
+	BundleTxs      []Bundle `json:"bundledTxs"`
 }
 
 type BundleDashboardInfo struct {
@@ -27,12 +34,21 @@ type BundleDashboardInfo struct {
 
 func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
 	ds := BundleDashboardInfo{
-		Bundles: make([]BundleSummary, len(b.bundleHashOrder)),
+		Bundles: make([]BundleSummary, len(b.Map)),
 	}
-	for ind, hash := range b.bundleHashOrder {
-		ds.Bundles[ind].EventID = b.bundleHashToId[hash]
-		ds.Bundles[ind].BundleHash = hash
-		ds.Bundles[ind].BundleTxs = b.Map[hash]
+
+	ts := chronos.Chronos{}
+	i := 0
+	for hash, v := range b.Map {
+		ds.Bundles[i].EventID = b.MapHashToEventID[hash]
+		ds.Bundles[i].SubmissionTime = ts.ConvertUnixTimeStampToDate(ds.Bundles[i].EventID).String()
+		ds.Bundles[i].BundleHash = hash
+		ds.Bundles[i].BundleTxs = v
+		i++
 	}
+	sort.Slice(ds.Bundles, func(i, j int) bool {
+		return ds.Bundles[i].EventID > ds.Bundles[j].EventID
+	})
+
 	return ds
 }

@@ -79,7 +79,12 @@ func InitV1InternalRoutes(e *echo.Echo) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.VerifyInternalBearerToken(ctx, token)
+			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+			if err == nil && cookie != nil {
+				log.Info().Msg("InitV1ActionsRoutes: Cookie found")
+				token = cookie.Value
+			}
+			key, err := auth.VerifyInternalAdminBearerToken(ctx, token)
 			if err != nil {
 				log.Err(err).Msg("InitV1InternalRoutes")
 				return false, c.JSON(http.StatusUnauthorized, nil)

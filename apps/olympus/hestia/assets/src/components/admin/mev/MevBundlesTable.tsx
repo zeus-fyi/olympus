@@ -9,11 +9,18 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {mevApiGateway} from "../../../gateway/mev";
 
-function MevBundlesTable() {
+function createData(
+    eventID: string,
+    submissionTime: string,
+    bundleHash: string,
+) {
+    return {eventID, submissionTime, bundleHash};
+}
+
+export function MevBundlesTable(props: any) {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
-
-    const [validators, setValidators] = useState([{}]);
+    const [bundles, setBundles] = useState([{}]);
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
@@ -28,17 +35,18 @@ function MevBundlesTable() {
     };
 
     const emptyRows =
-        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - validators.length) : 0;
+        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - bundles.length) : 0;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await mevApiGateway.getDashboardInfo();
+                console.log(response.data)
                 const mevDashboardTable: any[] = response.data.bundles;
-                // const validatorRows = validatorsData.map((v: any) =>
-                //     createData(getNetwork(v.protocolNetworkID), v.groupName, v.pubkey, v.feeRecipient, booleanString(v.enabled))
-                // );
-                // setValidators(validatorRows)
+                const mevDashboardTableRows = mevDashboardTable.map((v: any) =>
+                    createData(v.eventID, v.submissionTime, v.bundleHash)
+                );
+                setBundles(mevDashboardTableRows)
             } catch (error) {
                 console.log("error", error);
             }}
@@ -46,30 +54,26 @@ function MevBundlesTable() {
     }, []);
     return (
         <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">
+            <Table sx={{ minWidth: 1000 }} aria-label="mev bundles pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#333'}} >
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Network</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">GroupName</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">PublicKey</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">FeeRecipient</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Enabled</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >EventID</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Time</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">BundleHash</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {(rowsPerPage > 0
-                        ? validators.slice(page * rowsPerPage, page*rowsPerPage+rowsPerPage) : validators).map((row: any,i: number) => (
+                        ? bundles.slice(page * rowsPerPage, page*rowsPerPage+rowsPerPage) : bundles).map((row: any,i: number) => (
                         <TableRow
                             key={i}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
-                                {row.network}
+                                {row.eventID}
                             </TableCell>
-                            <TableCell align="left">{row.groupName}</TableCell>
-                            <TableCell align="left">{row.pubkey}</TableCell>
-                            <TableCell align="left">{row.feeRecipient}</TableCell>
-                            <TableCell align="left">{row.enabled}</TableCell>
+                            <TableCell align="left">{row.submissionTime}</TableCell>
+                            <TableCell align="left">{row.bundleHash}</TableCell>
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (
@@ -83,7 +87,7 @@ function MevBundlesTable() {
                         <TablePagination
                             rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
                             colSpan={3}
-                            count={validators.length}
+                            count={bundles.length}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             SelectProps={{

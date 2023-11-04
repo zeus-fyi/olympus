@@ -16,6 +16,7 @@ import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../../redux/auth/auth.actions";
 import MainListItems from "../../dashboard/listItems";
+import {MevBundlesTable} from "./MevBundlesTable";
 
 const mdTheme = createTheme();
 
@@ -105,6 +106,7 @@ function MevContent() {
                 >
                     <Toolbar/>
                     <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
+                        <MevBundlesTable />
                     </Container>
                 </Box>
             </Box>

@@ -36,3 +36,8 @@ func (c *LibV0) UnixTimeStampNowSec() int {
 	t := time.Now().Unix()
 	return int(t)
 }
+
+func (c *LibV0) ConvertUnixTimeStampToDate(uts int) time.Time {
+	seconds := uts / 1e9
+	return time.Unix(int64(seconds), 0)
+}

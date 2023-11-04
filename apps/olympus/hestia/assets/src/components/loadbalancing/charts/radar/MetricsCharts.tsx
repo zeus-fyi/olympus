@@ -86,7 +86,7 @@ export function MetricsChart(props: any) {
                         <RadarChart cx="50%" cy="50%" outerRadius="80%" width={700} height={300} data={topTenMetrics}>
                             <PolarGrid />
                             <PolarAngleAxis dataKey="metricName" />
-                            <Radar name="Sample Count" dataKey="sampleCount" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                            <Radar name="Sample Count" dataKey="sampleCountLog" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
                         </RadarChart>
                     </CardContent>
                 </Card>

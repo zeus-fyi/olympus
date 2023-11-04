@@ -94,6 +94,48 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	//s.Assert().Nil(err)
 }
 
+func (s *ReportingTestSuite) TestListSimResults() {
+	// init 17639300, current 17658962
+	//  artemis_trading_constants.V2SwapExactIn
+	rhf := RewardHistoryFilter{
+		FromBlock:   17658962,
+		TradeMethod: "any",
+	}
+	rw, err := GetRewardsHistory(ctx, rhf)
+	s.Assert().Nil(err)
+	s.Assert().NotNil(rw)
+
+	total := artemis_eth_units.NewBigInt(0)
+	totalWithoutNegatives := artemis_eth_units.NewBigInt(0)
+	// Sort slice
+	var historySlice []RewardsHistory
+	for _, v := range rw.Map {
+		total = artemis_eth_units.AddBigInt(total, v.ExpectedProfitAmountOut)
+		if artemis_eth_units.IsXGreaterThanY(v.ExpectedProfitAmountOut, artemis_eth_units.NewBigInt(0)) {
+			totalWithoutNegatives = artemis_eth_units.AddBigInt(totalWithoutNegatives, v.ExpectedProfitAmountOut)
+		}
+		rh := RewardsHistory{
+			FailedCount:             v.FailedCount,
+			AmountOutToken:          v.AmountOutToken,
+			Count:                   v.Count,
+			ExpectedProfitAmountOut: v.ExpectedProfitAmountOut,
+		}
+		historySlice = append(historySlice, rh)
+	}
+
+	sort.SliceStable(historySlice, func(i, j int) bool {
+		// Descending order
+		return historySlice[i].Count > historySlice[j].Count
+	})
+
+	for _, v := range historySlice {
+		fmt.Println(
+			"successCount", v.Count, "failedCount", v.FailedCount, "expProfits", v.ExpectedProfitAmountOut.String(),
+			v.AmountOutToken.Name(), v.AmountOutToken.Address.String(),
+			"num", v.AmountOutToken.TransferTax.Numerator.String(), "den", v.AmountOutToken.TransferTax.Denominator.String())
+	}
+}
+
 func TestReportingTestSuite(t *testing.T) {
 	suite.Run(t, new(ReportingTestSuite))
 }

@@ -49,12 +49,6 @@ func createSimClient() web3_client.Web3Client {
 	return sw3c
 }
 
-func createExtSimClient() web3_client.Web3Client {
-	sw3c := web3_client.NewWeb3ClientFakeSigner(irisBetaSvcExt)
-	sw3c.AddBearerToken(artemis_orchestration_auth.Bearer)
-	return sw3c
-}
-
 func NewActiveTradingDebugger(usc *web3_client.UniswapClient) ActiveTrading {
 	ctx := context.Background()
 	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtilsFromUni(ctx, usc)

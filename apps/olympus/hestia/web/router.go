@@ -70,6 +70,26 @@ func InitV1Routes(e *echo.Echo) {
 	eg.GET("/refresh/token", hestia_login.TokenRefreshRequestHandler)
 }
 
+//func InitV1InternalRoutes(e *echo.Echo) {
+//	eg := e.Group("/web/internal/v1")
+//	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+//		AuthScheme: "Bearer",
+//		Validator: func(token string, c echo.Context) (bool, error) {
+//			ctx := context.Background()
+//			key, err := auth.VerifyInternalBearerToken(ctx, token)
+//			if err != nil {
+//				log.Err(err).Msg("InitV1InternalRoutes")
+//				return false, c.JSON(http.StatusUnauthorized, nil)
+//			}
+//			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+//			c.Set("orgUser", ou)
+//			c.Set("bearer", key.PublicKey)
+//			return key.PublicKeyVerified, err
+//		},
+//	}))
+//	eg.GET("/auth/status", hestia_access_keygen.AccessRequestHandler)
+//}
+
 func Logout(c echo.Context) error {
 	ctx := context.Background()
 	cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)

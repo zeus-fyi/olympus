@@ -4,7 +4,7 @@ import {BrowserRouter, Route, Routes} from 'react-router-dom';
 import './App.css';
 import store from "../redux/store";
 import Login from "../components/login/Login";
-import {ProtectedLayout} from "../auth/ProtectedLayout";
+import {InternalProtectedLayout, ProtectedLayout} from "../auth/ProtectedLayout";
 import {HomeLayout} from "../components/home/Home";
 import ValidatorsServices from "../components/validators/Validators";
 import Clusters from "../components/clusters/Clusters";
@@ -63,6 +63,7 @@ export const App = () => {
                                 <Route path="services/chatgpt" element={<ProtectedLayout children={<ChatGPTPage />}/>}/>
                                 <Route path="services/ethereum/validators" element={<ProtectedLayout children={<ValidatorsServices />}/>}/>
                                 <Route path="services/ethereum/aws" element={<ProtectedLayout children={<AwsWizard />}/>}/>
+                                <Route path="services/mev" element={<InternalProtectedLayout children={<AwsWizard />}/>}/>
                             </Route>
                             <Route path="billing" element={<ProtectedLayout children={<Billing />}/>}/>
                             <Route path="access"  element={<ProtectedLayout children={<Access />}/>}/>

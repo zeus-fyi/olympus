@@ -34,8 +34,11 @@ type TokenRefreshResponse struct {
 
 func (l *TokenRefreshRequest) RefreshToken(c echo.Context) error {
 	ctx := context.Background()
-
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Warn().Msg("RefreshTokenRequestHandler: orgUser not found")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 	key := read_keys.NewKeyReader()
 
 	sessionID := rand.String(64)
@@ -55,11 +58,17 @@ func (l *TokenRefreshRequest) RefreshToken(c echo.Context) error {
 			err = nil
 		}
 	}
-	resp := LoginResponse{
-		UserID:    key.UserID,
-		SessionID: sessionID,
-		TTL:       3600,
+	isInternal := false
+	if key.OrgID == TemporalOrgID {
+		isInternal = true
 	}
+	resp := LoginResponse{
+		UserID:     key.UserID,
+		SessionID:  sessionID,
+		IsInternal: isInternal,
+		TTL:        3600,
+	}
+
 	cookie := &http.Cookie{
 		Name:     "cookieName",
 		Value:    sessionID,

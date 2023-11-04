@@ -16,11 +16,17 @@ import SecurityIcon from '@mui/icons-material/Security';
 import ChatIcon from '@mui/icons-material/Chat';
 import DnsIcon from "@mui/icons-material/Dns";
 import SwapCallsIcon from '@mui/icons-material/SwapCalls';
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/store";
+import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(true);
     const [openClusters, setOpenClusters] = React.useState(true);
     const [openApps, setOpenApps] = React.useState(true);
+    const isInternal = useSelector((state: RootState) => state.sessionState.isInternal);
+
+    console.log("isInternal: ", isInternal, 'main')
 
     const handleClickServices = () => {
         setOpenServices(!openServices);
@@ -84,12 +90,23 @@ export default function MainListItems() {
             </ListItemButton>
             <Collapse in={openServices} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/chatgpt">
-                        <ListItemIcon>
-                            <ChatIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="ChatGPT" />
-                    </ListItemButton>
+                    {isInternal && (
+                            <div>
+                                <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/mev">
+                                    <ListItemIcon>
+                                        <LeaderboardIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Mev" />
+                                </ListItemButton>
+                                <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/chatgpt">
+                                    <ListItemIcon>
+                                        <ChatIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="ChatGPT" />
+                                </ListItemButton>
+                            </div>
+                        )
+                    }
                     <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/ethereum/aws">
                         <ListItemIcon>
                             <AutoFixHighIcon />

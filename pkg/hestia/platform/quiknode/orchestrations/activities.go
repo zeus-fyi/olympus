@@ -110,7 +110,7 @@ func (h *HestiaQuickNodeActivities) DeleteAuthCache(ctx context.Context, qnID st
 
 func (h *HestiaQuickNodeActivities) DeleteSessionAuthCache(ctx context.Context, sessionID string) error {
 	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
-	refreshEndpoint := fmt.Sprintf("/v1/internal/session/auth//%s", sessionID)
+	refreshEndpoint := fmt.Sprintf("/v1/internal/session/auth/%s", sessionID)
 	resp, err := rc.R().Delete(refreshEndpoint)
 	if err != nil {
 		log.Err(err).Msg("DeleteSessionAuthCache")

@@ -16,7 +16,7 @@ class IrisLoadBalancingApiGateway {
                 },
                 withCredentials: true,
             }
-            if (planName === "lite") {
+            if (planName === "free") {
                 let config = {
                     headers: {
                         'Authorization': `Bearer ${sessionID}`,

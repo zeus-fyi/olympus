@@ -65,6 +65,7 @@ export interface Z {
 export interface MetricAggregateRow {
     metricName: string;
     sampleCount: number;
+    sampleCountLog: number; // Add a property for the log value
     p25?: string;
     p50?: string;
     p75?: string;
@@ -94,7 +95,8 @@ export function generateMetricSlices(tableMetricsSummaries: TableMetricsSummary[
 
             const metricSlice: MetricAggregateRow = {
                 metricName,
-                sampleCount: tableMetric.sampleCount
+                sampleCount: tableMetric.sampleCount,
+                sampleCountLog: Math.log(tableMetric.sampleCount) // Calculate log of sampleCount
             };
             for (const metricSample of tableMetric.metricPercentiles) {
                 const percentile = metricSample.percentile;

@@ -142,7 +142,6 @@ function ApiKeys() {
 
     const handleRequestApiKey = async (rowIndex: number) => {
         const response = await accessApiGateway.sendApiKeyGenRequest();
-        console.log(response.data)
         const data = response.data;
         const updatedRows = rows.map((row, index) => {
             if (index === rowIndex) {

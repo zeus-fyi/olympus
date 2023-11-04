@@ -1,6 +1,5 @@
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {validatorsApiGateway} from "../../../gateway/validators";
 import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -8,6 +7,7 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import {mevApiGateway} from "../../../gateway/mev";
 
 function MevBundlesTable() {
     const [page, setPage] = React.useState(0);
@@ -33,8 +33,8 @@ function MevBundlesTable() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await validatorsApiGateway.getValidators();
-                const validatorsData: any[] = response.data;
+                const response = await mevApiGateway.getDashboardInfo();
+                const mevDashboardTable: any[] = response.data.bundles;
                 // const validatorRows = validatorsData.map((v: any) =>
                 //     createData(getNetwork(v.protocolNetworkID), v.groupName, v.pubkey, v.feeRecipient, booleanString(v.enabled))
                 // );

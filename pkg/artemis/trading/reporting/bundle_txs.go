@@ -31,16 +31,18 @@ func getBundlesQ() string {
 }
 
 type BundlesGroup struct {
-	Map map[string][]Bundle
+	Map             map[string][]Bundle `json:"bundles"`
+	bundleHashOrder []string
+	bundleHashToId  map[string]int
 }
 
 type Bundle struct {
-	artemis_autogen_bases.EthMevBundleProfit
-	artemis_autogen_bases.EthTx
-	artemis_autogen_bases.EthTxGas
-	artemis_autogen_bases.EthTxReceipts
-	artemis_autogen_bases.EthMempoolMevTx
-	TradeExecutionFlow *web3_client.TradeExecutionFlow
+	artemis_autogen_bases.EthMevBundleProfit `json:"ethMevBundleProfit,omitempty"`
+	artemis_autogen_bases.EthTx              `json:"ethTx,omitempty"`
+	artemis_autogen_bases.EthTxGas           `json:"ethTxGas,omitempty"`
+	artemis_autogen_bases.EthTxReceipts      `json:"ethTxReceipts,omitempty"`
+	artemis_autogen_bases.EthMempoolMevTx    `json:"ethMempoolMevTx,omitempty"`
+	TradeExecutionFlow                       *web3_client.TradeExecutionFlow `json:"tradeExecutionFlow"`
 }
 
 func (b *Bundle) PrintBundleInfo() {
@@ -75,13 +77,16 @@ func (b *Bundle) PrintBundleInfo() {
 
 func GetBundleSubmissionHistory(ctx context.Context, eventID, protocolNetworkID int) (BundlesGroup, error) {
 	bg := BundlesGroup{
-		Map: make(map[string][]Bundle),
+		Map:             make(map[string][]Bundle),
+		bundleHashOrder: make([]string, 0),
+		bundleHashToId:  make(map[string]int),
 	}
 	q := getBundlesQ()
 	rows, err := apps.Pg.Query(ctx, q, eventID, protocolNetworkID)
 	if err != nil {
 		return bg, err
 	}
+
 	defer rows.Close()
 	for rows.Next() {
 		bundle := Bundle{}
@@ -101,7 +106,15 @@ func GetBundleSubmissionHistory(ctx context.Context, eventID, protocolNetworkID 
 		tmp := bg.Map[bundle.BundleHash]
 		tmp = append(tmp, bundle)
 		bg.Map[bundle.BundleHash] = tmp
+
+		if _, ok := bg.bundleHashToId[bundle.BundleHash]; !ok {
+			bg.bundleHashToId[bundle.BundleHash] = bundle.EthTx.EventID
+			bg.bundleHashOrder = append(bg.bundleHashOrder, bundle.BundleHash)
+		} else {
+			continue
+		}
 	}
+
 	return bg, nil
 }
 

@@ -24,7 +24,6 @@ export const ProtectedLayout = (props: any) => {
                     dispatch(setUserPlanDetails(response.data.planUsageDetails))
                 }
                 dispatch(setSessionAuth(true));
-                console.log("isInternal: ", response.data.isInternal, 'protected')
                 if (response.data.isInternal === true) {
                     dispatch(setInternalAuth(true));
                 } else {

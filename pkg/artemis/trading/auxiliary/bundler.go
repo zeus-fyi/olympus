@@ -3,6 +3,7 @@ package artemis_trading_auxiliary
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/metachris/flashbotsrpc"
@@ -11,6 +12,7 @@ import (
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	artemis_reporting "github.com/zeus-fyi/olympus/pkg/artemis/trading/reporting"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -137,6 +139,15 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 		log.Err(err).Msg("error calling flashbots bundle")
 		return resp, err
 	}
+	go func() {
+		err = artemis_reporting.InsertCallBundleResp(ctx, "flashbots", 1, resp)
+		if err != nil {
+			log.Warn().Msg("CallFlashbotsBundle: error inserting call bundle resp")
+			log.Err(err).Msg("error inserting call bundle resp")
+			return
+		}
+	}()
+
 	log.Info().Interface("resp", resp).Str("resp.BundleGasPrice", resp.BundleGasPrice).Interface("fbCallResp", resp.Results).Msg("CallFlashbotsBundle: bundle sent successfully")
 	return resp, nil
 }
@@ -218,7 +229,18 @@ func sendAdditionalCallBundles(ctx context.Context, w3c web3_client.Web3Client, 
 			if err != nil {
 				log.Warn().Str("builder", builder).Msg("sendAdditionalCallBundles: error calling sending bundle")
 				log.Err(err).Str("builder", builder).Msg("sendAdditionalCallBundles: error calling sending bundle")
+				return
 			}
+
+			if strings.Contains(builder, "blocknative") {
+				err = artemis_reporting.InsertCallBundleResp(ctx, builder, 1, resp)
+				if err != nil {
+					log.Warn().Msg("sendAdditionalCallBundles: error inserting call bundle resp")
+					log.Err(err).Msg("sendAdditionalCallBundles: error inserting call bundle resp")
+					return
+				}
+			}
+
 			log.Info().Str("builder", builder).Str("bundleHash", resp.BundleHash).Msg("sendAdditionalBundles: bundle sent successfully")
 		}(builder, f)
 	}

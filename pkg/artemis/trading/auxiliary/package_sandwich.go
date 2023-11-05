@@ -296,7 +296,6 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 		return nil, errors.New("PackageSandwichAndSend: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
 	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwichAndSend: start")
-
 	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("PackageSandwichAndSend: PackageSandwich failed to package sandwich")

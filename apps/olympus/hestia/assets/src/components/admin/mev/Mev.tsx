@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -17,10 +18,13 @@ import {useDispatch} from "react-redux";
 import authProvider from "../../../redux/auth/auth.actions";
 import MainListItems from "../../dashboard/listItems";
 import {MevBundlesTable} from "./MevBundlesTable";
+import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
+import {mevApiGateway} from "../../../gateway/mev";
 
 const mdTheme = createTheme();
 
-function MevContent() {
+function MevContent(props: any) {
+    const {bundles, groups} = props;
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -105,9 +109,43 @@ function MevContent() {
                     }}
                 >
                     <Toolbar/>
-                    <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
-                        <MevBundlesTable />
+                    <Container maxWidth={"xl"} sx={{mt: 4, mb: 4}}>
+                        <Card className="onboarding-card-highlight-qn-routing-table"  sx={{ maxWidth: 700 }}>
+                            <CardContent>
+                                <Typography gutterBottom variant="h5" component="div">
+                                   MEV Analytics
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                   Switch between bundles, tx analysis, and more.
+                                </Typography>
+                            </CardContent>
+                            <Box mr={2} ml={2} mt={2} mb={4}>
+                                <Stack direction={"row"} spacing={2} alignItems={"center"}>
+                                    <FormControl sx={{  }} fullWidth variant="outlined">
+                                        <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                            Table View
+                                        </InputLabel>
+                                        <Select
+                                            labelId={`groupNameLabel`}
+                                            id={`groupName`}
+                                            name="groupName"
+                                            value={"bundles"}
+                                            //onChange={(event) => handleChangeGroup(event.target.value)}
+                                            label="Mev Group"
+                                        >
+                                            <MenuItem key={'all'} value={'-all'}>{"all"}</MenuItem>
+                                            {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                        </Select>
+                                    </FormControl>
+                                </Stack>
+                            </Box>
+                        </Card>
                     </Container>
+                    { bundles && bundles.length > 0 &&
+                    <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
+                        <MevBundlesTable bundles={bundles}/>
+                    </Container>
+                    }
                 </Box>
             </Box>
         </ThemeProvider>
@@ -115,6 +153,41 @@ function MevContent() {
 }
 
 
+function createBundleData(
+    eventID: string,
+    submissionTime: string,
+    bundleHash: string,
+) {
+    return {eventID, submissionTime, bundleHash};
+}
 export default function Mev() {
-    return <MevContent/>;
+    const [bundles, setBundles] = useState([{}]);
+    const [groupName, setGroupName] = useState({});
+    const [groups, setGroups] = useState({});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await mevApiGateway.getDashboardInfo();
+                const mevDashboardTable: any[] = response.data.bundles;
+                const mevDashboardTableRows = mevDashboardTable.map((v: any) =>
+                    createBundleData(v.eventID, v.submissionTime, v.bundleHash)
+                );
+                setBundles(mevDashboardTableRows)
+                setGroups({
+                    'bundles': bundles,
+                })
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+    return <MevContent bundles={bundles} groups={groups}/>;
 }

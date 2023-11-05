@@ -11,10 +11,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-const (
-	ZeusTestSessionLockHeaderValue = "Zeus-Test"
-)
-
 func (s *ReportingTestSuite) TestBundleHistoryFetch() {
 	bg, err := GetBundleSubmissionHistory(ctx, 0, 1)
 	s.Assert().Nil(err)
@@ -26,7 +22,6 @@ func (s *ReportingTestSuite) TestBundleHistoryFetch() {
 			if bundleTx.EthTx.From == AccountAddr {
 
 			}
-
 			s.Assert().NotEmpty(bundleTx.EthTx.TxHash)
 		}
 	}

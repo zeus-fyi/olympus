@@ -57,7 +57,7 @@ func getCallBundleSaveQ() string {
 			    $2,
 				$3,
 				$4, 
-				$5
+				$5::jsonb
 			FROM cte_mev_call;
         `
 	return que

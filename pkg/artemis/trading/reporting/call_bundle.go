@@ -1,10 +1,11 @@
 package artemis_reporting
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	"strconv"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/metachris/flashbotsrpc"
@@ -33,6 +34,26 @@ func getCallBundleSaveQ() string {
 	return que
 }
 
+func sanitizeAndUnmarshal(data string, v interface{}) error {
+	if err := json.Unmarshal([]byte(data), &v); err != nil {
+		// If unmarshal fails, try to sanitize the string
+		cleanData := sanitizeString(data)
+		// Attempt to unmarshal again with sanitized data
+		return json.Unmarshal([]byte(cleanData), &v)
+	}
+	return nil
+}
+func sanitizeString(s string) string {
+	buf := make([]rune, 0, len(s))
+	for _, r := range s {
+		if r == utf8.RuneError {
+			continue // Exclude RuneError values
+		}
+		buf = append(buf, r)
+	}
+	return string(buf)
+}
+
 func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, callBundlesResp flashbotsrpc.FlashbotsCallBundleResponse) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = getCallBundleSaveQ()
@@ -40,16 +61,14 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 		return errors.New("bundle hash is empty")
 	}
 
-	b, err := json.Marshal(callBundlesResp)
+	b := bytes.Buffer{}
+	err := json.NewEncoder(&b).Encode(callBundlesResp)
 	if err != nil {
-		log.Err(err).Msg("InsertCallBundleResp: error marshalling call bundle response")
 		return err
 	}
 	ts := chronos.Chronos{}
 	eventID := ts.UnixTimeStampNow()
-
-	jsonStr := strconv.QuoteToASCII(string(b))
-	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, jsonStr)
+	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, b)
 	if err == pgx.ErrNoRows {
 		err = nil
 		return err
@@ -84,11 +103,17 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		cbh := CallBundleHistory{
 			FlashbotsCallBundleResponse: flashbotsrpc.FlashbotsCallBundleResponse{},
 		}
-		rowErr := rows.Scan(&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &cbh.FlashbotsCallBundleResponse)
+		respStr := ""
+		rowErr := rows.Scan(&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &respStr)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("SelectCallBundleHistory")
 			return nil, rowErr
 		}
+		//err = json.Unmarshal(respStr, &cbh.FlashbotsCallBundleResponse)
+		//if err != nil {
+		//	log.Err(err).Msg("SelectCallBundleHistory: error unmarshalling call bundle response")
+		//	return nil, err
+		//}
 		rw = append(rw, cbh)
 	}
 	return rw, nil

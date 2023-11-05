@@ -28,7 +28,7 @@ func (s *ReportingTestSuite) TestGetBundlesProfitHistory() {
 }
 
 func (s *ReportingTestSuite) TestInsertCallBundleResp() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	cr := flashbotsrpc.FlashbotsCallBundleResponse{
 		BundleGasPrice:    "",
 		BundleHash:        "0x",

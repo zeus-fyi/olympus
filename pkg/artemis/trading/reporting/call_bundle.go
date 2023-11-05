@@ -48,12 +48,9 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	eventID := ts.UnixTimeStampNow()
 
 	jsonStr := strconv.QuoteToASCII(string(b))
-	b, err = json.Marshal(jsonStr)
-	if err != nil {
-		log.Err(err).Msg("InsertCallBundleResp: error marshalling call bundle response")
-		return err
-	}
-	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, b)
+	jsonStr = jsonStr[1 : len(jsonStr)-1] // Remove the surrounding double quotes added by QuoteToASCII
+
+	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, jsonStr)
 	if err == pgx.ErrNoRows {
 		err = nil
 		return err

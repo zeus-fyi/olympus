@@ -39,6 +39,7 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	if callBundlesResp.BundleHash == "" {
 		return errors.New("bundle hash is empty")
 	}
+
 	b, err := json.Marshal(callBundlesResp)
 	if err != nil {
 		log.Err(err).Msg("InsertCallBundleResp: error marshalling call bundle response")
@@ -48,11 +49,6 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	eventID := ts.UnixTimeStampNow()
 
 	jsonStr := strconv.QuoteToASCII(string(b))
-	jsonStr, err = strconv.Unquote(jsonStr)
-	if err != nil {
-		log.Err(err).Msg("InsertCallBundleResp: error unquoting json string")
-		return err
-	}
 	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, jsonStr)
 	if err == pgx.ErrNoRows {
 		err = nil

@@ -40,10 +40,8 @@ func (r *MevRequest) GetDashboardInfo(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	di := bundles.GetDashboardInfo()
 	rc := resty.New()
-	log.Info().Interface("url", PromqlProxy)
 	resp, err := rc.R().SetResult(&di.TopKTokens).Get(PromqlProxy + "/v1/promql/top/tokens")
 	if err != nil {
 		log.Err(err).Msg("failed to get top tokens")

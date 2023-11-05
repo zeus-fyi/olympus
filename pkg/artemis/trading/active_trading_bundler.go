@@ -14,7 +14,14 @@ func ProcessBundleStage(ctx context.Context, w3c web3_client.Web3Client, tfSlice
 		err := ActiveTradingFilter(ctx, w3c, tf, m)
 		if err != nil {
 			log.Err(err).Msg("ProcessBundleStage: failed to pass active filter trade")
-			err = nil
+			err = artemis_trading_auxiliary.ReadOnlyPackageSandwichAndCall(ctx, w3c, &tf, m)
+			if err != nil {
+				m.StageProgressionMetrics.CountCallReadOnlyCallBundleFailCount()
+				log.Err(err).Msg("ProcessBundleStage: ReadOnlyPackageSandwichAndCall failed to package sandwich")
+				err = nil
+				continue
+			}
+			m.StageProgressionMetrics.CountCallReadOnlyCallBundleSuccessCount()
 			continue
 		}
 		log.Info().Msgf("ProcessBundleStage: passed active filter trade: %s", tf.Tx.Hash().String())

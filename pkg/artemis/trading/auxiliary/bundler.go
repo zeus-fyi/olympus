@@ -75,44 +75,37 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 	return sr, nil
 }
 
-func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
+func CallReadOnlyBundle(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup, tf *web3_client.TradeExecutionFlow) error {
 	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
-		log.Warn().Msg("CallFlashbotsBundleStaging: error getting event id")
-		log.Err(err).Msg("error getting event id")
-		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
+		log.Err(err).Msg("CallAndSendFlashbotsBundle: error getting event id")
+		return err
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
 	ctx = setBlockNumberCtx(ctx, bnStr)
 	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
-		log.Warn().Msg("CallFlashbotsBundleStaging: error calling flashbots bundle")
-		log.Err(err).Msg("error calling flashbots bundle")
-		return resp, err
+		log.Err(err).Msg("CallAndSendFlashbotsBundle: error calling flashbots bundle")
+		return err
 	}
-	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
-	dbTx, err := apps.Pg.Begin(ctx)
-	if err != nil {
-		log.Err(err).Msg("error beginning db transaction")
-		return resp, err
+	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallAndSendFlashbotsBundle: call bundle simulated successfully")
+	gasFees := artemis_eth_units.NewBigIntFromStr(resp.GasFees)
+	// 0.005, ~$10
+	profitMin := artemis_eth_units.GweiMultiple(5000000)
+	profitMarginMin := artemis_eth_units.AddBigInt(gasFees, profitMin)
+	log.Info().Interface("resp", resp).Str("tf.SandwichPrediction.ExpectedProfit.String()", tf.SandwichPrediction.ExpectedProfit.String()).
+		Str("profitMarginMin", profitMarginMin.String()).Str("gasFees", resp.GasFees).
+		Str("resp.BundleGasPrice", resp.BundleGasPrice).Int64("resp.TotalGasUsed", resp.TotalGasUsed).
+		Msg("CallAndSendFlashbotsBundle: gas fees vs expected profit")
+	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMarginMin) {
+		log.Warn().Interface("resp", resp).
+			Str("expectedProfit", tf.SandwichPrediction.ExpectedProfit.String()).Str("profitMarginMin",
+			profitMarginMin.String()).Str("gasFees", resp.GasFees).Str("resp.BundleGasPrice", resp.BundleGasPrice).
+			Int64("resp.TotalGasUsed", resp.TotalGasUsed).Msg("CallAndSendFlashbotsBundle: gas fees are greater than expected profit")
+		return errors.New("CallAndSendFlashbotsBundle: gas fees are greater than expected profit")
 	}
-	defer dbTx.Rollback(ctx)
-	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, resp.BundleHash)
-	if err != nil {
-		log.Info().Str("bundleHash", resp.BundleHash).Interface("bundle.MevTxs", bundle.MevTxs).Msg("CallFlashbotsBundleStaging: error inserting txs with bundle")
-		log.Err(err).Msg("error inserting txs with bundle")
-		terr := dbTx.Rollback(ctx)
-		if terr != nil {
-			log.Err(terr).Msg("error rolling back db transaction")
-		}
-		return resp, err
-	}
-	err = dbTx.Commit(ctx)
-	if err != nil {
-		log.Err(err).Msg("error committing db transaction")
-		return resp, err
-	}
-	return resp, nil
+
+	return nil
 }
 
 func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle *MevTxGroup) (flashbotsrpc.FlashbotsCallBundleResponse, error) {

@@ -4,7 +4,9 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 	artemis_reporting "github.com/zeus-fyi/olympus/pkg/artemis/trading/reporting"
@@ -21,6 +23,10 @@ func MevRequestHandler(c echo.Context) error {
 	return request.GetDashboardInfo(c)
 }
 
+const (
+	promqlProxy = "http://promql.promql-edc89f30.svc.cluster.local:9090"
+)
+
 func (r *MevRequest) GetDashboardInfo(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
@@ -32,6 +38,14 @@ func (r *MevRequest) GetDashboardInfo(c echo.Context) error {
 	ctx := context.Background()
 	bundles, err := artemis_reporting.GetBundleSubmissionHistory(ctx, 0, 1)
 	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	di := bundles.GetDashboardInfo()
+	rc := resty.New()
+	_, err = rc.R().SetResult(di.TopKTokens).Get(promqlProxy + "/v1/promql/top/tokens")
+	if err != nil {
+		log.Err(err).Msg("failed to get top tokens")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, bundles.GetDashboardInfo())

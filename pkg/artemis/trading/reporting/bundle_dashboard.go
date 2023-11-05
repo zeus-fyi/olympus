@@ -29,7 +29,8 @@ type BundleSummary struct {
 }
 
 type BundleDashboardInfo struct {
-	Bundles []BundleSummary `json:"bundles"`
+	TopKTokens []string        `json:"topKTokens"`
+	Bundles    []BundleSummary `json:"bundles"`
 }
 
 func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
@@ -49,6 +50,5 @@ func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
 	sort.Slice(ds.Bundles, func(i, j int) bool {
 		return ds.Bundles[i].EventID > ds.Bundles[j].EventID
 	})
-
 	return ds
 }

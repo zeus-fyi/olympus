@@ -3,15 +3,17 @@ package metrics_trading
 import "github.com/prometheus/client_golang/prometheus"
 
 type StageProgressionMetrics struct {
-	PreEntryFilterTxCount              prometheus.Counter
-	PostEntryFilterTxCount             prometheus.Counter
-	PostDecodeTxCount                  prometheus.Counter
-	PostProcessFilterTxCount           prometheus.Counter
-	PostSimFilterTxCount               prometheus.Counter
-	PostActiveTradingFilterTxCount     prometheus.Counter
-	PostSimStageCount                  prometheus.Counter
-	SentFlashbotsBundleSubmissionCount prometheus.Counter
-	SavedMempoolTxCount                prometheus.Counter
+	PreEntryFilterTxCount                         prometheus.Counter
+	PostEntryFilterTxCount                        prometheus.Counter
+	PostDecodeTxCount                             prometheus.Counter
+	PostProcessFilterTxCount                      prometheus.Counter
+	PostSimFilterTxCount                          prometheus.Counter
+	PostActiveTradingFilterTxCount                prometheus.Counter
+	PostSimStageCount                             prometheus.Counter
+	SentFlashbotsBundleSubmissionCount            prometheus.Counter
+	SavedMempoolTxCount                           prometheus.Counter
+	ReadOnlyCallBundleSubmissionSuccessCount      prometheus.Counter
+	ReadOnlyCallBundleSubmissionCountFailureCount prometheus.Counter
 
 	CheckpointOneMarker prometheus.Counter
 	CheckpointTwoMarker prometheus.Counter
@@ -19,6 +21,18 @@ type StageProgressionMetrics struct {
 
 func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetrics {
 	tx := StageProgressionMetrics{}
+	tx.ReadOnlyCallBundleSubmissionSuccessCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_read_only_call_bundle_submission_count_success",
+			Help: "Call bundle in read-only for analysis outcome success",
+		},
+	)
+	tx.ReadOnlyCallBundleSubmissionCountFailureCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_read_only_call_bundle_submission_count_failure",
+			Help: "Call bundle in read-only for analysis outcome failure",
+		},
+	)
 	tx.CheckpointOneMarker = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "eth_mev_checkpoint_one_marker",
@@ -111,6 +125,14 @@ func (t *StageProgressionMetrics) CountCheckpointOneMarker() {
 
 func (t *StageProgressionMetrics) CountCheckpointTwoMarker() {
 	t.CheckpointTwoMarker.Add(1)
+}
+
+func (t *StageProgressionMetrics) CountCallReadOnlyCallBundleFailCount() {
+	t.ReadOnlyCallBundleSubmissionCountFailureCount.Add(1)
+}
+
+func (t *StageProgressionMetrics) CountCallReadOnlyCallBundleSuccessCount() {
+	t.ReadOnlyCallBundleSubmissionSuccessCount.Add(1)
 }
 
 func (t *StageProgressionMetrics) CountPreEntryFilterTx() {

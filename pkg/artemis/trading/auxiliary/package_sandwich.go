@@ -312,3 +312,27 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 	log.Info().Str("bundleHash", resp.BundleHash).Msg("PackageSandwichAndSend: done")
 	return &resp, err
 }
+
+func ReadOnlyPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow, m *metrics_trading.TradingMetrics) error {
+	if tf == nil || tf.Tx == nil {
+		return errors.New("PackageSandwichAndSend: tf is nil")
+	}
+	if artemis_eth_units.IsXLessThanEqZeroOrOne(tf.FrontRunTrade.AmountIn) || artemis_eth_units.IsXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut) {
+		return errors.New("PackageSandwichAndSend: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
+	}
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwichAndSend: start")
+	bundle, err := PackageSandwich(ctx, w3c, tf)
+	if err != nil {
+		log.Err(err).Msg("PackageSandwichAndSend: PackageSandwich failed to package sandwich")
+		return err
+	}
+	if bundle == nil {
+		return errors.New("bundle is nil")
+	}
+	err = CallReadOnlyBundle(ctx, w3c, *bundle, tf)
+	if err != nil {
+		log.Err(err).Msg("PackageSandwichAndSend: CallAndSendFlashbotsBundle failed to send sandwich")
+		return err
+	}
+	return nil
+}

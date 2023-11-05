@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strconv"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/metachris/flashbotsrpc"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
@@ -56,7 +58,7 @@ func getCallBundleSaveQ() string {
 			    $2,
 				$3,
 				$4, 
-				$5
+				$5::jsonb
 			FROM cte_mev_call;
         `
 	return que
@@ -70,11 +72,13 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	}
 	b, err := json.Marshal(callBundlesResp)
 	if err != nil {
+		log.Err(err).Msg("InsertCallBundleResp: error marshalling call bundle response")
 		return err
 	}
-
 	ts := chronos.Chronos{}
-	_, err = apps.Pg.Exec(ctx, q.RawQuery, ts.UnixTimeStampNow(), builder, callBundlesResp.BundleHash, protocolID, string(b))
+	eventID := ts.UnixTimeStampNow()
+
+	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, strconv.QuoteToASCII(string(b)))
 	if err == pgx.ErrNoRows {
 		err = nil
 	}

@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strings"
-	"unicode"
+	"strconv"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/metachris/flashbotsrpc"
@@ -78,23 +77,12 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	}
 	ts := chronos.Chronos{}
 	eventID := ts.UnixTimeStampNow()
-	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, removeInvalidUnicode(string(b)))
+
+	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, strconv.QuoteToASCII(string(b)))
 	if err == pgx.ErrNoRows {
 		err = nil
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("InsertBundleProfit"))
-}
-
-func removeInvalidUnicode(input string) string {
-	var sb strings.Builder
-	for _, r := range input {
-		if r == unicode.ReplacementChar || !unicode.IsPrint(r) {
-			// Skip this rune
-			continue
-		}
-		sb.WriteRune(r)
-	}
-	return sb.String()
 }
 
 /*

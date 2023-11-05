@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/metachris/flashbotsrpc"
@@ -76,7 +77,7 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	}
 	ts := chronos.Chronos{}
 	eventID := ts.UnixTimeStampNow()
-	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, string(b))
+	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, fmt.Sprintf("%s", b))
 	if err == pgx.ErrNoRows {
 		err = nil
 	}

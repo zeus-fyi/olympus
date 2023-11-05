@@ -175,8 +175,11 @@ export default function Mev() {
                     createBundleData(v.eventID, v.submissionTime, v.bundleHash)
                 );
                 setBundles(mevDashboardTableRows)
+                const mevTopKTokens: any[] = response.data.topKTokens;
+
                 setGroups({
                     'bundles': bundles,
+                    'topKTokens': mevTopKTokens
                 })
             } catch (error) {
                 console.log("error", error);

@@ -19,6 +19,7 @@ import (
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_iris_dashboard "github.com/zeus-fyi/olympus/hestia/web/iris"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
+	hestia_mev "github.com/zeus-fyi/olympus/hestia/web/mev"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -137,6 +138,8 @@ func Hestia() {
 		hestia_login.GoogleOAuthConfig.ClientID = tc.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = tc.GoogClientSecret
 		//hestia_analytics.GtagApiSecret = tc.GoogTagSecret
+
+		hestia_mev.PromqlProxy = "http://localhost:8000"
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -160,6 +163,8 @@ func Hestia() {
 		hestia_login.GoogleOAuthConfig.ClientID = tc.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = tc.GoogClientSecret
 		//hestia_analytics.GtagApiSecret = tc.GoogTagSecret
+		hestia_mev.PromqlProxy = "http://localhost:8000"
+
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

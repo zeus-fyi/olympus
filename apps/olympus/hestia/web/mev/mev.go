@@ -23,8 +23,8 @@ func MevRequestHandler(c echo.Context) error {
 	return request.GetDashboardInfo(c)
 }
 
-const (
-	promqlProxy = "http://promql.promql-edc89f30.svc.cluster.local:9090"
+var (
+	PromqlProxy = "http://promql.promql-edc89f30.svc.cluster.local:9090"
 )
 
 func (r *MevRequest) GetDashboardInfo(c echo.Context) error {
@@ -43,10 +43,10 @@ func (r *MevRequest) GetDashboardInfo(c echo.Context) error {
 
 	di := bundles.GetDashboardInfo()
 	rc := resty.New()
-	_, err = rc.R().SetResult(di.TopKTokens).Get(promqlProxy + "/v1/promql/top/tokens")
+	resp, err := rc.R().SetResult(&di.TopKTokens).Get(PromqlProxy + "/v1/promql/top/tokens")
 	if err != nil {
 		log.Err(err).Msg("failed to get top tokens")
-		return c.JSON(http.StatusInternalServerError, nil)
+		return c.JSON(http.StatusInternalServerError, resp)
 	}
-	return c.JSON(http.StatusOK, bundles.GetDashboardInfo())
+	return c.JSON(http.StatusOK, di)
 }

@@ -134,14 +134,14 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 		log.Err(err).Msg("error calling flashbots bundle")
 		return resp, err
 	}
-	go func() {
-		err = artemis_reporting.InsertCallBundleResp(ctx, "flashbots", 1, resp)
+	go func(cb flashbotsrpc.FlashbotsCallBundleResponse) {
+		err = artemis_reporting.InsertCallBundleResp(ctx, "flashbots", 1, cb)
 		if err != nil {
 			log.Warn().Msg("CallFlashbotsBundle: error inserting call bundle resp")
 			log.Err(err).Msg("error inserting call bundle resp")
 			return
 		}
-	}()
+	}(resp)
 
 	log.Info().Interface("resp", resp).Str("resp.BundleGasPrice", resp.BundleGasPrice).Interface("fbCallResp", resp.Results).Msg("CallFlashbotsBundle: bundle sent successfully")
 	return resp, nil

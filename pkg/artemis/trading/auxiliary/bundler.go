@@ -131,7 +131,9 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 		Timestamp:   GetDeadline().Int64(),
 	}
 	ctx = setBlockNumberCtx(ctx, bnStr)
-	sendAdditionalCallBundles(ctx, w3c, fbCallBundle)
+	go func() {
+		sendAdditionalCallBundles(ctx, w3c, fbCallBundle)
+	}()
 	f := artemis_flashbots.InitFlashbotsClient(ctx, &w3c.Web3Actions)
 	resp, err := f.CallBundle(ctx, fbCallBundle)
 	if err != nil {

@@ -1,6 +1,11 @@
 package artemis_reporting
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/metachris/flashbotsrpc"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+)
 
 func (s *ReportingTestSuite) TestGetBundlesProfitHistory() {
 	bg, err := GetBundlesProfitHistory(ctx, 0, 1)
@@ -20,4 +25,34 @@ func (s *ReportingTestSuite) TestGetBundlesProfitHistory() {
 				"bundleTx.EthMevBundleProfit.RevenuePredictionSkew", bundleTx.EthMevBundleProfit.RevenuePredictionSkew)
 		}
 	}
+}
+
+func (s *ReportingTestSuite) TestInsertCallBundleResp() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	cr := flashbotsrpc.FlashbotsCallBundleResponse{
+		BundleGasPrice:    "",
+		BundleHash:        "0x",
+		CoinbaseDiff:      "",
+		EthSentToCoinbase: "",
+		GasFees:           "",
+		Results: []flashbotsrpc.FlashbotsCallBundleResult{
+			{
+				CoinbaseDiff:      "dd",
+				EthSentToCoinbase: "s",
+				FromAddress:       "d",
+				GasFees:           "",
+				GasPrice:          "",
+				GasUsed:           1,
+				ToAddress:         "",
+				TxHash:            "0x",
+				Value:             "",
+				Error:             "",
+				Revert:            "ss",
+			},
+		},
+		StateBlockNumber: 1,
+		TotalGasUsed:     1,
+	}
+	err := InsertCallBundleResp(ctx, "flashbots", 1, cr)
+	s.Assert().Nil(err)
 }

@@ -65,3 +65,37 @@ CREATE TABLE "public"."eth_mev_bundle_profit" (
     "profit" int8 NOT NULL GENERATED ALWAYS AS (revenue - costs) STORED
 );
 ALTER TABLE "public"."eth_mev_bundle_profit" ADD CONSTRAINT "eth_mev_bundle_profit_pk" PRIMARY KEY ("bundle_hash");
+
+CREATE TABLE "public"."eth_mev_call_bundle" (
+    "bundle_hash" text  NOT NULL REFERENCES eth_mev_bundle(bundle_hash),
+    "revenue" int8 NOT NULL,
+    "revenue_prediction" int8 NOT NULL DEFAULT 0,
+    "revenue_prediction_skew" int8 NOT NULL GENERATED ALWAYS AS (revenue - revenue_prediction) STORED,
+    "costs" int8 NOT NULL,
+    "profit" int8 NOT NULL GENERATED ALWAYS AS (revenue - costs) STORED
+);
+ALTER TABLE "public"."eth_mev_bundle_profit" ADD CONSTRAINT "eth_mev_bundle_profit_pk" PRIMARY KEY ("bundle_hash");
+
+CREATE TABLE "public"."eth_mev_call_bundle" (
+    "event_id" int8 NOT NULL REFERENCES events (event_id),
+    "bundle_hash" text NOT NULL,
+    "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1
+);
+ALTER TABLE "public"."eth_mev_call_bundle" ADD CONSTRAINT "eth_mev_call_bundle_pk" PRIMARY KEY ("event_id", "bundle_hash");
+CREATE INDEX eth_mev_call_bundle_protocol_id ON "public"."eth_mev_call_bundle" ("protocol_network_id");
+
+CREATE TABLE "public"."eth_mev_block_builders" (
+    "builder_name" text NOT NULL
+);
+ALTER TABLE "public"."eth_mev_block_builders" ADD CONSTRAINT "mev_block_builders_pk" PRIMARY KEY ("builder_name");
+
+
+CREATE TABLE "public"."eth_mev_call_bundle" (
+    "event_id" int8 NOT NULL REFERENCES events (event_id),
+    "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1,
+    "bundle_hash" text NOT NULL,
+    "builder_name" text NOT NULL REFERENCES eth_mev_block_builders(builder_name) NOT NULL,
+    "eth_call_resp_json" jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+ALTER TABLE "public"."eth_mev_call_bundle" ADD CONSTRAINT "eth_mev_call_bundle_pk" PRIMARY KEY ("event_id", "bundle_hash");
+CREATE INDEX eth_mev_call_bundle_protocol_id ON "public"."eth_mev_call_bundle" ("protocol_network_id");

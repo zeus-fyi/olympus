@@ -74,6 +74,18 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 		log.Err(err).Msg("InsertCallBundleResp: error marshalling call bundle response")
 		return err
 	}
+	m := map[string]interface{}{}
+	err = json.Unmarshal(b, &m)
+	if err != nil {
+		log.Err(err).Msg("InsertCallBundleResp: error unmarshalling call bundle response")
+		return err
+	}
+
+	b, err = json.Marshal(m)
+	if err != nil {
+		log.Err(err).Msg("InsertCallBundleResp: error marshalling call bundle response")
+		return err
+	}
 	ts := chronos.Chronos{}
 	eventID := ts.UnixTimeStampNow()
 	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, string(b))

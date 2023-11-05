@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"unicode/utf8"
+	"regexp"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/metachris/flashbotsrpc"
@@ -34,24 +34,10 @@ func getCallBundleSaveQ() string {
 	return que
 }
 
-func sanitizeAndUnmarshal(data string, v interface{}) error {
-	if err := json.Unmarshal([]byte(data), &v); err != nil {
-		// If unmarshal fails, try to sanitize the string
-		cleanData := sanitizeString(data)
-		// Attempt to unmarshal again with sanitized data
-		return json.Unmarshal([]byte(cleanData), &v)
-	}
-	return nil
-}
-func sanitizeString(s string) string {
-	buf := make([]rune, 0, len(s))
-	for _, r := range s {
-		if r == utf8.RuneError {
-			continue // Exclude RuneError values
-		}
-		buf = append(buf, r)
-	}
-	return string(buf)
+var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
+
+func clearString(str string) string {
+	return nonAlphanumericRegex.ReplaceAllString(str, "")
 }
 
 func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, callBundlesResp flashbotsrpc.FlashbotsCallBundleResponse) error {
@@ -61,14 +47,37 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 		return errors.New("bundle hash is empty")
 	}
 
-	b := bytes.Buffer{}
-	err := json.NewEncoder(&b).Encode(callBundlesResp)
-	if err != nil {
-		return err
+	tmp := flashbotsrpc.FlashbotsCallBundleResponse{
+		BundleGasPrice:    callBundlesResp.BundleGasPrice,
+		BundleHash:        callBundlesResp.BundleHash,
+		CoinbaseDiff:      callBundlesResp.CoinbaseDiff,
+		EthSentToCoinbase: callBundlesResp.EthSentToCoinbase,
+		GasFees:           callBundlesResp.GasFees,
+		Results:           make([]flashbotsrpc.FlashbotsCallBundleResult, len(callBundlesResp.Results)),
+		StateBlockNumber:  callBundlesResp.StateBlockNumber,
+		TotalGasUsed:      callBundlesResp.TotalGasUsed,
 	}
+
+	for i, v := range callBundlesResp.Results {
+		fr := flashbotsrpc.FlashbotsCallBundleResult{
+			CoinbaseDiff:      v.CoinbaseDiff,
+			EthSentToCoinbase: v.EthSentToCoinbase,
+			FromAddress:       v.FromAddress,
+			GasFees:           v.GasFees,
+			GasPrice:          v.GasPrice,
+			GasUsed:           v.GasUsed,
+			ToAddress:         v.ToAddress,
+			TxHash:            v.TxHash,
+			Value:             v.Value,
+			Error:             clearString(v.Error),
+			Revert:            clearString(v.Revert),
+		}
+		tmp.Results[i] = fr
+	}
+
 	ts := chronos.Chronos{}
 	eventID := ts.UnixTimeStampNow()
-	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, b.String())
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, tmp)
 	if err == pgx.ErrNoRows {
 		err = nil
 		return err

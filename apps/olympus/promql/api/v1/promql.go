@@ -9,8 +9,7 @@ import (
 	mev_promql "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/promql"
 )
 
-type PromQLRequest struct {
-}
+type PromQLRequest struct{}
 
 func PromQLRequestHandler(method string) func(c echo.Context) error {
 	return func(c echo.Context) error {
@@ -41,7 +40,6 @@ func (p *PromQLRequest) PromQLRequest(c echo.Context, method string) error {
 		}
 		return c.JSON(http.StatusOK, tokens)
 	default:
-
 	}
 	return c.JSON(http.StatusNotImplemented, nil)
 }

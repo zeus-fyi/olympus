@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "promql"
+  labels:
+    app.kubernetes.io/instance: "promql"
+    app.kubernetes.io/name: "promql"
+    app.kubernetes.io/managed-by: "zeus"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/instance: "promql"
+    app.kubernetes.io/name: "promql"
+

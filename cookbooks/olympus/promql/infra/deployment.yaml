@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "promql"
+  labels:
+    app.kubernetes.io/instance: "promql"
+    app.kubernetes.io/name: "promql"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "promql"
+      app.kubernetes.io/instance: "promql"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "promql"
+        app.kubernetes.io/instance: "promql"
+    spec:
+      containers:
+        - name: "promql"
+          image: "registry.digitalocean.com/zeus-fyi/promql:latest"
+          volumeMounts:
+            - mountPath: "/scripts"
+              name: "cm-promql"
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
+          env:
+            - name: AGE_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: age-auth
+                  key: age-private-key
+            - name: DO_SPACES_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-key
+                  key: do-spaces-key
+            - name: DO_SPACES_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-auth
+                  key: do-spaces-private-key
+          ports:
+            - name: "http"
+              containerPort: 8000
+              protocol: "TCP"
+          livenessProbe:
+            httpGet:
+              path: "/health"
+              port: "http"
+            failureThreshold: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: "/health"
+              port: "http"
+            failureThreshold: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: '500m'
+              memory: 1Gi
+            requests:
+              cpu: '500m'
+              memory: 1Gi
+      volumes:
+        - name: cm-promql
+          configMap:
+            name: cm-promql
+            defaultMode: 0744
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []

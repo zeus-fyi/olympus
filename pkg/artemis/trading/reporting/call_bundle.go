@@ -1,7 +1,6 @@
 package artemis_reporting
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -123,16 +122,10 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		cbh := CallBundleHistory{
 			FlashbotsCallBundleResponse: flashbotsrpc.FlashbotsCallBundleResponse{},
 		}
-		respStr := bytes.Buffer{}
-		rowErr := rows.Scan(&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &respStr)
+		rowErr := rows.Scan(&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &cbh.FlashbotsCallBundleResponse)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("SelectCallBundleHistory")
 			return nil, rowErr
-		}
-		err = json.Unmarshal(respStr.Bytes(), &cbh.FlashbotsCallBundleResponse)
-		if err != nil {
-			log.Err(err).Msg("SelectCallBundleHistory: error unmarshalling call bundle response")
-			return nil, err
 		}
 		rw = append(rw, cbh)
 	}

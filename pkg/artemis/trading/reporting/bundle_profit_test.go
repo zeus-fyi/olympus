@@ -47,7 +47,7 @@ func (s *ReportingTestSuite) TestInsertCallBundleResp() {
 				TxHash:            "0x",
 				Value:             "",
 				Error:             "",
-				Revert:            "ss",
+				Revert:            "ss�y�",
 			},
 		},
 		StateBlockNumber: 1,

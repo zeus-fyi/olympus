@@ -48,9 +48,8 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	eventID := ts.UnixTimeStampNow()
 
 	jsonStr := strconv.QuoteToASCII(string(b))
-	jsonStr = jsonStr[1 : len(jsonStr)-1] // Remove the surrounding double quotes added by QuoteToASCII
 
-	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, jsonStr)
+	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, []byte(jsonStr))
 	if err == pgx.ErrNoRows {
 		err = nil
 		return err

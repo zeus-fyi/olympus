@@ -5,7 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"regexp"
+	"strings"
+	"unicode"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/metachris/flashbotsrpc"
@@ -34,10 +35,16 @@ func getCallBundleSaveQ() string {
 	return que
 }
 
-var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
-
 func clearString(str string) string {
-	return nonAlphanumericRegex.ReplaceAllString(str, "")
+	str = strings.Replace(str, "�y�", "", -1)
+	var result []rune
+	for _, r := range str {
+		// Keep only letters, digits, and underscore
+		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' {
+			result = append(result, r)
+		}
+	}
+	return string(result)
 }
 
 func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, callBundlesResp flashbotsrpc.FlashbotsCallBundleResponse) error {

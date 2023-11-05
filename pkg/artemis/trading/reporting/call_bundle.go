@@ -75,9 +75,13 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 		tmp.Results[i] = fr
 	}
 
+	b, err := json.Marshal(tmp)
+	if err != nil {
+		return err
+	}
 	ts := chronos.Chronos{}
 	eventID := ts.UnixTimeStampNow()
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, tmp)
+	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, b)
 	if err == pgx.ErrNoRows {
 		err = nil
 		return err

@@ -44,7 +44,22 @@ func (s *ReportingTestSuite) TestSelectCallBundles() {
 	s.Require().NotNil(rw)
 
 	for _, v := range rw {
+		fmt.Println("=====================================")
 		fmt.Println(v.BundleHash)
-		fmt.Println(v.Results)
+		fmt.Println(v.BundleGasPrice)
+		fmt.Println(v.TotalGasUsed)
+
+		for _, res := range v.Results {
+			if len(res.Error) > 0 {
+				fmt.Println("Error", res.Error)
+			}
+			if len(res.Revert) > 0 {
+				fmt.Println("Revert", res.Revert)
+			}
+			fmt.Println(res.GasUsed)
+			fmt.Println(res.GasPrice)
+			fmt.Println(res.GasFees)
+		}
+		fmt.Println("=====================================")
 	}
 }

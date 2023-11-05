@@ -111,6 +111,8 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 		tx.SentFlashbotsBundleSubmissionCount,
 		tx.CheckpointOneMarker,
 		tx.CheckpointTwoMarker,
+		tx.ReadOnlyCallBundleSubmissionSuccessCount,
+		tx.ReadOnlyCallBundleSubmissionCountFailureCount,
 	)
 	return tx
 }

@@ -20,6 +20,10 @@ func NewMevPromQL(p apollo_prometheus.Prometheus) MevPromQL {
 	return MevPromQL{false, p}
 }
 
+var ProxyMevPromQL MevPromQL
+
+// <service-name>.<namespace>.svc.cluster.local
+// http://prometheus-operated.observability.svc.cluster.local:9090
 // topk(15,sum(eth_mempool_mev_currency_in_stats) by (in))
 
 func (m *MevPromQL) GetTopTokens(ctx context.Context, window v1.Range) ([]Metrics, error) {

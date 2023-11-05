@@ -13,6 +13,8 @@ const (
 	prodPrometheusHostPort  = "http://prometheus-operated.observability.svc.cluster.local:9090"
 )
 
+var ProxyPromQL Prometheus
+
 type Prometheus struct {
 	v1.API
 }
@@ -32,4 +34,12 @@ func NewPrometheusClient(ctx context.Context, hostURL string) Prometheus {
 	}
 	apiClient := v1.NewAPI(promClient)
 	return Prometheus{apiClient}
+}
+
+func InitNewPromQLProdClient(ctx context.Context) {
+	ProxyPromQL = NewPrometheusClient(ctx, prodPrometheusHostPort)
+}
+
+func InitProdLocalPromQLProdClient(ctx context.Context) {
+	ProxyPromQL = NewPrometheusClient(ctx, localPrometheusHostPort)
 }

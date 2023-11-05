@@ -26,9 +26,7 @@ func (t *MevPrometheusTestSuite) SetupTest() {
 }
 func (t *MevPrometheusTestSuite) TestQueryTopKTokens() {
 	t.Require().NotEmpty(t.pc)
-
 	timeNow := time.Now().UTC()
-
 	window := v1.Range{
 		Start: timeNow.Add(-time.Minute * 60),
 		End:   time.Now().UTC(),
@@ -36,15 +34,14 @@ func (t *MevPrometheusTestSuite) TestQueryTopKTokens() {
 	}
 	t.pc.printOn = false
 	m, err := t.pc.GetTopTokens(ctx, window)
-	fmt.Println(m)
 	t.Require().NoError(err)
 	t.Assert().NotEmpty(m)
 
 	for _, val := range m {
-		fmt.Println(val.Metric.In, val.Metric.Pair)
+		fmt.Println(val.Metric.In, val.Values)
 	}
-	// TODO, investigate why this is failing
 }
+
 func (t *MevPrometheusTestSuite) TestQueryRangePromQL() {
 	t.Require().NotEmpty(t.pc)
 

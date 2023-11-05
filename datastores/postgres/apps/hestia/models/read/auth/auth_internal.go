@@ -12,8 +12,11 @@ import (
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 )
 
-const TemporalUserID = 7138958574876245567
-const TemporalOrgID = 7138983863666903883
+const (
+	TemporalOrgID  = 7138983863666903883
+	TemporalUserID = 7138958574876245567
+	AdminUserID    = 7138958574876245565
+)
 
 func VerifyInternalBearerToken(ctx context.Context, token string) (read_keys.OrgUserKey, error) {
 	key := read_keys.OrgUserKey{
@@ -40,6 +43,37 @@ func VerifyInternalBearerToken(ctx context.Context, token string) (read_keys.Org
 	}
 
 	if key.GetUserID() != TemporalUserID && key.OrgID != TemporalOrgID {
+		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
+		return read_keys.OrgUserKey{}, errors.New("unauthorized key")
+	}
+	return key, err
+}
+
+func VerifyInternalAdminBearerToken(ctx context.Context, token string) (read_keys.OrgUserKey, error) {
+	key := read_keys.OrgUserKey{
+		Key: keys.Key{
+			UsersKeys: autogen_bases.UsersKeys{
+				UserID:            0,
+				PublicKeyName:     "",
+				PublicKeyVerified: false,
+				PublicKeyTypeID:   keys.BearerKeyTypeID,
+				CreatedAt:         time.Time{},
+				PublicKey:         token,
+			},
+			KeyType: keys.NewBearerKeyType(),
+		},
+	}
+	err := key.VerifyUserBearerToken(ctx)
+	if err != nil {
+		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID).Err(err)
+		return read_keys.OrgUserKey{}, err
+	}
+	if key.PublicKeyVerified == false {
+		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
+		return read_keys.OrgUserKey{}, errors.New("unauthorized key")
+	}
+
+	if key.GetUserID() != AdminUserID && key.OrgID != TemporalOrgID {
 		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
 		return read_keys.OrgUserKey{}, errors.New("unauthorized key")
 	}

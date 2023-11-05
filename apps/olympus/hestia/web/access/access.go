@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 )
@@ -20,6 +21,8 @@ func AccessRequestHandler(c echo.Context) error {
 	return request.AuthCheck(c)
 }
 
+const TemporalOrgID = 7138983863666903883
+
 func (a *AccessRequest) AuthCheck(c echo.Context) error {
 	var resp hestia_login.LoginResponse
 	token, ok := c.Get("bearer").(string)
@@ -32,5 +35,17 @@ func (a *AccessRequest) AuthCheck(c echo.Context) error {
 			resp.PlanDetailsUsage = &plan
 		}
 	}
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	if ou.OrgID == 0 {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	isInternal := false
+	if ou.OrgID == TemporalOrgID {
+		isInternal = true
+	}
+	resp.IsInternal = isInternal
 	return c.JSON(http.StatusOK, resp)
 }

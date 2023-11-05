@@ -1,4 +1,4 @@
-module github.com/zeus-fyi/olympus/hypnos
+module github.com/zeus-fyi/olympus/promql
 
 go 1.21
 

@@ -37,8 +37,11 @@ type LoginResponse struct {
 	SessionID string `json:"sessionID"`
 	TTL       int    `json:"ttl"`
 
+	IsInternal       bool                                         `json:"isInternal,omitempty"`
 	PlanDetailsUsage *iris_service_plans.PlanUsageDetailsResponse `json:"planUsageDetails,omitempty"`
 }
+
+const TemporalOrgID = 7138983863666903883
 
 func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 	ctx := context.Background()
@@ -70,11 +73,17 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 			err = nil
 		}
 	}
-	resp := LoginResponse{
-		UserID:    key.UserID,
-		SessionID: sessionID,
-		TTL:       3600,
+	isInternal := false
+	if key.OrgID == TemporalOrgID {
+		isInternal = true
 	}
+	resp := LoginResponse{
+		UserID:     key.UserID,
+		SessionID:  sessionID,
+		IsInternal: isInternal,
+		TTL:        3600,
+	}
+
 	cookie := &http.Cookie{
 		Name:     aegis_sessions.SessionIDNickname,
 		Value:    sessionID,

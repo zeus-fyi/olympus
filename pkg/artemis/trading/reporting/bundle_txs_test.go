@@ -11,9 +11,21 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-const (
-	ZeusTestSessionLockHeaderValue = "Zeus-Test"
-)
+func (s *ReportingTestSuite) TestBundleHistoryFetch() {
+	bg, err := GetBundleSubmissionHistory(ctx, 0, 1)
+	s.Assert().Nil(err)
+	s.Assert().NotNil(bg)
+
+	for bundleHash, b := range bg.Map {
+		s.Assert().NotEmpty(bundleHash)
+		for _, bundleTx := range b {
+			if bundleTx.EthTx.From == AccountAddr {
+
+			}
+			s.Assert().NotEmpty(bundleTx.EthTx.TxHash)
+		}
+	}
+}
 
 // effective_gas_price = priority_fee_per_gas + block.base_fee_per_gas
 

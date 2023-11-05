@@ -25,6 +25,7 @@ use (
 	./apps/olympus/iris
 	./apps/olympus/poseidon
 	./apps/olympus/tyche
+	./apps/olympus/promql
 
 	./apps/olympus/zeus
 

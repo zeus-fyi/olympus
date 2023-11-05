@@ -68,7 +68,7 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	}
 	ts := chronos.Chronos{}
 	eventID := ts.UnixTimeStampNow()
-	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, b.Bytes())
+	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, b.String())
 	if err == pgx.ErrNoRows {
 		err = nil
 		return err
@@ -103,17 +103,17 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		cbh := CallBundleHistory{
 			FlashbotsCallBundleResponse: flashbotsrpc.FlashbotsCallBundleResponse{},
 		}
-		respStr := ""
+		respStr := bytes.Buffer{}
 		rowErr := rows.Scan(&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &respStr)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("SelectCallBundleHistory")
 			return nil, rowErr
 		}
-		//err = json.Unmarshal(respStr, &cbh.FlashbotsCallBundleResponse)
-		//if err != nil {
-		//	log.Err(err).Msg("SelectCallBundleHistory: error unmarshalling call bundle response")
-		//	return nil, err
-		//}
+		err = json.Unmarshal(respStr.Bytes(), &cbh.FlashbotsCallBundleResponse)
+		if err != nil {
+			log.Err(err).Msg("SelectCallBundleHistory: error unmarshalling call bundle response")
+			return nil, err
+		}
 		rw = append(rw, cbh)
 	}
 	return rw, nil

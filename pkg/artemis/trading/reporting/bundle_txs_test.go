@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_eth_rxs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_rxs"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -119,7 +120,7 @@ func (s *ReportingTestSuite) TestInsertRxsForEthTxs() {
 				EffectiveGasPrice: int(rx.EffectiveGasPrice.Int64()),
 				BlockNumber:       int(rx.BlockNumber.Int64()),
 			}
-			err = InsertTxReceipt(ctx, rxEthTx)
+			err = artemis_eth_rxs.InsertTxReceipt(ctx, rxEthTx)
 			s.Assert().Nil(err)
 		}
 	}

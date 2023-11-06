@@ -29,7 +29,7 @@ func NewArtemisMevWorkflow() ArtemisMevWorkflow {
 func (t *ArtemisMevWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{t.ArtemisSendEthTxWorkflow, t.ArtemisSendSignedTxWorkflow, t.ArtemisMevWorkflow, t.ArtemisTxBlacklistWorkflow,
 		t.ArtemisRemoveProcessedTxsWorkflow, t.ArtemisHistoricalSimTxWorkflow, t.ArtemisTxBlacklistProcessedTxsWorkflow,
-		t.ArtemisGetLookaheadPricesWorkflow,
+		t.ArtemisGetLookaheadPricesWorkflow, t.GetTxReceipts,
 	}
 }
 

@@ -194,32 +194,43 @@ func (pt *Permit2Tx) SelectNextPermit2Nonce(ctx context.Context) (err error) {
 	return misc.ReturnIfErr(err, q.LogHeader("SelectNextPermit2Nonce"))
 }
 
-func SelectExternalTxs(ctx context.Context, traderAddress string, protocolID, minEventID int) ([]string, error) {
+type TxRxEvent struct {
+	EventID int
+	TxHash  string
+}
+
+func SelectExternalTxs(ctx context.Context, traderAddress string, protocolID, minEventID int) ([]TxRxEvent, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT et.tx_hash
+	q.RawQuery = `SELECT et.event_id, et.tx_hash
 					FROM eth_tx et
 					WHERE NOT EXISTS (
 					  SELECT 1
 					  FROM eth_tx_receipts er
 					  WHERE er.tx_hash = et.tx_hash
-					) AND et."from" != $1 AND et.protocol_network_id = $2 AND et.event_id >= $3
-					ORDER BY et.event_id DESC`
+					)
+					AND et."from" != $1 AND et.protocol_network_id = $2 AND et.event_id >= $3
+					AND NOT EXISTS (
+					  SELECT 1
+					  FROM eth_tx_receipts er
+					  WHERE er.tx_hash = et.tx_hash AND (er.status = 'failed' OR er.status = 'success')
+					)
+					ORDER BY et.event_id DESC;`
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, traderAddress, protocolID, minEventID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectExternalTxs")); returnErr != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var txAddresses []string
+	var rxEvents []TxRxEvent
 	for rows.Next() {
-		txHash := ""
+		rxEvent := TxRxEvent{}
 		rowErr := rows.Scan(
-			&txHash,
+			&rxEvent.EventID, &rxEvent.TxHash,
 		)
 		if rowErr != nil {
 			return nil, rowErr
 		}
-		txAddresses = append(txAddresses, txHash)
+		rxEvents = append(rxEvents, rxEvent)
 	}
-	return txAddresses, nil
+	return rxEvents, nil
 }

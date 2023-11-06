@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/google/uuid"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -152,13 +155,19 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "ArtemisTxBlacklistProcessedTxsWorkflow", mempoolTxs)
+	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "GetTxReceipts")
 	var childWE workflow.Execution
 	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
 		log.Error("Failed to get child workflow execution", "Error", err)
 		return err
 	}
-
+	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	childWorkflowFuture = workflow.ExecuteChildWorkflow(ctx, "ArtemisTxBlacklistProcessedTxsWorkflow", mempoolTxs)
+	var childWE2 workflow.Execution
+	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE2); err != nil {
+		log.Error("Failed to get child workflow execution", "Error", err)
+		return err
+	}
 	childWorkflowOptions = workflow.ChildWorkflowOptions{
 		TaskQueue:         EthereumMainnetMevHistoricalTxTaskQueue,
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
@@ -174,6 +183,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 		log.Error("Failed to get sim historical tx workflow execution", "Error", err)
 		return err
 	}
+
 	// Validate txs to bundle
 
 	// Discard any bad txs
@@ -183,5 +193,50 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 	// Create final bundle
 
 	// Submit to flashbots before deadline
+	return nil
+}
+
+func (t *ArtemisMevWorkflow) GetTxReceipts(ctx workflow.Context) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Second * 300,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 5,
+		},
+		TaskQueue: ActiveMainnetMEVTaskQueue,
+	}
+	lookupCacheCtx := workflow.WithActivityOptions(ctx, ao)
+	var rxTxEventList []artemis_eth_txs.TxRxEvent
+	err := workflow.ExecuteActivity(lookupCacheCtx, t.MonitorTxStatusReceipts).Get(lookupCacheCtx, &rxTxEventList)
+	if err != nil {
+		log.Error("Failed to set pricing cache", "Error", err)
+		return err
+	}
+
+	if len(rxTxEventList) == 0 {
+		log.Info("No txs to process")
+		return nil
+	}
+
+	for _, rxTxEvent := range rxTxEventList {
+		var rx *types.Receipt
+		txWatchingCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(txWatchingCtx, t.WaitForTxReceipt, accounts.HexToHash(rxTxEvent.TxHash)).Get(txWatchingCtx, &rx)
+		if err != nil {
+			log.Error("Failed to get tx receipt", "Error", err)
+			err = nil
+			continue
+		}
+		if rx == nil {
+			continue
+		}
+		rxRecordCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(rxRecordCtx, t.InsertOrUpdateTxReceipts, rxTxEvent, rx).Get(rxRecordCtx, nil)
+		if err != nil {
+			log.Error("Failed to record receipt", "Error", err)
+			err = nil
+			continue
+		}
+	}
 	return nil
 }

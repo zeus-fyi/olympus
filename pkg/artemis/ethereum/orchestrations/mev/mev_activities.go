@@ -13,6 +13,8 @@ import (
 	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_eth_rxs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_rxs"
+	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
@@ -196,4 +198,48 @@ func (d *ArtemisMevActivities) ProcessMempoolTxs(ctx context.Context, mempoolTxs
 	}
 	uni.ProcessTxs(ctx, nil)
 	return uni.Trades, nil
+}
+
+const (
+	AccountAddr = "0x000000641e80A183c8B736141cbE313E136bc8c6"
+)
+
+func (d *ArtemisMevActivities) MonitorTxStatusReceipts(ctx context.Context) ([]artemis_eth_txs.TxRxEvent, error) {
+	eventID := time.Now().Add(-time.Minute * 60).UnixNano()
+	txList, err := artemis_eth_txs.SelectExternalTxs(ctx, AccountAddr, 1, int(eventID))
+	if err != nil {
+		log.Err(err).Msg("MonitorTxStatusReceipts: SelectExternalTxs failed")
+		return nil, err
+	}
+	return txList, nil
+}
+
+func (d *ArtemisMevActivities) InsertOrUpdateTxReceipts(ctx context.Context, txRxReceipt artemis_eth_txs.TxRxEvent, rx *types.Receipt) error {
+	if rx == nil {
+		return nil
+	}
+	status := "unknown"
+	if rx.Status == types.ReceiptStatusSuccessful {
+		status = "success"
+	}
+	if rx.Status == types.ReceiptStatusFailed {
+		status = "failed"
+	}
+	rxEthTx := artemis_autogen_bases.EthTxReceipts{
+		Status:            status,
+		GasUsed:           int(rx.GasUsed),
+		CumulativeGasUsed: int(rx.CumulativeGasUsed),
+		BlockHash:         rx.BlockHash.String(),
+		TransactionIndex:  int(rx.TransactionIndex),
+		TxHash:            rx.TxHash.String(),
+		EventID:           txRxReceipt.EventID,
+		EffectiveGasPrice: int(rx.EffectiveGasPrice.Int64()),
+		BlockNumber:       int(rx.BlockNumber.Int64()),
+	}
+	err := artemis_eth_rxs.InsertTxReceipt(ctx, rxEthTx)
+	if err != nil {
+		log.Err(err).Msg("MonitorTxStatusReceipts: SelectExternalTxs failed")
+		return err
+	}
+	return nil
 }

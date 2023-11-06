@@ -25,6 +25,10 @@ type BundleSummary struct {
 	EventID        int                   `json:"eventID"`
 	SubmissionTime string                `json:"submissionTime"`
 	BundleHash     string                `json:"bundleHash"`
+	Profit         float64               `json:"profit"`
+	Revenue        float64               `json:"revenue"`
+	TotalCost      float64               `json:"totalCost"`
+	TotalGasCost   float64               `json:"totalGasCost"`
 	TraderInfo     map[string]TraderInfo `json:"traderInfo"`
 	BundleTxs      []Bundle              `json:"bundledTxs"`
 }
@@ -42,7 +46,6 @@ func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
 	ds := BundleDashboardInfo{
 		Bundles: make([]BundleSummary, len(b.Map)),
 	}
-
 	ts := chronos.Chronos{}
 	i := 0
 	for hash, v := range b.Map {
@@ -58,8 +61,9 @@ func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
 		if ds.Bundles[i].TraderInfo == nil {
 			ds.Bundles[i].TraderInfo = make(map[string]TraderInfo)
 		}
+		var fees float64
 		for j, tx := range v {
-			fees := (float64(tx.EffectiveGasPrice) * float64(tx.GasUsed)) / 1e18
+			fees = (float64(tx.EffectiveGasPrice) * float64(tx.GasUsed)) / 1e18
 			if _, ok := ds.Bundles[j].TraderInfo[tx.EthTx.From]; !ok {
 				ds.Bundles[i].TraderInfo[tx.EthTx.From] = TraderInfo{
 					TotalTxFees: fees,
@@ -69,8 +73,11 @@ func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
 					TotalTxFees: ds.Bundles[i].TraderInfo[tx.EthTx.From].TotalTxFees + fees,
 				}
 			}
+			ds.Bundles[i].Profit = float64(tx.Profit) / 1e18
+			ds.Bundles[i].Revenue = float64(tx.Revenue) / 1e18
+			ds.Bundles[i].TotalCost = float64(tx.Costs) / 1e18
 		}
-
+		ds.Bundles[i].TotalGasCost = fees
 		ds.Bundles[i].BundleTxs = v
 		i++
 	}

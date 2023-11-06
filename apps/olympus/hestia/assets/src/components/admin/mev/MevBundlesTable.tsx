@@ -39,6 +39,10 @@ export function MevBundlesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left"></TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Event Time</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">BundleHash</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Profit</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Revenue</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Total Costs</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Gas Costs</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -97,6 +101,10 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                     {row.submissionTime}
                 </TableCell>
                 <TableCell align="left">{row.bundleHash}</TableCell>
+                <TableCell align="left">{(row.profit).toFixed(5) + ' ETH'}</TableCell>
+                <TableCell align="left">{(row.revenue).toFixed(5)}</TableCell>
+                <TableCell align="left">{(row.totalCost).toFixed(5)}</TableCell>
+                <TableCell align="left">{(row.totalGasCost).toFixed(5)}</TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -160,7 +168,13 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                                     {Object.entries(row.traderInfo).map(([traderKey, info]) => (
                                         <TableRow key={traderKey}>
                                             <TableCell component="th" scope="row" align="left">
-                                                {traderKey} {/* Displaying the trader key */}
+                                                    <a
+                                                        href={explorerURL +'/address/' + traderKey}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {traderKey.slice(0, 40)}
+                                                    </a>
                                             </TableCell>
                                             <TableCell align="left">
                                                 {info.totalTxFees.toFixed(5)} {'Eth'}{/* Displaying the total tx fees in eth*/}

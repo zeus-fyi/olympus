@@ -145,9 +145,8 @@ function MevContent(props: any) {
                         {groupName === "bundles" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
-                                    <Tab className="onboarding-card-highlight-all-routes" label="Routes"  />
-                                    <Tab className="onboarding-card-highlight-all-procedures" label="Procedures" />
-                                    <Tab label="Settings" />
+                                    <Tab className="onboarding-card-highlight-all-routes" label="Executed"  />
+                                    {/*<Tab className="onboarding-card-highlight-all-procedures" label="Simulated" />*/}
                                 </Tabs>
                             </Box>
                         )}
@@ -163,11 +162,6 @@ function MevContent(props: any) {
     );
 }
 
-export interface TraderInfo {
-    [key: string]: {
-        totalTxFees: number; // Use `number` type for JavaScript instead of `float64`
-    };
-}
 type TraderInfoType = { [key: string]: { totalTxFees: number } };
 
 export function createBundleData(
@@ -175,9 +169,13 @@ export function createBundleData(
     submissionTime: string,
     bundleHash: string,
     bundledTxs: any[] = [],
-    traderInfo: TraderInfoType
+    traderInfo: TraderInfoType,
+    revenue: number,
+    totalCost: number,
+    totalGasCost: number,
+    profit: number,
 ) {
-    return {eventID, submissionTime, bundleHash, bundledTxs,traderInfo};
+    return {eventID, submissionTime, bundleHash, bundledTxs,traderInfo, revenue, totalCost, totalGasCost, profit};
 }
 export default function Mev() {
     const [bundles, setBundles] = useState([{}]);
@@ -192,7 +190,7 @@ export default function Mev() {
                 const response = await mevApiGateway.getDashboardInfo();
                 const mevDashboardTable: any[] = response.data.bundles;
                 const mevDashboardTableRows = mevDashboardTable.map((v: any) =>
-                    createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs, v.traderInfo)
+                    createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs, v.traderInfo, v.revenue, v.totalCost, v.totalGasCost, v.profit)
                 );
                 setBundles(mevDashboardTableRows)
                 const mevTopKTokens: any[] = response.data.topKTokens;
@@ -213,7 +211,6 @@ export default function Mev() {
         return <div>Loading...</div>;
     }
 
-    console.log('bundles', bundles)
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
     };

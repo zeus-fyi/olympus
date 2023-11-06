@@ -194,25 +194,32 @@ func (pt *Permit2Tx) SelectNextPermit2Nonce(ctx context.Context) (err error) {
 	return misc.ReturnIfErr(err, q.LogHeader("SelectNextPermit2Nonce"))
 }
 
-func (e *EthTx) SelectNextUserTxNonce2(ctx context.Context) (err error) {
+func SelectExternalTxs(ctx context.Context, traderAddress string, protocolID, minEventID int) ([]string, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT COALESCE (MAX(nonce_id), 0), nonce FROM eth_tx WHERE "from" = $1 AND protocol_network_id = $2 GROUP BY nonce;`
-	log.Debug().Interface("SelectNextUserTxNonce", q.LogHeader("SelectNextUserTxNonce"))
-	if e.ProtocolNetworkID == 0 {
-		e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
+	q.RawQuery = `SELECT et.tx_hash
+					FROM eth_tx et
+					WHERE NOT EXISTS (
+					  SELECT 1
+					  FROM eth_tx_receipts er
+					  WHERE er.tx_hash = et.tx_hash
+					) AND et."from" != $1 AND et.protocol_network_id = $2 AND et.event_id >= $3
+					ORDER BY et.event_id DESC`
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, traderAddress, protocolID, minEventID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectExternalTxs")); returnErr != nil {
+		return nil, err
 	}
-	if e.Type == "" {
-		e.Type = "0x02"
+	defer rows.Close()
+	var txAddresses []string
+	for rows.Next() {
+		txHash := ""
+		rowErr := rows.Scan(
+			&txHash,
+		)
+		if rowErr != nil {
+			return nil, rowErr
+		}
+		txAddresses = append(txAddresses, txHash)
 	}
-	tmp := 0
-	err = apps.Pg.QueryRow2(ctx, q.RawQuery, e.From, e.ProtocolNetworkID).Scan(&tmp, &e.EthTx.Nonce)
-	if err == pgx.ErrNoRows {
-		e.Nonce = 0
-		err = nil
-	}
-	if err != nil {
-		return err
-	}
-	e.NextUserNonce = e.EthTx.Nonce + 1
-	return misc.ReturnIfErr(err, q.LogHeader("ArtemisScheduledDelivery"))
+	return txAddresses, nil
 }

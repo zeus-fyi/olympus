@@ -160,7 +160,13 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                                     {Object.entries(row.traderInfo).map(([traderKey, info]) => (
                                         <TableRow key={traderKey}>
                                             <TableCell component="th" scope="row" align="left">
-                                                {traderKey} {/* Displaying the trader key */}
+                                                    <a
+                                                        href={explorerURL +'/address/' + traderKey}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {traderKey.slice(0, 40)}
+                                                    </a>
                                             </TableCell>
                                             <TableCell align="left">
                                                 {info.totalTxFees.toFixed(5)} {'Eth'}{/* Displaying the total tx fees in eth*/}

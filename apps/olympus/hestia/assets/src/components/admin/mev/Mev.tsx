@@ -145,9 +145,8 @@ function MevContent(props: any) {
                         {groupName === "bundles" && (
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
-                                    <Tab className="onboarding-card-highlight-all-routes" label="Routes"  />
-                                    <Tab className="onboarding-card-highlight-all-procedures" label="Procedures" />
-                                    <Tab label="Settings" />
+                                    <Tab className="onboarding-card-highlight-all-routes" label="Executed"  />
+                                    {/*<Tab className="onboarding-card-highlight-all-procedures" label="Simulated" />*/}
                                 </Tabs>
                             </Box>
                         )}
@@ -163,11 +162,6 @@ function MevContent(props: any) {
     );
 }
 
-export interface TraderInfo {
-    [key: string]: {
-        totalTxFees: number; // Use `number` type for JavaScript instead of `float64`
-    };
-}
 type TraderInfoType = { [key: string]: { totalTxFees: number } };
 
 export function createBundleData(
@@ -213,7 +207,6 @@ export default function Mev() {
         return <div>Loading...</div>;
     }
 
-    console.log('bundles', bundles)
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
     };

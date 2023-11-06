@@ -18,13 +18,13 @@ import {useDispatch} from "react-redux";
 import authProvider from "../../../redux/auth/auth.actions";
 import MainListItems from "../../dashboard/listItems";
 import {MevBundlesTable} from "./MevBundlesTable";
-import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
+import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs} from "@mui/material";
 import {mevApiGateway} from "../../../gateway/mev";
 
 const mdTheme = createTheme();
 
 function MevContent(props: any) {
-    const {bundles, groups} = props;
+    const {bundles, groups, groupName, selectedMainTab, handleMainTabChange} = props;
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -141,6 +141,17 @@ function MevContent(props: any) {
                             </Box>
                         </Card>
                     </Container>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        {groupName === "bundles" && (
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
+                                    <Tab className="onboarding-card-highlight-all-routes" label="Routes"  />
+                                    <Tab className="onboarding-card-highlight-all-procedures" label="Procedures" />
+                                    <Tab label="Settings" />
+                                </Tabs>
+                            </Box>
+                        )}
+                    </Container>
                     { bundles && bundles.length > 0 &&
                     <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
                         <MevBundlesTable bundles={bundles}/>
@@ -163,9 +174,10 @@ export function createBundleData(
 }
 export default function Mev() {
     const [bundles, setBundles] = useState([{}]);
-    const [groupName, setGroupName] = useState({});
+    const [groupName, setGroupName] = useState('bundles');
     const [groups, setGroups] = useState({});
     const [loading, setLoading] = useState(true);
+    const [selectedMainTab, setSelectedMainTab] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -193,5 +205,10 @@ export default function Mev() {
     if (loading) {
         return <div>Loading...</div>;
     }
-    return <MevContent bundles={bundles} groups={groups}/>;
+
+    console.log('bundles', bundles)
+    const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setSelectedMainTab(newValue);
+    };
+    return <MevContent bundles={bundles} groups={groups} groupName={groupName} selectedMainTab={selectedMainTab} handleMainTabChange={handleMainTabChange}/>;
 }

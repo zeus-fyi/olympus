@@ -31,7 +31,6 @@ export function MevBundlesTable(props: any) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - bundles.length) : 0;
 
-    console.log("bundles", bundles)
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="mev bundles pagination table">
@@ -82,7 +81,6 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
     const [open, setOpen] = React.useState(false);
 
     const explorerURL = 'https://etherscan.io/tx/';
-
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -113,6 +111,7 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                                         <TableCell>TxHash</TableCell>
                                         <TableCell>Status</TableCell>
                                         <TableCell>BlockNumber</TableCell>
+                                        <TableCell>TxIndex</TableCell>
                                         <TableCell>GasUsed</TableCell>
                                         <TableCell>EffectiveGasPrice</TableCell>
                                         <TableCell>GasFeeCap</TableCell>
@@ -137,6 +136,7 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                                             </TableCell>
                                             <TableCell>{bundledTxRow.ethTxReceipts.status}</TableCell>
                                             <TableCell>{bundledTxRow.ethTxReceipts.blockNumber}</TableCell>
+                                            <TableCell>{bundledTxRow.ethTxReceipts.transactionIndex}</TableCell>
                                             <TableCell>{bundledTxRow.ethTxReceipts.gasUsed}</TableCell>
                                             <TableCell>{(bundledTxRow.ethTxReceipts.effectiveGasPrice / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>
                                             <TableCell>{(bundledTxRow.ethTxGas.gasFeeCap.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>

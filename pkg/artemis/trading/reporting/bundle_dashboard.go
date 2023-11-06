@@ -47,6 +47,9 @@ func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
 		ds.Bundles[i].EventID = b.MapHashToEventID[hash]
 		ds.Bundles[i].SubmissionTime = ts.ConvertUnixTimeStampToDate(ds.Bundles[i].EventID).String()
 		ds.Bundles[i].BundleHash = hash
+		sort.Slice(v, func(i, j int) bool {
+			return v[i].TransactionIndex < v[j].TransactionIndex
+		})
 		ds.Bundles[i].BundleTxs = v
 		i++
 	}

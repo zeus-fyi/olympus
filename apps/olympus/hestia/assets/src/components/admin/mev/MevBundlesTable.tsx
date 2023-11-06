@@ -158,7 +158,7 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                             <Table size="small" aria-label="purchases">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell align="left">User</TableCell>
+                                        <TableCell align="left">Traders</TableCell>
                                         <TableCell align="left">Total Tx Fees</TableCell>
                                     </TableRow>
                                 </TableHead>

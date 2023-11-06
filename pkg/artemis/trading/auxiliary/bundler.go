@@ -3,7 +3,6 @@ package artemis_trading_auxiliary
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/metachris/flashbotsrpc"
@@ -24,7 +23,7 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
 	ctx = setBlockNumberCtx(ctx, bnStr)
-	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle)
+	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle, tf)
 	if err != nil {
 		log.Err(err).Msg("CallAndSendFlashbotsBundle: error calling flashbots bundle")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
@@ -83,7 +82,7 @@ func CallReadOnlyBundle(ctx context.Context, w3c web3_client.Web3Client, bundle 
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
 	ctx = setBlockNumberCtx(ctx, bnStr)
-	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle)
+	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle, tf)
 	if err != nil {
 		log.Err(err).Msg("CallAndSendFlashbotsBundle: error calling flashbots bundle")
 		return err
@@ -108,7 +107,7 @@ func CallReadOnlyBundle(ctx context.Context, w3c web3_client.Web3Client, bundle 
 	return nil
 }
 
-func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle *MevTxGroup) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
+func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle *MevTxGroup, tf *web3_client.TradeExecutionFlow) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	if bundle == nil || len(bundle.MevTxs) == 0 {
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, errors.New("no txs to send or bundle is nil")
 	}
@@ -134,14 +133,14 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 		log.Err(err).Msg("error calling flashbots bundle")
 		return resp, err
 	}
-	go func(cb flashbotsrpc.FlashbotsCallBundleResponse) {
-		err = artemis_reporting.InsertCallBundleResp(ctx, "flashbots", 1, cb)
+	go func(cb flashbotsrpc.FlashbotsCallBundleResponse, tfe *web3_client.TradeExecutionFlow) {
+		err = artemis_reporting.InsertCallBundleResp(ctx, "flashbots", 1, cb, tfe)
 		if err != nil {
 			log.Warn().Msg("CallFlashbotsBundle: error inserting call bundle resp")
 			log.Err(err).Msg("error inserting call bundle resp")
 			return
 		}
-	}(resp)
+	}(resp, tf)
 
 	log.Info().Interface("resp", resp).Str("resp.BundleGasPrice", resp.BundleGasPrice).Interface("fbCallResp", resp.Results).Msg("CallFlashbotsBundle: bundle sent successfully")
 	return resp, nil
@@ -227,14 +226,14 @@ func sendAdditionalCallBundles(ctx context.Context, w3c web3_client.Web3Client, 
 				return
 			}
 
-			if strings.Contains(builder, "blocknative") {
-				err = artemis_reporting.InsertCallBundleResp(ctx, builder, 1, resp)
-				if err != nil {
-					log.Warn().Msg("sendAdditionalCallBundles: error inserting call bundle resp")
-					log.Err(err).Msg("sendAdditionalCallBundles: error inserting call bundle resp")
-					return
-				}
-			}
+			//if strings.Contains(builder, "blocknative") {
+			//	err = artemis_reporting.InsertCallBundleResp(ctx, builder, 1, resp, tf)
+			//	if err != nil {
+			//		log.Warn().Msg("sendAdditionalCallBundles: error inserting call bundle resp")
+			//		log.Err(err).Msg("sendAdditionalCallBundles: error inserting call bundle resp")
+			//		return
+			//	}
+			//}
 
 			log.Info().Str("builder", builder).Str("bundleHash", resp.BundleHash).Msg("sendAdditionalBundles: bundle sent successfully")
 		}(builder, f)

@@ -9,14 +9,17 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jackc/pgx/v4"
 	"github.com/metachris/flashbotsrpc"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 func getCallBundleSaveQ() string {
@@ -25,6 +28,17 @@ func getCallBundleSaveQ() string {
 			INSERT INTO events (event_id)
 			VALUES ($1)
 		RETURNING event_id
+		) cte_eth_tx AS (
+			INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id)
+			 SELECT 
+				event_id, 
+			    $6,
+				$4,
+				$7, 
+				$8,
+				$1,
+			FROM cte_mev_call
+			ON CONFLICT DO NOTHING
 		) INSERT INTO eth_mev_call_bundle (event_id, builder_name, bundle_hash, protocol_network_id, eth_call_resp_json)
 		   SELECT 
 				event_id, 
@@ -32,8 +46,7 @@ func getCallBundleSaveQ() string {
 				$3,
 				$4, 
 				$5::jsonb
-			FROM cte_mev_call;
-        `
+			FROM cte_mev_call;`
 	return que
 }
 
@@ -49,11 +62,14 @@ func clearString(str string) string {
 	return string(result)
 }
 
-func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, callBundlesResp flashbotsrpc.FlashbotsCallBundleResponse) error {
+func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, callBundlesResp flashbotsrpc.FlashbotsCallBundleResponse, tf *web3_client.TradeExecutionFlow) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = getCallBundleSaveQ()
 	if callBundlesResp.BundleHash == "" {
 		return errors.New("bundle hash is empty")
+	}
+	if tf.Tx == nil {
+		return errors.New("tx is nil")
 	}
 
 	tmp := flashbotsrpc.FlashbotsCallBundleResponse{
@@ -90,7 +106,27 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	}
 	ts := chronos.Chronos{}
 	eventID := ts.UnixTimeStampNow()
-	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, string(b))
+
+	typeTxStr := "0x02"
+	typeTx := tf.Tx.Type()
+	if typeTx == 1 {
+		typeTxStr = "0x01"
+	}
+
+	fromStr := ""
+	chainId := artemis_eth_units.NewBigInt(hestia_req_types.EthereumMainnetProtocolNetworkID)
+	if tf.Tx.ChainId() != nil {
+		chainId = tf.Tx.ChainId()
+	}
+	sender := types.LatestSignerForChainID(chainId)
+	from, ferr := sender.Sender(tf.Tx)
+	if ferr != nil {
+		log.Err(ferr).Msg("failed to get sender")
+		return ferr
+	} else {
+		fromStr = from.String()
+	}
+	_, err = apps.Pg.Exec(ctx, q.RawQuery, eventID, builder, callBundlesResp.BundleHash, protocolID, string(b), tf.Tx.Hash().String(), tf.Tx.Nonce(), typeTxStr, fromStr)
 	if err == pgx.ErrNoRows {
 		err = nil
 		return err

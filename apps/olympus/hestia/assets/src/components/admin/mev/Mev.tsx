@@ -217,7 +217,7 @@ export default function Mev() {
 
                 const callBundlesTable: any[] = response.data.callBundles;
                 const callBundlesTableRows = callBundlesTable.map((v: any) =>
-                    createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.gasFees, v.results)
+                    createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.flashbotsCallBundleResponse.gasFees, v.results)
                 );
                 console.log('sdsdf', callBundlesTableRows)
                 setCallBundles(callBundlesTableRows)

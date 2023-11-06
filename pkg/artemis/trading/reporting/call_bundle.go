@@ -151,7 +151,7 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 
 		ethCoinbaseDiffWei := artemis_eth_units.NewBigFloatFromStr(cbh.FlashbotsCallBundleResponse.CoinbaseDiff)
 		ethCoinbaseDiff, _ := new(big.Float).Quo(ethCoinbaseDiffWei, eth).Float64()
-		cbh.EthSentToCoinbase = fmt.Sprintf("%.5f", ethCoinbaseDiff)
+		cbh.CoinbaseDiff = fmt.Sprintf("%.5f", ethCoinbaseDiff)
 
 		cbh.SubmissionTime = ts.ConvertUnixTimeStampToDate(cbh.EventID).String()
 		rw = append(rw, cbh)

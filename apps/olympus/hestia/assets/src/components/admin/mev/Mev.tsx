@@ -21,6 +21,7 @@ import {MevBundlesTable} from "./MevBundlesTable";
 import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs} from "@mui/material";
 import {mevApiGateway} from "../../../gateway/mev";
 import {MevCallBundlesTable} from "./MevCallBundlesTable";
+import {FlashbotsCallBundleResult} from "../../../redux/mev/mev.actions";
 
 const mdTheme = createTheme();
 
@@ -191,7 +192,7 @@ export function createCallBundleData(
     bundleGasPrice: string,
     coinbaseDiff: string,
     gasFees: string,
-    results: any[] = [],
+    results: FlashbotsCallBundleResult[] = [],
 
 ) {
     return {eventID, submissionTime, bundleHash, builderName, bundleGasPrice, coinbaseDiff, gasFees, results};
@@ -219,6 +220,7 @@ export default function Mev() {
                 const callBundlesTableRows = callBundlesTable.map((v: any) =>
                     createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.flashbotsCallBundleResponse.gasFees, v.results)
                 );
+
                 setCallBundles(callBundlesTableRows)
                 const mevTopKTokens: any[] = response.data.topKTokens;
                 setGroups({

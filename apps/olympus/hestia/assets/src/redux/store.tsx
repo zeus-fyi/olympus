@@ -7,9 +7,11 @@ import billingReducer from "./billing/billing.reducer";
 import resourcesReducer from "./resources/resources.reducer";
 import sessionReducer from "./auth/session.reducer";
 import loadbalancingReducer from "./loadbalancing/loadbalancing.reducer";
+import mevReducer from "./mev/mev.reducer";
 
 const rootReducer = combineReducers({
     sessionState: sessionReducer,
+    mev: mevReducer,
     apps: appsReducer,
     loadBalancing: loadbalancingReducer,
     resources: resourcesReducer,

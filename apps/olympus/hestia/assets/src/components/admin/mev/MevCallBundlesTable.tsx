@@ -120,25 +120,34 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {row && row.results.map((index: number, bundledTxRow: any) => (
-                                        <TableRow key={index}>
-                                            <TableCell component="th" scope="row">
-                                                {bundledTxRow.flashbotsCallBundleResponse.txHash ? (
-                                                    <a
-                                                        href={explorerURL +'/tx/' + bundledTxRow.txHash}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        {bundledTxRow.txHash.slice(0, 40)}
-                                                    </a>
-                                                ) : 'None'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {bundledTxRow.gasUsed}
-                                            </TableCell>
-                                            {/*<TableCell>{(bundledTxRow.ethTxGas.gasPrice.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>*/}
-                                        </TableRow>
-                                    ))}
+                                    {/*{row && row.results.map((index: number, bundledTxRow: any) => (*/}
+                                    {/*    <TableRow key={index}>*/}
+                                    {/*        <TableCell component="th" scope="row">*/}
+                                    {/*            {bundledTxRow.txHash ? (*/}
+                                    {/*                <a*/}
+                                    {/*                    href={explorerURL +'/tx/' + bundledTxRow.txHash}*/}
+                                    {/*                    target="_blank"*/}
+                                    {/*                    rel="noopener noreferrer"*/}
+                                    {/*                >*/}
+                                    {/*                    {bundledTxRow.txHash.slice(0, 40)}*/}
+                                    {/*                </a>*/}
+                                    {/*            ) : 'None'}*/}
+                                    {/*        </TableCell>*/}
+                                    {/*        <TableCell>*/}
+                                    {/*            {bundledTxRow.submissionTime}*/}
+                                    {/*        </TableCell>*/}
+                                    {/*        <TableCell>*/}
+                                    {/*            {bundledTxRow.builderHash}*/}
+                                    {/*        </TableCell>*/}
+                                    {/*        <TableCell>*/}
+                                    {/*            {bundledTxRow.bundleGasPrice}*/}
+                                    {/*        </TableCell>*/}
+                                    {/*        <TableCell>*/}
+                                    {/*            {bundledTxRow.coinbaseDiff}*/}
+                                    {/*        </TableCell>*/}
+                                    {/*        /!*<TableCell>{(bundledTxRow.ethTxGas.gasPrice.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>*!/*/}
+                                    {/*    </TableRow>*/}
+                                    {/*))}*/}
                                 </TableBody>
                             </Table>
                         </Box>

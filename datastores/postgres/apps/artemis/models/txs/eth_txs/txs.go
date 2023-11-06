@@ -67,6 +67,9 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 	q1.RawQuery = `WITH cte_tx_1 AS (
 						INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id) 
                         SELECT $1, $2, $3, $4, $5, $6, $15
+						ON CONFLICT (tx_hash)
+						DO UPDATE SET	
+					 		nonce_id = EXCLUDED.nonce_id
                         RETURNING *
                     ), cte_gas AS (
                         INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
@@ -83,6 +86,9 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 	q2.RawQuery = `WITH cte_tx_2 AS (
 						INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id) 
                         SELECT $1, $2, $3, $4, $5, $6, $11
+						ON CONFLICT (tx_hash)
+						DO UPDATE SET	
+					 		nonce_id = EXCLUDED.nonce_id
                         RETURNING *
                     ) 	
 						INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
@@ -186,4 +192,27 @@ func (pt *Permit2Tx) SelectNextPermit2Nonce(ctx context.Context) (err error) {
 	}
 	pt.NextPermit2Nonce = pt.Nonce + 1
 	return misc.ReturnIfErr(err, q.LogHeader("SelectNextPermit2Nonce"))
+}
+
+func (e *EthTx) SelectNextUserTxNonce2(ctx context.Context) (err error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT COALESCE (MAX(nonce_id), 0), nonce FROM eth_tx WHERE "from" = $1 AND protocol_network_id = $2 GROUP BY nonce;`
+	log.Debug().Interface("SelectNextUserTxNonce", q.LogHeader("SelectNextUserTxNonce"))
+	if e.ProtocolNetworkID == 0 {
+		e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
+	}
+	if e.Type == "" {
+		e.Type = "0x02"
+	}
+	tmp := 0
+	err = apps.Pg.QueryRow2(ctx, q.RawQuery, e.From, e.ProtocolNetworkID).Scan(&tmp, &e.EthTx.Nonce)
+	if err == pgx.ErrNoRows {
+		e.Nonce = 0
+		err = nil
+	}
+	if err != nil {
+		return err
+	}
+	e.NextUserNonce = e.EthTx.Nonce + 1
+	return misc.ReturnIfErr(err, q.LogHeader("ArtemisScheduledDelivery"))
 }

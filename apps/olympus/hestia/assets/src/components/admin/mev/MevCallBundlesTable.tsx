@@ -83,6 +83,7 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
     const { row } = props;
     const [open, setOpen] = React.useState(false);
 
+    console.log(row, 'sccallbun')
     const explorerURL = 'https://etherscan.io';
     return (
         <React.Fragment>
@@ -120,34 +121,14 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {/*{row && row.results.map((index: number, bundledTxRow: any) => (*/}
-                                    {/*    <TableRow key={index}>*/}
-                                    {/*        <TableCell component="th" scope="row">*/}
-                                    {/*            {bundledTxRow.txHash ? (*/}
-                                    {/*                <a*/}
-                                    {/*                    href={explorerURL +'/tx/' + bundledTxRow.txHash}*/}
-                                    {/*                    target="_blank"*/}
-                                    {/*                    rel="noopener noreferrer"*/}
-                                    {/*                >*/}
-                                    {/*                    {bundledTxRow.txHash.slice(0, 40)}*/}
-                                    {/*                </a>*/}
-                                    {/*            ) : 'None'}*/}
-                                    {/*        </TableCell>*/}
-                                    {/*        <TableCell>*/}
-                                    {/*            {bundledTxRow.submissionTime}*/}
-                                    {/*        </TableCell>*/}
-                                    {/*        <TableCell>*/}
-                                    {/*            {bundledTxRow.builderHash}*/}
-                                    {/*        </TableCell>*/}
-                                    {/*        <TableCell>*/}
-                                    {/*            {bundledTxRow.bundleGasPrice}*/}
-                                    {/*        </TableCell>*/}
-                                    {/*        <TableCell>*/}
-                                    {/*            {bundledTxRow.coinbaseDiff}*/}
-                                    {/*        </TableCell>*/}
-                                    {/*        /!*<TableCell>{(bundledTxRow.ethTxGas.gasPrice.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>*!/*/}
-                                    {/*    </TableRow>*/}
-                                    {/*))}*/}
+                                       {row.results.map((txRow) => (
+                                            <TableRow key={txRow.txHash}>
+                                                <TableCell component="th" scope="row">
+                                                    <a href={`${explorerURL}/tx/${txRow.txHash}`} target="_blank" rel="noreferrer">{txRow.txHash}</a>
+                                                </TableCell>
+                                                <TableCell>{txRow.gasPrice}</TableCell>
+                                            </TableRow>
+                                        ))}
                                 </TableBody>
                             </Table>
                         </Box>

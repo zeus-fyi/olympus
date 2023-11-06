@@ -1,6 +1,10 @@
 
 export interface MevState {
+    bundles: FlashbotsCallBundle[];
+    callBundles: [];
 }
+
+export type TraderInfoType = { [key: string]: { totalTxFees: number } };
 
 export interface FlashbotsCallBundleResult {
     coinbaseDiff: string;      // "2717471092204423",
@@ -14,4 +18,16 @@ export interface FlashbotsCallBundleResult {
     value: string;             // "0x"
     error?: string;            // Optional because it may not always be present
     revert?: string;           // Optional because it may not always be present
+}
+
+export interface FlashbotsCallBundle {
+    eventID: string,
+    submissionTime: string,
+    bundleHash: string,
+    results: FlashbotsCallBundleResult[]
+    traderInfo: TraderInfoType,
+    revenue: number,
+    totalCost: number,
+    totalGasCost: number,
+    profit: number,
 }

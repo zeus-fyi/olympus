@@ -21,7 +21,7 @@ import {MevBundlesTable} from "./MevBundlesTable";
 import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs} from "@mui/material";
 import {mevApiGateway} from "../../../gateway/mev";
 import {MevCallBundlesTable} from "./MevCallBundlesTable";
-import {FlashbotsCallBundleResult} from "../../../redux/mev/mev.actions";
+import {FlashbotsCallBundleResult, TraderInfoType} from "../../../redux/mev/mev.actions";
 
 const mdTheme = createTheme();
 
@@ -169,7 +169,6 @@ function MevContent(props: any) {
     );
 }
 
-type TraderInfoType = { [key: string]: { totalTxFees: number } };
 
 export function createBundleData(
     eventID: string,
@@ -206,6 +205,7 @@ export default function Mev() {
     const [loading, setLoading] = useState(true);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
 
+   // const dispatch = useDispatch();
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -215,10 +215,12 @@ export default function Mev() {
                     createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs, v.traderInfo, v.revenue, v.totalCost, v.totalGasCost, v.profit)
                 );
                 setBundles(mevDashboardTableRows)
+                // @ts-ignore
+                // dispatch(setBundlesState(mevDashboardTableRows))
 
                 const callBundlesTable: any[] = response.data.callBundles;
                 const callBundlesTableRows = callBundlesTable.map((v: any) =>
-                    createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.flashbotsCallBundleResponse.gasFees, v.results)
+                    createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.flashbotsCallBundleResponse.gasFees, v.flashbotsCallBundleResponse.results)
                 );
 
                 setCallBundles(callBundlesTableRows)

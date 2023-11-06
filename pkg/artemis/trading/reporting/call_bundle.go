@@ -27,27 +27,30 @@ func getCallBundleSaveQ() string {
         WITH cte_mev_call AS (
 			INSERT INTO events (event_id)
 			VALUES ($1)
-		RETURNING event_id
-		), cte_eth_tx AS (
+			RETURNING event_id
+		),
+		cte_eth_tx AS (
 			INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id)
-			 SELECT 
-				event_id, 
-			    $6,
-				$4,
-				$7,
-				$9, 
-				$8,
-				$1,
-			FROM cte_mev_call
-			ON CONFLICT (event_id) DO NOTHING 
-		) INSERT INTO eth_mev_call_bundle (event_id, builder_name, bundle_hash, protocol_network_id, eth_call_resp_json)
-		   SELECT 
-				event_id, 
-			    $2,
-				$3,
-				$4, 
-				$5::jsonb
-			FROM cte_mev_call;`
+			SELECT 
+				c.event_id, 
+				$6 as tx_hash,
+				$4 as protocol_network_id,
+				$7 as nonce,
+				$9 as "from", 
+				$8 as type,
+				$1 as nonce_id
+			FROM cte_mev_call c
+			ON CONFLICT (event_id) DO NOTHING -- You need to specify the conflict target column(s)
+			RETURNING event_id
+		)
+		INSERT INTO eth_mev_call_bundle (event_id, builder_name, bundle_hash, protocol_network_id, eth_call_resp_json)
+		SELECT 
+			c.event_id, 
+			$2 as builder_name,
+			$3 as bundle_hash,
+			$4 as protocol_network_id, 
+			$5::jsonb as eth_call_resp_json
+		FROM cte_mev_call c;`
 	return que
 }
 

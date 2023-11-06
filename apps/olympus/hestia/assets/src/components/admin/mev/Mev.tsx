@@ -163,14 +163,21 @@ function MevContent(props: any) {
     );
 }
 
+export interface TraderInfo {
+    [key: string]: {
+        totalTxFees: number; // Use `number` type for JavaScript instead of `float64`
+    };
+}
+type TraderInfoType = { [key: string]: { totalTxFees: number } };
 
 export function createBundleData(
     eventID: string,
     submissionTime: string,
     bundleHash: string,
-    bundledTxs: any[] = []
+    bundledTxs: any[] = [],
+    traderInfo: TraderInfoType
 ) {
-    return {eventID, submissionTime, bundleHash, bundledTxs};
+    return {eventID, submissionTime, bundleHash, bundledTxs,traderInfo};
 }
 export default function Mev() {
     const [bundles, setBundles] = useState([{}]);
@@ -185,7 +192,7 @@ export default function Mev() {
                 const response = await mevApiGateway.getDashboardInfo();
                 const mevDashboardTable: any[] = response.data.bundles;
                 const mevDashboardTableRows = mevDashboardTable.map((v: any) =>
-                    createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs)
+                    createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs, v.traderInfo)
                 );
                 setBundles(mevDashboardTableRows)
                 const mevTopKTokens: any[] = response.data.topKTokens;

@@ -80,7 +80,7 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
     const { row } = props;
     const [open, setOpen] = React.useState(false);
 
-    const explorerURL = 'https://etherscan.io/tx/';
+    const explorerURL = 'https://etherscan.io';
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -112,6 +112,7 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                                         <TableCell>Status</TableCell>
                                         <TableCell>BlockNumber</TableCell>
                                         <TableCell>TxIndex</TableCell>
+                                        <TableCell>TxFee</TableCell>
                                         <TableCell>GasUsed</TableCell>
                                         <TableCell>EffectiveGasPrice</TableCell>
                                         <TableCell>GasFeeCap</TableCell>
@@ -126,7 +127,7 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                                             <TableCell component="th" scope="row">
                                                 {bundledTxRow.ethTx.txHash ? (
                                                     <a
-                                                        href={explorerURL + bundledTxRow.ethTx.txHash}
+                                                        href={explorerURL +'/tx/' + bundledTxRow.ethTx.txHash}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                     >
@@ -137,12 +138,33 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                                             <TableCell>{bundledTxRow.ethTxReceipts.status}</TableCell>
                                             <TableCell>{bundledTxRow.ethTxReceipts.blockNumber}</TableCell>
                                             <TableCell>{bundledTxRow.ethTxReceipts.transactionIndex}</TableCell>
+                                            <TableCell>{(((bundledTxRow.ethTxReceipts.effectiveGasPrice / 1e18))*(bundledTxRow.ethTxReceipts.gasUsed)).toFixed(5)}</TableCell>
                                             <TableCell>{bundledTxRow.ethTxReceipts.gasUsed}</TableCell>
                                             <TableCell>{(bundledTxRow.ethTxReceipts.effectiveGasPrice / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>
                                             <TableCell>{(bundledTxRow.ethTxGas.gasFeeCap.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>
                                             <TableCell>{(bundledTxRow.ethTxGas.gasTipCap.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>
                                             <TableCell>{bundledTxRow.ethTxGas.gasLimit.Int64}</TableCell>
                                             {/*<TableCell>{(bundledTxRow.ethTxGas.gasPrice.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>*/}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            <Table size="small" aria-label="purchases">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="left">User</TableCell>
+                                        <TableCell align="left">Total Tx Fees</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {Object.entries(row.traderInfo).map(([traderKey, info]) => (
+                                        <TableRow key={traderKey}>
+                                            <TableCell component="th" scope="row" align="left">
+                                                {traderKey} {/* Displaying the trader key */}
+                                            </TableCell>
+                                            <TableCell align="left">
+                                                {info.totalTxFees.toFixed(5)} {'Eth'}{/* Displaying the total tx fees in eth*/}
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

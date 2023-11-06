@@ -34,7 +34,7 @@ func getCallBundleSaveQ() string {
 				event_id, 
 			    $6,
 				$4,
-				$7, 
+				$9, 
 				$8,
 				$1,
 			FROM cte_mev_call

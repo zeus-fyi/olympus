@@ -130,6 +130,8 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 	if err == pgx.ErrNoRows {
 		err = nil
 		return err
+	} else {
+		log.Warn().Interface("tx", tf.Tx).Msg("InsertTxsWithBundle: InsertCallBundleResp")
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("InsertBundleProfit"))
 }

@@ -67,6 +67,9 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 	q1.RawQuery = `WITH cte_tx_1 AS (
 						INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id) 
                         SELECT $1, $2, $3, $4, $5, $6, $15
+						ON CONFLICT (tx_hash)
+						DO UPDATE SET	
+					 		nonce_id = EXCLUDED.nonce_id
                         RETURNING *
                     ), cte_gas AS (
                         INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
@@ -83,6 +86,9 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 	q2.RawQuery = `WITH cte_tx_2 AS (
 						INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id) 
                         SELECT $1, $2, $3, $4, $5, $6, $11
+						ON CONFLICT (tx_hash)
+						DO UPDATE SET	
+					 		nonce_id = EXCLUDED.nonce_id
                         RETURNING *
                     ) 	
 						INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
@@ -186,4 +192,45 @@ func (pt *Permit2Tx) SelectNextPermit2Nonce(ctx context.Context) (err error) {
 	}
 	pt.NextPermit2Nonce = pt.Nonce + 1
 	return misc.ReturnIfErr(err, q.LogHeader("SelectNextPermit2Nonce"))
+}
+
+type TxRxEvent struct {
+	EventID int
+	TxHash  string
+}
+
+func SelectExternalTxs(ctx context.Context, traderAddress string, protocolID, minEventID int) ([]TxRxEvent, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT et.event_id, et.tx_hash
+					FROM eth_tx et
+					WHERE NOT EXISTS (
+					  SELECT 1
+					  FROM eth_tx_receipts er
+					  WHERE er.tx_hash = et.tx_hash
+					)
+					AND et."from" != $1 AND et.protocol_network_id = $2 AND et.event_id >= $3
+					AND NOT EXISTS (
+					  SELECT 1
+					  FROM eth_tx_receipts er
+					  WHERE er.tx_hash = et.tx_hash AND (er.status = 'failed' OR er.status = 'success')
+					)
+					ORDER BY et.event_id DESC;`
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, traderAddress, protocolID, minEventID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectExternalTxs")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var rxEvents []TxRxEvent
+	for rows.Next() {
+		rxEvent := TxRxEvent{}
+		rowErr := rows.Scan(
+			&rxEvent.EventID, &rxEvent.TxHash,
+		)
+		if rowErr != nil {
+			return nil, rowErr
+		}
+		rxEvents = append(rxEvents, rxEvent)
+	}
+	return rxEvents, nil
 }

@@ -28,7 +28,7 @@ func getCallBundleSaveQ() string {
 			INSERT INTO events (event_id)
 			VALUES ($1)
 		RETURNING event_id
-		) cte_eth_tx AS (
+		), cte_eth_tx AS (
 			INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id)
 			 SELECT 
 				event_id, 
@@ -39,7 +39,7 @@ func getCallBundleSaveQ() string {
 				$8,
 				$1,
 			FROM cte_mev_call
-			ON CONFLICT DO NOTHING
+			ON CONFLICT (event_id) DO NOTHING 
 		) INSERT INTO eth_mev_call_bundle (event_id, builder_name, bundle_hash, protocol_network_id, eth_call_resp_json)
 		   SELECT 
 				event_id, 

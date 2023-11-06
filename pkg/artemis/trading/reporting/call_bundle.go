@@ -40,7 +40,7 @@ func getCallBundleSaveQ() string {
 				$8 as type,
 				$1 as nonce_id
 			FROM cte_mev_call c
-			ON CONFLICT (event_id) DO NOTHING -- You need to specify the conflict target column(s)
+			ON CONFLICT (event_id) DO NOTHING
 			RETURNING event_id
 		)
 		INSERT INTO eth_mev_call_bundle (event_id, builder_name, bundle_hash, protocol_network_id, eth_call_resp_json)

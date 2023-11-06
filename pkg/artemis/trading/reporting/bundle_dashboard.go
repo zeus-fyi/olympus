@@ -25,10 +25,10 @@ type BundleSummary struct {
 	EventID        int                   `json:"eventID"`
 	SubmissionTime string                `json:"submissionTime"`
 	BundleHash     string                `json:"bundleHash"`
-	Revenue        int                   `json:"revenue"`
-	TotalCost      int                   `json:"totalCost"`
+	Profit         float64               `json:"profit"`
+	Revenue        float64               `json:"revenue"`
+	TotalCost      float64               `json:"totalCost"`
 	TotalGasCost   float64               `json:"totalGasCost"`
-	Profit         int                   `json:"profit"`
 	TraderInfo     map[string]TraderInfo `json:"traderInfo"`
 	BundleTxs      []Bundle              `json:"bundledTxs"`
 }
@@ -73,9 +73,9 @@ func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
 					TotalTxFees: ds.Bundles[i].TraderInfo[tx.EthTx.From].TotalTxFees + fees,
 				}
 			}
-			ds.Bundles[i].Revenue = tx.Revenue / 1e18
-			ds.Bundles[i].TotalCost = tx.Costs / 1e18
-			ds.Bundles[i].Profit = tx.Profit / 1e18
+			ds.Bundles[i].Profit = float64(tx.Profit) / 1e18
+			ds.Bundles[i].Revenue = float64(tx.Revenue) / 1e18
+			ds.Bundles[i].TotalCost = float64(tx.Costs) / 1e18
 		}
 		ds.Bundles[i].TotalGasCost = fees
 		ds.Bundles[i].BundleTxs = v

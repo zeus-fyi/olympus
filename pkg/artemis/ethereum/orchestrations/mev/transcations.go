@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
@@ -20,7 +21,13 @@ func InitArtemisMevClientMainnet(ctx context.Context) {
 		log.Ctx(ctx).Panic().Err(err).Interface("nodeUrl", cfg.NodeURL).Interface("account", cfg.Account.PublicKey()).Msg("InitArtemisMevClientMainnet failed")
 		misc.DelayedPanic(err)
 	}
-	ArtemisMevClientMainnet = web3_client.NewWeb3Client(cfg.NodeURL, cfg.Account)
+	defaultProxyUrl := "https://iris.zeus.fyi/v1/router"
+	ArtemisMevClientMainnet = web3_client.NewWeb3Client(defaultProxyUrl, cfg.Account)
+	if len(artemis_orchestration_auth.Bearer) == 0 {
+		panic("missing bearer token")
+	}
+	ArtemisMevClientMainnet.AddBearerToken(artemis_orchestration_auth.Bearer)
+	ArtemisMevClientMainnet.AddDefaultEthereumMainnetTableHeader()
 	log.Info().Msg("Artemis: InitArtemisMevClientMainnet Succeeded")
 }
 

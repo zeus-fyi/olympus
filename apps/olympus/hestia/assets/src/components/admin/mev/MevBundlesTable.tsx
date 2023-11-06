@@ -41,7 +41,6 @@ export function MevBundlesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">BundleHash</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Profit</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Revenue</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Total Costs</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Gas Costs</TableCell>
                     </TableRow>
                 </TableHead>
@@ -102,9 +101,8 @@ function Row(props: { row: ReturnType<typeof createBundleData> }) {
                 </TableCell>
                 <TableCell align="left">{row.bundleHash}</TableCell>
                 <TableCell align="left">{(row.profit).toFixed(5) + ' ETH'}</TableCell>
-                <TableCell align="left">{(row.revenue).toFixed(5)}</TableCell>
-                <TableCell align="left">{(row.totalCost).toFixed(5)}</TableCell>
-                <TableCell align="left">{(row.totalGasCost).toFixed(5)}</TableCell>
+                <TableCell align="left">{(row.revenue).toFixed(5)  + ' ETH'}</TableCell>
+                <TableCell align="left">{(row.totalCost).toFixed(5) + ' ETH'}</TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>

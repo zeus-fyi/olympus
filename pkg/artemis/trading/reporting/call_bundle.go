@@ -103,7 +103,7 @@ func selectCallBundles() string {
 		  	   FROM eth_mev_call_bundle
 			   WHERE event_id > $1 AND protocol_network_id = $2
 			   ORDER BY event_id DESC
-			   LIMIT 1000;
+			   LIMIT 100;
 		  	   	`
 	return que
 }

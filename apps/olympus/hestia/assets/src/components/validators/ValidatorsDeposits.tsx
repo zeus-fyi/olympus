@@ -124,20 +124,3 @@ export function SubmitValidators(props: any) {
         </Card>
     );
 }
-
-
-// export function Eth1WalletPrivateKey(props: any) {
-//     const { eth1Pk, onAccessEth1PkChange } = props;
-//     return (
-//         <TextField
-//             fullWidth
-//             id="eth1WalletPrivateKey"
-//             label="Eth1 Wallet Private Key"
-//             variant="outlined"
-//             value={eth1Pk}
-//             onChange={onAccessEth1PkChange}
-//             sx={{ width: '100%' }}
-//         />
-//     );
-// }
-

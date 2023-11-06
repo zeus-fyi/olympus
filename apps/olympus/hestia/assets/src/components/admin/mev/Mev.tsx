@@ -191,10 +191,10 @@ export function createCallBundleData(
     bundleGasPrice: string,
     coinbaseDiff: string,
     gasFees: string,
-    bundledTxs: any[] = [],
+    results: any[] = [],
 
 ) {
-    return {eventID, submissionTime, bundleHash, builderName, bundledTxs, bundleGasPrice, coinbaseDiff, gasFees};
+    return {eventID, submissionTime, bundleHash, builderName, bundleGasPrice, coinbaseDiff, gasFees, results};
 }
 
 export default function Mev() {
@@ -214,12 +214,17 @@ export default function Mev() {
                     createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs, v.traderInfo, v.revenue, v.totalCost, v.totalGasCost, v.profit)
                 );
                 setBundles(mevDashboardTableRows)
+
                 const callBundlesTable: any[] = response.data.callBundles;
-                setCallBundles(callBundlesTable)
+                const callBundlesTableRows = callBundlesTable.map((v: any) =>
+                    createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.gasFees, v.results)
+                );
+                console.log('sdsdf', callBundlesTableRows)
+                setCallBundles(callBundlesTableRows)
                 const mevTopKTokens: any[] = response.data.topKTokens;
                 setGroups({
                     'bundles': bundles,
-                    'callBundles': callBundlesTable,
+                    'callBundles': callBundles,
                     'topKTokens': mevTopKTokens
                 })
             } catch (error) {

@@ -36,6 +36,14 @@ func NewBigIntFromStr(amount string) *big.Int {
 	return val
 }
 
+func NewBigFloatFromStr(amount string) *big.Float {
+	val, ok := new(big.Float).SetString(amount)
+	if !ok {
+		return nil
+	}
+	return val
+}
+
 func EtherMultiple(multiple int) *big.Int {
 	return new(big.Int).Mul(big.NewInt(int64(multiple)), Ether)
 }

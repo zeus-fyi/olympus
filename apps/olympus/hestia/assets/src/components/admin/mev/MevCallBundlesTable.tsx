@@ -27,13 +27,14 @@ export function MevCallBundlesTable(props: any) {
     ) => {
         setPage(newPage);
     };
+    console.log(callBundles,'sdfasd')
 
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - callBundles.length) : 0;
 
     return (
         <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 1000 }} aria-label="mev bundles pagination table">
+            <Table sx={{ minWidth: 1000 }} aria-label="mev call bundles pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#333'}} >
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left"></TableCell>
@@ -46,9 +47,9 @@ export function MevCallBundlesTable(props: any) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {/*{rowsPerPage > 0 && callBundles && callBundles.map((row: any) => (*/}
-                    {/*    <CallBundlesRow key={row.eventID} row={row.bundledTxs} />*/}
-                    {/*))}*/}
+                    {rowsPerPage > 0 && callBundles && callBundles.map((row: any) => (
+                        <CallBundlesRow key={row.eventID} row={row} />
+                    ))}
                     {emptyRows > 0 && (
                         <TableRow style={{ height: 53 * emptyRows }}>
                             <TableCell colSpan={6} />
@@ -121,10 +122,10 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {row && row.bundledTxs.map((bundledTxRow) => (
-                                        <TableRow key={row.eventID}>
+                                    {row && row.results.map((index: number, bundledTxRow: any) => (
+                                        <TableRow key={index}>
                                             <TableCell component="th" scope="row">
-                                                {bundledTxRow.ethTx.txHash ? (
+                                                {bundledTxRow.flashbotsCallBundleResponse.txHash ? (
                                                     <a
                                                         href={explorerURL +'/tx/' + bundledTxRow.txHash}
                                                         target="_blank"

@@ -46,7 +46,7 @@ export function MevBundlesTable(props: any) {
                 </TableHead>
                 <TableBody>
                     {rowsPerPage > 0 && bundles && bundles.map((row: any) => (
-                        <Row key={row.name} row={row} />
+                        <Row key={row.eventID} row={row} />
                     ))}
                     {emptyRows > 0 && (
                         <TableRow style={{ height: 53 * emptyRows }}>

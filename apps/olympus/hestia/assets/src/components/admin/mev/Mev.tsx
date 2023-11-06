@@ -153,12 +153,13 @@ function MevContent(props: any) {
 }
 
 
-function createBundleData(
+export function createBundleData(
     eventID: string,
     submissionTime: string,
     bundleHash: string,
+    bundledTxs: any[] = []
 ) {
-    return {eventID, submissionTime, bundleHash};
+    return {eventID, submissionTime, bundleHash, bundledTxs};
 }
 export default function Mev() {
     const [bundles, setBundles] = useState([{}]);
@@ -172,7 +173,7 @@ export default function Mev() {
                 const response = await mevApiGateway.getDashboardInfo();
                 const mevDashboardTable: any[] = response.data.bundles;
                 const mevDashboardTableRows = mevDashboardTable.map((v: any) =>
-                    createBundleData(v.eventID, v.submissionTime, v.bundleHash)
+                    createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs)
                 );
                 setBundles(mevDashboardTableRows)
                 const mevTopKTokens: any[] = response.data.topKTokens;

@@ -1,11 +1,15 @@
 import * as React from "react";
-import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
+import {Box, Collapse, TableContainer, TableFooter, TablePagination, TableRow, Typography} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import IconButton from "@mui/material/IconButton";
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import {createBundleData} from "./Mev";
 
 export function MevBundlesTable(props: any) {
     const {bundles} =props
@@ -27,26 +31,20 @@ export function MevBundlesTable(props: any) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - bundles.length) : 0;
 
+    console.log("bundles", bundles)
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="mev bundles pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#333'}} >
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Time</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left"></TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Event Time</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">BundleHash</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {(rowsPerPage > 0
-                        ? bundles.slice(page * rowsPerPage, page*rowsPerPage+rowsPerPage) : bundles).map((row: any,i: number) => (
-                        <TableRow
-                            key={row.eventID}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                            <TableCell align="left">{row.submissionTime}</TableCell>
-                            <TableCell align="left">{row.bundleHash}</TableCell>
-
-                        </TableRow>
+                    {rowsPerPage > 0 && bundles && bundles.map((row: any) => (
+                        <Row key={row.name} row={row} />
                     ))}
                     {emptyRows > 0 && (
                         <TableRow style={{ height: 53 * emptyRows }}>
@@ -78,3 +76,82 @@ export function MevBundlesTable(props: any) {
         </TableContainer>
     );
 }
+
+function Row(props: { row: ReturnType<typeof createBundleData> }) {
+    const { row } = props;
+    const [open, setOpen] = React.useState(false);
+
+    const explorerURL = 'https://etherscan.io/tx/';
+
+    return (
+        <React.Fragment>
+            <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+                <TableCell>
+                    <IconButton
+                        aria-label="expand row"
+                        size="small"
+                        onClick={() => setOpen(!open)}
+                    >
+                        {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                    </IconButton>
+                </TableCell>
+                <TableCell component="th" scope="row">
+                    {row.submissionTime}
+                </TableCell>
+                <TableCell align="left">{row.bundleHash}</TableCell>
+            </TableRow>
+            <TableRow>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                    <Collapse in={open} timeout="auto" unmountOnExit>
+                        <Box sx={{ margin: 1 }}>
+                            <Typography variant="h6" gutterBottom component="div">
+                                Bundled Transactions
+                            </Typography>
+                            <Table size="small" aria-label="purchases">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>TxHash</TableCell>
+                                        <TableCell>Status</TableCell>
+                                        <TableCell>BlockNumber</TableCell>
+                                        <TableCell>GasUsed</TableCell>
+                                        <TableCell>EffectiveGasPrice</TableCell>
+                                        <TableCell>GasFeeCap</TableCell>
+                                        <TableCell>GasTipCap</TableCell>
+                                        <TableCell>GasLimit</TableCell>
+                                        {/*<TableCell>GasPrice</TableCell>*/}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {row.bundledTxs.map((bundledTxRow) => (
+                                        <TableRow key={bundledTxRow.ethTx.eventID}>
+                                            <TableCell component="th" scope="row">
+                                                {bundledTxRow.ethTx.txHash ? (
+                                                    <a
+                                                        href={explorerURL + bundledTxRow.ethTx.txHash}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {bundledTxRow.ethTx.txHash.slice(0, 40)}
+                                                    </a>
+                                                ) : 'None'}
+                                            </TableCell>
+                                            <TableCell>{bundledTxRow.ethTxReceipts.status}</TableCell>
+                                            <TableCell>{bundledTxRow.ethTxReceipts.blockNumber}</TableCell>
+                                            <TableCell>{bundledTxRow.ethTxReceipts.gasUsed}</TableCell>
+                                            <TableCell>{(bundledTxRow.ethTxReceipts.effectiveGasPrice / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>
+                                            <TableCell>{(bundledTxRow.ethTxGas.gasFeeCap.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>
+                                            <TableCell>{(bundledTxRow.ethTxGas.gasTipCap.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>
+                                            <TableCell>{bundledTxRow.ethTxGas.gasLimit.Int64}</TableCell>
+                                            {/*<TableCell>{(bundledTxRow.ethTxGas.gasPrice.Int64 / 1e9).toLocaleString('fullwide', { useGrouping: false })}</TableCell>*/}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Box>
+                    </Collapse>
+                </TableCell>
+            </TableRow>
+        </React.Fragment>
+    );
+}
+

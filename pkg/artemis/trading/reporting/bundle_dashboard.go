@@ -41,11 +41,18 @@ func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
 	ts := chronos.Chronos{}
 	i := 0
 	for hash, v := range b.Map {
+		if len(v) < 2 {
+			continue
+		}
 		ds.Bundles[i].EventID = b.MapHashToEventID[hash]
 		ds.Bundles[i].SubmissionTime = ts.ConvertUnixTimeStampToDate(ds.Bundles[i].EventID).String()
 		ds.Bundles[i].BundleHash = hash
 		ds.Bundles[i].BundleTxs = v
 		i++
+	}
+	// Truncate the slice to the number of elements actually set.
+	if i < len(ds.Bundles) {
+		ds.Bundles = ds.Bundles[:i]
 	}
 	sort.Slice(ds.Bundles, func(i, j int) bool {
 		return ds.Bundles[i].EventID > ds.Bundles[j].EventID

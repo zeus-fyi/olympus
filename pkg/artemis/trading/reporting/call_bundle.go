@@ -100,13 +100,14 @@ func selectCallBundles() string {
 		  	   FROM eth_mev_call_bundle
 			   WHERE event_id > $1 AND protocol_network_id = $2
 			   ORDER BY event_id DESC
-			   LIMIT 10000;
+			   LIMIT 1000;
 		  	   	`
 	return que
 }
 
 type CallBundleHistory struct {
 	EventID                                  int    `json:"eventID"`
+	SubmissionTime                           string `json:"submissionTime"`
 	BuilderName                              string `json:"builderName"`
 	flashbotsrpc.FlashbotsCallBundleResponse `json:"flashbotsCallBundleResponse"`
 }
@@ -117,6 +118,8 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		return nil, err
 	}
 	var rw []CallBundleHistory
+	ts := chronos.Chronos{}
+
 	defer rows.Close()
 	for rows.Next() {
 		cbh := CallBundleHistory{
@@ -127,6 +130,7 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 			log.Err(rowErr).Msg("SelectCallBundleHistory")
 			return nil, rowErr
 		}
+		cbh.SubmissionTime = ts.ConvertUnixTimeStampToDate(cbh.EventID).String()
 		rw = append(rw, cbh)
 	}
 	return rw, nil

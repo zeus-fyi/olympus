@@ -20,11 +20,12 @@ import MainListItems from "../../dashboard/listItems";
 import {MevBundlesTable} from "./MevBundlesTable";
 import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs} from "@mui/material";
 import {mevApiGateway} from "../../../gateway/mev";
+import {MevCallBundlesTable} from "./MevCallBundlesTable";
 
 const mdTheme = createTheme();
 
 function MevContent(props: any) {
-    const {bundles, groups, groupName, selectedMainTab, handleMainTabChange} = props;
+    const {callBundles,bundles, groups, groupName, selectedMainTab, handleMainTabChange} = props;
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -146,15 +147,20 @@ function MevContent(props: any) {
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
                                     <Tab className="onboarding-card-highlight-all-routes" label="Executed"  />
-                                    {/*<Tab className="onboarding-card-highlight-all-procedures" label="Simulated" />*/}
+                                    <Tab className="onboarding-card-highlight-all-procedures" label="Simulated" />
                                 </Tabs>
                             </Box>
                         )}
                     </Container>
-                    { bundles && bundles.length > 0 &&
+                    { selectedMainTab == 0 && bundles && bundles.length > 0 &&
                     <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
                         <MevBundlesTable bundles={bundles}/>
                     </Container>
+                    }
+                    { selectedMainTab == 1 && callBundles && callBundles.length > 0 &&
+                        <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
+                            <MevCallBundlesTable callBundles={callBundles}/>
+                        </Container>
                     }
                 </Box>
             </Box>
@@ -177,8 +183,23 @@ export function createBundleData(
 ) {
     return {eventID, submissionTime, bundleHash, bundledTxs,traderInfo, revenue, totalCost, totalGasCost, profit};
 }
+export function createCallBundleData(
+    eventID: string,
+    submissionTime: string,
+    bundleHash: string,
+    builderName: string,
+    bundleGasPrice: string,
+    coinbaseDiff: string,
+    gasFees: string,
+    bundledTxs: any[] = [],
+
+) {
+    return {eventID, submissionTime, bundleHash, builderName, bundledTxs, bundleGasPrice, coinbaseDiff, gasFees};
+}
+
 export default function Mev() {
     const [bundles, setBundles] = useState([{}]);
+    const [callBundles, setCallBundles] = useState([{}]);
     const [groupName, setGroupName] = useState('bundles');
     const [groups, setGroups] = useState({});
     const [loading, setLoading] = useState(true);
@@ -193,10 +214,12 @@ export default function Mev() {
                     createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs, v.traderInfo, v.revenue, v.totalCost, v.totalGasCost, v.profit)
                 );
                 setBundles(mevDashboardTableRows)
+                const callBundlesTable: any[] = response.data.callBundles;
+                setCallBundles(callBundlesTable)
                 const mevTopKTokens: any[] = response.data.topKTokens;
-
                 setGroups({
                     'bundles': bundles,
+                    'callBundles': callBundlesTable,
                     'topKTokens': mevTopKTokens
                 })
             } catch (error) {
@@ -210,9 +233,8 @@ export default function Mev() {
     if (loading) {
         return <div>Loading...</div>;
     }
-
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
     };
-    return <MevContent bundles={bundles} groups={groups} groupName={groupName} selectedMainTab={selectedMainTab} handleMainTabChange={handleMainTabChange}/>;
+    return <MevContent callBundles={callBundles} bundles={bundles} groups={groups} groupName={groupName} selectedMainTab={selectedMainTab} handleMainTabChange={handleMainTabChange}/>;
 }

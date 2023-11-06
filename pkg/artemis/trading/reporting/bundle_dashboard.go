@@ -38,11 +38,12 @@ type TraderInfo struct {
 }
 
 type BundleDashboardInfo struct {
-	TopKTokens []string        `json:"topKTokens"`
-	Bundles    []BundleSummary `json:"bundles"`
+	TopKTokens  []string            `json:"topKTokens"`
+	Bundles     []BundleSummary     `json:"bundles"`
+	CallBundles []CallBundleHistory `json:"callBundles"`
 }
 
-func (b *BundlesGroup) GetDashboardInfo() BundleDashboardInfo {
+func GetDashboardInfo(b BundlesGroup) BundleDashboardInfo {
 	ds := BundleDashboardInfo{
 		Bundles: make([]BundleSummary, len(b.Map)),
 	}

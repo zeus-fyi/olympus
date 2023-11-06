@@ -40,7 +40,13 @@ func (r *MevRequest) GetDashboardInfo(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	di := bundles.GetDashboardInfo()
+
+	callBundles, err := artemis_reporting.SelectCallBundleHistory(ctx, 0, 1)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	di := artemis_reporting.GetDashboardInfo(bundles)
+	di.CallBundles = callBundles
 	rc := resty.New()
 	_, err = rc.R().SetResult(&di.TopKTokens).Get(PromqlProxy + "/v1/promql/top/tokens")
 	if err != nil {

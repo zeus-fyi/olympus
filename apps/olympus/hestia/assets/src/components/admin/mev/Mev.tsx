@@ -169,9 +169,13 @@ export function createBundleData(
     submissionTime: string,
     bundleHash: string,
     bundledTxs: any[] = [],
-    traderInfo: TraderInfoType
+    traderInfo: TraderInfoType,
+    revenue: number,
+    totalCost: number,
+    totalGasCost: number,
+    profit: number,
 ) {
-    return {eventID, submissionTime, bundleHash, bundledTxs,traderInfo};
+    return {eventID, submissionTime, bundleHash, bundledTxs,traderInfo, revenue, totalCost, totalGasCost, profit};
 }
 export default function Mev() {
     const [bundles, setBundles] = useState([{}]);
@@ -186,7 +190,7 @@ export default function Mev() {
                 const response = await mevApiGateway.getDashboardInfo();
                 const mevDashboardTable: any[] = response.data.bundles;
                 const mevDashboardTableRows = mevDashboardTable.map((v: any) =>
-                    createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs, v.traderInfo)
+                    createBundleData(v.eventID, v.submissionTime, v.bundleHash, v.bundledTxs, v.traderInfo, v.revenue, v.totalCost, v.totalGasCost, v.profit)
                 );
                 setBundles(mevDashboardTableRows)
                 const mevTopKTokens: any[] = response.data.topKTokens;

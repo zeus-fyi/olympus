@@ -10,26 +10,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func getBundlesQ() string {
-	var que = `
-			WITH cte_bundles AS (
-				SELECT eb.event_id, eb.bundle_hash, et."from", et.nonce, et.tx_hash,
-					   eg.gas_fee_cap, eg.gas_limit, eg.gas_tip_cap, eg.gas_price,
- 					   er.gas_used, er.effective_gas_price, er.cumulative_gas_used,
-					   er.block_hash, er.transaction_index, er.block_number, er.status
-				FROM eth_mev_bundle eb
-				INNER JOIN eth_tx et ON et.event_id = eb.event_id
-				INNER JOIN eth_tx_gas eg ON eg.tx_hash = et.tx_hash
-				INNER JOIN eth_tx_receipts er ON er.tx_hash = et.tx_hash
-				WHERE eb.event_id > $1 AND eb.protocol_network_id = $2 
-				ORDER BY eb.event_id DESC, et."from", et.nonce ASC
-			) 
-			SELECT *
- 			FROM cte_bundles
-			`
-	return que
-}
-
 type BundlesGroup struct {
 	Map              map[string][]Bundle `json:"bundles"`
 	MapHashToEventID map[string]int      `json:"mapHashToEventID"`
@@ -74,6 +54,28 @@ func (b *Bundle) PrintBundleInfo() {
 	fmt.Println("===============================================================================================================")
 }
 
+func getBundlesQ() string {
+	var que = `
+			WITH cte_bundles AS (
+				SELECT eb.event_id, eb.bundle_hash, et."from", et.nonce, et.tx_hash,
+					   eg.gas_fee_cap, eg.gas_limit, eg.gas_tip_cap, eg.gas_price,
+ 					   er.gas_used, er.effective_gas_price, er.cumulative_gas_used,
+					   er.block_hash, er.transaction_index, er.block_number, er.status,
+					   ebp.revenue, ebp.revenue_prediction, ebp.revenue_prediction_skew, ebp.costs, ebp.profit
+				FROM eth_mev_bundle eb
+				INNER JOIN eth_tx et ON et.event_id = eb.event_id
+				INNER JOIN eth_tx_gas eg ON eg.tx_hash = et.tx_hash
+				INNER JOIN eth_tx_receipts er ON er.tx_hash = et.tx_hash
+			 	LEFT JOIN eth_mev_bundle_profit ebp ON ebp.bundle_hash = eb.bundle_hash
+				WHERE eb.event_id > $1 AND eb.protocol_network_id = $2 
+				ORDER BY eb.event_id DESC, et."from", et.nonce ASC
+			) 
+			SELECT *
+ 			FROM cte_bundles
+			`
+	return que
+}
+
 func GetBundleSubmissionHistory(ctx context.Context, eventID, protocolNetworkID int) (BundlesGroup, error) {
 	bg := BundlesGroup{
 		Map:              make(map[string][]Bundle),
@@ -92,6 +94,7 @@ func GetBundleSubmissionHistory(ctx context.Context, eventID, protocolNetworkID 
 			&bundle.EthTxGas.GasFeeCap, &bundle.EthTxGas.GasLimit, &bundle.EthTxGas.GasTipCap, &bundle.EthTxGas.GasPrice,
 			&bundle.EthTxReceipts.GasUsed, &bundle.EthTxReceipts.EffectiveGasPrice, &bundle.EthTxReceipts.CumulativeGasUsed,
 			&bundle.EthTxReceipts.BlockHash, &bundle.EthTxReceipts.TransactionIndex, &bundle.EthTxReceipts.BlockNumber, &bundle.EthTxReceipts.Status,
+			&bundle.Revenue, &bundle.RevenuePrediction, &bundle.RevenuePredictionSkew, &bundle.Costs, &bundle.Profit,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("GetBundleSubmissionHistory")
@@ -105,7 +108,6 @@ func GetBundleSubmissionHistory(ctx context.Context, eventID, protocolNetworkID 
 		tmp := bg.Map[bundle.BundleHash]
 		tmp = append(tmp, bundle)
 		bg.Map[bundle.BundleHash] = tmp
-
 	}
 	return bg, nil
 }
@@ -140,7 +142,8 @@ const (
 
 func GetBundlesProfitHistory(ctx context.Context, eventID, protocolNetworkID int) (BundlesGroup, error) {
 	bg := BundlesGroup{
-		Map: make(map[string][]Bundle),
+		Map:              make(map[string][]Bundle),
+		MapHashToEventID: make(map[string]int),
 	}
 	q := getBundlesProfitQ()
 	rows, err := apps.Pg.Query(ctx, q, eventID, protocolNetworkID)
@@ -170,6 +173,7 @@ func GetBundlesProfitHistory(ctx context.Context, eventID, protocolNetworkID int
 		bundle.EthTxGas.TxHash = bundle.EthTx.TxHash
 		if _, ok := bg.Map[bundle.BundleHash]; !ok {
 			bg.Map[bundle.BundleHash] = []Bundle{}
+			bg.MapHashToEventID[bundle.BundleHash] = bundle.EthTx.EventID
 		}
 		tmp := bg.Map[bundle.BundleHash]
 		tmp = append(tmp, bundle)

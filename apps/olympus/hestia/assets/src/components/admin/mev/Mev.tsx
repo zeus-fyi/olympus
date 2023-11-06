@@ -219,7 +219,6 @@ export default function Mev() {
                 const callBundlesTableRows = callBundlesTable.map((v: any) =>
                     createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.flashbotsCallBundleResponse.gasFees, v.results)
                 );
-                console.log('sdsdf', callBundlesTableRows)
                 setCallBundles(callBundlesTableRows)
                 const mevTopKTokens: any[] = response.data.topKTokens;
                 setGroups({

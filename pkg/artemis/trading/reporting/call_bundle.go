@@ -133,21 +133,19 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 			log.Err(rowErr).Msg("SelectCallBundleHistory")
 			return nil, rowErr
 		}
-		// Create a big.Float representation of 1e18 for the division
-		eth := new(big.Float).SetFloat64(1e18)
+		// Create a big.Float representation of 1e9 for the division to gwei
+		weiToGwei := new(big.Float).SetFloat64(1e9)
+
 		// Divide the gas price by 1e18 to convert wei to ether
 		bundleGasPriceWei := artemis_eth_units.NewBigFloatFromStr(cbh.FlashbotsCallBundleResponse.BundleGasPrice)
-		bundleGasPrice, _ := new(big.Float).Quo(bundleGasPriceWei, eth).Float64()
+		bundleGasPrice, _ := new(big.Float).Quo(bundleGasPriceWei, weiToGwei).Float64()
 		// Format the float to a string with 5 decimal places
 		cbh.BundleGasPrice = fmt.Sprintf("%.5f", bundleGasPrice)
 
+		eth := new(big.Float).SetFloat64(1e18)
 		bundleGasFeesWei := artemis_eth_units.NewBigFloatFromStr(cbh.FlashbotsCallBundleResponse.GasFees)
 		bundleGasFees, _ := new(big.Float).Quo(bundleGasFeesWei, eth).Float64()
 		cbh.GasFees = fmt.Sprintf("%.5f", bundleGasFees)
-
-		ethCoinbaseWei := artemis_eth_units.NewBigFloatFromStr(cbh.FlashbotsCallBundleResponse.EthSentToCoinbase)
-		ethCoinbase, _ := new(big.Float).Quo(ethCoinbaseWei, eth).Float64()
-		cbh.EthSentToCoinbase = fmt.Sprintf("%.5f", ethCoinbase)
 
 		ethCoinbaseDiffWei := artemis_eth_units.NewBigFloatFromStr(cbh.FlashbotsCallBundleResponse.CoinbaseDiff)
 		ethCoinbaseDiff, _ := new(big.Float).Quo(ethCoinbaseDiffWei, eth).Float64()

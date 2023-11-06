@@ -27,8 +27,6 @@ export function MevCallBundlesTable(props: any) {
     ) => {
         setPage(newPage);
     };
-    console.log(callBundles,'sdfasd')
-
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - callBundles.length) : 0;
 

@@ -2,6 +2,7 @@ package artemis_mev_transcations
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -60,9 +61,11 @@ func (d *ArtemisMevActivities) SubmitSignedTx(ctx context.Context, signedTx *typ
 func (d *ArtemisMevActivities) WaitForTxReceipt(ctx context.Context, hash accounts.Hash) (*types.Receipt, error) {
 	d.Dial()
 	defer d.Close()
-
 	rx, err := d.C.TransactionReceipt(ctx, common.Hash(hash))
 	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, nil
+		}
 		log.Err(err).Str("network", d.Network).Str("nodeURL", d.NodeURL).Interface("txHash", hash).Interface("rx", rx).Msg("ArtemisEthereumBroadcastTxActivities: WaitForTxReceipt failed or timed out")
 		return nil, err
 	}

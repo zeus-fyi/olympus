@@ -71,7 +71,7 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 		r.IsTest = false
 	}
 	switch pr.Plan {
-	case LitePlan, Standard, PerformancePlan:
+	case LitePlan, Standard, PerformancePlan, DiscoverPlan:
 	case TestPlan:
 		if !r.IsTest {
 			return c.JSON(http.StatusBadRequest, QuickNodeResponse{

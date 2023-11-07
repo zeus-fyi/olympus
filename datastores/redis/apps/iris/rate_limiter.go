@@ -12,15 +12,17 @@ import (
 )
 
 const (
-	TwentyFive             = 25
-	Fifty                  = 50
-	TwoHundredFifty        = 250
-	OneThousand            = 1_000
-	TenThousand            = 10_000
-	FiveThousand           = 5_000
-	TwentyFiveThousand     = 25_000
-	FiftyThousand          = 50_000
-	HundredThousand        = 100_000
+	TwentyFive         = 25
+	Fifty              = 50
+	TwoHundredFifty    = 250
+	OneThousand        = 1_000
+	TenThousand        = 10_000
+	FiveThousand       = 5_000
+	TwentyFiveThousand = 25_000
+	FiftyThousand      = 50_000
+	HundredThousand    = 100_000
+
+	TenMillion             = 10_000_000
 	FiftyMillion           = 50_000_000
 	TwoHundredFiftyMillion = 250_000_000
 	OneBillion             = 1_000_000_000
@@ -38,6 +40,8 @@ func GetMonthlyPlanBudgetThroughputZU(planName string) int {
 	case "lite":
 		return TwentyFiveThousand
 	case "discover", "discovery":
+		return TwentyFiveThousand
+	case "free":
 		return TwentyFiveThousand
 	case "test":
 		return 1000
@@ -58,6 +62,8 @@ func GetMonthlyPlanBudgetZU(planName string) int {
 		return TwoHundredFiftyMillion
 	case "discover", "discovery":
 		return FiftyMillion
+	case "free":
+		return TenMillion
 	case "test":
 		return 1000
 	default:
@@ -76,6 +82,8 @@ func GetMonthlyPlanMaxAnvilServerlessSessions(planName string) int {
 	case "lite":
 		return MaxActiveServerlessSessions
 	case "discover", "discovery":
+		return MaxActiveServerlessSessions
+	case "free":
 		return MaxActiveServerlessSessions
 	case "test":
 		return MaxActiveServerlessSessions
@@ -109,6 +117,8 @@ func (m *IrisCache) CheckRateLimitBroadcast(ctx context.Context, orgID int, proc
 		rateLimited, monthlyLimited = um.IsRateLimited(TwentyFiveThousand, TwoHundredFiftyMillion)
 	case "discover", "discovery":
 		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, FiftyMillion)
+	case "free":
+		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, TenMillion)
 	case "test":
 		rateLimited, monthlyLimited = um.IsRateLimited(100, 1000)
 	default:
@@ -146,6 +156,8 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGr
 		rateLimited, monthlyLimited = um.IsRateLimited(TwentyFiveThousand, TwoHundredFiftyMillion)
 	case "discover", "discovery":
 		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, FiftyMillion)
+	case "free":
+		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, TenMillion)
 	case "test":
 		// check 1k ZU/s
 		// check max 50M ZU/month

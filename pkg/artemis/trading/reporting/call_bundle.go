@@ -218,6 +218,29 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		ethCoinbaseDiff, _ := new(big.Float).Quo(ethCoinbaseDiffWei, eth).Float64()
 		cbh.CoinbaseDiff = fmt.Sprintf("%.5f", ethCoinbaseDiff)
 
+		expProfitWei := artemis_eth_units.NewBigFloatFromStr(cbh.ExpectedProfitAmountOut)
+		expProfit, _ := new(big.Float).Quo(expProfitWei, eth).Float64()
+		cbh.ExpectedProfitAmountOut = fmt.Sprintf("%.5f", expProfit)
+
+		actualProfitWei := artemis_eth_units.NewBigFloatFromStr(cbh.ActualProfitAmountOut)
+		actualProfit, _ := new(big.Float).Quo(actualProfitWei, eth).Float64()
+		cbh.ActualProfitAmountOut = fmt.Sprintf("%.5f", actualProfit)
+
+		for i, v := range cbh.FlashbotsCallBundleResponse.Results {
+			bundleGasPriceWei = artemis_eth_units.NewBigFloatFromStr(v.GasPrice)
+			bundleGasPrice, _ = new(big.Float).Quo(bundleGasPriceWei, weiToGwei).Float64()
+			// Format the float to a string with 5 decimal places
+			cbh.FlashbotsCallBundleResponse.Results[i].GasPrice = fmt.Sprintf("%.5f Gwei", bundleGasPrice)
+
+			ethCoinbaseDiffWei = artemis_eth_units.NewBigFloatFromStr(v.CoinbaseDiff)
+			ethCoinbaseDiff, _ = new(big.Float).Quo(ethCoinbaseDiffWei, eth).Float64()
+			cbh.FlashbotsCallBundleResponse.Results[i].CoinbaseDiff = fmt.Sprintf("%.5f Eth", ethCoinbaseDiff)
+
+			bundleGasFeesWei = artemis_eth_units.NewBigFloatFromStr(v.GasFees)
+			bundleGasFees, _ = new(big.Float).Quo(bundleGasFeesWei, eth).Float64()
+			cbh.FlashbotsCallBundleResponse.Results[i].GasFees = fmt.Sprintf("%.5f Eth", bundleGasFees)
+		}
+
 		cbh.SubmissionTime = ts.ConvertUnixTimeStampToDate(cbh.EventID).String()
 		rw = append(rw, cbh)
 	}

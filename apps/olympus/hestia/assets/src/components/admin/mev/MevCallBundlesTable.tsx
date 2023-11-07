@@ -39,6 +39,8 @@ export function MevCallBundlesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Event Time</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">BundleHash</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Builder</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Actual Profit</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Expected Profit</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Bundle GasPrice</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Coinbase Diff</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Gas Fees</TableCell>
@@ -83,7 +85,7 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
     const { row } = props;
     const [open, setOpen] = React.useState(false);
 
-    console.log(row, 'sccallbun')
+    console.log(row)
     const explorerURL = 'https://etherscan.io';
     return (
         <React.Fragment>
@@ -100,24 +102,30 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                 <TableCell component="th" scope="row">
                     {row.submissionTime}
                 </TableCell>
-                <TableCell align="left">{row.bundleHash}</TableCell>
+                <TableCell align="left">{row.bundleHash.slice(0,40)}</TableCell>
                 <TableCell align="left">{row.builderName}</TableCell>
-                <TableCell align="left">{row.bundleGasPrice}</TableCell>
-                <TableCell align="left">{row.coinbaseDiff}</TableCell>
-                <TableCell align="left">{row.gasFees}</TableCell>
+                <TableCell align="left">{row.actualProfitAmountOut + ' Eth'}</TableCell>
+                <TableCell align="left">{row.expectedProfitAmountOut + ' Eth'}</TableCell>
+                <TableCell align="left">{row.bundleGasPrice + ' Gwei'}</TableCell>
+                <TableCell align="left">{row.coinbaseDiff + ' Eth'}</TableCell>
+                <TableCell align="left">{row.gasFees + ' Eth'}</TableCell>
             </TableRow>
             <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ margin: 1 }}>
                             <Typography variant="h6" gutterBottom component="div">
-                                Called Bundle Transactions
+                                Called Bundle Transactions: {row.tradeMethod}
                             </Typography>
                             <Table size="small" aria-label="purchases">
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>TxHash</TableCell>
+                                        <TableCell>Coinbase Diff</TableCell>
+                                        <TableCell>GasFees</TableCell>
                                         <TableCell>GasPrice</TableCell>
+                                        <TableCell>Error</TableCell>
+                                        <TableCell>Revert</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -126,7 +134,11 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                                                 <TableCell component="th" scope="row">
                                                     <a href={`${explorerURL}/tx/${txRow.txHash}`} target="_blank" rel="noreferrer">{txRow.txHash}</a>
                                                 </TableCell>
+                                                <TableCell>{txRow.coinbaseDiff}</TableCell>
+                                                <TableCell>{txRow.gasFees}</TableCell>
                                                 <TableCell>{txRow.gasPrice}</TableCell>
+                                                <TableCell>{txRow.error}</TableCell>
+                                                <TableCell>{txRow.revert}</TableCell>
                                             </TableRow>
                                         ))}
                                 </TableBody>

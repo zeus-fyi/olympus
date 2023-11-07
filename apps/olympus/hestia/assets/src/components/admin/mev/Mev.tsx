@@ -183,6 +183,29 @@ export function createBundleData(
 ) {
     return {eventID, submissionTime, bundleHash, bundledTxs,traderInfo, revenue, totalCost, totalGasCost, profit};
 }
+
+/*
+type CallBundleHistory struct {
+	EventID                                  int                                  `json:"eventID"`
+	BuilderName                              string                               `json:"builderName"`
+	BundleHash                               string                               `json:"bundleHash"`
+	TxHash                                   string                               `json:"txHash"`
+	FromAddress                              string                               `json:"from"`
+	Metadata                                 string                               `json:"metadata"` // Assuming this is a JSON in string format
+	AmountIn                                 string                               `json:"amountIn"` // Assuming numeric field
+	RxBlockNumber                            int                                  `json:"rxBlockNumber"`
+	TradeMethod                              string                               `json:"tradeMethod"`
+	ExpectedProfitAmountOut                  string                               `json:"expectedProfitAmountOut"` // Assuming numeric field
+	ActualProfitAmountOut                    string                               `json:"actualProfitAmountOut"`   // Assuming numeric field
+	EffectiveGasPrice                        int                                  `json:"effectiveGasPrice"`       // Assuming this is an integer value
+	GasUsed                                  int                                  `json:"gasUsed"`
+	Status                                   string                               `json:"status"`
+	BlockNumber                              int                                  `json:"blockNumber"`
+	TransactionIndex                         int                                  `json:"transactionIndex"`
+	SubmissionTime                           string                               `json:"submissionTime"` // Already present in your struct
+	flashbotsrpc.FlashbotsCallBundleResponse `json:"flashbotsCallBundleResponse"` // Embedded struct, ensure fields are mapped correctly
+}
+ */
 export function createCallBundleData(
     eventID: string,
     submissionTime: string,
@@ -192,9 +215,11 @@ export function createCallBundleData(
     coinbaseDiff: string,
     gasFees: string,
     results: FlashbotsCallBundleResult[] = [],
-
+    expectedProfitAmountOut: string,
+    actualProfitAmountOut: string,
+    tradeMethod: string,
 ) {
-    return {eventID, submissionTime, bundleHash, builderName, bundleGasPrice, coinbaseDiff, gasFees, results};
+    return {eventID, submissionTime, bundleHash, builderName, bundleGasPrice, coinbaseDiff, gasFees, results, expectedProfitAmountOut, actualProfitAmountOut, tradeMethod};
 }
 
 export default function Mev() {
@@ -220,7 +245,8 @@ export default function Mev() {
 
                 const callBundlesTable: any[] = response.data.callBundles;
                 const callBundlesTableRows = callBundlesTable.map((v: any) =>
-                    createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.flashbotsCallBundleResponse.gasFees, v.flashbotsCallBundleResponse.results)
+                    createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.flashbotsCallBundleResponse.gasFees, v.flashbotsCallBundleResponse.results,
+                        v.expectedProfitAmountOut, v.actualProfitAmountOut, v.tradeMethod)
                 );
 
                 setCallBundles(callBundlesTableRows)

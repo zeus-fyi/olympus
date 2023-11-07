@@ -85,7 +85,6 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
     const { row } = props;
     const [open, setOpen] = React.useState(false);
 
-    console.log(row)
     const explorerURL = 'https://etherscan.io';
     return (
         <React.Fragment>
@@ -141,6 +140,25 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                                                 <TableCell>{txRow.revert}</TableCell>
                                             </TableRow>
                                         ))}
+                                </TableBody>
+                            </Table>
+                        </Box>
+                        <Box sx={{ margin: 1 }}>
+                            <Typography variant="h6" gutterBottom component="div">
+                                Trade Analysis
+                            </Typography>
+                            <Table size="small" aria-label="purchases">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Pair Address</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    <TableRow >
+                                        <TableCell component="th" scope="row">
+                                            <a href={`${explorerURL}/address/${row.pairAddress}`} target="_blank" rel="noreferrer">{row.pairAddress}</a>
+                                        </TableCell>
+                                    </TableRow>
                                 </TableBody>
                             </Table>
                         </Box>

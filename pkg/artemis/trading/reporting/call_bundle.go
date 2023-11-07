@@ -142,11 +142,12 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 func selectCallBundles() string {
 	var que = `SELECT eb.event_id, builder_name, bundle_hash, eth_call_resp_json,
 				etx.tx_hash, etx."from",
-				ea.metadata, ea.amount_in, ea.rx_block_number, ea.trade_method, ea.expected_profit_amount_out, ea.actual_profit_amount_out, 
+				mem.tx_flow_prediction, ea.amount_in, ea.rx_block_number, ea.trade_method, ea.expected_profit_amount_out, ea.actual_profit_amount_out, 
 				er.effective_gas_price, er.gas_used, er.status, er.block_number, er.transaction_index
 				FROM eth_mev_call_bundle eb
 				INNER JOIN eth_tx etx ON etx.event_id = eb.event_id
 				INNER JOIN eth_mev_tx_analysis ea ON ea.tx_hash = etx.tx_hash
+				INNER JOIN eth_mempool_mev_tx mem ON mem.tx_hash = etx.tx_hash
 				INNER JOIN eth_tx_receipts er ON er.tx_hash = etx.tx_hash
 			   WHERE eb.event_id > $1 AND eb.protocol_network_id = $2
 			   ORDER BY eb.event_id DESC
@@ -161,7 +162,8 @@ type CallBundleHistory struct {
 	BundleHash                               string                               `json:"bundleHash"`
 	TxHash                                   string                               `json:"txHash"`
 	FromAddress                              string                               `json:"from"`
-	Metadata                                 string                               `json:"metadata"` // Assuming this is a JSON in string format
+	TradeExecutionFlowJSON                   web3_client.TradeExecutionFlowJSON   `json:"tradeExecutionFlowJSON"`
+	PairAddress                              string                               `json:"pairAddress"`
 	AmountIn                                 string                               `json:"amountIn"` // Assuming numeric field
 	RxBlockNumber                            int                                  `json:"rxBlockNumber"`
 	TradeMethod                              string                               `json:"tradeMethod"`
@@ -190,15 +192,29 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 			FlashbotsCallBundleResponse: flashbotsrpc.FlashbotsCallBundleResponse{},
 		}
 
+		txFlow := ""
 		rowErr := rows.Scan(
 			&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &cbh.FlashbotsCallBundleResponse,
 			&cbh.TxHash, &cbh.FromAddress,
-			&cbh.Metadata, &cbh.AmountIn, &cbh.RxBlockNumber, &cbh.TradeMethod, &cbh.ExpectedProfitAmountOut, &cbh.ActualProfitAmountOut,
+			&txFlow, &cbh.AmountIn, &cbh.RxBlockNumber, &cbh.TradeMethod, &cbh.ExpectedProfitAmountOut, &cbh.ActualProfitAmountOut,
 			&cbh.EffectiveGasPrice, &cbh.GasUsed, &cbh.Status, &cbh.BlockNumber, &cbh.TransactionIndex,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("SelectCallBundleHistory")
 			return nil, rowErr
+		}
+		txFlowJson, berr := web3_client.UnmarshalTradeExecutionFlow(txFlow)
+		if berr != nil {
+			log.Err(berr).Msg("SelectCallBundleHistory")
+			return nil, berr
+		}
+		cbh.TradeExecutionFlowJSON = txFlowJson
+
+		if txFlowJson.InitialPair != nil {
+			cbh.PairAddress = txFlowJson.InitialPair.PairContractAddr
+		}
+		if txFlowJson.InitialPairV3 != nil {
+			cbh.PairAddress = txFlowJson.InitialPairV3.PoolAddress
 		}
 		// Create a big.Float representation of 1e9 for the division to gwei
 		weiToGwei := new(big.Float).SetFloat64(1e9)

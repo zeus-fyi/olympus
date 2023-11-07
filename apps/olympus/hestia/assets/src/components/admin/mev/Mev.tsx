@@ -218,8 +218,9 @@ export function createCallBundleData(
     expectedProfitAmountOut: string,
     actualProfitAmountOut: string,
     tradeMethod: string,
+    pairAddress: string,
 ) {
-    return {eventID, submissionTime, bundleHash, builderName, bundleGasPrice, coinbaseDiff, gasFees, results, expectedProfitAmountOut, actualProfitAmountOut, tradeMethod};
+    return {eventID, submissionTime, bundleHash, builderName, bundleGasPrice, coinbaseDiff, gasFees, results, expectedProfitAmountOut, actualProfitAmountOut, tradeMethod,pairAddress};
 }
 
 export default function Mev() {
@@ -246,7 +247,7 @@ export default function Mev() {
                 const callBundlesTable: any[] = response.data.callBundles;
                 const callBundlesTableRows = callBundlesTable.map((v: any) =>
                     createCallBundleData(v.eventID, v.submissionTime, v.flashbotsCallBundleResponse.bundleHash, v.builderName, v.flashbotsCallBundleResponse.bundleGasPrice, v.flashbotsCallBundleResponse.coinbaseDiff, v.flashbotsCallBundleResponse.gasFees, v.flashbotsCallBundleResponse.results,
-                        v.expectedProfitAmountOut, v.actualProfitAmountOut, v.tradeMethod)
+                        v.expectedProfitAmountOut, v.actualProfitAmountOut, v.tradeMethod, v.pairAddress)
                 );
 
                 setCallBundles(callBundlesTableRows)

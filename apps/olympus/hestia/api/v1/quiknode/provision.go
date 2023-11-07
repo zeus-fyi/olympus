@@ -28,6 +28,7 @@ type ProvisionRequest struct {
 const (
 	TestPlan        = "test"
 	FreePlan        = "free"
+	DiscoverPlan    = "discover"
 	LitePlan        = "lite"
 	Standard        = "standard"
 	PerformancePlan = "performance"
@@ -194,7 +195,7 @@ func (r *ProvisionRequest) UpdateProvision(c echo.Context) error {
 	}
 	pr := r.ProvisionRequest
 	switch pr.Plan {
-	case LitePlan, Standard, PerformancePlan:
+	case LitePlan, Standard, PerformancePlan, DiscoverPlan, FreePlan:
 	case TestPlan:
 		if !r.IsTest {
 			return c.JSON(http.StatusBadRequest, QuickNodeResponse{

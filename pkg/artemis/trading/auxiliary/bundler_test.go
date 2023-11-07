@@ -71,7 +71,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromUser2(ta *AuxiliaryTradin
 func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
 	ta, bundle := t.TestCreateFbBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := CallFlashbotsBundle(ctx, *ta.w3c(), &bundle)
+	resp, err := CallFlashbotsBundle(ctx, *ta.w3c(), &bundle, nil)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 

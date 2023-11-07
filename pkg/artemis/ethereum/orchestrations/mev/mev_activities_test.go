@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
@@ -32,6 +33,20 @@ func (s *MevActivitiesTestSuite) TestEndServerlessSessionActivity() {
 	sessionID := "67637b04-a305-4169-9339-3903e0fa2a62"
 	err := aa.EndServerlessSession(ctx, sessionID)
 	s.NoError(err)
+}
+
+func (s *MevActivitiesTestSuite) TestMonitor() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	beaconPath := "https://iris.zeus.fyi/v1/router"
+	wc := web3_client.NewWeb3ClientFakeSigner(beaconPath)
+	wc.AddBearerToken(s.Tc.ProductionLocalTemporalBearerToken)
+	wc.AddDefaultEthereumMainnetTableHeader()
+	aa := NewArtemisMevActivities(wc)
+
+	list, err := aa.MonitorTxStatusReceipts(ctx)
+	s.NoError(err)
+	s.NotEmpty(list)
+
 }
 
 func TestMevActivitiesTestSuite(t *testing.T) {

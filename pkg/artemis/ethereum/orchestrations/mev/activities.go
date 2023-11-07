@@ -58,9 +58,10 @@ func (d *ArtemisMevActivities) SubmitSignedTx(ctx context.Context, signedTx *typ
 }
 
 func (d *ArtemisMevActivities) WaitForTxReceipt(ctx context.Context, hash accounts.Hash) (*types.Receipt, error) {
-	ctx, cancelFn := context.WithTimeout(ctx, waitForTxRxTimeout)
-	defer cancelFn()
-	rx, err := d.WaitForReceipt(ctx, common.Hash(hash))
+	d.Dial()
+	defer d.Close()
+
+	rx, err := d.C.TransactionReceipt(ctx, common.Hash(hash))
 	if err != nil {
 		log.Err(err).Str("network", d.Network).Str("nodeURL", d.NodeURL).Interface("txHash", hash).Interface("rx", rx).Msg("ArtemisEthereumBroadcastTxActivities: WaitForTxReceipt failed or timed out")
 		return nil, err

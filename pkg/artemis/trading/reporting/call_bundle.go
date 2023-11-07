@@ -140,20 +140,40 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 }
 
 func selectCallBundles() string {
-	var que = `SELECT event_id, builder_name, bundle_hash, eth_call_resp_json
-		  	   FROM eth_mev_call_bundle
-			   WHERE event_id > $1 AND protocol_network_id = $2
-			   ORDER BY event_id DESC
+	var que = `SELECT eb.event_id, builder_name, bundle_hash, eth_call_resp_json,
+				etx.tx_hash, etx."from",
+				ea.metadata, ea.amount_in, ea.rx_block_number, ea.trade_method, ea.expected_profit_amount_out, ea.actual_profit_amount_out, 
+				er.effective_gas_price, er.gas_used, er.status, er.block_number, er.transaction_index
+				FROM eth_mev_call_bundle eb
+				INNER JOIN eth_tx etx ON etx.event_id = eb.event_id
+				INNER JOIN eth_mev_tx_analysis ea ON ea.tx_hash = etx.tx_hash
+				INNER JOIN eth_tx_receipts er ON er.tx_hash = etx.tx_hash
+			   WHERE eb.event_id > $1 AND eb.protocol_network_id = $2
+			   ORDER BY eb.event_id DESC
 			   LIMIT 100;
 		  	   	`
 	return que
 }
 
 type CallBundleHistory struct {
-	EventID                                  int    `json:"eventID"`
-	SubmissionTime                           string `json:"submissionTime"`
-	BuilderName                              string `json:"builderName"`
-	flashbotsrpc.FlashbotsCallBundleResponse `json:"flashbotsCallBundleResponse"`
+	EventID                                  int                                  `json:"eventID"`
+	BuilderName                              string                               `json:"builderName"`
+	BundleHash                               string                               `json:"bundleHash"`
+	TxHash                                   string                               `json:"txHash"`
+	FromAddress                              string                               `json:"from"`
+	Metadata                                 string                               `json:"metadata"` // Assuming this is a JSON in string format
+	AmountIn                                 string                               `json:"amountIn"` // Assuming numeric field
+	RxBlockNumber                            int                                  `json:"rxBlockNumber"`
+	TradeMethod                              string                               `json:"tradeMethod"`
+	ExpectedProfitAmountOut                  string                               `json:"expectedProfitAmountOut"` // Assuming numeric field
+	ActualProfitAmountOut                    string                               `json:"actualProfitAmountOut"`   // Assuming numeric field
+	EffectiveGasPrice                        int                                  `json:"effectiveGasPrice"`       // Assuming this is an integer value
+	GasUsed                                  int                                  `json:"gasUsed"`
+	Status                                   string                               `json:"status"`
+	BlockNumber                              int                                  `json:"blockNumber"`
+	TransactionIndex                         int                                  `json:"transactionIndex"`
+	SubmissionTime                           string                               `json:"submissionTime"` // Already present in your struct
+	flashbotsrpc.FlashbotsCallBundleResponse `json:"flashbotsCallBundleResponse"` // Embedded struct, ensure fields are mapped correctly
 }
 
 func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID int) ([]CallBundleHistory, error) {
@@ -169,7 +189,13 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		cbh := CallBundleHistory{
 			FlashbotsCallBundleResponse: flashbotsrpc.FlashbotsCallBundleResponse{},
 		}
-		rowErr := rows.Scan(&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &cbh.FlashbotsCallBundleResponse)
+
+		rowErr := rows.Scan(
+			&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &cbh.FlashbotsCallBundleResponse,
+			&cbh.TxHash, &cbh.FromAddress,
+			&cbh.Metadata, &cbh.AmountIn, &cbh.RxBlockNumber, &cbh.TradeMethod, &cbh.ExpectedProfitAmountOut, &cbh.ActualProfitAmountOut,
+			&cbh.EffectiveGasPrice, &cbh.GasUsed, &cbh.Status, &cbh.BlockNumber, &cbh.TransactionIndex,
+		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("SelectCallBundleHistory")
 			return nil, rowErr

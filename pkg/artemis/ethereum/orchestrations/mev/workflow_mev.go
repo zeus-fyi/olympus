@@ -199,9 +199,9 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 func (t *ArtemisMevWorkflow) GetTxReceipts(ctx workflow.Context) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 300,
+		StartToCloseTimeout: time.Second * 30,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 5,
+			MaximumAttempts: 3,
 		},
 		TaskQueue: ActiveMainnetMEVTaskQueue,
 	}

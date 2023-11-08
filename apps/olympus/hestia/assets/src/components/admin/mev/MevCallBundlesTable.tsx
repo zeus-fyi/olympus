@@ -40,7 +40,7 @@ export function MevCallBundlesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">BundleHash</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Builder</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Actual Profit</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Expected Profit</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Worst Case Profit</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Bundle GasPrice</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Coinbase Diff</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Gas Fees</TableCell>
@@ -201,9 +201,13 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                                     {row.trades.map((trade: any, ind: number) => (
                                         <TableRow key={ind}>
                                             <TableCell>{trade.amountIn}</TableCell>
-                                            <TableCell>{trade.amountInAddr}</TableCell>
+                                            <TableCell>
+                                                <a href={`${explorerURL}/address/${trade.amountInAddr}`} target="_blank" rel="noreferrer">{trade.amountInAddr}</a>
+                                            </TableCell>
                                             <TableCell>{trade.amountOut}</TableCell>
-                                            <TableCell>{trade.amountOutAddr}</TableCell>
+                                            <TableCell>
+                                                <a href={`${explorerURL}/address/${trade.amountOutAddr}`} target="_blank" rel="noreferrer">{trade.amountOutAddr}</a>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

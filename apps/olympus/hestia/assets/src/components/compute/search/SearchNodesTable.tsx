@@ -1,6 +1,5 @@
 import * as React from "react";
-import {useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/store";
 import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
@@ -14,10 +13,6 @@ export function SearchNodesResourcesTable(props: any) {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const resources = useSelector((state: RootState) => state.resources.searchResources);
-    const dispatch = useDispatch();
-    const [statusMessage, setStatusMessage] = useState('');
-    const [statusMessageRowIndex, setStatusMessageRowIndex] = useState<number | null>(null);
-
 
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -32,17 +27,6 @@ export function SearchNodesResourcesTable(props: any) {
         setPage(newPage);
     };
 
-    const handleRemoveRow = async (rowIndex: number, orgResourceID: number) => {
-        try {
-           //const response = await resourcesApiGateway.destroyAppResource(orgResourceID);
-            setStatusMessageRowIndex(rowIndex);
-            setStatusMessage(`OrgResourceID ${orgResourceID} deletion in progress`);
-        } catch (error) {
-            console.error(error);
-            setStatusMessageRowIndex(rowIndex);
-            setStatusMessage(`Error deleting resource ID ${orgResourceID}`);
-        }
-    }
     if (resources === null || resources === undefined) {
         return (<div></div>)
     }

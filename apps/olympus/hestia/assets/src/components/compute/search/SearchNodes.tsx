@@ -15,7 +15,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {Card, CardActions, CardContent} from "@mui/material";
+import {Card, CardContent, Stack, TextField} from "@mui/material";
 import {SearchNodesResourcesTable} from "./SearchNodesTable";
 import authProvider from '../../../redux/auth/auth.actions';
 import MainListItems from "../../dashboard/listItems";
@@ -231,11 +231,46 @@ function SearchComputeDashboardContent() {
                                     Search for compute resources by cloud provider, region, slug, and description.
                                 </Typography>
                             </CardContent>
-                            <CardActions >
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    <Button variant="contained" onClick={handleSearchRequest} >Search</Button>
-                                </div>
-                            </CardActions>
+                            <CardContent>
+                                <Stack spacing={2}>
+                                    <Stack direction="row" spacing={2}>
+                                        <TextField
+                                            id="minvcpus"
+                                            label="Min vCPUs"
+                                            variant="outlined"
+                                            value={"0"}
+                                            sx={{ flex: 1, mr: 2 }}
+                                        />
+                                        <TextField
+                                            id="maxvcpus"
+                                            label="Max vCPUs"
+                                            variant="outlined"
+                                            value={"0"}
+                                            sx={{ flex: 1, mr: 2 }}
+                                        />
+                                    </Stack>
+                                    <Stack direction="row" spacing={2}>
+                                        <TextField
+                                            id="minmemory"
+                                            label="Min Memory (GB)"
+                                            variant="outlined"
+                                            value={"0"}
+                                            sx={{ flex: 1, mr: 2 }}
+                                        />
+                                        <TextField
+                                            id="maxmemory"
+                                            label="Max Memory (GB)"
+                                            variant="outlined"
+                                            value={"0"}
+                                            sx={{ flex: 1, mr: 2 }}
+                                        />
+                                    </Stack>
+                                </Stack>
+                                <Stack direction="row"  sx={{ flex: 1, mt: 2 }}>
+                                        <Button fullWidth variant="contained" onClick={handleSearchRequest} >Search</Button>
+                                </Stack>
+                            </CardContent>
+
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

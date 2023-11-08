@@ -19,13 +19,17 @@ export function OrgNodesResourcesTable(props: any) {
     const dispatch = useDispatch();
     const [statusMessage, setStatusMessage] = useState('');
     const [statusMessageRowIndex, setStatusMessageRowIndex] = useState<number | null>(null);
+    const [loading, setIsLoading] = React.useState(true);
 
     useEffect(() => {
         async function fetchData() {
             try {
+                setIsLoading(true)
                 const response = await resourcesApiGateway.getResources();
                 dispatch(setResources(response.data as any));
             } catch (e) {
+            } finally {
+                setIsLoading(false)
             }
         }
         fetchData().then(r => {

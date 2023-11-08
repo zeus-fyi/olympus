@@ -17,10 +17,14 @@ func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	e.POST("/infra/class/bases/create", create_infra.UpdateTopologyClassActionRequestHandler)
 	e.POST("/infra/class/skeleton/bases/create", create_infra.CreateTopologySkeletonBasesActionRequestHandler)
 
+	// matrix
+	e.POST("/infra/matrix/create", create_infra.CreateMatrixInfraActionRequestHandler)
+
 	e.POST("/infra/read/chart", read_infra.ReadTopologyChartContentsHandler)
 	e.GET("/infra/read/topologies", read_infra.ReadTopologiesMetadataRequestHandler)
 	e.GET("/infra/read/org/topologies", read_infra.ReadTopologiesOrgCloudCtxNsHandler)
 	e.GET("/infra/read/org/topologies/apps", read_infra.ReadClusterAppViewOrgCloudCtxNsHandler)
+
 	return e
 }
 

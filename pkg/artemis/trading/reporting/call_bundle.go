@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -140,20 +141,43 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 }
 
 func selectCallBundles() string {
-	var que = `SELECT event_id, builder_name, bundle_hash, eth_call_resp_json
-		  	   FROM eth_mev_call_bundle
-			   WHERE event_id > $1 AND protocol_network_id = $2
-			   ORDER BY event_id DESC
+	var que = `SELECT eb.event_id, builder_name, bundle_hash, eth_call_resp_json,
+				etx.tx_hash, etx."from",
+				mem.tx_flow_prediction, ea.amount_in, ea.rx_block_number, ea.trade_method, ea.expected_profit_amount_out, ea.actual_profit_amount_out, 
+				er.effective_gas_price, er.gas_used, er.status, er.block_number, er.transaction_index
+				FROM eth_mev_call_bundle eb
+				INNER JOIN eth_tx etx ON etx.event_id = eb.event_id
+				INNER JOIN eth_mev_tx_analysis ea ON ea.tx_hash = etx.tx_hash
+				INNER JOIN eth_mempool_mev_tx mem ON mem.tx_hash = etx.tx_hash
+				INNER JOIN eth_tx_receipts er ON er.tx_hash = etx.tx_hash
+			   WHERE eb.event_id > $1 AND eb.protocol_network_id = $2
+			   ORDER BY eb.event_id DESC
 			   LIMIT 100;
 		  	   	`
 	return que
 }
 
 type CallBundleHistory struct {
-	EventID                                  int    `json:"eventID"`
-	SubmissionTime                           string `json:"submissionTime"`
-	BuilderName                              string `json:"builderName"`
-	flashbotsrpc.FlashbotsCallBundleResponse `json:"flashbotsCallBundleResponse"`
+	EventID                                  int                                      `json:"eventID"`
+	BuilderName                              string                                   `json:"builderName"`
+	BundleHash                               string                                   `json:"bundleHash"`
+	TxHash                                   string                                   `json:"txHash"`
+	FromAddress                              string                                   `json:"from"`
+	TradeExecutionFlowJSON                   web3_client.TradeExecutionFlowJSON       `json:"tradeExecutionFlowJSON"`
+	Trades                                   []artemis_trading_types.JSONTradeOutcome `json:"trades"`
+	PairAddress                              string                                   `json:"pairAddress"`
+	AmountIn                                 string                                   `json:"amountIn"` // Assuming numeric field
+	RxBlockNumber                            int                                      `json:"rxBlockNumber"`
+	TradeMethod                              string                                   `json:"tradeMethod"`
+	ExpectedProfitAmountOut                  string                                   `json:"expectedProfitAmountOut"` // Assuming numeric field
+	ActualProfitAmountOut                    string                                   `json:"actualProfitAmountOut"`   // Assuming numeric field
+	EffectiveGasPrice                        int                                      `json:"effectiveGasPrice"`       // Assuming this is an integer value
+	GasUsed                                  int                                      `json:"gasUsed"`
+	Status                                   string                                   `json:"status"`
+	BlockNumber                              int                                      `json:"blockNumber"`
+	TransactionIndex                         int                                      `json:"transactionIndex"`
+	SubmissionTime                           string                                   `json:"submissionTime"` // Already present in your struct
+	flashbotsrpc.FlashbotsCallBundleResponse `json:"flashbotsCallBundleResponse"`     // Embedded struct, ensure fields are mapped correctly
 }
 
 func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID int) ([]CallBundleHistory, error) {
@@ -169,11 +193,37 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		cbh := CallBundleHistory{
 			FlashbotsCallBundleResponse: flashbotsrpc.FlashbotsCallBundleResponse{},
 		}
-		rowErr := rows.Scan(&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &cbh.FlashbotsCallBundleResponse)
+
+		txFlow := ""
+		rowErr := rows.Scan(
+			&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &cbh.FlashbotsCallBundleResponse,
+			&cbh.TxHash, &cbh.FromAddress,
+			&txFlow, &cbh.AmountIn, &cbh.RxBlockNumber, &cbh.TradeMethod, &cbh.ExpectedProfitAmountOut, &cbh.ActualProfitAmountOut,
+			&cbh.EffectiveGasPrice, &cbh.GasUsed, &cbh.Status, &cbh.BlockNumber, &cbh.TransactionIndex,
+		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("SelectCallBundleHistory")
 			return nil, rowErr
 		}
+		txFlowJson, berr := web3_client.UnmarshalTradeExecutionFlow(txFlow)
+		if berr != nil {
+			log.Err(berr).Msg("SelectCallBundleHistory")
+			return nil, berr
+		}
+		cbh.TradeExecutionFlowJSON = txFlowJson
+
+		if txFlowJson.InitialPair != nil {
+			cbh.PairAddress = txFlowJson.InitialPair.PairContractAddr
+		}
+		if txFlowJson.InitialPairV3 != nil {
+			cbh.PairAddress = txFlowJson.InitialPairV3.PoolAddress
+		}
+		cbh.Trades = []artemis_trading_types.JSONTradeOutcome{
+			txFlowJson.FrontRunTrade,
+			txFlowJson.UserTrade,
+			txFlowJson.SandwichTrade,
+		}
+
 		// Create a big.Float representation of 1e9 for the division to gwei
 		weiToGwei := new(big.Float).SetFloat64(1e9)
 
@@ -191,6 +241,29 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		ethCoinbaseDiffWei := artemis_eth_units.NewBigFloatFromStr(cbh.FlashbotsCallBundleResponse.CoinbaseDiff)
 		ethCoinbaseDiff, _ := new(big.Float).Quo(ethCoinbaseDiffWei, eth).Float64()
 		cbh.CoinbaseDiff = fmt.Sprintf("%.5f", ethCoinbaseDiff)
+
+		expProfitWei := artemis_eth_units.NewBigFloatFromStr(cbh.ExpectedProfitAmountOut)
+		expProfit, _ := new(big.Float).Quo(expProfitWei, eth).Float64()
+		cbh.ExpectedProfitAmountOut = fmt.Sprintf("%.5f", expProfit)
+
+		actualProfitWei := artemis_eth_units.NewBigFloatFromStr(cbh.ActualProfitAmountOut)
+		actualProfit, _ := new(big.Float).Quo(actualProfitWei, eth).Float64()
+		cbh.ActualProfitAmountOut = fmt.Sprintf("%.5f", actualProfit)
+
+		for i, v := range cbh.FlashbotsCallBundleResponse.Results {
+			bundleGasPriceWei = artemis_eth_units.NewBigFloatFromStr(v.GasPrice)
+			bundleGasPrice, _ = new(big.Float).Quo(bundleGasPriceWei, weiToGwei).Float64()
+			// Format the float to a string with 5 decimal places
+			cbh.FlashbotsCallBundleResponse.Results[i].GasPrice = fmt.Sprintf("%.5f Gwei", bundleGasPrice)
+
+			ethCoinbaseDiffWei = artemis_eth_units.NewBigFloatFromStr(v.CoinbaseDiff)
+			ethCoinbaseDiff, _ = new(big.Float).Quo(ethCoinbaseDiffWei, eth).Float64()
+			cbh.FlashbotsCallBundleResponse.Results[i].CoinbaseDiff = fmt.Sprintf("%.5f Eth", ethCoinbaseDiff)
+
+			bundleGasFeesWei = artemis_eth_units.NewBigFloatFromStr(v.GasFees)
+			bundleGasFees, _ = new(big.Float).Quo(bundleGasFeesWei, eth).Float64()
+			cbh.FlashbotsCallBundleResponse.Results[i].GasFees = fmt.Sprintf("%.5f Eth", bundleGasFees)
+		}
 
 		cbh.SubmissionTime = ts.ConvertUnixTimeStampToDate(cbh.EventID).String()
 		rw = append(rw, cbh)

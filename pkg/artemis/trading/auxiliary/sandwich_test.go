@@ -13,7 +13,7 @@ import (
 func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
 	ta, bundle := t.testMockSandwichBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := CallFlashbotsBundle(ctx, *ta.w3c(), &bundle)
+	resp, err := CallFlashbotsBundle(ctx, *ta.w3c(), &bundle, nil)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 

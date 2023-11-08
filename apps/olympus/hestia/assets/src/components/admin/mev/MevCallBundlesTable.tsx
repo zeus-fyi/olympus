@@ -44,6 +44,7 @@ export function MevCallBundlesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Bundle GasPrice</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Coinbase Diff</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Gas Fees</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Status</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -108,6 +109,7 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                 <TableCell align="left">{row.bundleGasPrice + ' Gwei'}</TableCell>
                 <TableCell align="left">{row.coinbaseDiff + ' Eth'}</TableCell>
                 <TableCell align="left">{row.gasFees + ' Eth'}</TableCell>
+                <TableCell align="left">{row.status}</TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>

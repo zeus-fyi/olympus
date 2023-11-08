@@ -127,7 +127,6 @@ function SearchComputeDashboardContent() {
                     },
                 },
             };
-            console.log('payloadNodeSearchParams', payloadNodeSearchParams, 'sfdf')
             const response = await resourcesApiGateway.searchNodeResources(payloadNodeSearchParams);
             if (response.status < 400) {
                 const re = response.data as NodesSlice;

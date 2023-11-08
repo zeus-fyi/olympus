@@ -1,8 +1,8 @@
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../redux/store";
-import {Button, TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
+import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -18,18 +18,6 @@ export function SearchNodesResourcesTable(props: any) {
     const [statusMessage, setStatusMessage] = useState('');
     const [statusMessageRowIndex, setStatusMessageRowIndex] = useState<number | null>(null);
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                //const response = await resourcesApiGateway.searchNodeResources("");
-               // dispatch(setSearchResources(response.data as any));
-            } catch (e) {
-            }
-        }
-        fetchData().then(r => {
-
-        });
-    }, [dispatch]);
 
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -71,10 +59,9 @@ export function SearchNodesResourcesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >CloudProvider</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Region</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Slug</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Hourly Cost</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Monthly Cost</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Description</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >PriceHourly</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >PriceMonthly</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -84,20 +71,14 @@ export function SearchNodesResourcesTable(props: any) {
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
-                                {row.orgResourceID}
+                                {row.resourceID}
                             </TableCell>
                             <TableCell align="left">{row.cloudProvider}</TableCell>
                             <TableCell align="left">{row.region}</TableCell>
                             <TableCell align="left">{row.slug}</TableCell>
-                            <TableCell align="left">{row.description}</TableCell>
                             <TableCell align="left">{(row.priceHourly*1.0).toFixed(2)}</TableCell>
                             <TableCell align="left">{(row.priceMonthly*1.0).toFixed(2)}</TableCell>
-                            <TableCell align="left">
-                                <Button variant="contained" color="primary" disabled={row.freeTrial} onClick={() => handleRemoveRow(i, row.orgResourceID)}>
-                                    Delete
-                                </Button>
-                                {statusMessageRowIndex === i && <div>{statusMessage}</div>}
-                            </TableCell>
+                            <TableCell align="left">{row.description}</TableCell>
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (

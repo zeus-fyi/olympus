@@ -1,6 +1,7 @@
 import {hestiaApi, zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
 import {Cluster} from "../redux/clusters/clusters.types";
+import {NodeSearchParams, NodeSearchRequest} from "../redux/resources/resources.types";
 
 class ResourcesApiGateway {
     async getResources(): Promise<any>  {
@@ -20,7 +21,7 @@ class ResourcesApiGateway {
             return
         }
     }
-    async searchNodeResources(ns: any): Promise<any>  {
+    async searchNodeResources(ns: NodeSearchParams): Promise<any>  {
         const url = `/v1/search/nodes`;
         try {
             const sessionID = inMemoryJWT.getToken();
@@ -30,7 +31,10 @@ class ResourcesApiGateway {
                 },
                 withCredentials: true,
             }
-            return await zeusApi.post(url, config)
+            const nodeSearchRequest: NodeSearchRequest = {
+                nodeSearchParams: ns,
+            };
+            return await zeusApi.post(url, nodeSearchRequest,config)
         } catch (exc) {
             console.error('error sending get customer resources request');
             console.error(exc);

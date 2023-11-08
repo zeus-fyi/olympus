@@ -15,11 +15,14 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
-import {Card, CardContent} from "@mui/material";
+import {Card, CardActions, CardContent} from "@mui/material";
 import {SearchNodesResourcesTable} from "./SearchNodesTable";
 import authProvider from '../../../redux/auth/auth.actions';
 import MainListItems from "../../dashboard/listItems";
 import {ZeusCopyright} from "../../copyright/ZeusCopyright";
+import {resourcesApiGateway} from "../../../gateway/resources";
+import {setSearchResources} from "../../../redux/resources/resources.reducer";
+import {NodeSearchParams} from "../../../redux/resources/resources.types";
 
 const drawerWidth: number = 240;
 
@@ -87,6 +90,56 @@ function SearchComputeDashboardContent() {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+
+    const handleSearchRequest = async () => {
+        try {
+            // setRequestStatus('pending');s
+            const CloudProviderRegions: { [key: string]: string[] } = {
+                aws: ["us-west-1"],
+                do: ["nyc1"],
+                gcp: ["us-central1"],
+                ovh: ["us-west-or-1"],
+            };
+
+            const payloadNodeSearchParams: NodeSearchParams = {
+                cloudProviderRegions: CloudProviderRegions,
+            };
+            const response = await resourcesApiGateway.searchNodeResources(payloadNodeSearchParams);
+            console.log(response)
+            if (response < 400) {
+                dispatch(setSearchResources(response.data));
+            }
+
+
+            // if (response.status === 200 || response.status === 202 || response.status === 204) {
+            //     setRequestStatus('success');
+            //     return
+            // } else if (response.status === 403) {
+            //     setRequestStatus('missingBilling');
+            //     setFreeTrial(true)
+            //     return
+            // } else if (response.status === 412) {
+            //     setRequestStatus('outOfCredits');
+            //     setFreeTrial(true)
+            //     return
+            // } else {
+            //     setRequestStatus('error');
+            //     return
+            // }
+        } catch (error: any) {
+            // setRequestStatus('error');
+            // const status: number = error.response.status;
+            // if (status === 403) {
+            //     setRequestStatus('missingBilling');
+            //     setFreeTrial(true)
+            // } else if (status === 412) {
+            //     setRequestStatus('outOfCredits');
+            //     // Disable the button for 30 seconds
+            //     setFreeTrial(true)
+            // } else {
+            //     setRequestStatus('error');
+            // }
+        }};
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -168,10 +221,15 @@ function SearchComputeDashboardContent() {
                                     Search for compute resources by cloud provider, region, slug, and description.
                                 </Typography>
                             </CardContent>
+                            <CardActions >
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Button variant="contained" onClick={handleSearchRequest} >Search</Button>
+                                </div>
+                            </CardActions>
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <SearchNodesResourcesTable/>
+                        <SearchNodesResourcesTable />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

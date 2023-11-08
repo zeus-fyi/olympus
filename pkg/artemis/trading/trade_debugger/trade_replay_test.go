@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
@@ -115,6 +117,40 @@ func (t *ArtemisTradeDebuggerTestSuite) TestEthCall() {
 		fmt.Println(err.Error())
 	}
 
+	pathSlice := []string{txInt.FrontRunTrade.AmountInAddr.String(), txInt.FrontRunTrade.AmountOutAddr.String()}
+	pathString := "[" + strings.Join(pathSlice, ",") + "]"
+	scInfo := &web3_actions.SendContractTxPayload{
+		SmartContractAddr: web3_client.UniswapV2Router02Address,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractABI:       artemis_oly_contract_abis.MustLoadUniswapV2Router02ABI(),
+		MethodName:        "getAmountsOut",
+		Params:            []interface{}{txInt.FrontRunTrade.AmountIn, pathString},
+	}
+
+	err = scInfo.GenerateBinDataFromParamsAbi(ctx)
+	t.Assert().Nil(err)
+
+	amountsOut, err := wc.GetContractConst(ctx, scInfo)
+	t.Assert().Nil(err)
+	fmt.Println(amountsOut)
+
+	//tfp := artemis_trading_types.TokenFeePath{
+	//	TokenIn: txInt.FrontRunTrade.AmountInAddr,
+	//	Path: []artemis_trading_types.TokenFee{{
+	//		Token: txInt.FrontRunTrade.AmountOutAddr,
+	//		Fee:   new(big.Int).SetInt64(int64(constants.FeeMedium)),
+	//	}},
+	//}
+	//scInfo = &web3_actions.SendContractTxPayload{
+	//	SmartContractAddr: artemis_trading_constants.UniswapQuoterAddress,
+	//	SendEtherPayload:  web3_actions.SendEtherPayload{},
+	//	ContractABI:       artemis_oly_contract_abis.MustLoadQuoterV1Abi(),
+	//	MethodName:        "quoteExactInput",
+	//	Params:            []interface{}{tfp.Encode(), txInt.FrontRunTrade.AmountIn},
+	//}
+
+	err = scInfo.GenerateBinDataFromParamsAbi(ctx)
+	t.Assert().Nil(err)
 	m3 := []artemis_multicall.MultiCallElement{
 		{
 			Name: "balanceOf",
@@ -127,14 +163,14 @@ func (t *ArtemisTradeDebuggerTestSuite) TestEthCall() {
 			DecodedInputs: []interface{}{common.HexToAddress(AccountAddr)},
 		},
 		{
-			Name: data.MethodName,
+			Name: scInfo.MethodName,
 			Call: artemis_multicall.Call{
-				Target:       common.HexToAddress(to.String()),
+				Target:       common.HexToAddress(scInfo.SmartContractAddr),
 				AllowFailure: true,
-				Data:         data.Data,
+				Data:         scInfo.Data,
 			},
-			AbiFile:       urAbi,
-			DecodedInputs: data.Params,
+			AbiFile:       scInfo.ContractABI,
+			DecodedInputs: scInfo.Params,
 		},
 		{
 			Name: "balanceOf",

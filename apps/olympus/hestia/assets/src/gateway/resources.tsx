@@ -20,6 +20,23 @@ class ResourcesApiGateway {
             return
         }
     }
+    async searchNodeResources(ns: any): Promise<any>  {
+        const url = `/v1/search/nodes`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.post(url, config)
+        } catch (exc) {
+            console.error('error sending get customer resources request');
+            console.error(exc);
+            return
+        }
+    }
     async destroyAppResource(orgResourceID: number): Promise<any>  {
         const url = `/v1/resources/destroy`;
         try {

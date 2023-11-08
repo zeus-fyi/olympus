@@ -25,6 +25,7 @@ import {GoogleOAuthProvider} from '@react-oauth/google';
 import {configService} from "../config/config";
 import ReactGA from "react-ga4";
 import Mev from "../components/admin/mev/Mev";
+import SearchDashboard from "../components/compute/search/SearchNodes";
 
 export const App = () => {
     ReactGA.initialize([
@@ -54,7 +55,11 @@ export const App = () => {
                             <Route path="apps" element={<ProtectedLayout children={<AppsPage />}/>}/>
                             <Route path="apps/builder" element={<ProtectedLayout children={<ClusterBuilderPage />}/>}/>
                             <Route path="app/:id" element={<ProtectedLayout children={<AppPageWrapper />}/>}/>
-                            <Route path="compute"  element={<ProtectedLayout children={<Dashboard />}/>}/>
+                            <Route>
+                                <Route path="compute/summary" element={<ProtectedLayout children={<Dashboard />}/>}/>
+                                <Route path="compute/search" element={<ProtectedLayout children={<SearchDashboard />}/>}/>
+                            </Route>
+
                             <Route>
                                 <Route path="clusters"  element={<ProtectedLayout children={<Clusters />}/>}/>
                                 <Route path="clusters/:id" element={<ProtectedLayout children={<ClustersPage />}/>}/>

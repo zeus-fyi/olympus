@@ -92,8 +92,8 @@ export function OrgNodesResourcesTable(props: any) {
                             <TableCell align="left">{row.region}</TableCell>
                             <TableCell align="left">{row.slug}</TableCell>
                             <TableCell align="left">{row.description}</TableCell>
-                            <TableCell align="left">{(row.priceHourly*1.1).toFixed(2)}</TableCell>
-                            <TableCell align="left">{(row.priceMonthly*1.1).toFixed(2)}</TableCell>
+                            <TableCell align="left">{(row.priceHourly*1.0).toFixed(2)}</TableCell>
+                            <TableCell align="left">{(row.priceMonthly*1.0).toFixed(2)}</TableCell>
                             <TableCell align="left">
                                 <Button variant="contained" color="primary" disabled={row.freeTrial} onClick={() => handleRemoveRow(i, row.orgResourceID)}>
                                     Delete

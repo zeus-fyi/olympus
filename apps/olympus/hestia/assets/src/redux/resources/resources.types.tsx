@@ -2,6 +2,7 @@ import {NodeStatus, V1Taint} from "@kubernetes/client-node";
 
 export interface ResourcesState {
     resources: any[];
+    searchResources: any[];
     appNodes: NodeAudit[];
 }
 

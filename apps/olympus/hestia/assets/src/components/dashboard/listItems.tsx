@@ -23,6 +23,7 @@ import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(true);
     const [openClusters, setOpenClusters] = React.useState(true);
+    const [openCompute, setOpenCompute] = React.useState(true);
     const [openApps, setOpenApps] = React.useState(true);
     const isInternal = useSelector((state: RootState) => state.sessionState.isInternal);
     
@@ -33,6 +34,11 @@ export default function MainListItems() {
     const handleClickApps = () => {
         setOpenApps(!openApps);
     };
+
+    const handleClickCompute = () => {
+        setOpenCompute(!openCompute);
+    };
+
     return (
         <List
             sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
@@ -61,12 +67,23 @@ export default function MainListItems() {
                     </ListItemButton>
                 </List>
             </Collapse>
-            <ListItemButton component={Link} to="/compute">
+            <ListItemButton onClick={handleClickCompute} component={Link} to="/compute/search">
                 <ListItemIcon>
                     <DnsIcon />
                 </ListItemIcon>
                 <ListItemText primary="Compute" />
+                {openCompute ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
+            <Collapse in={openCompute} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/compute/summary">
+                        <ListItemIcon>
+                            <ConstructionIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Provisioned" />
+                    </ListItemButton>
+                </List>
+            </Collapse>
             <ListItemButton  component={Link} to="/clusters">
                 <ListItemIcon>
                     <CloudIcon />

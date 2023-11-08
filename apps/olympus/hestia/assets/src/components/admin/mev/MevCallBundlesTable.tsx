@@ -152,25 +152,6 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                             <Table size="small" aria-label="purchases">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Pair Address</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    <TableRow >
-                                        <TableCell component="th" scope="row">
-                                            <a href={`${explorerURL}/address/${row.pairAddress}`} target="_blank" rel="noreferrer">{row.pairAddress}</a>
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </Box>
-                        <Box sx={{ margin: 2 }}>
-                            <Typography variant="h6" gutterBottom component="div">
-                                Trade Analysis
-                            </Typography>
-                            <Table size="small" aria-label="purchases">
-                                <TableHead>
-                                    <TableRow>
                                         <TableCell>Block Number Seen</TableCell>
                                         <TableCell>Block Number Confirmed</TableCell>
                                         <TableCell>Tx Index</TableCell>
@@ -185,6 +166,27 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                                             <a href={`${explorerURL}/txs?block=${row.blockNumber}`} target="_blank" rel="noreferrer">{row.blockNumber}</a>
                                         </TableCell>
                                         <TableCell>{row.transactionIndex}</TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </Box>
+                        <Box sx={{ margin: 2 }}>
+                            <Typography variant="h6" gutterBottom component="div">
+                                Trade Analysis
+                            </Typography>
+                        </Box>
+                        <Box sx={{ margin: 2 }}>
+                            <Table size="small" aria-label="purchases">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Pair Address</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    <TableRow >
+                                        <TableCell component="th" scope="row">
+                                            <a href={`${explorerURL}/address/${row.pairAddress}`} target="_blank" rel="noreferrer">{row.pairAddress}</a>
+                                        </TableCell>
                                     </TableRow>
                                 </TableBody>
                             </Table>

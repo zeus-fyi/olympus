@@ -14,6 +14,7 @@ import (
 	"github.com/metachris/flashbotsrpc"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -265,6 +266,20 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 			cbh.FlashbotsCallBundleResponse.Results[i].GasFees = fmt.Sprintf("%.5f Eth", bundleGasFees)
 		}
 
+		for i, v := range cbh.Trades {
+			if v.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddress {
+				amount := artemis_eth_units.NewBigFloatFromStr(v.AmountIn)
+				amountEthF, _ := new(big.Float).Quo(amount, eth).Float64()
+				// Format the float to a string with 5 decimal places
+				cbh.Trades[i].AmountIn = fmt.Sprintf("%.5f Weth", amountEthF)
+			}
+			if v.AmountOutAddr.String() == artemis_trading_constants.WETH9ContractAddress {
+				amount := artemis_eth_units.NewBigFloatFromStr(v.AmountOut)
+				amountEthF, _ := new(big.Float).Quo(amount, eth).Float64()
+				// Format the float to a string with 5 decimal places
+				cbh.Trades[i].AmountOut = fmt.Sprintf("%.5f Weth", amountEthF)
+			}
+		}
 		cbh.SubmissionTime = ts.ConvertUnixTimeStampToDate(cbh.EventID).String()
 		rw = append(rw, cbh)
 	}

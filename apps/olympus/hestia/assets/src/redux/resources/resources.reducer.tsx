@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {NodeAudit, ResourcesState} from "./resources.types";
+import {NodeAudit, NodesSlice, ResourcesState} from "./resources.types";
 
 const initialState: ResourcesState = {
     resources: [],
@@ -14,7 +14,7 @@ const resourcesSlice = createSlice({
         setResources: (state, action: PayloadAction<[any]>) => {
             state.resources = action.payload;
         },
-        setSearchResources: (state, action: PayloadAction<[any]>) => {
+        setSearchResources: (state, action: PayloadAction<NodesSlice>) => {
             state.searchResources = action.payload;
         },
         setAppNodes: (state, action: PayloadAction<NodeAudit[]>) => {

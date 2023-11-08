@@ -1,7 +1,5 @@
 import * as React from "react";
-import {useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "../../../redux/store";
+import {useEffect} from "react";
 import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -11,13 +9,9 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 
 export function SearchNodesResourcesTable(props: any) {
+    const { resources, loading } = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
-    const resources = useSelector((state: RootState) => state.resources.searchResources);
-    const dispatch = useDispatch();
-    const [statusMessage, setStatusMessage] = useState('');
-    const [statusMessageRowIndex, setStatusMessageRowIndex] = useState<number | null>(null);
-
 
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -31,17 +25,11 @@ export function SearchNodesResourcesTable(props: any) {
     ) => {
         setPage(newPage);
     };
+    useEffect(() => {
+    }, [loading]);
 
-    const handleRemoveRow = async (rowIndex: number, orgResourceID: number) => {
-        try {
-           //const response = await resourcesApiGateway.destroyAppResource(orgResourceID);
-            setStatusMessageRowIndex(rowIndex);
-            setStatusMessage(`OrgResourceID ${orgResourceID} deletion in progress`);
-        } catch (error) {
-            console.error(error);
-            setStatusMessageRowIndex(rowIndex);
-            setStatusMessage(`Error deleting resource ID ${orgResourceID}`);
-        }
+    if (loading) {
+        return (<div></div>)
     }
     if (resources === null || resources === undefined) {
         return (<div></div>)
@@ -59,6 +47,8 @@ export function SearchNodesResourcesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >CloudProvider</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Region</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Slug</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >vCPUs</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Memory</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Hourly Cost</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Monthly Cost</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Description</TableCell>
@@ -76,6 +66,8 @@ export function SearchNodesResourcesTable(props: any) {
                             <TableCell align="left">{row.cloudProvider}</TableCell>
                             <TableCell align="left">{row.region}</TableCell>
                             <TableCell align="left">{row.slug}</TableCell>
+                            <TableCell align="left">{row.vcpus}</TableCell>
+                            <TableCell align="left">{(row.memory / (1024)).toFixed(1) + ' GB'}</TableCell>
                             <TableCell align="left">{(row.priceHourly*1.0).toFixed(2)}</TableCell>
                             <TableCell align="left">{(row.priceMonthly*1.0).toFixed(2)}</TableCell>
                             <TableCell align="left">{row.description}</TableCell>

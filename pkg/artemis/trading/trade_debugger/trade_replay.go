@@ -28,7 +28,6 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	fmt.Println("FRONT_RUN AmountIn:", tf.FrontRunTrade.AmountIn.String(), "AmountInAddr", tf.FrontRunTrade.AmountInAddr.String())
 	fmt.Println("BACK_RUN AmountOut", tf.SandwichTrade.AmountOut.String(), "AmountOutAddr", tf.SandwichTrade.AmountOutAddr.String())
 	fmt.Println("TRADE_METHOD:", tf.Trade.TradeMethod, "TradeMethod")
-
 	fmt.Println("EXPECTED_PROFIT", tf.SandwichPrediction.ExpectedProfit, "AmountOutAddr", tf.SandwichTrade.AmountOutAddr.String())
 
 	err = t.ResetAndSetupPreconditions(context.Background(), tf)

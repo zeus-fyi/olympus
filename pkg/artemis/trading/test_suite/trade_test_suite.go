@@ -43,7 +43,7 @@ func (s *ArtemisTradingTestSuite) SetupTest() {
 	s.Assert().Nil(err)
 
 	s.MainnetWeb3User = web3_client.NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
-	wc := web3_client.NewWeb3Client(artemis_trading_constants.IrisAnvilRoute, newAccount)
+	wc := web3_client.NewWeb3Client(artemis_trading_constants.IrisExtAnvilRoute, newAccount)
 	wc.AddBearerToken(s.Tc.ProductionLocalTemporalBearerToken)
 	wc.AddSessionLockHeader(uuid.New().String())
 	uni := web3_client.InitUniswapClient(ctx, wc)

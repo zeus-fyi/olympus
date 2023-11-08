@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useState} from 'react';
 import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
@@ -78,14 +79,19 @@ export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 
 const mdTheme = createTheme();
 
 function SearchComputeDashboardContent() {
-    const [open, setOpen] = React.useState(true);
+    const [open, setOpen] = useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
     };
     let navigate = useNavigate();
     const dispatch = useDispatch();
-    const [loading, setIsLoading] = React.useState(false);
+    const [loading, setIsLoading] = useState(false);
     const resources = useSelector((state: RootState) => state.resources.searchResources);
+    const [minVcpus, setMinVcpus] = useState("0");
+    const [maxVcpus, setMaxVcpus] = useState("0");
+    const [minMemory, setMinMemory] = useState("0");
+    const [maxMemory, setMaxMemory] = useState("0");
+
 
     const handleLogout = async (event: any) => {
         event.preventDefault();
@@ -97,7 +103,6 @@ function SearchComputeDashboardContent() {
     const handleSearchRequest = async () => {
         try {
             setIsLoading(true)
-            // setRequestStatus('pending');s
             const CloudProviderRegions: { [key: string]: string[] } = {
                 aws: ["us-west-1"],
                 do: ["nyc1"],
@@ -107,6 +112,16 @@ function SearchComputeDashboardContent() {
 
             const payloadNodeSearchParams: NodeSearchParams = {
                 cloudProviderRegions: CloudProviderRegions,
+                resourceMinMax: {
+                    min: {
+                        cpuRequests: minVcpus,
+                        memRequests: minMemory + 'Gi',
+                    },
+                    max: {
+                        cpuRequests: maxVcpus,
+                        memRequests: maxMemory + 'Gi',
+                    },
+                },
             };
             const response = await resourcesApiGateway.searchNodeResources(payloadNodeSearchParams);
             if (response.status < 400) {
@@ -150,6 +165,21 @@ function SearchComputeDashboardContent() {
     if (loading) {
         return <div>Loading...</div>;
     }
+    const handleMinVcpusChange = (event: any) => {
+        setMinVcpus(event.target.value);
+    };
+
+    const handleMaxVcpusChange = (event: any) => {
+        setMaxVcpus(event.target.value);
+    };
+
+    const handleMinMemoryChange = (event: any) => {
+        setMinMemory(event.target.value);
+    };
+
+    const handleMaxMemoryChange = (event: any) => {
+        setMaxMemory(event.target.value);
+    };
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -238,14 +268,16 @@ function SearchComputeDashboardContent() {
                                             id="minvcpus"
                                             label="Min vCPUs"
                                             variant="outlined"
-                                            value={"0"}
+                                            value={minVcpus}
+                                            onChange={handleMinVcpusChange}
                                             sx={{ flex: 1, mr: 2 }}
                                         />
                                         <TextField
                                             id="maxvcpus"
                                             label="Max vCPUs"
                                             variant="outlined"
-                                            value={"0"}
+                                            value={maxVcpus}
+                                            onChange={handleMaxVcpusChange}
                                             sx={{ flex: 1, mr: 2 }}
                                         />
                                     </Stack>
@@ -254,14 +286,16 @@ function SearchComputeDashboardContent() {
                                             id="minmemory"
                                             label="Min Memory (GB)"
                                             variant="outlined"
-                                            value={"0"}
+                                            value={minMemory}
+                                            onChange={handleMinMemoryChange}
                                             sx={{ flex: 1, mr: 2 }}
                                         />
                                         <TextField
                                             id="maxmemory"
                                             label="Max Memory (GB)"
                                             variant="outlined"
-                                            value={"0"}
+                                            value={maxMemory}
+                                            onChange={handleMaxMemoryChange}
                                             sx={{ flex: 1, mr: 2 }}
                                         />
                                     </Stack>

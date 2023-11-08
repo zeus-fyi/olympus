@@ -27,7 +27,6 @@ export function SearchNodesResourcesTable(props: any) {
     };
     useEffect(() => {
     }, [loading]);
-    console.log('sdfsdfv', resources)
 
     if (loading) {
         return (<div></div>)
@@ -48,6 +47,8 @@ export function SearchNodesResourcesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >CloudProvider</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Region</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Slug</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >vCPUs</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Memory</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Hourly Cost</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Monthly Cost</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Description</TableCell>
@@ -65,6 +66,8 @@ export function SearchNodesResourcesTable(props: any) {
                             <TableCell align="left">{row.cloudProvider}</TableCell>
                             <TableCell align="left">{row.region}</TableCell>
                             <TableCell align="left">{row.slug}</TableCell>
+                            <TableCell align="left">{row.vcpus}</TableCell>
+                            <TableCell align="left">{(row.memory / (1024)).toFixed(1) + ' GB'}</TableCell>
                             <TableCell align="left">{(row.priceHourly*1.0).toFixed(2)}</TableCell>
                             <TableCell align="left">{(row.priceMonthly*1.0).toFixed(2)}</TableCell>
                             <TableCell align="left">{row.description}</TableCell>

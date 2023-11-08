@@ -13,8 +13,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_multicall "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/multicall"
 	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -73,6 +75,8 @@ func (t *ArtemisTradeDebuggerTestSuite) TestEthCall() {
 	t.Assert().NotNil(txInt)
 
 	wc := web3_client.NewWeb3Client("https://iris.zeus.fyi/v1/router", &acc)
+	//wc = web3_client.NewWeb3ClientFakeSigner("https://iris.zeus.fyi/v1/router")
+
 	wc.AddDefaultEthereumMainnetTableHeader()
 	wc.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
 	wc.Dial()
@@ -85,14 +89,15 @@ func (t *ArtemisTradeDebuggerTestSuite) TestEthCall() {
 	txInt.FrontRunTrade.AmountOut = new(big.Int).SetInt64(0)
 	ur, _, err := artemis_trading_auxiliary.GenerateTradeV2SwapFromTokenToToken(ctx, wc, nil, &txInt.FrontRunTrade)
 	t.Assert().Nil(err)
-
-	encParams, err := ur.EncodeCommands(ctx, nil)
+	urAbi := artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi()
+	encParams, err := ur.EncodeCommands(ctx, urAbi)
 	t.Assert().Nil(err)
 	t.Assert().NotNil(encParams)
 
 	data, err := artemis_trading_auxiliary.GetUniswapUniversalRouterAbiPayload(ctx, encParams)
 	t.Assert().Nil(err)
 	t.Assert().NotNil(data)
+
 	to := common.HexToAddress(artemis_trading_constants.UniswapUniversalRouterAddressNew)
 	msg := ethereum.CallMsg{
 		From:      common.HexToAddress(AccountAddr),
@@ -103,15 +108,77 @@ func (t *ArtemisTradeDebuggerTestSuite) TestEthCall() {
 		GasTipCap: data.GasTipCap,
 		Data:      data.Data,
 	}
-
 	resp, err := wc.C.CallContract(ctx, msg, nil)
 	t.Assert().Nil(err)
+	t.Assert().NotNil(resp)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	t.Assert().NotNil(resp)
-	fmt.Println(resp)
+
+	m3 := []artemis_multicall.MultiCallElement{
+		{
+			Name: "balanceOf",
+			Call: artemis_multicall.Call{
+				Target:       common.HexToAddress(artemis_trading_constants.WETH9ContractAddress),
+				AllowFailure: false,
+				Data:         nil,
+			},
+			AbiFile:       artemis_oly_contract_abis.MustLoadERC20Abi(),
+			DecodedInputs: []interface{}{common.HexToAddress(AccountAddr)},
+		},
+		{
+			Name: data.MethodName,
+			Call: artemis_multicall.Call{
+				Target:       common.HexToAddress(to.String()),
+				AllowFailure: true,
+				Data:         data.Data,
+			},
+			AbiFile:       urAbi,
+			DecodedInputs: data.Params,
+		},
+		{
+			Name: "balanceOf",
+			Call: artemis_multicall.Call{
+				Target:       common.HexToAddress(artemis_trading_constants.WETH9ContractAddress),
+				AllowFailure: false,
+				Data:         nil,
+			},
+			AbiFile:       artemis_oly_contract_abis.MustLoadERC20Abi(),
+			DecodedInputs: []interface{}{common.HexToAddress(AccountAddr)},
+		},
+	}
+	/*
+			{
+			Name: data.MethodName,
+			Call: artemis_multicall.Call{
+				Target:       common.HexToAddress(artemis_trading_constants.UniswapUniversalRouterAddressNew),
+				AllowFailure: true,
+				Data:         data.Data,
+			},
+			AbiFile:       urAbi,
+			DecodedInputs: data.Params,
+		},
+	*/
+	payload, err := artemis_multicall.UrCreateMulticall3Payload(ctx, m3, data)
+	t.Require().Nil(err)
+	t.Assert().NotNil(payload)
+
+	err = payload.GenerateBinDataFromParamsAbi(ctx)
+	t.Require().Nil(err)
+
+	re, err := wc.CallConstantFunction(ctx, &payload)
+	t.Assert().Nil(err)
+	t.Assert().NotNil(re)
+	fmt.Println(re)
+
+	out, err := artemis_multicall.UnpackMultiCall(ctx, re, m3)
+	t.Assert().Nil(err)
+	t.Assert().NotNil(out)
+	fmt.Println(out)
 }
+
+// 0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000174d756c746963616c6c333a2063616c6c206661696c6564000000000000000000
+// TODO, need to multicall this i fucking guess. fuck you ethereum
 
 func (t *ArtemisTradeDebuggerTestSuite) TestReplayerBulk() {
 	txs, err := artemis_mev_models.SelectReplayEthMevMempoolTxByTxHash(ctx)

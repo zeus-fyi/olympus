@@ -2,6 +2,7 @@ package artemis_multicall
 
 import (
 	"context"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -71,6 +72,29 @@ func (m *Multicall3) PackAndCall(ctx context.Context, wc web3_actions.Web3Action
 	return results, err
 }
 
+func UnpackMultiCall(ctx context.Context, resp []interface{}, calls []MultiCallElement) ([]Multicall3Result, error) {
+	encDataResponses := resp[0].([]struct {
+		Success    bool    "json:\"success\""
+		ReturnData []uint8 "json:\"returnData\""
+	})
+	results := make([]Multicall3Result, len(encDataResponses))
+	for i, _ := range encDataResponses {
+		encData := encDataResponses[i]
+		results[i] = Multicall3Result{
+			Success:    encData.Success,
+			ReturnData: encData.ReturnData,
+		}
+		if encData.Success {
+			decoded, derr := calls[i].AbiFile.Methods[calls[i].Name].Outputs.UnpackValues(encData.ReturnData)
+			if derr != nil {
+				return nil, derr
+			}
+			results[i].DecodedReturnData = decoded
+		}
+	}
+	return results, nil
+}
+
 func CreateMulticall3Payload(ctx context.Context, calls []MultiCallElement) (web3_actions.SendContractTxPayload, error) {
 	callInputs := make([]Call, len(calls))
 	for i, _ := range calls {
@@ -87,6 +111,35 @@ func CreateMulticall3Payload(ctx context.Context, calls []MultiCallElement) (web
 			Data:         inputs,
 		}
 	}
+	return makeAggregate3Payload(callInputs), nil
+}
+
+func UrCreateMulticall3Payload(ctx context.Context, calls []MultiCallElement, ur web3_actions.SendContractTxPayload) (web3_actions.SendContractTxPayload, error) {
+	callInputs := make([]Call, len(calls))
+	for i, _ := range calls {
+		if strings.HasPrefix(calls[i].Name, "execute") {
+			tmps := calls[i].Call.Data
+			callInputs[i] = Call{
+				Target:       calls[i].Call.Target,
+				AllowFailure: calls[i].Call.AllowFailure,
+				Data:         tmps,
+			}
+		} else {
+			method := calls[i].AbiFile.Methods[calls[i].Name]
+			targetName := method.ID
+			inputs, err := method.Inputs.Pack(calls[i].DecodedInputs...)
+			if err != nil {
+				return web3_actions.SendContractTxPayload{}, err
+			}
+			inputs = append(targetName[:], inputs[:]...)
+			callInputs[i] = Call{
+				Target:       calls[i].Call.Target,
+				AllowFailure: calls[i].Call.AllowFailure,
+				Data:         inputs,
+			}
+		}
+	}
+
 	return makeAggregate3Payload(callInputs), nil
 }
 

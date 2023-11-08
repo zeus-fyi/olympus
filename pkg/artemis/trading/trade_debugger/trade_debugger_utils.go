@@ -40,6 +40,20 @@ func (t *TradeDebugger) lookupMevMempoolTx(ctx context.Context, txHash string) (
 	return HistoricalAnalysisDebug{}, errors.New("no mev tx found")
 }
 
+func GetMevMempoolTxTradeFlow(ctx context.Context, txHash string) (*web3_client.TradeExecutionFlowJSON, error) {
+	mevMempoolTx, err := artemis_mev_models.SelectEthMevMempoolTxByTxHash(ctx, txHash)
+	if err != nil {
+		return nil, err
+	}
+	for _, mevTx := range mevMempoolTx {
+		tfPrediction, terr := web3_client.UnmarshalTradeExecutionFlow(mevTx.TxFlowPrediction)
+		if terr == nil {
+			return &tfPrediction, terr
+		}
+	}
+	return nil, err
+}
+
 func (t *TradeDebugger) lookupMevTx(ctx context.Context, txHash string) (HistoricalAnalysisDebug, error) {
 	mevTxs, merr := artemis_mev_models.SelectEthMevTxAnalysisByTxHash(ctx, txHash)
 	if merr != nil {

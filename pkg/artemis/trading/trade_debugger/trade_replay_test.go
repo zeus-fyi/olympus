@@ -2,9 +2,13 @@ package artemis_trade_debugger
 
 import (
 	"fmt"
+	"math/big"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
+	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 )
 
@@ -36,12 +40,53 @@ func (t *ArtemisTradeDebuggerTestSuite) TestReplayer() {
 	t.NoError(err)
 }
 
-func (t *ArtemisTradeDebuggerTestSuite) TestReplayerWithoutTax() {
-	// 0x925dd1373fea0f4537e9670dc984a5c0640da81142269e8eff6840d8caaea6f4
-	txHash := "0xf1ed952cff38e1941ba947a0bf5ee12e6d70bfbdbc8f3b8ebbad99372dd1ac4f"
-	t.td.dat.GetSimUniswapClient().Web3Client.AddSessionLockHeader(txHash)
-	err := t.td.ReplayWithoutTax(ctx, txHash, true)
-	t.NoError(err)
+const (
+	AccountAddr = "0x000000641e80A183c8B736141cbE313E136bc8c6"
+)
+
+func (t *ArtemisTradeDebuggerTestSuite) TestEthCall() {
+	// CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
+	// func (ec *Client) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {
+	//PendingCallContract
+	//CallContract
+	tx, err := GetMevMempoolTxTradeFlow(ctx, "0x8620ebed5a23c9e7bae6dd3c5be3e0a5a6d893222db339af6408be6e904925a2")
+	t.Assert().Nil(err)
+	t.Assert().NotNil(tx)
+
+	txInt, err := tx.ConvertToBigIntType()
+	t.Assert().Nil(err)
+	t.Assert().NotNil(txInt)
+
+	wc := t.td.dat.GetSimUniswapClient().Web3Client
+	wc.Dial()
+	defer wc.Close()
+
+	txInt.FrontRunTrade.AmountOut = new(big.Int).SetInt64(0)
+	ur, _, err := artemis_trading_auxiliary.GenerateTradeV2SwapFromTokenToToken(ctx, wc, nil, &txInt.FrontRunTrade)
+	t.Assert().Nil(err)
+
+	encParams, err := ur.EncodeCommands(ctx, nil)
+	t.Assert().Nil(err)
+	t.Assert().NotNil(encParams)
+
+	data, err := artemis_trading_auxiliary.GetUniswapUniversalRouterAbiPayload(ctx, encParams)
+	t.Assert().Nil(err)
+	t.Assert().NotNil(data)
+	to := common.HexToAddress(artemis_trading_constants.UniswapUniversalRouterAddressNew)
+	msg := ethereum.CallMsg{
+		From:       common.HexToAddress(AccountAddr),
+		To:         &to,
+		Gas:        data.GasLimit,
+		GasPrice:   data.GasPrice,
+		GasFeeCap:  data.GasFeeCap,
+		GasTipCap:  data.GasTipCap,
+		Data:       data.Data,
+		AccessList: nil,
+	}
+	resp, err := wc.C.CallContract(ctx, msg, txInt.CurrentBlockNumber)
+	t.Assert().Nil(err)
+	t.Assert().NotNil(resp)
+	fmt.Println(resp)
 }
 
 func (t *ArtemisTradeDebuggerTestSuite) TestReplayerBulk() {

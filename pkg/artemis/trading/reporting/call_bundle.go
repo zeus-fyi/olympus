@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -157,25 +158,26 @@ func selectCallBundles() string {
 }
 
 type CallBundleHistory struct {
-	EventID                                  int                                  `json:"eventID"`
-	BuilderName                              string                               `json:"builderName"`
-	BundleHash                               string                               `json:"bundleHash"`
-	TxHash                                   string                               `json:"txHash"`
-	FromAddress                              string                               `json:"from"`
-	TradeExecutionFlowJSON                   web3_client.TradeExecutionFlowJSON   `json:"tradeExecutionFlowJSON"`
-	PairAddress                              string                               `json:"pairAddress"`
-	AmountIn                                 string                               `json:"amountIn"` // Assuming numeric field
-	RxBlockNumber                            int                                  `json:"rxBlockNumber"`
-	TradeMethod                              string                               `json:"tradeMethod"`
-	ExpectedProfitAmountOut                  string                               `json:"expectedProfitAmountOut"` // Assuming numeric field
-	ActualProfitAmountOut                    string                               `json:"actualProfitAmountOut"`   // Assuming numeric field
-	EffectiveGasPrice                        int                                  `json:"effectiveGasPrice"`       // Assuming this is an integer value
-	GasUsed                                  int                                  `json:"gasUsed"`
-	Status                                   string                               `json:"status"`
-	BlockNumber                              int                                  `json:"blockNumber"`
-	TransactionIndex                         int                                  `json:"transactionIndex"`
-	SubmissionTime                           string                               `json:"submissionTime"` // Already present in your struct
-	flashbotsrpc.FlashbotsCallBundleResponse `json:"flashbotsCallBundleResponse"` // Embedded struct, ensure fields are mapped correctly
+	EventID                                  int                                      `json:"eventID"`
+	BuilderName                              string                                   `json:"builderName"`
+	BundleHash                               string                                   `json:"bundleHash"`
+	TxHash                                   string                                   `json:"txHash"`
+	FromAddress                              string                                   `json:"from"`
+	TradeExecutionFlowJSON                   web3_client.TradeExecutionFlowJSON       `json:"tradeExecutionFlowJSON"`
+	Trades                                   []artemis_trading_types.JSONTradeOutcome `json:"trades"`
+	PairAddress                              string                                   `json:"pairAddress"`
+	AmountIn                                 string                                   `json:"amountIn"` // Assuming numeric field
+	RxBlockNumber                            int                                      `json:"rxBlockNumber"`
+	TradeMethod                              string                                   `json:"tradeMethod"`
+	ExpectedProfitAmountOut                  string                                   `json:"expectedProfitAmountOut"` // Assuming numeric field
+	ActualProfitAmountOut                    string                                   `json:"actualProfitAmountOut"`   // Assuming numeric field
+	EffectiveGasPrice                        int                                      `json:"effectiveGasPrice"`       // Assuming this is an integer value
+	GasUsed                                  int                                      `json:"gasUsed"`
+	Status                                   string                                   `json:"status"`
+	BlockNumber                              int                                      `json:"blockNumber"`
+	TransactionIndex                         int                                      `json:"transactionIndex"`
+	SubmissionTime                           string                                   `json:"submissionTime"` // Already present in your struct
+	flashbotsrpc.FlashbotsCallBundleResponse `json:"flashbotsCallBundleResponse"`     // Embedded struct, ensure fields are mapped correctly
 }
 
 func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID int) ([]CallBundleHistory, error) {
@@ -216,6 +218,12 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		if txFlowJson.InitialPairV3 != nil {
 			cbh.PairAddress = txFlowJson.InitialPairV3.PoolAddress
 		}
+		cbh.Trades = []artemis_trading_types.JSONTradeOutcome{
+			txFlowJson.FrontRunTrade,
+			txFlowJson.UserTrade,
+			txFlowJson.SandwichTrade,
+		}
+
 		// Create a big.Float representation of 1e9 for the division to gwei
 		weiToGwei := new(big.Float).SetFloat64(1e9)
 

@@ -143,7 +143,7 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                                 </TableBody>
                             </Table>
                         </Box>
-                        <Box sx={{ margin: 1 }}>
+                        <Box sx={{ margin: 2 }}>
                             <Typography variant="h6" gutterBottom component="div">
                                 Trade Analysis
                             </Typography>
@@ -159,6 +159,27 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                                             <a href={`${explorerURL}/address/${row.pairAddress}`} target="_blank" rel="noreferrer">{row.pairAddress}</a>
                                         </TableCell>
                                     </TableRow>
+                                </TableBody>
+                            </Table>
+                        </Box>
+                        <Box sx={{ margin: 2 }}>
+                        <Table size="small" aria-label="purchases">
+
+                            <TableBody >
+                                <TableRow>
+                                    <TableCell>Amount In</TableCell>
+                                    <TableCell>In Addr</TableCell>
+                                    <TableCell>Amount Out</TableCell>
+                                    <TableCell>Out Addr</TableCell>
+                                </TableRow>
+                                    {row.trades.map((trade: any, ind: number) => (
+                                        <TableRow key={ind}>
+                                            <TableCell>{trade.amountIn}</TableCell>
+                                            <TableCell>{trade.amountInAddr}</TableCell>
+                                            <TableCell>{trade.amountOut}</TableCell>
+                                            <TableCell>{trade.amountOutAddr}</TableCell>
+                                        </TableRow>
+                                    ))}
                                 </TableBody>
                             </Table>
                         </Box>

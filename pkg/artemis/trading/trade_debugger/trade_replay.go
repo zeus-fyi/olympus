@@ -3,6 +3,7 @@ package artemis_trade_debugger
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/rs/zerolog/log"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
@@ -152,7 +153,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 				AmountInAddr:            tf.FrontRunTrade.AmountInAddr.String(),
 				AmountIn:                tf.FrontRunTrade.AmountIn.String(),
 				AmountOutAddr:           tf.SandwichTrade.AmountOutAddr.String(),
-				AmountOut:               tf.SandwichTrade.AmountOut.String(),
+				AmountOut:               new(big.Int).Sub(tf.SandwichTrade.AmountOut, tf.FrontRunTrade.AmountIn).String(),
 				ExpectedProfitAmountOut: expProfit.String(),
 			},
 		}

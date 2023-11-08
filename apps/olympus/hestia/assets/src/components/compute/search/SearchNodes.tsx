@@ -14,7 +14,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {Card, CardActions, CardContent} from "@mui/material";
 import {SearchNodesResourcesTable} from "./SearchNodesTable";
 import authProvider from '../../../redux/auth/auth.actions';
@@ -22,7 +22,8 @@ import MainListItems from "../../dashboard/listItems";
 import {ZeusCopyright} from "../../copyright/ZeusCopyright";
 import {resourcesApiGateway} from "../../../gateway/resources";
 import {setSearchResources} from "../../../redux/resources/resources.reducer";
-import {NodeSearchParams} from "../../../redux/resources/resources.types";
+import {NodeSearchParams, NodesSlice} from "../../../redux/resources/resources.types";
+import {RootState} from "../../../redux/store";
 
 const drawerWidth: number = 240;
 
@@ -83,6 +84,8 @@ function SearchComputeDashboardContent() {
     };
     let navigate = useNavigate();
     const dispatch = useDispatch();
+    const [loading, setIsLoading] = React.useState(false);
+    const resources = useSelector((state: RootState) => state.resources.searchResources);
 
     const handleLogout = async (event: any) => {
         event.preventDefault();
@@ -93,6 +96,7 @@ function SearchComputeDashboardContent() {
 
     const handleSearchRequest = async () => {
         try {
+            setIsLoading(true)
             // setRequestStatus('pending');s
             const CloudProviderRegions: { [key: string]: string[] } = {
                 aws: ["us-west-1"],
@@ -105,11 +109,10 @@ function SearchComputeDashboardContent() {
                 cloudProviderRegions: CloudProviderRegions,
             };
             const response = await resourcesApiGateway.searchNodeResources(payloadNodeSearchParams);
-            console.log(response)
-            if (response < 400) {
-                dispatch(setSearchResources(response.data));
+            if (response.status < 400) {
+                const re = response.data as NodesSlice;
+                dispatch(setSearchResources(re));
             }
-
 
             // if (response.status === 200 || response.status === 202 || response.status === 204) {
             //     setRequestStatus('success');
@@ -139,7 +142,14 @@ function SearchComputeDashboardContent() {
             // } else {
             //     setRequestStatus('error');
             // }
-        }};
+        } finally {
+            setIsLoading(false)
+        }
+    };
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -229,7 +239,7 @@ function SearchComputeDashboardContent() {
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <SearchNodesResourcesTable />
+                        <SearchNodesResourcesTable loading={loading} resources={resources}/>
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

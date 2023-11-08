@@ -243,7 +243,7 @@ export function Network(props: any) {
     const authorizedNetworks = useSelector((state: RootState) => state.validatorSecrets.authorizedNetworks);
 
     const onAccessSetNetwork = (selectedNetwork: string) => {
-        console.log('Selected network:', selectedNetwork);
+        //console.log('Selected network:', selectedNetwork);
         dispatch(setNetworkName(selectedNetwork));
         dispatch(setNetworkAppended(false))
     };

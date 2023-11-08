@@ -1,6 +1,5 @@
 import * as React from "react";
-import {useSelector} from "react-redux";
-import {RootState} from "../../../redux/store";
+import {useEffect} from "react";
 import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -10,9 +9,9 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 
 export function SearchNodesResourcesTable(props: any) {
+    const { resources, loading } = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
-    const resources = useSelector((state: RootState) => state.resources.searchResources);
 
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -26,7 +25,13 @@ export function SearchNodesResourcesTable(props: any) {
     ) => {
         setPage(newPage);
     };
+    useEffect(() => {
+    }, [loading]);
+    console.log('sdfsdfv', resources)
 
+    if (loading) {
+        return (<div></div>)
+    }
     if (resources === null || resources === undefined) {
         return (<div></div>)
     }

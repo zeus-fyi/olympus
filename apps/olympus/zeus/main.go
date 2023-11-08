@@ -8,7 +8,6 @@ import (
 
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-
 	if err := zeus_server.Cmd.Execute(); err != nil {
 		log.Err(err)
 	}

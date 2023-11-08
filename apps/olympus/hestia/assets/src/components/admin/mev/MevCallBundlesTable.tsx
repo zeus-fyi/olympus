@@ -147,7 +147,7 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                         </Box>
                         <Box sx={{ margin: 2 }}>
                             <Typography variant="h6" gutterBottom component="div">
-                                Trade Analysis
+                                Block Analysis
                             </Typography>
                             <Table size="small" aria-label="purchases">
                                 <TableHead>
@@ -165,15 +165,39 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                             </Table>
                         </Box>
                         <Box sx={{ margin: 2 }}>
-                        <Table size="small" aria-label="purchases">
-
-                            <TableBody >
-                                <TableRow>
-                                    <TableCell>Amount In</TableCell>
-                                    <TableCell>In Addr</TableCell>
-                                    <TableCell>Amount Out</TableCell>
-                                    <TableCell>Out Addr</TableCell>
-                                </TableRow>
+                            <Typography variant="h6" gutterBottom component="div">
+                                Trade Analysis
+                            </Typography>
+                            <Table size="small" aria-label="purchases">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Block Number Seen</TableCell>
+                                        <TableCell>Block Number Confirmed</TableCell>
+                                        <TableCell>Tx Index</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    <TableRow >
+                                        <TableCell component="th" scope="row">
+                                            <a href={`${explorerURL}/txs?block=${row.seenAtBlockNumber}`} target="_blank" rel="noreferrer">{row.seenAtBlockNumber}</a>
+                                        </TableCell>
+                                        <TableCell component="th" scope="row">
+                                            <a href={`${explorerURL}/txs?block=${row.blockNumber}`} target="_blank" rel="noreferrer">{row.blockNumber}</a>
+                                        </TableCell>
+                                        <TableCell>{row.transactionIndex}</TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </Box>
+                        <Box sx={{ margin: 2 }}>
+                            <Table size="small" aria-label="purchases">
+                                <TableBody >
+                                    <TableRow>
+                                        <TableCell>Amount In</TableCell>
+                                        <TableCell>In Addr</TableCell>
+                                        <TableCell>Amount Out</TableCell>
+                                        <TableCell>Out Addr</TableCell>
+                                    </TableRow>
                                     {row.trades.map((trade: any, ind: number) => (
                                         <TableRow key={ind}>
                                             <TableCell>{trade.amountIn}</TableCell>

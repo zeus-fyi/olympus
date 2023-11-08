@@ -36,7 +36,7 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash)
 	if u.Web3Client.IsAnvilNode == true {
 		if u.Web3Client.Headers != nil {
-			sid := u.Web3Client.Headers["Session-Lock-ID"]
+			sid := u.Web3Client.Headers["X-Anvil-Session-Lock-ID"]
 			if sid != "" {
 				defer u.EndHardHatSessionAndReset()
 			}

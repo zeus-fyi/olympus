@@ -40,10 +40,11 @@ export function MevCallBundlesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">BundleHash</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Builder</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Actual Profit</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Expected Profit</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Worst Case Profit</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Bundle GasPrice</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Coinbase Diff</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Gas Fees</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Status</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -108,9 +109,10 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                 <TableCell align="left">{row.bundleGasPrice + ' Gwei'}</TableCell>
                 <TableCell align="left">{row.coinbaseDiff + ' Eth'}</TableCell>
                 <TableCell align="left">{row.gasFees + ' Eth'}</TableCell>
+                <TableCell align="left">{row.status}</TableCell>
             </TableRow>
             <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ margin: 1 }}>
                             <Typography variant="h6" gutterBottom component="div">
@@ -145,8 +147,35 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                         </Box>
                         <Box sx={{ margin: 2 }}>
                             <Typography variant="h6" gutterBottom component="div">
+                                Block Analysis
+                            </Typography>
+                            <Table size="small" aria-label="purchases">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Block Number Seen</TableCell>
+                                        <TableCell>Block Number Confirmed</TableCell>
+                                        <TableCell>Tx Index</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    <TableRow >
+                                        <TableCell component="th" scope="row">
+                                            <a href={`${explorerURL}/txs?block=${row.seenAtBlockNumber}`} target="_blank" rel="noreferrer">{row.seenAtBlockNumber}</a>
+                                        </TableCell>
+                                        <TableCell component="th" scope="row">
+                                            <a href={`${explorerURL}/txs?block=${row.blockNumber}`} target="_blank" rel="noreferrer">{row.blockNumber}</a>
+                                        </TableCell>
+                                        <TableCell>{row.transactionIndex}</TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </Box>
+                        <Box sx={{ margin: 2 }}>
+                            <Typography variant="h6" gutterBottom component="div">
                                 Trade Analysis
                             </Typography>
+                        </Box>
+                        <Box sx={{ margin: 2 }}>
                             <Table size="small" aria-label="purchases">
                                 <TableHead>
                                     <TableRow>
@@ -163,21 +192,24 @@ function CallBundlesRow(props: { row: ReturnType<typeof createCallBundleData> })
                             </Table>
                         </Box>
                         <Box sx={{ margin: 2 }}>
-                        <Table size="small" aria-label="purchases">
-
-                            <TableBody >
-                                <TableRow>
-                                    <TableCell>Amount In</TableCell>
-                                    <TableCell>In Addr</TableCell>
-                                    <TableCell>Amount Out</TableCell>
-                                    <TableCell>Out Addr</TableCell>
-                                </TableRow>
+                            <Table size="small" aria-label="purchases">
+                                <TableBody >
+                                    <TableRow>
+                                        <TableCell>Amount In</TableCell>
+                                        <TableCell>In Addr</TableCell>
+                                        <TableCell>Amount Out</TableCell>
+                                        <TableCell>Out Addr</TableCell>
+                                    </TableRow>
                                     {row.trades.map((trade: any, ind: number) => (
                                         <TableRow key={ind}>
                                             <TableCell>{trade.amountIn}</TableCell>
-                                            <TableCell>{trade.amountInAddr}</TableCell>
+                                            <TableCell>
+                                                <a href={`${explorerURL}/address/${trade.amountInAddr}`} target="_blank" rel="noreferrer">{trade.amountInAddr}</a>
+                                            </TableCell>
                                             <TableCell>{trade.amountOut}</TableCell>
-                                            <TableCell>{trade.amountOutAddr}</TableCell>
+                                            <TableCell>
+                                                <a href={`${explorerURL}/address/${trade.amountOutAddr}`} target="_blank" rel="noreferrer">{trade.amountOutAddr}</a>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

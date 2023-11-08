@@ -14,6 +14,7 @@ import (
 	"github.com/metachris/flashbotsrpc"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -143,7 +144,7 @@ func InsertCallBundleResp(ctx context.Context, builder string, protocolID int, c
 func selectCallBundles() string {
 	var que = `SELECT eb.event_id, builder_name, bundle_hash, eth_call_resp_json,
 				etx.tx_hash, etx."from",
-				mem.tx_flow_prediction, ea.amount_in, ea.rx_block_number, ea.trade_method, ea.expected_profit_amount_out, ea.actual_profit_amount_out, 
+				mem.tx_flow_prediction, ea.amount_in, ea.trade_method, ea.expected_profit_amount_out, ea.actual_profit_amount_out, 
 				er.effective_gas_price, er.gas_used, er.status, er.block_number, er.transaction_index
 				FROM eth_mev_call_bundle eb
 				INNER JOIN eth_tx etx ON etx.event_id = eb.event_id
@@ -167,7 +168,7 @@ type CallBundleHistory struct {
 	Trades                                   []artemis_trading_types.JSONTradeOutcome `json:"trades"`
 	PairAddress                              string                                   `json:"pairAddress"`
 	AmountIn                                 string                                   `json:"amountIn"` // Assuming numeric field
-	RxBlockNumber                            int                                      `json:"rxBlockNumber"`
+	SeenAtBlockNumber                        int                                      `json:"seenAtBlockNumber"`
 	TradeMethod                              string                                   `json:"tradeMethod"`
 	ExpectedProfitAmountOut                  string                                   `json:"expectedProfitAmountOut"` // Assuming numeric field
 	ActualProfitAmountOut                    string                                   `json:"actualProfitAmountOut"`   // Assuming numeric field
@@ -193,12 +194,11 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 		cbh := CallBundleHistory{
 			FlashbotsCallBundleResponse: flashbotsrpc.FlashbotsCallBundleResponse{},
 		}
-
 		txFlow := ""
 		rowErr := rows.Scan(
 			&cbh.EventID, &cbh.BuilderName, &cbh.BundleHash, &cbh.FlashbotsCallBundleResponse,
 			&cbh.TxHash, &cbh.FromAddress,
-			&txFlow, &cbh.AmountIn, &cbh.RxBlockNumber, &cbh.TradeMethod, &cbh.ExpectedProfitAmountOut, &cbh.ActualProfitAmountOut,
+			&txFlow, &cbh.AmountIn, &cbh.TradeMethod, &cbh.ExpectedProfitAmountOut, &cbh.ActualProfitAmountOut,
 			&cbh.EffectiveGasPrice, &cbh.GasUsed, &cbh.Status, &cbh.BlockNumber, &cbh.TransactionIndex,
 		)
 		if rowErr != nil {
@@ -211,13 +211,14 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 			return nil, berr
 		}
 		cbh.TradeExecutionFlowJSON = txFlowJson
-
+		cbh.SeenAtBlockNumber = int(txFlowJson.CurrentBlockNumber.Int64())
 		if txFlowJson.InitialPair != nil {
 			cbh.PairAddress = txFlowJson.InitialPair.PairContractAddr
 		}
 		if txFlowJson.InitialPairV3 != nil {
 			cbh.PairAddress = txFlowJson.InitialPairV3.PoolAddress
 		}
+
 		cbh.Trades = []artemis_trading_types.JSONTradeOutcome{
 			txFlowJson.FrontRunTrade,
 			txFlowJson.UserTrade,
@@ -265,6 +266,20 @@ func SelectCallBundleHistory(ctx context.Context, minEventId, protocolNetworkID 
 			cbh.FlashbotsCallBundleResponse.Results[i].GasFees = fmt.Sprintf("%.5f Eth", bundleGasFees)
 		}
 
+		for i, v := range cbh.Trades {
+			if v.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddress {
+				amount := artemis_eth_units.NewBigFloatFromStr(v.AmountIn)
+				amountEthF, _ := new(big.Float).Quo(amount, eth).Float64()
+				// Format the float to a string with 5 decimal places
+				cbh.Trades[i].AmountIn = fmt.Sprintf("%.5f Weth", amountEthF)
+			}
+			if v.AmountOutAddr.String() == artemis_trading_constants.WETH9ContractAddress {
+				amount := artemis_eth_units.NewBigFloatFromStr(v.AmountOut)
+				amountEthF, _ := new(big.Float).Quo(amount, eth).Float64()
+				// Format the float to a string with 5 decimal places
+				cbh.Trades[i].AmountOut = fmt.Sprintf("%.5f Weth", amountEthF)
+			}
+		}
 		cbh.SubmissionTime = ts.ConvertUnixTimeStampToDate(cbh.EventID).String()
 		rw = append(rw, cbh)
 	}

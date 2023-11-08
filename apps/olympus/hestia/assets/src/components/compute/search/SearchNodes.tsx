@@ -91,6 +91,8 @@ function SearchComputeDashboardContent() {
     const [maxVcpus, setMaxVcpus] = useState("0");
     const [minMemory, setMinMemory] = useState("0");
     const [maxMemory, setMaxMemory] = useState("0");
+    const [minCostMonthly, setMinCostMonthly] = useState(0);
+    const [maxCostMonthly, setMaxCostMonthly] = useState(0);
 
 
     const handleLogout = async (event: any) => {
@@ -114,15 +116,18 @@ function SearchComputeDashboardContent() {
                 cloudProviderRegions: CloudProviderRegions,
                 resourceMinMax: {
                     min: {
+                        monthlyPrice: minCostMonthly,
                         cpuRequests: minVcpus,
                         memRequests: minMemory + 'Gi',
                     },
                     max: {
+                        monthlyPrice: maxCostMonthly,
                         cpuRequests: maxVcpus,
                         memRequests: maxMemory + 'Gi',
                     },
                 },
             };
+            console.log('payloadNodeSearchParams', payloadNodeSearchParams, 'sfdf')
             const response = await resourcesApiGateway.searchNodeResources(payloadNodeSearchParams);
             if (response.status < 400) {
                 const re = response.data as NodesSlice;
@@ -179,6 +184,20 @@ function SearchComputeDashboardContent() {
 
     const handleMaxMemoryChange = (event: any) => {
         setMaxMemory(event.target.value);
+    };
+
+    const handleMinMonthlyCostChange = (event: any) => {
+        const value = parseFloat(event.target.value);
+        if (!isNaN(value)) {
+            setMinCostMonthly(value); // Replace with your state setter
+        }
+    };
+
+    const handleMaxMonthlyCostChange = (event: any) => {
+        const value = parseFloat(event.target.value);
+        if (!isNaN(value)) {
+            setMaxCostMonthly(value); // Replace with your state setter
+        }
     };
 
     return (
@@ -296,6 +315,26 @@ function SearchComputeDashboardContent() {
                                             variant="outlined"
                                             value={maxMemory}
                                             onChange={handleMaxMemoryChange}
+                                            sx={{ flex: 1, mr: 2 }}
+                                        />
+                                    </Stack>
+                                    <Stack direction="row" spacing={2}>
+                                        <TextField
+                                            id="mincostmonthly"
+                                            label="Min Monthly Cost"
+                                            variant="outlined"
+                                            value={minCostMonthly}
+                                            type={"number"}
+                                            onChange={handleMinMonthlyCostChange}
+                                            sx={{ flex: 1, mr: 2 }}
+                                        />
+                                        <TextField
+                                            id="maxcostmonthly"
+                                            label="Max Montly Cost"
+                                            variant="outlined"
+                                            value={maxCostMonthly}
+                                            type={"number"}
+                                            onChange={handleMaxMonthlyCostChange}
                                             sx={{ flex: 1, mr: 2 }}
                                         />
                                     </Stack>

@@ -1,15 +1,23 @@
 package artemis_trade_debugger
 
 import (
+	"context"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
+	s3base "github.com/zeus-fyi/olympus/datastores/s3"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	"github.com/zeus-fyi/olympus/pkg/athena"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 /*
@@ -49,7 +57,14 @@ func (t *ArtemisTradeDebuggerTestSuite) TestEthCall() {
 	// func (ec *Client) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {
 	//PendingCallContract
 	//CallContract
-	tx, err := GetMevMempoolTxTradeFlow(ctx, "0x8620ebed5a23c9e7bae6dd3c5be3e0a5a6d893222db339af6408be6e904925a2")
+	s3client, err := s3base.NewConnS3ClientWithStaticCreds(ctx, t.Tc.LocalS3SpacesKey, t.Tc.LocalS3SpacesSecret)
+	t.Require().Nil(err)
+	athena.AthenaS3Manager = s3client
+
+	age := encryption.NewAge(t.Tc.LocalAgePkey, t.Tc.LocalAgePubkey)
+	acc := initTradingAccount(ctx, age)
+
+	tx, err := GetMevMempoolTxTradeFlow(ctx, "0xf0824882281da217321b75c40a4f24e9d3c88443d2f3741c2e43b971cad624f6")
 	t.Assert().Nil(err)
 	t.Assert().NotNil(tx)
 
@@ -57,9 +72,15 @@ func (t *ArtemisTradeDebuggerTestSuite) TestEthCall() {
 	t.Assert().Nil(err)
 	t.Assert().NotNil(txInt)
 
-	wc := t.td.dat.GetSimUniswapClient().Web3Client
+	wc := web3_client.NewWeb3Client("https://iris.zeus.fyi/v1/router", &acc)
+	wc.AddDefaultEthereumMainnetTableHeader()
+	wc.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
 	wc.Dial()
 	defer wc.Close()
+	fmt.Println(txInt.FrontRunTrade.AmountIn.String())
+
+	fmt.Println(txInt.FrontRunTrade.AmountInAddr.String())
+	fmt.Println(txInt.FrontRunTrade.AmountOutAddr.String())
 
 	txInt.FrontRunTrade.AmountOut = new(big.Int).SetInt64(0)
 	ur, _, err := artemis_trading_auxiliary.GenerateTradeV2SwapFromTokenToToken(ctx, wc, nil, &txInt.FrontRunTrade)
@@ -74,17 +95,20 @@ func (t *ArtemisTradeDebuggerTestSuite) TestEthCall() {
 	t.Assert().NotNil(data)
 	to := common.HexToAddress(artemis_trading_constants.UniswapUniversalRouterAddressNew)
 	msg := ethereum.CallMsg{
-		From:       common.HexToAddress(AccountAddr),
-		To:         &to,
-		Gas:        data.GasLimit,
-		GasPrice:   data.GasPrice,
-		GasFeeCap:  data.GasFeeCap,
-		GasTipCap:  data.GasTipCap,
-		Data:       data.Data,
-		AccessList: nil,
+		From:      common.HexToAddress(AccountAddr),
+		To:        &to,
+		Gas:       data.GasLimit,
+		GasPrice:  data.GasPrice,
+		GasFeeCap: data.GasFeeCap,
+		GasTipCap: data.GasTipCap,
+		Data:      data.Data,
 	}
-	resp, err := wc.C.CallContract(ctx, msg, txInt.CurrentBlockNumber)
+
+	resp, err := wc.C.CallContract(ctx, msg, nil)
 	t.Assert().Nil(err)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	t.Assert().NotNil(resp)
 	fmt.Println(resp)
 }
@@ -124,4 +148,22 @@ func (t *ArtemisTradeDebuggerTestSuite) TestReadRx() {
 	fmt.Println(rx.BlockNumber.String())
 	fmt.Println(rx.Status)
 	fmt.Println(rx.GasUsed)
+}
+
+// InitTradingAccount pubkey 0x000025e60C7ff32a3470be7FE3ed1666b0E326e2
+func initTradingAccount(ctx context.Context, age encryption.Age) accounts.Account {
+	p := filepaths.Path{
+		DirIn:  "keygen",
+		DirOut: "keygen",
+		FnIn:   "key-6.txt.age",
+	}
+	r, err := dynamic_secrets.ReadAddress(ctx, p, athena.AthenaS3Manager, age)
+	if err != nil {
+		panic(err)
+	}
+	acc, err := dynamic_secrets.GetAccount(r)
+	if err != nil {
+		panic(err)
+	}
+	return acc
 }

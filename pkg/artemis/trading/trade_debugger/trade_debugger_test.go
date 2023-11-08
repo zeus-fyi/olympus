@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_test_suite "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite"
@@ -14,6 +15,7 @@ import (
 )
 
 type ArtemisTradeDebuggerTestSuite struct {
+	s3 s3secrets.S3SecretsManagerTestSuite
 	artemis_trading_test_suite.ArtemisTradingTestSuite
 	td      TradeDebugger
 	lbTd    TradeDebugger

@@ -186,17 +186,20 @@ function SearchComputeDashboardContent() {
     };
 
     const handleMinMonthlyCostChange = (event: any) => {
-        const value = parseFloat(event.target.value);
-        if (!isNaN(value)) {
-            setMinCostMonthly(value); // Replace with your state setter
+        const newMin = Math.max(Number(event.target.value), 0);
+        if (newMin <= maxCostMonthly) {
+            setMinCostMonthly(newMin);
+        } else {
+            // Handle the case when the new minimum is greater than the current maximum
+            // For example, you could set the max to the new min value as well
+            setMinCostMonthly(newMin);
+            setMaxCostMonthly(newMin);
         }
     };
 
     const handleMaxMonthlyCostChange = (event: any) => {
-        const value = parseFloat(event.target.value);
-        if (!isNaN(value)) {
-            setMaxCostMonthly(value); // Replace with your state setter
-        }
+        const newMax = Math.max(Number(event.target.value), 0);
+        setMaxCostMonthly(newMax);
     };
 
     return (
@@ -323,16 +326,15 @@ function SearchComputeDashboardContent() {
                                             label="Min Monthly Cost"
                                             variant="outlined"
                                             value={minCostMonthly}
-                                            type={"number"}
                                             onChange={handleMinMonthlyCostChange}
                                             sx={{ flex: 1, mr: 2 }}
+                                            InputProps={{ inputProps: { min: 0 } }}
                                         />
                                         <TextField
                                             id="maxcostmonthly"
-                                            label="Max Montly Cost"
+                                            label="Max Monthly Cost"
                                             variant="outlined"
                                             value={maxCostMonthly}
-                                            type={"number"}
                                             onChange={handleMaxMonthlyCostChange}
                                             sx={{ flex: 1, mr: 2 }}
                                         />

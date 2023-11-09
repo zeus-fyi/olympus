@@ -23,12 +23,16 @@ spec:
         - name: "hestia"
           image: "registry.digitalocean.com/zeus-fyi/hestia:latest"
           volumeMounts:
+            - mountPath: "/secrets"
+              name: "secrets"
             - mountPath: "/scripts"
               name: "cm-hestia"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
           env:
+            - name: USE_GKE_GCLOUD_AUTH_PLUGIN
+              value: "true"
             - name: AGE_PKEY
               valueFrom:
                 secretKeyRef:
@@ -67,6 +71,9 @@ spec:
           resources:
             {}
       volumes:
+        - name: secrets
+          emptyDir:
+            medium: Memory
         - name: cm-hestia
           configMap:
             name: cm-hestia

@@ -3,6 +3,7 @@ package hestia_server
 import (
 	"context"
 	"errors"
+	"os/exec"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -37,6 +38,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	artemis_client "github.com/zeus-fyi/zeus/pkg/artemis/client"
+	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 var (
@@ -115,6 +117,32 @@ func Hestia() {
 		hestia_login.GoogleOAuthConfig.ClientID = sw.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = sw.GoogClientSecret
 		//hestia_analytics.GtagApiSecret = sw.GoogGtagSecret
+		p := filepaths.Path{
+			PackageName: "",
+			DirIn:       "/secrets",
+			DirOut:      "/secrets",
+			FnOut:       "gcp_auth.json",
+			FnIn:        "gcp_auth.json",
+			Env:         "",
+			FilterFiles: nil,
+		}
+		err := p.WriteToFileOutPath(sw.GcpAuthJsonBytes)
+		if err != nil {
+			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to write gcp auth json, shutting down the server")
+			misc.DelayedPanic(err)
+		}
+		cmd := exec.Command("/google-cloud-sdk/bin/gcloud", "auth", "login", "--cred-file", "/secrets/gcp_auth.json")
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
+			misc.DelayedPanic(err)
+		}
+		err = p.RemoveFileInPath()
+		if err != nil {
+			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to remove gcp auth json, shutting down the server")
+			misc.DelayedPanic(err)
+		}
+
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn

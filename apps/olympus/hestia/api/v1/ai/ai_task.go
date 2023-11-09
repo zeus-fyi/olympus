@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
-	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
+	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/ai/orchestrations"
 )
 
 type AIServiceRequest struct {
@@ -52,7 +52,7 @@ func (a *AIServiceRequest) AcknowledgeAITask(c echo.Context) error {
 	fmt.Println(a.Email)
 	fmt.Println(content)
 	fmt.Println(ou.UserID, ou.OrgID)
-	err = kronos_helix.KronosServiceWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, a.Email, content)
+	err = ai_platform_service_orchestrations.HestiaAiPlatformWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, a.Email, content)
 	if err != nil {
 		log.Err(err).Msg("CreateAIServiceTaskRequestHandler")
 		return err

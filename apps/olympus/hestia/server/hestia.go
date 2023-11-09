@@ -137,12 +137,12 @@ func Hestia() {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
 			misc.DelayedPanic(err)
 		}
+		hermes_email_notifications.InitNewGmailServiceClients(ctx, sw.GmailAuthJsonBytes)
 		err = p.RemoveFileInPath()
 		if err != nil {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to remove gcp auth json, shutting down the server")
 			misc.DelayedPanic(err)
 		}
-
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn

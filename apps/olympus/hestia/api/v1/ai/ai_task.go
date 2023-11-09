@@ -32,11 +32,16 @@ func (a *AIServiceRequest) AcknowledgeAITask(c echo.Context) error {
 	content := ""
 	ou := org_users.OrgUser{}
 	key := read_keys.NewKeyReader()
+	if len(a.Email) <= 0 {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+
 	err := key.GetUserFromEmail(c.Request().Context(), a.Email)
 	if err == nil && key.OrgID > 0 && key.UserID > 0 {
 		ou = org_users.NewOrgUserWithID(key.OrgID, key.UserID)
 		c.Set("orgUser", ou)
 	}
+	err = nil
 
 	//for k, v := range a.Subject {
 	//	content += k + ": " + v.(string) + "\n"
@@ -44,6 +49,7 @@ func (a *AIServiceRequest) AcknowledgeAITask(c echo.Context) error {
 
 	content += a.Subject + "\n"
 	content += a.Body + "\n"
+	fmt.Println(a.Email)
 	fmt.Println(content)
 	fmt.Println(ou.UserID, ou.OrgID)
 	err = kronos_helix.KronosServiceWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, content)

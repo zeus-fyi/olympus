@@ -14,6 +14,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -106,7 +107,7 @@ func Zeus() {
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
-
+		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		read_infra.CookbooksDirIn = "/Users/alex/go/Olympus/olympus/apps/zeus/cookbooks"
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
@@ -128,6 +129,7 @@ func Zeus() {
 		api_auth_temporal.InitOrchestrationEksClient(ctx, eksAuth)
 		dynMemFs, _ := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		dynamic_secrets.AegisInMemSecrets = dynMemFs
+		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")

@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -41,14 +42,17 @@ func Aegis() {
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
 		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
+		hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
+		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		temporalAuthConfigKronos = tc.DevTemporalAuth
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		dataDir.DirOut = "../"
 	case "local":
 		tc := configs.InitLocalTestConfigs()
+		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		temporalAuthConfigKronos = tc.DevTemporalAuth
 		authKeysCfg = tc.DevAuthKeysCfg
 		cfg.PGConnStr = tc.LocalDbPgconn

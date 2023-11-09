@@ -26,6 +26,7 @@ import {configService} from "../config/config";
 import ReactGA from "react-ga4";
 import Mev from "../components/admin/mev/Mev";
 import SearchDashboard from "../components/compute/search/SearchNodes";
+import AiWorkflowsDashboard from "../components/ai/AI";
 
 export const App = () => {
     ReactGA.initialize([
@@ -47,6 +48,7 @@ export const App = () => {
                         <Route path="/quicknode/access" element={<VerifyQuickNodeLoginJWT />} />
                         <Route path="/verify/email/:id" element={<VerifyEmail />} />
                         <Route>
+                            <Route path="ai" element={<ProtectedLayout children={<AiWorkflowsDashboard />}/>}/>
                             <Route path="apps/microservice" element={<ProtectedLayout children={<AppPageWrapper app={"microservice"} />}/>}/>
                             <Route path="apps/avax" element={<ProtectedLayout children={<AppPageWrapper app={"avax"} />}/>} />
                             <Route path="apps/eth" element={<ProtectedLayout children={<AppPageWrapper app={"ethereumEphemeralBeacons"} />}/>} />
@@ -59,7 +61,6 @@ export const App = () => {
                                 <Route path="compute/summary" element={<ProtectedLayout children={<Dashboard />}/>}/>
                                 <Route path="compute/search" element={<ProtectedLayout children={<SearchDashboard />}/>}/>
                             </Route>
-
                             <Route>
                                 <Route path="clusters"  element={<ProtectedLayout children={<Clusters />}/>}/>
                                 <Route path="clusters/:id" element={<ProtectedLayout children={<ClustersPage />}/>}/>

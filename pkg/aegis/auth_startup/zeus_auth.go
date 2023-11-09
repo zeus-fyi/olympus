@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 )
 
@@ -25,6 +26,7 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	sw.AwsS3AccessKey = sw.MustReadSecret(ctx, inMemSecrets, awsS3ReaderAccessKey)
 	sw.AwsS3SecretKey = sw.MustReadSecret(ctx, inMemSecrets, awsS3ReaderSecretKey)
 	sw.EksAuthAWS.Region = "us-west-1"
+	hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 
 	InitAtlassianKeys(ctx, inMemSecrets, &sw)
 	return inMemSecrets, sw

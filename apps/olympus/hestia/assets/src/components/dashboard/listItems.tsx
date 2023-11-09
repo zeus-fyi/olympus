@@ -19,6 +19,7 @@ import SwapCallsIcon from '@mui/icons-material/SwapCalls';
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
+import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(true);
@@ -50,6 +51,12 @@ export default function MainListItems() {
                 </ListSubheader>
             }
         >
+            <ListItemButton component={Link} to="/ai">
+                <ListItemIcon>
+                    <GraphicEqIcon />
+                </ListItemIcon>
+                <ListItemText primary="AI" />
+            </ListItemButton>
             <ListItemButton onClick={handleClickApps}  component={Link} to="/apps">
                 <ListItemIcon>
                     <AppsIcon />

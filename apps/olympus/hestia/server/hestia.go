@@ -26,6 +26,7 @@ import (
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
@@ -138,7 +139,7 @@ func Hestia() {
 		hestia_login.GoogleOAuthConfig.ClientID = tc.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = tc.GoogClientSecret
 		//hestia_analytics.GtagApiSecret = tc.GoogTagSecret
-
+		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		hestia_mev.PromqlProxy = "http://localhost:8000"
 	case "local":
 		tc := configs.InitLocalTestConfigs()
@@ -164,7 +165,7 @@ func Hestia() {
 		hestia_login.GoogleOAuthConfig.ClientSecret = tc.GoogClientSecret
 		//hestia_analytics.GtagApiSecret = tc.GoogTagSecret
 		hestia_mev.PromqlProxy = "http://localhost:8000"
-
+		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

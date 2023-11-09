@@ -137,6 +137,13 @@ func Hestia() {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
 			misc.DelayedPanic(err)
 		}
+		cmd = exec.Command("/google-cloud-sdk/bin/gcloud", "auth", "activate-service-account", "124747340870-compute@developer.gserviceaccount.com", "--key-file", "/secrets/gcp_auth.json")
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
+			misc.DelayedPanic(err)
+		}
+		log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: starting email account auth")
 		hermes_email_notifications.InitNewGmailServiceClients(ctx, sw.GmailAuthJsonBytes)
 		err = p.RemoveFileInPath()
 		if err != nil {

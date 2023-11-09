@@ -17,8 +17,6 @@ spec:
         app.kubernetes.io/name: "hestia"
         app.kubernetes.io/instance: "hestia"
     spec:
-      imagePullSecrets:
-        - name: zeus-fyi-ext
       containers:
         - name: "hestia"
           image: "registry.digitalocean.com/zeus-fyi/hestia:latest"

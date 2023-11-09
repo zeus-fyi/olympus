@@ -150,6 +150,7 @@ func Hestia() {
 		}
 		log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: starting email account auth")
 		hermes_email_notifications.InitNewGmailServiceClients(ctx, data)
+		log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: starting email account done")
 		err = p.RemoveFileInPath()
 		if err != nil {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to remove gcp auth json, shutting down the server")

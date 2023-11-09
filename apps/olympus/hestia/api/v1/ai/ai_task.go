@@ -12,9 +12,9 @@ import (
 )
 
 type AIServiceRequest struct {
-	Email   map[string]interface{} `json:"email"`
-	Subject map[string]interface{} `json:"content"`
-	Body    map[string]interface{} `json:"body"`
+	Email   string `json:"email"`
+	Subject string `json:"content"`
+	Body    string `json:"body"`
 }
 
 func CreateAIServiceTaskRequestHandler(c echo.Context) error {
@@ -31,29 +31,22 @@ func (a *AIServiceRequest) AcknowledgeAITask(c echo.Context) error {
 	log.Info().Msg("Hestia: CreateAIServiceTaskRequestHandler")
 	content := ""
 	ou := org_users.OrgUser{}
-	for k, v := range a.Email {
-		fmt.Println(k, v)
+	key := read_keys.NewKeyReader()
+	err := key.GetUserFromEmail(c.Request().Context(), a.Email)
+	if err == nil && key.OrgID > 0 && key.UserID > 0 {
+		ou = org_users.NewOrgUserWithID(key.OrgID, key.UserID)
+		c.Set("orgUser", ou)
+	}
 
-		em, ok := v.(string)
-		if !ok {
-			continue
-		}
-		key := read_keys.NewKeyReader()
-		err := key.GetUserFromEmail(c.Request().Context(), em)
-		if err == nil && key.OrgID > 0 && key.UserID > 0 {
-			ou = org_users.NewOrgUserWithID(key.OrgID, key.UserID)
-			c.Set("orgUser", ou)
-		}
-	}
-	for k, v := range a.Subject {
-		content += k + ": " + v.(string) + "\n"
-	}
-	for k, v := range a.Body {
-		content += k + ": " + v.(string) + "\n"
-	}
+	//for k, v := range a.Subject {
+	//	content += k + ": " + v.(string) + "\n"
+	//}
+
+	content += a.Subject + "\n"
+	content += a.Body + "\n"
 	fmt.Println(content)
 	fmt.Println(ou.UserID, ou.OrgID)
-	err := kronos_helix.KronosServiceWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, content)
+	err = kronos_helix.KronosServiceWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, content)
 	if err != nil {
 		log.Err(err).Msg("CreateAIServiceTaskRequestHandler")
 		return err

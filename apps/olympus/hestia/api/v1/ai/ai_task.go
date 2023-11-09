@@ -46,7 +46,7 @@ func (a *AIServiceRequest) AcknowledgeAITask(c echo.Context) error {
 	//for k, v := range a.Subject {
 	//	content += k + ": " + v.(string) + "\n"
 	//}
-
+	content = "write a bullet point summary of the email contents below, and then suggest a few different reponses they can choose to respond if it calls for a response\n"
 	content += a.Subject + "\n"
 	content += a.Body + "\n"
 	fmt.Println(a.Email)

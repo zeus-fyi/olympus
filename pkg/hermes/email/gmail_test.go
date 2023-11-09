@@ -14,16 +14,18 @@ func (s *EmailTestSuite) TestNewGmail() {
 }
 
 func (s *EmailTestSuite) TestNewGmailWorker() {
-	em := "alex@zeus.fyi"
+	em := "ai@zeus.fyi"
 	gs := NewGmailServiceClient(ctx, s.Tc.GcpAuthJson, em)
 
-	emailContents, err := gs.GetReadEmails(em)
+	emailContents, err := gs.GetReadEmails(em, 5)
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
 	for _, emailContent := range emailContents {
-		fmt.Println("Email: ", emailContent.From)
-		fmt.Println("Subject: ", emailContent.Subject)
-		fmt.Println("Body: ", emailContent.Body)
+		fmt.Println("=========================================")
+		fmt.Println("MsgId: ", emailContent.MsgId)
+		//fmt.Println("Email: ", emailContent.From)
+		//fmt.Println("Subject: ", emailContent.Subject)
+		//fmt.Println("Body: ", emailContent.Body)
 	}
 }

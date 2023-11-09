@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
 )
 
 var (
+	AIEmailUser      GmailServiceClient
 	MainEmailUser    GmailServiceClient
 	SupportEmailUser GmailServiceClient
 )
@@ -41,13 +43,14 @@ func (g *GmailServiceClient) ReadEmails(email string) {
 }
 
 type EmailContents struct {
+	MsgId   int
 	From    string
 	Subject string
 	Body    string
 }
 
-func (g *GmailServiceClient) GetReadEmails(email string) ([]EmailContents, error) {
-	r, err := g.Users.Messages.List(email).MaxResults(5).Do()
+func (g *GmailServiceClient) GetReadEmails(email string, maxResults int) ([]EmailContents, error) {
+	r, err := g.Users.Messages.List(email).MaxResults(int64(maxResults)).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +68,13 @@ func (g *GmailServiceClient) GetReadEmails(email string) ([]EmailContents, error
 
 		var emailContents EmailContents
 		if msg != nil {
+
+			mid, err := hexToDecimal(msg.Id)
+			if err != nil {
+				return nil, err
+			}
+			emailContents.MsgId = int(mid)
+
 			// Extracting the headers for sender and subject
 			for _, header := range msg.Payload.Headers {
 				if header.Name == "From" {
@@ -88,13 +98,14 @@ func (g *GmailServiceClient) GetReadEmails(email string) ([]EmailContents, error
 				for _, part := range msg.Payload.Parts {
 					if part.MimeType == "text/plain" {
 						body += decodeBase64URL(part.Body.Data)
-					} else if part.MimeType == "multipart/alternative" {
-						for _, subPart := range part.Parts {
-							if subPart.MimeType == "text/plain" {
-								body += decodeBase64URL(subPart.Body.Data)
-							}
-						}
 					}
+					//} else if part.MimeType == "multipart/alternative" {
+					//	for _, subPart := range part.Parts {
+					//		if subPart.MimeType == "text/plain" {
+					//			body += decodeBase64URL(subPart.Body.Data)
+					//		}
+					//	}
+					//}
 				}
 			}
 			emailContents.Body = body // Assign the decoded body to the struct
@@ -103,6 +114,15 @@ func (g *GmailServiceClient) GetReadEmails(email string) ([]EmailContents, error
 		}
 	}
 	return emails, nil
+}
+
+// hexToDecimal converts a hexadecimal string to a decimal number.
+func hexToDecimal(hexStr string) (int64, error) {
+	decimalValue, err := strconv.ParseInt(hexStr, 16, 64)
+	if err != nil {
+		return 0, err
+	}
+	return decimalValue, nil
 }
 
 // Helper function to decode base64 URL encoded strings
@@ -117,6 +137,7 @@ func decodeBase64URL(base64Message string) string {
 
 func InitNewGmailServiceClients(ctx context.Context, authJsonBytes []byte) {
 	MainEmailUser = NewGmailServiceClient(ctx, authJsonBytes, "alex@zeus.fyi")
+	AIEmailUser = NewGmailServiceClient(ctx, authJsonBytes, "ai@zeus.fyi")
 	SupportEmailUser = NewGmailServiceClient(ctx, authJsonBytes, "support@zeus.fyi")
 	return
 }

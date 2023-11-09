@@ -48,6 +48,7 @@ type TestContainer struct {
 	AwsSecretKeyEks             string
 	InfraCostAPIKey             string
 	GcpAuthJson                 []byte
+	GmailAuthJson               []byte
 	TwitterAccessToken          string
 	TwitterAccessTokenSecret    string
 	TwitterBearerToken          string
@@ -205,6 +206,12 @@ func InitLocalTestConfigs() TestContainer {
 	if err != nil {
 		log.Info().Err(err).Msg("error reading gcp auth json file")
 	}
+	p.FnIn = "zgmail.json"
+	b2, err := p.ReadFileInPath()
+	if err != nil {
+		log.Info().Err(err).Msg("error reading gcp auth json file")
+	}
+	testCont.GmailAuthJson = b2
 	qn := QuickNodeURLS{
 		TestRoute: viper.GetString("QUIKNODE_TEST"),
 		Routes:    []string{},

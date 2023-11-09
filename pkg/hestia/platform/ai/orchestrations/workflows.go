@@ -1,15 +1,38 @@
-package kronos_helix
+package ai_platform_service_orchestrations
 
 import (
 	"time"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
-func (k *KronosWorkflow) AiWorkflow(ctx workflow.Context, ou org_users.OrgUser, email, content string) error {
+type HestiaAiPlatformServiceWorkflows struct {
+	temporal_base.Workflow
+	HestiaAiPlatformActivities
+}
+
+const defaultTimeout = 72 * time.Hour
+
+func NewHestiaPlatformServiceWorkflows() HestiaAiPlatformServiceWorkflows {
+	deployWf := HestiaAiPlatformServiceWorkflows{
+		Workflow: temporal_base.Workflow{},
+	}
+	return deployWf
+}
+
+func (h *HestiaAiPlatformServiceWorkflows) GetWorkflows() []interface{} {
+	return []interface{}{}
+}
+
+const (
+	internalOrgID = 7138983863666903883
+)
+
+func (h *HestiaAiPlatformServiceWorkflows) AiWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, email, content string) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -20,7 +43,7 @@ func (k *KronosWorkflow) AiWorkflow(ctx workflow.Context, ou org_users.OrgUser, 
 	}
 	runAiTaskCtx := workflow.WithActivityOptions(ctx, ao)
 	var resp openai.ChatCompletionResponse
-	err := workflow.ExecuteActivity(runAiTaskCtx, k.AiTask, ou, content).Get(runAiTaskCtx, &resp)
+	err := workflow.ExecuteActivity(runAiTaskCtx, h.AiTask, ou, content).Get(runAiTaskCtx, &resp)
 	if err != nil {
 		logger.Error("failed to execute AiTask", "Error", err)
 		// You can decide if you want to return the error or continue monitoring.
@@ -28,7 +51,7 @@ func (k *KronosWorkflow) AiWorkflow(ctx workflow.Context, ou org_users.OrgUser, 
 	}
 
 	sendEmailTaskCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(sendEmailTaskCtx, k.SendTaskResponseEmail, email, resp).Get(sendEmailTaskCtx, &resp)
+	err = workflow.ExecuteActivity(sendEmailTaskCtx, h.SendTaskResponseEmail, email, resp).Get(sendEmailTaskCtx, &resp)
 	if err != nil {
 		logger.Error("failed to execute SaveAiTaskResponse", "Error", err)
 		// You can decide if you want to return the error or continue monitoring.
@@ -37,7 +60,7 @@ func (k *KronosWorkflow) AiWorkflow(ctx workflow.Context, ou org_users.OrgUser, 
 
 	if ou.OrgID > 0 && ou.UserID > 0 {
 		saveAiTaskCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(saveAiTaskCtx, k.SaveAiTaskResponse, ou, resp).Get(saveAiTaskCtx, &resp)
+		err = workflow.ExecuteActivity(saveAiTaskCtx, h.SaveAiTaskResponse, ou, resp).Get(saveAiTaskCtx, &resp)
 		if err != nil {
 			logger.Error("failed to execute SaveAiTaskResponse", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.

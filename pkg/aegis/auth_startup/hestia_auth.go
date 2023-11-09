@@ -56,6 +56,7 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	InitAtlassianKeys(ctx, inMemSecrets, &sw)
 	sw.GmailApiKey = sw.MustReadSecret(ctx, inMemSecrets, gmailApiKey)
 	sw.OpenAIToken = sw.MustReadSecret(ctx, inMemSecrets, heraOpenAIAuth)
+	sw.GmailAuthJsonBytes = sw.ReadSecretBytes(ctx, inMemSecrets, gmailAuthJson)
 	hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw

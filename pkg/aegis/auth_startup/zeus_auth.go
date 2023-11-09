@@ -14,6 +14,8 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	log.Info().Msg("RunZeusDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
 	sw.GcpAuthJsonBytes = sw.ReadSecretBytes(ctx, inMemSecrets, gcpAuthJson)
+
+	// gmailAuthJson
 	sw.DoctlToken = sw.MustReadSecret(ctx, inMemSecrets, doctlSecret)
 	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	sw.StripeSecretKey = sw.MustReadSecret(ctx, inMemSecrets, stripeSecretKey)

@@ -26,8 +26,11 @@ const (
 	pagerDutySecret      = "secrets/pagerduty.txt"
 	pagerDutyRoutingKey  = "secrets/pagerduty.routing.key.txt"
 	gcpAuthJson          = "secrets/zeusfyi-23264580e41d.json"
-	eksAccessKey         = "secrets/aws.eks.access.key.txt"
-	eksSecretKey         = "secrets/aws.eks.secret.key.txt"
+
+	gmailAuthJson = "secrets/zgmail.json"
+
+	eksAccessKey = "secrets/aws.eks.access.key.txt"
+	eksSecretKey = "secrets/aws.eks.secret.key.txt"
 
 	ovhAppKey      = "secrets/ovh.app.key.txt"
 	ovhSecretKey   = "secrets/ovh.secret.key.txt"
@@ -59,6 +62,7 @@ type SecretsWrapper struct {
 	PagerDutyRoutingKey    string
 	SendGridAPIKey         string
 	GcpAuthJsonBytes       []byte
+	GmailAuthJsonBytes     []byte
 
 	GoogClientID     string
 	GoogClientSecret string

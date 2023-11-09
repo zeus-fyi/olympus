@@ -28,6 +28,7 @@ import (
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
+	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/ai/orchestrations"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
@@ -240,6 +241,18 @@ func Hestia() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Hestia: InitHestiaQuickNodeWorker done")
+
+	log.Info().Msg("Hestia: InitHestiaAiPlatformWorker starting")
+	ai_platform_service_orchestrations.InitHestiaIrisPlatformServicesWorker(context.Background(), temporalAuthConfigHestia)
+	aiHestia := ai_platform_service_orchestrations.HestiaAiPlatformWorker.Worker.ConnectTemporalClient()
+	defer aiHestia.Close()
+	ai_platform_service_orchestrations.HestiaAiPlatformWorker.Worker.RegisterWorker(aiHestia)
+	err = ai_platform_service_orchestrations.HestiaAiPlatformWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Hestia: %s HestiaAiPlatformWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Hestia: InitHestiaAiPlatformWorker done")
 
 	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker start")
 	platform_service_orchestrations.InitHestiaIrisPlatformServicesWorker(context.Background(), temporalAuthConfigHestia)

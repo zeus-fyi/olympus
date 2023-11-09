@@ -145,10 +145,8 @@ func InitV1WebhooksRoutes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-
 	eg.GET("/emails/support", zeus_webhooks.SupportEmailAIServiceTaskRequestHandler)
 	eg.GET("/emails/alex", zeus_webhooks.AlexEmailAIServiceTaskRequestHandler)
-
 }
 
 func Health(c echo.Context) error {

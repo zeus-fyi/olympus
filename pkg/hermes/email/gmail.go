@@ -38,6 +38,29 @@ func (g *GmailServiceClient) ReadEmails(email string) {
 	}
 }
 
+func (g *GmailServiceClient) GetReadEmails(email string) ([]gmail.Message, error) {
+	r, err := g.Users.Messages.List(email).MaxResults(5).Do()
+	if err != nil {
+		return nil, err
+	}
+	msgs := []gmail.Message{}
+	if len(r.Messages) == 0 {
+		fmt.Println("No messages found.")
+	} else {
+		fmt.Println("Messages:")
+		for _, m := range r.Messages {
+			msg, err := g.Users.Messages.Get(email, m.Id).Do()
+			if err != nil {
+				return nil, err
+			}
+			if msg != nil {
+				msgs = append(msgs, *msg)
+			}
+		}
+	}
+	return msgs, err
+}
+
 func InitNewGmailServiceClients(ctx context.Context, authJsonBytes []byte) {
 	MainEmailUser = NewGmailServiceClient(ctx, authJsonBytes, "alex@zeus.fyi")
 	SupportEmailUser = NewGmailServiceClient(ctx, authJsonBytes, "support@zeus.fyi")

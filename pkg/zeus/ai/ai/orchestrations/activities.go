@@ -9,26 +9,24 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
-	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 )
 
-type HestiaAiPlatformActivities struct {
-	kronos_helix.KronosActivities
+type ZeusAiPlatformActivities struct {
 }
 
-func NewHestiaAiPlatformActivities() HestiaAiPlatformActivities {
-	return HestiaAiPlatformActivities{}
+func NewZeusAiPlatformActivities() ZeusAiPlatformActivities {
+	return ZeusAiPlatformActivities{}
 }
 
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
-func (h *HestiaAiPlatformActivities) GetActivities() ActivitiesSlice {
+func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail}
 	return actSlice
 }
 
-func (h *HestiaAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, content string) (openai.ChatCompletionResponse, error) {
+func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, content string) (openai.ChatCompletionResponse, error) {
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
@@ -45,7 +43,7 @@ func (h *HestiaAiPlatformActivities) AiTask(ctx context.Context, ou org_users.Or
 	return resp, err
 }
 
-func (h *HestiaAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse) error {
+func (h *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse) error {
 	err := hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
 	if err != nil {
 		log.Err(err).Msg("SaveAiTaskResponse: RecordUIChatRequestUsage failed")
@@ -54,7 +52,7 @@ func (h *HestiaAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou 
 	return nil
 }
 
-func (h *HestiaAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, email string, resp openai.ChatCompletionResponse) error {
+func (h *ZeusAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, email string, resp openai.ChatCompletionResponse) error {
 	content := ""
 	for _, msg := range resp.Choices {
 		content += msg.Message.Content + "\n"

@@ -13,6 +13,7 @@ import (
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_v1_router "github.com/zeus-fyi/olympus/zeus/api/v1"
+	zeus_webhooks "github.com/zeus-fyi/olympus/zeus/api/webhooks"
 )
 
 func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc) *echo.Echo {
@@ -24,6 +25,8 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc)
 	InitV1Routes(e, k8Cfg, mw)
 	// internal
 	InitV1InternalRoutes(e, k8Cfg)
+
+	InitV1WebhooksRoutes(e)
 	// external
 	InitV1ActionsRoutes(e, k8Cfg, mw)
 	InitV1RoutesUI(e, k8Cfg, mw)
@@ -123,6 +126,29 @@ func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 		},
 	}))
 	eg = zeus_v1_router.V1InternalRoutes(eg, k8Cfg)
+}
+
+func InitV1WebhooksRoutes(e *echo.Echo) {
+	eg := e.Group("/v1/webhooks")
+	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(token string, c echo.Context) (bool, error) {
+			ctx := context.Background()
+			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusWebhooksService)
+			if err != nil {
+				log.Err(err).Msg("InitV1InternalRoutes")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("orgUser", ou)
+			c.Set("bearer", key.PublicKey)
+			return key.PublicKeyVerified, err
+		},
+	}))
+
+	eg.GET("/emails/support", zeus_webhooks.SupportEmailAIServiceTaskRequestHandler)
+	eg.GET("/emails/alex", zeus_webhooks.AlexEmailAIServiceTaskRequestHandler)
+
 }
 
 func Health(c echo.Context) error {

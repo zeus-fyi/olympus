@@ -9,14 +9,14 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (h *HestiaAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context, ou org_users.OrgUser, em, content string) error {
+func (h *ZeusAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context, ou org_users.OrgUser, em, content string) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: h.TaskQueueName,
 		ID:        uuid.New().String(),
 	}
-	txWf := NewHestiaPlatformServiceWorkflows()
+	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.AiWorkflow
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, em, content)
 	if err != nil {

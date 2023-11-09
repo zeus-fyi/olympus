@@ -2,6 +2,7 @@ package zeus_server
 
 import (
 	"context"
+	"os"
 	"os/exec"
 
 	"github.com/labstack/echo/v4"
@@ -15,9 +16,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/ai/orchestrations"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	pods_workflows "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/pods"
@@ -79,6 +82,24 @@ func Zeus() {
 		err = cmd.Run()
 		if err != nil {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
+			misc.DelayedPanic(err)
+		}
+		cmd = exec.Command("/google-cloud-sdk/bin/gcloud", "auth", "activate-service-account", "124747340870-compute@developer.gserviceaccount.com", "--key-file", "/secrets/gcp_auth.json")
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
+			misc.DelayedPanic(err)
+		}
+		data, err := os.ReadFile("/secrets/gcp_auth.json")
+		if err != nil {
+			misc.DelayedPanic(err)
+		}
+		log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: starting email account auth")
+		hermes_email_notifications.InitNewGmailServiceClients(ctx, data)
+		log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: starting email account done")
+		err = p.RemoveFileInPath()
+		if err != nil {
+			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to remove gcp auth json, shutting down the server")
 			misc.DelayedPanic(err)
 		}
 		err = p.RemoveFileInPath()
@@ -157,6 +178,18 @@ func Zeus() {
 		log.Fatal().Err(err).Msgf("Zeus: %s topology_worker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
+
+	log.Info().Msg("Zeus: InitZeusAiPlatformWorker starting")
+	ai_platform_service_orchestrations.InitZeusAiServicesWorker(context.Background(), temporalAuthCfg)
+	aiZ := ai_platform_service_orchestrations.ZeusAiPlatformWorker.Worker.ConnectTemporalClient()
+	defer aiZ.Close()
+	ai_platform_service_orchestrations.ZeusAiPlatformWorker.Worker.RegisterWorker(aiZ)
+	err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Zeus: %s ZeusAiPlatformWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Zeus: InitHestiaAiPlatformWorker done")
 
 	log.Info().Msgf("Zeus: %s temporal setup is complete", env)
 	log.Info().Msgf("Zeus: %s server starting", env)

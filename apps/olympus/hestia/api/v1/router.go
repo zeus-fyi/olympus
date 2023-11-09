@@ -146,8 +146,6 @@ func InitV1InternalRoutes(e *echo.Echo) {
 		},
 	}))
 
-	eg.GET("/email/support", hestia_v1_ai.SupportEmailAIServiceTaskRequestHandler)
-
 	eg.POST("/zapier/ai/task", hestia_v1_ai.CreateAIServiceTaskRequestHandler)
 	eg.POST(DemoUsersCreateRoute, CreateDemoUserHandler)
 	eg.DELETE(IrisDeleteRoutesPathInternal, hestia_iris_v1_routes.InternalDeleteOrgRoutesRequestHandler)

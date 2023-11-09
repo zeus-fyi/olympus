@@ -2,8 +2,10 @@ package hermes_email_notifications
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
+	"regexp"
 
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
@@ -38,27 +40,79 @@ func (g *GmailServiceClient) ReadEmails(email string) {
 	}
 }
 
-func (g *GmailServiceClient) GetReadEmails(email string) ([]gmail.Message, error) {
+type EmailContents struct {
+	From    string
+	Subject string
+	Body    string
+}
+
+func (g *GmailServiceClient) GetReadEmails(email string) ([]EmailContents, error) {
 	r, err := g.Users.Messages.List(email).MaxResults(5).Do()
 	if err != nil {
 		return nil, err
 	}
-	msgs := []gmail.Message{}
+	var emails []EmailContents // Slice of EmailContents instead of gmail.Message
 	if len(r.Messages) == 0 {
 		fmt.Println("No messages found.")
-	} else {
-		fmt.Println("Messages:")
-		for _, m := range r.Messages {
-			msg, err := g.Users.Messages.Get(email, m.Id).Do()
-			if err != nil {
-				return nil, err
+		return emails, nil
+	}
+	fmt.Println("Messages:")
+	for _, m := range r.Messages {
+		msg, err := g.Users.Messages.Get(email, m.Id).Format("full").Do()
+		if err != nil {
+			return nil, err
+		}
+
+		var emailContents EmailContents
+		if msg != nil {
+			// Extracting the headers for sender and subject
+			for _, header := range msg.Payload.Headers {
+				if header.Name == "From" {
+					// Use regular expression to extract just the email address
+					re := regexp.MustCompile(`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
+					emailMatches := re.FindStringSubmatch(header.Value)
+					if len(emailMatches) > 0 {
+						emailContents.From = emailMatches[0] // Assign the extracted email address
+					}
+				}
+				if header.Name == "Subject" {
+					emailContents.Subject = header.Value
+				}
 			}
-			if msg != nil {
-				msgs = append(msgs, *msg)
+
+			// Extracting the body of the email
+			body := ""
+			if msg.Payload.Parts == nil {
+				body = decodeBase64URL(msg.Payload.Body.Data)
+			} else {
+				for _, part := range msg.Payload.Parts {
+					if part.MimeType == "text/plain" {
+						body += decodeBase64URL(part.Body.Data)
+					} else if part.MimeType == "multipart/alternative" {
+						for _, subPart := range part.Parts {
+							if subPart.MimeType == "text/plain" {
+								body += decodeBase64URL(subPart.Body.Data)
+							}
+						}
+					}
+				}
 			}
+			emailContents.Body = body // Assign the decoded body to the struct
+
+			emails = append(emails, emailContents) // Append the constructed EmailContents to the slice
 		}
 	}
-	return msgs, err
+	return emails, nil
+}
+
+// Helper function to decode base64 URL encoded strings
+func decodeBase64URL(base64Message string) string {
+	data, err := base64.URLEncoding.DecodeString(base64Message)
+	if err != nil {
+		fmt.Println("Error decoding base64 message: ", err)
+		return ""
+	}
+	return string(data)
 }
 
 func InitNewGmailServiceClients(ctx context.Context, authJsonBytes []byte) {

@@ -3,8 +3,6 @@ package hestia_server
 import (
 	"context"
 	"errors"
-	"os"
-	"os/exec"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -30,7 +28,6 @@ import (
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
-	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/ai/orchestrations"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
@@ -39,7 +36,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	artemis_client "github.com/zeus-fyi/zeus/pkg/artemis/client"
-	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 var (
@@ -118,44 +114,6 @@ func Hestia() {
 		hestia_login.GoogleOAuthConfig.ClientID = sw.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = sw.GoogClientSecret
 		//hestia_analytics.GtagApiSecret = sw.GoogGtagSecret
-		p := filepaths.Path{
-			PackageName: "",
-			DirIn:       "/secrets",
-			DirOut:      "/secrets",
-			FnOut:       "gcp_auth.json",
-			FnIn:        "gcp_auth.json",
-			Env:         "",
-			FilterFiles: nil,
-		}
-		err := p.WriteToFileOutPath(sw.GcpAuthJsonBytes)
-		if err != nil {
-			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to write gcp auth json, shutting down the server")
-			misc.DelayedPanic(err)
-		}
-		cmd := exec.Command("/google-cloud-sdk/bin/gcloud", "auth", "login", "--cred-file", "/secrets/gcp_auth.json")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
-			misc.DelayedPanic(err)
-		}
-		cmd = exec.Command("/google-cloud-sdk/bin/gcloud", "auth", "activate-service-account", "124747340870-compute@developer.gserviceaccount.com", "--key-file", "/secrets/gcp_auth.json")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
-			misc.DelayedPanic(err)
-		}
-		data, err := os.ReadFile("/secrets/gcp_auth.json")
-		if err != nil {
-			misc.DelayedPanic(err)
-		}
-		log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: starting email account auth")
-		hermes_email_notifications.InitNewGmailServiceClients(ctx, data)
-		log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: starting email account done")
-		err = p.RemoveFileInPath()
-		if err != nil {
-			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to remove gcp auth json, shutting down the server")
-			misc.DelayedPanic(err)
-		}
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -282,19 +240,6 @@ func Hestia() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Hestia: InitHestiaQuickNodeWorker done")
-
-	log.Info().Msg("Hestia: InitHestiaAiPlatformWorker starting")
-	ai_platform_service_orchestrations.InitHestiaIrisPlatformServicesWorker(context.Background(), temporalAuthConfigHestia)
-	aiHestia := ai_platform_service_orchestrations.HestiaAiPlatformWorker.Worker.ConnectTemporalClient()
-	defer aiHestia.Close()
-	ai_platform_service_orchestrations.HestiaAiPlatformWorker.Worker.RegisterWorker(aiHestia)
-	err = ai_platform_service_orchestrations.HestiaAiPlatformWorker.Worker.Start()
-	if err != nil {
-		log.Fatal().Err(err).Msgf("Hestia: %s HestiaAiPlatformWorker.Worker.Start failed", env)
-		misc.DelayedPanic(err)
-	}
-	log.Info().Msg("Hestia: InitHestiaAiPlatformWorker done")
-
 	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker start")
 	platform_service_orchestrations.InitHestiaIrisPlatformServicesWorker(context.Background(), temporalAuthConfigHestia)
 	platform_service_orchestrations.HestiaPlatformServiceWorker.Worker.RegisterWorker(cHestia)

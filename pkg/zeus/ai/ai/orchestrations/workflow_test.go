@@ -9,30 +9,30 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
-type HestiaAiWorkerTestSuite struct {
+type ZeusWorkerTestSuite struct {
 	test_suites_base.TestSuite
 }
 
 var ctx = context.Background()
 
-func (t *HestiaAiWorkerTestSuite) SetupTest() {
+func (t *ZeusWorkerTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 }
 
-func (t *HestiaAiWorkerTestSuite) TestInitWorker() {
+func (t *ZeusWorkerTestSuite) TestInitWorker() {
 	ta := t.Tc.DevTemporalAuth
-	InitHestiaIrisPlatformServicesWorker(ctx, ta)
-	cKronos := HestiaAiPlatformWorker.Worker.ConnectTemporalClient()
+	InitZeusAiServicesWorker(ctx, ta)
+	cKronos := ZeusAiPlatformWorker.Worker.ConnectTemporalClient()
 	defer cKronos.Close()
-	HestiaAiPlatformWorker.Worker.RegisterWorker(cKronos)
-	err := HestiaAiPlatformWorker.Worker.Start()
+	ZeusAiPlatformWorker.Worker.RegisterWorker(cKronos)
+	err := ZeusAiPlatformWorker.Worker.Start()
 	t.Require().Nil(err)
 
 }
 
 func TestHestiaAiWorkerTestSuite(t *testing.T) {
-	suite.Run(t, new(HestiaAiWorkerTestSuite))
+	suite.Run(t, new(ZeusWorkerTestSuite))
 }
 
 //func (t *KronosWorkerTestSuite) TestAiWorkflow() {

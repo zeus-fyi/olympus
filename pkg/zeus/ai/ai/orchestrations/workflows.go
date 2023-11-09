@@ -12,12 +12,12 @@ import (
 
 type HestiaAiPlatformServiceWorkflows struct {
 	temporal_base.Workflow
-	HestiaAiPlatformActivities
+	ZeusAiPlatformActivities
 }
 
 const defaultTimeout = 72 * time.Hour
 
-func NewHestiaPlatformServiceWorkflows() HestiaAiPlatformServiceWorkflows {
+func NewZeusPlatformServiceWorkflows() HestiaAiPlatformServiceWorkflows {
 	deployWf := HestiaAiPlatformServiceWorkflows{
 		Workflow: temporal_base.Workflow{},
 	}

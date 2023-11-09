@@ -36,13 +36,6 @@ COPY . .
 
 RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o hestia apps/olympus/hestia/main.go
 
-FROM ubuntu:22.04 as gcp
-RUN apt-get update && apt-get install -y wget
-WORKDIR /app
-
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-429.0.0-linux-x86_64.tar.gz -O google-cloud-cli.tar.gz
-
-
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
 
@@ -61,16 +54,5 @@ COPY --from=src_builder /app/ca.pem /etc/ssl/certs
 COPY --from=src_builder /app/ca.key /etc/ssl/certs
 
 COPY --from=src_builder /app/hestia /usr/bin/hestia
-
-COPY --from=gcp /app/google-cloud-cli.tar.gz /
-
-RUN tar xf google-cloud-cli.tar.gz
-RUN rm google-cloud-cli.tar.gz
-RUN ./google-cloud-sdk/install.sh
-RUN /google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin
-RUN chmod +x /google-cloud-sdk/bin/gcloud
-RUN chmod +x /google-cloud-sdk/bin/gke-gcloud-auth-plugin
-
-ENV PATH $PATH:/google-cloud-sdk/bin
 
 EXPOSE 9002

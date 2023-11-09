@@ -11,6 +11,7 @@ import (
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	hestia_v1_ai "github.com/zeus-fyi/olympus/hestia/api/v1/ai"
 	"github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
 	hestia_iris_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/iris"
 	hestia_quiknode_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/quiknode"
@@ -27,6 +28,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	hestia_quiknode_v1_routes.InitV1RoutesServices(e)
 	InitV1Routes(e)
 	InitV1InternalRoutes(e)
+	InitZapierWebhooks(e)
 	return e
 }
 
@@ -143,12 +145,29 @@ func InitV1InternalRoutes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+
+	eg.POST("/ai/task", hestia_v1_ai.CreateAIServiceTaskRequestHandler)
 	eg.POST(DemoUsersCreateRoute, CreateDemoUserHandler)
 	eg.DELETE(IrisDeleteRoutesPathInternal, hestia_iris_v1_routes.InternalDeleteOrgRoutesRequestHandler)
 
 	//eg.POST("/users/create", CreateUserHandler)
 	//eg.POST("/orgs/create", CreateOrgHandler)
 	//eg.POST("/cloud/namespace/request/create", CreateTopologiesOrgCloudCtxNsRequestHandler)
+}
+
+func InitZapierWebhooks(e *echo.Echo) {
+	eg := e.Group("/internal/v1/zapier")
+	eg.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+		if len(password) <= 0 {
+			return false, nil
+		}
+		if password != hestia_quiknode_v1_routes.QuickNodePassword {
+			return false, nil
+		}
+		return true, nil
+	}))
+
+	eg.POST("/ai/task", hestia_v1_ai.CreateAIServiceTaskRequestHandler)
 }
 
 func Health(c echo.Context) error {

@@ -62,6 +62,8 @@ COPY --from=src_builder /app/ca.key /etc/ssl/certs
 
 COPY --from=src_builder /app/hestia /usr/bin/hestia
 
+COPY --from=gcp /app/google-cloud-cli.tar.gz /
+
 RUN tar xf google-cloud-cli.tar.gz
 RUN rm google-cloud-cli.tar.gz
 RUN ./google-cloud-sdk/install.sh

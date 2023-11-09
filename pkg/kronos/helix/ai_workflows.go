@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (k *KronosWorkflow) AiWorkflow(ctx workflow.Context, ou org_users.OrgUser, content string) error {
+func (k *KronosWorkflow) AiWorkflow(ctx workflow.Context, ou org_users.OrgUser, email, content string) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -26,12 +26,23 @@ func (k *KronosWorkflow) AiWorkflow(ctx workflow.Context, ou org_users.OrgUser, 
 		// You can decide if you want to return the error or continue monitoring.
 		return err
 	}
-	saveAiTaskCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(saveAiTaskCtx, k.SaveAiTaskResponse, ou, resp).Get(saveAiTaskCtx, &resp)
+
+	sendEmailTaskCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(sendEmailTaskCtx, k.SendTaskResponseEmail, email, resp).Get(sendEmailTaskCtx, &resp)
 	if err != nil {
 		logger.Error("failed to execute SaveAiTaskResponse", "Error", err)
 		// You can decide if you want to return the error or continue monitoring.
 		return err
+	}
+
+	if ou.OrgID > 0 && ou.UserID > 0 {
+		saveAiTaskCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(saveAiTaskCtx, k.SaveAiTaskResponse, ou, resp).Get(saveAiTaskCtx, &resp)
+		if err != nil {
+			logger.Error("failed to execute SaveAiTaskResponse", "Error", err)
+			// You can decide if you want to return the error or continue monitoring.
+			return err
+		}
 	}
 	return nil
 }

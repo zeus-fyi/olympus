@@ -52,7 +52,7 @@ func (a *AIServiceRequest) AcknowledgeAITask(c echo.Context) error {
 	fmt.Println(a.Email)
 	fmt.Println(content)
 	fmt.Println(ou.UserID, ou.OrgID)
-	err = kronos_helix.KronosServiceWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, content)
+	err = kronos_helix.KronosServiceWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, a.Email, content)
 	if err != nil {
 		log.Err(err).Msg("CreateAIServiceTaskRequestHandler")
 		return err

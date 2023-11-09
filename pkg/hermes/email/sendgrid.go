@@ -36,3 +36,16 @@ func (h *HermesEmailNotifications) SendSendGridEmailVerifyRequest(ctx context.Co
 	}
 	return resp, err
 }
+
+func (h *HermesEmailNotifications) SendAITaskResponse(ctx context.Context, em, content string) (*rest.Response, error) {
+	from := mail.NewEmail("Zeus Cloud", "alex@zeus.fyi")
+	subject := "Zeus Cloud AI Task Response"
+	to := mail.NewEmail("", em)
+	message := mail.NewSingleEmail(from, subject, to, content, content)
+	resp, err := h.SendGrid.Send(message)
+	if err != nil {
+		log.Err(err).Msg("HermesEmailNotifications: SendAITaskResponse: error")
+		return nil, err
+	}
+	return resp, err
+}

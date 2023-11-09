@@ -8,6 +8,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 )
 
 func (k *KronosActivities) AiTask(ctx context.Context, ou org_users.OrgUser, content string) (openai.ChatCompletionResponse, error) {
@@ -35,3 +36,18 @@ func (k *KronosActivities) SaveAiTaskResponse(ctx context.Context, ou org_users.
 	}
 	return nil
 }
+
+func (k *KronosActivities) SendTaskResponseEmail(ctx context.Context, email string, resp openai.ChatCompletionResponse) error {
+	content := ""
+	for _, msg := range resp.Choices {
+		content += msg.Message.Content + "\n"
+	}
+	_, err := hermes_email_notifications.Hermes.SendAITaskResponse(ctx, email, content)
+	if err != nil {
+		log.Err(err).Msg("SendTaskResponseEmail: SendAITaskResponse failed")
+		return err
+	}
+	return nil
+}
+
+// SendAITaskResponse

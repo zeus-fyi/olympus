@@ -37,6 +37,7 @@ func (k *KronosActivities) GetActivities() ActivitiesSlice {
 		k.StartCronJobWorkflow,
 		k.AiTask,
 		k.SaveAiTaskResponse,
+		k.SendTaskResponseEmail,
 	}
 }
 

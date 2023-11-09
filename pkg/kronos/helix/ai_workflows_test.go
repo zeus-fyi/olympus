@@ -1,5 +1,7 @@
 package kronos_helix
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+
 func (t *KronosWorkerTestSuite) TestAiWorkflow() {
 	ta := t.Tc.DevTemporalAuth
 	//ns := "kronos.ngb72"
@@ -13,6 +15,10 @@ func (t *KronosWorkerTestSuite) TestAiWorkflow() {
 	err := KronosServiceWorker.Worker.Start()
 	t.Require().Nil(err)
 
-	err = KronosServiceWorker.ExecuteKronosWorkflow(ctx)
+	ou := org_users.OrgUser{}
+	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = 7138958574876245565
+	content := "write why is my golang json unmarshal not working properly only on linux"
+	err = KronosServiceWorker.ExecuteAiTaskWorkflow(ctx, ou, content)
 	t.Require().Nil(err)
 }

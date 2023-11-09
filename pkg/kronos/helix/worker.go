@@ -39,7 +39,7 @@ func (k *KronosWorker) ExecuteKronosWorkflow(ctx context.Context) error {
 	return nil
 }
 
-func (k *KronosWorker) ExecuteAiTaskWorkflow(ctx context.Context, ou org_users.OrgUser, content string) error {
+func (k *KronosWorker) ExecuteAiTaskWorkflow(ctx context.Context, ou org_users.OrgUser, em, content string) error {
 	tc := k.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -48,7 +48,7 @@ func (k *KronosWorker) ExecuteAiTaskWorkflow(ctx context.Context, ou org_users.O
 	}
 	txWf := NewKronosWorkflow()
 	wf := txWf.AiWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, content)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, em, content)
 	if err != nil {
 		log.Err(err).Msg("ExecuteAiTaskWorkflow")
 		return err

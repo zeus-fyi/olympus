@@ -3,6 +3,7 @@ package hestia_server
 import (
 	"context"
 	"errors"
+	"os"
 	"os/exec"
 
 	"github.com/labstack/echo/v4"
@@ -143,8 +144,12 @@ func Hestia() {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
 			misc.DelayedPanic(err)
 		}
+		data, err := os.ReadFile("/secret/gcp_auth.json")
+		if err != nil {
+			misc.DelayedPanic(err)
+		}
 		log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: starting email account auth")
-		hermes_email_notifications.InitNewGmailServiceClients(ctx, sw.GmailAuthJsonBytes)
+		hermes_email_notifications.InitNewGmailServiceClients(ctx, data)
 		err = p.RemoveFileInPath()
 		if err != nil {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to remove gcp auth json, shutting down the server")

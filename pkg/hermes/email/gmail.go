@@ -47,6 +47,7 @@ func InitNewGmailServiceClients(ctx context.Context, authJsonBytes []byte) {
 func NewGmailServiceClient(ctx context.Context, authJsonBytes []byte, email string) GmailServiceClient {
 	// Read the service account key file
 	// Authenticate and create the service
+
 	conf, err := google.JWTConfigFromJSON(authJsonBytes, gmail.GmailReadonlyScope)
 	if err != nil {
 		log.Fatalf("JWTConfigFromJSON: %v", err)

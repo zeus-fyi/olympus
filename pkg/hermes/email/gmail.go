@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -70,19 +69,14 @@ func saveToken(path string, token *oauth2.Token) {
 }
 
 // NewGmailService creates a new Gmail service.
-func NewGmailService(ctx context.Context) (*gmail.Service, error) {
-	b, err := ioutil.ReadFile("credentials.json") // Your OAuth 2.0 credentials.
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
-	}
+func NewGmailService(ctx context.Context, creds []byte) (*gmail.Service, error) {
 
 	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, gmail.GmailReadonlyScope)
+	config, err := google.ConfigFromJSON(creds, gmail.GmailReadonlyScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
 	client := getClient(config)
-
 	srv, err := gmail.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		log.Fatalf("Unable to retrieve Gmail client: %v", err)

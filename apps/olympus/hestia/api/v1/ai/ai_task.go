@@ -2,6 +2,7 @@ package hestia_v1_ai
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -50,9 +51,12 @@ func (a *AIServiceRequest) AcknowledgeAITask(c echo.Context) error {
 	for k, v := range a.Body {
 		content += k + ": " + v.(string) + "\n"
 	}
+	fmt.Println(content)
+	fmt.Println(ou.UserID, ou.OrgID)
 	err := kronos_helix.KronosServiceWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, content)
 	if err != nil {
 		log.Err(err).Msg("CreateAIServiceTaskRequestHandler")
+		return err
 	}
-	return nil
+	return c.JSON(http.StatusOK, "ok")
 }

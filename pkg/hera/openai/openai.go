@@ -36,13 +36,13 @@ type OpenAIParams struct {
 }
 
 func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.OrgUser, params openai.ChatCompletionResponse) error {
-	log.Ctx(ctx).Info().Interface("params", params).Msg("RecordUIChatRequestUsage")
+	log.Info().Interface("params", params).Msg("RecordUIChatRequestUsage")
 	err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, params)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("params", params).Msg("RecordUIChatRequestUsage")
+		log.Err(err).Interface("params", params).Msg("RecordUIChatRequestUsage")
 		return err
 	}
-	return err
+	return nil
 }
 
 func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.CompletionResponse, error) {

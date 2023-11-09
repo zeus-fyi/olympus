@@ -42,7 +42,7 @@ func InsertCompletionResponseChatGpt(ctx context.Context, ou org_users.OrgUser, 
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	r, err := apps.Pg.Exec(ctx, q.RawQuery, ou.OrgID, ou.UserID, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, response.Model, completionChoices)
 	if err != nil {
-		log.Ctx(ctx).Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
+		log.Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
 		return err
 	}
 	rowsAffected := r.RowsAffected()

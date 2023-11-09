@@ -23,6 +23,8 @@ const (
 	quicknodePassword = "secrets/quicknode.http.basic.password.txt"
 	quicknodeBearer   = "secrets/quicknode.http.bearer.txt"
 	quicknodeJWT      = "secrets/quicknode.jwt.txt"
+
+	gmailApiKey = "secrets/gmail.api.key.txt"
 )
 
 func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
@@ -52,7 +54,7 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	sw.GoogGtagSecret = sw.MustReadSecret(ctx, inMemSecrets, googGtagSecret)
 
 	InitAtlassianKeys(ctx, inMemSecrets, &sw)
-
+	sw.GmailApiKey = sw.MustReadSecret(ctx, inMemSecrets, gmailApiKey)
 	sw.OpenAIToken = sw.MustReadSecret(ctx, inMemSecrets, heraOpenAIAuth)
 	hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")

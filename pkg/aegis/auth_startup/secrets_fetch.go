@@ -81,6 +81,7 @@ type SecretsWrapper struct {
 	AwsS3SecretKey  string
 	AtlassianOrgId  string
 	AtlassianApiKey string
+	GmailApiKey     string
 }
 
 var secretsBucket = &s3.GetObjectInput{

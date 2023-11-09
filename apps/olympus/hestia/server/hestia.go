@@ -144,7 +144,7 @@ func Hestia() {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
 			misc.DelayedPanic(err)
 		}
-		data, err := os.ReadFile("/secret/gcp_auth.json")
+		data, err := os.ReadFile("/secrets/gcp_auth.json")
 		if err != nil {
 			misc.DelayedPanic(err)
 		}

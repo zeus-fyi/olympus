@@ -134,7 +134,7 @@ func InitV1WebhooksRoutes(e *echo.Echo) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusWebhooksService)
+			key, err := auth.VerifyInternalBearerToken(ctx, token)
 			if err != nil {
 				log.Err(err).Msg("InitV1InternalRoutes")
 				return false, c.JSON(http.StatusInternalServerError, nil)

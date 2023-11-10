@@ -30,7 +30,7 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 	err := tr.SelectTopology(ctx)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DestroyDeployedTopology, SelectTopology error")
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return zeus.ExecuteDestroyDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload())
 }

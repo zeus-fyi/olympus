@@ -3,7 +3,7 @@ package deploy_topology_activities_create_setup
 import (
 	"context"
 	"errors"
-	"net/http"
+	"fmt"
 	"net/url"
 	"path"
 
@@ -39,7 +39,6 @@ func (c *CreateSetupTopologyActivities) destroyClusterTopology(cloudCtxNs zeus_c
 	u := url.URL{
 		Host: c.Host,
 	}
-
 	params := zeus_req_types.TopologyDeployRequest{
 		TopologyID: 0,
 		CloudCtxNs: cloudCtxNs,
@@ -51,11 +50,11 @@ func (c *CreateSetupTopologyActivities) destroyClusterTopology(cloudCtxNs zeus_c
 		SetBody(params).
 		Post(zeus_endpoints.DestroyDeployInfraV1Path)
 
-	if err != nil || resp.StatusCode() != http.StatusAccepted {
+	if err != nil {
 		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: destroyClusterTopology failed")
 		return err
 	}
-	if resp.StatusCode() != http.StatusAccepted {
+	if resp != nil && resp.StatusCode() >= 400 {
 		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: destroyClusterTopology failed")
 		return errors.New("CreateSetupTopologyActivities: destroyClusterTopology failed")
 	}
@@ -78,6 +77,7 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Co
 
 	token, err := auth.FetchUserAuthToken(context.Background(), ou)
 	if err == pgx.ErrNoRows && ou.OrgID > 0 && ou.OrgID != internalOrgID {
+		log.Info().Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed, creating new API key")
 		key, err2 := create_keys.CreateUserAPIKey(ctx, ou)
 		if err2 != nil {
 			log.Err(err2).Msg("CreateUserAPIKey error")
@@ -105,9 +105,10 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Co
 		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: postDeployClusterTopology failed")
 		return err
 	}
-	if resp.StatusCode() != http.StatusAccepted {
+	if resp != nil && resp.StatusCode() >= 400 {
+		err = fmt.Errorf("CreateSetupTopologyActivities: postDeployClusterTopology failed with bad status code: %d", resp.StatusCode())
 		log.Err(err).Interface("path", u.Path).Interface("statusCode", resp.StatusCode()).Msg("CreateSetupTopologyActivities: postDeployClusterTopology failed with bad status code")
-		return errors.New("CreateSetupTopologyActivities: postDeployClusterTopology failed")
+		return err
 	}
 	return err
 }

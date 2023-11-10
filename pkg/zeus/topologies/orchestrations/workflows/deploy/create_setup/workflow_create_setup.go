@@ -148,6 +148,7 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 			return err
 		}
 	}
+
 	//emailStatusCtx := workflow.WithActivityOptions(ctx, ao)
 	//err = workflow.ExecuteActivity(emailStatusCtx, c.CreateSetupTopologyActivities.SendEmailNotification, params).Get(emailStatusCtx, nil)
 	//if err != nil {
@@ -182,13 +183,29 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		logger.Error("Failed to deploy cluster", "Error", err)
 		return err
 	}
-
-	clusterDeployCtx := workflow.WithActivityOptions(ctx, aoDeploy)
-	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, ct.ClusterClassName, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)
-	if err != nil {
-		logger.Error("Failed to deploy cluster", "Error", err)
+	params.AppTaint = true
+	if len(ct.ClusterClassName) <= 0 {
+		params.AppTaint = false
+	}
+	wfParams := base_deploy_params.ClusterTopologyWorkflowRequest{
+		ClusterClassName:          ct.ClusterClassName,
+		TopologyIDs:               ct.GetTopologyIDs(),
+		CloudCtxNS:                params.CloudCtxNs,
+		OrgUser:                   params.Ou,
+		AppTaint:                  params.AppTaint,
+		RequestChoreographySecret: ct.CheckForChoreographyOption(),
+	}
+	deployChildWorkflowOptions := workflow.ChildWorkflowOptions{
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+	}
+	clusterDeployCtx := workflow.WithChildOptions(ctx, deployChildWorkflowOptions)
+	deployChildWorkflowFuture := workflow.ExecuteChildWorkflow(clusterDeployCtx, "DeployClusterTopologyWorkflow", wfID, wfParams)
+	var deployChildWfExec workflow.Execution
+	if err = deployChildWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &deployChildWfExec); err != nil {
+		logger.Error("Failed to get child deployment workflow execution", "Error", err)
 		return err
 	}
+
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}

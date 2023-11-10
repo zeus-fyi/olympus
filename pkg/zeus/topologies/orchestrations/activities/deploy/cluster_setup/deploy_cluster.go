@@ -16,27 +16,9 @@ import (
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
-	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
-	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
-
-func (c *CreateSetupTopologyActivities) DeployClusterTopologyFromUI(ctx context.Context, cl read_topology.ClusterTopology, cloudCtxNs zeus_common_types.CloudCtxNs, ou org_users.OrgUser) error {
-	appTaint := true
-	if len(cl.ClusterClassName) <= 0 {
-		appTaint = false
-	}
-	clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
-		ClusterClassName:          cl.ClusterClassName,
-		TopologyIDs:               cl.GetTopologyIDs(),
-		CloudCtxNS:                cloudCtxNs,
-		OrgUser:                   ou,
-		RequestChoreographySecret: cl.CheckForChoreographyOption(),
-		AppTaint:                  appTaint,
-	}
-	return topology_worker.Worker.ExecuteDeployCluster(ctx, clDeploy)
-}
 
 func (c *CreateSetupTopologyActivities) GetClusterTopologyIds(ctx context.Context, clusterName string, sbBases []string, ou org_users.OrgUser) (read_topology.ClusterTopology, error) {
 	cl, err := read_topology.SelectClusterTopology(ctx, ou.OrgID, clusterName, sbBases)

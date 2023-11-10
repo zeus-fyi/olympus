@@ -8,7 +8,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Context, params base_deploy_params.ClusterTopologyWorkflowRequest) error {
+func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Context, wfID string, params base_deploy_params.ClusterTopologyWorkflowRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,

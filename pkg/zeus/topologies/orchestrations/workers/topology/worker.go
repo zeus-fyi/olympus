@@ -79,7 +79,7 @@ func (t *TopologyWorker) ExecuteDeployCluster(ctx context.Context, params base_d
 	}
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
 	wf := deployWf.DeployClusterTopologyWorkflow
-	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteDeployCluster")
 		return err

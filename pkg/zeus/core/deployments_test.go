@@ -29,6 +29,13 @@ func (d *DeploymentsTestSuite) TestGetDeployment() {
 	d.Require().NotEmpty(dep)
 }
 
+func (d *DeploymentsTestSuite) TestRolloutRestartDeployment() {
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "zeus"}
+	dep, err := d.K.RolloutRestartDeployment(ctx, kns, "zeus", nil)
+	d.Require().Nil(err)
+	d.Require().NotEmpty(dep)
+}
+
 func TestDeploymentsTestSuite(t *testing.T) {
 	suite.Run(t, new(DeploymentsTestSuite))
 }

@@ -2,6 +2,7 @@ package zeus_core
 
 import (
 	"context"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
@@ -70,4 +71,29 @@ func (k *K8Util) CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx context
 	}
 	newD, newDErr := k.CreateDeployment(ctx, kns, nd, filter)
 	return newD, newDErr
+}
+
+func (k *K8Util) RolloutRestartDeployment(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Deployment, error) {
+	k.SetContext(kns.Context)
+	d, err := k.kc.AppsV1().Deployments(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		log.Err(err).Interface("kns", kns).Msg("GetDeployment: error")
+		return nil, err
+	}
+	// Prepare for the restart
+	if d.Spec.Template.Annotations == nil {
+		d.Spec.Template.Annotations = make(map[string]string)
+	}
+
+	// Set a new annotation - this triggers a restart
+	d.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().Format(time.RFC3339)
+
+	// Update the deployment
+	_, err = k.kc.AppsV1().Deployments(kns.Namespace).Update(ctx, d, metav1.UpdateOptions{})
+	if err != nil {
+		log.Err(err).Interface("kns", kns).Msg("UpdateDeployment: error")
+		return nil, err
+	}
+
+	return d, err
 }

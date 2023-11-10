@@ -69,7 +69,8 @@ func (g *GmailServiceClient) GetReadEmails(email string, maxResults int) ([]Emai
 		if err != nil {
 			return nil, err
 		}
-
+		b, _ := msg.MarshalJSON()
+		fmt.Println(string(b))
 		var emailContents EmailContents
 		if msg != nil {
 
@@ -93,27 +94,8 @@ func (g *GmailServiceClient) GetReadEmails(email string, maxResults int) ([]Emai
 					emailContents.Subject = header.Value
 				}
 			}
-
 			// Extracting the body of the email
-			body := ""
-			if msg.Payload.Parts == nil {
-				body = decodeBase64URL(msg.Payload.Body.Data)
-			} else {
-				for _, part := range msg.Payload.Parts {
-					if part.MimeType == "text/plain" {
-						body += decodeBase64URL(part.Body.Data)
-					}
-					//} else if part.MimeType == "multipart/alternative" {
-					//	for _, subPart := range part.Parts {
-					//		if subPart.MimeType == "text/plain" {
-					//			body += decodeBase64URL(subPart.Body.Data)
-					//		}
-					//	}
-					//}
-				}
-			}
-			emailContents.Body = body // Assign the decoded body to the struct
-
+			emailContents.Body = extractReadableText(msg.Payload)
 			emails = append(emails, emailContents) // Append the constructed EmailContents to the slice
 		}
 	}
@@ -196,4 +178,18 @@ func NewGmail(ctx context.Context, authJsonBytes []byte, email string) {
 			fmt.Printf("- %v (snippet: '%v')\n", m.Id, msg.Snippet)
 		}
 	}
+}
+
+// Recursive function to extract readable text from message parts
+func extractReadableText(payload *gmail.MessagePart) string {
+	text := ""
+	if payload.MimeType == "text/plain" || payload.MimeType == "text/html" {
+		text += decodeBase64URL(payload.Body.Data)
+	}
+	if payload.Parts != nil {
+		for _, part := range payload.Parts {
+			text += extractReadableText(part)
+		}
+	}
+	return text
 }

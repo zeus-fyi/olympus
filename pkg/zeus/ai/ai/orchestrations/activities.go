@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
@@ -33,13 +34,20 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {
 	task := "write a bullet point summary of the email contents and suggest some responses if applicable. write your reply as html formatted\n"
 	content := hermes_email_notifications.GenerateAiRequest(task, msg)
+
+	systemMessage := openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleSystem,
+		Content: "You are a helpful bot that can read email contents and provide a bullet point summary and suggest responses.",
+	}
+
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
 			Model: openai.GPT4,
 			Messages: []openai.ChatCompletionMessage{
+				systemMessage,
 				{
-					Role:    openai.ChatMessageRoleAssistant,
+					Role:    openai.ChatMessageRoleUser,
 					Content: content,
 					Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 				},
@@ -61,7 +69,18 @@ func (h *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou or
 func (h *ZeusAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, email string, resp openai.ChatCompletionResponse) error {
 	content := ""
 	for _, msg := range resp.Choices {
-		content += msg.Message.Content + "\n"
+		// Remove markdown code block characters
+		line := strings.Replace(msg.Message.Content, "```", "", -1)
+
+		//// Escape any HTML special characters to prevent XSS or other issues
+		//line = html.EscapeString(line)
+
+		// Add the line break for proper formatting in HTML
+		content += line
+	}
+
+	if len(content) == 0 {
+		return nil
 	}
 	_, err := hermes_email_notifications.Hermes.SendAITaskResponse(ctx, email, content)
 	if err != nil {

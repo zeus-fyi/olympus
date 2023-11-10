@@ -32,7 +32,7 @@ func (t *ZeusWorkerTestSuite) TestInitWorker() {
 	t.Require().Nil(err)
 }
 
-func TestHestiaAiWorkerTestSuite(t *testing.T) {
+func TestZeusWorkerTestSuite(t *testing.T) {
 	suite.Run(t, new(ZeusWorkerTestSuite))
 }
 

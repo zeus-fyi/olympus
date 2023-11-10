@@ -68,7 +68,7 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 	log.Info().Interface("ou", params.Ou).Interface("nodes", params.Nodes).Msg("GkeMakeNodePoolRequest")
 	labels := CreateBaseNodeLabels(params)
 
-	tmp := strings.Split(params.Namespace, "-")
+	tmp := strings.Split(params.CloudCtxNs.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
 	tOrg := container.NodeTaint{
 		Effect: "NO_SCHEDULE",

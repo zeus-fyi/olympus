@@ -10,6 +10,7 @@ import (
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -211,9 +212,23 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ftDestroy := base_deploy_params.DestroyClusterSetupRequest{
-		ClusterSetupRequest: params,
+		ClusterSetupRequest: base_deploy_params.ClusterSetupRequest{
+			FreeTrial:     params.FreeTrial,
+			Ou:            params.Ou,
+			CloudCtxNs:    params.CloudCtxNs,
+			Nodes:         params.Nodes,
+			NodesQuantity: params.NodesQuantity,
+			Disks:         params.Disks,
+			Cluster: zeus_templates.Cluster{
+				ClusterName:     params.Cluster.ClusterName,
+				ComponentBases:  nil,
+				IngressSettings: zeus_templates.Ingress{},
+				IngressPaths:    nil,
+			},
+			AppTaint: wfParams.AppTaint,
+		},
 	}
-	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyClusterSetupWorkflowFreeTrial", ftDestroy)
+	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyClusterSetupWorkflowFreeTrial", wfID, ftDestroy)
 	var childWE workflow.Execution
 	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
 		logger.Error("Failed to get child workflow execution", "Error", err)

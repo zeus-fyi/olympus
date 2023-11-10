@@ -39,7 +39,7 @@ func (c *CreateSetupTopologyActivities) EksSelectFreeTrialNodes(ctx context.Cont
 
 func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
 	labels := CreateBaseNodeLabels(params)
-	tmp := strings.Split(params.Namespace, "-")
+	tmp := strings.Split(params.CloudCtxNs.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
 	orgTaint := types.Taint{
 		Effect: "NO_SCHEDULE",

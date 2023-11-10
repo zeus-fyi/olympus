@@ -42,7 +42,7 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 		}
 	}
 	autoscaleEnabled := false
-	tmp := strings.Split(params.Namespace, "-")
+	tmp := strings.Split(params.CloudCtxNs.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
 
 	nodeGroupName := strings.ToLower(fmt.Sprintf("ovh-%d-%s", params.Ou.OrgID, suffix))
@@ -131,7 +131,7 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 		Effect: "NoSchedule",
 	}
 	labels := CreateBaseNodeLabels(params)
-	tmp := strings.Split(params.Namespace, "-")
+	tmp := strings.Split(params.CloudCtxNs.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
 	taints := []godo.Taint{taint}
 	if params.AppTaint {

@@ -35,7 +35,7 @@ func (c *DestroyClusterSetupWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{c.DestroyClusterSetupWorkflowFreeTrial}
 }
 
-func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx workflow.Context, params base_deploy_params.DestroyClusterSetupRequest) error {
+func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx workflow.Context, wfID string, params base_deploy_params.DestroyClusterSetupRequest) error {
 	log := workflow.GetLogger(ctx)
 
 	ao := workflow.ActivityOptions{

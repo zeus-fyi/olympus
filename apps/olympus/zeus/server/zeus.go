@@ -187,7 +187,7 @@ func Zeus() {
 		log.Fatal().Err(err).Msgf("Zeus: %s ZeusAiPlatformWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
-	log.Info().Msg("Zeus: InitHestiaAiPlatformWorker done")
+	log.Info().Msg("Zeus: InitZeusAiPlatformWorker done")
 
 	log.Info().Msgf("Zeus: %s temporal setup is complete", env)
 	log.Info().Msgf("Zeus: %s server starting", env)

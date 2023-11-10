@@ -82,7 +82,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, w
 		}
 
 		sendEmailTaskCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(sendEmailTaskCtx, h.SendTaskResponseEmail, msg, resp).Get(sendEmailTaskCtx, &resp)
+		err = workflow.ExecuteActivity(sendEmailTaskCtx, h.SendTaskResponseEmail, msg.From, resp).Get(sendEmailTaskCtx, &resp)
 		if err != nil {
 			logger.Error("failed to execute SaveAiTaskResponse", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.

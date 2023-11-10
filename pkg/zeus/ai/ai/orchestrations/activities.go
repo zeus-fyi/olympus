@@ -31,8 +31,7 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 }
 
 func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {
-	task := "write a bullet point summary of the email contents below, and then suggest some responses unless the message is from a no-reply address\n"
-	task += "message is from " + msg.From + "\n"
+	task := "write a bullet point summary of the email contents and suggest some responses. don't comment on anything else\n"
 	content := hermes_email_notifications.GenerateAiRequest(task, msg)
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,

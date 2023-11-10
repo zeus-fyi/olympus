@@ -8,8 +8,10 @@ import (
 	"path"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
@@ -69,13 +71,22 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Co
 	u := url.URL{
 		Host: c.Host,
 	}
+
 	token, err := auth.FetchUserAuthToken(context.Background(), ou)
+	if err == pgx.ErrNoRows {
+		key, err2 := create_keys.CreateUserAPIKey(ctx, ou)
+		if err2 != nil {
+			log.Err(err2).Msg("CreateUserAPIKey error")
+			return err2
+		}
+		token.PublicKey = key.PublicKey
+	}
 	if err != nil {
-		log.Err(err).Interface("path", u.Path).Interface("ou", ou).Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed")
+		log.Err(err).Interface("params", params).Interface("path", u.Path).Interface("ou", ou).Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed")
 		return err
 	}
 	if len(token.PublicKey) <= 0 {
-		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed")
+		log.Err(err).Interface("params", params).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed zero length")
 		return err
 	}
 	client := resty.New()

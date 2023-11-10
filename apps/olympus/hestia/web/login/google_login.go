@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
@@ -88,6 +89,15 @@ func (g *GoogleLoginRequest) VerifyGoogleLogin(c echo.Context) error {
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		err = key.GetUserFromEmail(ctx, email)
+
+		ou2 := org_users.OrgUser{}
+		ou2.UserID = key.UserID
+		ou2.OrgID = key.OrgID
+		_, err2 := create_keys.CreateUserAPIKey(ctx, ou2)
+		if err2 != nil {
+			log.Err(err2).Msg("CreateUserAPIKey error")
+			err2 = nil
+		}
 	}
 	if err != nil {
 		log.Err(err).Interface("email", email).Msg("GetUserFromEmail error")

@@ -174,10 +174,11 @@ func (t *TopologyWorker) ExecuteDestroyNamespace(ctx context.Context, params bas
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
+		ID:        uuid.New().String(),
 	}
 	deployDestroyWf := deploy_workflow_destroy_setup.NewDestroyNamespaceSetupWorkflow()
 	wf := deployDestroyWf.GetWorkflow()
-	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteDestroyNamespace")
 		return err

@@ -30,7 +30,7 @@ func (c *DestroyNamespaceSetupWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{c.DestroyNamespaceSetupWorkflow}
 }
 
-func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workflow.Context, params base_deploy_params.TopologyWorkflowRequest) error {
+func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workflow.Context, wfID string, params base_deploy_params.TopologyWorkflowRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
@@ -74,7 +74,7 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyDeployedTopologyWorkflow", params)
+	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyDeployedTopologyWorkflow", wfID, params)
 	var childWE workflow.Execution
 	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
 		return err

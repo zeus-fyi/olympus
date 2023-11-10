@@ -32,7 +32,7 @@ func NewDestroyDeployTopologyWorkflow() DestroyDeployTopologyWorkflow {
 	return destroyDeployWf
 }
 
-func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx workflow.Context, params base_deploy_params.TopologyWorkflowRequest) error {
+func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx workflow.Context, wfID string, params base_deploy_params.TopologyWorkflowRequest) error {
 	log := workflow.GetLogger(ctx)
 
 	t.DestroyDeployTopologyActivities.TopologyWorkflowRequest = params

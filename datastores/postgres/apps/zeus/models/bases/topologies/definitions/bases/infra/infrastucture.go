@@ -6,9 +6,9 @@ import (
 )
 
 type InfraBaseTopology struct {
-	Name string
-	org_users.OrgUser
-	autogen_bases.TopologyInfrastructureComponents
+	Name                                           string `json:"name"`
+	org_users.OrgUser                              `json:"orgUser"`
+	autogen_bases.TopologyInfrastructureComponents `json:"topologyInfrastructureComponents"`
 }
 
 func NewInfrastructureBaseTopologyWithOrgUser(ou org_users.OrgUser) InfraBaseTopology {

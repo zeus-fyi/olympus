@@ -93,7 +93,7 @@ func (t *DeployClusterUpdateRequestUI) TopologyUpdateRequestUI(c echo.Context) e
 	clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
 		ClusterClassName: t.ClusterClassName,
 		TopologyIDs:      newTopIDs,
-		CloudCtxNS:       cctx,
+		CloudCtxNs:       cctx,
 		OrgUser:          ou,
 		AppTaint:         t.AppTaint,
 	}

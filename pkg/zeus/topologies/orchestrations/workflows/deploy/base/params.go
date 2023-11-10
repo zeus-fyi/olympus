@@ -33,7 +33,7 @@ type FleetUpgradeWorkflowRequest struct {
 type ClusterTopologyWorkflowRequest struct {
 	ClusterClassName string                       `json:"clusterClassName"`
 	TopologyIDs      []int                        `json:"topologyIDs"`
-	CloudCtxNS       zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
+	CloudCtxNs       zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 	OrgUser          org_users.OrgUser            `json:"orgUser"`
 	Host             string                       `json:"host,omitempty"`
 	AppTaint         bool                         `json:"appTaint"`

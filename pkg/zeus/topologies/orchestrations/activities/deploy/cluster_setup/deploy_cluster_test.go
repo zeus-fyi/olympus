@@ -42,7 +42,7 @@ func (s *DeployTestSuite) TestDeployCluster() {
 	//clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
 	//	ClusterClassName:          t.ClusterClassName,
 	//	TopologyIDs:               cl.GetTopologyIDs(),
-	//	CloudCtxNS:                t.CloudCtxNs,
+	//	CloudCtxNs:                t.CloudCtxNs,
 	//	OrgUser:                   ou,
 	//	RequestChoreographySecret: cl.CheckForChoreographyOption(),
 	//	AppTaint:                  t.AppTaint,

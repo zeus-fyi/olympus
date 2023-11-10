@@ -16,14 +16,14 @@ import (
 )
 
 type TopologyBaseInfraWorkload struct {
-	*v1Batch.CronJob      `json:"cronjob"`
-	*v1Batch.Job          `json:"job"`
-	*v1core.Service       `json:"service"`
-	*v1core.ConfigMap     `json:"configMap"`
-	*v1.Deployment        `json:"deployment"`
-	*v1.StatefulSet       `json:"statefulSet"`
-	*v1networking.Ingress `json:"ingress"`
-	*v1sm.ServiceMonitor  `json:"serviceMonitor"`
+	*v1Batch.CronJob      `json:"cronjob,omitempty"`
+	*v1Batch.Job          `json:"job,omitempty"`
+	*v1core.Service       `json:"service,omitempty"`
+	*v1core.ConfigMap     `json:"configMap,omitempty"`
+	*v1.Deployment        `json:"deployment,omitempty"`
+	*v1.StatefulSet       `json:"statefulSet,omitempty"`
+	*v1networking.Ingress `json:"ingress,omitempty"`
+	*v1sm.ServiceMonitor  `json:"serviceMonitor,omitempty"`
 }
 
 func NewTopologyBaseInfraWorkload() TopologyBaseInfraWorkload {

@@ -191,7 +191,7 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 	wfParams := base_deploy_params.ClusterTopologyWorkflowRequest{
 		ClusterClassName:          ct.ClusterClassName,
 		TopologyIDs:               ct.GetTopologyIDs(),
-		CloudCtxNS:                params.CloudCtxNs,
+		CloudCtxNs:                params.CloudCtxNs,
 		OrgUser:                   params.Ou,
 		AppTaint:                  params.AppTaint,
 		RequestChoreographySecret: ct.CheckForChoreographyOption(),

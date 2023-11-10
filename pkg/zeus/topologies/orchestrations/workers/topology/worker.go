@@ -27,6 +27,7 @@ func (t *TopologyWorker) ExecuteDeployFleetUpgrade(ctx context.Context, params b
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
+		ID:        uuid.New().String(),
 	}
 	deployWf := deploy_workflow_cluster_updates.NewDeployFleetUpgradeWorkflow()
 	wf := deployWf.UpgradeFleetWorkflow
@@ -92,12 +93,13 @@ func (t *TopologyWorker) ExecuteDeploy(ctx context.Context, params base_deploy_p
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
+		ID:        uuid.New().String(),
 	}
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
 	wf := deployWf.DeployTopologyWorkflow
-	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, params)
 	if err != nil {
-		log.Err(err).Msg("ExecuteDeploy")
+		log.Err(err).Msg("ExecuteDeploy: DeployTopologyWorkflow")
 		return err
 	}
 	return err
@@ -108,6 +110,7 @@ func (t *TopologyWorker) ExecuteDestroyDeploy(ctx context.Context, params base_d
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
+		ID:        uuid.New().String(),
 	}
 	deployDestroyWf := destroy_deployed_workflow.NewDestroyDeployTopologyWorkflow()
 	wf := deployDestroyWf.DestroyDeployDeployment

@@ -21,14 +21,15 @@ func TopologyDeploymentHandler(c echo.Context) error {
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
+		log.Warn().Interface("ou", ou).Msg("ClusterTopologyDeploymentHandler: orgUser not found")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
+	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.TopologyKubeCtxNs.CloudCtxNs)
 	if authed != true || err != nil {
 		log.Ctx(ctx).Err(err).Msg("ClusterTopologyDeploymentHandler: IsOrgCloudCtxNsAuthorized")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	if request.TopologyID == 0 {
+	if request.TopologyKubeCtxNs.TopologyID == 0 {
 		err = errors.New("no topology id provided")
 		return c.JSON(http.StatusBadRequest, err)
 	}

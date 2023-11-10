@@ -44,19 +44,20 @@ func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) err
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
+		log.Warn().Interface("ou", ou).Interface("cloudCtxNs", t.CloudCtxNs).Msg("ClusterTopologyDeploymentHandler: orgUser")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	orgID := ou.OrgID
 	cl, err := read_topology.SelectClusterTopology(ctx, orgID, t.ClusterClassName, t.SkeletonBaseOptions)
 	if err != nil {
-		log.Err(err).Msg("DeployClusterTopology: SelectClusterTopology")
+		log.Err(err).Interface("cloudCtxNs", t.CloudCtxNs).Msg("DeployClusterTopology: SelectClusterTopology")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	log.Info().Interface("cl", cl).Msg("DeployClusterTopology: SelectClusterTopology")
 	clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
 		ClusterClassName:          t.ClusterClassName,
 		TopologyIDs:               cl.GetTopologyIDs(),
-		CloudCtxNS:                t.CloudCtxNs,
+		CloudCtxNs:                t.CloudCtxNs,
 		OrgUser:                   ou,
 		RequestChoreographySecret: cl.CheckForChoreographyOption(),
 		AppTaint:                  t.AppTaint,

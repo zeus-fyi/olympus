@@ -12,10 +12,10 @@ import (
 )
 
 type TopologyDeployRequest struct {
-	kns.TopologyKubeCtxNs
-	ClusterName                     string `json:"clusterClassName,omitempty"`
-	SecretRef                       string `json:"secretRef,omitempty"`
-	RequestChoreographySecretDeploy bool   `json:"requestChoreographySecretDeploy,omitempty"`
+	TopologyKubeCtxNs               kns.TopologyKubeCtxNs `json:"topologyKubeCtxNs"`
+	ClusterName                     string                `json:"clusterClassName,omitempty"`
+	SecretRef                       string                `json:"secretRef,omitempty"`
+	RequestChoreographySecretDeploy bool                  `json:"requestChoreographySecretDeploy,omitempty"`
 }
 
 func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
@@ -23,9 +23,10 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
+		log.Warn().Interface("ou", ou).Interface("cloudCtxNs", t.TopologyKubeCtxNs).Msg("ClusterTopologyDeploymentHandler: orgUser")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	tr, err := zeus.ReadUserTopologyConfig(ctx, t.TopologyID, ou)
+	tr, err := zeus.ReadUserTopologyConfig(ctx, t.TopologyKubeCtxNs.TopologyID, ou)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ReadUserTopologyConfig error")
 		return c.JSON(http.StatusInternalServerError, err)

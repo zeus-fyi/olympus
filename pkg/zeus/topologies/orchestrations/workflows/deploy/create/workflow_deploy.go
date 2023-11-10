@@ -32,7 +32,7 @@ func (t *DeployTopologyWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{t.DeployTopologyWorkflow, t.DeployClusterTopologyWorkflow, t.DeployCronJobWorkflow, t.DeployJobWorkflow}
 }
 
-func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, params base_deploy_params.TopologyWorkflowRequest) error {
+func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wfID string, params base_deploy_params.TopologyWorkflowRequest) error {
 	log := workflow.GetLogger(ctx)
 
 	t.DeployTopologyActivities.TopologyWorkflowRequest = params

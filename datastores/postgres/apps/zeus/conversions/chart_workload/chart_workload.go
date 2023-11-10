@@ -11,14 +11,14 @@ import (
 )
 
 type ChartWorkload struct {
-	*deployments.Deployment
-	*services.Service
-	*ingresses.Ingress
-	*configuration.ConfigMap
-	*statefulsets.StatefulSet
-	*servicemonitors.ServiceMonitor
-	*jobs.Job
-	*jobs.CronJob
+	*deployments.Deployment         `json:"deployment,omitempty"`
+	*services.Service               `json:"service,omitempty"`
+	*ingresses.Ingress              `json:"ingress,omitempty"`
+	*configuration.ConfigMap        `json:"configMap,omitempty"`
+	*statefulsets.StatefulSet       `json:"statefulSet,omitempty"`
+	*servicemonitors.ServiceMonitor `json:"serviceMonitor,omitempty"`
+	*jobs.Job                       `json:"job,omitempty"`
+	*jobs.CronJob                   `json:"cronJob,omitempty"`
 }
 
 func NewChartWorkload() ChartWorkload {

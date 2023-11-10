@@ -14,8 +14,8 @@ import (
 )
 
 type InfraBaseTopology struct {
-	infra.InfraBaseTopology
-	read_charts.Chart
+	infra.InfraBaseTopology `json:"infraBaseTopology"`
+	read_charts.Chart       `json:"chart"`
 }
 
 func NewInfraTopologyReader() InfraBaseTopology {

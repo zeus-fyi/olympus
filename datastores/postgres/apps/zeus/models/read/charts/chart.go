@@ -25,9 +25,9 @@ import (
 )
 
 type Chart struct {
-	charts.Chart
+	charts.Chart `json:"chart"`
 
-	chart_workload.ChartWorkload
+	chart_workload.ChartWorkload `json:"chartWorkload"`
 }
 
 func NewChartReader() Chart {

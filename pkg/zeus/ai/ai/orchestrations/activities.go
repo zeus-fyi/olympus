@@ -35,7 +35,7 @@ func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgU
 	//task := "write a bullet point summary of the email contents and suggest some responses if applicable. write your reply as html formatted\n"
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
-		Content: "You are a helpful bot that reads email contents and provides a bullet point summary and suggest responses and you always write your reply as well formatted html that is easy to read.",
+		Content: "You are a helpful bot that reads email contents and provides a bullet point summary and then suggest well thought out responses and that aren't overly formal or stiff in tone and you always write your reply as well formatted html that is easy to read.",
 		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 	}
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(

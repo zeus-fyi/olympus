@@ -48,10 +48,18 @@ func (a *AIServiceRequest) SupportAcknowledgeAITask(c echo.Context, email string
 	log.Info().Msg("Zeus: CreateAIServiceTaskRequestHandler")
 	ou := org_users.OrgUser{}
 	key := read_keys.NewKeyReader()
-
 	key.GetUserFromEmail(c.Request().Context(), email)
 	ou = org_users.NewOrgUserWithID(key.OrgID, key.UserID)
-	msgs, err := hermes_email_notifications.SupportEmailUser.GetReadEmails(email, 10)
+	var emc hermes_email_notifications.GmailServiceClient
+	switch email {
+	case "ai@zeus.fyi":
+		emc = hermes_email_notifications.SupportEmailUser
+	case "alex@zeus.fyi":
+		emc = hermes_email_notifications.MainEmailUser
+	default:
+		emc = hermes_email_notifications.AIEmailUser
+	}
+	msgs, err := emc.GetReadEmails(email, 10)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}

@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -28,30 +30,28 @@ func (t *ZeusWorkerTestSuite) TestInitWorker() {
 	ZeusAiPlatformWorker.Worker.RegisterWorker(cKronos)
 	err := ZeusAiPlatformWorker.Worker.Start()
 	t.Require().Nil(err)
-
 }
 
 func TestHestiaAiWorkerTestSuite(t *testing.T) {
 	suite.Run(t, new(ZeusWorkerTestSuite))
 }
 
-//func (t *KronosWorkerTestSuite) TestAiWorkflow() {
-//	ta := t.Tc.DevTemporalAuth
-//	//ns := "kronos.ngb72"
-//	//hp := "kronos.ngb72.tmprl.cloud:7233"
-//	//ta.Namespace = ns
-//	//ta.HostPort = hp
-//	InitKronosHelixWorker(ctx, ta)
-//	cKronos := KronosServiceWorker.Worker.ConnectTemporalClient()
-//	defer cKronos.Close()
-//	KronosServiceWorker.Worker.RegisterWorker(cKronos)
-//	err := KronosServiceWorker.Worker.Start()
-//	t.Require().Nil(err)
-//
-//	ou := org_users.OrgUser{}
-//	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
-//	ou.UserID = 7138958574876245565
-//	content := "write why is my golang json unmarshal not working properly only on linux"
-//	err = KronosServiceWorker.ExecuteAiTaskWorkflow(ctx, ou, content)
-//	t.Require().Nil(err)
-//}
+func (t *ZeusWorkerTestSuite) TestAiWorkflow() {
+	ta := t.Tc.DevTemporalAuth
+	InitZeusAiServicesWorker(ctx, ta)
+	cZ := ZeusAiPlatformWorker.Worker.ConnectTemporalClient()
+	defer cZ.Close()
+	ZeusAiPlatformWorker.Worker.RegisterWorker(cZ)
+	err := ZeusAiPlatformWorker.Worker.Start()
+	t.Require().Nil(err)
+
+	ou := org_users.OrgUser{}
+	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = 7138958574876245565
+	hermes_email_notifications.InitNewGmailServiceClients(ctx, t.Tc.GcpAuthJson)
+	msgs, err := hermes_email_notifications.AIEmailUser.GetReadEmails("ai@zeus.fyi", 10)
+	t.Require().Nil(err)
+
+	err = ZeusAiPlatformWorker.ExecuteAiTaskWorkflow(ctx, ou, msgs)
+	t.Require().Nil(err)
+}

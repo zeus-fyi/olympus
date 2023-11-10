@@ -7,6 +7,7 @@ on:
       - pkg/aegis/auth_startup/**
       - pkg/aegis/sessions/**
       - pkg/zeus/**
+      - pkg/hestia/**
       - datastores/apps/zeus/**
       - datastores/s3/**
       - docker/zeus/Dockerfile

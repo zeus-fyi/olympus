@@ -62,6 +62,10 @@ func (c *CreateSetupTopologyActivities) destroyClusterTopology(cloudCtxNs zeus_c
 	return err
 }
 
+const (
+	internalOrgID = 7138983863666903883
+)
+
 func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Context, params zeus_req_types.ClusterTopologyDeployRequest, ou org_users.OrgUser) error {
 	//ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	//defer cancel()
@@ -73,7 +77,7 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Co
 	}
 
 	token, err := auth.FetchUserAuthToken(context.Background(), ou)
-	if err == pgx.ErrNoRows {
+	if err == pgx.ErrNoRows && ou.OrgID > 0 && ou.OrgID != internalOrgID {
 		key, err2 := create_keys.CreateUserAPIKey(ctx, ou)
 		if err2 != nil {
 			log.Err(err2).Msg("CreateUserAPIKey error")
@@ -81,6 +85,7 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Co
 		}
 		token.PublicKey = key.PublicKey
 	}
+
 	if err != nil {
 		log.Err(err).Interface("params", params).Interface("path", u.Path).Interface("ou", ou).Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed")
 		return err

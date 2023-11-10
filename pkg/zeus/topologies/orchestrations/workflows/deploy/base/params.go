@@ -15,8 +15,8 @@ import (
 type TopologyWorkflowRequest struct {
 	Kns                       kns.TopologyKubeCtxNs
 	OrgUser                   org_users.OrgUser
-	Host                      string
-	RequestChoreographySecret bool
+	Host                      string `json:"host,omitempty"`
+	RequestChoreographySecret bool   `json:"requestChoreographySecret"`
 	ClusterClassName          string `json:"clusterClassName"`
 	SecretRef                 string `json:"secretRef"`
 
@@ -24,21 +24,21 @@ type TopologyWorkflowRequest struct {
 }
 
 type FleetUpgradeWorkflowRequest struct {
-	OrgUser     org_users.OrgUser
-	Host        string
-	ClusterName string
-	AppTaint    bool
+	OrgUser     org_users.OrgUser `json:"orgUser"`
+	Host        string            `json:"host,omitempty"`
+	ClusterName string            `json:"clusterName"`
+	AppTaint    bool              `json:"appTaint"`
 }
 
 type ClusterTopologyWorkflowRequest struct {
-	ClusterClassName string `json:"clusterClassName"`
-	TopologyIDs      []int
+	ClusterClassName string                       `json:"clusterClassName"`
+	TopologyIDs      []int                        `json:"topologyIDs"`
 	CloudCtxNS       zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
-	OrgUser          org_users.OrgUser
-	Host             string
-	AppTaint         bool
+	OrgUser          org_users.OrgUser            `json:"orgUser"`
+	Host             string                       `json:"host,omitempty"`
+	AppTaint         bool                         `json:"appTaint"`
 
-	RequestChoreographySecret bool
+	RequestChoreographySecret bool `json:"requestChoreographySecret"`
 }
 
 type DestroyResourcesRequest struct {
@@ -51,14 +51,14 @@ type DestroyClusterSetupRequest struct {
 }
 
 type ClusterSetupRequest struct {
-	FreeTrial bool
-	Ou        org_users.OrgUser
-	zeus_common_types.CloudCtxNs
-	Nodes         hestia_autogen_bases.Nodes
-	NodesQuantity float64
-	Disks         hestia_autogen_bases.DisksSlice
-	Cluster       zeus_templates.Cluster
-	AppTaint      bool
+	FreeTrial                    bool              `json:"freeTrial"`
+	Ou                           org_users.OrgUser `json:"orgUser"`
+	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
+	Nodes                        hestia_autogen_bases.Nodes      `json:"nodes"`
+	NodesQuantity                float64                         `json:"nodesQuantity"`
+	Disks                        hestia_autogen_bases.DisksSlice `json:"disks"`
+	Cluster                      zeus_templates.Cluster          `json:"cluster"`
+	AppTaint                     bool                            `json:"appTaint"`
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

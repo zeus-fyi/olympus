@@ -91,7 +91,7 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 		ProjectID:   "zeusfyi",
 		Zone:        "us-central1-a",
 	}
-	name := strings.ToLower(fmt.Sprintf("%d-%s", params.Ou.OrgID, suffix))
+	name := strings.ToLower(fmt.Sprintf("gcp-%d-%s", params.Ou.OrgID, suffix))
 	if len(name) > 39 {
 		name = name[:39]
 	}

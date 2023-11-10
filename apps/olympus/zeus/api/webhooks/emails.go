@@ -52,7 +52,7 @@ func (a *AIServiceRequest) SupportAcknowledgeAITask(c echo.Context, email string
 	ou = org_users.NewOrgUserWithID(key.OrgID, key.UserID)
 	var emc hermes_email_notifications.GmailServiceClient
 	switch email {
-	case "ai@zeus.fyi":
+	case "support@zeus.fyi":
 		emc = hermes_email_notifications.SupportEmailUser
 	case "alex@zeus.fyi":
 		emc = hermes_email_notifications.MainEmailUser

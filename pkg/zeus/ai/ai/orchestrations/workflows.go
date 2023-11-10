@@ -65,7 +65,10 @@ func (h *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, w
 			continue
 		}
 		var resp openai.ChatCompletionResponse
-		runAiTaskCtx := workflow.WithActivityOptions(ctx, ao)
+
+		tmp := ao
+		tmp.RetryPolicy.MaximumAttempts = 3
+		runAiTaskCtx := workflow.WithActivityOptions(ctx, tmp)
 		err = workflow.ExecuteActivity(runAiTaskCtx, h.AiTask, ou, msg).Get(runAiTaskCtx, &resp)
 		if err != nil {
 			logger.Error("failed to execute AiTask", "Error", err)

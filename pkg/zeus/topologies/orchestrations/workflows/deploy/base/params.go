@@ -13,12 +13,12 @@ import (
 )
 
 type TopologyWorkflowRequest struct {
-	Kns                       kns.TopologyKubeCtxNs
-	OrgUser                   org_users.OrgUser
-	Host                      string `json:"host,omitempty"`
-	RequestChoreographySecret bool   `json:"requestChoreographySecret"`
-	ClusterClassName          string `json:"clusterClassName"`
-	SecretRef                 string `json:"secretRef"`
+	Kns                       kns.TopologyKubeCtxNs `json:"kns"`
+	OrgUser                   org_users.OrgUser     `json:"orgUser"`
+	Host                      string                `json:"host,omitempty"`
+	RequestChoreographySecret bool                  `json:"requestChoreographySecret"`
+	ClusterClassName          string                `json:"clusterClassName"`
+	SecretRef                 string                `json:"secretRef"`
 
 	chart_workload.TopologyBaseInfraWorkload
 }

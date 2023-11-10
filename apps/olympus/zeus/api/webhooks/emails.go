@@ -61,10 +61,12 @@ func (a *AIServiceRequest) SupportAcknowledgeAITask(c echo.Context, email string
 	}
 	msgs, err := emc.GetReadEmails(email, 10)
 	if err != nil {
+		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, msgs)
 	if err != nil {
+		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, msgs)

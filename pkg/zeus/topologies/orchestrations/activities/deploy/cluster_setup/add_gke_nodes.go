@@ -82,8 +82,13 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 		ProjectID:   "zeusfyi",
 		Zone:        "us-central1-a",
 	}
+	name := fmt.Sprintf("%d-%s", params.Ou.OrgID, suffix)
+	if len(name) >= 40 {
+		name = name[:40]
+	}
+
 	ni := hestia_gcp.GkeNodePoolInfo{
-		Name:             fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix),
+		Name:             name,
 		MachineType:      params.Nodes.Slug,
 		InitialNodeCount: int64(params.NodesQuantity),
 	}

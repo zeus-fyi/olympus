@@ -64,7 +64,6 @@ func (g *GmailServiceClient) GetReadEmails(email string, maxResults int) ([]Emai
 		fmt.Println("No messages found.")
 		return emails, nil
 	}
-	fmt.Println("Messages:")
 	for _, m := range r.Messages {
 		msg, err := g.Users.Messages.Get(email, m.Id).Format("full").Do()
 		if err != nil {

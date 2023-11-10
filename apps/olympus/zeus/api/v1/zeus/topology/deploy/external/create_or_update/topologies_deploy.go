@@ -28,8 +28,8 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 	}
 	tr, err := zeus.ReadUserTopologyConfig(ctx, t.TopologyKubeCtxNs.TopologyID, ou)
 	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ReadUserTopologyConfig error")
-		return c.JSON(http.StatusInternalServerError, err)
+		log.Err(err).Interface("req", t).Interface("orgUser", ou).Msg("DeployTopology, ReadUserTopologyConfig error")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	nk := tr.GetTopologyBaseInfraWorkload()
 	if nk.Job != nil {

@@ -16,15 +16,15 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 		GroupName: olympus,
 		Type:      cronjob,
 		CronJob: CronJobInstructions{
-			Endpoint:     fmt.Sprintf("https://iris.zeus.fyi/v1/internal/%s", "router/serverless/refresh"),
+			Endpoint:     fmt.Sprintf("https://api.zeus.fyi/v1/webhooks/emails/ai"),
 			PollInterval: 5 * time.Minute,
 		},
 	}
 	b, err := json.Marshal(inst)
 	t.Require().Nil(err)
 
-	groupName := "IrisPlatformServiceWorkflows"
-	instType := "IrisServerlessResyncWorkflow-Cronjob"
+	groupName := "ZeusAiPlatformServiceWorkflows"
+	instType := "AiEmailWorkflow-Cronjob"
 
 	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	oj := artemis_orchestrations.OrchestrationJob{

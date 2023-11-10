@@ -32,10 +32,10 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 }
 
 func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {
-	task := "write a bullet point summary of the email contents and suggest some responses if applicable. write your reply as html formatted\n"
+	//task := "write a bullet point summary of the email contents and suggest some responses if applicable. write your reply as html formatted\n"
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
-		Content: "You are a helpful bot that can read email contents and provide a bullet point summary and suggest responses.",
+		Content: "You are a helpful bot that can read email contents and provide a bullet point summary and suggest responses as html formatted.",
 		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 	}
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
@@ -46,7 +46,7 @@ func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgU
 				systemMessage,
 				{
 					Role:    openai.ChatMessageRoleUser,
-					Content: hermes_email_notifications.GenerateAiRequest(task, msg),
+					Content: hermes_email_notifications.GenerateAiRequest(msg.Body, msg),
 					Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 				},
 			},

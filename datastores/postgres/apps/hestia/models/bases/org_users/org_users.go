@@ -5,7 +5,7 @@ import (
 )
 
 type OrgUser struct {
-	autogen_bases.OrgUsers
+	autogen_bases.OrgUsers `json:"orgUser"`
 }
 
 func NewOrgUser() OrgUser {

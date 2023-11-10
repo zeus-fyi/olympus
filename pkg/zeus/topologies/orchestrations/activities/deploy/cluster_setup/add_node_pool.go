@@ -215,6 +215,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 }
 
 func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
+	log.Info().Interface("ou", params.Ou).Interface("nodes", params.Nodes).Msg("GkeMakeNodePoolRequest")
 	labels := CreateBaseNodeLabels(params)
 
 	tmp := strings.Split(params.Namespace, "-")

@@ -28,11 +28,12 @@ func ClusterTopologyDeploymentHandler(c echo.Context) error {
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
+		log.Warn().Interface("ou", ou).Interface("request", request).Msg("ClusterTopologyDeploymentHandler: orgUser")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
 	if authed != true || err != nil {
-		log.Ctx(ctx).Err(err).Msg("ClusterTopologyDeploymentHandler: IsOrgCloudCtxNsAuthorized")
+		log.Err(err).Interface("ou", ou).Interface("request", request).Interface("authed", authed).Msg("ClusterTopologyDeploymentHandler: IsOrgCloudCtxNsAuthorized")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return request.DeployClusterTopology(c)
@@ -48,10 +49,10 @@ func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) err
 	orgID := ou.OrgID
 	cl, err := read_topology.SelectClusterTopology(ctx, orgID, t.ClusterClassName, t.SkeletonBaseOptions)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("DeployClusterTopology: SelectClusterTopology")
+		log.Err(err).Msg("DeployClusterTopology: SelectClusterTopology")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	log.Ctx(ctx).Info().Interface("cl", cl).Msg("DeployClusterTopology: SelectClusterTopology")
+	log.Info().Interface("cl", cl).Msg("DeployClusterTopology: SelectClusterTopology")
 	clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
 		ClusterClassName:          t.ClusterClassName,
 		TopologyIDs:               cl.GetTopologyIDs(),

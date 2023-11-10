@@ -13,7 +13,7 @@ func (c *CreateSetupTopologyActivities) AddAuthCtxNsOrg(ctx context.Context, par
 	newCloudCtxAuth := create_topology.CreateTopologiesOrgCloudCtxNs{}
 	err := newCloudCtxAuth.InsertTopologyAccessCloudCtxNs(ctx, params.Ou.OrgID, params.CloudCtxNs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("cloudAuth", newCloudCtxAuth).Msg("AddAuthCtxNsOrg: InsertTopologyAccessCloudCtxNs error")
+		log.Err(err).Interface("cloudAuth", newCloudCtxAuth).Msg("AddAuthCtxNsOrg: InsertTopologyAccessCloudCtxNs error")
 		return err
 	}
 	return err
@@ -22,7 +22,7 @@ func (c *CreateSetupTopologyActivities) AddAuthCtxNsOrg(ctx context.Context, par
 func (c *CreateSetupTopologyActivities) RemoveAuthCtxNsOrg(ctx context.Context, orgID int, cloudCtxNs zeus_common_types.CloudCtxNs) error {
 	err := create_topology.DeleteTopologyAccessCloudCtxNs(ctx, orgID, cloudCtxNs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("cloudCtxNs", cloudCtxNs).Msg("RemoveAuthCtxNsOrg: DeleteTopologyAccessCloudCtxNs error")
+		log.Err(err).Interface("cloudCtxNs", cloudCtxNs).Msg("RemoveAuthCtxNsOrg: DeleteTopologyAccessCloudCtxNs error")
 		return err
 	}
 	return err

@@ -7,6 +7,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
@@ -189,5 +190,22 @@ func extractReadableText(payload *gmail.MessagePart) string {
 			text += extractReadableText(part)
 		}
 	}
+	tmp := stripHTML(text)
+	if len(tmp) > 0 {
+		return tmp
+	}
 	return text
+}
+
+func stripHTML(html string) string {
+	// Remove HTML tags
+	noHTML := regexp.MustCompile(`<[^>]*>`).ReplaceAllString(html, "")
+
+	// Decode HTML entities
+	noHTMLEntities := regexp.MustCompile(`&[^;]+;`).ReplaceAllString(noHTML, "")
+
+	// Remove any extra whitespace
+	noExtraWhitespace := strings.Join(strings.Fields(noHTMLEntities), " ")
+
+	return noExtraWhitespace
 }

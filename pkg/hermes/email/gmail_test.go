@@ -1,6 +1,8 @@
 package hermes_email_notifications
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func (s *EmailTestSuite) TestNewGmail() {
 
@@ -26,6 +28,7 @@ func (s *EmailTestSuite) TestNewGmailWorker() {
 		fmt.Println("MsgId: ", emailContent.MsgId)
 		fmt.Println("Email: ", emailContent.From)
 		fmt.Println("Subject: ", emailContent.Subject)
-		fmt.Println("Body: ", emailContent.Body)
+
+		fmt.Println("Body: ", stripHTML(emailContent.Body))
 	}
 }

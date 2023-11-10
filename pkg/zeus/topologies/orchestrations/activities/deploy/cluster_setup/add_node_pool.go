@@ -255,10 +255,10 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 				NodePoolID: ni.Name,
 			}, nil
 		}
-		log.Err(err).Interface("nodes", params.Nodes).Msg("GkeMakeNodePoolRequest error")
+		log.Err(err).Interface("node", node).Interface("nodes", params.Nodes).Msg("GkeMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
-	fmt.Println(node)
+	//fmt.Println(node)
 	return do_types.DigitalOceanNodePoolRequestStatus{
 		ClusterID:  clusterID,
 		NodePoolID: ni.Name,

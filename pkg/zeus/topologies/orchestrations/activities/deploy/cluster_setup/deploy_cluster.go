@@ -71,7 +71,7 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Co
 	}
 	token, err := auth.FetchUserAuthToken(context.Background(), ou)
 	if err != nil {
-		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed")
+		log.Err(err).Interface("path", u.Path).Interface("ou", ou).Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed")
 		return err
 	}
 	if len(token.PublicKey) <= 0 {

@@ -14,6 +14,15 @@ import (
 	"google.golang.org/api/container/v1"
 )
 
+func (c *CreateSetupTopologyActivities) GkeAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
+	err := hestia_compute_resources.AddGkeNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
+	if err != nil {
+		log.Err(err).Interface("nodes", params.Nodes).Msg("GkeAddNodePoolToOrgResources error")
+		return err
+	}
+	return nil
+}
+
 func (c *CreateSetupTopologyActivities) SelectGkeNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	log.Info().Interface("request", request).Msg("SelectGkeNodeResources")
 	nps, err := hestia_compute_resources.GkeSelectNodeResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
@@ -83,8 +92,8 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 		Zone:        "us-central1-a",
 	}
 	name := strings.ToLower(fmt.Sprintf("%d-%s", params.Ou.OrgID, suffix))
-	if len(name) >= 40 {
-		name = name[:40]
+	if len(name) > 39 {
+		name = name[:39]
 	}
 
 	ni := hestia_gcp.GkeNodePoolInfo{

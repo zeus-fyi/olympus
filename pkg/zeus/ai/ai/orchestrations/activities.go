@@ -10,9 +10,11 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
+	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 )
 
 type ZeusAiPlatformActivities struct {
+	kronos_helix.ActivityDefinition
 }
 
 func NewZeusAiPlatformActivities() ZeusAiPlatformActivities {
@@ -23,8 +25,9 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
+	ka := kronos_helix.NewKronosActivities()
 	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew, h.InsertAiResponse}
-	return actSlice
+	return append(actSlice, ka.GetActivities()...)
 }
 
 func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {

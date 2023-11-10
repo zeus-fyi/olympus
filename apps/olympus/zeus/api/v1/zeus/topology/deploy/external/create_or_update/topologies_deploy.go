@@ -21,7 +21,10 @@ type TopologyDeployRequest struct {
 func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 	log.Debug().Msg("TopologyDeployRequest")
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	tr, err := zeus.ReadUserTopologyConfig(ctx, t.TopologyID, ou)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ReadUserTopologyConfig error")

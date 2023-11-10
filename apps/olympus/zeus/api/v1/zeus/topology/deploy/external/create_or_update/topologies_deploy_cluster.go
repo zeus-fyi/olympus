@@ -26,7 +26,10 @@ func ClusterTopologyDeploymentHandler(c echo.Context) error {
 		return err
 	}
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
 	if authed != true || err != nil {
 		log.Ctx(ctx).Err(err).Msg("ClusterTopologyDeploymentHandler: IsOrgCloudCtxNsAuthorized")
@@ -38,7 +41,10 @@ func ClusterTopologyDeploymentHandler(c echo.Context) error {
 func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) error {
 	log.Debug().Msg("DeployClusterTopology")
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	orgID := ou.OrgID
 	cl, err := read_topology.SelectClusterTopology(ctx, orgID, t.ClusterClassName, t.SkeletonBaseOptions)
 	if err != nil {

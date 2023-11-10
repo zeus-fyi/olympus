@@ -54,8 +54,10 @@ func SetupClusterTopologyDeploymentHandler(c echo.Context) error {
 func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) error {
 	log.Debug().Msg("DeploySetupClusterTopology")
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
-
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	if ou.UserID == 1685378241971196000 {
 		t.FreeTrial = false
 	} else {

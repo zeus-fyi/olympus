@@ -20,7 +20,10 @@ type TopologyDestroyDeployRequest struct {
 func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) error {
 	log.Debug().Msg("DestroyDeployedTopology")
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
 	tr.TopologyID = t.TopologyID
 	err := tr.SelectTopology(ctx)
@@ -38,7 +41,10 @@ type TopologyUIDestroyDeployRequest struct {
 func (t *TopologyUIDestroyDeployRequest) DestroyNamespaceCluster(c echo.Context) error {
 	log.Debug().Msg("DestroyNamespaceCluster")
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
 	knsIn := kns.TopologyKubeCtxNs{
 		CloudCtxNs: t.CloudCtxNs,

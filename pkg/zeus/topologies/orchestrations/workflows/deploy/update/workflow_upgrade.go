@@ -3,6 +3,7 @@ package deploy_workflow_cluster_updates
 import (
 	"time"
 
+	"github.com/google/uuid"
 	read_topologies "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies"
 	read_topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/definitions/state"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -66,7 +67,7 @@ func (t *FleetUpgradeWorkflow) UpgradeFleetWorkflow(ctx workflow.Context, params
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
 		childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
-		childWorkflowFuture := workflow.ExecuteChildWorkflow(childCtx, "DeployClusterTopologyWorkflow", clusterReq)
+		childWorkflowFuture := workflow.ExecuteChildWorkflow(childCtx, "DeployClusterTopologyWorkflow", uuid.New().String(), clusterReq)
 		var childWE workflow.Execution
 		if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
 			log.Error("Failed to get child workflow execution", "Error", err)

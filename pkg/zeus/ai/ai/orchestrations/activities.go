@@ -59,7 +59,7 @@ func (h *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou or
 	err := hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
 	if err != nil {
 		log.Err(err).Msg("SaveAiTaskResponse: RecordUIChatRequestUsage failed")
-		return err
+		return nil
 	}
 	return nil
 }

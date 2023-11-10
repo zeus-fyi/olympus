@@ -13,13 +13,13 @@ import (
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
+	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
-	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
 type DeployTopologyActivities struct {
@@ -42,13 +42,15 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 		d.CreateSecret,
 		d.CreateJob,
 		d.CreateCronJob,
-		d.GetTopologyInfraConfig,
+		//d.GetTopologyInfraConfig,
 	}
 	return actSlice
 }
 
 func (d *DeployTopologyActivities) GetTopologyInfraConfig(ctx context.Context, ou org_users.OrgUser, topID int) (*chart_workload.TopologyBaseInfraWorkload, error) {
-	tr, err := zeus.ReadUserTopologyConfig(ctx, topID, ou)
+	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
+	tr.TopologyID = topID
+	err := tr.SelectTopology(ctx)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Int("topID", topID).Msg("DeployTopology, ReadUserTopologyConfig error")
 		return nil, err

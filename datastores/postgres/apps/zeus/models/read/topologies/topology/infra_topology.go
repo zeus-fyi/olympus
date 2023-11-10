@@ -56,7 +56,7 @@ func (t *InfraBaseTopology) SelectTopologyForOrg(ctx context.Context) error {
 	log.Debug().Interface("SelectTopologyQuery", q.LogHeader(Sn))
 	err := t.SelectSingleChartsResources(ctx, q)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("topology", t).Msg("SelectTopology, SelectSingleChartsResources error")
+		log.Err(err).Interface("topology", t).Msg("SelectTopology, SelectSingleChartsResources error")
 		return err
 	}
 	return err
@@ -68,7 +68,7 @@ func (t *InfraBaseTopology) SelectTopology(ctx context.Context) error {
 	log.Debug().Interface("SelectInfraTopologyQueryForOrg", q.LogHeader(Sn))
 	err := t.SelectSingleChartsResources(ctx, q)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("topology", t).Msg("SelectTopology, SelectSingleChartsResources error")
+		log.Err(err).Interface("topology", t).Msg("SelectTopology, SelectSingleChartsResources error")
 		return err
 	}
 	return err
@@ -122,7 +122,7 @@ func (t *InfraBaseTopology) IsOrgCloudCtxNsAuthorized(ctx context.Context, kns z
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, t.OrgID, kns.CloudProvider, kns.Context, kns.Region, kns.Namespace).Scan(&authorized)
 	if err != nil {
 		if t.OrgID == TemporalOrgID {
-			log.Ctx(ctx).Info().Msg("IsOrgCloudCtxNsAuthorized: Using Temporal Key")
+			log.Info().Msg("IsOrgCloudCtxNsAuthorized: Using Temporal Key")
 			return true, nil
 		}
 		return false, errors.New("not authorized")
@@ -136,7 +136,7 @@ func IsOrgCloudCtxNsAuthorized(ctx context.Context, orgID int, kns zeus_common_t
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, kns.CloudProvider, kns.Context, kns.Region, kns.Namespace).Scan(&authorized)
 	if err != nil {
 		if orgID == TemporalOrgID {
-			log.Ctx(ctx).Info().Msg("IsOrgCloudCtxNsAuthorized: Using Temporal Key")
+			log.Info().Msg("IsOrgCloudCtxNsAuthorized: Using Temporal Key")
 			return true, nil
 		}
 		return false, errors.New("not authorized")

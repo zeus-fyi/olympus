@@ -13,7 +13,7 @@ func ReadUserTopologyConfig(ctx context.Context, topID int, ou org_users.OrgUser
 	tr.TopologyID = topID
 	err := tr.SelectTopology(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("orgUser", ou).Msg("DeployTopology, SelectTopology error")
+		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, SelectTopology error")
 		return tr, err
 	}
 	return tr, err

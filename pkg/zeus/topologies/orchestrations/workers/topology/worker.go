@@ -75,6 +75,7 @@ func (t *TopologyWorker) ExecuteDeployCluster(ctx context.Context, params base_d
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
+		ID:        uuid.New().String(),
 	}
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
 	wf := deployWf.DeployClusterTopologyWorkflow

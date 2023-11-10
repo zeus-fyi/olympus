@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
@@ -173,8 +174,17 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 			sbNames = append(sbNames, sbName)
 		}
 	}
+
+	var ct read_topology.ClusterTopology
+	getClusterTopologyIdsCtx := workflow.WithActivityOptions(ctx, aoDeploy)
+	err = workflow.ExecuteActivity(getClusterTopologyIdsCtx, c.CreateSetupTopologyActivities.GetClusterTopologyIds, params.Cluster.ClusterName, sbNames, params.Ou).Get(getClusterTopologyIdsCtx, &ct)
+	if err != nil {
+		logger.Error("Failed to deploy cluster", "Error", err)
+		return err
+	}
+
 	clusterDeployCtx := workflow.WithActivityOptions(ctx, aoDeploy)
-	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, params.Cluster.ClusterName, sbNames, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)
+	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, ct.ClusterClassName, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)
 	if err != nil {
 		logger.Error("Failed to deploy cluster", "Error", err)
 		return err

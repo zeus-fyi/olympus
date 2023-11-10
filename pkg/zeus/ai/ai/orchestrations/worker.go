@@ -22,7 +22,7 @@ const (
 )
 
 func InitZeusAiServicesWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Info().Msg("Hestia: InitZeusAiServicesWorker")
+	log.Info().Msg("Zeus: InitZeusAiServicesWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
 		log.Err(err).Msg("InitZeusAiServicesWorker: NewTemporalClient failed")

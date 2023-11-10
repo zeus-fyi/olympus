@@ -43,7 +43,7 @@ func (s *HeraTestSuite) TestOpenAIChatGptInsert() {
 	resp, err := HeraOpenAI.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT4,
+			Model: "gpt-4-1106-preview",
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,

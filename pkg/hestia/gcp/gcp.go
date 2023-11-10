@@ -147,7 +147,12 @@ type GkeNodePoolInfo struct {
 func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo) (any, error) {
 	resp, err := g.Projects.Zones.Clusters.NodePools.Delete(ci.ProjectID, ci.Zone, ci.ClusterName, ni.Name).Context(ctx).Do()
 	if err != nil {
-		log.Err(err).Msg("failed to delete node pool")
+		var googErr *googleapi.Error
+		ok := errors.As(err, &googErr)
+		if ok && googErr != nil {
+			log.Warn().Interface("googErr", googErr).Msg("googErr")
+		}
+		log.Err(err).Interface("ci", ci).Interface("ni", ni).Msg("failed to delete node pool")
 		return nil, err
 	}
 	return resp, err

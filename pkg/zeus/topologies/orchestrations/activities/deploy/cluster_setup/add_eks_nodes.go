@@ -58,7 +58,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 		taints = append(taints, appTaint)
 	}
 
-	nodeGroupName := strings.ToLower(fmt.Sprintf("%d-%s", params.Ou.OrgID, suffix))
+	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s", params.Ou.OrgID, suffix))
 	if len(nodeGroupName) > 39 {
 		nodeGroupName = nodeGroupName[:39]
 	}

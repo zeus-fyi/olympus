@@ -45,7 +45,7 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 	tmp := strings.Split(params.Namespace, "-")
 	suffix := tmp[len(tmp)-1]
 
-	nodeGroupName := strings.ToLower(fmt.Sprintf("%d-%s", params.Ou.OrgID, suffix))
+	nodeGroupName := strings.ToLower(fmt.Sprintf("ovh-%d-%s", params.Ou.OrgID, suffix))
 	if len(nodeGroupName) > 39 {
 		nodeGroupName = nodeGroupName[:39]
 	}
@@ -140,7 +140,7 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	if strings.HasPrefix(params.Nodes.Slug, "so") {
 		labels = hestia_digitalocean.AddDoNvmeLabels(labels)
 	}
-	nodePoolName := strings.ToLower(fmt.Sprintf("%d-%s", params.Ou.OrgID, suffix))
+	nodePoolName := strings.ToLower(fmt.Sprintf("do-%d-%s", params.Ou.OrgID, suffix))
 	if len(nodePoolName) > 39 {
 		nodePoolName = nodePoolName[:39]
 	}

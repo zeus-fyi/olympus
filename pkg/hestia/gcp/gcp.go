@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/container/v1"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
 )
 
@@ -197,6 +198,15 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 	}
 	resp, err := g.Projects.Zones.Clusters.NodePools.Create(ci.ProjectID, ci.Zone, ci.ClusterName, cnReq).Context(ctx).Do()
 	if err != nil {
+
+		var googErr *googleapi.Error
+		ok := errors.As(err, &googErr)
+		if ok && googErr != nil {
+			if googErr.Code == 409 {
+				log.Info().Interface("ci", ci).Msgf("node pool %s already exists", ni.Name)
+				return nil, nil
+			}
+		}
 		log.Err(err).Msg("failed to create node pool")
 		return nil, err
 	}

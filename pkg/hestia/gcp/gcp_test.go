@@ -2,6 +2,7 @@ package hestia_gcp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -11,6 +12,7 @@ import (
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	"google.golang.org/api/container/v1"
+	"google.golang.org/api/googleapi"
 )
 
 type GcpTestSuite struct {
@@ -35,14 +37,19 @@ func (s *GcpTestSuite) TestAddNodePool() {
 		ProjectID:   "zeusfyi",
 		Zone:        "us-central1-a",
 	}
-	mt := "e2-medium"
+	mt := "e2-micro"
 	ni := GkeNodePoolInfo{
-		Name:             "test-node-pool-1",
+		Name:             "nodepool-1699642242976434000-aed41f32",
 		MachineType:      mt,
 		InitialNodeCount: 1,
 	}
 	r, err := s.g.AddNodePool(ctx, ci, ni, nil, nil)
-	s.Require().NoError(err)
+	s.Assert().NoError(err)
+
+	var googErr *googleapi.Error
+	ok := errors.As(err, &googErr)
+	s.Require().True(ok)
+	s.Require().Equal(googErr.Code, 409)
 	s.Require().NotNil(r)
 }
 

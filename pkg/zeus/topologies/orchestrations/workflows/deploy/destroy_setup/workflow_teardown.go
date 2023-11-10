@@ -69,12 +69,12 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 				logger.Error("Failed to remove domain record", "Error", err)
 				return err
 			}
-			destroyClusterCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(destroyClusterCtx, c.CreateSetupTopologyActivities.DestroyCluster, params.CloudCtxNs).Get(destroyClusterCtx, nil)
-			if err != nil {
-				logger.Error("Failed to add deploy cluster", "Error", err)
-				return err
-			}
+			//destroyClusterCtx := workflow.WithActivityOptions(ctx, ao)
+			//err = workflow.ExecuteActivity(destroyClusterCtx, c.CreateSetupTopologyActivities.DestroyCluster, params.CloudCtxNs).Get(destroyClusterCtx, nil)
+			//if err != nil {
+			//	logger.Error("Failed to add deploy cluster", "Error", err)
+			//	return err
+			//}
 			removeAuthCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params.Ou.OrgID, params.CloudCtxNs).Get(removeAuthCtx, nil)
 			if err != nil {

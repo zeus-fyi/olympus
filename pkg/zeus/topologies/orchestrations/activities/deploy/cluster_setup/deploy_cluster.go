@@ -28,9 +28,7 @@ func (c *CreateSetupTopologyActivities) GetClusterTopologyIds(ctx context.Contex
 	}
 	return cl, nil
 }
-func (c *CreateSetupTopologyActivities) DestroyCluster(ctx context.Context, cloudCtxNs zeus_common_types.CloudCtxNs) error {
-	return c.destroyClusterTopology(cloudCtxNs)
-}
+
 func (c *CreateSetupTopologyActivities) destroyClusterTopology(cloudCtxNs zeus_common_types.CloudCtxNs) error {
 	if len(c.Host) <= 0 {
 		c.Host = "https://api.zeus.fyi"

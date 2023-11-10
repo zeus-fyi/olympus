@@ -14,7 +14,7 @@ import (
 )
 
 type TopologyDestroyDeployRequest struct {
-	kns.TopologyKubeCtxNs
+	kns.TopologyKubeCtxNs `json:"topologyKubeCtxNs"`
 }
 
 func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) error {
@@ -22,6 +22,7 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
+		log.Warn().Interface("ou", ou).Msg("DestroyDeployedTopology, orgUser not found")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
@@ -35,7 +36,7 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 }
 
 type TopologyUIDestroyDeployRequest struct {
-	zeus_common_types.CloudCtxNs
+	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 }
 
 func (t *TopologyUIDestroyDeployRequest) DestroyNamespaceCluster(c echo.Context) error {
@@ -43,7 +44,12 @@ func (t *TopologyUIDestroyDeployRequest) DestroyNamespaceCluster(c echo.Context)
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
+		log.Warn().Interface("ou", ou).Msg("DestroyDeployedTopology, orgUser not found")
 		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if t.CloudCtxNs.CheckIfEmpty() {
+		log.Warn().Interface("orgUser", ou).Interface("cloudCtxNs", t.CloudCtxNs).Msg("DestroyNamespaceCluster, CloudCtxNs is empty")
+		return c.JSON(http.StatusBadRequest, nil)
 	}
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
 	knsIn := kns.TopologyKubeCtxNs{

@@ -18,11 +18,17 @@ func TopologyDestroyDeploymentHandler(c echo.Context) error {
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
+		log.Warn().Msg("TopologyDestroyDeploymentHandler: orgUser not found")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
 	if authed != true {
-		return c.JSON(http.StatusInternalServerError, err)
+		log.Warn().Interface("ou", ou).Interface("req", request).Msg("TopologyDestroyDeploymentHandler: IsOrgCloudCtxNsAuthorized error")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Msg("TopologyDestroyDeploymentHandler: IsOrgCloudCtxNsAuthorized error")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return request.DestroyDeployedTopology(c)
 }
@@ -44,12 +50,17 @@ func DestroyNamespaceHandler(c echo.Context) error {
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
+		log.Warn().Msg("TopologyDestroyDeploymentHandler: orgUser not found")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
 	if authed != true {
+		log.Warn().Interface("ou", ou).Msg("DestroyNamespaceHandler: IsOrgCloudCtxNsAuthorized error")
+		return c.JSON(http.StatusForbidden, nil)
+	}
+	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("DestroyNamespaceHandler: IsOrgCloudCtxNsAuthorized error")
-		return c.JSON(http.StatusForbidden, err)
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return request.DestroyNamespaceCluster(c)
 }

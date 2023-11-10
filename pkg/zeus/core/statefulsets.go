@@ -2,6 +2,7 @@ package zeus_core
 
 import (
 	"context"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
@@ -80,4 +81,32 @@ func (k *K8Util) CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx contex
 	}
 	newSts, newStsErr := k.CreateStatefulSet(ctx, kns, nsts, filter)
 	return newSts, newStsErr
+}
+
+func (k *K8Util) RolloutRestartStatefulSet(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) error {
+	k.SetContext(kubeCtxNs.Context)
+
+	// Get the StatefulSet
+	ss, err := k.kc.AppsV1().StatefulSets(kubeCtxNs.Namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		log.Err(err).Interface("kubeCtxNs", kubeCtxNs).Msg("GetStatefulSet: error")
+		return err
+	}
+
+	// Prepare for the restart
+	if ss.Spec.Template.Annotations == nil {
+		ss.Spec.Template.Annotations = make(map[string]string)
+	}
+
+	// Set a new annotation - this triggers a restart
+	ss.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().Format(time.RFC3339)
+
+	// Update the StatefulSet
+	_, err = k.kc.AppsV1().StatefulSets(kubeCtxNs.Namespace).Update(ctx, ss, metav1.UpdateOptions{})
+	if err != nil {
+		log.Err(err).Interface("kubeCtxNs", kubeCtxNs).Msg("UpdateStatefulSet: error")
+		return err
+	}
+
+	return nil
 }

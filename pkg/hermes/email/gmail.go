@@ -69,8 +69,6 @@ func (g *GmailServiceClient) GetReadEmails(email string, maxResults int) ([]Emai
 		if err != nil {
 			return nil, err
 		}
-		b, _ := msg.MarshalJSON()
-		fmt.Println(string(b))
 		var emailContents EmailContents
 		if msg != nil {
 

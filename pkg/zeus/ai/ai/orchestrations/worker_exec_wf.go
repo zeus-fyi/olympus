@@ -6,10 +6,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	"go.temporal.io/sdk/client"
 )
 
-func (h *ZeusAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context, ou org_users.OrgUser, em, content string) error {
+func (h *ZeusAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context, ou org_users.OrgUser, msgs []hermes_email_notifications.EmailContents) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -17,8 +18,8 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context
 		ID:        uuid.New().String(),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
-	wf := txWf.AiWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, em, content)
+	wf := txWf.AiEmailWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, msgs)
 	if err != nil {
 		log.Err(err).Msg("ExecuteAiTaskWorkflow")
 		return err

@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
+	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
@@ -22,11 +23,14 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
-	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail}
+	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew, h.InsertAiResponse}
 	return actSlice
 }
 
-func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, content string) (openai.ChatCompletionResponse, error) {
+func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {
+	task := "write a bullet point summary of the email contents below, and then suggest some responses unless the message is from a no-reply address\n"
+	task += "message is from " + msg.From + "\n"
+	content := hermes_email_notifications.GenerateAiRequest(task, msg)
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
@@ -63,4 +67,22 @@ func (h *ZeusAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, em
 		return err
 	}
 	return nil
+}
+
+func (h *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
+	emailID, err := hera_openai_dbmodels.InsertNewEmails(ctx, msg)
+	if err != nil {
+		log.Err(err).Msg("SaveNewEmail: failed")
+		return 0, err
+	}
+	return emailID, nil
+}
+
+func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
+	emailID, err := hera_openai_dbmodels.InsertNewEmails(ctx, msg)
+	if err != nil {
+		log.Err(err).Msg("SaveNewEmail: failed")
+		return 0, err
+	}
+	return emailID, nil
 }

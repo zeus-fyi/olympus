@@ -49,6 +49,11 @@ type EmailContents struct {
 	Body    string
 }
 
+func GenerateAiRequest(task string, em EmailContents) string {
+	contents := task + "\n" + em.Body + "\n" + em.Subject + "\n"
+	return contents
+}
+
 func (g *GmailServiceClient) GetReadEmails(email string, maxResults int) ([]EmailContents, error) {
 	r, err := g.Users.Messages.List(email).MaxResults(int64(maxResults)).Do()
 	if err != nil {

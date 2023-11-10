@@ -1,7 +1,6 @@
 package zeus_webhooks
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -47,31 +46,18 @@ func AiEmailAIServiceTaskRequestHandler(c echo.Context) error {
 
 func (a *AIServiceRequest) SupportAcknowledgeAITask(c echo.Context, email string) error {
 	log.Info().Msg("Zeus: CreateAIServiceTaskRequestHandler")
-	content := ""
 	ou := org_users.OrgUser{}
 	key := read_keys.NewKeyReader()
 
 	key.GetUserFromEmail(c.Request().Context(), email)
 	ou = org_users.NewOrgUserWithID(key.OrgID, key.UserID)
-
 	msgs, err := hermes_email_notifications.SupportEmailUser.GetReadEmails(email, 10)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
-	for _, msg := range msgs {
-		content = "write a bullet point summary of the email contents below, and then suggest some responses unless the message is from a no-reply address\n"
-		content += "message is from " + msg.From + "\n"
-		content += msg.Subject + "\n"
-		content += msg.Body + "\n"
-		fmt.Println(content)
-		fmt.Println(ou.UserID, ou.OrgID)
-		err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, msg.From, content)
-		if err != nil {
-			log.Err(err).Msg("CreateAIServiceTaskRequestHandler")
-			return err
-		}
+	err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteAiTaskWorkflow(c.Request().Context(), ou, msgs)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	return c.JSON(http.StatusOK, msgs)
 }

@@ -108,6 +108,7 @@ func Zeus() {
 		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 		cfg.PGConnStr = sw.PostgresAuth
+		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -125,6 +126,7 @@ func Zeus() {
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		read_infra.CookbooksDirIn = "/Users/alex/go/Olympus/olympus/apps/zeus/cookbooks"
+		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -146,6 +148,7 @@ func Zeus() {
 		dynMemFs, _ := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		dynamic_secrets.AegisInMemSecrets = dynMemFs
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
+		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")

@@ -42,23 +42,23 @@ type ClusterTopologyWorkflowRequest struct {
 }
 
 type DestroyResourcesRequest struct {
-	Ou             org_users.OrgUser
-	OrgResourceIDs []int
+	Ou             org_users.OrgUser `json:"orgUser"`
+	OrgResourceIDs []int             `json:"orgResourceIDs"`
 }
 
 type DestroyClusterSetupRequest struct {
-	ClusterSetupRequest
+	ClusterSetupRequest `json:"clusterSetupRequest"`
 }
 
 type ClusterSetupRequest struct {
-	FreeTrial                    bool              `json:"freeTrial"`
-	Ou                           org_users.OrgUser `json:"orgUser"`
-	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
-	Nodes                        hestia_autogen_bases.Nodes      `json:"nodes"`
-	NodesQuantity                float64                         `json:"nodesQuantity"`
-	Disks                        hestia_autogen_bases.DisksSlice `json:"disks"`
-	Cluster                      zeus_templates.Cluster          `json:"cluster"`
-	AppTaint                     bool                            `json:"appTaint"`
+	FreeTrial     bool                            `json:"freeTrial"`
+	Ou            org_users.OrgUser               `json:"orgUser"`
+	CloudCtxNs    zeus_common_types.CloudCtxNs    `json:"cloudCtxNs"`
+	Nodes         hestia_autogen_bases.Nodes      `json:"nodes"`
+	NodesQuantity float64                         `json:"nodesQuantity"`
+	Disks         hestia_autogen_bases.DisksSlice `json:"disks"`
+	Cluster       zeus_templates.Cluster          `json:"cluster"`
+	AppTaint      bool                            `json:"appTaint"`
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

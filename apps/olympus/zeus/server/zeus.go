@@ -109,7 +109,6 @@ func Zeus() {
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 		cfg.PGConnStr = sw.PostgresAuth
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
-		hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()

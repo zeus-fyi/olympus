@@ -28,6 +28,8 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	sw.AwsS3AccessKey = sw.MustReadSecret(ctx, inMemSecrets, awsS3ReaderAccessKey)
 	sw.AwsS3SecretKey = sw.MustReadSecret(ctx, inMemSecrets, awsS3ReaderSecretKey)
 	sw.EksAuthAWS.Region = "us-west-1"
+	sw.OpenAIToken = sw.MustReadSecret(ctx, inMemSecrets, heraOpenAIAuth)
+
 	hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 	sw.SendGridAPIKey = sw.MustReadSecret(ctx, inMemSecrets, sendGridAPIKey)
 	sw.GmailApiKey = sw.MustReadSecret(ctx, inMemSecrets, gmailApiKey)

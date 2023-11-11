@@ -79,7 +79,6 @@ export function ChatGPTPage() {
         try {
             setChatRequestStatus('pending');
             let res: any = await heraApiGateway.sendChatGPTRequest(code)
-            console.log(res, 'sdfsd')
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
                 setCode(code + "\n" + "\n" + res.data)
@@ -90,7 +89,6 @@ export function ChatGPTPage() {
                 setChatRequestStatus('error');
             }
         } catch (e: any) {
-            console.log(e, 'sdfd')
             if (e.response && e.response.status === 412) {
                 setChatRequestStatus('insufficientTokenBalance');
             } else {

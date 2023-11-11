@@ -34,7 +34,7 @@ class ResourcesApiGateway {
             const nodeSearchRequest: NodeSearchRequest = {
                 nodeSearchParams: ns,
             };
-            console.log('sending node search request', nodeSearchRequest);
+            //console.log('sending node search request', nodeSearchRequest);
             return await zeusApi.post(url, nodeSearchRequest,config)
         } catch (exc) {
             console.error('error sending get customer resources request');

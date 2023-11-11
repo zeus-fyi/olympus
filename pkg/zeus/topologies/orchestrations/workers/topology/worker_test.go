@@ -39,12 +39,12 @@ func (s *TopologyWorkerTestSuite) TestExecuteDestroyClusterSetupWorkflowFreeTria
 	params := base_deploy_params.DestroyClusterSetupRequest{
 		ClusterSetupRequest: base_deploy_params.ClusterSetupRequest{
 			FreeTrial: true,
-			Ou:        org_users.NewOrgUserWithID(1696270811788972000, 1696270811788972000),
+			Ou:        org_users.NewOrgUserWithID(1696626403975334000, 1696626403975334000),
 			CloudCtxNs: zeus_common_types.CloudCtxNs{
-				CloudProvider: "gcp",
-				Region:        "us-central1",
-				Context:       "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0",
-				Namespace:     "f7194cf5-4dfa-408c-98d8-05615292a91a",
+				CloudProvider: "aws",
+				Region:        "us-west-1",
+				Context:       "zeus-us-west-1",
+				Namespace:     "microservice-af5ce2ca",
 			},
 			Nodes: hestia_autogen_bases.Nodes{
 				Memory:        0,
@@ -53,11 +53,11 @@ func (s *TopologyWorkerTestSuite) TestExecuteDestroyClusterSetupWorkflowFreeTria
 				DiskUnits:     "",
 				DiskType:      "",
 				PriceHourly:   0,
-				Region:        "us-central1",
-				CloudProvider: "gcp",
-				ResourceID:    1683165454211590000,
+				Region:        "us-west-1",
+				CloudProvider: "aws",
+				ResourceID:    1683865911154773000,
 				Description:   "",
-				Slug:          "e2-standard-8",
+				Slug:          "t3.micro",
 				MemoryUnits:   "",
 				PriceMonthly:  0,
 				Gpus:          0,
@@ -66,9 +66,9 @@ func (s *TopologyWorkerTestSuite) TestExecuteDestroyClusterSetupWorkflowFreeTria
 			NodesQuantity: 1,
 			Disks: hestia_autogen_bases.DisksSlice{
 				{
-					ResourceID:    1683165785839881000,
-					Region:        "us-central1",
-					CloudProvider: "gcp",
+					ResourceID:    1683860918169422000,
+					Region:        "us-west-1",
+					CloudProvider: "aws",
 				},
 			},
 			Cluster: zeus_templates.Cluster{

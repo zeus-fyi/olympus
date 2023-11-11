@@ -42,7 +42,7 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 		d.CreateSecret,
 		d.CreateJob,
 		d.CreateCronJob,
-		//d.GetTopologyInfraConfig,
+		d.GetTopologyInfraConfig,
 	}
 	return actSlice
 }

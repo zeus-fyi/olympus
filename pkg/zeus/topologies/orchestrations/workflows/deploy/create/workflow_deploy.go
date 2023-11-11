@@ -50,7 +50,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 	statusCtxKns := workflow.WithActivityOptions(ctx, ao)
 	status := topology_deployment_status.NewPopulatedTopologyStatus(params.TopologyDeployRequest, topology_deployment_status.DeployInProgress)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
-	err := workflow.ExecuteActivity(statusCtxKns, statusActivity.CreateOrUpdateKubeCtxNsStatus, status).Get(statusCtxKns, nil)
+	err := workflow.ExecuteActivity(statusCtxKns, statusActivity.CreateOrUpdateKubeCtxNsStatus, status.TopologyDeployRequest).Get(statusCtxKns, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err

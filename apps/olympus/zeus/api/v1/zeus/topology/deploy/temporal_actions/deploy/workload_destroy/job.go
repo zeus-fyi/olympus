@@ -17,8 +17,8 @@ func DestroyJobHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.Job != nil {
-		err := zeus.K8Util.DeleteJob(ctx, request.Kns.CloudCtxNs, request.Job.Name)
+	if request.Kns.TopologyBaseInfraWorkload.Job != nil {
+		err := zeus.K8Util.DeleteJob(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.Job.Name)
 		if err != nil {
 			log.Err(err).Msg("DestroyJobHandler")
 			return c.JSON(http.StatusInternalServerError, err)

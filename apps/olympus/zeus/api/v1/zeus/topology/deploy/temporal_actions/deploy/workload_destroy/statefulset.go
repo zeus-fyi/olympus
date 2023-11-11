@@ -17,8 +17,8 @@ func DestroyDeployStatefulSetHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.StatefulSet != nil {
-		err := zeus.K8Util.DeleteStatefulSet(ctx, request.Kns.CloudCtxNs, request.StatefulSet.Name, nil)
+	if request.Kns.TopologyBaseInfraWorkload.StatefulSet != nil {
+		err := zeus.K8Util.DeleteStatefulSet(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.StatefulSet.Name, nil)
 		if err != nil {
 			log.Err(err).Msg("DestroyDeployStatefulSetHandler")
 			return c.JSON(http.StatusInternalServerError, err)

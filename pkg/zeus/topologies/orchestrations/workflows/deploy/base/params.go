@@ -6,21 +6,14 @@ import (
 
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 type TopologyWorkflowRequest struct {
-	TopologyDeployRequest     zeus_req_types.TopologyDeployRequest `json:"topologyDeployRequest"`
-	OrgUser                   org_users.OrgUser                    `json:"orgUser"`
-	Host                      string                               `json:"host,omitempty"`
-	RequestChoreographySecret bool                                 `json:"requestChoreographySecret"`
-	ClusterClassName          string                               `json:"clusterClassName"`
-	SecretRef                 string                               `json:"secretRef"`
-
-	chart_workload.TopologyBaseInfraWorkload `json:"topologyBaseInfraWorkload"`
+	TopologyDeployRequest zeus_req_types.TopologyDeployRequest `json:"topologyDeployRequest"`
+	OrgUser               org_users.OrgUser                    `json:"orgUser"`
 }
 
 type FleetUpgradeWorkflowRequest struct {
@@ -62,11 +55,8 @@ type ClusterSetupRequest struct {
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {
-	if len(t.Host) <= 0 {
-		t.Host = "https://api.zeus.fyi"
-	}
 	u := url.URL{
-		Host: t.Host,
+		Host: "https://api.zeus.fyi",
 		Path: path.Join(prefix, target),
 	}
 	return u

@@ -17,7 +17,7 @@ func DeployCronJobsHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	log.Debug().Interface("kns", request.Kns).Msg("DeployCronJobsHandler")
-	_, err := zeus.K8Util.CreateCronJob(ctx, request.Kns.CloudCtxNs, request.CronJob)
+	_, err := zeus.K8Util.CreateCronJob(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.CronJob)
 	if err != nil {
 		log.Err(err).Msg("DeployCronJobsHandler")
 		return c.JSON(http.StatusInternalServerError, err)

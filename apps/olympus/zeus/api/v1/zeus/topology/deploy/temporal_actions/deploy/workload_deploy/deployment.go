@@ -19,17 +19,17 @@ func DeployDeploymentHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.Deployment != nil {
-		if request.Kns.CloudProvider == "ovh" && request.Kns.Context == "zeusfyi" && request.Deployment.Spec.Template.Spec.ImagePullSecrets == nil {
-			request.Deployment.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{{
+	if request.Kns.TopologyBaseInfraWorkload.Deployment != nil {
+		if request.Kns.CloudProvider == "ovh" && request.Kns.Context == "zeusfyi" && request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.ImagePullSecrets == nil {
+			request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{{
 				Name: "zeus-fyi-ext",
 			}}
 		}
 		if request.Kns.CloudCtxNs.Context != "do-sfo3-dev-do-sfo3-zeus" {
-			if request.Deployment.Spec.Template.Spec.Tolerations == nil {
-				request.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{}
+			if request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations == nil {
+				request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{}
 			}
-			request.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{
+			request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{
 				{
 					Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),
 					Operator: "Equal",
@@ -37,17 +37,17 @@ func DeployDeploymentHandler(c echo.Context) error {
 					Effect:   "NoSchedule",
 				},
 			}
-			if request.ClusterName != "" {
-				request.Deployment.Spec.Template.Spec.Tolerations = append(request.Deployment.Spec.Template.Spec.Tolerations, v1.Toleration{
+			if request.Kns.ClusterClassName != "" {
+				request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations = append(request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations, v1.Toleration{
 					Key:      "app",
 					Operator: "Equal",
-					Value:    request.ClusterName,
+					Value:    request.Kns.ClusterClassName,
 					Effect:   "NoSchedule",
 				})
 			}
 		}
 		log.Debug().Interface("kns", request.Kns).Msg("DeployDeploymentHandler: CreateDeploymentIfVersionLabelChangesOrDoesNotExist")
-		_, err := zeus.K8Util.CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.Deployment, nil)
+		_, err := zeus.K8Util.CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.Deployment, nil)
 		if err != nil {
 			log.Err(err).Msg("DeployDeploymentHandler")
 			return c.JSON(http.StatusInternalServerError, err)

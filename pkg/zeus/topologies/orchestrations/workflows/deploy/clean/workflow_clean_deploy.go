@@ -50,12 +50,11 @@ func (t *CleanDeployTopologyWorkflow) CleanDeployedTopologyWorkflow(ctx workflow
 	}
 
 	deployParams := base_request.InternalDeploymentActionRequest{
-		Kns:                       params.TopologyDeployRequest,
-		OrgUser:                   params.OrgUser,
-		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
+		Kns:     params.TopologyDeployRequest,
+		OrgUser: params.OrgUser,
 	}
 
-	if params.ConfigMap != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.ConfigMap != nil {
 		cmCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(cmCtx, t.DestroyDeployTopologyActivities.DestroyDeployConfigMap, deployParams).Get(cmCtx, nil)
 		if err != nil {
@@ -64,7 +63,7 @@ func (t *CleanDeployTopologyWorkflow) CleanDeployedTopologyWorkflow(ctx workflow
 		}
 	}
 
-	if params.Deployment != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Deployment != nil {
 		dCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(dCtx, t.DestroyDeployTopologyActivities.DestroyDeployDeployment, deployParams).Get(dCtx, nil)
 		if err != nil {
@@ -73,7 +72,7 @@ func (t *CleanDeployTopologyWorkflow) CleanDeployedTopologyWorkflow(ctx workflow
 		}
 	}
 
-	if params.StatefulSet != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.StatefulSet != nil {
 		stsCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(stsCtx, t.DestroyDeployTopologyActivities.DestroyDeployStatefulSet, deployParams).Get(stsCtx, nil)
 		if err != nil {
@@ -82,7 +81,7 @@ func (t *CleanDeployTopologyWorkflow) CleanDeployedTopologyWorkflow(ctx workflow
 		}
 	}
 
-	if params.Service != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Service != nil {
 		svcCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(svcCtx, t.DestroyDeployTopologyActivities.DestroyDeployService, deployParams).Get(svcCtx, nil)
 		if err != nil {
@@ -91,7 +90,7 @@ func (t *CleanDeployTopologyWorkflow) CleanDeployedTopologyWorkflow(ctx workflow
 		}
 	}
 
-	if params.Ingress != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Ingress != nil {
 		ingCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(ingCtx, t.DestroyDeployTopologyActivities.DestroyDeployIngress, deployParams).Get(ingCtx, nil)
 		if err != nil {

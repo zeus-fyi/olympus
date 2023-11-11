@@ -17,8 +17,8 @@ func DestroyDeployConfigMapHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.ConfigMap != nil {
-		err := zeus.K8Util.DeleteConfigMapWithKns(ctx, request.Kns.CloudCtxNs, request.ConfigMap.Name, nil)
+	if request.Kns.TopologyBaseInfraWorkload.ConfigMap != nil {
+		err := zeus.K8Util.DeleteConfigMapWithKns(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.ConfigMap.Name, nil)
 		if err != nil {
 			log.Err(err).Msg("DestroyDeployConfigMapHandler")
 			return c.JSON(http.StatusInternalServerError, err)

@@ -75,7 +75,7 @@ func selectAllClusterTopologiesQByName(cte *sql_query_templates.CTE, orgID int, 
 }
 
 type ClusterTopology struct {
-	ClusterClassName string              `json:"clusterName"`
+	ClusterClassName string              `json:"clusterClassName"`
 	Topologies       []ClusterTopologies `json:"topologies"`
 }
 

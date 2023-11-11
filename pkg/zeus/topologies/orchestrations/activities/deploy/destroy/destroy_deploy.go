@@ -3,7 +3,6 @@ package destroy_deploy_activities
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
@@ -47,7 +46,7 @@ func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string,
 		log.Err(err).Interface("path", u.Path).Msg("DestroyDeployTopologyActivities: postDestroyDeployTarget failed")
 		return err
 	}
-	if resp.StatusCode() != http.StatusOK {
+	if resp != nil && resp.StatusCode() >= 400 {
 		log.Err(err).Interface("path", u.Path).Interface("statusCode", resp.StatusCode()).Msg("DeployTopologyActivities: postDestroyDeployTarget failed bad status code")
 		return errors.New(fmt.Sprintf("DeployTopologyActivities: postDestroyDeployTarget failed statusCode: %d", resp.StatusCode()))
 	}

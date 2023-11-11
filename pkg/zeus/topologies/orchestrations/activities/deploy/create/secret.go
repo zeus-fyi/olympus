@@ -11,11 +11,8 @@ func (d *DeployTopologyActivities) CreateChoreographySecret(ctx context.Context,
 	return d.postDeployTarget("choreography/secrets", params)
 }
 
-func (d *DeployTopologyActivities) CreateSecret(ctx context.Context, params base_request.InternalDeploymentActionRequest) error {
-	if params.SecretRef == "" {
-		return nil
-	}
-	exists, err := aegis_secrets.DoesOrgSecretExistForTopology(ctx, params.OrgUser.OrgID, params.SecretRef)
+func (d *DeployTopologyActivities) CreateSecret(ctx context.Context, params base_request.InternalDeploymentActionRequest, secretRef string) error {
+	exists, err := aegis_secrets.DoesOrgSecretExistForTopology(ctx, params.OrgUser.OrgID, secretRef)
 	if err != nil {
 		return err
 	}

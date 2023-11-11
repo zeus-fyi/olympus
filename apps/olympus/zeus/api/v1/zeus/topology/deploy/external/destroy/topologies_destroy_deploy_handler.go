@@ -75,5 +75,5 @@ func DestroyNamespaceHandler(c echo.Context) error {
 		log.Err(err).Interface("ou", ou).Msg("DestroyNamespaceHandler: IsOrgCloudCtxNsAuthorized error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return request.DestroyNamespaceCluster(c)
+	return DestroyNamespaceCluster(c, request.CloudCtxNs)
 }

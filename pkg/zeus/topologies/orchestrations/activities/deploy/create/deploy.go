@@ -7,19 +7,15 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
-	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 )
 
 type DeployTopologyActivities struct {
@@ -47,7 +43,7 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 	return actSlice
 }
 
-func (d *DeployTopologyActivities) GetTopologyInfraConfig(ctx context.Context, ou org_users.OrgUser, topID int) (*chart_workload.TopologyBaseInfraWorkload, error) {
+func (d *DeployTopologyActivities) GetTopologyInfraConfig(ctx context.Context, ou org_users.OrgUser, topID int) (*topology_workloads.TopologyBaseInfraWorkload, error) {
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
 	tr.TopologyID = topID
 	err := tr.SelectTopology(ctx)
@@ -87,44 +83,3 @@ func (d *DeployTopologyActivities) GetDeployURL(target string) url.URL {
 const (
 	internalOrgID = 7138983863666903883
 )
-
-func (d *DeployTopologyActivities) postDeployClusterTopology(params zeus_req_types.TopologyDeployRequest, ou org_users.OrgUser) error {
-	if len(d.Host) <= 0 {
-		d.Host = "https://api.zeus.fyi"
-	}
-	u := url.URL{
-		Host: d.Host,
-	}
-
-	token, err := auth.FetchUserAuthToken(context.Background(), ou)
-	if err == pgx.ErrNoRows && ou.OrgID > 0 && ou.OrgID != internalOrgID {
-		log.Info().Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed, creating new API key")
-		key, err2 := create_keys.CreateUserAPIKey(context.Background(), ou)
-		if err2 != nil {
-			log.Err(err2).Interface("params", params).Msg("CreateUserAPIKey error")
-			return err2
-		}
-		token.PublicKey = key.PublicKey
-	}
-	if err != nil {
-		log.Err(err).Interface("params", params).Interface("path", u.Path).Msg("DeployTopologyActivities: FetchUserAuthToken failed")
-		return err
-	}
-	client := resty.New()
-	client.SetBaseURL(u.Host)
-	resp, err := client.R().
-		SetAuthToken(token.PublicKey).
-		SetBody(params).
-		Post(zeus_endpoints.DeployTopologyV1Path)
-
-	if err != nil {
-		log.Err(err).Interface("params", params).Interface("path", u.Path).Interface("err", err).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
-		return err
-	}
-	if resp != nil && resp.StatusCode() >= 400 {
-		err = errors.New("DeployTopologyActivities: postDeployClusterTopology failed bad status code")
-		log.Err(err).Interface("params", params).Interface("path", u.Path).Interface("statusCode", resp.StatusCode()).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
-		return err
-	}
-	return err
-}

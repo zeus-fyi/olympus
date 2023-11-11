@@ -17,8 +17,8 @@ func DestroyCronJobHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.CronJob != nil {
-		err := zeus.K8Util.DeleteCronJob(ctx, request.Kns.CloudCtxNs, request.CronJob.Name)
+	if request.Kns.TopologyBaseInfraWorkload.CronJob != nil {
+		err := zeus.K8Util.DeleteCronJob(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.CronJob.Name)
 		if err != nil {
 			log.Err(err).Msg("DestroyCronJobHandler")
 			return c.JSON(http.StatusInternalServerError, err)

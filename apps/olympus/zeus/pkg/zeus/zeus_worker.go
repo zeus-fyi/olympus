@@ -8,11 +8,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 )
 
 func ExecuteCreateSetupClusterWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
@@ -46,7 +46,7 @@ func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params ba
 	return c.JSON(http.StatusAccepted, resp)
 }
 
-func ExecuteDeployCronJobWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, tdr zeus_req_types.TopologyDeployRequest, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
+func ExecuteDeployCronJobWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, tdr zeus_req_types.TopologyDeployRequest, nk topology_workloads.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
 	if nk.CronJob == nil && nk.ConfigMap == nil && nk.ServiceMonitor == nil {
 		log.Err(nil).Interface("orgUser", ou).Interface("topologyID", tdr.TopologyID).Msg("ExecuteDeployCronJobWorkflow, payload is nil")
 		return c.JSON(http.StatusBadRequest, nil)
@@ -64,7 +64,7 @@ func ExecuteDeployCronJobWorkflow(c echo.Context, ctx context.Context, ou org_us
 	return c.JSON(http.StatusAccepted, resp.DeployStatus)
 }
 
-func ExecuteDeployJobWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, tdr zeus_req_types.TopologyDeployRequest, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
+func ExecuteDeployJobWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, tdr zeus_req_types.TopologyDeployRequest, nk topology_workloads.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
 	if nk.Job == nil && nk.ConfigMap == nil && nk.ServiceMonitor == nil {
 		log.Err(nil).Interface("orgUser", ou).Interface("topologyID", tdr.TopologyID).Msg("ExecuteDeployJobWorkflow, payload is nil")
 		return c.JSON(http.StatusBadRequest, nil)
@@ -82,7 +82,7 @@ func ExecuteDeployJobWorkflow(c echo.Context, ctx context.Context, ou org_users.
 	return c.JSON(http.StatusAccepted, resp.DeployStatus)
 }
 
-func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy zeus_req_types.TopologyDeployRequest, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
+func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy zeus_req_types.TopologyDeployRequest, nk topology_workloads.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
 	if nk.Service == nil && nk.Deployment == nil && nk.StatefulSet == nil && nk.ServiceMonitor == nil && nk.Ingress == nil && nk.ConfigMap == nil {
 		log.Err(nil).Interface("orgUser", ou).Interface("topologyID", knsDeploy.TopologyID).Msg("DeployTopology, payload is nil")
 		return c.JSON(http.StatusBadRequest, nil)
@@ -100,7 +100,7 @@ func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.Org
 	return c.JSON(http.StatusAccepted, resp.DeployStatus)
 }
 
-func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy zeus_req_types.TopologyDeployRequest, nk chart_workload.TopologyBaseInfraWorkload) error {
+func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy zeus_req_types.TopologyDeployRequest, nk topology_workloads.TopologyBaseInfraWorkload) error {
 	tar := PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk, false, "", "")
 	err := topology_worker.Worker.ExecuteDestroyDeploy(ctx, tar)
 	if err != nil {
@@ -114,7 +114,7 @@ func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_us
 	return c.JSON(http.StatusAccepted, resp.DeployStatus)
 }
 
-func ExecuteDestroyNamespaceWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy zeus_req_types.TopologyDeployRequest, nk chart_workload.TopologyBaseInfraWorkload) error {
+func ExecuteDestroyNamespaceWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy zeus_req_types.TopologyDeployRequest, nk topology_workloads.TopologyBaseInfraWorkload) error {
 	tar := PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk, false, "", "")
 	err := topology_worker.Worker.ExecuteDestroyNamespace(ctx, tar)
 	if err != nil {
@@ -128,7 +128,7 @@ func ExecuteDestroyNamespaceWorkflow(c echo.Context, ctx context.Context, ou org
 	return c.JSON(http.StatusAccepted, resp.DeployStatus)
 }
 
-func ExecuteCleanDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsCleanDeploy zeus_req_types.TopologyDeployRequest, nk chart_workload.TopologyBaseInfraWorkload) error {
+func ExecuteCleanDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsCleanDeploy zeus_req_types.TopologyDeployRequest, nk topology_workloads.TopologyBaseInfraWorkload) error {
 	tar := PackageCommonTopologyRequest(knsCleanDeploy, ou, nk, false, "", "")
 	err := topology_worker.Worker.ExecuteCleanDeploy(ctx, tar)
 	if err != nil {

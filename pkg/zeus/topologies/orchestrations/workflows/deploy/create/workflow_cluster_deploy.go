@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -42,7 +42,7 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 			req.SecretRef = params.ClusterClassName
 		}
 
-		var infraConfig *chart_workload.TopologyBaseInfraWorkload
+		var infraConfig *topology_workloads.TopologyBaseInfraWorkload
 		deployStatusCtx := workflow.WithActivityOptions(ctx, ao)
 		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.GetTopologyInfraConfig, params.OrgUser, topID).Get(deployStatusCtx, &infraConfig)
 		if err != nil {
@@ -54,13 +54,13 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 			logger.Error("Failed to get topology infra config", "Error", err)
 			return err
 		}
-		topParams := base_deploy_params.TopologyWorkflowRequest{
-			TopologyDeployRequest:     req,
-			OrgUser:                   params.OrgUser,
-			RequestChoreographySecret: params.RequestChoreographySecret,
-			ClusterClassName:          params.ClusterClassName,
-			SecretRef:                 req.SecretRef,
-			TopologyBaseInfraWorkload: *infraConfig, // nil check is above
+		topParams := zeus_req_types.TopologyDeployRequest{
+			TopologyID:                      topID,
+			ClusterClassName:                params.ClusterClassName,
+			CloudCtxNs:                      params.CloudCtxNs,
+			SecretRef:                       req.SecretRef,
+			RequestChoreographySecretDeploy: params.RequestChoreographySecret,
+			TopologyBaseInfraWorkload:       *infraConfig, // nil check is above
 		}
 		deployChildWorkflowOptions := workflow.ChildWorkflowOptions{
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,

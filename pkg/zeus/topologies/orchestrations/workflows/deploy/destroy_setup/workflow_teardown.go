@@ -9,6 +9,9 @@ import (
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -35,7 +38,7 @@ func (c *DestroyClusterSetupWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{c.DestroyClusterSetupWorkflowFreeTrial}
 }
 
-func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx workflow.Context, wfID string, params base_deploy_params.DestroyClusterSetupRequest) error {
+func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx workflow.Context, wfID string, params base_deploy_params.ClusterSetupRequest, wfParams base_deploy_params.ClusterTopologyWorkflowRequest) error {
 	logger := workflow.GetLogger(ctx)
 
 	ao := workflow.ActivityOptions{
@@ -69,18 +72,13 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 				logger.Error("Failed to remove domain record", "Error", err)
 				return err
 			}
-			//destroyClusterCtx := workflow.WithActivityOptions(ctx, ao)
-			//err = workflow.ExecuteActivity(destroyClusterCtx, c.CreateSetupTopologyActivities.DestroyCluster, params.CloudCtxNs).Get(destroyClusterCtx, nil)
-			//if err != nil {
-			//	logger.Error("Failed to add deploy cluster", "Error", err)
-			//	return err
-			//}
 			removeAuthCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params.Ou.OrgID, params.CloudCtxNs).Get(removeAuthCtx, nil)
 			if err != nil {
 				logger.Error("Failed to remove auth ctx ns", "Error", err)
 				return err
 			}
+
 			selectFreeTrialDoNodesCtx := workflow.WithActivityOptions(ctx, ao)
 			var nodes []do_types.DigitalOceanNodePoolRequestStatus
 			err = workflow.ExecuteActivity(selectFreeTrialDoNodesCtx, c.CreateSetupTopologyActivities.SelectFreeTrialNodes, params.Ou.OrgID).Get(selectFreeTrialDoNodesCtx, &nodes)
@@ -150,6 +148,37 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 			if err != nil {
 				logger.Error("Failed to add remove org free trial resources for account", "Error", err)
 				return err
+			}
+			childWorkflowOptions := workflow.ChildWorkflowOptions{
+				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+			}
+			ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+
+			for _, topID := range wfParams.TopologyIDs {
+				var infraConfig *topology_workloads.TopologyBaseInfraWorkload
+				getTopInfraCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(getTopInfraCtx, "GetTopologyInfraConfig", params.Ou, topID).Get(getTopInfraCtx, &infraConfig)
+				if err != nil {
+					logger.Error("Failed to get topology infra config", "Error", err)
+					return err
+				}
+				if infraConfig == nil {
+					logger.Info("Topology infra config is nil", "TopologyID", topID)
+					continue
+				}
+				desWf := base_deploy_params.TopologyWorkflowRequest{
+					TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
+						TopologyID:                topID,
+						TopologyBaseInfraWorkload: *infraConfig,
+					},
+					OrgUser: params.Ou,
+				}
+				childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyDeployedTopologyWorkflow", wfID, desWf)
+				var childWE workflow.Execution
+				if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
+					logger.Error("Failed to get child workflow execution", "Error", err)
+					return err
+				}
 			}
 		} else {
 			updateResourcesToPaidCtx := workflow.WithActivityOptions(ctx, ao)

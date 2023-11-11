@@ -19,17 +19,17 @@ func DeployStatefulSetHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.StatefulSet != nil {
-		if request.Kns.CloudProvider == "ovh" && request.Kns.Context == "zeusfyi" && request.StatefulSet.Spec.Template.Spec.ImagePullSecrets == nil {
-			request.StatefulSet.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{{
+	if request.Kns.TopologyBaseInfraWorkload.StatefulSet != nil {
+		if request.Kns.CloudProvider == "ovh" && request.Kns.Context == "zeusfyi" && request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.ImagePullSecrets == nil {
+			request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{{
 				Name: "zeus-fyi-ext",
 			}}
 		}
 		if request.Kns.CloudCtxNs.Context != "do-sfo3-dev-do-sfo3-zeus" {
-			if request.StatefulSet.Spec.Template.Spec.Tolerations == nil {
-				request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}
+			if request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations == nil {
+				request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}
 			}
-			request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{
+			request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{
 				{
 					Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),
 					Operator: "Equal",
@@ -37,24 +37,24 @@ func DeployStatefulSetHandler(c echo.Context) error {
 					Effect:   "NoSchedule",
 				},
 			}
-			if request.ClusterName != "" {
-				request.StatefulSet.Spec.Template.Spec.Tolerations = append(request.StatefulSet.Spec.Template.Spec.Tolerations, v1.Toleration{
+			if request.Kns.ClusterClassName != "" {
+				request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations = append(request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations, v1.Toleration{
 					Key:      "app",
 					Operator: "Equal",
-					Value:    request.ClusterName,
+					Value:    request.Kns.ClusterClassName,
 					Effect:   "NoSchedule",
 				})
 			}
 		}
 		if request.Kns.CloudProvider == "aws" {
-			if request.StatefulSet.Spec.Template.Spec.Tolerations == nil {
-				request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}
+			if request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations == nil {
+				request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}
 			}
 			count := 0
-			for _, v := range request.StatefulSet.Spec.VolumeClaimTemplates {
+			for _, v := range request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.VolumeClaimTemplates {
 				if v.Spec.StorageClassName != nil {
 					if *v.Spec.StorageClassName == "fast-disks" && count == 0 {
-						request.StatefulSet.Spec.Template.Spec.Tolerations = append(request.StatefulSet.Spec.Template.Spec.Tolerations, v1.Toleration{
+						request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations = append(request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations, v1.Toleration{
 							Key:      "node.kubernetes.io/disk-pressure",
 							Operator: "Exists",
 							Effect:   "NoSchedule",
@@ -65,7 +65,7 @@ func DeployStatefulSetHandler(c echo.Context) error {
 			}
 		}
 		log.Debug().Interface("kns", request.Kns).Msg("DeployStatefulSetHandler: CreateStatefulSetIfVersionLabelChangesOrDoesNotExist")
-		_, err := zeus.K8Util.CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.StatefulSet, nil)
+		_, err := zeus.K8Util.CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.StatefulSet, nil)
 		if err != nil {
 			log.Err(err).Msg("DeployStatefulSetHandler")
 			return c.JSON(http.StatusInternalServerError, err)

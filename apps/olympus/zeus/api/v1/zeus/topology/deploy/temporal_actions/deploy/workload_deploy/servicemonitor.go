@@ -17,9 +17,9 @@ func DeployServiceMonitorHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.ServiceMonitor != nil {
+	if request.Kns.TopologyBaseInfraWorkload.ServiceMonitor != nil {
 		log.Debug().Interface("kns", request.Kns).Msg("DeployServiceMonitorHandler: CreateServiceMonitorIfVersionLabelChangesOrDoesNotExist")
-		_, err := zeus.K8Util.CreateServiceMonitorIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.ServiceMonitor, nil)
+		_, err := zeus.K8Util.CreateServiceMonitorIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.ServiceMonitor, nil)
 		if err != nil {
 			log.Err(err).Msg("DeployServiceMonitorHandler")
 			return c.JSON(http.StatusInternalServerError, err)

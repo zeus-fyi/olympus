@@ -17,7 +17,7 @@ func DeployJobHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	log.Debug().Interface("kns", request.Kns).Msg("DeployJobHandler")
-	_, err := zeus.K8Util.CreateJob(ctx, request.Kns.CloudCtxNs, request.Job)
+	_, err := zeus.K8Util.CreateJob(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.Job)
 	if err != nil {
 		log.Err(err).Msg("DeployJobHandler")
 		return c.JSON(http.StatusInternalServerError, err)

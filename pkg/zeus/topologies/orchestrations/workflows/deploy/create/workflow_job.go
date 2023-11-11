@@ -23,11 +23,8 @@ func (t *DeployTopologyWorkflow) DeployJobWorkflow(ctx workflow.Context, params 
 		RetryPolicy:         retryPolicy,
 	}
 	deployParams := base_request.InternalDeploymentActionRequest{
-		Kns:                       params.TopologyDeployRequest,
-		OrgUser:                   params.OrgUser,
-		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
-		ClusterName:               params.ClusterClassName,
-		SecretRef:                 params.SecretRef,
+		Kns:     params.TopologyDeployRequest,
+		OrgUser: params.OrgUser,
 	}
 	nsCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(nsCtx, t.DeployTopologyActivities.CreateNamespace, deployParams).Get(nsCtx, nil)
@@ -36,7 +33,7 @@ func (t *DeployTopologyWorkflow) DeployJobWorkflow(ctx workflow.Context, params 
 		return err
 	}
 
-	if params.ConfigMap != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.ConfigMap != nil {
 		cmCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(cmCtx, t.DeployTopologyActivities.DeployConfigMap, deployParams).Get(cmCtx, nil)
 		if err != nil {
@@ -45,16 +42,16 @@ func (t *DeployTopologyWorkflow) DeployJobWorkflow(ctx workflow.Context, params 
 		}
 	}
 
-	if params.SecretRef != "" {
+	if params.TopologyDeployRequest.SecretRef != "" {
 		secCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(secCtx, t.DeployTopologyActivities.CreateSecret, deployParams).Get(secCtx, nil)
+		err = workflow.ExecuteActivity(secCtx, t.DeployTopologyActivities.CreateSecret, deployParams, params.TopologyDeployRequest.SecretRef).Get(secCtx, nil)
 		if err != nil {
 			log.Error("Failed to get or deploy secret relationships", "Error", err)
 			return err
 		}
 	}
 
-	if params.Job != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Job != nil {
 		jCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(jCtx, t.DeployTopologyActivities.CreateJob, deployParams).Get(jCtx, nil)
 		if err != nil {
@@ -63,7 +60,7 @@ func (t *DeployTopologyWorkflow) DeployJobWorkflow(ctx workflow.Context, params 
 		}
 	}
 
-	if params.Service != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Service != nil {
 		svcCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(svcCtx, t.DeployTopologyActivities.DeployService, deployParams).Get(svcCtx, nil)
 		if err != nil {

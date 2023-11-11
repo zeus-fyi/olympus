@@ -12,6 +12,7 @@ import (
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 )
 
 func ReplaceTopology(c echo.Context, tar zeus_req_types.TopologyDeployRequest) error {
@@ -28,8 +29,18 @@ func ReplaceTopology(c echo.Context, tar zeus_req_types.TopologyDeployRequest) e
 		log.Err(err).Interface("orgUser", ou).Msg("ReplaceTopology, SelectTopology error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	diffReplacement := zeus.DiffChartUpdate(nk, tr.GetTopologyBaseInfraWorkload())
-	return zeus.ExecuteDeployWorkflow(c, ctx, ou, tar, diffReplacement, false, tar.ClusterClassName, tar.ClusterClassName)
+	diffReplacement := zeus.DiffChartUpdate(nk, tr.GetTopologyBaseInfraWorkloadOld())
+
+	tmp := topology_workloads.TopologyBaseInfraWorkload{}
+	tmp.CronJob = diffReplacement.CronJob
+	tmp.Job = diffReplacement.Job
+	tmp.ConfigMap = diffReplacement.ConfigMap
+	tmp.Deployment = diffReplacement.Deployment
+	tmp.Ingress = diffReplacement.Ingress
+	tmp.Service = diffReplacement.Service
+	tmp.ServiceMonitor = diffReplacement.ServiceMonitor
+	tmp.StatefulSet = diffReplacement.StatefulSet
+	return zeus.ExecuteDeployWorkflow(c, ctx, ou, tar, tmp, false, tar.ClusterClassName, tar.ClusterClassName)
 }
 
 type DeployClusterUpdateRequestUI struct {

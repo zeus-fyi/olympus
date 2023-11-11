@@ -17,8 +17,8 @@ func DestroyDeployServiceHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.Service != nil {
-		err := zeus.K8Util.DeleteServiceWithKns(ctx, request.Kns.CloudCtxNs, request.Service.Name, nil)
+	if request.Kns.TopologyBaseInfraWorkload.Service != nil {
+		err := zeus.K8Util.DeleteServiceWithKns(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.Service.Name, nil)
 		if err != nil {
 			log.Err(err).Msg("DestroyDeployServiceHandler")
 			return c.JSON(http.StatusInternalServerError, err)

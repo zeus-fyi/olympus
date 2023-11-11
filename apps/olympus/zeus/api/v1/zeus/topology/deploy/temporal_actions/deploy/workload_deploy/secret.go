@@ -58,7 +58,7 @@ func DeployDynamicSecretsHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	ctx := context.Background()
-	secrets, err := dynamic_secrets.LookupAndCreateSecrets(ctx, request.OrgUser.OrgID, request.SecretRef, request.Kns.CloudCtxNs)
+	secrets, err := dynamic_secrets.LookupAndCreateSecrets(ctx, request.OrgUser.OrgID, request.Kns.SecretRef, request.Kns.CloudCtxNs)
 	if err != nil {
 		log.Err(err).Msg("DeployDynamicSecretsHandler")
 		return c.JSON(http.StatusInternalServerError, err)

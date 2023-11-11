@@ -3,20 +3,20 @@ package zeus
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 )
 
-func PackageCommonTopologyRequest(topCtxNs zeus_req_types.TopologyDeployRequest, ou org_users.OrgUser, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterClassName, secretRef string) base_deploy_params.TopologyWorkflowRequest {
+func PackageCommonTopologyRequest(topCtxNs zeus_req_types.TopologyDeployRequest, ou org_users.OrgUser, nk topology_workloads.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterClassName, secretRef string) base_deploy_params.TopologyWorkflowRequest {
+	topCtxNs.TopologyBaseInfraWorkload = nk
+	topCtxNs.RequestChoreographySecretDeploy = deployChoreographySecret
+	topCtxNs.ClusterClassName = clusterClassName
+	topCtxNs.SecretRef = secretRef
 	tar := base_deploy_params.TopologyWorkflowRequest{
-		TopologyDeployRequest:     topCtxNs,
-		OrgUser:                   ou,
-		RequestChoreographySecret: deployChoreographySecret,
-		ClusterClassName:          clusterClassName,
-		SecretRef:                 secretRef,
-		TopologyBaseInfraWorkload: nk,
+		TopologyDeployRequest: topCtxNs,
+		OrgUser:               ou,
 	}
 	return tar
 }

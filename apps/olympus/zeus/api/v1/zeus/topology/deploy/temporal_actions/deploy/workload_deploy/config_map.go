@@ -17,9 +17,9 @@ func DeployConfigMapHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.ConfigMap != nil {
+	if request.Kns.TopologyBaseInfraWorkload.ConfigMap != nil {
 		log.Debug().Interface("kns", request.Kns).Msg("DeployConfigMapHandler: CreateConfigMapIfVersionLabelChangesOrDoesNotExist")
-		_, err := zeus.K8Util.CreateConfigMapIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.ConfigMap, nil)
+		_, err := zeus.K8Util.CreateConfigMapIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.ConfigMap, nil)
 		if err != nil {
 			log.Err(err).Msg("DeployConfigMapHandler")
 			return c.JSON(http.StatusInternalServerError, err)

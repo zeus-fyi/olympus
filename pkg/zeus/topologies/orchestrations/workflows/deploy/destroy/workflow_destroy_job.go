@@ -24,12 +24,11 @@ func (t *DestroyDeployTopologyWorkflow) DestroyJobWorkflow(ctx workflow.Context,
 	}
 
 	deployParams := base_request.InternalDeploymentActionRequest{
-		Kns:                       params.TopologyDeployRequest,
-		OrgUser:                   params.OrgUser,
-		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
+		Kns:     params.TopologyDeployRequest,
+		OrgUser: params.OrgUser,
 	}
 
-	if params.ConfigMap != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.ConfigMap != nil {
 		cmCtx := workflow.WithActivityOptions(ctx, ao)
 		err := workflow.ExecuteActivity(cmCtx, t.DestroyDeployTopologyActivities.DestroyDeployConfigMap, deployParams).Get(cmCtx, nil)
 		if err != nil {
@@ -38,7 +37,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyJobWorkflow(ctx workflow.Context,
 		}
 	}
 
-	if params.Service != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Service != nil {
 		svcCtx := workflow.WithActivityOptions(ctx, ao)
 		err := workflow.ExecuteActivity(svcCtx, t.DestroyDeployTopologyActivities.DestroyDeployService, deployParams).Get(svcCtx, nil)
 		if err != nil {
@@ -47,7 +46,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyJobWorkflow(ctx workflow.Context,
 		}
 	}
 
-	if params.Job != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Job != nil {
 		ingCtx := workflow.WithActivityOptions(ctx, ao)
 		err := workflow.ExecuteActivity(ingCtx, t.DestroyDeployTopologyActivities.DestroyJob, deployParams).Get(ingCtx, nil)
 		if err != nil {

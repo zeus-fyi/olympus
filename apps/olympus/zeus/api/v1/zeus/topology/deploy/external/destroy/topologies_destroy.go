@@ -13,9 +13,6 @@ import (
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
-type TopologyDestroyDeployRequest struct {
-}
-
 func DestroyDeployedTopology(c echo.Context, tar zeus_req_types.TopologyDeployRequest) error {
 	log.Debug().Msg("DestroyDeployedTopology")
 	ctx := context.Background()
@@ -38,7 +35,7 @@ type TopologyUIDestroyDeployRequest struct {
 	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 }
 
-func (t *TopologyUIDestroyDeployRequest) DestroyNamespaceCluster(c echo.Context) error {
+func DestroyNamespaceCluster(c echo.Context, cloudCtxNs zeus_common_types.CloudCtxNs) error {
 	log.Debug().Msg("DestroyNamespaceCluster")
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
@@ -46,13 +43,13 @@ func (t *TopologyUIDestroyDeployRequest) DestroyNamespaceCluster(c echo.Context)
 		log.Warn().Interface("ou", ou).Msg("DestroyDeployedTopology, orgUser not found")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	if t.CloudCtxNs.CheckIfEmpty() {
-		log.Warn().Interface("orgUser", ou).Interface("cloudCtxNs", t.CloudCtxNs).Msg("DestroyNamespaceCluster, CloudCtxNs is empty")
+	if cloudCtxNs.CheckIfEmpty() {
+		log.Warn().Interface("orgUser", ou).Interface("cloudCtxNs", cloudCtxNs).Msg("DestroyNamespaceCluster, CloudCtxNs is empty")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
 	tar := zeus_req_types.TopologyDeployRequest{
-		CloudCtxNs: t.CloudCtxNs,
+		CloudCtxNs: cloudCtxNs,
 	}
 	return zeus.ExecuteDestroyNamespaceWorkflow(c, ctx, ou, tar, tr.GetTopologyBaseInfraWorkload())
 }

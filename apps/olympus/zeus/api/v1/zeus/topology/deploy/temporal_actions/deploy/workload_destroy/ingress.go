@@ -17,8 +17,8 @@ func DestroyDeployIngressHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.Ingress != nil {
-		err := zeus.K8Util.DeleteIngressWithKns(ctx, request.Kns.CloudCtxNs, request.Ingress.Name, nil)
+	if request.Kns.TopologyBaseInfraWorkload.Ingress != nil {
+		err := zeus.K8Util.DeleteIngressWithKns(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.Ingress.Name, nil)
 		if err != nil {
 			log.Err(err).Msg("DestroyDeployIngressHandler")
 			return c.JSON(http.StatusInternalServerError, err)

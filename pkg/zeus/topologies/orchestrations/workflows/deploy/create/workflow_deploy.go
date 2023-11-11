@@ -64,11 +64,8 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 	}
 
 	deployParams := base_request.InternalDeploymentActionRequest{
-		Kns:                       params.TopologyDeployRequest,
-		OrgUser:                   params.OrgUser,
-		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
-		ClusterName:               params.ClusterClassName,
-		SecretRef:                 params.ClusterClassName,
+		OrgUser: params.OrgUser,
+		Kns:     params.TopologyDeployRequest,
 	}
 	nsCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(nsCtx, t.DeployTopologyActivities.CreateNamespace, deployParams).Get(nsCtx, nil)
@@ -78,7 +75,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 	}
 
 	chorCtx := workflow.WithActivityOptions(ctx, ao)
-	if params.RequestChoreographySecret == true {
+	if params.TopologyDeployRequest.RequestChoreographySecretDeploy == true {
 		cmCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(cmCtx, t.DeployTopologyActivities.CreateChoreographySecret, deployParams).Get(chorCtx, nil)
 		if err != nil {
@@ -87,16 +84,16 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 		}
 	}
 
-	if params.SecretRef != "" {
+	if params.TopologyDeployRequest.SecretRef != "" {
 		secCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(secCtx, t.DeployTopologyActivities.CreateSecret, deployParams).Get(secCtx, nil)
+		err = workflow.ExecuteActivity(secCtx, t.DeployTopologyActivities.CreateSecret, deployParams, params.TopologyDeployRequest.SecretRef).Get(secCtx, nil)
 		if err != nil {
 			log.Error("Failed to get or deploy secret relationships", "Error", err)
 			return err
 		}
 	}
 
-	if params.ConfigMap != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.ConfigMap != nil {
 		cmCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(cmCtx, t.DeployTopologyActivities.DeployConfigMap, deployParams).Get(cmCtx, nil)
 		if err != nil {
@@ -105,7 +102,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 		}
 	}
 
-	if params.Deployment != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Deployment != nil {
 		dCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(dCtx, t.DeployTopologyActivities.DeployDeployment, deployParams).Get(dCtx, nil)
 		if err != nil {
@@ -114,7 +111,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 		}
 	}
 
-	if params.StatefulSet != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.StatefulSet != nil {
 		stsCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(stsCtx, t.DeployTopologyActivities.DeployStatefulSet, deployParams).Get(stsCtx, nil)
 		if err != nil {
@@ -123,7 +120,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 		}
 	}
 
-	if params.Service != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Service != nil {
 		svcCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(svcCtx, t.DeployTopologyActivities.DeployService, deployParams).Get(svcCtx, nil)
 		if err != nil {
@@ -132,7 +129,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 		}
 	}
 
-	if params.Ingress != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.Ingress != nil {
 		ingCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(ingCtx, t.DeployTopologyActivities.DeployIngress, deployParams).Get(ingCtx, nil)
 		if err != nil {
@@ -140,7 +137,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 			return err
 		}
 	}
-	if params.ServiceMonitor != nil {
+	if params.TopologyDeployRequest.TopologyBaseInfraWorkload.ServiceMonitor != nil {
 		smCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(smCtx, t.DeployTopologyActivities.DeployServiceMonitor, deployParams).Get(smCtx, nil)
 		if err != nil {

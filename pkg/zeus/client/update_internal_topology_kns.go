@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
-func (z *ZeusClient) UpdateTopologyKnsStatus(ctx context.Context, status topology_deployment_status.Status) (kns.TopologyKubeCtxNs, error) {
+func (z *ZeusClient) UpdateTopologyKnsStatus(ctx context.Context, status topology_deployment_status.Status) (zeus_req_types.TopologyDeployRequest, error) {
 	z.PrintReqJson(status)
-	respStatus := kns.TopologyKubeCtxNs{}
+	respStatus := zeus_req_types.TopologyDeployRequest{}
 	resp, err := z.R().
 		SetResult(&respStatus).
 		SetBody(status.TopologyDeployRequest).
@@ -34,9 +34,9 @@ func (z *ZeusClient) UpdateTopologyKnsStatus(ctx context.Context, status topolog
 	return respStatus, err
 }
 
-func (z *ZeusClient) RemoveTopologyKnsStatus(ctx context.Context, status topology_deployment_status.Status) (kns.TopologyKubeCtxNs, error) {
+func (z *ZeusClient) RemoveTopologyKnsStatus(ctx context.Context, status topology_deployment_status.Status) (zeus_req_types.TopologyDeployRequest, error) {
 	z.PrintReqJson(status)
-	respStatus := kns.TopologyKubeCtxNs{}
+	respStatus := zeus_req_types.TopologyDeployRequest{}
 	resp, err := z.R().
 		SetResult(&respStatus).
 		SetBody(status.TopologyDeployRequest).

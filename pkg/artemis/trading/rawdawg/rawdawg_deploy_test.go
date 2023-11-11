@@ -9,10 +9,6 @@ import (
 	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
 
-/*
-
- */
-
 func (s *ArtemisTradingContractsTestSuite) TestDeployRawdawgContract() {
 	sessionID := fmt.Sprintf("%s-%s", "local-network-session", uuid.New().String())
 	//sessionID = fmt.Sprintf("%s-%s", "local-network-session", "12b5d9ce-29dd-4f95-8e89-fed4aef2193d")

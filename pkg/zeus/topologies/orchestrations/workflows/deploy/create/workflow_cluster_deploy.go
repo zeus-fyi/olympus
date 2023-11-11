@@ -29,6 +29,7 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 	for _, topID := range params.TopologyIDs {
 		req := zeus_req_types.TopologyDeployRequest{
 			TopologyID:                      topID,
+			ClusterClassName:                params.ClusterClassName,
 			CloudCtxNs:                      params.CloudCtxNs,
 			RequestChoreographySecretDeploy: params.RequestChoreographySecret,
 		}
@@ -65,8 +66,12 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 		deployChildWorkflowOptions := workflow.ChildWorkflowOptions{
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
+		topWfReq := base_deploy_params.TopologyWorkflowRequest{
+			TopologyDeployRequest: topParams,
+			OrgUser:               params.OrgUser,
+		}
 		clusterDeployCtx := workflow.WithChildOptions(ctx, deployChildWorkflowOptions)
-		deployChildWorkflowFuture := workflow.ExecuteChildWorkflow(clusterDeployCtx, "DeployTopologyWorkflow", wfID, topParams)
+		deployChildWorkflowFuture := workflow.ExecuteChildWorkflow(clusterDeployCtx, "DeployTopologyWorkflow", wfID, topWfReq)
 		var deployChildWfExec workflow.Execution
 		if err = deployChildWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &deployChildWfExec); err != nil {
 			logger.Error("Failed to get child deployment workflow execution", "Error", err)

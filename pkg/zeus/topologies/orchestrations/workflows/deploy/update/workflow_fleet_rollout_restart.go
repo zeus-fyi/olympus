@@ -12,7 +12,12 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (t *FleetUpgradeWorkflow) DeployRolloutRestartWorkflow(ctx workflow.Context, wfID string, params base_deploy_params.TopologyWorkflowRequest) error {
+const (
+	deployment  = "deployment"
+	statefulset = "statefulset"
+)
+
+func (t *FleetUpgradeWorkflow) DeployRolloutRestartFleetWorkflow(ctx workflow.Context, wfID string, params base_deploy_params.FleetRolloutRestartWorkflowRequest) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
@@ -25,7 +30,7 @@ func (t *FleetUpgradeWorkflow) DeployRolloutRestartWorkflow(ctx workflow.Context
 	}
 	var clusterToUpgrade []read_topologies.ClusterAppView
 	workerCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(workerCtx, t.TopologyUpdateActivity.GetClustersToRolloutRestart, params).Get(workerCtx, &clusterToUpgrade)
+	err := workflow.ExecuteActivity(workerCtx, t.TopologyUpdateActivity.GetClustersToUpdate, params).Get(workerCtx, &clusterToUpgrade)
 	if err != nil {
 		logger.Error("Failed to get clusters to update", "Error", err)
 		return err

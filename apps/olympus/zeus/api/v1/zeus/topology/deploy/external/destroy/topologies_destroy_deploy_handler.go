@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
@@ -47,7 +48,7 @@ func DestroyResourceHandler(c echo.Context) error {
 }
 
 func DestroyNamespaceHandler(c echo.Context) error {
-	request := new(TopologyUIDestroyDeployRequest)
+	request := new(zeus_common_types.CloudCtxNs)
 	if err := c.Bind(request); err != nil {
 		log.Err(err).Msg("DestroyNamespaceHandler: Bind error")
 		return err
@@ -56,8 +57,8 @@ func DestroyNamespaceHandler(c echo.Context) error {
 		log.Warn().Msg("DestroyNamespaceHandler: request empty error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	if request.CloudCtxNs.CheckIfEmpty() {
-		log.Warn().Interface("cloudCtxNs", request.CloudCtxNs).Msg("DestroyNamespaceHandler: CloudCtxNs is empty")
+	if request.CheckIfEmpty() {
+		log.Warn().Interface("cloudCtxNs", request).Msg("DestroyNamespaceHandler: CloudCtxNs is empty")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	ctx := context.Background()
@@ -66,7 +67,7 @@ func DestroyNamespaceHandler(c echo.Context) error {
 		log.Warn().Msg("TopologyDestroyDeploymentHandler: orgUser not found")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
+	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, *request)
 	if authed != true {
 		log.Warn().Interface("ou", ou).Interface("req", request).Msg("DestroyNamespaceHandler: IsOrgCloudCtxNsAuthorized error")
 		return c.JSON(http.StatusForbidden, nil)
@@ -75,5 +76,5 @@ func DestroyNamespaceHandler(c echo.Context) error {
 		log.Err(err).Interface("ou", ou).Msg("DestroyNamespaceHandler: IsOrgCloudCtxNsAuthorized error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return DestroyNamespaceCluster(c, request.CloudCtxNs)
+	return DestroyNamespaceCluster(c, *request)
 }

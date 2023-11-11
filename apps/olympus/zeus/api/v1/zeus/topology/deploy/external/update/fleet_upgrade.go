@@ -25,10 +25,13 @@ func (t *FleetUpgradeRequest) UpgradeFleet(c echo.Context) error {
 	}
 	ctx := context.Background()
 	params := base_deploy_params.FleetUpgradeWorkflowRequest{
-		ClusterName: t.ClusterClassName,
-		OrgUser:     ou,
-		AppTaint:    t.AppTaint,
+		FleetRolloutRestartWorkflowRequest: base_deploy_params.FleetRolloutRestartWorkflowRequest{
+			OrgUser:     ou,
+			ClusterName: t.ClusterClassName,
+		},
+		AppTaint: t.AppTaint,
 	}
+
 	return zeus.ExecuteDeployFleetUpgradeWorkflow(c, ctx, params)
 }
 

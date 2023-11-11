@@ -17,10 +17,8 @@ type TopologyWorkflowRequest struct {
 }
 
 type FleetUpgradeWorkflowRequest struct {
-	OrgUser     org_users.OrgUser `json:"orgUser"`
-	Host        string            `json:"host,omitempty"`
-	ClusterName string            `json:"clusterName"`
-	AppTaint    bool              `json:"appTaint"`
+	FleetRolloutRestartWorkflowRequest `json:"fleetRolloutRestartWorkflowRequest"`
+	AppTaint                           bool `json:"appTaint,omitempty"`
 }
 
 type FleetRolloutRestartWorkflowRequest struct {

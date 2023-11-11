@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topologies "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies"
 	read_topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/definitions/state"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
@@ -55,8 +56,8 @@ func (d *TopologyUpdateActivity) RestartWorkload(ctx context.Context, cloudCtxNs
 	return nil
 }
 
-func (d *TopologyUpdateActivity) GetClustersToUpdate(ctx context.Context, params base_deploy_params.FleetUpgradeWorkflowRequest) ([]read_topologies.ClusterAppView, error) {
-	resp, err := read_topologies.SelectClusterSingleAppView(ctx, params.OrgUser.OrgID, params.ClusterName)
+func (d *TopologyUpdateActivity) GetClustersToUpdate(ctx context.Context, ou org_users.OrgUser, clusterName string) ([]read_topologies.ClusterAppView, error) {
+	resp, err := read_topologies.SelectClusterSingleAppView(ctx, ou.OrgID, clusterName)
 	if err != nil {
 		log.Err(err).Msg("GetClustersToUpdate")
 		return resp, err
@@ -73,11 +74,11 @@ func (d *TopologyUpdateActivity) GetClustersToRolloutRestart(ctx context.Context
 	return resp, nil
 }
 
-func (d *TopologyUpdateActivity) GetClusterTopologyAtCloudCtxNs(ctx context.Context, params base_deploy_params.FleetUpgradeWorkflowRequest, clusterInfo read_topologies.ClusterAppView) (read_topology_deployment_status.ReadDeploymentStatusesGroup, error) {
+func (d *TopologyUpdateActivity) GetClusterTopologyAtCloudCtxNs(ctx context.Context, ou org_users.OrgUser, cloudCtxNsID int) (read_topology_deployment_status.ReadDeploymentStatusesGroup, error) {
 	status := read_topology_deployment_status.NewReadDeploymentStatusesGroup()
-	err := status.ReadLatestDeployedClusterTopologies(ctx, clusterInfo.CloudCtxNsID, params.OrgUser)
+	err := status.ReadLatestDeployedClusterTopologies(ctx, cloudCtxNsID, ou)
 	if err != nil {
-		log.Err(err).Interface("orgUser", params.OrgUser).Msg("GetClusterTopologyAtCloudCtxNs: ReadDeployedClusterTopologies")
+		log.Err(err).Interface("orgUser", ou).Msg("GetClusterTopologyAtCloudCtxNs: ReadDeployedClusterTopologies")
 		return status, err
 	}
 	return status, nil

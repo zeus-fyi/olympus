@@ -11,6 +11,7 @@ import (
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 )
@@ -44,6 +45,15 @@ func ExecuteDeployFleetRolloutRestartWorkflow(c echo.Context, ctx context.Contex
 	resp := topology_deployment_status.NewClusterTopologyStatus(params.ClusterName)
 	resp.Status = topology_deployment_status.DeployPending
 	return c.JSON(http.StatusAccepted, resp)
+}
+
+func ExecuteDeployRolloutRestartWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, cctxId int, cloudCtxNs zeus_common_types.CloudCtxNs) error {
+	err := topology_worker.Worker.ExecuteDeployRolloutRestart(ctx, ou, cctxId, cloudCtxNs)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("ExecuteDeployRolloutRestartWorkflow, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return c.JSON(http.StatusAccepted, nil)
 }
 
 func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.ClusterTopologyWorkflowRequest) error {

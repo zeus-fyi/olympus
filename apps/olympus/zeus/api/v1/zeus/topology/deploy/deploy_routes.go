@@ -28,6 +28,7 @@ func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 
 	// UPDATE
 	e.POST("/deploy/ui/update", deploy_updates.DeployUIClusterUpdateRequestHandler)
+	e.POST("/deploy/ui/update/restart", deploy_updates.DeployUIClusterRolloutRestartRequestHandler)
 
 	// Fleet Upgrades
 	e.POST("/deploy/ui/update/fleet", deploy_updates.FleetUpgradeRequestHandler)

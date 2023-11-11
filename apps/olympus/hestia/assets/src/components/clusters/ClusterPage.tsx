@@ -172,6 +172,23 @@ function ClustersPageTable(cluster: any) {
         }
     }
 
+    const onClickRolloutRestart = async (index: number, clusterClassName: string) => {
+        try {
+            const response = await clustersApiGateway.deployRolloutRestartApp(params.id);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                setStatusMessageRowIndex(index);
+                setStatusMessage(`Cluster ${clusterClassName} restart in progress`);
+            } else {
+                setStatusMessageRowIndex(index);
+                setStatusMessage(`Cluster ${clusterClassName} had an unexpected response: status code ${statusCode}`);
+            }
+        } catch (e) {
+            setStatusMessageRowIndex(index);
+            setStatusMessage(`Cluster ${clusterClassName} failed to update`);
+        }
+    }
+
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
@@ -222,11 +239,16 @@ function ClustersPageTable(cluster: any) {
                                 </TableCell>
                                 <TableCell align="left">
                                     <Button onClick={() => onClickRolloutUpgrade(i, row.clusterName)} variant="contained">Deploy Latest</Button>
-                                    {statusMessageRowIndex === i && <div>{statusMessage}</div>}
                                 </TableCell>
                                 <TableCell align="left">
-                                    The Deploy Latest button will deploy the latest version configs to the cluster.
+                                    <Button onClick={() => onClickRolloutRestart(i, row.clusterName)} variant="contained">Rollout Restart</Button>
                                 </TableCell>
+                                <TableCell align="left">
+                                    The Deploy Latest button will deploy the latest version configs to the cluster. The Rollout Restart button will restart the cluster.
+                                </TableCell>
+                                <Box sx={{ml: 2, mt: 2}}>
+                                    {statusMessageRowIndex === i && <div>{statusMessage}</div>}
+                                </Box>
                             </TableRow>
                         ))}
                     </TableBody>

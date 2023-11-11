@@ -29,7 +29,7 @@ func NewDeployFleetUpgradeWorkflow() FleetUpgradeWorkflow {
 }
 
 func (t *FleetUpgradeWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.UpgradeFleetWorkflow, t.DeployRolloutRestartFleetWorkflow}
+	return []interface{}{t.UpgradeFleetWorkflow, t.DeployRolloutRestartFleetWorkflow, t.DeployRolloutRestartWorkflow}
 }
 
 func (t *FleetUpgradeWorkflow) UpgradeFleetWorkflow(ctx workflow.Context, params base_deploy_params.FleetUpgradeWorkflowRequest) error {
@@ -48,7 +48,7 @@ func (t *FleetUpgradeWorkflow) UpgradeFleetWorkflow(ctx workflow.Context, params
 	for _, clusterInfo := range clusterToUpgrade {
 		var topologyView read_topology_deployment_status.ReadDeploymentStatusesGroup
 		getTopologiesAtCloudCtxNsCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(getTopologiesAtCloudCtxNsCtx, t.TopologyUpdateActivity.GetClusterTopologyAtCloudCtxNs, params, clusterInfo).Get(getTopologiesAtCloudCtxNsCtx, &topologyView)
+		err = workflow.ExecuteActivity(getTopologiesAtCloudCtxNsCtx, t.TopologyUpdateActivity.GetClusterTopologyAtCloudCtxNs, params.OrgUser, clusterInfo.CloudCtxNsID).Get(getTopologiesAtCloudCtxNsCtx, &topologyView)
 		if err != nil {
 			log.Error("Failed to get ClusterTopologyAtCloudCtxNs", "Error", err)
 			return err

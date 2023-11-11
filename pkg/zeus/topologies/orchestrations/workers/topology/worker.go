@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	clean_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/clean"
@@ -13,6 +14,7 @@ import (
 	destroy_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy"
 	deploy_workflow_destroy_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy_setup"
 	deploy_workflow_cluster_updates "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/update"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"go.temporal.io/sdk/client"
 )
 
@@ -50,7 +52,24 @@ func (t *TopologyWorker) ExecuteDeployFleetRolloutRestart(ctx context.Context, p
 	wf := deployWf.DeployRolloutRestartFleetWorkflow
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, params)
 	if err != nil {
-		log.Err(err).Msg("ExecuteDeployFleetUpgrade")
+		log.Err(err).Msg("ExecuteDeployFleetRolloutRestart")
+		return err
+	}
+	return err
+}
+
+func (t *TopologyWorker) ExecuteDeployRolloutRestart(ctx context.Context, ou org_users.OrgUser, cloudCtxNsID int, cloudCtxNs zeus_common_types.CloudCtxNs) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+		ID:        uuid.New().String(),
+	}
+	deployWf := deploy_workflow_cluster_updates.NewDeployFleetUpgradeWorkflow()
+	wf := deployWf.DeployRolloutRestartWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, cloudCtxNsID, cloudCtxNs)
+	if err != nil {
+		log.Err(err).Msg("DeployRolloutRestartWorkflow")
 		return err
 	}
 	return err

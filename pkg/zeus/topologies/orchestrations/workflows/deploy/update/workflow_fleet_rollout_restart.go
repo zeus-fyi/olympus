@@ -30,7 +30,7 @@ func (t *FleetUpgradeWorkflow) DeployRolloutRestartFleetWorkflow(ctx workflow.Co
 	}
 	var clusterToUpgrade []read_topologies.ClusterAppView
 	workerCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(workerCtx, t.TopologyUpdateActivity.GetClustersToUpdate, params).Get(workerCtx, &clusterToUpgrade)
+	err := workflow.ExecuteActivity(workerCtx, t.TopologyUpdateActivity.GetClustersToUpdate, params.OrgUser, params.ClusterName).Get(workerCtx, &clusterToUpgrade)
 	if err != nil {
 		logger.Error("Failed to get clusters to update", "Error", err)
 		return err
@@ -38,7 +38,7 @@ func (t *FleetUpgradeWorkflow) DeployRolloutRestartFleetWorkflow(ctx workflow.Co
 	for _, clusterInfo := range clusterToUpgrade {
 		var topologyView read_topology_deployment_status.ReadDeploymentStatusesGroup
 		getTopologiesAtCloudCtxNsCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(getTopologiesAtCloudCtxNsCtx, t.TopologyUpdateActivity.GetClusterTopologyAtCloudCtxNs, params, clusterInfo).Get(getTopologiesAtCloudCtxNsCtx, &topologyView)
+		err = workflow.ExecuteActivity(getTopologiesAtCloudCtxNsCtx, t.TopologyUpdateActivity.GetClusterTopologyAtCloudCtxNs, params.OrgUser, clusterInfo.CloudCtxNsID).Get(getTopologiesAtCloudCtxNsCtx, &topologyView)
 		if err != nil {
 			logger.Error("Failed to get ClusterTopologyAtCloudCtxNs", "Error", err)
 			return err

@@ -29,6 +29,7 @@ func (s *Status) SetTopologyID(id int) {
 const (
 	ResourceDestroyPending           = "ResourceDestroyPending"
 	DeployPending                    = "DeployPending"
+	RolloutRestartPending            = "RolloutRestartPending"
 	FleetRolloutRestartDeployPending = "FleetRolloutRestartDeployPending"
 	DeployInProgress                 = "DeployInProgress"
 	DeployComplete                   = "DeployComplete"

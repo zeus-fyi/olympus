@@ -10,6 +10,8 @@ import (
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -195,17 +197,37 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		AppTaint:                  params.AppTaint,
 		RequestChoreographySecret: ct.CheckForChoreographyOption(),
 	}
-	deployChildWorkflowOptions := workflow.ChildWorkflowOptions{
-		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-	}
-	clusterDeployCtx := workflow.WithChildOptions(ctx, deployChildWorkflowOptions)
-	deployChildWorkflowFuture := workflow.ExecuteChildWorkflow(clusterDeployCtx, "DeployClusterTopologyWorkflow", wfID, wfParams)
-	var deployChildWfExec workflow.Execution
-	if err = deployChildWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &deployChildWfExec); err != nil {
-		logger.Error("Failed to get child deployment workflow execution", "Error", err)
-		return err
-	}
 
+	for _, topID := range wfParams.TopologyIDs {
+		var infraConfig *topology_workloads.TopologyBaseInfraWorkload
+		getTopInfraCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(getTopInfraCtx, "GetTopologyInfraConfig", params.Ou, topID).Get(getTopInfraCtx, &infraConfig)
+		if err != nil {
+			logger.Error("Failed to get topology infra config", "Error", err)
+			return err
+		}
+		if infraConfig == nil {
+			logger.Info("Topology infra config is nil", "TopologyID", topID)
+			continue
+		}
+		desWf := base_deploy_params.TopologyWorkflowRequest{
+			TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
+				TopologyID:                topID,
+				TopologyBaseInfraWorkload: *infraConfig,
+			},
+			OrgUser: params.Ou,
+		}
+		childWorkflowOptions := workflow.ChildWorkflowOptions{
+			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+		}
+		wfChildCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
+		childWorkflowFuture := workflow.ExecuteChildWorkflow(wfChildCtx, "DeployTopologyWorkflow", wfID, desWf)
+		var childWE workflow.Execution
+		if err = childWorkflowFuture.GetChildWorkflowExecution().Get(wfChildCtx, &childWE); err != nil {
+			logger.Error("Failed to get child workflow execution", "Error", err)
+			return err
+		}
+	}
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}

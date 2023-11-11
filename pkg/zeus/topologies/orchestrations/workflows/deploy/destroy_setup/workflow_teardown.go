@@ -152,8 +152,6 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 			childWorkflowOptions := workflow.ChildWorkflowOptions{
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 			}
-			ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-
 			for _, topID := range wfParams.TopologyIDs {
 				var infraConfig *topology_workloads.TopologyBaseInfraWorkload
 				getTopInfraCtx := workflow.WithActivityOptions(ctx, ao)
@@ -173,9 +171,10 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 					},
 					OrgUser: params.Ou,
 				}
-				childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyDeployedTopologyWorkflow", wfID, desWf)
+				wfChildCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
+				childWorkflowFuture := workflow.ExecuteChildWorkflow(wfChildCtx, "DestroyDeployedTopologyWorkflow", wfID, desWf)
 				var childWE workflow.Execution
-				if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
+				if err = childWorkflowFuture.GetChildWorkflowExecution().Get(wfChildCtx, &childWE); err != nil {
 					logger.Error("Failed to get child workflow execution", "Error", err)
 					return err
 				}

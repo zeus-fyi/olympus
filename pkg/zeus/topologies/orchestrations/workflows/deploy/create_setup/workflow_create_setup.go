@@ -217,6 +217,7 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		desWf := base_deploy_params.TopologyWorkflowRequest{
 			TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
 				TopologyID:                topID,
+				CloudCtxNs:                params.CloudCtxNs,
 				TopologyBaseInfraWorkload: *infraConfig,
 			},
 			OrgUser: params.Ou,

@@ -45,7 +45,7 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 
 		var infraConfig *chart_workload.TopologyBaseInfraWorkload
 		deployStatusCtx := workflow.WithActivityOptions(ctx, ao)
-		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.GetTopologyInfraConfig, req, params.OrgUser).Get(deployStatusCtx, &infraConfig)
+		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.GetTopologyInfraConfig, params.OrgUser, topID).Get(deployStatusCtx, &infraConfig)
 		if err != nil {
 			logger.Error("Failed to get topology infra config", "Error", err)
 			return err

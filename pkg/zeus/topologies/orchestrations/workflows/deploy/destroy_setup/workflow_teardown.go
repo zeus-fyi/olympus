@@ -167,6 +167,7 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 				desWf := base_deploy_params.TopologyWorkflowRequest{
 					TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
 						TopologyID:                topID,
+						CloudCtxNs:                params.CloudCtxNs,
 						TopologyBaseInfraWorkload: *infraConfig,
 					},
 					OrgUser: params.Ou,

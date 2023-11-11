@@ -16,6 +16,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/client"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	zeus_pods_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/pods"
+	zeus_pods_resp "github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/pods"
 )
 
 func podsPortForwardRequestToAllPods(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
@@ -25,7 +26,7 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *zeus_pods_reqs.Pod
 	if err != nil {
 		return err
 	}
-	var respBody ClientResp
+	var respBody zeus_pods_resp.ClientResp
 	respBody.ReplyBodies = make(map[string][]byte, len(pods.Items))
 	for _, pod := range pods.Items {
 		request.PodName = pod.GetName()

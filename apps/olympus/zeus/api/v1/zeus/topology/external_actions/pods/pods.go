@@ -6,10 +6,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-type ClientResp struct {
-	ReplyBodies map[string][]byte
-}
-
 type PodsSummary struct {
 	Pods map[string]PodSummary `json:"pods"`
 }

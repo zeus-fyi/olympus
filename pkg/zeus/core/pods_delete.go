@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -25,7 +25,7 @@ func (k *K8Util) DeletePod(ctx context.Context, name string, kubeCtxNs zeus_comm
 	return err
 }
 
-func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *string_utils.FilterOpts) error {
+func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *strings_filter.FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("DeleteFirstPodLike")
 	k.SetContext(kubeCtxNs.Context)
 
@@ -44,11 +44,11 @@ func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_t
 	return err
 }
 
-func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *string_utils.FilterOpts) error {
+func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *strings_filter.FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("DeleteAllPodsLike")
 	k.SetContext(kubeCtxNs.Context)
 	if filter == nil {
-		filter = &string_utils.FilterOpts{
+		filter = &strings_filter.FilterOpts{
 			DoesNotStartWithThese: nil,
 			StartsWithThese:       nil,
 			StartsWith:            "",
@@ -69,7 +69,7 @@ func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_ty
 	p := v1.Pod{}
 	for _, pod := range pods.Items {
 		name := pod.ObjectMeta.Name
-		if string_utils.FilterStringWithOpts(name, filter) {
+		if strings_filter.FilterStringWithOpts(name, filter) {
 			p = pod
 			err = k.kc.CoreV1().Pods(kubeCtxNs.Namespace).Delete(ctx, p.GetName(), *deletePodOpts)
 			if err != nil && errors.IsNotFound(err) {

@@ -5,14 +5,15 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
+	zeus_pods_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/pods"
 )
 
 func HandlePodActionRequest(c echo.Context) error {
-	request := c.Get("PodActionRequest").(*PodActionRequest)
+	request := c.Get("PodActionRequest").(*zeus_pods_reqs.PodActionRequest)
 	if request.Action == "logs" {
 		if request.FilterOpts == nil {
-			request.FilterOpts = &string_utils.FilterOpts{}
+			request.FilterOpts = &strings_filter.FilterOpts{}
 			request.FilterOpts.StartsWith = request.PodName
 		}
 		return PodLogsActionRequest(c, request)
@@ -42,7 +43,7 @@ func HandlePodActionRequest(c echo.Context) error {
 	}
 	if request.Action == "port-forward-all" {
 		if request.FilterOpts == nil && len(request.PodName) > 0 {
-			request.FilterOpts = &string_utils.FilterOpts{}
+			request.FilterOpts = &strings_filter.FilterOpts{}
 			request.FilterOpts.StartsWith = request.PodName
 		}
 		return podsPortForwardRequestToAllPods(c, request)

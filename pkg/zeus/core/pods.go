@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,8 +14,12 @@ import (
 
 func (k *K8Util) GetPod(ctx context.Context, name string, kns zeus_common_types.CloudCtxNs) (*v1.Pod, error) {
 	k.SetContext(kns.Context)
-	log.Ctx(ctx).Debug().Msg("GetPod")
+	log.Debug().Msg("GetPod")
 	p, err := k.kc.CoreV1().Pods(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		log.Err(err).Interface("kns", kns).Msg("GetPod")
+		return nil, err
+	}
 	return p, err
 }
 
@@ -24,8 +28,8 @@ func (k *K8Util) GetPods(ctx context.Context, kns zeus_common_types.CloudCtxNs, 
 	return k.kc.CoreV1().Pods(kns.Namespace).List(ctx, opts)
 }
 
-func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, logOpts *v1.PodLogOptions, filter *string_utils.FilterOpts) (*v1.PodList, error) {
-	log.Ctx(ctx).Debug().Msg("GetPodsUsingCtxNs")
+func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, logOpts *v1.PodLogOptions, filter *strings_filter.FilterOpts) (*v1.PodList, error) {
+	log.Debug().Msg("GetPodsUsingCtxNs")
 	k.SetContext(kubeCtxNs.Context)
 
 	if logOpts == nil {
@@ -33,13 +37,13 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_ty
 	}
 	pods, err := k.GetPods(ctx, kubeCtxNs, metav1.ListOptions{})
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("kns", kubeCtxNs).Msg("GetPodsUsingCtxNs: GetPods")
+		log.Err(err).Interface("kns", kubeCtxNs).Msg("GetPodsUsingCtxNs: GetPods")
 		return pods, err
 	}
 	if filter != nil {
 		filteredPods := v1.PodList{}
 		for _, pod := range pods.Items {
-			if string_utils.FilterStringWithOpts(pod.GetName(), filter) {
+			if strings_filter.FilterStringWithOpts(pod.GetName(), filter) {
 				filteredPods.Items = append(filteredPods.Items, pod)
 			}
 		}
@@ -48,7 +52,7 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_ty
 	return pods, err
 }
 
-func (k *K8Util) GetFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, filter *string_utils.FilterOpts) (*v1.Pod, error) {
+func (k *K8Util) GetFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, filter *strings_filter.FilterOpts) (*v1.Pod, error) {
 	k.SetContext(kubeCtxNs.Context)
 	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	if err != nil {

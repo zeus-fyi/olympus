@@ -15,11 +15,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
 	"github.com/zeus-fyi/olympus/pkg/utils/client"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	zeus_pods_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/pods"
 )
 
-func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) error {
+func podsPortForwardRequestToAllPods(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
 	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequestToAllPods")
+	log.Debug().Msg("start podsPortForwardRequestToAllPods")
 	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, nil, request.FilterOpts)
 	if err != nil {
 		return err
@@ -38,9 +39,9 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) 
 	return c.JSON(http.StatusOK, respBody)
 }
 
-func PodsPortForwardRequest(c echo.Context, request *PodActionRequest) ([]byte, error) {
+func PodsPortForwardRequest(c echo.Context, request *zeus_pods_reqs.PodActionRequest) ([]byte, error) {
 	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("start PodsPortForwardRequest")
+	log.Debug().Msg("start PodsPortForwardRequest")
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -54,23 +55,23 @@ func PodsPortForwardRequest(c echo.Context, request *PodActionRequest) ([]byte, 
 	}
 	clientReq := *request.ClientReq
 	go func() {
-		log.Ctx(ctx).Debug().Msg("start port-forward thread")
+		log.Debug().Msg("start port-forward thread")
 		address := "localhost"
 		err := zeus.K8Util.PortForwardPod(ctx, request.CloudCtxNs, request.PodName, address, clientReq.Ports, startChan, stopChan, request.FilterOpts)
-		log.Ctx(ctx).Err(err).Msg("error in port forwarding")
-		log.Ctx(ctx).Debug().Msg("done port-forward")
+		log.Err(err).Msg("error in port forwarding")
+		log.Debug().Msg("done port-forward")
 	}()
 
-	log.Ctx(ctx).Debug().Msg("awaiting signal")
+	log.Debug().Msg("awaiting signal")
 	<-startChan
-	log.Ctx(ctx).Debug().Msg("port ready chan ok")
+	log.Debug().Msg("port ready chan ok")
 	go func() {
 		sig := <-sigs
 		fmt.Println(sig)
 		close(stopChan)
 	}()
 
-	log.Ctx(ctx).Debug().Msg("do port-forwarded commands")
+	log.Debug().Msg("do port-forwarded commands")
 	port := ""
 	for _, po := range clientReq.Ports {
 		port, _, _ = strings.Cut(po, ":")
@@ -97,7 +98,7 @@ func PodsPortForwardRequest(c echo.Context, request *PodActionRequest) ([]byte, 
 			SetBody(payload).
 			Post(clientReq.Endpoint)
 		if err != nil {
-			log.Ctx(ctx).Err(err)
+			log.Err(err)
 		}
 		r.Err = err
 		r.BodyBytes = resp.Body()
@@ -108,12 +109,12 @@ func PodsPortForwardRequest(c echo.Context, request *PodActionRequest) ([]byte, 
 			SetBody(payload).
 			Get(clientReq.Endpoint)
 		if err != nil {
-			log.Ctx(ctx).Err(err)
+			log.Err(err)
 		}
 		r.Err = err
 		r.BodyBytes = resp.Body()
 	}
 	close(stopChan)
-	log.Ctx(ctx).Debug().Msg("end port-forwarded commands")
+	log.Debug().Msg("end port-forwarded commands")
 	return r.BodyBytes, r.Err
 }

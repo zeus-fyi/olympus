@@ -6,12 +6,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
+	zeus_pods_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/pods"
 	v1 "k8s.io/api/core/v1"
 )
 
-func PodsDescribeRequest(c echo.Context, request *PodActionRequest) error {
+func PodsDescribeRequest(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
 	ctx := context.Background()
 	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, request.LogOpts, request.FilterOpts)
 	if err != nil {
@@ -21,7 +22,7 @@ func PodsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 	return c.JSON(http.StatusOK, pods)
 }
 
-func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
+func PodLogsActionRequest(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("PodLogsActionRequest")
 	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, nil, request.FilterOpts)
@@ -31,7 +32,7 @@ func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 	}
 	p := v1.Pod{}
 	for _, pod := range pods.Items {
-		if string_utils.FilterStringWithOpts(pod.GetName(), request.FilterOpts) {
+		if strings_filter.FilterStringWithOpts(pod.GetName(), request.FilterOpts) {
 			p = pod
 		}
 	}
@@ -52,7 +53,7 @@ func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 	return c.JSON(http.StatusOK, string(logs))
 }
 
-func PodsAuditRequest(c echo.Context, request *PodActionRequest) error {
+func PodsAuditRequest(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
 	ctx := context.Background()
 	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, request.LogOpts, request.FilterOpts)
 	if err != nil {

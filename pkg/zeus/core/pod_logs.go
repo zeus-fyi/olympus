@@ -7,14 +7,14 @@ import (
 	"io"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
 )
 
-func (k *K8Util) GetPodLogs(ctx context.Context, name string, kns zeus_common_types.CloudCtxNs, logOpts *v1.PodLogOptions, filter *string_utils.FilterOpts) ([]byte, error) {
+func (k *K8Util) GetPodLogs(ctx context.Context, name string, kns zeus_common_types.CloudCtxNs, logOpts *v1.PodLogOptions, filter *strings_filter.FilterOpts) ([]byte, error) {
 	k.SetContext(kns.Context)
-	log.Ctx(ctx).Debug().Msg("GetPodLogs")
+	log.Debug().Msg("GetPodLogs")
 	if logOpts == nil {
 		logOpts = &v1.PodLogOptions{}
 	}

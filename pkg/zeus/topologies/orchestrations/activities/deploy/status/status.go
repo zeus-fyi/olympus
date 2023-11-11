@@ -49,12 +49,12 @@ func (d *TopologyActivityDeploymentStatusActivity) CreateOrUpdateKubeCtxNsStatus
 		SetBody(topDepReq).
 		Post(zeus_endpoints.InternalDeployKnsCreateOrUpdatePath)
 	if err != nil {
-		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsCreateOrUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
+		log.Err(err).Interface("dep", topDepReq).Interface("path", zeus_endpoints.InternalDeployKnsCreateOrUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
 	}
 	if resp != nil && resp.StatusCode() >= 400 {
 		err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())
-		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsCreateOrUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
+		log.Err(err).Interface("dep", topDepReq).Interface("path", zeus_endpoints.InternalDeployKnsCreateOrUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
 	}
 	return err
@@ -69,7 +69,7 @@ func (d *TopologyActivityDeploymentStatusActivity) DeleteKubeCtxNsStatus(ctx con
 		SetBody(topDepReq).
 		Post(zeus_endpoints.InternalDeployKnsDestroyPath)
 	if err != nil || resp.StatusCode() != http.StatusOK {
-		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsDestroyPath).Msg("TopologyActivityDeploymentStatusActivity")
+		log.Err(err).Interface("dep", topDepReq).Interface("path", zeus_endpoints.InternalDeployKnsDestroyPath).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
 	}
 	return err

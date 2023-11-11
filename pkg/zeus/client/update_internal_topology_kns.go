@@ -3,7 +3,6 @@ package zeus_client
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
@@ -16,14 +15,19 @@ func (z *ZeusClient) UpdateTopologyKnsStatus(ctx context.Context, status topolog
 	respStatus := kns.TopologyKubeCtxNs{}
 	resp, err := z.R().
 		SetResult(&respStatus).
-		SetBody(status.TopologyKubeCtxNs).
+		SetBody(status.TopologyDeployRequest).
 		Post(zeus_endpoints.InternalDeployKnsCreateOrUpdatePath)
 
-	if err != nil || resp.StatusCode() != http.StatusOK {
-		log.Ctx(ctx).Err(err).Msg("ZeusClient: UpdateTopologyKnsStatus")
+	if err != nil {
+		log.Err(err).Msg("ZeusClient: UpdateTopologyKnsStatus")
 		if err == nil {
 			err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())
 		}
+		return respStatus, err
+	}
+	if resp != nil && resp.StatusCode() >= 400 {
+		err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())
+		log.Err(err).Interface("status", status).Msg("ZeusClient: RemoveTopologyKnsStatus")
 		return respStatus, err
 	}
 	z.PrintRespJson(resp.Body())
@@ -35,11 +39,16 @@ func (z *ZeusClient) RemoveTopologyKnsStatus(ctx context.Context, status topolog
 	respStatus := kns.TopologyKubeCtxNs{}
 	resp, err := z.R().
 		SetResult(&respStatus).
-		SetBody(status.TopologyKubeCtxNs).
+		SetBody(status.TopologyDeployRequest).
 		Post(zeus_endpoints.InternalDeployKnsDestroyPath)
 
-	if err != nil || resp.StatusCode() != http.StatusOK {
-		log.Ctx(ctx).Err(err).Msg("ZeusClient: RemoveTopologyKnsStatus")
+	if err != nil {
+		log.Err(err).Interface("status", status).Msg("ZeusClient: RemoveTopologyKnsStatus")
+		return respStatus, err
+	}
+	if resp != nil && resp.StatusCode() >= 400 {
+		err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())
+		log.Err(err).Interface("status", status).Msg("ZeusClient: RemoveTopologyKnsStatus")
 		return respStatus, err
 	}
 	z.PrintRespJson(resp.Body())

@@ -210,6 +210,10 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 			logger.Info("Topology infra config is nil", "TopologyID", topID)
 			continue
 		}
+		if topID == 0 {
+			logger.Info("Topology id is empty", "ClusterClassName", wfParams.ClusterClassName)
+			continue
+		}
 		desWf := base_deploy_params.TopologyWorkflowRequest{
 			TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
 				TopologyID:                topID,

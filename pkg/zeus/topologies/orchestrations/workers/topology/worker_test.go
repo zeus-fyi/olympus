@@ -97,7 +97,16 @@ func (s *TopologyWorkerTestSuite) TestExecuteDestroyClusterSetupWorkflowFreeTria
 			AppTaint: true,
 		},
 	}
-	err = Worker.ExecuteDestroyClusterSetupWorkflowFreeTrial(ctx, params.ClusterSetupRequest)
+	wfParams := base_deploy_params.ClusterTopologyWorkflowRequest{
+		ClusterClassName:          "",
+		TopologyIDs:               nil,
+		CloudCtxNs:                zeus_common_types.CloudCtxNs{},
+		OrgUser:                   org_users.OrgUser{},
+		Host:                      "",
+		AppTaint:                  false,
+		RequestChoreographySecret: false,
+	}
+	err = Worker.ExecuteDestroyClusterSetupWorkflowFreeTrial(ctx, params.ClusterSetupRequest, wfParams)
 	s.Require().Nil(err)
 }
 

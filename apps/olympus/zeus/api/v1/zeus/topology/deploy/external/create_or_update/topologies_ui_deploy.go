@@ -278,7 +278,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		ds[i] = disk
 	}
 	cr.Disks = ds
-	if t.CheckIfEmpty() {
+	if cr.CloudCtxNs.CheckIfEmpty() {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	return zeus.ExecuteCreateSetupClusterWorkflow(c, ctx, cr)

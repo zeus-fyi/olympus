@@ -100,7 +100,10 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	if validation.IsDNS1123Label(alias) == nil {
 		clusterNs = alias
 	}
-	switch t.CloudProvider {
+
+	cloudProvider := t.CloudCtxNs.CloudProvider
+	region := t.CloudCtxNs.Region
+	switch cloudProvider {
 	case "do":
 		cr = base_deploy_params.ClusterSetupRequest{
 			FreeTrial: t.FreeTrial,
@@ -114,8 +117,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				Env:           "",
 			},
 			Nodes: autogen_bases.Nodes{
-				Region:        t.Region,
-				CloudProvider: t.CloudProvider,
+				Region:        region,
+				CloudProvider: cloudProvider,
 				ResourceID:    t.Node.ResourceID,
 				Slug:          t.Node.Slug,
 			},
@@ -141,8 +144,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				Env:           "",
 			},
 			Nodes: autogen_bases.Nodes{
-				Region:        t.Region,
-				CloudProvider: t.CloudProvider,
+				Region:        region,
+				CloudProvider: cloudProvider,
 				ResourceID:    t.Node.ResourceID,
 				Slug:          t.Node.Slug,
 			},
@@ -170,8 +173,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				Env:           "",
 			},
 			Nodes: autogen_bases.Nodes{
-				Region:        t.Region,
-				CloudProvider: t.CloudProvider,
+				Region:        region,
+				CloudProvider: cloudProvider,
 				ResourceID:    t.Node.ResourceID,
 				Slug:          t.Node.Slug,
 			},
@@ -254,8 +257,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				Env:           "",
 			},
 			Nodes: autogen_bases.Nodes{
-				Region:        t.Region,
-				CloudProvider: t.CloudProvider,
+				Region:        region,
+				CloudProvider: cloudProvider,
 				ResourceID:    t.Node.ResourceID,
 				Slug:          t.Node.Slug,
 			},
@@ -271,8 +274,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	for i, dr := range t.ResourceRequirements {
 		disk := autogen_bases.Disks{
 			ResourceID:    diskResourceID,
-			Region:        t.Region,
-			CloudProvider: t.CloudProvider,
+			Region:        region,
+			CloudProvider: cloudProvider,
 			DiskUnits:     dr.ResourceSumsDisk,
 		}
 		ds[i] = disk

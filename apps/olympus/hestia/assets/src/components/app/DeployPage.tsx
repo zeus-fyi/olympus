@@ -196,8 +196,10 @@ export function DeployPage(props: any) {
             setRequestStatus('pending');
             const namespaceAlias = cluster.clusterName;
             const payload = {
-                "cloudProvider": cloudProvider,
-                "region": region,
+                "cloudCtxNs": {
+                    "cloudProvider": cloudProvider,
+                    "region": region,
+                },
                 "nodes": node,
                 "count": count,
                 "namespaceAlias": namespaceAlias,

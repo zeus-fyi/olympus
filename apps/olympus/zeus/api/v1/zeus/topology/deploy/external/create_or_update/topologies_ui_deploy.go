@@ -31,16 +31,16 @@ type DiskResourceRequirements struct {
 }
 
 type TopologyDeployUIRequest struct {
-	zeus_common_types.CloudCtxNs
-	FreeTrial            bool                       `json:"freeTrial"`
-	MonthlyCost          float64                    `json:"monthlyCost"`
-	CloudProvider        string                     `json:"cloudProvider"`
-	Region               string                     `json:"region"`
-	Node                 autogen_bases.Nodes        `json:"nodes"`
-	Count                float64                    `json:"count"`
-	NamespaceAlias       string                     `json:"namespaceAlias"`
-	Cluster              zeus_templates.Cluster     `json:"cluster"`
-	ResourceRequirements []DiskResourceRequirements `json:"resourceRequirements"`
+	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
+	FreeTrial                    bool                       `json:"freeTrial"`
+	MonthlyCost                  float64                    `json:"monthlyCost"`
+	CloudProvider                string                     `json:"cloudProvider"`
+	Region                       string                     `json:"region"`
+	Node                         autogen_bases.Nodes        `json:"nodes"`
+	Count                        float64                    `json:"count"`
+	NamespaceAlias               string                     `json:"namespaceAlias"`
+	Cluster                      zeus_templates.Cluster     `json:"cluster"`
+	ResourceRequirements         []DiskResourceRequirements `json:"resourceRequirements"`
 }
 
 func SetupClusterTopologyDeploymentHandler(c echo.Context) error {
@@ -58,6 +58,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+
 	if ou.UserID == 1685378241971196000 {
 		t.FreeTrial = false
 	} else {
@@ -277,5 +278,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		ds[i] = disk
 	}
 	cr.Disks = ds
+	if t.CheckIfEmpty() {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	return zeus.ExecuteCreateSetupClusterWorkflow(c, ctx, cr)
 }

@@ -2,6 +2,7 @@ package deploy_updates
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -17,7 +18,11 @@ type FleetUpgradeRequest struct {
 
 func (t *FleetUpgradeRequest) UpgradeFleet(c echo.Context) error {
 	log.Debug().Msg("UpgradeFleet")
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Warn().Interface("orgUser", ou).Msg("orgUser not found")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	ctx := context.Background()
 	params := base_deploy_params.FleetUpgradeWorkflowRequest{
 		ClusterName: t.ClusterClassName,
@@ -25,4 +30,22 @@ func (t *FleetUpgradeRequest) UpgradeFleet(c echo.Context) error {
 		AppTaint:    t.AppTaint,
 	}
 	return zeus.ExecuteDeployFleetUpgradeWorkflow(c, ctx, params)
+}
+
+type FleetRolloutRequest struct {
+	ClusterClassName string `json:"clusterClassName"`
+}
+
+func (t *FleetRolloutRequest) RolloutRestartFleet(c echo.Context) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Warn().Interface("orgUser", ou).Msg("orgUser not found")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	ctx := context.Background()
+	params := base_deploy_params.FleetRolloutRestartWorkflowRequest{
+		ClusterName: t.ClusterClassName,
+		OrgUser:     ou,
+	}
+	return zeus.ExecuteDeployFleetRolloutRestartWorkflow(c, ctx, params)
 }

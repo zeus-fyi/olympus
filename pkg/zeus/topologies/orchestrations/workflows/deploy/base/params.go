@@ -23,6 +23,11 @@ type FleetUpgradeWorkflowRequest struct {
 	AppTaint    bool              `json:"appTaint"`
 }
 
+type FleetRolloutRestartWorkflowRequest struct {
+	OrgUser     org_users.OrgUser `json:"orgUser"`
+	ClusterName string            `json:"clusterName"`
+}
+
 type ClusterTopologyWorkflowRequest struct {
 	ClusterClassName string                       `json:"clusterClassName"`
 	TopologyIDs      []int                        `json:"topologyIDs"`

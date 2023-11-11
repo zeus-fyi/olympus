@@ -39,6 +39,23 @@ func (t *TopologyWorker) ExecuteDeployFleetUpgrade(ctx context.Context, params b
 	return err
 }
 
+func (t *TopologyWorker) ExecuteDeployFleetRolloutRestart(ctx context.Context, params base_deploy_params.FleetRolloutRestartWorkflowRequest) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+		ID:        uuid.New().String(),
+	}
+	deployWf := deploy_workflow_cluster_updates.NewDeployFleetUpgradeWorkflow()
+	wf := deployWf.DeployRolloutRestartFleetWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, params)
+	if err != nil {
+		log.Err(err).Msg("ExecuteDeployFleetUpgrade")
+		return err
+	}
+	return err
+}
+
 func (t *TopologyWorker) ExecuteDeployCronJob(ctx context.Context, params base_deploy_params.TopologyWorkflowRequest) error {
 	c := t.ConnectTemporalClient()
 	defer c.Close()

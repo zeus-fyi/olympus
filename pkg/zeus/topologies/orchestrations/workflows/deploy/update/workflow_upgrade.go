@@ -29,7 +29,7 @@ func NewDeployFleetUpgradeWorkflow() FleetUpgradeWorkflow {
 }
 
 func (t *FleetUpgradeWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.UpgradeFleetWorkflow}
+	return []interface{}{t.UpgradeFleetWorkflow, t.DeployRolloutRestartFleetWorkflow}
 }
 
 func (t *FleetUpgradeWorkflow) UpgradeFleetWorkflow(ctx workflow.Context, params base_deploy_params.FleetUpgradeWorkflowRequest) error {

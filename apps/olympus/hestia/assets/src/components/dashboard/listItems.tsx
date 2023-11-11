@@ -19,6 +19,7 @@ import SwapCallsIcon from '@mui/icons-material/SwapCalls';
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(true);
@@ -75,7 +76,7 @@ export default function MainListItems() {
             </Collapse>
             <ListItemButton onClick={handleClickCompute} component={Link} to="/compute/search">
                 <ListItemIcon>
-                    <DnsIcon />
+                    <ManageSearchIcon />
                 </ListItemIcon>
                 <ListItemText primary="Compute" />
                 {openCompute ? <ExpandLess /> : <ExpandMore />}
@@ -84,7 +85,7 @@ export default function MainListItems() {
                 <List component="div" disablePadding>
                     <ListItemButton sx={{ pl: 4 }} component={Link} to="/compute/summary">
                         <ListItemIcon>
-                            <ConstructionIcon />
+                            <DnsIcon />
                         </ListItemIcon>
                         <ListItemText primary="Provisioned" />
                     </ListItemButton>

@@ -31,6 +31,17 @@ func ExecuteDeployFleetUpgradeWorkflow(c echo.Context, ctx context.Context, para
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	resp := topology_deployment_status.NewClusterTopologyStatus(params.ClusterName)
+	resp.Status = topology_deployment_status.FleetRolloutRestartDeployPending
+	return c.JSON(http.StatusAccepted, resp)
+}
+
+func ExecuteDeployFleetRolloutRestartWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.FleetRolloutRestartWorkflowRequest) error {
+	err := topology_worker.Worker.ExecuteDeployFleetRolloutRestart(ctx, params)
+	if err != nil {
+		log.Err(err).Interface("orgUser", params.OrgUser).Msg("ExecuteDeployFleetUpgradeWorkflow, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	resp := topology_deployment_status.NewClusterTopologyStatus(params.ClusterName)
 	resp.Status = topology_deployment_status.DeployPending
 	return c.JSON(http.StatusAccepted, resp)
 }

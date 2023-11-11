@@ -65,6 +65,7 @@ class ClustersApiGateway {
             return
         }
     }
+
     async deployUpdateFleet(clusterClassName: any, appTaint: boolean): Promise<any>  {
         const url = `/v1/deploy/ui/update/fleet`;
         try {
@@ -78,6 +79,26 @@ class ClustersApiGateway {
             const payload = {
                 clusterClassName: clusterClassName,
                 appTaint: appTaint,
+            }
+            return await zeusApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending cluster deploy fleet upgrade');
+            console.error(exc);
+            return
+        }
+    }
+    async deployRolloutRestartFleet(clusterClassName: any): Promise<any>  {
+        const url = `/v1/deploy/ui/update/restart/fleet`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                clusterClassName: clusterClassName,
             }
             return await zeusApi.post(url, payload, config)
         } catch (exc) {

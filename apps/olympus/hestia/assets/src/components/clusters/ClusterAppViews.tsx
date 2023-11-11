@@ -56,6 +56,27 @@ export const ClusterViews = (props: any) => {
             setStatusMessage(`Cluster fleet ${clusterClassName} failed to update`);
         }
     }
+
+
+    const onClickRolloutRestart = async (clusterClassName: string) => {
+        if (appName === "-all") {
+            return;
+        }
+        try {
+            const response = await clustersApiGateway.deployRolloutRestartFleet(clusterClassName);
+            const statusCode = response.status;
+            if (statusCode === 202) {
+                setStatusMessage(`Cluster fleet ${clusterClassName} rollout restart in progress`);
+            } else if (statusCode === 200){
+                setStatusMessage(`Cluster fleet ${clusterClassName} rollout restart already in progress`);
+            } else {
+                setStatusMessage(`Cluster fleet ${clusterClassName} had an unexpected response: status code ${statusCode}`);
+            }
+        } catch (e) {
+            setStatusMessage(`Cluster fleet ${clusterClassName} failed to update`);
+        }
+    }
+
     return (
         <div>
             <Stack direction={"row"} spacing={2} alignItems={"center"}>
@@ -111,19 +132,29 @@ export const ClusterViews = (props: any) => {
                             {uniqueAppNames.map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
                         </Select>
                     </FormControl>
-                    <div>
-                        {appName !== '' && appName !== '-all' && (
-                            <Button onClick={() => onClickRolloutUpgrade(appName)} variant="contained">
-                                Upgrade Fleet
-                            </Button>
-                        )}
-                        <div>{statusMessage}</div>
-                    </div>
                     </Stack>
                 </Box>
                     {appName !== '' && appName !== '-all' && (
                         <Divider />
                     )}
+                    <div>
+                        {appName !== '' && appName !== '-all' && (
+                            <div>
+                                <Stack direction={"row"} mr={2} ml={2} mt={2} mb={2} alignItems={"center"}>
+                                        <Button  fullWidth onClick={() => onClickRolloutUpgrade(appName)} variant="contained">
+                                            Upgrade Fleet
+                                        </Button>
+                                         <Box mr={2}></Box>
+                                        <Button fullWidth onClick={() => onClickRolloutRestart(appName)} variant="contained">
+                                            Rollout Restart Fleet
+                                        </Button>
+                               </Stack>
+                            </div>
+                        )}
+                        <Box ml={2}>
+                            <div>{statusMessage}</div>
+                        </Box>
+                    </div>
                     <Box mr={2} ml={2} mt={2} mb={2}>
                         <div>
                             {appName !== '' && appName !== '-all' && (

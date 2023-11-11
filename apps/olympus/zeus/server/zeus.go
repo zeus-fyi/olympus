@@ -21,6 +21,7 @@ import (
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/ai/orchestrations"
+	topology_auths "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/auth"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	pods_workflows "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/pods"
@@ -56,6 +57,7 @@ func Zeus() {
 			Namespace:        "production-zeus.ngb72",
 			HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
 		}
+		topology_auths.K8Util = cfg.K8sUtil
 		dynMemFs, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		dynamic_secrets.AegisInMemSecrets = dynMemFs
 		cmd := exec.Command("doctl", "auth", "init", "-t", sw.DoctlToken)
@@ -127,6 +129,7 @@ func Zeus() {
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		read_infra.CookbooksDirIn = "/Users/alex/go/Olympus/olympus/apps/zeus/cookbooks"
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
+		topology_auths.K8Util = cfg.K8sUtil
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -149,6 +152,7 @@ func Zeus() {
 		dynamic_secrets.AegisInMemSecrets = dynMemFs
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
+		topology_auths.K8Util = cfg.K8sUtil
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")

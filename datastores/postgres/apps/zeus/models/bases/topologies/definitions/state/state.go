@@ -27,10 +27,11 @@ func (s *Status) SetTopologyID(id int) {
 }
 
 const (
-	ResourceDestroyPending = "ResourceDestroyPending"
-	DeployPending          = "DeployPending"
-	DeployInProgress       = "DeployInProgress"
-	DeployComplete         = "DeployComplete"
+	ResourceDestroyPending           = "ResourceDestroyPending"
+	DeployPending                    = "DeployPending"
+	FleetRolloutRestartDeployPending = "FleetRolloutRestartDeployPending"
+	DeployInProgress                 = "DeployInProgress"
+	DeployComplete                   = "DeployComplete"
 
 	DestroyDeployPending    = "DestroyDeployPending"
 	DestroyDeployInProgress = "DestroyDeployInProgress"

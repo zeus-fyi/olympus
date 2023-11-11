@@ -24,7 +24,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyJobWorkflow(ctx workflow.Context,
 	}
 
 	deployParams := base_request.InternalDeploymentActionRequest{
-		Kns:                       params.Kns,
+		Kns:                       params.TopologyDeployRequest,
 		OrgUser:                   params.OrgUser,
 		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
 	}

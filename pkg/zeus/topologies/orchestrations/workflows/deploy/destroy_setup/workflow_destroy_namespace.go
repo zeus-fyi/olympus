@@ -36,14 +36,14 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 		StartToCloseTimeout: defaultTimeout,
 	}
 	removeSubdomainCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.Kns.CloudCtxNs).Get(removeSubdomainCtx, nil)
+	err := workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.TopologyDeployRequest.CloudCtxNs).Get(removeSubdomainCtx, nil)
 	if err != nil {
 		log.Error("Failed to remove domain record", "Error", err)
 		return err
 	}
 	getDisksAtCloudCtxNs := workflow.WithActivityOptions(ctx, ao)
 	var disks []hestia_compute_resources.OrgResourceDisks
-	err = workflow.ExecuteActivity(getDisksAtCloudCtxNs, c.CreateSetupTopologyActivities.SelectDiskResourcesAtCloudCtxNs, params.OrgUser.OrgID, params.Kns.CloudCtxNs).Get(getDisksAtCloudCtxNs, &disks)
+	err = workflow.ExecuteActivity(getDisksAtCloudCtxNs, c.CreateSetupTopologyActivities.SelectDiskResourcesAtCloudCtxNs, params.OrgUser.OrgID, params.TopologyDeployRequest.CloudCtxNs).Get(getDisksAtCloudCtxNs, &disks)
 	if err != nil {
 		log.Error("Failed to get disk resources at cloud ctx ns", "Error", err)
 		return err
@@ -65,7 +65,7 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 		}
 	}
 	removeAuthCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params.OrgUser.OrgID, params.Kns.CloudCtxNs).Get(removeAuthCtx, nil)
+	err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params.OrgUser.OrgID, params.TopologyDeployRequest.CloudCtxNs).Get(removeAuthCtx, nil)
 	if err != nil {
 		log.Error("Failed to remove auth ctx ns", "Error", err)
 		return err

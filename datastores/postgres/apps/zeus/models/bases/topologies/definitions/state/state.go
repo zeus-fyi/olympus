@@ -2,13 +2,14 @@ package topology_deployment_status
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 // Status specific deployed topology to user (statuses can be pending, terminated, etc)
 type Status struct {
-	kns.TopologyKubeCtxNs
-	DeployStatus
+	zeus_req_types.TopologyDeployRequest `json:"topologyDeployRequest"`
+	DeployStatus                         `json:"deployStatus"`
 }
 
 type ClusterStatus struct {
@@ -17,34 +18,35 @@ type ClusterStatus struct {
 }
 
 type DeployStatus struct {
-	autogen_bases.TopologiesDeployed
+	autogen_bases.TopologiesDeployed `json:"deployStatus"`
 }
 
 func (s *Status) SetTopologyID(id int) {
 	s.DeployStatus.TopologyID = id
-	s.TopologyKubeCtxNs.TopologyID = id
+	s.TopologyDeployRequest.TopologyID = id
 }
 
-const ResourceDestroyPending = "ResourceDestroyPending"
+const (
+	ResourceDestroyPending = "ResourceDestroyPending"
+	DeployPending          = "DeployPending"
+	DeployInProgress       = "DeployInProgress"
+	DeployComplete         = "DeployComplete"
 
-const DeployPending = "DeployPending"
-const DeployInProgress = "DeployInProgress"
-const DeployComplete = "DeployComplete"
+	DestroyDeployPending    = "DestroyDeployPending"
+	DestroyDeployInProgress = "DestroyDeployInProgress"
+	DestroyDeployComplete   = "DestroyDeployComplete"
 
-const DestroyDeployPending = "DestroyDeployPending"
-const DestroyDeployInProgress = "DestroyDeployInProgress"
-const DestroyDeployComplete = "DestroyDeployComplete"
+	CleanDeployPending    = "CleanDeployPending"
+	CleanDeployInProgress = "CleanDeployInProgress"
+	CleanDeployComplete   = "CleanDeployComplete"
 
-const CleanDeployPending = "CleanDeployPending"
-const CleanDeployInProgress = "CleanDeployInProgress"
-const CleanDeployComplete = "CleanDeployComplete"
+	InProgress = "InProgress"
+	Complete   = "Complete"
+)
 
-const InProgress = "InProgress"
-const Complete = "Complete"
-
-func NewPopulatedTopologyStatus(kns kns.TopologyKubeCtxNs, status string) Status {
+func NewPopulatedTopologyStatus(kns zeus_req_types.TopologyDeployRequest, status string) Status {
 	s := Status{
-		TopologyKubeCtxNs: kns,
+		TopologyDeployRequest: kns,
 		DeployStatus: DeployStatus{
 			autogen_bases.TopologiesDeployed{
 				TopologyStatus: status, TopologyID: kns.TopologyID},
@@ -55,11 +57,20 @@ func NewPopulatedTopologyStatus(kns kns.TopologyKubeCtxNs, status string) Status
 
 func NewTopologyStatus() Status {
 	s := Status{
-		kns.NewKns(),
-		DeployStatus{autogen_bases.TopologiesDeployed{
-			TopologyStatus: "Pending",
-			TopologyID:     0,
-		}}}
+		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
+			TopologyID:                      0,
+			ClusterClassName:                "",
+			CloudCtxNs:                      zeus_common_types.CloudCtxNs{},
+			SecretRef:                       "",
+			RequestChoreographySecretDeploy: false,
+		},
+		DeployStatus: DeployStatus{
+			autogen_bases.TopologiesDeployed{
+				TopologyID:     0,
+				TopologyStatus: "Pending",
+			},
+		},
+	}
 	return s
 }
 

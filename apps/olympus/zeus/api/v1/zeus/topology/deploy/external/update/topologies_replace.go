@@ -8,18 +8,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
-type TopologyReplaceRequest struct {
-	kns.TopologyKubeCtxNs
-	ClusterName string `json:"clusterName,omitempty"`
-}
-
-func (t *TopologyReplaceRequest) ReplaceTopology(c echo.Context) error {
+func ReplaceTopology(c echo.Context, tar zeus_req_types.TopologyDeployRequest) error {
 	log.Debug().Msg("TopologyReplaceTopology")
 	nk, err := zeus.DecompressUserInfraWorkload(c)
 	if err != nil {
@@ -28,13 +23,13 @@ func (t *TopologyReplaceRequest) ReplaceTopology(c echo.Context) error {
 	}
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	tr, err := zeus.ReadUserTopologyConfig(ctx, t.TopologyID, ou)
+	tr, err := zeus.ReadUserTopologyConfig(ctx, tar.TopologyID, ou)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ReplaceTopology, SelectTopology error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	diffReplacement := zeus.DiffChartUpdate(nk, tr.GetTopologyBaseInfraWorkload())
-	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, diffReplacement, false, t.ClusterName, t.ClusterName)
+	return zeus.ExecuteDeployWorkflow(c, ctx, ou, tar, diffReplacement, false, tar.ClusterClassName, tar.ClusterClassName)
 }
 
 type DeployClusterUpdateRequestUI struct {

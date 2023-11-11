@@ -2,15 +2,16 @@ package deployment_status
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 type TopologyActivityDeploymentStatusActivity struct {
@@ -39,28 +40,33 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 	return err
 }
 
-func (d *TopologyActivityDeploymentStatusActivity) CreateOrUpdateKubeCtxNsStatus(ctx context.Context, status kns.TopologyKubeCtxNs) error {
+func (d *TopologyActivityDeploymentStatusActivity) CreateOrUpdateKubeCtxNsStatus(ctx context.Context, topDepReq zeus_req_types.TopologyDeployRequest) error {
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
 	client.SetBaseURL(u.Host)
 	resp, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
-		SetBody(status).
+		SetBody(topDepReq).
 		Post(zeus_endpoints.InternalDeployKnsCreateOrUpdatePath)
-	if err != nil || resp.StatusCode() != http.StatusOK {
+	if err != nil {
+		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsCreateOrUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
+		return err
+	}
+	if resp != nil && resp.StatusCode() >= 400 {
+		err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())
 		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsCreateOrUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
 	}
 	return err
 }
 
-func (d *TopologyActivityDeploymentStatusActivity) DeleteKubeCtxNsStatus(ctx context.Context, status kns.TopologyKubeCtxNs) error {
+func (d *TopologyActivityDeploymentStatusActivity) DeleteKubeCtxNsStatus(ctx context.Context, topDepReq zeus_req_types.TopologyDeployRequest) error {
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
 	client.SetBaseURL(u.Host)
 	resp, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
-		SetBody(status).
+		SetBody(topDepReq).
 		Post(zeus_endpoints.InternalDeployKnsDestroyPath)
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsDestroyPath).Msg("TopologyActivityDeploymentStatusActivity")

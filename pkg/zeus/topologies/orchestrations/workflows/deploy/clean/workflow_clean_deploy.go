@@ -40,7 +40,7 @@ func (t *CleanDeployTopologyWorkflow) CleanDeployedTopologyWorkflow(ctx workflow
 	}
 
 	statusCtx := workflow.WithActivityOptions(ctx, ao)
-	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns, topology_deployment_status.CleanDeployInProgress)
+	status := topology_deployment_status.NewPopulatedTopologyStatus(params.TopologyDeployRequest, topology_deployment_status.CleanDeployInProgress)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
 
 	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
@@ -50,7 +50,7 @@ func (t *CleanDeployTopologyWorkflow) CleanDeployedTopologyWorkflow(ctx workflow
 	}
 
 	deployParams := base_request.InternalDeploymentActionRequest{
-		Kns:                       params.Kns,
+		Kns:                       params.TopologyDeployRequest,
 		OrgUser:                   params.OrgUser,
 		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
 	}
@@ -101,7 +101,7 @@ func (t *CleanDeployTopologyWorkflow) CleanDeployedTopologyWorkflow(ctx workflow
 	}
 
 	knsCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(knsCtx, statusActivity.DeleteKubeCtxNsStatus, status.TopologyKubeCtxNs).Get(knsCtx, nil)
+	err = workflow.ExecuteActivity(knsCtx, statusActivity.DeleteKubeCtxNsStatus, status.TopologyDeployRequest).Get(knsCtx, nil)
 	if err != nil {
 		log.Error("Failed to remove topology kns status", "Error", err)
 		return err

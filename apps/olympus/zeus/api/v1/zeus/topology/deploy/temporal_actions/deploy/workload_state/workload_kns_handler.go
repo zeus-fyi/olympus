@@ -6,14 +6,14 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	create_kns "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/kns"
 	delete_kns "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/delete/topologies/topology/kns"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 func InsertOrUpdateWorkloadKnsStateHandler(c echo.Context) error {
 	ctx := context.Background()
-	request := new(kns.TopologyKubeCtxNs)
+	request := new(zeus_req_types.TopologyDeployRequest)
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
@@ -27,7 +27,7 @@ func InsertOrUpdateWorkloadKnsStateHandler(c echo.Context) error {
 
 func DeleteWorkloadKnsStateHandler(c echo.Context) error {
 	ctx := context.Background()
-	request := new(kns.TopologyKubeCtxNs)
+	request := new(zeus_req_types.TopologyDeployRequest)
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}

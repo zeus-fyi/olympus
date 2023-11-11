@@ -5,9 +5,9 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 const Sn = "TopologyKubeCtxNs"
@@ -58,7 +58,10 @@ func getInsertKnsQuery() sql_query_templates.QueryParams {
 	return q
 }
 
-func InsertKns(ctx context.Context, kns *kns.TopologyKubeCtxNs) error {
+func InsertKns(ctx context.Context, kns *zeus_req_types.TopologyDeployRequest) error {
+	if kns == nil {
+		return nil
+	}
 	q := getInsertKnsQuery()
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	success := false

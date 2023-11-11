@@ -21,7 +21,7 @@ func (z *ZeusClient) CleanDeployedNamespace(ctx context.Context, tar zeus_req_ty
 		Post(zeus_endpoints.CleanDeployedNamespaceInfraV1Path)
 
 	if err != nil || resp.StatusCode() != http.StatusOK {
-		log.Ctx(ctx).Err(err).Msg("ZeusClient: CleanDeployedNamespace")
+		log.Err(err).Msg("ZeusClient: CleanDeployedNamespace")
 		if resp.StatusCode() == http.StatusBadRequest {
 			err = errors.New("bad request")
 		}

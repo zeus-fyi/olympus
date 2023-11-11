@@ -8,10 +8,11 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 func TopologyDestroyDeploymentHandler(c echo.Context) error {
-	request := new(TopologyDestroyDeployRequest)
+	request := new(zeus_req_types.TopologyDeployRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
@@ -19,6 +20,10 @@ func TopologyDestroyDeploymentHandler(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		log.Warn().Msg("TopologyDestroyDeploymentHandler: orgUser not found")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if request == nil {
+		log.Warn().Interface("ou", ou).Msg("TopologyDestroyDeploymentHandler: request empty error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
@@ -30,7 +35,7 @@ func TopologyDestroyDeploymentHandler(c echo.Context) error {
 		log.Err(err).Interface("ou", ou).Msg("TopologyDestroyDeploymentHandler: IsOrgCloudCtxNsAuthorized error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return request.DestroyDeployedTopology(c)
+	return DestroyDeployedTopology(c, *request)
 }
 
 func DestroyResourceHandler(c echo.Context) error {

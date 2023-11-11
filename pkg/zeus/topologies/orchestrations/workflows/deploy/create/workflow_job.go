@@ -23,7 +23,7 @@ func (t *DeployTopologyWorkflow) DeployJobWorkflow(ctx workflow.Context, params 
 		RetryPolicy:         retryPolicy,
 	}
 	deployParams := base_request.InternalDeploymentActionRequest{
-		Kns:                       params.Kns,
+		Kns:                       params.TopologyDeployRequest,
 		OrgUser:                   params.OrgUser,
 		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
 		ClusterName:               params.ClusterClassName,

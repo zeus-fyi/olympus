@@ -6,9 +6,8 @@ import (
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
-	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -56,10 +55,7 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 			return err
 		}
 		topParams := base_deploy_params.TopologyWorkflowRequest{
-			Kns: kns.TopologyKubeCtxNs{
-				TopologyID: topID,
-				CloudCtxNs: params.CloudCtxNs,
-			},
+			TopologyDeployRequest:     req,
 			OrgUser:                   params.OrgUser,
 			RequestChoreographySecret: params.RequestChoreographySecret,
 			ClusterClassName:          params.ClusterClassName,

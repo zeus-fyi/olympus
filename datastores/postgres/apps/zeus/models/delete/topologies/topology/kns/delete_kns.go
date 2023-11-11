@@ -5,9 +5,9 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 const Sn = "DeleteTopologyKubeCtxNs"
@@ -43,7 +43,10 @@ func getDeleteKnsQueryByOrgMatchAndCloudCtx() sql_query_templates.QueryParams {
 	return q
 }
 
-func DeleteKnsByOrgAccessAndCloudCtx(ctx context.Context, kns *kns.TopologyKubeCtxNs) error {
+func DeleteKnsByOrgAccessAndCloudCtx(ctx context.Context, kns *zeus_req_types.TopologyDeployRequest) error {
+	if kns == nil {
+		return nil
+	}
 	q := getDeleteKnsQueryByOrgMatchAndCloudCtx()
 	log.Debug().Interface("DeleteQuery:", q.LogHeader(Sn))
 	success := false
@@ -54,7 +57,10 @@ func DeleteKnsByOrgAccessAndCloudCtx(ctx context.Context, kns *kns.TopologyKubeC
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
-func DeleteKns(ctx context.Context, kns *kns.TopologyKubeCtxNs) error {
+func DeleteKns(ctx context.Context, kns *zeus_req_types.TopologyDeployRequest) error {
+	if kns == nil {
+		return nil
+	}
 	q := getDeleteKnsQuery()
 	log.Debug().Interface("DeleteQuery:", q.LogHeader(Sn))
 	success := false

@@ -7,17 +7,16 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 type TopologyDestroyDeployRequest struct {
-	kns.TopologyKubeCtxNs `json:"topologyKubeCtxNs"`
 }
 
-func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) error {
+func DestroyDeployedTopology(c echo.Context, tar zeus_req_types.TopologyDeployRequest) error {
 	log.Debug().Msg("DestroyDeployedTopology")
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
@@ -26,13 +25,13 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
-	tr.TopologyID = t.TopologyID
+	tr.TopologyID = tar.TopologyID
 	err := tr.SelectTopology(ctx)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DestroyDeployedTopology, SelectTopology error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return zeus.ExecuteDestroyDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload())
+	return zeus.ExecuteDestroyDeployWorkflow(c, ctx, ou, tar, tr.GetTopologyBaseInfraWorkload())
 }
 
 type TopologyUIDestroyDeployRequest struct {
@@ -52,8 +51,8 @@ func (t *TopologyUIDestroyDeployRequest) DestroyNamespaceCluster(c echo.Context)
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
-	knsIn := kns.TopologyKubeCtxNs{
+	tar := zeus_req_types.TopologyDeployRequest{
 		CloudCtxNs: t.CloudCtxNs,
 	}
-	return zeus.ExecuteDestroyNamespaceWorkflow(c, ctx, ou, knsIn, tr.GetTopologyBaseInfraWorkload())
+	return zeus.ExecuteDestroyNamespaceWorkflow(c, ctx, ou, tar, tr.GetTopologyBaseInfraWorkload())
 }

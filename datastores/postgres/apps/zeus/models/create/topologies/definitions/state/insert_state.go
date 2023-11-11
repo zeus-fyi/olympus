@@ -22,6 +22,9 @@ func insertTopologyStatus() sql_query_templates.QueryParams {
 }
 
 func InsertOrUpdateStatus(ctx context.Context, status *topology_deployment_status.DeployStatus) error {
+	if status == nil {
+		return nil
+	}
 	q := insertTopologyStatus()
 	log.Debug().Interface("InsertOrUpdateQuery:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, status.TopologyID, status.TopologyStatus).Scan(&status.DeploymentID, &status.UpdatedAt)

@@ -12,7 +12,7 @@ import (
 )
 
 func (k *K8Util) DeletePod(ctx context.Context, name string, kubeCtxNs zeus_common_types.CloudCtxNs, deletePodOpts *metav1.DeleteOptions) error {
-	log.Ctx(ctx).Debug().Msg("DeletePod")
+	log.Debug().Msg("DeletePod")
 	k.SetContext(kubeCtxNs.Context)
 	opts := metav1.DeleteOptions{}
 	if deletePodOpts == nil {
@@ -26,7 +26,7 @@ func (k *K8Util) DeletePod(ctx context.Context, name string, kubeCtxNs zeus_comm
 }
 
 func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *strings_filter.FilterOpts) error {
-	log.Ctx(ctx).Debug().Msg("DeleteFirstPodLike")
+	log.Debug().Msg("DeleteFirstPodLike")
 	k.SetContext(kubeCtxNs.Context)
 
 	p, err := k.GetFirstPodLike(ctx, kubeCtxNs, podName, filter)
@@ -45,7 +45,7 @@ func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_t
 }
 
 func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *strings_filter.FilterOpts) error {
-	log.Ctx(ctx).Debug().Msg("DeleteAllPodsLike")
+	log.Debug().Msg("DeleteAllPodsLike")
 	k.SetContext(kubeCtxNs.Context)
 	if filter == nil {
 		filter = &strings_filter.FilterOpts{
@@ -57,9 +57,9 @@ func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_ty
 		}
 	}
 	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
-	log.Ctx(ctx).Err(err).Msg("DeleteAllPodsLike")
+	log.Err(err).Msg("DeleteAllPodsLike")
 	if err != nil && errors.IsNotFound(err) {
-		log.Ctx(ctx).Err(err).Msg("DeleteAllPodsLike, Pods Like Not Found")
+		log.Err(err).Msg("DeleteAllPodsLike, Pods Like Not Found")
 		return err
 	}
 	opts := metav1.DeleteOptions{}
@@ -73,7 +73,7 @@ func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_ty
 			p = pod
 			err = k.kc.CoreV1().Pods(kubeCtxNs.Namespace).Delete(ctx, p.GetName(), *deletePodOpts)
 			if err != nil && errors.IsNotFound(err) {
-				log.Ctx(ctx).Err(err).Msg("DeleteAllPodsLike, Pods Like Not Found")
+				log.Err(err).Msg("DeleteAllPodsLike, Pods Like Not Found")
 				return err
 			}
 		}

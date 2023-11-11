@@ -52,6 +52,14 @@ func DestroyNamespaceHandler(c echo.Context) error {
 		log.Err(err).Msg("DestroyNamespaceHandler: Bind error")
 		return err
 	}
+	if request == nil {
+		log.Warn().Msg("DestroyNamespaceHandler: request empty error")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if request.CloudCtxNs.CheckIfEmpty() {
+		log.Warn().Interface("cloudCtxNs", request.CloudCtxNs).Msg("DestroyNamespaceHandler: CloudCtxNs is empty")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
@@ -60,7 +68,7 @@ func DestroyNamespaceHandler(c echo.Context) error {
 	}
 	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
 	if authed != true {
-		log.Warn().Interface("ou", ou).Msg("DestroyNamespaceHandler: IsOrgCloudCtxNsAuthorized error")
+		log.Warn().Interface("ou", ou).Interface("req", request).Msg("DestroyNamespaceHandler: IsOrgCloudCtxNsAuthorized error")
 		return c.JSON(http.StatusForbidden, nil)
 	}
 	if err != nil {

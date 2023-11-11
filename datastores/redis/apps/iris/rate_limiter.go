@@ -27,6 +27,8 @@ const (
 	TwoHundredFiftyMillion = 250_000_000
 	OneBillion             = 1_000_000_000
 	ThreeBillion           = 3_000_000_000
+
+	TenBillion = 10_000_000_000
 )
 
 func GetMonthlyPlanBudgetThroughputZU(planName string) int {
@@ -53,7 +55,7 @@ func GetMonthlyPlanBudgetThroughputZU(planName string) int {
 func GetMonthlyPlanBudgetZU(planName string) int {
 	switch strings.ToLower(planName) {
 	case "enterprise":
-		return ThreeBillion
+		return TenBillion
 	case "performance":
 		return ThreeBillion
 	case "standard":
@@ -74,7 +76,7 @@ func GetMonthlyPlanBudgetZU(planName string) int {
 func GetMonthlyPlanMaxAnvilServerlessSessions(planName string) int {
 	switch strings.ToLower(planName) {
 	case "enterprise":
-		return MaxActiveServerlessSessions * 10
+		return MaxActiveServerlessSessions * 5
 	case "performance":
 		return MaxActiveServerlessSessions
 	case "standard":
@@ -106,7 +108,7 @@ func (m *IrisCache) CheckRateLimitBroadcast(ctx context.Context, orgID int, proc
 		// todo
 		// check 100k ZU/s
 		// check max 3B ZU/month
-		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
+		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, TenBillion)
 	case "performance":
 		// check 100k ZU/s
 		// check max 3B ZU/month
@@ -144,8 +146,8 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGr
 	switch plan {
 	case "enterprise":
 		// check 100k ZU/s
-		// check max 3B ZU/month
-		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, ThreeBillion)
+		// check max 10B ZU/month
+		rateLimited, monthlyLimited = um.IsRateLimited(HundredThousand, TenBillion)
 	case "performance":
 		// check 100k ZU/s
 		// check max 3B ZU/month

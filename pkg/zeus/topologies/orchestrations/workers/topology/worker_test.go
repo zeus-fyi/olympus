@@ -97,7 +97,7 @@ func (s *TopologyWorkerTestSuite) TestExecuteDestroyClusterSetupWorkflowFreeTria
 			AppTaint: true,
 		},
 	}
-	err = Worker.ExecuteDestroyClusterSetupWorkflowFreeTrial(ctx, params)
+	err = Worker.ExecuteDestroyClusterSetupWorkflowFreeTrial(ctx, params.ClusterSetupRequest)
 	s.Require().Nil(err)
 }
 

@@ -189,7 +189,7 @@ func (t *TopologyWorker) ExecuteDestroyNamespace(ctx context.Context, params bas
 	return err
 }
 
-func (t *TopologyWorker) ExecuteDestroyClusterSetupWorkflowFreeTrial(ctx context.Context, params base_deploy_params.DestroyClusterSetupRequest) error {
+func (t *TopologyWorker) ExecuteDestroyClusterSetupWorkflowFreeTrial(ctx context.Context, params base_deploy_params.ClusterSetupRequest, wfParams base_deploy_params.ClusterTopologyWorkflowRequest) error {
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -198,7 +198,7 @@ func (t *TopologyWorker) ExecuteDestroyClusterSetupWorkflowFreeTrial(ctx context
 	}
 	deployWf := deploy_workflow_destroy_setup.NewDeployDestroyClusterSetupWorkflow()
 	wf := deployWf.DestroyClusterSetupWorkflowFreeTrial
-	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, params)
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, params, wfParams)
 	if err != nil {
 		log.Err(err).Interface("params", params).Msg("ExecuteDeployCluster")
 		return err

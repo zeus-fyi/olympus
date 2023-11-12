@@ -150,11 +150,10 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		rpcNew := "http://localhost:8888/node"
 		err = wa.ResetNetwork(context.Background(), rpcNew, 0)
 		if err != nil {
-			log.Err(err).Msg("ProxyRequest: ProcessLockedSessionRoute: wa.ResetNetwork")
+			log.Err(err).Int("orgID", orgID).Str("sessionID", sessionID).Msg("ProxyRequest: ProcessLockedSessionRoute: wa.ResetNetwork")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 	}
-
 	p.Body = GetSanitizedForkPayload(p.Body)
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             routeURL,

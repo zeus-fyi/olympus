@@ -6,7 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
@@ -29,7 +29,12 @@ const (
 	simulateV2AndRevertSwap      = "simulateV2AndRevertSwap"
 )
 
-func GetRawdawgSwapAbiPayload(tradingSwapContractAddr, pairContractAddr string, to *artemis_trading_types.TradeOutcome, isToken0 bool) web3_actions.SendContractTxPayload {
+func GetRawdawgSwapAbiPayload(tradingSwapContractAddr string, to *artemis_trading_types.TradeOutcome) web3_actions.SendContractTxPayload {
+	isToken0 := false
+	pairContractAddr, tkn0, _ := artemis_utils.CreateV2TradingPair(to.AmountInAddr.String(), to.AmountOutAddr.String())
+	if tkn0.String() == to.AmountInAddr.String() {
+		isToken0 = true
+	}
 	params := web3_actions.SendContractTxPayload{
 		SmartContractAddr: tradingSwapContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -40,9 +45,8 @@ func GetRawdawgSwapAbiPayload(tradingSwapContractAddr, pairContractAddr string, 
 	return params
 }
 
-func ExecSmartContractTradingSwap(ctx context.Context, w3c web3_actions.Web3Actions, tradingContractAddr string, pair uniswap_pricing.UniswapV2Pair, to *artemis_trading_types.TradeOutcome) (*types.Transaction, error) {
-	tokenNum := pair.GetTokenNumber(to.AmountInAddr)
-	scInfo := GetRawdawgSwapAbiPayload(tradingContractAddr, pair.PairContractAddr, to, tokenNum == 0)
+func ExecSmartContractTradingSwap(ctx context.Context, w3c web3_actions.Web3Actions, tradingContractAddr string, to *artemis_trading_types.TradeOutcome) (*types.Transaction, error) {
+	scInfo := GetRawdawgSwapAbiPayload(tradingContractAddr, to)
 	// TODO implement better gas estimation
 	scInfo.GasLimit = 3000000
 	signedTx, err := w3c.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)

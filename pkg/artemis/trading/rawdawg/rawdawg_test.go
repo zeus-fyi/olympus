@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -42,6 +43,14 @@ func CreateLocalUser(ctx context.Context, bearer, sessionID string) web3_actions
 		panic(err)
 	}
 	return w3a
+}
+
+// todo find a tax token transfer example
+/*
+	err = w3a.SetERC20BalanceBruteForce(ctx, daiAddr, rawdawgAddr, TenThousandEther)
+	s.Require().Nil(err)
+*/
+func (s *ArtemisTradingContractsTestSuite) setRawDawgWethBalance(w3a web3_actions.Web3Actions, rawDawgAddr common.Address) {
 }
 
 func TestArtemisTradingContractsTestSuite(t *testing.T) {

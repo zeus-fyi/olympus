@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
@@ -12,13 +13,19 @@ import (
 type RawDawgV2SimSwapParams struct {
 	Pair      common.Address `json:"_pair"`
 	TokenIn   common.Address `json:"_token_in"`
+	TokenOut  common.Address `json:"_token_out"`
 	AmountIn  *big.Int       `json:"_amountIn"`
 	AmountOut *big.Int       `json:"_amountOut"`
 	IsToken0  bool           `json:"_isToken0"`
 }
 
-func GetRawdawgV2SimSwapAbiPayload(tradingSwapContractAddr, pairContractAddr string, to *artemis_trading_types.TradeOutcome, isToken0 bool) web3_actions.SendContractTxPayload {
-	params := web3_actions.SendContractTxPayload{
+func GetRawdawgV2SimSwapAbiPayload(tradingSwapContractAddr string, to *artemis_trading_types.TradeOutcome) *web3_actions.SendContractTxPayload {
+	isToken0 := false
+	pairContractAddr, tkn0, _ := artemis_utils.CreateV2TradingPair(to.AmountInAddr.String(), to.AmountOutAddr.String())
+	if tkn0.String() == to.AmountInAddr.String() {
+		isToken0 = true
+	}
+	params := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: tradingSwapContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       RawdawgAbi,

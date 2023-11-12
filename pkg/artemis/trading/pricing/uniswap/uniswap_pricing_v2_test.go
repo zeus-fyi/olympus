@@ -146,9 +146,9 @@ func (s *UniswapPricingTestSuite) TestPricingImpact() {
 
 func (s *UniswapPricingTestSuite) TestUniswapSortTokens() {
 	p := UniswapV2Pair{}
-	err := p.PairForV2(artemis_trading_constants.PepeContractAddr, WETH9ContractAddress)
+	err := p.PairForV2("0x8647Ae4E646cd3CE37FdEB4591b0A7928254bb73", WETH9ContractAddress)
 	s.Require().Nil(err)
-	s.Require().Equal("0xA43fe16908251ee70EF74718545e4FE6C5cCEc9f", p.PairContractAddr)
-	s.Require().Equal(p.Token0.String(), artemis_trading_constants.PepeContractAddr)
+	s.Require().Equal("0xa20d8188e6844e41C7A8d7222D2A38611aa84784", p.PairContractAddr)
+	s.Require().Equal(p.Token0.String(), "0x8647Ae4E646cd3CE37FdEB4591b0A7928254bb73")
 	s.Require().Equal(p.Token1.String(), WETH9ContractAddress)
 }

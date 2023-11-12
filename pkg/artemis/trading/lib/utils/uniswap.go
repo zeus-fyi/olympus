@@ -14,17 +14,17 @@ const (
 	pairAddressSuffix = "96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
 )
 
-func CreateV2TradingPair(tokenA, tokenB string) (string, accounts.Address, accounts.Address) {
-	if tokenA == artemis_trading_constants.ZeroAddress {
-		tokenA = artemis_trading_constants.WETH9ContractAddressAccount.String()
+func CreateV2TradingPair(tokenA, tokenB accounts.Address) (string, accounts.Address, accounts.Address) {
+	if tokenA.Str() == artemis_trading_constants.ZeroAddress {
+		tokenA = artemis_trading_constants.WETH9ContractAddressAccount
 	}
-	if tokenB == artemis_trading_constants.ZeroAddress {
-		tokenB = artemis_trading_constants.WETH9ContractAddressAccount.String()
+	if tokenB.Str() == artemis_trading_constants.ZeroAddress {
+		tokenB = artemis_trading_constants.WETH9ContractAddressAccount
 	}
 	if tokenA == tokenB {
 		panic("tokenA and tokenB cannot be the same")
 	}
-	token0, token1 := SortTokens(accounts.HexToAddress(tokenA), accounts.HexToAddress(tokenB))
+	token0, token1 := SortTokens(tokenA, tokenB)
 	message := []byte{255}
 	message = append(message, common.HexToAddress(artemis_trading_constants.UniswapV2FactoryAddress).Bytes()...)
 	addrSum := token0.Bytes()
@@ -39,7 +39,6 @@ func CreateV2TradingPair(tokenA, tokenB string) (string, accounts.Address, accou
 	addressBytes := big.NewInt(0).SetBytes(hashed)
 	addressBytes = addressBytes.Abs(addressBytes)
 	pairAddr := common.BytesToAddress(addressBytes.Bytes()).String()
-
 	return pairAddr, token0, token1
 }
 

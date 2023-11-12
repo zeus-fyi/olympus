@@ -31,7 +31,7 @@ const (
 
 func GetRawdawgSwapAbiPayload(tradingSwapContractAddr string, to *artemis_trading_types.TradeOutcome) web3_actions.SendContractTxPayload {
 	isToken0 := false
-	pairContractAddr, tkn0, _ := artemis_utils.CreateV2TradingPair(to.AmountInAddr.String(), to.AmountOutAddr.String())
+	pairContractAddr, tkn0, _ := artemis_utils.CreateV2TradingPair(to.AmountInAddr, to.AmountOutAddr)
 	if tkn0.String() == to.AmountInAddr.String() {
 		isToken0 = true
 	}

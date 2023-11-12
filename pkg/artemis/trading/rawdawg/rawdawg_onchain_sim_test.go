@@ -13,12 +13,14 @@ import (
 
 func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 	sessionID := fmt.Sprintf("%s-%s", "forked-mainnet-session", uuid.New().String())
+	fmt.Println(sessionID)
 	w3a := CreateUser(ctx, "mainnet", s.Tc.ProductionLocalTemporalBearerToken, sessionID)
-	defer func(sessionID string) {
-		err := w3a.EndAnvilSession()
-		s.Require().Nil(err)
-	}(sessionID)
-
+	s.T().Cleanup(func() {
+		func(sessionID string) {
+			err := w3a.EndAnvilSession()
+			s.Require().Nil(err)
+		}(sessionID)
+	})
 	rdAddr, abiFile := s.mockConditions(w3a, mockedTrade())
 	s.testRawDawgExecV2SwapSimMainnet(w3a, rdAddr, abiFile, mockedTrade())
 }

@@ -49,15 +49,20 @@ var ts chronos.Chronos
 
 func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error {
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		err := errors.New("unable to get orgUser from echo context")
+		log.Err(err).Msg("CreateTopologyFromUI: CreateTopologyFromUI")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	pcg, err := zeus_templates.GenerateSkeletonBaseChartsPreview(ctx, t.Cluster)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("error generating skeleton base charts")
+		log.Err(err).Msg("error generating skeleton base charts")
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("error creating transaction")
+		log.Err(err).Msg("error creating transaction")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	defer tx.Rollback(ctx)

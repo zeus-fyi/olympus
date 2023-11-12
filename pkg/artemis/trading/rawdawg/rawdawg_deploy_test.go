@@ -13,7 +13,7 @@ import (
 	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
 
-func (s *ArtemisTradingContractsTestSuite) TestDeployRawdawgContract() {
+func (s *ArtemisTradingContractsTestSuite) TestLocalDeployRawdawgContract() {
 	sessionID := fmt.Sprintf("%s-%s", "local-network-session", uuid.New().String())
 	//sessionID = fmt.Sprintf("%s-%s", "local-network-session", "12b5d9ce-29dd-4f95-8e89-fed4aef2193d")
 	w3a := CreateUser(ctx, "anvil", s.Tc.ProductionLocalTemporalBearerToken, sessionID)
@@ -41,7 +41,7 @@ func (s *ArtemisTradingContractsTestSuite) testDeployRawdawgContract(w3a web3_ac
 		rawDawgPayload.GasLimit *= 100
 	}
 	if w3a.Network == "mainnet" {
-		rawDawgPayload.GasFeeCap = artemis_eth_units.MulBigInt(rawDawgPayload.GasFeeCap, big.NewInt(2))
+		rawDawgPayload.GasFeeCap = artemis_eth_units.MulBigInt(rawDawgPayload.GasFeeCap, big.NewInt(3))
 		rawDawgPayload.GasLimit *= 1000
 	}
 	tx, err := w3a.DeployContract(ctx, bc, *rawDawgPayload)

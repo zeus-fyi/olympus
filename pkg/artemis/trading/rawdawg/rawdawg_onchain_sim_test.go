@@ -23,6 +23,16 @@ func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 	s.testRawDawgExecV2SwapSimMainnet(w3a, rdAddr, abiFile, mockedTrade())
 }
 
+/*
+	QuoteExactInputSingleParams({
+	                        tokenIn: tokenIn,
+	                        tokenOut: tokenOut,
+	                        fee: fee,
+	                        amountIn: amountIn,
+	                        sqrtPriceLimitX96: 0
+	                    })
+*/
+
 func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) {
 	scPayload := GetRawDawgV2SimSwapAbiPayload(ctx, rawDawgAddr.Hex(), abiFile, to)
 	s.Assert().NotEmpty(scPayload)
@@ -32,7 +42,6 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 
 	for _, val := range resp {
 		fmt.Println(val)
-
 		bgn, ok := val.(big.Int)
 		if ok {
 			fmt.Println(bgn.String())

@@ -49,6 +49,48 @@ func CreateUser(ctx context.Context, network, bearer, sessionID string) web3_act
 	return w3a
 }
 
+//type QuoteExactInputSingleParams struct {
+//	TokenIn           accounts.Address `abi:"tokenIn"`
+//	TokenOut          accounts.Address `abi:"tokenOut"`
+//	Fee               *big.Int         `abi:"fee"`
+//	AmountIn          *big.Int         `abi:"amountIn"`
+//	SqrtPriceLimitX96 *big.Int         `abi:"sqrtPriceLimitX96"`
+//}
+//type UniswapAmountOutV3 struct {
+//	AmountOut               *big.Int
+//	SqrtPriceX96After       *big.Int
+//	InitializedTicksCrossed uint32
+//	GasEstimate             *big.Int
+//}
+//
+//func (s *ArtemisTradingContractsTestSuite) TestGetPoolV3ExactInputSingleQuoteFromQuoterV2(ctx context.Context, w3a web3_actions.Web3Actions, qp QuoteExactInputSingleParams) (UniswapAmountOutV3, error) {
+//	scInfo := &web3_actions.SendContractTxPayload{
+//		SmartContractAddr: "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+//		SendEtherPayload:  web3_actions.SendEtherPayload{},
+//		ContractABI:       artemis_oly_contract_abis.MustLoadQuoterV2Abi(),
+//		MethodName:        "quoteExactInputSingle",
+//		Params:            []interface{}{qp},
+//	}
+//	qa := UniswapAmountOutV3{}
+//	resp, err := w3a.CallConstantFunction(ctx, scInfo)
+//	if err != nil {
+//		return qa, err
+//	}
+//	for i, val := range resp {
+//		switch i {
+//		case 0:
+//			qa.AmountOut = val.(*big.Int)
+//		case 1:
+//			qa.SqrtPriceX96After = val.(*big.Int)
+//		case 2:
+//			qa.InitializedTicksCrossed = val.(uint32)
+//		case 3:
+//			qa.GasEstimate = val.(*big.Int)
+//		}
+//	}
+//	return qa, nil
+//}
+
 func TestArtemisTradingContractsTestSuite(t *testing.T) {
 	suite.Run(t, new(ArtemisTradingContractsTestSuite))
 }

@@ -22,9 +22,16 @@ func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 	s.testRawDawgSimOutUtil(w3a, rawdawgAddr)
 }
 
+// todo find a tax token transfer example
+/*
+	err = w3a.SetERC20BalanceBruteForce(ctx, daiAddr, rawdawgAddr, TenThousandEther)
+	s.Require().Nil(err)
+*/
+
 func (s *ArtemisTradingContractsTestSuite) testRawDawgSimOutUtil(w3a web3_actions.Web3Actions, rawdawgAddr common.Address) {
 	pairContractAddr := ""
 	to := &artemis_trading_types.TradeOutcome{}
-	tmp := GetRawdawgSwapAbiPayload(rawdawgAddr.String(), pairContractAddr, to, false)
+	// todo get pair contract address & ordering
+	tmp := GetRawdawgV2SimSwapAbiPayload(rawdawgAddr.String(), pairContractAddr, to, false)
 	s.Assert().NotEmpty(tmp)
 }

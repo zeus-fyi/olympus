@@ -23,8 +23,7 @@ func (s *ArtemisTradingContractsTestSuite) TestDeployRawdawgContract() {
 }
 
 func (s *ArtemisTradingContractsTestSuite) testDeployRawdawgContract(w3a web3_actions.Web3Actions) common.Address {
-
-	rawDawgPayload, bc, err := artemis_oly_contract_abis.LoadLocalRawdawgAbiPayload()
+	rawDawgPayload, bc, err := artemis_oly_contract_abis.LoadLocalRawdawgAbiPayloadV2()
 	s.Require().Nil(err)
 	s.Require().NotNil(rawDawgPayload)
 	rawDawgPayload.Params = []interface{}{}

@@ -309,7 +309,7 @@ func MustLoadRawdawgContractDeployPayload() (web3_actions.SendContractTxPayload,
 	return params, RawdawgByteCode
 }
 
-func LoadLocalRawdawgAbiPayload() (*web3_actions_v2.SendContractTxPayload, string, error) {
+func LoadLocalRawdawgAbiPayloadV2() (*web3_actions_v2.SendContractTxPayload, string, error) {
 	apps_hardhat.ForceDirToLocation()
 	fp := filepaths.Path{
 		PackageName: "",
@@ -335,6 +335,38 @@ func LoadLocalRawdawgAbiPayload() (*web3_actions_v2.SendContractTxPayload, strin
 	//RawdawgAbi = abf
 	params := &web3_actions_v2.SendContractTxPayload{
 		SendEtherPayload: web3_actions_v2.SendEtherPayload{},
+		ContractABI:      abf,
+		Params:           []interface{}{},
+	}
+	return params, m["bytecode"].(string), nil
+}
+
+func LoadLocalRawdawgAbiPayload() (*web3_actions.SendContractTxPayload, string, error) {
+	apps_hardhat.ForceDirToLocation()
+	fp := filepaths.Path{
+		PackageName: "",
+		DirIn:       "./artifacts/contracts/RawDawg.sol",
+		FnIn:        "Rawdawg.json",
+	}
+	fi := fp.ReadFileInPath()
+	m := map[string]interface{}{}
+	err := json.Unmarshal(fi, &m)
+	if err != nil {
+		return nil, "", err
+	}
+	abiInput := m["abi"]
+	b, err := json.Marshal(abiInput)
+	if err != nil {
+		return nil, "", err
+	}
+	abf := &abi.ABI{}
+	err = abf.UnmarshalJSON(b)
+	if err != nil {
+		return nil, "", err
+	}
+	//RawdawgAbi = abf
+	params := &web3_actions.SendContractTxPayload{
+		SendEtherPayload: web3_actions.SendEtherPayload{},
 		ContractABI:      abf,
 		Params:           []interface{}{},
 	}

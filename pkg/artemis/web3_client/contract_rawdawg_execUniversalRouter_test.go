@@ -18,7 +18,7 @@ func (s *Web3ClientTestSuite) TestRawdawgExecUniversalRouterWETHSwap() {
 	rawDawgPayload.GasLimit = 2000000
 	rawDawgPayload.Params = []interface{}{}
 
-	tx, err := s.LocalHardhatMainnetUser.DeploySmartContract(ctx, bc, rawDawgPayload)
+	tx, err := s.LocalHardhatMainnetUser.DeploySmartContract(ctx, bc, web3_actions.SendContractTxPayload{})
 	s.Require().Nil(err)
 	s.Assert().NotNil(tx)
 

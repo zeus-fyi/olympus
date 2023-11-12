@@ -26,6 +26,7 @@ type RawDawgSwapParams struct {
 
 const (
 	execSmartContractTradingSwap = "executeSwap"
+	simulateV2AndRevertSwap      = "simulateV2AndRevertSwap"
 )
 
 func GetRawdawgSwapAbiPayload(tradingSwapContractAddr, pairContractAddr string, to *artemis_trading_types.TradeOutcome, isToken0 bool) web3_actions.SendContractTxPayload {

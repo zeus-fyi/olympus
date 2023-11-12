@@ -19,7 +19,7 @@ func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 		s.Require().Nil(err)
 	}(sessionID)
 
-	rdAddr, abiFile := s.mockConditions(w3a)
+	rdAddr, abiFile := s.mockConditions(w3a, mockedTrade())
 	s.testRawDawgExecV2SwapSimMainnet(w3a, rdAddr, abiFile, mockedTrade())
 }
 
@@ -39,3 +39,12 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 		}
 	}
 }
+
+/*
+   // Calculate the gas used
+      gasUsed = gasBefore - gasleft();
+
+      // Calculate the simulated final balances
+      balanceTokenInAfter = IERC20(_token_in).balanceOf(address(this));
+      balanceTokenOutAfter = IERC20(_token_out).balanceOf(address(this));
+*/

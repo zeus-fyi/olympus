@@ -2,11 +2,13 @@ package artemis_rawdawg_contract
 
 import (
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	web3_actions "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
@@ -39,6 +41,7 @@ func (s *ArtemisTradingContractsTestSuite) testDeployRawdawgContract(w3a web3_ac
 		rawDawgPayload.GasLimit *= 100
 	}
 	if w3a.Network == "mainnet" {
+		rawDawgPayload.GasFeeCap = artemis_eth_units.MulBigInt(rawDawgPayload.GasFeeCap, big.NewInt(2))
 		rawDawgPayload.GasLimit *= 1000
 	}
 	tx, err := w3a.DeployContract(ctx, bc, *rawDawgPayload)

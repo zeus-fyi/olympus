@@ -76,7 +76,7 @@ func GetMonthlyPlanBudgetZU(planName string) int {
 func GetMonthlyPlanMaxAnvilServerlessSessions(planName string) int {
 	switch strings.ToLower(planName) {
 	case "enterprise":
-		return MaxActiveServerlessSessions * 5
+		return MaxActiveServerlessSessions * 6
 	case "performance":
 		return MaxActiveServerlessSessions
 	case "standard":

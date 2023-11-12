@@ -18,6 +18,7 @@ func (s *Web3ClientTestSuite) TestPricingImpact() {
 		Reserve0: reserve0,
 		Reserve1: reserve1,
 	}
+
 	to, reservesToken0, reservesToken1 := mockPairResp.PriceImpactToken1BuyToken0(big.NewInt(3000))
 	fmt.Println("to.AmountOut", to.AmountOut.String())
 	fmt.Println("reservesToken0", reservesToken0.String())

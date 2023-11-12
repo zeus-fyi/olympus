@@ -8,6 +8,8 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@uniswap/v3-periphery/contracts/interfaces/IQuoterV2.sol';
 import '@uniswap/universal-router/contracts/interfaces/IUniversalRouter.sol';
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Rawdawg is Ownable {
     address public constant universalRouterAddress = 0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B;
@@ -80,83 +82,55 @@ contract Rawdawg is Ownable {
     }
 
     function simulateV2AndRevertSwap(
-        IQuoterV2.QuoteExactInputSingleParams memory params
-    ) public returns (
-        uint256 amountOut,
-        uint160 sqrtPriceX96After,
-        uint32 initializedTicksCrossed,
-        uint256 gasEstimate
-    ) {
-        try
-        IQuoterV2(quoterV2Address).quoteExactInputSingle(params)
-        {} catch (bytes memory reason) {
-            (amountOut, sqrtPriceX96After, initializedTicksCrossed, gasEstimate);
-        }
-    }
+        address _pair,
+        address _token_in,
+        address _token_out,
+        bool _isToken0,
+        uint256 _amountIn,
+        uint256 _amountOut
+    ) external {
+        IUniswapV2Router02 router = IUniswapV2Router02(routerV2Address);
 
+        uint256 buyAmountOut;
+        uint256 buyAmountOutExpected;
+        uint256 buyGas;
 
-    /// @dev Parses a revert reason that should contain the numeric quote
-    function parseRevertReason(bytes memory reason)
-    private
-    pure
-    returns (
-        uint256 amount,
-        uint160 sqrtPriceX96After,
-        int24 tickAfter
-    )
     {
-        if (reason.length != 96) {
-            if (reason.length < 68) revert('Unexpected error');
-            assembly {
-                reason := add(reason, 0x04)
+            uint256 _amountIn = IERC20(_token_in).balanceOf(address(this));
+            require(_amountIn > 0, "Checker: BUY_INPUT_ZERO");
+            address[] memory pathBuy  = new address[](2);
+            pathBuy[0] = _token_in;
+            pathBuy[1] = _token_out;
+            buyAmountOutExpected = router.getAmountsOut(_amountIn, pathBuy)[1];
+            uint256 startBuyGas = gasleft();
+            try router.swapExactTokensForTokensSupportingFeeOnTransferTokens(_amountIn, 0, pathBuy, address(this), block.timestamp+500){
+                buyGas = startBuyGas - gasleft();
+                buyAmountOut = IERC20(_token_out).balanceOf(address(this)); // - tokensBefore;
+                require(buyAmountOut > 0, "Checker: BUY_OUTPUT_ZERO");
             }
-            revert(abi.decode(reason, (string)));
+            catch Error(string memory){
+                revert("Checker: BUY_FAILED");
+            }
         }
-        return abi.decode(reason, (uint256, uint160, int24));
+        /*
+           return [
+               buyAmountOut,
+               buyAmountOutExpected,
+               sellAmountOut,
+               sellAmountOutExpected,
+               buyGas,
+               sellGas
+           ];
+       */
+
+        // returns(uint256[3] memory)
+        assembly{
+            let ret := mload(0x40)
+            mstore(ret,            buyAmountOut)
+            mstore(add(ret, 0x20), buyAmountOutExpected)
+            mstore(add(ret, 0x40), buyGas)
+            return(ret, mul(0x20, 3))
+        }
     }
 }
-
-
-//function handleRevert(
-//        bytes memory reason,
-//        IUniswapV3Pool pool,
-//        uint256 gasEstimate
-//    )
-//        private
-//        view
-//        returns (
-//            uint256 amount,
-//            uint160 sqrtPriceX96After,
-//            uint32 initializedTicksCrossed,
-//            uint256
-//        )
-//    {
-//        int24 tickBefore;
-//        int24 tickAfter;
-//        (, tickBefore, , , , , ) = pool.slot0();
-//        (amount, sqrtPriceX96After, tickAfter) = parseRevertReason(reason);
-//
-//        initializedTicksCrossed = pool.countInitializedTicksCrossed(tickBefore, tickAfter);
-//
-//        return (amount, sqrtPriceX96After, initializedTicksCrossed, gasEstimate);
-//    }
-
-//    function parseRevertReason(bytes memory reason)
-//    private
-//    pure
-//    returns (
-//        uint256 amount,
-//        uint160 sqrtPriceX96After,
-//        int24 tickAfter
-//    )
-//    {
-//        if (reason.length != 96) {
-//            if (reason.length < 68) revert('Unexpected error');
-//            assembly {
-//                reason := add(reason, 0x04)
-//            }
-//            revert(abi.decode(reason, (string)));
-//        }
-//        return abi.decode(reason, (uint256, uint160, int24));
-//    }
 

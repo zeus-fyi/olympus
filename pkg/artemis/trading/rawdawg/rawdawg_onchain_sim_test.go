@@ -23,16 +23,6 @@ func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 	s.testRawDawgExecV2SwapSimMainnet(w3a, rdAddr, abiFile, mockedTrade())
 }
 
-/*
-	QuoteExactInputSingleParams({
-	                        tokenIn: tokenIn,
-	                        tokenOut: tokenOut,
-	                        fee: fee,
-	                        amountIn: amountIn,
-	                        sqrtPriceLimitX96: 0
-	                    })
-*/
-
 func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) {
 	scPayload := GetRawDawgV2SimSwapAbiPayload(ctx, rawDawgAddr.Hex(), abiFile, to)
 	s.Assert().NotEmpty(scPayload)
@@ -48,12 +38,3 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 		}
 	}
 }
-
-/*
-   // Calculate the gas used
-      gasUsed = gasBefore - gasleft();
-
-      // Calculate the simulated final balances
-      balanceTokenInAfter = IERC20(_token_in).balanceOf(address(this));
-      balanceTokenOutAfter = IERC20(_token_out).balanceOf(address(this));
-*/

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
@@ -13,17 +14,17 @@ import (
 func (s *ArtemisTradingContractsTestSuite) TestDeployRawdawgContract() {
 	sessionID := fmt.Sprintf("%s-%s", "local-network-session", uuid.New().String())
 	//sessionID = fmt.Sprintf("%s-%s", "local-network-session", "12b5d9ce-29dd-4f95-8e89-fed4aef2193d")
-	w3a := CreateLocalUser(ctx, s.Tc.ProductionLocalTemporalBearerToken, sessionID)
+	w3a := CreateUser(ctx, "anvil", s.Tc.ProductionLocalTemporalBearerToken, sessionID)
 	defer func(sessionID string) {
 		err := w3a.EndAnvilSession()
 		s.Require().Nil(err)
 	}(sessionID)
 
-	rawdawgAddr := s.testDeployRawdawgContract(w3a)
+	rawdawgAddr, _ := s.testDeployRawdawgContract(w3a)
 	s.Require().NotEmpty(rawdawgAddr)
 }
 
-func (s *ArtemisTradingContractsTestSuite) testDeployRawdawgContract(w3a web3_actions.Web3Actions) common.Address {
+func (s *ArtemisTradingContractsTestSuite) testDeployRawdawgContract(w3a web3_actions.Web3Actions) (common.Address, *abi.ABI) {
 	rawDawgPayload, bc, err := artemis_oly_contract_abis.LoadLocalRawdawgAbiPayloadV2()
 	s.Require().Nil(err)
 	s.Require().NotNil(rawDawgPayload)
@@ -47,8 +48,8 @@ func (s *ArtemisTradingContractsTestSuite) testDeployRawdawgContract(w3a web3_ac
 	time.Sleep(5 * time.Second)
 	rx, err := w3a.GetTxReceipt(ctx, tx.Hash().String())
 	s.Assert().Nil(err)
-	s.Assert().NotNil(rx)
+	s.Require().NotNil(rx)
 
 	s.Require().NotEmpty(rx.ContractAddress)
-	return rx.ContractAddress
+	return rx.ContractAddress, rawDawgPayload.ContractABI
 }

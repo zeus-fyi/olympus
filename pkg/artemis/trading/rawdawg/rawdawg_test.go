@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -27,7 +26,7 @@ func (s *ArtemisTradingContractsTestSuite) SetupTest() {
 
 var LoadBalancerAddress = "https://iris.zeus.fyi/v1/router"
 
-func CreateLocalUser(ctx context.Context, bearer, sessionID string) web3_actions.Web3Actions {
+func CreateUser(ctx context.Context, network, bearer, sessionID string) web3_actions.Web3Actions {
 	acc, err := accounts.CreateAccount()
 	if err != nil {
 		panic(err)
@@ -35,7 +34,10 @@ func CreateLocalUser(ctx context.Context, bearer, sessionID string) web3_actions
 	w3a := web3_actions.NewWeb3ActionsClientWithAccount(LoadBalancerAddress, acc)
 	w3a.AddAnvilSessionLockHeader(sessionID)
 	w3a.AddBearerToken(bearer)
-	w3a.Network = "anvil"
+	if network == "mainnet" {
+		w3a.AddDefaultEthereumMainnetTableHeader()
+	}
+	w3a.Network = network
 	w3a.IsAnvilNode = true
 	nvB := (*hexutil.Big)(smart_contract_library.EtherMultiple(10000))
 	w3a.Dial()
@@ -45,35 +47,6 @@ func CreateLocalUser(ctx context.Context, bearer, sessionID string) web3_actions
 		panic(err)
 	}
 	return w3a
-}
-
-func CreateMainnetForkUser(ctx context.Context, bearer, sessionID string) web3_actions.Web3Actions {
-	acc, err := accounts.CreateAccount()
-	if err != nil {
-		panic(err)
-	}
-	w3a := web3_actions.NewWeb3ActionsClientWithAccount(LoadBalancerAddress, acc)
-	w3a.AddAnvilSessionLockHeader(sessionID)
-	w3a.AddDefaultEthereumMainnetTableHeader()
-	w3a.AddBearerToken(bearer)
-	w3a.Network = "mainnet"
-	w3a.IsAnvilNode = true
-	nvB := (*hexutil.Big)(smart_contract_library.EtherMultiple(10000))
-	w3a.Dial()
-	defer w3a.Close()
-	err = w3a.SetBalance(ctx, w3a.Address().String(), *nvB)
-	if err != nil {
-		panic(err)
-	}
-	return w3a
-}
-
-// todo find a tax token transfer example
-/*
-	err = w3a.SetERC20BalanceBruteForce(ctx, daiAddr, rawdawgAddr, TenThousandEther)
-	s.Require().Nil(err)
-*/
-func (s *ArtemisTradingContractsTestSuite) setRawDawgWethBalance(w3a web3_actions.Web3Actions, rawDawgAddr common.Address) {
 }
 
 func TestArtemisTradingContractsTestSuite(t *testing.T) {

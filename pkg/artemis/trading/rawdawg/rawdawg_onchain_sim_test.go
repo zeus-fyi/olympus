@@ -2,7 +2,9 @@ package artemis_rawdawg_contract
 
 import (
 	"fmt"
+	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
@@ -10,23 +12,30 @@ import (
 )
 
 func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
-	sessionID := fmt.Sprintf("%s-%s", "local-network-session", uuid.New().String())
-	//sessionID = fmt.Sprintf("%s-%s", "local-network-session", "12b5d9ce-29dd-4f95-8e89-fed4aef2193d")
-	w3a := CreateLocalUser(ctx, s.Tc.ProductionLocalTemporalBearerToken, sessionID)
+	sessionID := fmt.Sprintf("%s-%s", "forked-mainnet-session", uuid.New().String())
+	w3a := CreateUser(ctx, "mainnet", s.Tc.ProductionLocalTemporalBearerToken, sessionID)
 	defer func(sessionID string) {
 		err := w3a.EndAnvilSession()
 		s.Require().Nil(err)
 	}(sessionID)
 
-	rawdawgAddr := s.testDeployRawdawgContract(w3a)
-	s.testRawDawgSimOutUtil(w3a, rawdawgAddr, nil)
+	rdAddr, abiFile := s.mockConditions(w3a)
+	s.testRawDawgExecV2SwapSimMainnet(w3a, rdAddr, abiFile, mockedTrade())
 }
 
-func (s *ArtemisTradingContractsTestSuite) testRawDawgSimOutUtil(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, to *artemis_trading_types.TradeOutcome) {
-	scPayload, err := GetRawDawgV2SimSwapAbiPayload(ctx, rawDawgAddr.String(), to)
+func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) {
+	scPayload := GetRawDawgV2SimSwapAbiPayload(ctx, rawDawgAddr.Hex(), abiFile, to)
 	s.Assert().NotEmpty(scPayload)
-
-	tx, err := w3a.CallConstantFunction(ctx, scPayload)
+	resp, err := w3a.CallConstantFunction(ctx, scPayload)
 	s.Assert().Nil(err)
-	s.Assert().NotNil(tx)
+	s.Assert().NotNil(resp)
+
+	for _, val := range resp {
+		fmt.Println(val)
+
+		bgn, ok := val.(big.Int)
+		if ok {
+			fmt.Println(bgn.String())
+		}
+	}
 }

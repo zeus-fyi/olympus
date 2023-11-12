@@ -23,30 +23,29 @@ import (
 
 // only used in tests
 
-func ProcessLockedSessionsHandler(c echo.Context) error {
-	request := new(ProxyRequest)
-	request.Body = echo.Map{}
-	if err := c.Bind(&request.Body); err != nil {
-		log.Err(err).Msg("proxy_anvil.ProcessLockedSessionsHandler: c.Bind")
-		return err
-	}
-	anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
-	ou := org_users.OrgUser{}
-	ouc := c.Get("orgUser")
-	if ouc != nil {
-		ouser, ok := ouc.(org_users.OrgUser)
-		if ok {
-			ou = ouser
-		} else {
-			log.Warn().Interface("ou", ouser).Msg("proxy_anvil.ProcessLockedSessionsHandler: orgUser not found")
-			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
-		}
-	}
-	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, c.Request().Method, "")
-}
+//func ProcessLockedSessionsHandler(c echo.Context) error {
+//	request := new(ProxyRequest)
+//	request.Body = echo.Map{}
+//	if err := c.Bind(&request.Body); err != nil {
+//		log.Err(err).Msg("proxy_anvil.ProcessLockedSessionsHandler: c.Bind")
+//		return err
+//	}
+//	anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
+//	ou := org_users.OrgUser{}
+//	ouc := c.Get("orgUser")
+//	if ouc != nil {
+//		ouser, ok := ouc.(org_users.OrgUser)
+//		if ok {
+//			ou = ouser
+//		} else {
+//			log.Warn().Interface("ou", ouser).Msg("proxy_anvil.ProcessLockedSessionsHandler: orgUser not found")
+//			return c.JSON(http.StatusUnauthorized, Response{Message: "user not found"})
+//		}
+//	}
+//	return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, c.Request().Method, "", "test")
+//}
 
 /*
-TODO: implement this in redis
 
 func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string) (string, error) {
 	if sessionID == "Zeus-Test" {
@@ -73,11 +72,11 @@ var cctx = zeus_common_types.CloudCtxNs{
 	Namespace:     "anvil-serverless-4d383226",
 }
 
-func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, serverlessTableName string) (string, bool, error) {
+func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, serverlessTableName, plan string) (string, bool, error) {
 	if sessionID == "Zeus-Test" {
 		return "http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545", false, nil
 	}
-	route, isNewSession, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, serverlessTableName)
+	route, isNewSession, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, serverlessTableName, plan)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetNextServerlessRoute")
 		return route, isNewSession, err
@@ -116,13 +115,13 @@ func extractPodName(s string) (string, error) {
 
 var Env = "production"
 
-func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method, tempToken string) error {
+func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sessionID, method, tempToken, plan string) error {
 	endLockedSessionLease := c.Request().Header.Get(EndSessionLockHeader)
 	if endLockedSessionLease == sessionID {
 		// todo remove hardcoded table name
 		return p.ProcessEndSessionLock(c, orgID, sessionID, anvilServerlessRoutesTableName)
 	}
-	routeURL, isNewSession, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, anvilServerlessRoutesTableName) // TODO remove hardcoded table name
+	routeURL, isNewSession, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, anvilServerlessRoutesTableName, plan) // TODO remove hardcoded table name
 	if len(routeURL) == 0 && strings.Contains(err.Error(), " max active sessions reached") {
 		return c.JSON(http.StatusTooManyRequests, err)
 	}

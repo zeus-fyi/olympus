@@ -11,7 +11,6 @@ import (
 )
 
 func mockedTrade() *artemis_trading_types.TradeOutcome {
-	// TODO, mock some bs trade outcome
 	to := &artemis_trading_types.TradeOutcome{
 		AmountIn:      artemis_eth_units.Ether,
 		AmountInAddr:  artemis_trading_constants.WETH9ContractAddressAccount,

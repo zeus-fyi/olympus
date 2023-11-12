@@ -112,7 +112,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 					log.Err(err).Interface("orgID", orgID).Interface("usage", usage).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
 				}
 			}(ou.OrgID, payloadSizingMeter)
-			return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, method, tempToken)
+			return request.ProcessLockedSessionRoute(c, ou.OrgID, anvilHeader, method, tempToken, plan)
 		}
 
 		if payloadSizingMeter.N() <= 0 {

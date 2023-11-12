@@ -131,7 +131,7 @@ func (m *IrisCache) RefreshServerlessRoutingTable(ctx context.Context, serverles
 	return nil
 }
 
-func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, error) {
+func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID int, sessionID, serverlessRoutesTable, plan string) (string, error) {
 	pipe := m.Reader.TxPipeline()
 
 	var getSessionRoute *redis.StringCmd
@@ -171,7 +171,9 @@ func (m *IrisCache) CheckServerlessSessionRateLimit(ctx context.Context, orgID i
 		log.Err(rerr).Msg("CheckServerlessSessionRateLimit: error getting active session count")
 		return "", rerr
 	}
-	if activeCountResult >= MaxActiveServerlessSessions {
+
+	// plan
+	if int(activeCountResult) >= GetMonthlyPlanMaxAnvilServerlessSessions(plan) {
 		err = fmt.Errorf("%d serverless %s sessions in use. max active sessions reached", activeCountResult, serverlessRoutesTable)
 		log.Err(err).Msgf("GetNextServerlessRoute orgID: %d", orgID)
 		return "", err
@@ -205,8 +207,8 @@ GetNextServerlessRoute returns the next available route from the serverless rout
  2. Checks if the session is rate limited
  3. Checks if there are any available routes
 */
-func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable string) (string, bool, error) {
-	path, err := m.CheckServerlessSessionRateLimit(ctx, orgID, sessionID, serverlessRoutesTable)
+func (m *IrisCache) GetNextServerlessRoute(ctx context.Context, orgID int, sessionID, serverlessRoutesTable, plan string) (string, bool, error) {
+	path, err := m.CheckServerlessSessionRateLimit(ctx, orgID, sessionID, serverlessRoutesTable, plan)
 	if err != nil {
 		log.Err(err).Msg("GetNextServerlessRoute: CheckServerlessSessionRateLimit failed to check rate limit")
 		return "", false, err

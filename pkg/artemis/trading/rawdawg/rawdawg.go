@@ -29,7 +29,7 @@ const (
 	simulateV2AndRevertSwap      = "simulateV2AndRevertSwap"
 )
 
-func GetRawdawgSwapAbiPayload(tradingSwapContractAddr string, to *artemis_trading_types.TradeOutcome) web3_actions.SendContractTxPayload {
+func GetRawDawgSwapAbiPayload(tradingSwapContractAddr string, to *artemis_trading_types.TradeOutcome) web3_actions.SendContractTxPayload {
 	isToken0 := false
 	pairContractAddr, tkn0, _ := artemis_utils.CreateV2TradingPair(to.AmountInAddr, to.AmountOutAddr)
 	if tkn0.String() == to.AmountInAddr.String() {
@@ -46,7 +46,7 @@ func GetRawdawgSwapAbiPayload(tradingSwapContractAddr string, to *artemis_tradin
 }
 
 func ExecSmartContractTradingSwap(ctx context.Context, w3c web3_actions.Web3Actions, tradingContractAddr string, to *artemis_trading_types.TradeOutcome) (*types.Transaction, error) {
-	scInfo := GetRawdawgSwapAbiPayload(tradingContractAddr, to)
+	scInfo := GetRawDawgSwapAbiPayload(tradingContractAddr, to)
 	// TODO implement better gas estimation
 	scInfo.GasLimit = 3000000
 	signedTx, err := w3c.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)

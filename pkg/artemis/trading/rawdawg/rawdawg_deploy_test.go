@@ -2,6 +2,7 @@ package artemis_rawdawg_contract
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
@@ -33,13 +34,18 @@ func (s *ArtemisTradingContractsTestSuite) testDeployRawdawgContract(w3a web3_ac
 	s.Require().NotZero(rawDawgPayload.GasLimit)
 	s.Require().NotEmpty(rawDawgPayload.GasFeeCap)
 	s.Require().NotEmpty(rawDawgPayload.GasTipCap)
-	rawDawgPayload.GasLimit *= 100
-
+	if w3a.Network == "anvil" {
+		rawDawgPayload.GasLimit *= 100
+	}
+	if w3a.Network == "mainnet" {
+		rawDawgPayload.GasLimit *= 1000
+	}
 	tx, err := w3a.DeployContract(ctx, bc, *rawDawgPayload)
 	s.Require().Nil(err)
 	s.Assert().NotNil(tx)
 
-	rx, err := w3a.WaitForReceipt(ctx, tx.Hash())
+	time.Sleep(5 * time.Second)
+	rx, err := w3a.GetTxReceipt(ctx, tx.Hash().String())
 	s.Assert().Nil(err)
 	s.Assert().NotNil(rx)
 

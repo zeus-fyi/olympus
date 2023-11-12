@@ -35,6 +35,29 @@ func CreateLocalUser(ctx context.Context, bearer, sessionID string) web3_actions
 	w3a := web3_actions.NewWeb3ActionsClientWithAccount(LoadBalancerAddress, acc)
 	w3a.AddAnvilSessionLockHeader(sessionID)
 	w3a.AddBearerToken(bearer)
+	w3a.Network = "anvil"
+	w3a.IsAnvilNode = true
+	nvB := (*hexutil.Big)(smart_contract_library.EtherMultiple(10000))
+	w3a.Dial()
+	defer w3a.Close()
+	err = w3a.SetBalance(ctx, w3a.Address().String(), *nvB)
+	if err != nil {
+		panic(err)
+	}
+	return w3a
+}
+
+func CreateMainnetForkUser(ctx context.Context, bearer, sessionID string) web3_actions.Web3Actions {
+	acc, err := accounts.CreateAccount()
+	if err != nil {
+		panic(err)
+	}
+	w3a := web3_actions.NewWeb3ActionsClientWithAccount(LoadBalancerAddress, acc)
+	w3a.AddAnvilSessionLockHeader(sessionID)
+	w3a.AddDefaultEthereumMainnetTableHeader()
+	w3a.AddBearerToken(bearer)
+	w3a.Network = "mainnet"
+	w3a.IsAnvilNode = true
 	nvB := (*hexutil.Big)(smart_contract_library.EtherMultiple(10000))
 	w3a.Dial()
 	defer w3a.Close()

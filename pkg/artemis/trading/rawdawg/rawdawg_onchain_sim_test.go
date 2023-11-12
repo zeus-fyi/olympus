@@ -23,7 +23,7 @@ func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 }
 
 func (s *ArtemisTradingContractsTestSuite) testRawDawgSimOutUtil(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, to *artemis_trading_types.TradeOutcome) {
-	scPayload := GetRawdawgV2SimSwapAbiPayload(rawDawgAddr.String(), to)
+	scPayload, err := GetRawDawgV2SimSwapAbiPayload(ctx, rawDawgAddr.String(), to)
 	s.Assert().NotEmpty(scPayload)
 
 	tx, err := w3a.CallConstantFunction(ctx, scPayload)

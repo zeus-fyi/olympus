@@ -34,6 +34,8 @@ func UIRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	// matrix
 	e.GET("/infra/ui/matrix/public/apps/:name", read_infra.PublicAppsMatrixRequestHandler)
 
+	e.POST("/infra/cluster/create", create_infra.CreateTopologyInfraActionFromUIRequestHandler)
+
 	e.GET("/infra/ui/apps/microservice", read_infra.MicroserviceAppsHandler)
 	e.GET("/infra/ui/apps/avax", read_infra.AvaxAppsHandler)
 	e.GET("/infra/ui/apps/sui", read_infra.SuiAppsHandler)

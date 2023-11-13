@@ -53,7 +53,6 @@ func (d *DeploymentsTestSuite) TestRolloutRestartDeploymentHestia() {
 	kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "hestia"}
 	dep, err = d.K.RolloutRestartDeployment(ctx, kns, "hestia", nil)
 	d.Require().Nil(err)
-
 }
 
 func TestDeploymentsTestSuite(t *testing.T) {

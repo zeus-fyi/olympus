@@ -62,15 +62,6 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 		}
 	}
 
-	/*
-		255866077281820760280
-		128131335018675421342
-	*/
-	// 127511844451648205958
-	//tx, err := ExecSmartContractTradingSwap(ctx, w3a, rawDawgAddr.Hex(), abiFile, to)
-	//s.Require().Nil(err)
-	//s.Assert().NotNil(tx)
-	//
 	rawDawgTokenBal, err = w3a.ReadERC20TokenBalance(ctx, to.AmountOutAddr.Hex(), rawDawgAddr.Hex())
 	s.Require().Nil(err)
 	fmt.Println(rawDawgTokenBal.String())

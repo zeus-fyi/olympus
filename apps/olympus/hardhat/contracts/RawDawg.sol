@@ -77,7 +77,6 @@ contract Rawdawg is Ownable {
         } else {
             IUniswapV2Pair(_pair).swap(_amountOut, 0, address(this), new bytes(0));
         }
-
     }
 
     function _simulateV2AndRevertSwap(

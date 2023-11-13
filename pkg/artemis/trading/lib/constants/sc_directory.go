@@ -45,6 +45,7 @@ var (
 	WETH9ContractAddressAccount        = accounts.HexToAddress(WETH9ContractAddress)
 	DaiContractAddressAccount          = accounts.HexToAddress(DaiContractAddress)
 	Multicall3AddressAccount           = accounts.HexToAddress(Multicall3Address)
+	LinkTokenAddressAccount            = accounts.HexToAddress(LinkTokenAddr)
 )
 
 const (

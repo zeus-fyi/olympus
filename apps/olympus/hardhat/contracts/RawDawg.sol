@@ -15,8 +15,6 @@ contract Rawdawg is Ownable {
     address public constant universalRouterAddress = 0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B;
     address public constant routerV2Address = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address public constant quoterV2Address = 0x61fFE014bA17989E743c5F6cB21bF9697530B21e;
-    uint160 internal constant MIN_SQRT_RATIO = 4295128739;
-    uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
     receive() external payable {}
     fallback() external payable {}
@@ -82,6 +80,7 @@ contract Rawdawg is Ownable {
     }
 
     function _simulateV2AndRevertSwap(
+        address _pair,
         address _token_in,
         address _token_out,
         uint256 _amountIn
@@ -90,7 +89,8 @@ contract Rawdawg is Ownable {
         uint256 buyAmountOutExpected;
         {
             IUniswapV2Router02 router = IUniswapV2Router02(routerV2Address);
-
+            TransferHelper.safeTransfer(_token_in, _pair, _amountIn);
+            TransferHelper.safeApprove(_token_in, routerV2Address, _amountIn);
             require(_amountIn > 0, "Checker: BUY_INPUT_ZERO");
             address[] memory pathBuy  = new address[](2);
             pathBuy[0] = _token_in;
@@ -132,9 +132,7 @@ contract Rawdawg is Ownable {
         uint256 buyAmountOutExpected
     )
     {
-        TransferHelper.safeTransfer(_token_in, _pair, _amountIn);
-        TransferHelper.safeApprove(_token_in, routerV2Address, _amountIn);
-        try this._simulateV2AndRevertSwap(_token_in, _token_out, _amountIn)
+        try this._simulateV2AndRevertSwap(_pair, _token_in, _token_out, _amountIn)
         {} catch (bytes memory reason){
            (buyAmountOut,buyAmountOutExpected) = abi.decode(reason, (uint256, uint256));
         }

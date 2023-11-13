@@ -27,7 +27,7 @@ func (w *Web3Client) GetOwner(ctx context.Context, abiFile *abi.ABI, contractAdd
 	payload.Params = []interface{}{}
 	owner, err := w.GetContractConst(ctx, &payload)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("GetOwner")
+		log.Err(err).Msg("GetOwner")
 		return common.Address{}, err
 	}
 	return owner[0].(common.Address), err
@@ -40,7 +40,7 @@ func (w *Web3Client) EthCall(ctx context.Context, from common.Address, payload *
 		payload.Data = []byte{}
 		err := payload.GenerateBinDataFromParamsAbi(ctx)
 		if err != nil {
-			log.Ctx(ctx).Err(err).Msg("EthCall: GenerateBinDataFromParamsAbi")
+			log.Err(err).Msg("EthCall: GenerateBinDataFromParamsAbi")
 			return nil, err
 		}
 	}

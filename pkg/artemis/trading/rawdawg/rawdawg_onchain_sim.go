@@ -24,16 +24,6 @@ func GetRawDawgV2SimSwapAbiPayload(ctx context.Context, tradingSwapContractAddr 
 	if tkn0.Hex() == to.AmountInAddr.Hex() {
 		isToken0 = true
 	}
-	//
-	//tfp := artemis_trading_types.TokenFeePath{
-	//	TokenIn: to.AmountInAddr,
-	//	Path: []artemis_trading_types.TokenFee{
-	//		{
-	//			Token: to.AmountOutAddr,
-	//			Fee:   artemis_eth_units.NewBigInt(int(constants.FeeMedium)),
-	//		},
-	//	},
-	//}
 
 	params := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: tradingSwapContractAddr,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
@@ -29,7 +30,7 @@ const (
 	simulateV2AndRevertSwap      = "simulateV2AndRevertSwap"
 )
 
-func GetRawDawgSwapAbiPayload(tradingSwapContractAddr string, to *artemis_trading_types.TradeOutcome) web3_actions.SendContractTxPayload {
+func GetRawDawgSwapAbiPayload(tradingSwapContractAddr string, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) web3_actions.SendContractTxPayload {
 	isToken0 := false
 	pairContractAddr, tkn0, _ := artemis_utils.CreateV2TradingPair(to.AmountInAddr, to.AmountOutAddr)
 	if tkn0.String() == to.AmountInAddr.String() {
@@ -38,17 +39,15 @@ func GetRawDawgSwapAbiPayload(tradingSwapContractAddr string, to *artemis_tradin
 	params := web3_actions.SendContractTxPayload{
 		SmartContractAddr: tradingSwapContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       RawdawgAbi,
+		ContractABI:       abiFile,
 		MethodName:        execSmartContractTradingSwap,
 		Params:            []interface{}{pairContractAddr, to.AmountInAddr.String(), isToken0, to.AmountIn.String(), to.AmountOut.String()},
 	}
 	return params
 }
 
-func ExecSmartContractTradingSwap(ctx context.Context, w3c web3_actions.Web3Actions, tradingContractAddr string, to *artemis_trading_types.TradeOutcome) (*types.Transaction, error) {
-	scInfo := GetRawDawgSwapAbiPayload(tradingContractAddr, to)
-	// TODO implement better gas estimation
-	scInfo.GasLimit = 3000000
+func ExecSmartContractTradingSwap(ctx context.Context, w3c web3_actions.Web3Actions, tradingContractAddr string, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) (*types.Transaction, error) {
+	scInfo := GetRawDawgSwapAbiPayload(tradingContractAddr, abiFile, to)
 	signedTx, err := w3c.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
 	if err != nil {
 		return nil, err

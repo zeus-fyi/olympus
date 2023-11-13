@@ -14,6 +14,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	web3_actionsv2 "github.com/zeus-fyi/zeus/pkg/artemis/web3/client"
 )
 
 var redisCache = PricingCache{nil}
@@ -24,6 +25,23 @@ type UniswapPricingData struct {
 }
 
 func V2PairToPrices(ctx context.Context, bn uint64, wc web3_actions.Web3Actions, pairAddr []accounts.Address) (*UniswapV2Pair, error) {
+	p := &UniswapV2Pair{}
+	if len(pairAddr) == 2 {
+		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
+		if err != nil {
+			log.Err(err).Msg("V2PairToPrices: PairForV2")
+			return nil, err
+		}
+		err = GetPairContractPrices(ctx, bn, wc, p)
+		if err != nil {
+			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
+			return nil, err
+		}
+		return p, err
+	}
+	return nil, errors.New("pair address length is not 2, multi-hops not implemented yet")
+}
+func V2PairToPricesV2(ctx context.Context, bn uint64, wc web3_actionsv2.Web3Actions, pairAddr []accounts.Address) (*UniswapV2Pair, error) {
 	p := &UniswapV2Pair{}
 	if len(pairAddr) == 2 {
 		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())

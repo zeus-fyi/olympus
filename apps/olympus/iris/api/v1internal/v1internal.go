@@ -107,7 +107,7 @@ func InitV2InternalRoutes1(e *echo.Echo) {
 				plan = val
 			} else {
 				log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("InitV1Routes: marketplace not found")
-				return false, errors.New("marketplace plan not found")
+				plan = "free"
 			}
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("lbDefault", v1_iris.GetDefaultLB(plan))

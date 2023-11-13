@@ -168,21 +168,21 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 		log.Error("Failed to get child workflow execution", "Error", err)
 		return err
 	}
-	childWorkflowOptions = workflow.ChildWorkflowOptions{
-		TaskQueue:         EthereumMainnetMevHistoricalTxTaskQueue,
-		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-	}
-	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-	histTxTrades := HistoricalTxAnalysis{
-		StartTimeDelay: 12 * time.Second,
-		Trades:         mempoolTxs,
-	}
-	childWorkflowFutureHistoricalSimTx := workflow.ExecuteChildWorkflow(ctx, "ArtemisHistoricalSimTxWorkflow", histTxTrades)
-	var childWEHistoricalSimTx workflow.Execution
-	if err = childWorkflowFutureHistoricalSimTx.GetChildWorkflowExecution().Get(ctx, &childWEHistoricalSimTx); err != nil {
-		log.Error("Failed to get sim historical tx workflow execution", "Error", err)
-		return err
-	}
+	//childWorkflowOptions = workflow.ChildWorkflowOptions{
+	//	TaskQueue:         EthereumMainnetMevHistoricalTxTaskQueue,
+	//	ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+	//}
+	//ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	//histTxTrades := HistoricalTxAnalysis{
+	//	StartTimeDelay: 12 * time.Second,
+	//	Trades:         mempoolTxs,
+	//}
+	//childWorkflowFutureHistoricalSimTx := workflow.ExecuteChildWorkflow(ctx, "ArtemisHistoricalSimTxWorkflow", histTxTrades)
+	//var childWEHistoricalSimTx workflow.Execution
+	//if err = childWorkflowFutureHistoricalSimTx.GetChildWorkflowExecution().Get(ctx, &childWEHistoricalSimTx); err != nil {
+	//	log.Error("Failed to get sim historical tx workflow execution", "Error", err)
+	//	return err
+	//}
 
 	// Validate txs to bundle
 

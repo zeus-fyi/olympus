@@ -58,7 +58,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 
 		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
 			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
-			return err
+			return c.JSON(http.StatusBadRequest, nil)
 		}
 		reqHeaders := http.Header{}
 
@@ -80,8 +80,8 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		}
 		resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 		if err != nil {
-			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")
-			return err
+			log.Err(err).Interface("body", request.Body).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")
+			return c.JSON(resp.StatusCode, resp.Response)
 		}
 		return c.JSON(resp.StatusCode, resp.Response)
 	}
@@ -123,8 +123,8 @@ func RpcLoadBalancerRequestHandlerNode(method string) func(c echo.Context) error
 		log.Info().Msgf("Hypnos: RpcLoadBalancerRequestHandler: req: %+v", sessionID)
 		resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 		if err != nil {
-			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")
-			return err
+			log.Err(err).Interface("body", resp.Response).Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest")
+			return c.JSON(resp.StatusCode, resp.Response)
 		}
 		log.Info().Msgf("Hypnos: RpcLoadBalancerRequestHandler: rw.ExtLoadBalancerRequest: resp: %+v", resp)
 		return c.JSON(resp.StatusCode, resp.Response)

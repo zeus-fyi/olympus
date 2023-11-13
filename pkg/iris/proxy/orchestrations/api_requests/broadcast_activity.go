@@ -134,7 +134,7 @@ func (i *IrisApiRequestsActivities) BroadcastETLRequest(ctx context.Context, pr 
 				mutex.Lock()
 				pr.PayloadSizeMeter.Add(resp.PayloadSizeMeter.Size)
 				mutex.Unlock()
-				log.Err(err).Msg("Failed to broadcast request")
+				log.Err(err).Interface("path", r).Msg("Failed to broadcast request")
 			}
 		}(timeoutCtx, route.RoutePath, cancel)
 	}

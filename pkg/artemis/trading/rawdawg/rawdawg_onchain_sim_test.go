@@ -74,7 +74,7 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 
 	fmt.Println("AmountIn", to.AmountIn.String())
 	for i, val := range resp {
-		if i > 0 {
+		if i > 1 {
 			fmt.Println("Buy Amount", val)
 		} else {
 			fmt.Println("Sell Amount", val)

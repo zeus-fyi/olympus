@@ -91,7 +91,7 @@ func GetMonthlyPlanMaxAnvilServerlessSessions(planName string) int {
 	case "test":
 		return MaxActiveServerlessSessions
 	default:
-		return 0
+		return MaxActiveServerlessSessions
 	}
 }
 

@@ -77,27 +77,20 @@ contract Rawdawg is Ownable {
         } else {
             IUniswapV2Pair(_pair).swap(_amountOut, 0, address(this), new bytes(0));
         }
+
     }
 
     function _simulateV2AndRevertSwap(
         address _pair,
         address _token_in,
         address _token_out,
+        bool _isToken0,
         uint256 _amountIn,
         uint256 _amountOut
     ) external
         {
-            TransferHelper.safeTransfer(_token_in, _pair, _amountIn);
-            TransferHelper.safeApprove(_token_in, routerV2Address, _amountIn);
-            require(_amountIn > 0, "Checker: BUY_INPUT_ZERO");
-            address[] memory pathBuy  = new address[](2);
-            pathBuy[0] = _token_in;
-            pathBuy[1] = _token_out;
-            IUniswapV2Router02 router = IUniswapV2Router02(routerV2Address);
-            //uint256 startBuyGas = gasleft();
             uint256 buyAmountOut = 0;
-            try router.swapExactTokensForTokensSupportingFeeOnTransferTokens(_amountIn, _amountOut, pathBuy, address(this), block.timestamp){
-                //buyGas = startBuyGas - gasleft();
+            try this.executeSwap(_pair, _token_in, _isToken0, _amountIn, _amountOut) {
                 buyAmountOut = IERC20(_token_out).balanceOf(address(this)); // - tokensBefore;
             }
             catch (bytes memory reason){
@@ -134,10 +127,12 @@ contract Rawdawg is Ownable {
 
         uint256 buyAmountOutExpected = router.getAmountsOut(_amountIn, pathBuy)[1];
         uint256 buyAmountOut = 0;
-        try this._simulateV2AndRevertSwap(_pair, _token_in, _token_out, _amountIn, _amountOut)
-        {} catch (bytes memory reason){
-           (buyAmountOut) = abi.decode(reason, (uint256));
+        try this._simulateV2AndRevertSwap(_pair, _token_in, _token_out, _isToken0, _amountIn, _amountOut) {
+            buyAmountOut = IERC20(_token_out).balanceOf(address(this));
+        } catch (bytes memory reason){
+            (buyAmountOut) = abi.decode(reason, (uint256));
         }
+
         return (buyAmountOut, buyAmountOutExpected);
     }
 }

@@ -24,17 +24,19 @@ func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 		}(sessionID)
 	})
 	rdAddr, abiFile := s.mockConditions(w3a, mockedTrade())
-	//s.testRawDawgExecV2SwapMainnet(w3a, rdAddr, abiFile, mockedTrade())
 	s.testRawDawgExecV2SwapSimMainnet(w3a, rdAddr, abiFile, mockedTrade())
+	s.testRawDawgExecV2SwapMainnet(w3a, rdAddr, abiFile, mockedTrade())
+
 }
 
 func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) {
 	fmt.Println("SIM")
+	ao := artemis_eth_units.NewBigIntFromStr("55925319574428105816755167200")
 
 	to = &artemis_trading_types.TradeOutcome{
 		AmountIn:      artemis_eth_units.EtherMultiple(1),
 		AmountInAddr:  artemis_trading_constants.WETH9ContractAddressAccount,
-		AmountOut:     artemis_eth_units.EtherMultiple(65_702_843_238),
+		AmountOut:     ao,
 		AmountOutAddr: artemis_trading_constants.BoboTokenAddressAccount,
 	}
 
@@ -90,13 +92,14 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapMainnet(w3a web3
 		AmountIn:      artemis_eth_units.EtherMultiple(1),
 		AmountInAddr:  artemis_trading_constants.WETH9ContractAddressAccount,
 		AmountOut:     ao,
-		AmountOutAddr: artemis_trading_constants.MogTokenAddressAccount,
+		AmountOutAddr: artemis_trading_constants.BoboTokenAddressAccount,
 	}
 	/*
 	   113213872122962575389353695009
 	   56819205366795356299650473948
 	   30702843238000000000000000000
 	*/
+	fmt.Println("SWAP TOKEN OUT BEFORE")
 	rawDawgTokenBal, err = w3a.ReadERC20TokenBalance(ctx, to.AmountOutAddr.Hex(), rawDawgAddr.Hex())
 	s.Require().Nil(err)
 	fmt.Println(rawDawgTokenBal.String())
@@ -104,8 +107,27 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapMainnet(w3a web3
 	tx, err := ExecSmartContractTradingSwap(ctx, w3a, rawDawgAddr.Hex(), abiFile, to)
 	s.Require().Nil(err)
 	s.Assert().NotNil(tx)
+	fmt.Println("SWAP TOKEN OUT AFTER")
 
 	rawDawgTokenBal, err = w3a.ReadERC20TokenBalance(ctx, to.AmountOutAddr.Hex(), rawDawgAddr.Hex())
 	s.Require().Nil(err)
 	fmt.Println(rawDawgTokenBal.String())
 }
+
+/*
+SWAP
+100000000000000000000
+10000000000000000000000000
+0
+55925319574428105816755167200
+SIM
+99000000000000000000
+10000000000000000000000000
+167237629011979372435346874319
+56365952548769869184628169138
+55925319574428105816755167200
+
+114162747207475440069759043250
+55925319574428105816755167200
+57818780273898964994726729840
+*/

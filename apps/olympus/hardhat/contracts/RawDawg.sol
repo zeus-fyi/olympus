@@ -134,5 +134,42 @@ contract Rawdawg is Ownable {
 
         return (buyAmountOut, buyAmountOutExpected);
     }
+
+    function simulateV2BuySellAndRevertSwap(
+        address _pair,
+        address _token_in,
+        address _token_out,
+        bool _isToken0,
+        uint256 _amountIn,
+        uint256 _amountOut
+    ) external returns (
+        uint256 buyAmountOut,
+        uint256 buyAmountOutExpected,
+        uint256 sellAmountOut,
+        uint256 sellAmountOutExpected
+    )
+    {
+        address[] memory pathBuy  = new address[](2);
+        pathBuy[0] = _token_in;
+        pathBuy[1] = _token_out;
+
+        uint256 buyAmountOutExpected = IUniswapV2Router02(routerV2Address).getAmountsOut(_amountIn, pathBuy)[1];
+        this.executeSwap(_pair, _token_in, _isToken0, _amountIn, _amountOut);
+        _amountIn = IERC20(_token_out).balanceOf(address(this));
+        (_token_in, _token_out) = (_token_out, _token_in);
+        _isToken0 = !_isToken0;
+
+        pathBuy[0] = _token_in;
+        pathBuy[1] = _token_out;
+
+        uint256 sellAmountOutExpected = IUniswapV2Router02(routerV2Address).getAmountsOut(_amountIn, pathBuy)[1];
+        try this._simulateV2AndRevertSwap(_pair, _token_in, _token_out, _isToken0, _amountIn, sellAmountOutExpected) {
+            sellAmountOut = IERC20(_token_out).balanceOf(address(this));
+        } catch (bytes memory reason){
+            (sellAmountOut) = abi.decode(reason, (uint256));
+        }
+
+        return (_amountIn,buyAmountOutExpected, sellAmountOut, sellAmountOutExpected);
+    }
 }
 

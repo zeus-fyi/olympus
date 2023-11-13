@@ -19,7 +19,8 @@ import (
 //}
 
 const (
-	simulateV2AndRevertSwap = "simulateV2AndRevertSwap"
+	simulateV2AndRevertSwap        = "simulateV2AndRevertSwap"
+	simulateV2BuySellAndRevertSwap = "simulateV2BuySellAndRevertSwap"
 )
 
 func GetRawDawgV2SimSwapAbiPayload(ctx context.Context, tradingSwapContractAddr string, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) *web3_actions.SendContractTxPayload {
@@ -34,6 +35,23 @@ func GetRawDawgV2SimSwapAbiPayload(ctx context.Context, tradingSwapContractAddr 
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       abiFile,
 		MethodName:        simulateV2AndRevertSwap,
+		Params:            []interface{}{pairContractAddr, to.AmountInAddr, to.AmountOutAddr, isToken0, to.AmountIn, to.AmountOut},
+	}
+	return params
+}
+
+func GetRawDawgV2SimSwapBuySellAbiPayload(ctx context.Context, tradingSwapContractAddr string, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) *web3_actions.SendContractTxPayload {
+	isToken0 := false
+	pairContractAddr, tkn0, _ := artemis_utils.CreateV2TradingPair(to.AmountInAddr, to.AmountOutAddr)
+	if tkn0.Hex() == to.AmountInAddr.Hex() {
+		isToken0 = true
+	}
+
+	params := &web3_actions.SendContractTxPayload{
+		SmartContractAddr: tradingSwapContractAddr,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractABI:       abiFile,
+		MethodName:        simulateV2BuySellAndRevertSwap,
 		Params:            []interface{}{pairContractAddr, to.AmountInAddr, to.AmountOutAddr, isToken0, to.AmountIn, to.AmountOut},
 	}
 	return params

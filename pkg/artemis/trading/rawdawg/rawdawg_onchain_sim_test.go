@@ -14,22 +14,43 @@ import (
 )
 
 func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
-	sessionID := fmt.Sprintf("%s-%s", "forked-mainnet-session", uuid.New().String())
-	fmt.Println(sessionID)
-	w3a := CreateUser(ctx, "mainnet", s.Tc.ProductionLocalTemporalBearerToken, sessionID)
+	sessionOne := fmt.Sprintf("%s-%s", "forked-mainnet-session-1", uuid.New().String())
+	w3a := CreateUser(ctx, "mainnet", s.Tc.ProductionLocalTemporalBearerToken, sessionOne)
 	s.T().Cleanup(func() {
 		func(sessionID string) {
+			fmt.Printf("CLEANUP: ENDING SESSION %s", sessionID)
 			err := w3a.EndAnvilSession()
 			s.Require().Nil(err)
-		}(sessionID)
+		}(sessionOne)
 	})
 	rdAddr, abiFile := s.mockConditions(w3a, mockedTrade())
-	s.testRawDawgExecV2SwapSimMainnet(w3a, rdAddr, abiFile, mockedTrade())
-	s.testRawDawgExecV2SwapMainnet(w3a, rdAddr, abiFile, mockedTrade())
+	s.testRawDawgExecV2SwapSimMainnet(w3a, rdAddr, abiFile, mockedTrade(), true)
 
+	/*
+		99957705576280962606
+		957705576280962606
+	*/
+
+	/*
+		55925319574428105816755167200
+		58049694401678927436191764679
+	*/
+	sessionTwo := fmt.Sprintf("%s-%s", "forked-mainnet-session-2", uuid.New().String())
+	w3a2 := CreateUser(ctx, "mainnet", s.Tc.ProductionLocalTemporalBearerToken, sessionTwo)
+	s.T().Cleanup(func() {
+		func(sessionID string) {
+			fmt.Printf("CLEANUP: ENDING SESSION %s", sessionID)
+			err := w3a.EndAnvilSession()
+			s.Require().Nil(err)
+		}(sessionTwo)
+	})
+
+	//s.testRawDawgExecV2SwapSimMainnet(w3a2, rdAddr, abiFile, mockedTrade(), true)
+
+	s.testRawDawgExecV2SwapMainnet(w3a2, rdAddr, abiFile, mockedTrade())
 }
 
-func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) {
+func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome, buyAndSell bool) {
 	fmt.Println("SIM")
 	ao := artemis_eth_units.NewBigIntFromStr("55925319574428105816755167200")
 
@@ -39,8 +60,12 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 		AmountOut:     ao,
 		AmountOutAddr: artemis_trading_constants.BoboTokenAddressAccount,
 	}
-
-	scPayload := GetRawDawgV2SimSwapAbiPayload(ctx, rawDawgAddr.Hex(), abiFile, to)
+	var scPayload *web3_actions.SendContractTxPayload
+	if buyAndSell {
+		scPayload = GetRawDawgV2SimSwapBuySellAbiPayload(ctx, rawDawgAddr.Hex(), abiFile, to)
+	} else {
+		scPayload = GetRawDawgV2SimSwapAbiPayload(ctx, rawDawgAddr.Hex(), abiFile, to)
+	}
 	s.Assert().NotEmpty(scPayload)
 	resp, err := w3a.CallConstantFunction(ctx, scPayload)
 	s.Assert().Nil(err)
@@ -48,11 +73,11 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 
 	rawDawgTokenBal, err := w3a.ReadERC20TokenBalance(ctx, to.AmountInAddr.Hex(), rawDawgAddr.Hex())
 	s.Require().Nil(err)
-	fmt.Println(rawDawgTokenBal.String())
+	fmt.Println("tokenOut", rawDawgTokenBal.String())
 
 	ethBa, err := w3a.GetBalance(ctx, rawDawgAddr.Hex(), nil)
 	s.Require().Nil(err)
-	fmt.Println(ethBa.String())
+	fmt.Println("ethBal", ethBa.String())
 	//
 	for _, val := range resp {
 		fmt.Println(val)

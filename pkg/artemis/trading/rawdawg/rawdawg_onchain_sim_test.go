@@ -55,7 +55,7 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 	ao := artemis_eth_units.NewBigIntFromStr("55925319574428105816755167200")
 
 	to = &artemis_trading_types.TradeOutcome{
-		AmountIn:      artemis_eth_units.EtherMultiple(2),
+		AmountIn:      artemis_eth_units.EtherMultiple(1),
 		AmountInAddr:  artemis_trading_constants.WETH9ContractAddressAccount,
 		AmountOut:     ao,
 		AmountOutAddr: artemis_trading_constants.BoboTokenAddressAccount,
@@ -66,37 +66,17 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 	} else {
 		scPayload = GetRawDawgV2SimSwapAbiPayload(ctx, rawDawgAddr.Hex(), abiFile, to)
 	}
-	wethStart, err := w3a.ReadERC20TokenBalance(ctx, to.AmountInAddr.Hex(), rawDawgAddr.Hex())
-	s.Require().Nil(err)
-	fmt.Println("wethStart", wethStart.String())
 	s.Assert().NotEmpty(scPayload)
 	resp, err := w3a.CallConstantFunction(ctx, scPayload)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(resp)
 
-	rawDawgTokenBal, err := w3a.ReadERC20TokenBalance(ctx, to.AmountInAddr.Hex(), rawDawgAddr.Hex())
-	s.Require().Nil(err)
-	fmt.Println("tokenOut", rawDawgTokenBal.String())
-
-	ethBa, err := w3a.GetBalance(ctx, rawDawgAddr.Hex(), nil)
-	s.Require().Nil(err)
-	fmt.Println("ethBal", ethBa.String())
-	//
 	for _, val := range resp {
-		fmt.Println(val)
 		bgn, ok := val.(big.Int)
 		if ok {
 			fmt.Println(bgn.String())
 		}
 	}
-
-	rawDawgTokenBal, err = w3a.ReadERC20TokenBalance(ctx, to.AmountOutAddr.Hex(), rawDawgAddr.Hex())
-	s.Require().Nil(err)
-	fmt.Println(rawDawgTokenBal.String())
-
-	wethEnd, err := w3a.ReadERC20TokenBalance(ctx, to.AmountInAddr.Hex(), rawDawgAddr.Hex())
-	s.Require().Nil(err)
-	fmt.Println("wethEnd", wethEnd.String())
 }
 
 func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapMainnet(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) {

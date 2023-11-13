@@ -2,6 +2,7 @@ package zeus_core
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -84,6 +85,9 @@ func (k *K8Util) CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx contex
 }
 
 func (k *K8Util) RolloutRestartStatefulSet(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) error {
+	if len(name) <= 0 {
+		return fmt.Errorf("RolloutRestartStatefulSet: workload name is empty")
+	}
 	k.SetContext(kubeCtxNs.Context)
 
 	// Get the StatefulSet

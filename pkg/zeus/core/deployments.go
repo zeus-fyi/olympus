@@ -2,6 +2,7 @@ package zeus_core
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -74,6 +75,9 @@ func (k *K8Util) CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx context
 }
 
 func (k *K8Util) RolloutRestartDeployment(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Deployment, error) {
+	if len(name) <= 0 {
+		return nil, fmt.Errorf("RolloutRestartDeployment: workload name is empty")
+	}
 	k.SetContext(kns.Context)
 	d, err := k.kc.AppsV1().Deployments(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {

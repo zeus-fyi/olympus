@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/client"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
@@ -60,9 +60,8 @@ func (s *PodsTestSuite) TestPodPortForward() {
 }
 
 func (s *PodsTestSuite) TestDeletePods() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral"}
-	filter := string_utils.FilterOpts{
+	filter := strings_filter.FilterOpts{
 		DoesNotStartWithThese: nil,
 		StartsWithThese:       nil,
 		StartsWith:            "",
@@ -74,7 +73,6 @@ func (s *PodsTestSuite) TestDeletePods() {
 }
 
 func (s *PodsTestSuite) TestGetPods() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral"}
 
 	pods, err := s.K.GetPodsUsingCtxNs(ctx, kns, nil, nil)

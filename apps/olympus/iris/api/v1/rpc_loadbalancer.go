@@ -74,7 +74,7 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		request := new(ProxyRequest)
 		request.Body = echo.Map{}
 
-		if request.Body != nil && len(request.Body) > 0 {
+		if len(bodyBytes) > 0 {
 			if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
 				log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
 				return err

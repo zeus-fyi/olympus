@@ -21,7 +21,7 @@ func InitV3InternalRoutes1(e *echo.Echo) {
 			if err == nil && orgU.OrgID > 0 && plan != "" {
 				c.Set("lbDefault", v1_iris.GetDefaultLB(plan))
 				c.Set("servicePlan", plan)
-				c.Set("orgUser", org_users.NewOrgUserWithID(int(orgU.OrgID), orgU.UserID))
+				c.Set("orgUser", org_users.NewOrgUserWithID(orgU.OrgID, orgU.UserID))
 				return true, nil
 			} else {
 				return false, errors.New("internal auth cache not found")

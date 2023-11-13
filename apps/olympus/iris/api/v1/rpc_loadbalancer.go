@@ -26,15 +26,16 @@ const (
 )
 
 const (
-	LoadBalancingStrategy    = "X-Load-Balancing-Strategy"
-	AnvilSessionLockHeader   = "X-Anvil-Session-Lock-ID"
-	EndSessionLockHeader     = "X-End-Session-Lock-ID"
-	Adaptive                 = "Adaptive"
-	RoundRobin               = "RoundRobin"
-	AdaptiveLoadBalancingKey = "X-Adaptive-Metrics-Key"
-	EthereumJsonRPC          = "Ethereum"
-	QuickNodeJsonRPC         = "QuickNode"
-	JsonRpcAdaptiveMetrics   = "JSON-RPC"
+	LoadBalancingStrategy      = "X-Load-Balancing-Strategy"
+	AnvilSessionLockHeader     = "X-Anvil-Session-Lock-ID"
+	AnvilForkBlockNumberHeader = "X-Anvil-Fork-Block-Number"
+	EndSessionLockHeader       = "X-End-Session-Lock-ID"
+	Adaptive                   = "Adaptive"
+	RoundRobin                 = "RoundRobin"
+	AdaptiveLoadBalancingKey   = "X-Adaptive-Metrics-Key"
+	EthereumJsonRPC            = "Ethereum"
+	QuickNodeJsonRPC           = "QuickNode"
+	JsonRpcAdaptiveMetrics     = "JSON-RPC"
 )
 
 type ProxyRequest struct {
@@ -73,9 +74,11 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 		request := new(ProxyRequest)
 		request.Body = echo.Map{}
 
-		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
-			log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
-			return err
+		if request.Body != nil && len(request.Body) > 0 {
+			if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
+				log.Err(err).Msgf("RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
+				return err
+			}
 		}
 		anvilHeader := c.Request().Header.Get(AnvilSessionLockHeader)
 		if anvilHeader != "" {

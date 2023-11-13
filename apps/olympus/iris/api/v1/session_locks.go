@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -148,7 +149,18 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		wa.Dial()
 		defer wa.Close()
 		rpcNew := "http://localhost:8888/node"
-		err = wa.ResetNetwork(context.Background(), rpcNew, 0)
+		forkNumberHeader := c.Request().Header.Get(AnvilForkBlockNumberHeader)
+		bn := 0
+		if forkNumberHeader != "" {
+			bn, err = strconv.Atoi(forkNumberHeader)
+			if err != nil {
+				bn = 0
+				log.Err(err).Msg("ProcessLockedSessionRoute: strconv.Atoi")
+				err = nil
+			}
+		}
+
+		err = wa.ResetNetwork(context.Background(), rpcNew, bn)
 		if err != nil {
 			log.Err(err).Int("orgID", orgID).Str("sessionID", sessionID).Msg("ProxyRequest: ProcessLockedSessionRoute: wa.ResetNetwork")
 			return c.JSON(http.StatusInternalServerError, nil)

@@ -580,12 +580,14 @@ func (t *TableUsageAndUserSettings) CheckPlanLimits(plan string) error {
 		if t.TableCount >= FreeGroupTables {
 			return errors.New("exceeds plan group tables")
 		}
+		return nil
 	case "test":
 	default:
 		t.MonthlyBudgetTableCount = FreeGroupTables
 		if t.TableCount >= FreeGroupTables {
 			return errors.New("exceeds plan group tables")
 		}
+		return nil
 	}
 	return errors.New("plan not found")
 }

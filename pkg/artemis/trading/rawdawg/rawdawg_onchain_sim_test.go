@@ -55,7 +55,7 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 	ao := artemis_eth_units.NewBigIntFromStr("55925319574428105816755167200")
 
 	to = &artemis_trading_types.TradeOutcome{
-		AmountIn:      artemis_eth_units.EtherMultiple(1),
+		AmountIn:      artemis_eth_units.EtherMultiple(2),
 		AmountInAddr:  artemis_trading_constants.WETH9ContractAddressAccount,
 		AmountOut:     ao,
 		AmountOutAddr: artemis_trading_constants.BoboTokenAddressAccount,

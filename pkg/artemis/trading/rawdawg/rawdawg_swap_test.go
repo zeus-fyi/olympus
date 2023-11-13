@@ -23,7 +23,7 @@ func mockedTrade() *artemis_trading_types.TradeOutcome {
 
 func (s *ArtemisTradingContractsTestSuite) mockConditions(w3a web3_actions.Web3Actions, to *artemis_trading_types.TradeOutcome) (common.Address, *abi.ABI) {
 	rawDawgAddr, abiFile := s.testDeployRawdawgContract(w3a)
-	err := w3a.SetBalanceAtSlotNumber(ctx, to.AmountInAddr.Hex(), rawDawgAddr.Hex(), 3, artemis_eth_units.EtherMultiple(100))
+	err := w3a.SetBalanceAtSlotNumber(ctx, to.AmountInAddr.Hex(), rawDawgAddr.Hex(), 3, artemis_eth_units.EtherMultiple(10))
 	s.Require().Nil(err)
 	nbal := hexutil.Big{}
 	bigInt := nbal.ToInt()
@@ -35,6 +35,6 @@ func (s *ArtemisTradingContractsTestSuite) mockConditions(w3a web3_actions.Web3A
 
 	rawDawgWethBal, err := w3a.ReadERC20TokenBalance(ctx, to.AmountInAddr.Hex(), rawDawgAddr.Hex())
 	s.Require().Nil(err)
-	s.Require().Equal(artemis_eth_units.EtherMultiple(100), rawDawgWethBal)
+	s.Require().Equal(artemis_eth_units.EtherMultiple(10), rawDawgWethBal)
 	return rawDawgAddr, abiFile
 }

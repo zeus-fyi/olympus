@@ -48,6 +48,10 @@ func EtherMultiple(multiple int) *big.Int {
 	return new(big.Int).Mul(big.NewInt(int64(multiple)), Ether)
 }
 
+func EtherMultipleDivBy(div int) *big.Int {
+	return new(big.Int).Quo(EtherMultiple(1), NewBigInt(div))
+}
+
 // bal := (*hexutil.Big)(eb)
 
 func GweiMultiple(multiple int) *big.Int {

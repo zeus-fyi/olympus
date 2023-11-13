@@ -100,8 +100,8 @@ func RpcLoadBalancerRequestHandlerNode(method string) func(c echo.Context) error
 		request.Body = echo.Map{}
 
 		if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
-			log.Err(err).Msgf("Hypnos: RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
-			return err
+			log.Err(err).Interface("req", request.Body).Msgf("Hypnos: RpcLoadBalancerRequestHandler: json.NewDecoder.Decode")
+			return c.JSON(http.StatusBadRequest, nil)
 		}
 		rw := iris_api_requests.NewIrisApiRequestsActivities()
 		req := &iris_api_requests.ApiProxyRequest{

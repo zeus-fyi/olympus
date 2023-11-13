@@ -119,12 +119,11 @@ contract Rawdawg is Ownable {
         uint256 buyAmountOutExpected
     )
     {
-        IUniswapV2Router02 router = IUniswapV2Router02(routerV2Address);
         address[] memory pathBuy  = new address[](2);
         pathBuy[0] = _token_in;
         pathBuy[1] = _token_out;
 
-        uint256 buyAmountOutExpected = router.getAmountsOut(_amountIn, pathBuy)[1];
+        uint256 buyAmountOutExpected = IUniswapV2Router02(routerV2Address).getAmountsOut(_amountIn, pathBuy)[1];
         uint256 buyAmountOut = 0;
         try this._simulateV2AndRevertSwap(_pair, _token_in, _token_out, _isToken0, _amountIn, _amountOut) {
             buyAmountOut = IERC20(_token_out).balanceOf(address(this));

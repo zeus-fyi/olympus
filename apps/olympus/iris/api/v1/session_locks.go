@@ -73,9 +73,16 @@ var cctx = zeus_common_types.CloudCtxNs{
 	Namespace:     "anvil-serverless-4d383226",
 }
 
+const (
+	internalOrgID = 7138983863666903883
+)
+
 func GetSessionLockedRoute(ctx context.Context, orgID int, sessionID, serverlessTableName, plan string) (string, bool, error) {
-	if sessionID == "Zeus-Test" {
+	if sessionID == "Zeus-Test" && orgID == internalOrgID {
 		return "http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545", false, nil
+	}
+	if sessionID == "Zeus-Service-Test" && orgID == internalOrgID {
+		return "http://anvil-49.anvil.anvil-serverless-aa3ffbd0.svc.cluster.local:8888", false, nil
 	}
 	route, isNewSession, err := iris_redis.IrisRedisClient.GetNextServerlessRoute(context.Background(), orgID, sessionID, serverlessTableName, plan)
 	if err != nil {

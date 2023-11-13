@@ -35,6 +35,7 @@ func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 		55925319574428105816755167200
 		58049694401678927436191764679
 	*/
+
 	sessionTwo := fmt.Sprintf("%s-%s", "forked-mainnet-session-2", uuid.New().String())
 	w3a2 := CreateUser(ctx, "mainnet", s.Tc.ProductionLocalTemporalBearerToken, sessionTwo)
 	s.T().Cleanup(func() {
@@ -46,7 +47,6 @@ func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 	})
 
 	//s.testRawDawgExecV2SwapSimMainnet(w3a2, rdAddr, abiFile, mockedTrade(), true)
-
 	s.testRawDawgExecV2SwapMainnet(w3a2, rdAddr, abiFile, mockedTrade())
 }
 

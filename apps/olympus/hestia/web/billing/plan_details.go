@@ -19,11 +19,11 @@ func GetPlan(ctx context.Context, token string) (iris_service_plans.PlanUsageDet
 	refreshEndpoint := fmt.Sprintf("/v1/plan/usage")
 	resp, err := rc.R().SetResult(&planUsageDetails).Get(refreshEndpoint)
 	if err != nil {
-		log.Err(err).Msg("GetPlan: IrisPlatformSetupCacheUpdateRequest")
+		log.Err(err).Msg("hestia_billing GetPlan")
 		return planUsageDetails, err
 	}
 	if resp.StatusCode() >= 400 {
-		log.Err(err).Msg("GetPlan: IrisPlatformSetupCacheUpdateRequest")
+		log.Err(err).Msg("hestia_billing: GetPlan")
 		return planUsageDetails, err
 	}
 	return planUsageDetails, err

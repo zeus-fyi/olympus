@@ -460,7 +460,7 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID, userID int) (*T
 									FROM orgs o 
 									INNER JOIN org_users ou ON ou.org_id = o.org_id
 									INNER JOIN users_keys usk ON usk.user_id = ou.user_id
-									INNER JOIN quicknode_marketplace_customer qm ON qm.quicknode_id = usk.public_key
+									LEFT JOIN quicknode_marketplace_customer qm ON qm.quicknode_id = usk.public_key
 									WHERE o.org_id = $1 AND ou.user_id = $2 AND public_key_name = 'quickNodeMarketplaceCustomer' AND public_key_verified = true), false) AS tutorial_on
 		FROM org_routes 
 		WHERE org_id = $1
@@ -522,7 +522,7 @@ func (t *TableUsageAndUserSettings) SetMaxTableCountByPlan(plan string) error {
 		return nil
 	case "free":
 		t.MonthlyBudgetTableCount = FreeGroupTables
-		return errors.New("plan not found")
+		return nil
 	case "test":
 	default:
 		return errors.New("plan not found")
@@ -576,11 +576,13 @@ func (t *TableUsageAndUserSettings) CheckPlanLimits(plan string) error {
 			return errors.New("exceeds plan group tables")
 		}
 	case "free":
+		t.MonthlyBudgetTableCount = FreeGroupTables
 		if t.TableCount >= FreeGroupTables {
 			return errors.New("exceeds plan group tables")
 		}
 	case "test":
 	default:
+		t.MonthlyBudgetTableCount = FreeGroupTables
 		if t.TableCount >= FreeGroupTables {
 			return errors.New("exceeds plan group tables")
 		}

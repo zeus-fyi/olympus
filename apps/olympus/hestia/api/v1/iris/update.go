@@ -43,7 +43,7 @@ func (r *OrgGroupRoutesRequest) UpdateOrgGroup(c echo.Context) error {
 	plan, ok := sp[QuickNodeMarketPlace]
 	if !ok {
 		log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("CreateGroupRoute: marketplace not found")
-		return c.JSON(http.StatusUnprocessableEntity, nil)
+		plan = "free"
 	}
 	err = tc.CheckPlanLimits(plan)
 	if err != nil {

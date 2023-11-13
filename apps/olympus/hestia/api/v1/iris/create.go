@@ -77,7 +77,7 @@ func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
 	plan, ok := sp[QuickNodeMarketPlace]
 	if !ok {
 		log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("CreateGroupRoute: marketplace not found")
-		return c.JSON(http.StatusUnprocessableEntity, nil)
+		plan = "free"
 	}
 	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID, ou.UserID)
 	if err != nil {

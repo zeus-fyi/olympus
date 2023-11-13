@@ -36,18 +36,18 @@ func (s *ArtemisTradingContractsTestSuite) TestRawDawgSimOutUtil() {
 		58049694401678927436191764679
 	*/
 
-	sessionTwo := fmt.Sprintf("%s-%s", "forked-mainnet-session-2", uuid.New().String())
-	w3a2 := CreateUser(ctx, "mainnet", s.Tc.ProductionLocalTemporalBearerToken, sessionTwo)
-	s.T().Cleanup(func() {
-		func(sessionID string) {
-			fmt.Printf("CLEANUP: ENDING SESSION %s\n", sessionID)
-			err := w3a.EndAnvilSession()
-			s.Require().Nil(err)
-		}(sessionTwo)
-	})
-
-	//s.testRawDawgExecV2SwapSimMainnet(w3a2, rdAddr, abiFile, mockedTrade(), true)
-	s.testRawDawgExecV2SwapMainnet(w3a2, rdAddr, abiFile, mockedTrade())
+	//sessionTwo := fmt.Sprintf("%s-%s", "forked-mainnet-session-2", uuid.New().String())
+	//w3a2 := CreateUser(ctx, "mainnet", s.Tc.ProductionLocalTemporalBearerToken, sessionTwo)
+	//s.T().Cleanup(func() {
+	//	func(sessionID string) {
+	//		fmt.Printf("CLEANUP: ENDING SESSION %s\n", sessionID)
+	//		err := w3a.EndAnvilSession()
+	//		s.Require().Nil(err)
+	//	}(sessionTwo)
+	//})
+	//
+	////s.testRawDawgExecV2SwapSimMainnet(w3a2, rdAddr, abiFile, mockedTrade(), true)
+	//s.testRawDawgExecV2SwapMainnet(w3a2, rdAddr, abiFile, mockedTrade())
 }
 
 func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a web3_actions.Web3Actions, rawDawgAddr common.Address, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome, buyAndSell bool) {
@@ -70,8 +70,15 @@ func (s *ArtemisTradingContractsTestSuite) testRawDawgExecV2SwapSimMainnet(w3a w
 	resp, err := w3a.CallConstantFunction(ctx, scPayload)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(resp)
+	s.Assert().NotEmpty(resp)
 
-	for _, val := range resp {
+	fmt.Println("AmountIn", to.AmountIn.String())
+	for i, val := range resp {
+		if i > 0 {
+			fmt.Println("Buy Amount", val)
+		} else {
+			fmt.Println("Sell Amount", val)
+		}
 		bgn, ok := val.(big.Int)
 		if ok {
 			fmt.Println(bgn.String())

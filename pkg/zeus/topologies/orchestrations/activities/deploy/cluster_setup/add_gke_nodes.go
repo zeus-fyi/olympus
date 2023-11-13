@@ -43,7 +43,7 @@ func (c *CreateSetupTopologyActivities) GkeSelectFreeTrialNodes(ctx context.Cont
 }
 
 func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
-	log.Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
+	log.Info().Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest")
 	ci := hestia_gcp.GcpClusterInfo{
 		ClusterName: nodePool.ClusterID,
 		ProjectID:   "zeusfyi",
@@ -54,7 +54,7 @@ func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Con
 	}
 	_, err := api_auth_temporal.GCP.RemoveNodePool(ctx, ci, ni)
 	if err != nil {
-		if strings.Contains(err.Error(), "Not found") {
+		if strings.Contains(err.Error(), "not found") {
 			log.Info().Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest: node pool not found")
 			return nil
 		}

@@ -204,6 +204,12 @@ func RemoveFreeTrialOrgResources(ctx context.Context, orgID int) error {
 				  ), cte_gke_node_pools AS (
 					DELETE FROM gke_node_pools
 					WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)
+				  ), cte_ovh_node_pools AS (
+					DELETE FROM ovh_node_pools
+					WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)
+				  ), cte_eks_node_pools AS (
+					DELETE FROM eks_node_pools
+					WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)
 				  ), cte_org_resource_ctx_id_delete AS (
   					DELETE FROM org_resources_cloud_ctx WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)	
 				  )

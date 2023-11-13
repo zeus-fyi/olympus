@@ -151,7 +151,12 @@ func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni Gk
 		ok := errors.As(err, &googErr)
 		if ok && googErr != nil {
 			log.Warn().Interface("googErr", googErr).Msg("googErr")
+			return nil, err
 		}
+		if googErr.Code == 404 {
+			return nil, nil
+		}
+
 		log.Err(err).Interface("ci", ci).Interface("ni", ni).Msg("failed to delete node pool")
 		return nil, err
 	}

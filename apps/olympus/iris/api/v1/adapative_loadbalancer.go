@@ -36,6 +36,8 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		sp, ok := c.Get("servicePlan").(string)
 		if ok {
 			plan = sp
+		} else {
+			plan = "free"
 		}
 	}
 	if plan == "" {

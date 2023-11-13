@@ -54,7 +54,7 @@ var (
 
 func GetDefaultLB(plan string) string {
 	switch plan {
-	case "enterprise", "standard", "performance", "lite", "discovery", "discover":
+	case "enterprise", "standard", "performance", "lite", "discovery", "discover", "free":
 		return Adaptive
 	default:
 		return RoundRobin
@@ -94,7 +94,8 @@ func RpcLoadBalancerRequestHandler(method string) func(c echo.Context) error {
 			}
 			plan, ok := c.Get("servicePlan").(string)
 			if !ok {
-				return c.JSON(http.StatusUnauthorized, Response{Message: "no service plan found"})
+				plan = "free"
+				//return c.JSON(http.StatusUnauthorized, Response{Message: "no service plan found"})
 			}
 			token, ok := c.Get("bearer").(string)
 			if !ok {
@@ -183,6 +184,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		sp, ok := c.Get("servicePlan").(string)
 		if ok {
 			plan = sp
+		} else {
+			plan = "free"
 		}
 	}
 	if plan == "" {

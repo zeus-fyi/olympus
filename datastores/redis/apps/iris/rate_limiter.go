@@ -22,6 +22,7 @@ const (
 	FiftyThousand      = 50_000
 	HundredThousand    = 100_000
 
+	ThreeMillion           = 3_000_000
 	TenMillion             = 10_000_000
 	FiftyMillion           = 50_000_000
 	TwoHundredFiftyMillion = 250_000_000
@@ -46,9 +47,9 @@ func GetMonthlyPlanBudgetThroughputZU(planName string) int {
 	case "free":
 		return TwentyFiveThousand
 	case "test":
-		return 1000
+		return TwentyFiveThousand
 	default:
-		return 0
+		return TwentyFiveThousand
 	}
 }
 
@@ -65,11 +66,11 @@ func GetMonthlyPlanBudgetZU(planName string) int {
 	case "discover", "discovery":
 		return FiftyMillion
 	case "free":
-		return TenMillion
+		return ThreeMillion
 	case "test":
-		return 1000
+		return ThreeMillion
 	default:
-		return 0
+		return ThreeMillion
 	}
 }
 
@@ -120,11 +121,11 @@ func (m *IrisCache) CheckRateLimitBroadcast(ctx context.Context, orgID int, proc
 	case "discover", "discovery":
 		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, FiftyMillion)
 	case "free":
-		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, TenMillion)
+		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, ThreeMillion)
 	case "test":
 		rateLimited, monthlyLimited = um.IsRateLimited(100, 1000)
 	default:
-		rateLimited, monthlyLimited = um.IsRateLimited(0, 0)
+		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, ThreeMillion)
 	}
 	if rateLimited {
 		return proc, ri, errors.New("rate limited")
@@ -159,13 +160,13 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGr
 	case "discover", "discovery":
 		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, FiftyMillion)
 	case "free":
-		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, TenMillion)
+		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, ThreeMillion)
 	case "test":
 		// check 1k ZU/s
 		// check max 50M ZU/month
 		rateLimited, monthlyLimited = um.IsRateLimited(100, 1000)
 	default:
-		rateLimited, monthlyLimited = um.IsRateLimited(0, 0)
+		rateLimited, monthlyLimited = um.IsRateLimited(FiveThousand, ThreeMillion)
 	}
 	if rateLimited {
 		return ri, errors.New("rate limited")

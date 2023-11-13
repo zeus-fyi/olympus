@@ -82,7 +82,7 @@ func (p *PlanUsageDetailsRequest) GetUserPlanInfo(c echo.Context) error {
 	case "test":
 		planName = "Test"
 	default:
-		return c.JSON(http.StatusInternalServerError, nil)
+		planName = "Free"
 	}
 
 	usage.MonthlyBudgetZU = float64(iris_redis.GetMonthlyPlanBudgetZU(planName))

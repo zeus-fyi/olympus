@@ -481,7 +481,7 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID, userID int) (*T
 }
 
 const (
-	FreeGroupTables        = 1
+	FreeGroupTables        = 10
 	LiteGroupTables        = 25
 	StandardGroupTables    = 50
 	PerformanceGroupTables = 250
@@ -521,11 +521,7 @@ func (t *TableUsageAndUserSettings) SetMaxTableCountByPlan(plan string) error {
 		t.MonthlyBudgetTableCount = LiteGroupTables
 		return nil
 	case "free":
-		// check 1k ZU/s
-		// check max 50M ZU/month
-		//if t.TableCount >= FreeGroupTables {
-		//	return errors.New("exceeds plan group tables")
-		//}
+		t.MonthlyBudgetTableCount = FreeGroupTables
 		return errors.New("plan not found")
 	case "test":
 	default:
@@ -580,15 +576,14 @@ func (t *TableUsageAndUserSettings) CheckPlanLimits(plan string) error {
 			return errors.New("exceeds plan group tables")
 		}
 	case "free":
-		// check 1k ZU/s
-		// check max 50M ZU/month
-		//if t.TableCount >= FreeGroupTables {
-		//	return errors.New("exceeds plan group tables")
-		//}
-		return errors.New("plan not found")
+		if t.TableCount >= FreeGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
 	case "test":
 	default:
-		return errors.New("plan not found")
+		if t.TableCount >= FreeGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
 	}
 	return errors.New("plan not found")
 }

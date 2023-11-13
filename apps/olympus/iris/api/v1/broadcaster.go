@@ -32,6 +32,8 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		sp, ok := c.Get("servicePlan").(string)
 		if ok {
 			plan = sp
+		} else {
+			plan = "free"
 		}
 	}
 	if plan == "" {

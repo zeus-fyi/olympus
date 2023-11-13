@@ -2,7 +2,6 @@ package v1_iris
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/labstack/echo/v4"
@@ -69,7 +68,8 @@ func InitV1Routes(e *echo.Echo) {
 				plan = val
 			} else {
 				log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("InitV1Routes: marketplace not found")
-				return false, errors.New("marketplace plan not found")
+				plan = "free"
+				//return false, errors.New("marketplace plan not found")
 			}
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("lbDefault", GetDefaultLB(plan))

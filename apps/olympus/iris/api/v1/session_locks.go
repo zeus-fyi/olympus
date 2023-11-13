@@ -129,7 +129,7 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		// todo remove hardcoded table name
 		return p.ProcessEndSessionLock(c, orgID, sessionID, anvilServerlessRoutesTableName)
 	}
-	routeURL, isNewSession, err := GetSessionLockedRoute(c.Request().Context(), orgID, sessionID, anvilServerlessRoutesTableName, plan) // TODO remove hardcoded table name
+	routeURL, isNewSession, err := GetSessionLockedRoute(context.Background(), orgID, sessionID, anvilServerlessRoutesTableName, plan) // TODO remove hardcoded table name
 	if len(routeURL) == 0 && strings.Contains(err.Error(), " max active sessions reached") {
 		return c.JSON(http.StatusTooManyRequests, err)
 	}

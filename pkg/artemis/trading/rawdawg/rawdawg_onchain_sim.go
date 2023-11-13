@@ -18,6 +18,10 @@ import (
 //	IsToken0  bool           `json:"_isToken0"`
 //}
 
+const (
+	simulateV2AndRevertSwap = "simulateV2AndRevertSwap"
+)
+
 func GetRawDawgV2SimSwapAbiPayload(ctx context.Context, tradingSwapContractAddr string, abiFile *abi.ABI, to *artemis_trading_types.TradeOutcome) *web3_actions.SendContractTxPayload {
 	isToken0 := false
 	pairContractAddr, tkn0, _ := artemis_utils.CreateV2TradingPair(to.AmountInAddr, to.AmountOutAddr)

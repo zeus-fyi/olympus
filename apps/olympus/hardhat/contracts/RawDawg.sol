@@ -83,42 +83,37 @@ contract Rawdawg is Ownable {
         address _pair,
         address _token_in,
         address _token_out,
-        uint256 _amountIn
-    ) external {
-        uint256 buyAmountOut;
-        uint256 buyAmountOutExpected;
+        uint256 _amountIn,
+        uint256 _amountOut
+    ) external
         {
-            IUniswapV2Router02 router = IUniswapV2Router02(routerV2Address);
             TransferHelper.safeTransfer(_token_in, _pair, _amountIn);
             TransferHelper.safeApprove(_token_in, routerV2Address, _amountIn);
             require(_amountIn > 0, "Checker: BUY_INPUT_ZERO");
             address[] memory pathBuy  = new address[](2);
             pathBuy[0] = _token_in;
             pathBuy[1] = _token_out;
-            buyAmountOutExpected = router.getAmountsOut(_amountIn, pathBuy)[1];
-            uint256 startBuyGas = gasleft();
-
-            try router.swapExactTokensForTokensSupportingFeeOnTransferTokens(_amountIn, buyAmountOutExpected, pathBuy, address(this), block.timestamp){
-//                buyGas = startBuyGas - gasleft();
+            IUniswapV2Router02 router = IUniswapV2Router02(routerV2Address);
+            //uint256 startBuyGas = gasleft();
+            uint256 buyAmountOut = 0;
+            try router.swapExactTokensForTokensSupportingFeeOnTransferTokens(_amountIn, _amountOut, pathBuy, address(this), block.timestamp){
+                //buyGas = startBuyGas - gasleft();
                 buyAmountOut = IERC20(_token_out).balanceOf(address(this)); // - tokensBefore;
-                require(buyAmountOut > 0, "Checker: BUY_OUTPUT_ZERO");
             }
             catch (bytes memory reason){
                 assembly {
-                    let ret := mload(0x40)
-                    mstore(ret,            buyAmountOut)
-                    mstore(add(ret, 0x20), buyAmountOutExpected)
-                    revert(ret, 64)
+                    let ptr := mload(0x40)
+                    mstore(ptr, buyAmountOut)
+                    revert(ptr, 32)
                 }
             }
             assembly {
-                let ret := mload(0x40)
-                mstore(ret,            buyAmountOut)
-                mstore(add(ret, 0x20), buyAmountOutExpected)
-                revert(ret, 64)
+                let ptr := mload(0x40)
+                mstore(ptr, buyAmountOut)
+                revert(ptr, 32)
             }
         }
-    }
+
 
     function simulateV2AndRevertSwap(
         address _pair,
@@ -132,9 +127,16 @@ contract Rawdawg is Ownable {
         uint256 buyAmountOutExpected
     )
     {
-        try this._simulateV2AndRevertSwap(_pair, _token_in, _token_out, _amountIn)
+        IUniswapV2Router02 router = IUniswapV2Router02(routerV2Address);
+        address[] memory pathBuy  = new address[](2);
+        pathBuy[0] = _token_in;
+        pathBuy[1] = _token_out;
+
+        uint256 buyAmountOutExpected = router.getAmountsOut(_amountIn, pathBuy)[1];
+        uint256 buyAmountOut = 0;
+        try this._simulateV2AndRevertSwap(_pair, _token_in, _token_out, _amountIn, _amountOut)
         {} catch (bytes memory reason){
-           (buyAmountOut,buyAmountOutExpected) = abi.decode(reason, (uint256, uint256));
+           (buyAmountOut) = abi.decode(reason, (uint256));
         }
         return (buyAmountOut, buyAmountOutExpected);
     }

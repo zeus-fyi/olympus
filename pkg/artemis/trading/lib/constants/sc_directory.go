@@ -36,6 +36,9 @@ const (
 
 	ZeroAddress       = "0x0000000000000000000000000000000000000000"
 	Multicall3Address = "0xcA11bde05977b3631167028862bE2a173976CA11"
+
+	MogToken = "0xaaee1a9723aadb7afa2810263653a34ba2c21c7a"
+	BOBO     = "0xB90B2A35C65dBC466b04240097Ca756ad2005295"
 )
 
 var (
@@ -46,6 +49,8 @@ var (
 	DaiContractAddressAccount          = accounts.HexToAddress(DaiContractAddress)
 	Multicall3AddressAccount           = accounts.HexToAddress(Multicall3Address)
 	LinkTokenAddressAccount            = accounts.HexToAddress(LinkTokenAddr)
+	MogTokenAddressAccount             = accounts.HexToAddress(MogToken)
+	BoboTokenAddressAccount            = accounts.HexToAddress(BOBO)
 )
 
 const (

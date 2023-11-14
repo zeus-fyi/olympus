@@ -11,8 +11,8 @@ import (
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	"github.com/zeus-fyi/zeus/zeus/workload_config_drivers/topology_workloads"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
-	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 )
 
 func ReplaceTopology(c echo.Context, tar zeus_req_types.TopologyDeployRequest) error {

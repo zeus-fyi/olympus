@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/servicemonitors"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
-	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
+	"github.com/zeus-fyi/zeus/zeus/workload_config_drivers/topology_workloads"
 )
 
 type ChartWorkload struct {

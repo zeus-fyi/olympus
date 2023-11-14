@@ -6,8 +6,8 @@ import (
 	read_topologies "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies"
 	read_topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/definitions/state"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/zeus/zeus/workload_config_drivers/topology_workloads"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
-	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )

@@ -11,9 +11,9 @@ import (
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/zeus/zeus/workload_config_drivers/topology_workloads"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
-	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/topology_workloads"
 )
 
 func ExecuteCreateSetupClusterWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {

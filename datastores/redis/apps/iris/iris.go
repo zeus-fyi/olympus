@@ -32,6 +32,18 @@ func InitProductionRedisIrisCache(ctx context.Context) {
 	IrisRedisClient = NewIrisCache(ctx, writer, reader)
 }
 
+func InitProductionBackupRedisIrisCache(ctx context.Context) {
+	writeRedisOpts := redis.Options{
+		Addr: "redis-master.redis-backup.svc.cluster.local:6379",
+	}
+	writer := redis.NewClient(&writeRedisOpts)
+	readRedisOpts := redis.Options{
+		Addr: "redis-replicas.redis-backup.svc.cluster.local:6379",
+	}
+	reader := redis.NewClient(&readRedisOpts)
+	IrisRedisClient = NewIrisCache(ctx, writer, reader)
+}
+
 func InitLocalTestRedisIrisCache(ctx context.Context) {
 	writeRedisOpts := redis.Options{
 		Addr: "localhost:6381",

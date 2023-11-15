@@ -32,6 +32,7 @@ export function AppResourceNodesResourcesTable(props: any) {
                     return;
                 }
                 const response = await resourcesApiGateway.getAppResources(cluster);
+                console.log(response.data)
                 const nodes = await response.data as NodeAudit[];
                 dispatch(setAppNodes(nodes));
             } catch (e) {
@@ -84,7 +85,7 @@ export function AppResourceNodesResourcesTable(props: any) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {appNodes.map((row: any, i: number) => (
+                    {appNodes && appNodes.map((row: any, i: number) => (
                         <TableRow
                             key={i}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}

@@ -15,7 +15,7 @@ type IrisCache struct {
 }
 
 func NewIrisCache(ctx context.Context, w, r *redis.Client) IrisCache {
-	log.Ctx(ctx).Info().Msg("IrisCache")
+	log.Info().Msg("IrisCache")
 	log.Info().Interface("redis", r)
 	return IrisCache{w, r}
 }
@@ -27,6 +27,18 @@ func InitProductionRedisIrisCache(ctx context.Context) {
 	writer := redis.NewClient(&writeRedisOpts)
 	readRedisOpts := redis.Options{
 		Addr: "redis-replicas.redis.svc.cluster.local:6379",
+	}
+	reader := redis.NewClient(&readRedisOpts)
+	IrisRedisClient = NewIrisCache(ctx, writer, reader)
+}
+
+func InitProductionBackupRedisIrisCache(ctx context.Context) {
+	writeRedisOpts := redis.Options{
+		Addr: "redis-master.redis-backup.svc.cluster.local:6379",
+	}
+	writer := redis.NewClient(&writeRedisOpts)
+	readRedisOpts := redis.Options{
+		Addr: "redis-replicas.redis-backup.svc.cluster.local:6379",
 	}
 	reader := redis.NewClient(&readRedisOpts)
 	IrisRedisClient = NewIrisCache(ctx, writer, reader)

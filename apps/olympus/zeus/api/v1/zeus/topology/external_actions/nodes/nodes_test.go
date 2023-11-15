@@ -10,6 +10,7 @@ import (
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 var ctx = context.Background()
@@ -30,11 +31,15 @@ func (t *NodesActionsRequestTestSuite) TestNodes() {
 	}()
 
 	req := ActionRequest{
-
 		Action: "list",
+		CloudCtxNs: zeus_common_types.CloudCtxNs{
+			CloudProvider: "ovh",
+			Region:        "us-west-or-1",
+			Context:       "kubernetes-admin@zeusfyi",
+		},
 	}
 
-	nl := []zeus_core.NodeAudit{}
+	nl := zeus_core.ClusterNodesAudit{}
 	resp, err := t.ZeusClient.R().
 		SetResult(&nl).
 		SetBody(&req).

@@ -15,7 +15,7 @@ type IrisCache struct {
 }
 
 func NewIrisCache(ctx context.Context, w, r *redis.Client) IrisCache {
-	log.Ctx(ctx).Info().Msg("IrisCache")
+	log.Info().Msg("IrisCache")
 	log.Info().Interface("redis", r)
 	return IrisCache{w, r}
 }

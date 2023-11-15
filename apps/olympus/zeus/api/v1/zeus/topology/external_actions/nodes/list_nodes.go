@@ -9,30 +9,24 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
-	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func ListNodesRequest(c echo.Context, request *ActionRequest) error {
 	ctx := context.Background()
-	log.Ctx(ctx).Info().Msg("ListNodesRequest")
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	log.Info().Msg("ListNodesRequest")
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Info().Msg("ListNodesRequest, no orgUser found")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	label := fmt.Sprintf("org=%d", ou.OrgID)
 	for k, v := range request.Labels {
 		label += fmt.Sprintf(",%s=%s", k, v)
 	}
-	// TODO update later
-	cloudCtx := zeus_common_types.CloudCtxNs{
-		CloudProvider: "",
-		Region:        "",
-		Context:       "do-nyc1-do-nyc1-zeus-demo",
-		Namespace:     "",
-		Env:           "",
-	}
-	nl, err := zeus.K8Util.GetNodesAuditByLabel(ctx, cloudCtx, label)
+	nl, err := zeus.K8Util.GetNodesAuditByLabel(ctx, request.CloudCtxNs, label)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("ListNodesRequest")
+		log.Err(err).Msg("ListNodesRequest")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	return c.JSON(http.StatusOK, nl)
 }

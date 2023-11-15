@@ -10,21 +10,24 @@ import (
 )
 
 type NodeAudit struct {
-	CloudProvider     string        `json:"cloudProvider"`
 	KubernetesVersion string        `json:"kubernetesVersion"`
 	NodeID            string        `json:"nodeID"`
 	NodePoolID        string        `json:"nodePoolID"`
-	Region            string        `json:"region"`
 	Slug              string        `json:"slug"`
 	Taints            []v1.Taint    `json:"taints"`
 	Status            v1.NodeStatus `json:"status"`
 }
 
-func (k *K8Util) GetNodesAuditByLabel(ctx context.Context, kns zeus_common_types.CloudCtxNs, label string) ([]NodeAudit, error) {
+type ClusterNodesAudit struct {
+	CloudCtxNs zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
+	Nodes      []NodeAudit                  `json:"nodes"`
+}
+
+func (k *K8Util) GetNodesAuditByLabel(ctx context.Context, kns zeus_common_types.CloudCtxNs, label string) (*ClusterNodesAudit, error) {
 	k.SetContext(kns.Context)
 	nl, err := k.kc.CoreV1().Nodes().List(ctx, metav1.ListOptions{LabelSelector: label})
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("error getting nodes by label")
+		log.Error().Err(err).Msg("error getting nodes by label")
 		return nil, err
 	}
 	nodesAudit := make([]NodeAudit, len(nl.Items))
@@ -34,22 +37,31 @@ func (k *K8Util) GetNodesAuditByLabel(ctx context.Context, kns zeus_common_types
 		na.Taints = n.Spec.Taints
 		for key, v := range n.Labels {
 			switch key {
-			case "region":
-				na.Region = v
+			case "region", "topology.kubernetes.io/region":
 			case "node.kubernetes.io/instance-type":
 				na.Slug = v
-			case "doks.digitalocean.com/node-pool-id":
+			case "doks.digitalocean.com/node-pool-id", "nodepool":
 				na.NodePoolID = v
 			case "doks.digitalocean.com/node-id":
 				na.NodeID = v
 			case "doks.digitalocean.com/version":
 				na.KubernetesVersion = v
-				na.CloudProvider = "do"
 			}
+		}
+
+		switch kns.CloudProvider {
+		case "ovh":
+			na.NodePoolID = n.ObjectMeta.Name
+
 		}
 		nodesAudit[i] = na
 	}
-	return nodesAudit, nil
+
+	cp := &ClusterNodesAudit{
+		CloudCtxNs: kns,
+		Nodes:      nodesAudit,
+	}
+	return cp, nil
 }
 
 func (k *K8Util) GetNodesByLabel(ctx context.Context, kns zeus_common_types.CloudCtxNs, label string) (*v1.NodeList, error) {

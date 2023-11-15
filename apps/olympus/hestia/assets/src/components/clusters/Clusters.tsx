@@ -14,7 +14,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -27,6 +27,11 @@ import {ThemeProvider} from "@mui/material/styles";
 import Stack from "@mui/material/Stack";
 import {CloudCtxNs, resourcesApiGateway} from "../../gateway/resources";
 import {ClusterViews} from "./ClusterAppViews";
+import {RootState} from "../../redux/store";
+import {
+    setClusterViewEnabledToggle,
+    setSelectedClusterAppViewName
+} from "../../redux/clusters/clusters.builder.reducer";
 
 const mdTheme = createTheme();
 
@@ -61,16 +66,24 @@ function createClusterAppViewData(
 }
 function ClustersContent() {
     const [open, setOpen] = React.useState(true);
-    const [pageView, setPageView] = useState(false);
-    const [appName, setAppName] = React.useState('');
+    const appName = useSelector((state: RootState) => state.clusterBuilder.selectedClusterAppView);
+    const pageView = useSelector((state: RootState) => state.clusterBuilder.clusterViewEnabledToggle);
     const [clusters, setClusters] = useState([{}]);
     const [allClusters, setAllClusters] = useState([{}]);
+    const dispatch = useDispatch();
+    let navigate = useNavigate();
+
+    const setPageView = (pageView: boolean) => {
+        dispatch(setClusterViewEnabledToggle(pageView));
+    }
 
     const toggleDrawer = () => {
         setOpen(!open);
-    };
-    let navigate = useNavigate();
-    const dispatch = useDispatch();
+    }
+
+    const setAppName = (appName: string) => {
+        dispatch(setSelectedClusterAppViewName(appName));
+    }
 
     const handleLogout = async (event: any) => {
         event.preventDefault();

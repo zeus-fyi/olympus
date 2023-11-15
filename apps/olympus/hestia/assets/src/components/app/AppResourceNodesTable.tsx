@@ -32,7 +32,7 @@ export function AppResourceNodesResourcesTable(props: any) {
                     return;
                 }
                 const response = await resourcesApiGateway.getAppResources(cluster);
-                console.log(response.data)
+                // console.log(response.data)
                 const nodes = await response.data as NodeAudit[];
                 dispatch(setAppNodes(nodes));
             } catch (e) {

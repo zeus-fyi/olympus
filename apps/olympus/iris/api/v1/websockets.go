@@ -4,10 +4,12 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/labstack/echo/v4"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
@@ -43,16 +45,24 @@ func mempoolWebSocketHandler(c echo.Context) error {
 
 	go func(orgID int) {
 		defer conn.Close()
+		lastID := "0"
 		for {
-			messages, err := iris_redis.IrisRedisClient.Stream(context.Background(), iris_redis.EthMempoolStreamName, "0")
+			messages, err := iris_redis.IrisRedisClient.Stream(context.Background(), iris_redis.EthMempoolStreamName, lastID)
 			if err != nil {
 				log.Err(err).Msg("error reading redis stream")
-				return
+				err = nil
+				time.Sleep(time.Second)
+				continue
 			}
 
+			cacheLocal := cache.New(5*time.Minute, 10*time.Minute)
 			for _, msg := range messages {
 				for _, event := range msg.Messages {
-					for _, v := range event.Values {
+					for k, v := range event.Values {
+						if _, ok := cacheLocal.Get(k); ok {
+							log.Warn().Interface("txHash", k).Msg("duplicate tx hash")
+							continue
+						}
 						payload, ok := v.(string)
 						if !ok {
 							continue
@@ -63,6 +73,7 @@ func mempoolWebSocketHandler(c echo.Context) error {
 							// Handle error
 							return
 						}
+						cacheLocal.Set(k, v, cache.DefaultExpiration)
 						go func(orgID int, bodyBytes []byte) {
 							ps := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 							err = iris_redis.IrisRedisClient.IncrementResponseUsageRateMeter(context.Background(), ou.OrgID, ps)
@@ -71,9 +82,9 @@ func mempoolWebSocketHandler(c echo.Context) error {
 							}
 						}(orgID, []byte(payload))
 					}
+					lastID = event.ID
 				}
 			}
-
 		}
 	}(ou.OrgID)
 	return nil

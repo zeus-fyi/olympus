@@ -102,7 +102,6 @@ export function PodsPageTable() {
                                         {row.podName}
                                     </TableCell>
                                     <TableCell align="left">{row.podPhase}</TableCell>
-
                                     <TableCell align="left">
                                         {row.containers && (
                                             <FormControl fullWidth>

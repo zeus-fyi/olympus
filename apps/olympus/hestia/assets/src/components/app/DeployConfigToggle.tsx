@@ -8,19 +8,18 @@ import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import {AppPage} from "./AppPage";
 import {DeployPage} from "./DeployPage";
-import {AppResourceNodesResourcesTable} from "./AppResourceNodesTable";
 
 export const appBuildToggleSteps = [
     'Deploy App',
     'Configs',
-    'Resources'
+    // 'Resources'
 ];
 
 export function appPageStepComponents(activeStep: number, app: string, cloudProvider: any, setCloudProvider: any, region: any, setRegion:any) {
     const steps = [
         <DeployPage app={app} cloudProvider={cloudProvider} setCloudProvider={setCloudProvider} region={region} setRegion={setRegion}/>,
         <AppPage />,
-        <AppResourceNodesResourcesTable />
+        // <AppResourceNodesResourcesTable />
     ];
     return (steps[activeStep])
 }

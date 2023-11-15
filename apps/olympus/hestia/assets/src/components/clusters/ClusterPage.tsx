@@ -151,7 +151,15 @@ function ClustersPageTable(cluster: any) {
     const [activeClusterTopologies, setActiveClusterTopologies] = useState([{}]);
     const [statusMessage, setStatusMessage] = useState('');
     const [statusMessageRowIndex, setStatusMessageRowIndex] = useState<number | null>(null);
+    let navigate = useNavigate();
 
+    //                 navigate('/signup');
+
+    const onClickAppsPage = async (index: number, appName: any) => {
+        //event.preventDefault();
+        navigate('/app/'+appName);
+        console.log("appName", appName)
+    }
     const onClickRolloutUpgrade = async (index: number, clusterClassName: string) => {
         try {
             const response = await clustersApiGateway.deployClusterToCloudCtxNs(params.id, clusterClassName, activeClusterTopologies);
@@ -236,6 +244,9 @@ function ClustersPageTable(cluster: any) {
                             >
                                 <TableCell component="th" scope="row">
                                     {row.clusterName}
+                                </TableCell>
+                                <TableCell align="left">
+                                    <Button onClick={() => onClickAppsPage(i, row.clusterName)} variant="contained">zK8s App Page</Button>
                                 </TableCell>
                                 <TableCell align="left">
                                     <Button onClick={() => onClickRolloutUpgrade(i, row.clusterName)} variant="contained">Deploy Latest</Button>

@@ -89,18 +89,31 @@ func (a *PublicAppsPageRequest) GetSuiApp(c echo.Context) error {
 
 func (a *PublicAppsPageRequest) GetAppByName(c echo.Context, appName string) error {
 	ctx := context.Background()
-	if !strings.HasPrefix(appName, "sui-") || len(appName) == 0 {
+	if len(appName) == 0 {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	token, ok := c.Get("bearer").(string)
-	if ok {
-		err := CopySuiApp(ctx, appName, token)
+	if strings.HasPrefix(appName, "sui-") {
+		token, ok := c.Get("bearer").(string)
+		if ok {
+			err := CopySuiApp(ctx, appName, token)
+			if err != nil {
+				log.Err(err).Msg("ListPrivateAppsRequest: CopySuiApp")
+				return c.JSON(http.StatusInternalServerError, nil)
+			}
+		}
+		selectedApp, err := read_topology.SelectAppTopologyByName(ctx, AppsOrgID, appName)
 		if err != nil {
-			log.Err(err).Msg("ListPrivateAppsRequest: CopySuiApp")
+			log.Err(err).Msg("ListPrivateAppsRequest: SelectOrgApps")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
+		return a.GetApp(c, selectedApp)
 	}
-	selectedApp, err := read_topology.SelectAppTopologyByName(ctx, AppsOrgID, appName)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Err(fmt.Errorf("orgUser not found")).Msg("ListPrivateAppsRequest: Get")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	selectedApp, err := read_topology.SelectAppTopologyByName(ctx, ou.OrgID, appName)
 	if err != nil {
 		log.Err(err).Msg("ListPrivateAppsRequest: SelectOrgApps")
 		return c.JSON(http.StatusInternalServerError, nil)

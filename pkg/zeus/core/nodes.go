@@ -25,6 +25,15 @@ type ClusterNodesAudit struct {
 
 func (k *K8Util) GetNodesAuditByLabel(ctx context.Context, kns zeus_common_types.CloudCtxNs, label string) (*ClusterNodesAudit, error) {
 	k.SetContext(kns.Context)
+
+	cp := &ClusterNodesAudit{
+		CloudCtxNs: kns,
+		Nodes:      []NodeAudit{},
+	}
+	//for _, v := range []string{"aws", "gcp", "ovh", "do"} {
+	//
+	//
+	//}
 	nl, err := k.kc.CoreV1().Nodes().List(ctx, metav1.ListOptions{LabelSelector: label})
 	if err != nil {
 		log.Error().Err(err).Msg("error getting nodes by label")
@@ -57,10 +66,6 @@ func (k *K8Util) GetNodesAuditByLabel(ctx context.Context, kns zeus_common_types
 		nodesAudit[i] = na
 	}
 
-	cp := &ClusterNodesAudit{
-		CloudCtxNs: kns,
-		Nodes:      nodesAudit,
-	}
 	return cp, nil
 }
 

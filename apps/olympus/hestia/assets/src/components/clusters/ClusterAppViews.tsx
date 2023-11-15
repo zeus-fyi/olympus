@@ -15,19 +15,24 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import Button from "@mui/material/Button";
 import {clustersApiGateway} from "../../gateway/clusters";
+import {useDispatch} from "react-redux";
+import {setClusterViewEnabledToggle} from "../../redux/clusters/clusters.builder.reducer";
 
 export const ClusterViews = (props: any) => {
     const { pageView, setPageView, appName, setAppName, clusters, allClusters } = props;
     const [statusMessage, setStatusMessage] = React.useState("");
     const [appLabelingEnabled, setAppLabelingEnabled] = React.useState(true);
+    const dispatch = useDispatch();
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setPageView(event.target.checked);
+        dispatch(setClusterViewEnabledToggle(event.target.checked));
     };
 
     const handleLabelToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
         setAppLabelingEnabled(event.target.checked);
     };
+
     const uniqueAppNames: string[] = Array.from(new Set(allClusters.map((cluster: { clusterClassName: string }) => cluster.clusterClassName)));
     function handleChangeSelectAppView(appName: string) {
         if (appName === "-all") {

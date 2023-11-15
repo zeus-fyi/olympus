@@ -23,6 +23,7 @@ interface ClusterBuilderState {
     selectedContainerName: string;
     selectedDockerImage: DockerImage;
     selectedClusterAppView: string;
+    clusterViewEnabledToggle: boolean;
 }
 
 const initialState: ClusterBuilderState = {
@@ -45,12 +46,16 @@ const initialState: ClusterBuilderState = {
         volumeMounts: [{name: '', mountPath: ''}] as VolumeMount[]
     } as DockerImage,
     selectedClusterAppView: '',
+    clusterViewEnabledToggle: false,
 };
 
 const clusterBuilderSlice = createSlice({
     name: 'clusterBuilder',
     initialState,
     reducers: {
+        setClusterViewEnabledToggle: (state, action: PayloadAction<boolean>) => {
+            state.clusterViewEnabledToggle = action.payload;
+        },
         setSelectedClusterAppViewName: (state, action: PayloadAction<string>) => {
             state.selectedClusterAppView = action.payload;
         },
@@ -575,7 +580,8 @@ export const {
     removeIngressPath,
     setClusterPreview,
     setIngressAuthServerURL,
-    setSelectedClusterAppViewName
+    setSelectedClusterAppViewName,
+    setClusterViewEnabledToggle
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

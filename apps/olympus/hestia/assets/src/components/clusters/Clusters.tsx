@@ -28,7 +28,10 @@ import Stack from "@mui/material/Stack";
 import {CloudCtxNs, resourcesApiGateway} from "../../gateway/resources";
 import {ClusterViews} from "./ClusterAppViews";
 import {RootState} from "../../redux/store";
-import {setSelectedClusterAppViewName} from "../../redux/clusters/clusters.builder.reducer";
+import {
+    setClusterViewEnabledToggle,
+    setSelectedClusterAppViewName
+} from "../../redux/clusters/clusters.builder.reducer";
 
 const mdTheme = createTheme();
 
@@ -63,16 +66,20 @@ function createClusterAppViewData(
 }
 function ClustersContent() {
     const [open, setOpen] = React.useState(true);
-    const [pageView, setPageView] = useState(false);
     const appName = useSelector((state: RootState) => state.clusterBuilder.selectedClusterAppView);
+    const pageView = useSelector((state: RootState) => state.clusterBuilder.clusterViewEnabledToggle);
     const [clusters, setClusters] = useState([{}]);
     const [allClusters, setAllClusters] = useState([{}]);
     const dispatch = useDispatch();
     let navigate = useNavigate();
 
+    const setPageView = (pageView: boolean) => {
+        dispatch(setClusterViewEnabledToggle(pageView));
+    }
+
     const toggleDrawer = () => {
         setOpen(!open);
-    };
+    }
 
     const setAppName = (appName: string) => {
         dispatch(setSelectedClusterAppViewName(appName));

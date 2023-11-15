@@ -44,8 +44,10 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		artemis_orchestration_auth.Bearer = sw.BearerToken
 		price_quoter.ZeroXApiKey = sw.ZeroXApiKey
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
-		artemis_trading_cache.InitProductionRedis(ctx)
-		iris_redis.InitProductionRedisIrisCache(ctx)
+		//artemis_trading_cache.InitProductionRedis(ctx)
+		artemis_trading_cache.InitBackupProductionRedis(ctx)
+		iris_redis.InitProductionBackupRedisIrisCache(ctx)
+		//iris_redis.InitProductionRedisIrisCache(ctx)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn

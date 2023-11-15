@@ -45,6 +45,24 @@ func InitProductionRedis(ctx context.Context) {
 	return
 }
 
+func InitBackupProductionRedis(ctx context.Context) {
+	writeRedisOpts := redis.Options{
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
+		Addr:         "redis-master.redis-backup.svc.cluster.local:6379",
+	}
+	writer := redis.NewClient(&writeRedisOpts)
+	WriteRedis = redis_mev.NewMevCache(context.Background(), writer)
+	readRedisOpts := redis.Options{
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
+		Addr:         "redis-replicas.redis-backup.svc.cluster.local:6379",
+	}
+	reader := redis.NewClient(&readRedisOpts)
+	ReadRedis = redis_mev.NewMevCache(context.Background(), reader)
+	return
+}
+
 func InitTokenFilter(ctx context.Context) {
 	_, tm, terr := artemis_mev_models.SelectERC20Tokens(ctx)
 	if terr != nil {

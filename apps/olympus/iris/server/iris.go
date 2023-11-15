@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/viper"
 	iris_api "github.com/zeus-fyi/olympus/iris/api"
 	iris_metrics "github.com/zeus-fyi/olympus/iris/api/metrics"
-	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_serverless "github.com/zeus-fyi/olympus/pkg/iris/serverless"
@@ -82,9 +81,7 @@ func Iris() {
 	go func() {
 		metricsSrv.Start()
 	}()
-	go func() {
-		v1_iris.SendDataToWebSocket()
-	}()
+
 	if env == "local" || env == "production-local" {
 		hestiaHost := "http://localhost:9002"
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{

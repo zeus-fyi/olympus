@@ -29,7 +29,7 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 		go func(groupName string, signReqs aegis_inmemdbs.EthereumBLSKeySignatureRequests) {
 			auth, err := artemis_validator_signature_service_routing.GetGroupAuthFromInMemFS(ctx, groupName)
 			if err != nil {
-				log.Ctx(ctx).Err(err).Msg("Failed to get group auth")
+				log.Err(err).Msg("Failed to get group auth")
 				return
 			}
 			sr := bls_serverless_signing.SignatureRequests{
@@ -72,7 +72,7 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 					r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
 					reqAuth, rerr := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
 					if rerr != nil {
-						log.Ctx(ctx).Error().Err(rerr).Msg("failed to get service routes auths for lambda iam auth")
+						log.Error().Err(rerr).Msg("failed to get service routes auths for lambda iam auth")
 						return
 					}
 					resp, reerr := r.R().
@@ -80,12 +80,12 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 						SetResult(&sigResponses).
 						SetBody(sr).Post("/")
 					if reerr != nil {
-						log.Ctx(ctx).Err(reerr).Msg("Failed to get response")
+						log.Err(reerr).Msg("Failed to get response")
 						return
 					}
 					if resp.StatusCode() != 200 {
 						err = errors.New("non-200 status code")
-						log.Ctx(ctx).Err(reerr).Msg("Failed to get 200 status code")
+						log.Err(reerr).Msg("Failed to get 200 status code")
 						return
 					}
 					ch <- sigResponses
@@ -95,8 +95,8 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			select {
 			case sigResponses := <-ch:
 				if len(sigRequests.Map) < len(sigRequests.Map) {
-					log.Ctx(ctx).Warn().Msg("Not all signatures were returned")
-					log.Ctx(ctx).Info().Interface("sigRequests", sigRequests).Interface("sigResponses", sigResponses).Msg("Not all signatures were returned")
+					log.Warn().Msg("Not all signatures were returned")
+					log.Info().Interface("sigRequests", sigRequests).Interface("sigResponses", sigResponses).Msg("Not all signatures were returned")
 				}
 				for pubkey, sigRespWrapper := range sigResponses.Map {
 					uuid := pubkeyToUUID[pubkey]

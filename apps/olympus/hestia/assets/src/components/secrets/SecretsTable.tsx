@@ -16,17 +16,16 @@ export function SecretKeys() {
     const [rows, setRows] = useState<SecretsRequest[]>([]);
     const [inputData, setInputData] = useState<SecretsRequest>({name: '', key: '', value: ''});
     const [buttonStatus, setButtonStatus] = useState<any>({});
+    const [refresh, setRefresh] = useState<boolean>(false);
 
     const handleInputChange = (event: any) => {
         setInputData({...inputData, [event.target.name]: event.target.value });
     }
 
     const handleRequestCreateOrUpdateSecretKeyValue = async (row: SecretsRequest) => {
-        const updatedRows = [...rows, row];
-        setInputData(row);
         try {
             await secretsApiGateway.upsertSecret(row);
-            setRows(updatedRows);
+            setRefresh(!refresh);
         } catch (exc) {
             console.error('Failed to upsert secret', row);
         } finally {
@@ -87,7 +86,7 @@ export function SecretKeys() {
             }
         }
         getSecretReferences();
-    }, []);
+    }, [refresh]);
 
     //     }, [rows]);
     if (isLoading) {

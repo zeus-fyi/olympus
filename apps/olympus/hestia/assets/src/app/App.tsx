@@ -27,6 +27,7 @@ import ReactGA from "react-ga4";
 import Mev from "../components/admin/mev/Mev";
 import SearchDashboard from "../components/compute/search/SearchNodes";
 import AiWorkflowsDashboard from "../components/ai/AI";
+import Secrets from "../components/secrets/Secrets";
 
 export const App = () => {
     ReactGA.initialize([
@@ -74,6 +75,7 @@ export const App = () => {
                             </Route>
                             <Route path="billing" element={<ProtectedLayout children={<Billing />}/>}/>
                             <Route path="access"  element={<ProtectedLayout children={<Access />}/>}/>
+                            <Route path="secrets"  element={<ProtectedLayout children={<Secrets />}/>}/>
                         </Route>
                     </Routes>
                 </BrowserRouter>

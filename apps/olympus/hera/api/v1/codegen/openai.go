@@ -36,7 +36,7 @@ func (ai *UICodeGenAPIRequest) CompleteUICodeGenRequest(c echo.Context) error {
 	ctx := context.Background()
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
-		log.Ctx(ctx).Err(fmt.Errorf("failed to cast orgUser")).Msg("CompleteUICodeGenRequest")
+		log.Err(fmt.Errorf("failed to cast orgUser")).Msg("CompleteUICodeGenRequest")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
@@ -53,12 +53,12 @@ func (ai *UICodeGenAPIRequest) CompleteUICodeGenRequest(c echo.Context) error {
 		},
 	)
 	if err != nil {
-		log.Ctx(ctx).Info().Interface("ou", ou).Interface("prompt", ai.Prompt).Interface("resp", resp).Err(err).Msg("CompleteUICodeGenRequest: CreateChatCompletion")
+		log.Info().Interface("ou", ou).Interface("prompt", ai.Prompt).Interface("resp", resp).Err(err).Msg("CompleteUICodeGenRequest: CreateChatCompletion")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	err = hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
 	if err != nil {
-		log.Ctx(ctx).Info().Interface("ou", ou).Interface("prompt", ai.Prompt).Interface("resp", resp).Err(err).Msg("CompleteUICodeGenRequest: RecordUIChatRequestUsage")
+		log.Info().Interface("ou", ou).Interface("prompt", ai.Prompt).Interface("resp", resp).Err(err).Msg("CompleteUICodeGenRequest: RecordUIChatRequestUsage")
 		//return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, resp.Choices[0].Message.Content)

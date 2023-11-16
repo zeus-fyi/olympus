@@ -20,6 +20,7 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
 
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(true);
@@ -148,6 +149,12 @@ export default function MainListItems() {
                     <CreditCardIcon />
                 </ListItemIcon>
                 <ListItemText primary="Billing" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/secrets">
+                <ListItemIcon>
+                    <VpnKeyIcon />
+                </ListItemIcon>
+                <ListItemText primary="Secrets" />
             </ListItemButton>
             <ListItemButton component={Link} to="/access">
                 <ListItemIcon>

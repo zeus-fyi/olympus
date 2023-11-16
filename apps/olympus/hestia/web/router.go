@@ -71,6 +71,11 @@ func InitV1Routes(e *echo.Echo) {
 	eg.GET("/resources", hestia_resources.ResourceListRequestHandler)
 	eg.GET("/stripe/customer/id", hestia_billing.StripeBillingRequestHandler)
 	eg.GET("/refresh/token", hestia_login.TokenRefreshRequestHandler)
+
+	eg.POST("/secrets/upsert", hestia_access_keygen.SecretsRequestHandler)
+	eg.GET("/secrets", hestia_access_keygen.SecretsReadRequestHandler)
+	eg.GET("/secret/:ref", hestia_access_keygen.SecretReadRequestHandler)
+	eg.DELETE("/secret/:ref", hestia_access_keygen.SecretDeleteRequestHandler)
 }
 
 func InitV1InternalRoutes(e *echo.Echo) {

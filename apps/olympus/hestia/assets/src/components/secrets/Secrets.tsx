@@ -64,7 +64,7 @@ function SecretsContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Access
+                            AWS Secrets Manager
                         </Typography>
                         <Button
                             color="inherit"

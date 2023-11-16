@@ -17,7 +17,7 @@ var HydraSecretManagerAuthAWS aegis_aws_secretmanager.SecretsManagerAuthAWS
 func InitHydraSecretManagerAuthAWS(ctx context.Context, awsAuth aegis_aws_auth.AuthAWS) {
 	awsSm, err := aegis_aws_secretmanager.InitSecretsManager(ctx, awsAuth)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("Hydra: InitHestiaSecretManagerAuthAWS: error initializing aws secrets manager")
+		log.Err(err).Msg("Hydra: InitHestiaSecretManagerAuthAWS: error initializing aws secrets manager")
 		panic(err)
 	}
 	HydraSecretManagerAuthAWS = awsSm
@@ -34,14 +34,29 @@ func GetServiceRoutesAuths(ctx context.Context, si aegis_aws_secretmanager.Secre
 	if err != nil {
 		// For a list of exceptions thrown, see
 		// https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-		log.Ctx(ctx).Err(err).Msg("Hydra: GetServiceRoutesAuths: error getting secret value")
+		log.Err(err).Msg("Hydra: GetServiceRoutesAuths: error getting secret value")
 		return srw, err
 	}
 	// Decrypts secret using the associated KMS key.
 	err = json.Unmarshal(result.SecretBinary, &srw)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("Hydra: GetServiceRoutesAuths: error unmarshaling secret value")
+		log.Err(err).Msg("Hydra: GetServiceRoutesAuths: error unmarshaling secret value")
 		return srw, err
 	}
 	return srw, nil
+}
+
+func GetOrgSecret(ctx context.Context, name string) ([]byte, error) {
+	input := &secretsmanager.GetSecretValueInput{
+		SecretId:     aws.String(name),
+		VersionStage: aws.String("AWSCURRENT"), // VersionStage defaults to AWSCURRENT if unspecified
+	}
+	result, err := HydraSecretManagerAuthAWS.GetSecretValue(ctx, input)
+	if err != nil {
+		// For a list of exceptions thrown, see
+		// https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+		log.Err(err).Msg("Hydra: GetServiceRoutesAuths: error getting secret value")
+		return nil, err
+	}
+	return result.SecretBinary, nil
 }

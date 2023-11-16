@@ -3,6 +3,8 @@ package iris_redis
 import (
 	"context"
 	"fmt"
+
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 func (r *IrisRedisTestSuite) TestRedisStreams() {
@@ -29,6 +31,24 @@ func (r *IrisRedisTestSuite) TestRedisStreams() {
 			//fmt.Println("event", event.Values)
 			for k, v := range event.Values {
 				fmt.Println(k, v)
+			}
+		}
+	}
+}
+
+func (r *IrisRedisTestSuite) TestRedisStreamMempool() {
+	messages, err := IrisRedisClient.Stream(context.Background(), EthMempoolStreamName, "0")
+	r.NoError(err)
+
+	for _, msg := range messages {
+		for _, event := range msg.Messages {
+			for _, v := range event.Values {
+				fmt.Println(v)
+				tx := &types.Transaction{}
+				err = tx.UnmarshalBinary([]byte(v.(string)))
+				r.NoError(err)
+
+				fmt.Println(tx.Hash().Hex())
 			}
 		}
 	}

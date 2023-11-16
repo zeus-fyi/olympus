@@ -14,13 +14,13 @@ import (
 var Zeus zeus_client.ZeusClient
 
 func InitZeusClientValidatorServiceGroup(ctx context.Context) {
-	log.Ctx(ctx).Info().Msg("Artemis: InitZeusClientValidatorServiceGroup")
+	log.Info().Msg("Artemis: InitZeusClientValidatorServiceGroup")
 	Zeus = zeus_client.NewDefaultZeusClient(artemis_orchestration_auth.Bearer)
 	return
 }
 
 func InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Artemis: ArtemisEthereumEphemeryValidatorsRequestsWorker")
+	log.Info().Msg("Artemis: ArtemisEthereumEphemeryValidatorsRequestsWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
 		log.Err(err).Msg("ArtemisEthereumEphemeryValidatorsRequestsWorker: NewTemporalClient failed")
@@ -39,7 +39,7 @@ func InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx context.Context, te
 }
 
 func InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Artemis: ArtemisEthereumMainnetValidatorsRequestsWorker")
+	log.Info().Msg("Artemis: ArtemisEthereumMainnetValidatorsRequestsWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
 		log.Err(err).Msg("ArtemisEthereumMainnetValidatorsRequestsWorker: NewTemporalClient failed")
@@ -58,7 +58,7 @@ func InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx context.Context, tem
 }
 
 func InitArtemisEthereumGoerliValidatorsRequestsWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Artemis: InitArtemisEthereumGoerliValidatorsRequestsWorker")
+	log.Info().Msg("Artemis: InitArtemisEthereumGoerliValidatorsRequestsWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
 		log.Err(err).Msg("InitArtemisEthereumGoerliValidatorsRequestsWorker: NewTemporalClient failed")

@@ -30,13 +30,12 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) GetWorkflows() []in
 	return []interface{}{t.ServiceNewValidatorsToCloudCtxNsWorkflow}
 }
 
-// ServiceNewValidatorsToCloudCtxNsWorkflow TODO, verify end to end
 func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidatorsToCloudCtxNsWorkflow(ctx workflow.Context, params ValidatorServiceGroupWorkflowRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-	// TODO, if this keeps failing, terminate workflow
+	// TODO, if this continues failing, should terminate workflow and send email
 	validateValidatorsRemoteServicesStatusCtx := workflow.WithActivityOptions(ctx, ao)
 	var verifiedPubkeys hestia_req_types.ValidatorServiceOrgGroupSlice
 	err := workflow.ExecuteActivity(validateValidatorsRemoteServicesStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.VerifyValidatorKeyOwnershipAndSigning, params).Get(validateValidatorsRemoteServicesStatusCtx, &verifiedPubkeys)

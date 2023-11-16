@@ -54,7 +54,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) InsertVerifiedValida
 
 	err := artemis_validator_service_groups_models.InsertVerifiedValidatorsToService(ctx, params, pubkeys)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Err(err)
 		return err
 	}
 	return nil
@@ -80,7 +80,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCl
 	}
 	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, vsCloudCtx, cloudCtxNs)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Err(err)
 		return err
 	}
 	return nil
@@ -116,7 +116,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 	pc := pods_client.NewPodsClientFromZeusClient(Zeus)
 	_, err := pc.DeletePods(ctx, par)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Error().Err(err)
 		return err
 	}
 	return nil
@@ -181,7 +181,7 @@ func GetVerifiedKeys(ctx context.Context, feeAddrToPubkeyMap map[string]string, 
 	}
 	sv, err := artemis_hydra_orchestrations_aws_auth.GetServiceRoutesAuths(ctx, si)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths")
+		log.Error().Err(err).Msg("failed to get service routes auths")
 		return nil, nil, err
 	}
 	signReqs := bls_serverless_signing.SignatureRequests{
@@ -199,7 +199,7 @@ func GetVerifiedKeys(ctx context.Context, feeAddrToPubkeyMap map[string]string, 
 	}
 	reqAuth, err := auth.CreateV4AuthPOSTReq(ctx, "lambda", sv.ServiceAuth.ServiceURL, signReqs)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
+		log.Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
 		return nil, nil, err
 	}
 	r.SetBaseURL(sv.ServiceAuth.ServiceURL)
@@ -213,17 +213,17 @@ func GetVerifiedKeys(ctx context.Context, feeAddrToPubkeyMap map[string]string, 
 		SetBody(signReqs).Post("/")
 
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("failed to post to validator signature service url")
+		log.Err(err).Msg("failed to post to validator signature service url")
 		return nil, nil, err
 	}
 	if resp.StatusCode() != http.StatusOK {
-		log.Ctx(ctx).Warn().Interface("respCode", resp.StatusCode()).Msg("resp code not 200, doing a cooldown")
+		log.Warn().Interface("respCode", resp.StatusCode()).Msg("resp code not 200, doing a cooldown")
 		time.Sleep(10 * time.Second)
 		return nil, keyGroup, nil
 	}
 	verifiedKeys, err := signedEventResponses.VerifySignatures(ctx, req, true)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("failed to verify signatures")
+		log.Error().Err(err).Msg("failed to verify signatures")
 		return nil, nil, err
 	}
 	vkAndFeeAddrSlice := make([]hestia_req_types.ValidatorServiceOrgGroup, len(verifiedKeys))

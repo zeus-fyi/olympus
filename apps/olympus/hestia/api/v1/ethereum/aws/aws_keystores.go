@@ -24,13 +24,12 @@ func CreateServerlessKeystoresLayerHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	ctx := context.Background()
 	request.KeystoresLayerName = c.FormValue("keystoresLayerName")
 	authJSON := c.FormValue("authAWS")
 	err := json.Unmarshal([]byte(authJSON), &request.AuthAWS)
 	if err != nil {
 		ou := c.Get("orgUser").(org_users.OrgUser)
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("CreateKeystoresLayer: error unmarshalling authAWS from form value")
+		log.Err(err).Interface("ou", ou).Msg("CreateKeystoresLayer: error unmarshalling authAWS from form value")
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	return request.CreateKeystoresLayer(c)
@@ -41,29 +40,29 @@ func (a *CreateAwsLambdaKeystoreLayerRequest) CreateKeystoresLayer(c echo.Contex
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	zipFile, err := c.FormFile("keystoresZip")
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("CreateKeystoresLayer: error retrieving keystoresZip from request payload")
+		log.Err(err).Interface("ou", ou).Msg("CreateKeystoresLayer: error retrieving keystoresZip from request payload")
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	fi, err := zipFile.Open()
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("CreateKeystoresLayer: error retrieving keystoresZip from request payload")
+		log.Err(err).Interface("ou", ou).Msg("CreateKeystoresLayer: error retrieving keystoresZip from request payload")
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	defer fi.Close()
 	zipBytes := new(bytes.Buffer)
 	_, err = io.Copy(zipBytes, fi)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("CreateKeystoresLayer: error reading keystoresZip file")
+		log.Err(err).Interface("ou", ou).Msg("CreateKeystoresLayer: error reading keystoresZip file")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	lm, err := aws_lambda.InitLambdaClient(ctx, a.AuthAWS)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateKeystoresLayer error")
+		log.Err(err).Interface("ou", ou).Msg("AwsRequest, CreateKeystoresLayer error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	ly, err := lm.CreateServerlessBLSLambdaFnKeystoreLayer(ctx, a.KeystoresLayerName, zipBytes.Bytes())
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateKeystoresLayer error")
+		log.Err(err).Interface("ou", ou).Msg("AwsRequest, CreateKeystoresLayer error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, ly.Version)

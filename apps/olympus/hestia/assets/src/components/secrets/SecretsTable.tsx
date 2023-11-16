@@ -141,7 +141,7 @@ export function SecretKeys() {
                                                 variant="contained"
                                                 onClick={() => buttonStatus[row.key]
                                                     ? hideSecretValue(row.key, index)
-                                                    : getSecretReferenceValue(row.key, index)
+                                                    : getSecretReferenceValue(row.name, index)
                                                 }
                                             >
                                                 {buttonStatus[row.key] ? 'Hide Value' : 'Get Value'}

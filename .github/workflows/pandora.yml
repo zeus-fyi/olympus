@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - .github/workflows/pandora.yml
+      - apps/pandora/**
     branches:
       - main
       - dev

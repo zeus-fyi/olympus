@@ -22,6 +22,11 @@ spec:
       containers:
         - name: "pandora"
           image: "registry.digitalocean.com/zeus-fyi/pandora:latest"
+          volumeMounts:
+            - mountPath: "/scripts"
+              name: "cm-pandora"
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
           imagePullPolicy: Always
           env:
             - name: TELEGRAM_API_HASH
@@ -51,6 +56,11 @@ spec:
             timeoutSeconds: 5
           resources:
             {}
+      volumes:
+        - name: cm-pandora
+          configMap:
+            name: cm-pandora
+            defaultMode: 0744
       nodeSelector:
         {}
       affinity:

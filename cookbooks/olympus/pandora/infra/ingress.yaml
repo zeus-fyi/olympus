@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "pandora"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-url: https://aegis.zeus.fyi/v1/auth/7138983863666903883
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - secretName: hardhat-tls
+      hosts:
+        - pandora.zeus.fyi
+  rules:
+    - host: pandora.zeus.fyi
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: pandora
+                port:
+                  number: 80

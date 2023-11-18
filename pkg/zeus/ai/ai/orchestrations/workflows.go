@@ -27,14 +27,14 @@ func NewZeusPlatformServiceWorkflows() ZeusAiPlatformServiceWorkflows {
 }
 
 func (h *ZeusAiPlatformServiceWorkflows) GetWorkflows() []interface{} {
-	return []interface{}{h.AiEmailWorkflow, h.AiTelegramWorkflow}
+	return []interface{}{h.AiEmailWorkflow, h.AiIngestTelegramWorkflow}
 }
 
 const (
 	internalOrgID = 7138983863666903883
 )
 
-func (h *ZeusAiPlatformServiceWorkflows) AiTelegramWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, msgs []hermes_email_notifications.EmailContents) error {
+func (h *ZeusAiPlatformServiceWorkflows) AiIngestTelegramWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, msgs []TelegramMessage) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -44,7 +44,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiTelegramWorkflow(ctx workflow.Context
 		},
 	}
 	// todo allow user orgs ids
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiTelegramWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiIngestTelegramWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
@@ -53,45 +53,16 @@ func (h *ZeusAiPlatformServiceWorkflows) AiTelegramWorkflow(ctx workflow.Context
 	}
 
 	for _, msg := range msgs {
-		var emailID int
-		insertEmailCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(insertEmailCtx, h.InsertEmailIfNew, msg).Get(insertEmailCtx, &emailID)
+		var msgID int
+		insertMsgCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(insertMsgCtx, h.InsertTelegramMessageIfNew, ou, msg).Get(insertMsgCtx, &msgID)
 		if err != nil {
 			logger.Error("failed to execute InsertEmailIfNew", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.
 			return err
 		}
-		if emailID <= 0 {
+		if msgID <= 0 {
 			continue
-		}
-		var resp openai.ChatCompletionResponse
-
-		tmp := ao
-		tmp.RetryPolicy.MaximumAttempts = 3
-		runAiTaskCtx := workflow.WithActivityOptions(ctx, tmp)
-		err = workflow.ExecuteActivity(runAiTaskCtx, h.AiTask, ou, msg).Get(runAiTaskCtx, &resp)
-		if err != nil {
-			logger.Error("failed to execute AiTask", "Error", err)
-			// You can decide if you want to return the error or continue monitoring.
-			return err
-		}
-
-		sendEmailTaskCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(sendEmailTaskCtx, h.SendTaskResponseEmail, msg.From, resp).Get(sendEmailTaskCtx, &resp)
-		if err != nil {
-			logger.Error("failed to execute SaveAiTaskResponse", "Error", err)
-			// You can decide if you want to return the error or continue monitoring.
-			return err
-		}
-
-		if ou.OrgID > 0 && ou.UserID > 0 {
-			saveAiTaskCompletionCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(saveAiTaskCompletionCtx, h.SaveAiTaskResponse, ou, resp).Get(saveAiTaskCompletionCtx, &resp)
-			if err != nil {
-				logger.Error("failed to execute SaveAiTaskResponse", "Error", err)
-				// You can decide if you want to return the error or continue monitoring.
-				return err
-			}
 		}
 	}
 

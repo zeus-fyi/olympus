@@ -2,16 +2,22 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
+	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 )
 
 type ZeusAiPlatformActivities struct {
@@ -99,13 +105,18 @@ func (h *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg her
 	return emailID, nil
 }
 
-func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, msg any) (int, error) {
-	emailID, err := hera_openai_dbmodels.InsertNewTgMessages(ctx, msg)
+func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg TelegramMessage) (int, error) {
+	b, err := json.Marshal(msg.TelegramMetadata)
 	if err != nil {
-		log.Err(err).Msg("SaveNewEmail: failed")
+		log.Err(err).Msg("InsertTelegramMessageIfNew: Marshal failed")
 		return 0, err
 	}
-	return emailID, nil
+	tgId, err := hera_openai_dbmodels.InsertNewTgMessages(ctx, ou, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, b)
+	if err != nil {
+		log.Err(err).Msg("InsertTelegramMessageIfNew: failed")
+		return 0, err
+	}
+	return tgId, nil
 }
 
 func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
@@ -115,4 +126,37 @@ func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg her
 		return 0, err
 	}
 	return emailID, nil
+}
+
+func GetPandoraMessages(ctx context.Context, token, groupPrefix string) ([]TelegramMessage, error) {
+	var msgs []TelegramMessage
+	headers := http.Header{}
+	headers.Set("Authorization", fmt.Sprintf("Bearer %s", artemis_orchestration_auth.Bearer))
+
+	apiReq := &iris_api_requests.ApiProxyRequest{
+		Url:             "https://pandora.zeus.fyi/msgs",
+		PayloadTypeREST: "POST",
+		Payload: echo.Map{
+			"group": groupPrefix,
+			"token": token,
+		},
+		IsInternal:     true,
+		RequestHeaders: headers,
+	}
+
+	rw := iris_api_requests.NewIrisApiRequestsActivities()
+	resp, err := rw.ExtLoadBalancerRequest(ctx, apiReq)
+	if err != nil {
+		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
+		return nil, err
+	}
+	if len(resp.Response) == 0 {
+		return nil, errors.New("Zeus: CreateAIServiceTaskRequestHandler: no response")
+	}
+	err = json.Unmarshal(resp.RawResponse, &msgs)
+	if err != nil {
+		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
+		return nil, err
+	}
+	return msgs, err
 }

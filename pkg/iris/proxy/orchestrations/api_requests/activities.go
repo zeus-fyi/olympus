@@ -198,6 +198,9 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		pr.ResponseHeaders = filterHeaders(resp.RawResponse.Header)
 		pr.ReceivedAt = resp.ReceivedAt()
 		pr.Latency = resp.Time()
+		if pr.IsInternal {
+			pr.RawResponse = resp.Body()
+		}
 	}
 	return resp, nil
 }

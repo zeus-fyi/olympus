@@ -8,7 +8,7 @@ metadata:
 spec:
   ingressClassName: "nginx"
   tls:
-    - secretName: hardhat-tls
+    - secretName: pandora-tls
       hosts:
         - pandora.zeus.fyi
   rules:

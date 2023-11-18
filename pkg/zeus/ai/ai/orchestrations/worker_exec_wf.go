@@ -26,3 +26,20 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context
 	}
 	return nil
 }
+
+//func (h *ZeusAiPlatformServicesWorker) ExecuteAiTelegramWorkflow(ctx context.Context, ou org_users.OrgUser, msgs []any) error {
+//	tc := h.ConnectTemporalClient()
+//	defer tc.Close()
+//	workflowOptions := client.StartWorkflowOptions{
+//		TaskQueue: h.TaskQueueName,
+//		ID:        uuid.New().String(),
+//	}
+//	txWf := NewZeusPlatformServiceWorkflows()
+//	wf := txWf.AiTelegramWorkflow
+//	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, msgs)
+//	if err != nil {
+//		log.Err(err).Msg("ExecuteAiTaskWorkflow")
+//		return err
+//	}
+//	return nil
+//}

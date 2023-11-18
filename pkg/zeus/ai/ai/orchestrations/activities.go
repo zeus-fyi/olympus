@@ -27,7 +27,9 @@ type ActivitiesSlice []interface{}
 
 func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	ka := kronos_helix.NewKronosActivities()
-	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew, h.InsertAiResponse}
+	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew,
+		h.InsertAiResponse, h.InsertTelegramMessageIfNew,
+	}
 	return append(actSlice, ka.GetActivities()...)
 }
 
@@ -90,6 +92,15 @@ func (h *ZeusAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, em
 
 func (h *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
 	emailID, err := hera_openai_dbmodels.InsertNewEmails(ctx, msg)
+	if err != nil {
+		log.Err(err).Msg("SaveNewEmail: failed")
+		return 0, err
+	}
+	return emailID, nil
+}
+
+func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, msg any) (int, error) {
+	emailID, err := hera_openai_dbmodels.InsertNewTgMessages(ctx, msg)
 	if err != nil {
 		log.Err(err).Msg("SaveNewEmail: failed")
 		return 0, err

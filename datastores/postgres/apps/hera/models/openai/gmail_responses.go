@@ -32,6 +32,31 @@ func InsertNewEmails(ctx context.Context, msg hermes_email_notifications.EmailCo
 	return emailID, nil
 }
 
+func filterSeenTgMsgIds() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "filterSeenIds"
+
+	// todo
+	q.RawQuery = `INSERT INTO "public"."ai_incoming_email_tasks" ("msg_id", "from", "subject", "contents")
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT ("msg_id") DO NOTHING
+		RETURNING "email_id"`
+	return q
+}
+
+func InsertNewTgMessages(ctx context.Context, msg any) (int, error) {
+	q := filterSeenTgMsgIds()
+	var msgID int
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, msg).Scan(&msgID)
+	if err == pgx.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return msgID, nil
+}
+
 /*
 CREATE TABLE "public"."ai_outgoing_email_tasks" (
     "response_id" int8 NOT NULL DEFAULT next_id(),

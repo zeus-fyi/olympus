@@ -3,9 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -18,6 +16,7 @@ import (
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 type ZeusAiPlatformActivities struct {
@@ -130,33 +129,27 @@ func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg her
 
 func GetPandoraMessages(ctx context.Context, token, groupPrefix string) ([]TelegramMessage, error) {
 	var msgs []TelegramMessage
-	headers := http.Header{}
-	headers.Set("Authorization", fmt.Sprintf("Bearer %s", artemis_orchestration_auth.Bearer))
-
 	apiReq := &iris_api_requests.ApiProxyRequest{
-		Url:             "https://pandora.zeus.fyi/msgs",
+		Url:             "https://pandora.zeus.fyi",
 		PayloadTypeREST: "POST",
 		Payload: echo.Map{
 			"group": groupPrefix,
 			"token": token,
 		},
-		IsInternal:     true,
-		RequestHeaders: headers,
+		IsInternal: true,
 	}
 
-	rw := iris_api_requests.NewIrisApiRequestsActivities()
-	resp, err := rw.ExtLoadBalancerRequest(ctx, apiReq)
+	res := resty_base.GetBaseRestyClient(apiReq.Url, artemis_orchestration_auth.Bearer)
+	resp, err := res.R().SetBody(&apiReq.Payload).SetResult(&msgs).Post("msgs")
 	if err != nil {
 		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
 		return nil, err
 	}
-	if len(resp.Response) == 0 {
-		return nil, errors.New("Zeus: CreateAIServiceTaskRequestHandler: no response")
-	}
-	err = json.Unmarshal(resp.RawResponse, &msgs)
-	if err != nil {
-		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
+	if resp != nil && resp.StatusCode() >= 400 {
+		if err != nil {
+			err = fmt.Errorf("Zeus: CreateAIServiceTaskRequestHandler: failed to relay api request: status code %d", resp.StatusCode())
+		}
 		return nil, err
 	}
-	return msgs, err
+	return msgs, nil
 }

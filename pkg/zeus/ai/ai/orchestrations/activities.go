@@ -41,7 +41,7 @@ func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgU
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: openai.GPT4,
+			Model: "gpt-4-1106-preview",
 			Messages: []openai.ChatCompletionMessage{
 				systemMessage,
 				{

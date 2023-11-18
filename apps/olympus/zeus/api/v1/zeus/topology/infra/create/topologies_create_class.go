@@ -31,8 +31,15 @@ type TopologyCreateClassResponse struct {
 }
 
 func (t *TopologyCreateOrAddBasesToClassesRequest) CreateTopologyClusterClass(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	ctx := context.Background()
+
+	if len(t.ClusterClassName) <= 0 {
+		return c.JSON(http.StatusBadRequest, "ClusterClassName is required")
+	}
 	cc := create_clusters.NewClusterClassTopologyTypeWithBases(ou.OrgID, t.ClusterClassName, t.SkeletonBaseNames)
 	err := create_systems.InsertSystem(ctx, &cc.Systems)
 	if err != nil {
@@ -47,9 +54,14 @@ func (t *TopologyCreateOrAddBasesToClassesRequest) CreateTopologyClusterClass(c 
 }
 
 func (t *TopologyCreateOrAddComponentBasesToClassesRequest) AddComponentBasesToTopologyClusterClass(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	ctx := context.Background()
-
+	if len(t.ClusterClassName) <= 0 {
+		return c.JSON(http.StatusBadRequest, "ClusterClassName is required")
+	}
 	bs := make([]bases.Base, len(t.ComponentBaseNames))
 	for i, b := range t.ComponentBaseNames {
 		bs[i] = bases.NewBaseClassTopologyInsert(ou.OrgID, b)

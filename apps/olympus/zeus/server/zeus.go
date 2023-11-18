@@ -15,6 +15,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
+	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
@@ -36,6 +37,12 @@ var (
 	authKeysCfg     auth_keys_config.AuthKeysCfg
 	temporalAuthCfg temporal_auth.TemporalAuth
 	env             string
+	awsRegion       = "us-west-1"
+	awsAuthCfg      = aegis_aws_auth.AuthAWS{
+		Region:    awsRegion,
+		AccessKey: "",
+		SecretKey: "",
+	}
 )
 
 func Zeus() {
@@ -111,6 +118,8 @@ func Zeus() {
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 		cfg.PGConnStr = sw.PostgresAuth
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
+		awsAuthCfg = sw.SecretsManagerAuthAWS
+		awsAuthCfg.Region = awsRegion
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -130,6 +139,8 @@ func Zeus() {
 		read_infra.CookbooksDirIn = "/Users/alex/go/Olympus/olympus/apps/zeus/cookbooks"
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
 		topology_auths.K8Util = cfg.K8sUtil
+		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
+		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -141,6 +152,8 @@ func Zeus() {
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, tc.DigitalOceanAPIKey)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, tc.GcpAuthJson)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
+		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
+		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 		eksAuth := aegis_aws_auth.AuthAWS{
 			AccountNumber: "",
 			Region:        "us-west-1",
@@ -154,6 +167,8 @@ func Zeus() {
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 		topology_auths.K8Util = cfg.K8sUtil
 	}
+
+	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
 
 	log.Info().Msg("Zeus: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

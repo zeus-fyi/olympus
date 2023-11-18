@@ -5,12 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hestia_access_keygen "github.com/zeus-fyi/olympus/hestia/web/access"
+	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
@@ -127,7 +131,47 @@ func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg her
 	return emailID, nil
 }
 
-func GetPandoraMessages(ctx context.Context, token, groupPrefix string) ([]TelegramMessage, error) {
+var cah = cache.New(time.Hour, cache.DefaultExpiration)
+
+func GetTelegramToken(ctx context.Context) (string, error) {
+	sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, hestia_access_keygen.FormatSecret(internalOrgID))
+	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+		return "", err
+	}
+	m := make(map[string]hestia_access_keygen.SecretsKeyValue)
+	err = json.Unmarshal(sv, &m)
+	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+		return "", err
+	}
+
+	token := ""
+	tv, ok := cah.Get("telegram_token")
+	if ok {
+		token = tv.(string)
+	}
+	if len(token) == 0 {
+		for k, v := range m {
+			if k == "telegram" {
+				if v.Key == "token" {
+					cah.Set("telegram_token", v.Value, cache.DefaultExpiration)
+					token = v.Value
+				}
+			}
+		}
+	}
+
+	return token, err
+}
+func GetPandoraMessages(ctx context.Context, groupPrefix string) ([]TelegramMessage, error) {
+	token, err := GetTelegramToken(ctx)
+	if err != nil {
+		cah.Delete("telegram_token")
+		log.Err(err).Msg("Zeus: GetTelegramToken")
+		return nil, err
+	}
+
 	var msgs []TelegramMessage
 	apiReq := &iris_api_requests.ApiProxyRequest{
 		Url:             "https://pandora.zeus.fyi",

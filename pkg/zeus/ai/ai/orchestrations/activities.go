@@ -2,16 +2,25 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/labstack/echo/v4"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hestia_access_keygen "github.com/zeus-fyi/olympus/hestia/web/access"
+	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
+	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 type ZeusAiPlatformActivities struct {
@@ -27,7 +36,9 @@ type ActivitiesSlice []interface{}
 
 func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	ka := kronos_helix.NewKronosActivities()
-	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew, h.InsertAiResponse}
+	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew,
+		h.InsertAiResponse, h.InsertTelegramMessageIfNew,
+	}
 	return append(actSlice, ka.GetActivities()...)
 }
 
@@ -97,6 +108,20 @@ func (h *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg her
 	return emailID, nil
 }
 
+func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg TelegramMessage) (int, error) {
+	b, err := json.Marshal(msg.TelegramMetadata)
+	if err != nil {
+		log.Err(err).Msg("InsertTelegramMessageIfNew: Marshal failed")
+		return 0, err
+	}
+	tgId, err := hera_openai_dbmodels.InsertNewTgMessages(ctx, ou, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, b)
+	if err != nil {
+		log.Err(err).Msg("InsertTelegramMessageIfNew: failed")
+		return 0, err
+	}
+	return tgId, nil
+}
+
 func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
 	emailID, err := hera_openai_dbmodels.InsertNewEmails(ctx, msg)
 	if err != nil {
@@ -104,4 +129,71 @@ func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg her
 		return 0, err
 	}
 	return emailID, nil
+}
+
+var cah = cache.New(time.Hour, cache.DefaultExpiration)
+
+func GetTelegramToken(ctx context.Context) (string, error) {
+	sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, hestia_access_keygen.FormatSecret(internalOrgID))
+	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+		return "", err
+	}
+	m := make(map[string]hestia_access_keygen.SecretsKeyValue)
+	err = json.Unmarshal(sv, &m)
+	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+		return "", err
+	}
+
+	token := ""
+	tv, ok := cah.Get("telegram_token")
+	if ok {
+		token = tv.(string)
+	}
+	if len(token) == 0 {
+		for k, v := range m {
+			if k == "telegram" {
+				if v.Key == "token" {
+					cah.Set("telegram_token", v.Value, cache.DefaultExpiration)
+					token = v.Value
+				}
+			}
+		}
+	}
+
+	return token, err
+}
+func GetPandoraMessages(ctx context.Context, groupPrefix string) ([]TelegramMessage, error) {
+	token, err := GetTelegramToken(ctx)
+	if err != nil {
+		cah.Delete("telegram_token")
+		log.Err(err).Msg("Zeus: GetTelegramToken")
+		return nil, err
+	}
+
+	var msgs []TelegramMessage
+	apiReq := &iris_api_requests.ApiProxyRequest{
+		Url:             "https://pandora.zeus.fyi",
+		PayloadTypeREST: "POST",
+		Payload: echo.Map{
+			"group": groupPrefix,
+			"token": token,
+		},
+		IsInternal: true,
+	}
+
+	res := resty_base.GetBaseRestyClient(apiReq.Url, artemis_orchestration_auth.Bearer)
+	resp, err := res.R().SetBody(&apiReq.Payload).SetResult(&msgs).Post("msgs")
+	if err != nil {
+		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
+		return nil, err
+	}
+	if resp != nil && resp.StatusCode() >= 400 {
+		if err != nil {
+			err = fmt.Errorf("Zeus: CreateAIServiceTaskRequestHandler: failed to relay api request: status code %d", resp.StatusCode())
+		}
+		return nil, err
+	}
+	return msgs, nil
 }

@@ -69,5 +69,5 @@ func (a *AIServiceRequest) SupportAcknowledgeAITask(c echo.Context, email string
 		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, msgs)
+	return c.JSON(http.StatusOK, nil)
 }

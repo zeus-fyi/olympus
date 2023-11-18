@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
-	zeus_client_ext "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	zeus_client_ext "github.com/zeus-fyi/zeus/zeus/z_client"
 )
 
 type PoseidonCookbookTestSuite struct {

@@ -45,7 +45,7 @@ async def initialize_telegram_client_endpoint():
     if not token:
         return jsonify({'error': 'Token is required'}), 400
     return await start_client(token)
-#
+
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=8000)

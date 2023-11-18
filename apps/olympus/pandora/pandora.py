@@ -20,39 +20,6 @@ SESSION = 'session_name'
 API_ID = int(os.environ['TELEGRAM_API_ID'])
 API_HASH = os.environ['TELEGRAM_API_HASH']
 
-# self.id = id
-# self.peer_id = peer_id
-# self.date = date
-# self.message = message
-# self.out = out
-# self.mentioned = mentioned
-# self.media_unread = media_unread
-# self.silent = silent
-# self.post = post
-# self.from_scheduled = from_scheduled
-# self.legacy = legacy
-# self.edit_hide = edit_hide
-# self.pinned = pinned
-# self.noforwards = noforwards
-# self.invert_media = invert_media
-# self.from_id = from_id
-# self.fwd_from = fwd_from
-# self.via_bot_id = via_bot_id
-# self.reply_to = reply_to
-# self.media = media
-# self.reply_markup = reply_markup
-# self.entities = entities
-# self.views = views
-# self.forwards = forwards
-# self.replies = replies
-# self.edit_date = edit_date
-# self.post_author = post_author
-# self.grouped_id = grouped_id
-# self.reactions = reactions
-# self.restriction_reason = restriction_reason
-# self.ttl_period = ttl_period
-
-
 async def start_client(token_in, group):
     client = TelegramClient('session_name', API_ID, API_HASH)
     await client.start(phone=lambda: get_number(), code_callback=lambda: token_in)
@@ -69,7 +36,9 @@ async def start_client(token_in, group):
                 # # convert datetime object to unix timestamp
                 unix_timestamp = message.date.replace(tzinfo=timezone.utc).timestamp()
                 msgs.append({
-                    'timestamp': unix_timestamp,
+                    'timestamp': int(unix_timestamp),
+                    'message_id': message.id,
+                    'chat_id': message.chat_id,
                     'group_name': dialog.name,
                     'sender_id': message.sender_id,
                     'message_text': message.text,

@@ -9,7 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
-	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 )
 
 type ZeusWorkerTestSuite struct {
@@ -37,14 +36,6 @@ func TestZeusWorkerTestSuite(t *testing.T) {
 	suite.Run(t, new(ZeusWorkerTestSuite))
 }
 
-func (t *ZeusWorkerTestSuite) TestTgWorkflow() {
-	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalTemporalBearerToken
-	token := "79987"
-	resp, err := GetPandoraMessages(ctx, token, "LA")
-	t.Require().Nil(err)
-	t.Require().NotNil(resp)
-
-}
 func (t *ZeusWorkerTestSuite) TestAiWorkflow() {
 	ta := t.Tc.DevTemporalAuth
 	InitZeusAiServicesWorker(ctx, ta)

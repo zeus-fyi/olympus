@@ -19,17 +19,10 @@ spec:
     spec:
       imagePullSecrets:
         - name: zeus-fyi-ext
-      volumes:
-        - name: data
-          emptyDir:
-            medium: Memory
       containers:
         - name: "pandora"
           image: "registry.digitalocean.com/zeus-fyi/pandora:latest"
           imagePullPolicy: Always
-          volumeMounts:
-            - mountPath: "/"
-              name: "data"
           env:
             - name: TELEGRAM_API_HASH
               value: "badbaaafe1303acc5f3a6eb6c5cd3d39"

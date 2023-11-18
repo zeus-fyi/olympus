@@ -33,8 +33,9 @@ type QuickNodeMarketplace struct {
 type TestContainer struct {
 	Env string
 
-	AwsS3AccessKey string
-	AwsS3SecretKey string
+	TelegramApiToken string
+	AwsS3AccessKey   string
+	AwsS3SecretKey   string
 
 	QuickNodeMarketplace        QuickNodeMarketplace
 	ZeroXApiKey                 string
@@ -219,7 +220,7 @@ func InitLocalTestConfigs() TestContainer {
 	for i := 1; i < 9; i++ {
 		qn.Routes = append(qn.Routes, viper.GetString(fmt.Sprintf("QUIKNODE_%d", i)))
 	}
-
+	testCont.TelegramApiToken = viper.GetString("TELEGRAM_BOT_TOKEN")
 	testCont.AtlassianKeys.ApiKey = viper.GetString("ATLASSIAN_API_KEY")
 	testCont.AtlassianKeys.OrgId = viper.GetString("ATLASSIAN_ORG_ID")
 

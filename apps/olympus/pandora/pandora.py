@@ -36,7 +36,7 @@ async def start_client( token_in):
                     'sender_id': message.sender_id,
                     'message_text': message.text,
                 })
-
+    client.disconnect()
     return msgs
 
 @app.route('/msgs', methods=['POST'])

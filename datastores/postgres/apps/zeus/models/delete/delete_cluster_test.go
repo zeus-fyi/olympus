@@ -20,7 +20,7 @@ type DeleteClusterTestSuite struct {
 func (t *DeleteClusterTestSuite) TestDeleteCluster() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 
-	err := DeleteCluster(ctx, t.Tc.ProductionLocalTemporalOrgID, "suiTestnetDo")
+	err := DeleteCluster(ctx, t.Tc.ProductionLocalTemporalOrgID, "pandora")
 	t.Require().Nil(err)
 	//cps := []string{"aws", "gcp", "do"}
 	//networks := []string{"mainnet", "testnet", "devnet"}

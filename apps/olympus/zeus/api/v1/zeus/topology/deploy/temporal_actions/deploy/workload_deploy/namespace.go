@@ -51,7 +51,7 @@ func DeployNamespaceHandler(c echo.Context) error {
 		}
 		namespace := request.Kns.CloudCtxNs.Namespace
 		switch namespace {
-		case "artemis", "hardhat", "zeus", "iris", "hestia", "hera", "aegis", "poseidon", "ephemeral-staking", "goerli-staking", "olympus", "mainnet-staking", "tyche", "keydb":
+		case "artemis", "hardhat", "zeus", "iris", "hestia", "hera", "aegis", "poseidon", "ephemeral-staking", "goerli-staking", "olympus", "mainnet-staking", "tyche", "keydb", "pandora":
 			_, err = zeus.K8Util.CopySecretToAnotherKns(ctx, fromKns, request.Kns.CloudCtxNs, "age-auth", nil)
 			if err != nil {
 				log.Err(err).Msg("DeploySecretsHandler")

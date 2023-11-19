@@ -148,7 +148,7 @@ func InitV1WebhooksRoutes(e *echo.Echo) {
 	eg.GET("/emails/support", zeus_webhooks.SupportEmailAIServiceTaskRequestHandler)
 	eg.GET("/emails/alex", zeus_webhooks.AlexEmailAIServiceTaskRequestHandler)
 	eg.GET("/emails/ai", zeus_webhooks.AiEmailAIServiceTaskRequestHandler)
-	eg.GET("/telegram/ai", zeus_webhooks.AiTelegramSupportAcknowledgeTelegramAiTaskHandler)
+	eg.GET("/telegram/ai/:group", zeus_webhooks.AiTelegramSupportAcknowledgeTelegramAiTaskHandler)
 }
 
 func Health(c echo.Context) error {

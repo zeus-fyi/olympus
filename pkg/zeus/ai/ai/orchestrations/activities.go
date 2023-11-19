@@ -114,9 +114,10 @@ func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Contex
 		log.Err(err).Msg("InsertTelegramMessageIfNew: Marshal failed")
 		return 0, err
 	}
-	tgId, err := hera_openai_dbmodels.InsertNewTgMessages(ctx, ou, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, b)
+	rawMsg := json.RawMessage(b)
+	tgId, err := hera_openai_dbmodels.InsertNewTgMessages(ctx, ou, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, rawMsg)
 	if err != nil {
-		log.Err(err).Msg("InsertTelegramMessageIfNew: failed")
+		log.Err(err).Interface("msg", msg).Msg("InsertTelegramMessageIfNew: failed")
 		return 0, err
 	}
 	return tgId, nil

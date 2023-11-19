@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE TABLE public.ai_incoming_telegram_msgs (
           telegram_msg_id int8 NOT NULL DEFAULT next_id(),
           "org_id" int8 NOT NULL REFERENCES orgs(org_id),
@@ -23,3 +25,6 @@ CREATE INDEX idx_ui ON public.ai_incoming_telegram_msgs("user_id");
 -- Create a composite index for the subject and contents columns to facilitate full text search
 CREATE INDEX message_text_idx ON public.ai_incoming_telegram_msgs USING GIN (to_tsvector('english', message_text));
 CREATE INDEX metadata_idx ON public.ai_incoming_telegram_msgs USING GIN (metadata);
+CREATE INDEX idx_group_name_trgm ON public.ai_incoming_telegram_msgs USING GIN (group_name gin_trgm_ops);
+
+

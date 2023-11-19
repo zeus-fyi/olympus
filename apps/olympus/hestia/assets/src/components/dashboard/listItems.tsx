@@ -53,12 +53,14 @@ export default function MainListItems() {
                 </ListSubheader>
             }
         >
-            <ListItemButton component={Link} to="/ai">
+            {isInternal && (
+                <ListItemButton component={Link} to="/ai">
                 <ListItemIcon>
                     <GraphicEqIcon />
                 </ListItemIcon>
                 <ListItemText primary="AI" />
             </ListItemButton>
+                )}
             <ListItemButton onClick={handleClickApps}  component={Link} to="/apps">
                 <ListItemIcon>
                     <AppsIcon />

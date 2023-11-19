@@ -81,12 +81,6 @@ function AiWorkflowsDashboardContent(props: any) {
                 'usernames': usernames,
                 'workflowInstructions': workflowInstructions,
             });
-            console.log({
-                'searchContentText': searchContentText,
-                'groupFilter': groupFilter,
-                'usernames': usernames,
-                'workflowInstructions': workflowInstructions,
-            })
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;

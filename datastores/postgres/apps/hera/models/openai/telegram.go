@@ -1,10 +1,12 @@
 package hera_openai_dbmodels
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"unicode/utf8"
+	"strings"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -24,10 +26,47 @@ func filterSeenTgMsgIds() sql_query_templates.QueryParams {
 	return q
 }
 
-func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, timestamp, chatID, messageID, senderID int, groupName, msgText string, b json.RawMessage) (int, error) {
+type TelegramMessage struct {
+	Timestamp   int    `json:"timestamp"`
+	GroupName   string `json:"group_name"`
+	SenderID    int    `json:"sender_id"`
+	MessageText string `json:"message_text"`
+	ChatID      int    `json:"chat_id"`
+	MessageID   int    `json:"message_id"`
+	TelegramMetadata
+}
+
+type TelegramMetadata struct {
+	IsReply       bool   `json:"is_reply,omitempty"`
+	IsChannel     bool   `json:"is_channel,omitempty"`
+	IsGroup       bool   `json:"is_group,omitempty"`
+	IsPrivate     bool   `json:"is_private,omitempty"`
+	FirstName     string `json:"first_name,omitempty"`
+	LastName      string `json:"last_name,omitempty"`
+	Phone         string `json:"phone,omitempty"`
+	MutualContact bool   `json:"mutual_contact,omitempty"`
+	Username      string `json:"username,omitempty"`
+}
+
+func (t *TelegramMetadata) Sanitize() {
+	t.FirstName = sanitizeUTF8(t.FirstName)
+	t.LastName = sanitizeUTF8(t.LastName)
+	t.Phone = sanitizeUTF8(t.Phone)
+	t.Username = sanitizeUTF8(t.Username)
+}
+func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, msg TelegramMessage) (int, error) {
 	q := filterSeenTgMsgIds()
 	var msgID int
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, timestamp, chatID, messageID, senderID, groupName, msgText, sanitizeJSONRawMessage(b)).Scan(&msgID)
+	msg.TelegramMetadata.Sanitize()
+	msg.GroupName = sanitizeUTF8(msg.GroupName)
+	msg.MessageText = sanitizeUTF8(msg.MessageText)
+
+	metadataJSON, err := json.Marshal(msg.TelegramMetadata)
+	if err != nil {
+		// handle error, maybe return it
+		return 0, err
+	}
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, pgtype.JSONB{Bytes: metadataJSON, Status: pgtype.Present}).Scan(&msgID)
 	if err == pgx.ErrNoRows {
 		return 0, nil
 	}
@@ -36,22 +75,7 @@ func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, timestamp, c
 	}
 	return msgID, nil
 }
-
-func sanitizeJSONRawMessage(raw json.RawMessage) json.RawMessage {
-	if utf8.Valid(raw) {
-		return raw // The raw message is already valid UTF-8
-	}
-
-	buf := make([]byte, 0, len(raw))
-	for len(raw) > 0 {
-		r, size := utf8.DecodeRune(raw)
-		if r == utf8.RuneError && size == 1 {
-			// This is an invalid UTF-8 rune, skip it
-			raw = raw[size:]
-			continue
-		}
-		buf = append(buf, raw[:size]...)
-		raw = raw[size:]
-	}
-	return buf
+func sanitizeUTF8(s string) string {
+	bs := bytes.ReplaceAll([]byte(s), []byte{0}, []byte{})
+	return strings.ToValidUTF8(string(bs), "?")
 }

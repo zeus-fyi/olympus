@@ -6,7 +6,7 @@ const initialState: AiState = {
     usernames: '',
     groupFilter: '',
     workflowInstructions: '',
-    searchResults: [],
+    searchResults: '',
 }
 
 const aiSlice = createSlice({
@@ -25,7 +25,7 @@ const aiSlice = createSlice({
         setWorkflowInstructions: (state, action: PayloadAction<string>) => {
             state.workflowInstructions = action.payload;
         },
-        setSearchResults: (state, action: PayloadAction<[]>) => {
+        setSearchResults: (state, action: PayloadAction<string>) => {
             state.searchResults = action.payload;
         },
     }

@@ -42,6 +42,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const groupFilter = useSelector((state: RootState) => state.ai.groupFilter);
     const usernames = useSelector((state: RootState) => state.ai.usernames);
     const workflowInstructions = useSelector((state: RootState) => state.ai.workflowInstructions);
+    const [code, setCode] = useState('');
     const searchResults = useSelector((state: RootState) => state.ai.searchResults);
     const dispatch = useDispatch();
     const toggleDrawer = () => {
@@ -85,6 +86,7 @@ function AiWorkflowsDashboardContent(props: any) {
             if (statusCode < 400) {
                 const data = response.data;
                 dispatch(setSearchResults(data));
+                setCode(data)
             } else {
                 console.log('Failed to search', response);
             }
@@ -255,7 +257,7 @@ function AiWorkflowsDashboardContent(props: any) {
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         { (selectedMainTab === 0) &&
-                            <AiSearchAnalysis />
+                            <AiSearchAnalysis code={code} />
                         }
                         { (selectedMainTab === 1) &&
                             <WorkflowTable loading={loading}/>

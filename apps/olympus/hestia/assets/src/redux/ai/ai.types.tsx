@@ -3,5 +3,5 @@ export interface AiState {
     groupFilter: string;
     searchContentText: string;
     workflowInstructions: string;
-    searchResults: [];
+    searchResults: string;
 }

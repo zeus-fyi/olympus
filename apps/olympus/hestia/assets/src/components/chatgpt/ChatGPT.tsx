@@ -46,8 +46,8 @@ export default function ChatGPTPageText(props: any) {
     return (
         <div>
             <MonacoEditor
-                height="850px"
-                width="1300px"
+                height="1500px"
+                width="1500px"
                 language={language}
                 theme={'vs-dark'}
                 onChange={(event) => onChange(event)}

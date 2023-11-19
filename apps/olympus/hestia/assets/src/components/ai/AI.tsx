@@ -1,10 +1,8 @@
 import * as React from 'react';
 import {useState} from 'react';
-import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
+import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import MuiAppBar, {AppBarProps as MuiAppBarProps} from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
@@ -15,73 +13,57 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
-import {Card, CardContent, Stack} from "@mui/material";
+import {useDispatch, useSelector} from "react-redux";
+import {Card, CardContent, Drawer, Stack, Tab, Tabs, TextareaAutosize} from "@mui/material";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
 import {WorkflowTable} from "./WorkflowTable";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
-
-const drawerWidth: number = 240;
-
-interface AppBarProps extends MuiAppBarProps {
-    open?: boolean;
-}
-
-export const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-    zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-    ...(open && {
-        marginLeft: drawerWidth,
-        width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    }),
-}));
-
-export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme, open }) => ({
-        '& .MuiDrawer-paper': {
-            position: 'relative',
-            whiteSpace: 'nowrap',
-            width: drawerWidth,
-            transition: theme.transitions.create('width', {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.enteringScreen,
-            }),
-            boxSizing: 'border-box',
-            ...(!open && {
-                overflowX: 'hidden',
-                transition: theme.transitions.create('width', {
-                    easing: theme.transitions.easing.sharp,
-                    duration: theme.transitions.duration.leavingScreen,
-                }),
-                width: theme.spacing(7),
-                [theme.breakpoints.up('sm')]: {
-                    width: theme.spacing(9),
-                },
-            }),
-        },
-    }),
-);
+import {AiSearchAnalysis} from "./AiAnalysisSummaries";
+import TextField from "@mui/material/TextField";
+import {AppBar} from "../dashboard/Dashboard";
+import {RootState} from "../../redux/store";
+import {
+    setGroupFilter,
+    setSearchContent,
+    setSearchResults,
+    setUsernames,
+    setWorkflowInstructions
+} from "../../redux/ai/ai.reducer";
+import {aiApiGateway} from "../../gateway/ai";
 
 const mdTheme = createTheme();
 
 function AiWorkflowsDashboardContent(props: any) {
     const [open, setOpen] = useState(true);
+    const [loading, setIsLoading] = useState(false);
+    const [selectedMainTab, setSelectedMainTab] = useState(0);
+    const searchContentText = useSelector((state: RootState) => state.ai.searchContentText);
+    const groupFilter = useSelector((state: RootState) => state.ai.groupFilter);
+    const usernames = useSelector((state: RootState) => state.ai.usernames);
+    const workflowInstructions = useSelector((state: RootState) => state.ai.workflowInstructions);
+    const searchResults = useSelector((state: RootState) => state.ai.searchResults);
+    const dispatch = useDispatch();
     const toggleDrawer = () => {
         setOpen(!open);
     };
     let navigate = useNavigate();
-    const dispatch = useDispatch();
-    const [loading, setIsLoading] = useState(false);
+
+    const handleUpdateSearchContent = (value: string) => {
+        dispatch(setSearchContent(value));
+    };
+
+    const handleUpdateGroupFilter = (value: string) => {
+        dispatch(setGroupFilter(value));
+    };
+
+    const handleUpdateSearchUsernames =(value: string) => {
+        dispatch(setUsernames(value));
+    };
+
+    const handleUpdateWorkflowInstructions =(value: string) => {
+        dispatch(setWorkflowInstructions(value));
+    };
 
     const handleLogout = async (event: any) => {
         event.preventDefault();
@@ -91,13 +73,40 @@ function AiWorkflowsDashboardContent(props: any) {
     }
 
     const handleSearchRequest = async () => {
-
+        try {
+            setIsLoading(true)
+            const response = await aiApiGateway.searchRequest({
+                'searchContentText': searchContentText,
+                'groupFilter': groupFilter,
+                'usernames': usernames,
+                'workflowInstructions': workflowInstructions,
+            });
+            console.log({
+                'searchContentText': searchContentText,
+                'groupFilter': groupFilter,
+                'usernames': usernames,
+                'workflowInstructions': workflowInstructions,
+            })
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                const data = response.data;
+                dispatch(setSearchResults(data));
+            } else {
+                console.log('Failed to search', response);
+            }
+        } catch (e) {
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     if (loading) {
         return <div>Loading...</div>;
     }
 
+    const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setSelectedMainTab(newValue);
+    };
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -128,7 +137,7 @@ function AiWorkflowsDashboardContent(props: any) {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Dashboard
+                            ChatGPT
                         </Typography>
                         <Button
                             color="inherit"
@@ -170,24 +179,93 @@ function AiWorkflowsDashboardContent(props: any) {
                 >
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <Card sx={{ maxWidth: 700 }}>
-                            <CardContent>
-                                <Typography gutterBottom variant="h5" component="div">
-                                    AI Workflow Engine
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                   Currently limited public functionality.
-                                </Typography>
-                            </CardContent>
-                            <CardContent>
-                                <Stack direction="row"  sx={{ flex: 1, mt: 2 }}>
-                                    <Button fullWidth variant="contained" onClick={handleSearchRequest} >Search</Button>
-                                </Stack>
-                            </CardContent>
-                        </Card>
+                        <Stack direction="row" spacing={2}>
+                            <Card sx={{ minWidth: 100, maxWidth: 600 }}>
+                                <CardContent>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        Search Augmented LLM Workflow Engine
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Currently limited public functionality. This will allow you to search across many platforms including our own for data, or give the
+                                        AI enough context to build its own workflows that can map-reduce analyze, run devops tasks, or even build apps.
+                                        In the meantime you can email ai@zeus.fyi and it'll summarize your email, and suggest responses.
+                                        When adding many values to a field use comma delimited entries.
+                                    </Typography>
+                                </CardContent>
+                                <CardContent>
+                                    <Stack direction="column" >
+                                        <Box flexGrow={1} sx={{ mb: 2 }}>
+                                            <TextField
+                                                fullWidth
+                                                id="group-input"
+                                                label="Group"
+                                                variant="outlined"
+                                                value={groupFilter}
+                                                onChange={(e) => handleUpdateGroupFilter(e.target.value)}
+                                            />
+                                        </Box>
+                                        <Box flexGrow={1} sx={{ mb: 2 }}>
+                                            <TextField
+                                                fullWidth
+                                                id="usernames-input"
+                                                label="Usernames"
+                                                variant="outlined"
+                                                value={usernames}
+                                                onChange={(e) => handleUpdateSearchUsernames(e.target.value)}
+                                            />
+                                        </Box>
+                                        <Box flexGrow={1} sx={{ mb: 2 }}>
+                                            <TextField
+                                                fullWidth
+                                                id="content-input"
+                                                label="Content"
+                                                variant="outlined"
+                                                value={searchContentText}
+                                                onChange={(e) => handleUpdateSearchContent(e.target.value)}
+                                            />
+                                        </Box>
+                                        <Button fullWidth variant="contained" onClick={handleSearchRequest} >Search</Button>
+                                    </Stack>
+                                </CardContent>
+                            </Card>
+                            <Card sx={{ minWidth: 500, maxWidth: 900 }}>
+                                <CardContent>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        Workflow Instructions
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        This allows you to write natural language instructions to chain to your search queries.
+                                    </Typography>
+                                </CardContent>
+                                <CardContent>
+                                    <Box  sx={{ mb: 2 }}>
+                                        <TextareaAutosize
+                                            minRows={18}
+                                            value={workflowInstructions}
+                                            onChange={(e) => handleUpdateWorkflowInstructions(e.target.value)}
+                                            style={{ resize: "both", width: "100%" }}
+                                        />
+                                    </Box>
+                                    <Button fullWidth variant="contained" onClick={handleSearchRequest} >Analyze Results</Button>
+                                </CardContent>
+                            </Card>
+                        </Stack>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <WorkflowTable loading={loading}/>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
+                                <Tab label="Search" />
+                                <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"  />
+                            </Tabs>
+                        </Box>
+                    </Container>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        { (selectedMainTab === 0) &&
+                            <AiSearchAnalysis />
+                        }
+                        { (selectedMainTab === 1) &&
+                            <WorkflowTable loading={loading}/>
+                        }
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

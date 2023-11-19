@@ -66,7 +66,7 @@ func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, msg Telegram
 		// handle error, maybe return it
 		return 0, err
 	}
-	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, pgtype.JSONB{Bytes: metadataJSON, Status: pgtype.Present}).Scan(&msgID)
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, pgtype.JSONB{Bytes: sanitizeBytesUTF8(metadataJSON), Status: pgtype.Present}).Scan(&msgID)
 	if err == pgx.ErrNoRows {
 		return 0, nil
 	}
@@ -77,5 +77,10 @@ func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, msg Telegram
 }
 func sanitizeUTF8(s string) string {
 	bs := bytes.ReplaceAll([]byte(s), []byte{0}, []byte{})
-	return strings.ToValidUTF8(string(bs), "?")
+	return strings.ToValidUTF8(string(bs), "")
+}
+
+func sanitizeBytesUTF8(b []byte) []byte {
+	bs := bytes.ReplaceAll(b, []byte{0}, []byte{})
+	return bs
 }

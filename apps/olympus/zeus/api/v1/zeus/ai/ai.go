@@ -39,7 +39,7 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 	if ou.OrgID != internalOrgID {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	res, err := hera_search.SearchTelegram(c.Request().Context(), r.AiSearchParams)
+	res, err := hera_search.SearchTelegram(c.Request().Context(), ou, r.AiSearchParams)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}

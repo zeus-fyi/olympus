@@ -18,7 +18,7 @@ func filterSeenTgMsgIds() sql_query_templates.QueryParams {
 	q.QueryName = "filterSeenTgMsgIds"
 
 	q.RawQuery = `INSERT INTO "public"."ai_incoming_telegram_msgs" ("org_id", "user_id", "timestamp", "chat_id", "message_id", "sender_id", "group_name", "message_text", "metadata")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)
 		ON CONFLICT ("chat_id", "message_id")
 		DO UPDATE SET
 			"message_text" = EXCLUDED."message_text"

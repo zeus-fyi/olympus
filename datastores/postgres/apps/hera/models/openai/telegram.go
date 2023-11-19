@@ -66,7 +66,7 @@ func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, msg Telegram
 		// handle error, maybe return it
 		return 0, err
 	}
-	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, pgtype.JSONB{Bytes: sanitizeBytesUTF8(metadataJSON), Status: pgtype.Present}).Scan(&msgID)
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(metadataJSON), Status: pgtype.Present}).Scan(&msgID)
 	if err == pgx.ErrNoRows {
 		return 0, nil
 	}

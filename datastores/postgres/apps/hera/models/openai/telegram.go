@@ -2,6 +2,8 @@ package hera_openai_dbmodels
 
 import (
 	"context"
+	"encoding/json"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -22,10 +24,10 @@ func filterSeenTgMsgIds() sql_query_templates.QueryParams {
 	return q
 }
 
-func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, timestamp, chatID, messageID, senderID int, groupName, msgText string, b []byte) (int, error) {
+func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, timestamp, chatID, messageID, senderID int, groupName, msgText string, b json.RawMessage) (int, error) {
 	q := filterSeenTgMsgIds()
 	var msgID int
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, timestamp, chatID, messageID, senderID, groupName, msgText, b).Scan(&msgID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, timestamp, chatID, messageID, senderID, groupName, msgText, sanitizeJSONRawMessage(b)).Scan(&msgID)
 	if err == pgx.ErrNoRows {
 		return 0, nil
 	}
@@ -33,4 +35,23 @@ func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, timestamp, c
 		return 0, err
 	}
 	return msgID, nil
+}
+
+func sanitizeJSONRawMessage(raw json.RawMessage) json.RawMessage {
+	if utf8.Valid(raw) {
+		return raw // The raw message is already valid UTF-8
+	}
+
+	buf := make([]byte, 0, len(raw))
+	for len(raw) > 0 {
+		r, size := utf8.DecodeRune(raw)
+		if r == utf8.RuneError && size == 1 {
+			// This is an invalid UTF-8 rune, skip it
+			raw = raw[size:]
+			continue
+		}
+		buf = append(buf, raw[:size]...)
+		raw = raw[size:]
+	}
+	return buf
 }

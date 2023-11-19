@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app.kubernetes.io/instance: zeus
+    app.kubernetes.io/managed-by: zeus
+    app.kubernetes.io/name: geth
+    version: version-1668826905618728860
+  name: zeus-geth
+spec:
+  ports:
+  - name: http-rpc
+    port: 8545
+    protocol: TCP
+    targetPort: http-rpc
+  - name: ws-rpc
+    port: 8546
+    protocol: TCP
+    targetPort: ws-rpc
+  - name: hercules
+    port: 9003
+    protocol: TCP
+    targetPort: hercules
+  - name: p2p-udp
+    port: 30303
+    protocol: UDP
+    targetPort: p2p-udp
+  - name: auth-rpc
+    port: 8551
+    protocol: TCP
+    targetPort: auth-rpc
+  - name: p2p-tcp
+    port: 30303
+    protocol: TCP
+    targetPort: p2p-tcp
+  - name: metrics
+    port: 6060
+    protocol: TCP
+    targetPort: metrics
+  selector:
+    app.kubernetes.io/instance: zeus
+    app.kubernetes.io/name: geth
+  type: ClusterIP
+status:
+  loadBalancer: {}

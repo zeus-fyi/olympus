@@ -1,0 +1,208 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  labels:
+    app: zeus-hydra-validators-1
+    app.kubernetes.io/instance: zeus-hydra-validators-1
+    app.kubernetes.io/managed-by: zeus
+    app.kubernetes.io/name: zeus-hydra-validators-1
+  name: zeus-hydra-validators-1
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zeus-hydra-validators-1
+      app.kubernetes.io/instance: zeus-hydra-validators-1
+      app.kubernetes.io/name: zeus-hydra-validators-1
+  serviceName: zeus-hydra-validators-1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: zeus-hydra-validators-1
+        app.kubernetes.io/instance: zeus-hydra-validators-1
+        app.kubernetes.io/name: zeus-hydra-validators-1
+    spec:
+      affinity: {}
+      containers:
+      - args:
+        - -c
+        - /scripts/athena.sh
+        command:
+        - /bin/sh
+        env:
+        - name: BEARER
+          valueFrom:
+            secretKeyRef:
+              key: bearer
+              name: choreography
+        - name: CLOUD_PROVIDER
+          valueFrom:
+            secretKeyRef:
+              key: cloud-provider
+              name: choreography
+        - name: CTX
+          valueFrom:
+            secretKeyRef:
+              key: ctx
+              name: choreography
+        - name: REGION
+          valueFrom:
+            secretKeyRef:
+              key: region
+              name: choreography
+        - name: NS
+          valueFrom:
+            secretKeyRef:
+              key: ns
+              name: choreography
+        - name: AGE_PKEY
+          valueFrom:
+            secretKeyRef:
+              key: age-private-key
+              name: age-auth
+        - name: DO_SPACES_KEY
+          valueFrom:
+            secretKeyRef:
+              key: do-spaces-key
+              name: spaces-key
+        - name: DO_SPACES_PKEY
+          valueFrom:
+            secretKeyRef:
+              key: do-spaces-private-key
+              name: spaces-auth
+        - name: PROTOCOL_NETWORK_ID
+          value: "1673748447294772000"
+        - name: REPLICA_COUNT
+          value: "1"
+        image: registry.digitalocean.com/zeus-fyi/athena:latest
+        imagePullPolicy: Always
+        livenessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 120
+          tcpSocket:
+            port: athena
+        name: athena
+        ports:
+        - containerPort: 9003
+          name: athena
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /scripts
+          name: cm-hydra-validator-client-1
+        - mountPath: /data
+          name: hydra-validator-client-storage-1
+      - args:
+        - -c
+        - /scripts/lighthouseEphemery.sh
+        command:
+        - /bin/sh
+        env:
+        - name: BEARER
+          valueFrom:
+            secretKeyRef:
+              key: bearer
+              name: choreography
+        - name: CLOUD_PROVIDER
+          valueFrom:
+            secretKeyRef:
+              key: cloud-provider
+              name: choreography
+        - name: CTX
+          valueFrom:
+            secretKeyRef:
+              key: ctx
+              name: choreography
+        - name: REGION
+          valueFrom:
+            secretKeyRef:
+              key: region
+              name: choreography
+        - name: NS
+          valueFrom:
+            secretKeyRef:
+              key: ns
+              name: choreography
+        - name: AGE_PKEY
+          valueFrom:
+            secretKeyRef:
+              key: age-private-key
+              name: age-auth
+        - name: DO_SPACES_KEY
+          valueFrom:
+            secretKeyRef:
+              key: do-spaces-key
+              name: spaces-key
+        - name: DO_SPACES_PKEY
+          valueFrom:
+            secretKeyRef:
+              key: do-spaces-private-key
+              name: spaces-auth
+        - name: PROTOCOL_NETWORK_ID
+          value: "1673748447294772000"
+        image: sigp/lighthouse:v3.5.1
+        imagePullPolicy: IfNotPresent
+        name: zeus-hydra-validators
+        ports:
+        - containerPort: 5064
+          name: metrics
+        resources: {}
+        volumeMounts:
+        - mountPath: /scripts
+          name: cm-hydra-validator-client-1
+        - mountPath: /data
+          name: hydra-validator-client-storage-1
+      initContainers:
+      - command:
+        - chown
+        - -R
+        - 10001:10001
+        - /data
+        image: busybox:1.34.0
+        imagePullPolicy: IfNotPresent
+        name: init-chown-data
+        resources: {}
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /data
+          name: hydra-validator-client-storage-1
+      - args:
+        - -c
+        - /scripts/download.sh
+        command:
+        - /bin/sh
+        image: registry.digitalocean.com/zeus-fyi/downloader:latest
+        imagePullPolicy: Always
+        name: init-validators
+        resources: {}
+        volumeMounts:
+        - mountPath: /scripts
+          name: cm-hydra-validator-client-1
+        - mountPath: /data
+          name: hydra-validator-client-storage-1
+      volumes:
+      - configMap:
+          defaultMode: 484
+          name: cm-hydra-validator-client-1
+        name: cm-hydra-validator-client-1
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      creationTimestamp: null
+      name: hydra-validator-client-storage-1
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 4Gi
+    status: {}
+status:
+  availableReplicas: 0
+  replicas: 0

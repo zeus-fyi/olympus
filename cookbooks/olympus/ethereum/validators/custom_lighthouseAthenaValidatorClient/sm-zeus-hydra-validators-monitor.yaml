@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  creationTimestamp: null
+  labels:
+    app: zeus-hydra-validators
+    release: kube-prometheus-stack
+  name: zeus-hydra-validators-monitor
+spec:
+  endpoints:
+  - bearerTokenSecret:
+      key: ""
+    interval: 30s
+    path: /metrics
+    port: metrics
+  namespaceSelector: {}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: zeus-hydra-validators
+      app.kubernetes.io/name: zeus-hydra-validators

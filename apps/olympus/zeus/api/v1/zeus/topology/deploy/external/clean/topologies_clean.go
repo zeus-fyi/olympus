@@ -15,7 +15,11 @@ import (
 func CleanNamespaceAtTopology(c echo.Context, tar zeus_req_types.TopologyDeployRequest) error {
 	log.Debug().Msg("CleanNamespaceAtTopology")
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Err(nil).Msg("CleanNamespaceAtTopology, orgUser not found")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
 	tr.TopologyID = tar.TopologyID
 	err := tr.SelectTopology(ctx)

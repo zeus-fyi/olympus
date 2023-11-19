@@ -108,14 +108,8 @@ func (h *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg her
 	return emailID, nil
 }
 
-func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg TelegramMessage) (int, error) {
-	b, err := json.Marshal(msg.TelegramMetadata)
-	if err != nil {
-		log.Err(err).Msg("InsertTelegramMessageIfNew: Marshal failed")
-		return 0, err
-	}
-	rawMsg := json.RawMessage(b)
-	tgId, err := hera_openai_dbmodels.InsertNewTgMessages(ctx, ou, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, rawMsg)
+func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg hera_openai_dbmodels.TelegramMessage) (int, error) {
+	tgId, err := hera_openai_dbmodels.InsertNewTgMessages(ctx, ou, msg)
 	if err != nil {
 		log.Err(err).Interface("msg", msg).Msg("InsertTelegramMessageIfNew: failed")
 		return 0, err
@@ -165,7 +159,7 @@ func GetTelegramToken(ctx context.Context) (string, error) {
 
 	return token, err
 }
-func GetPandoraMessages(ctx context.Context, groupPrefix string) ([]TelegramMessage, error) {
+func GetPandoraMessages(ctx context.Context, groupPrefix string) ([]hera_openai_dbmodels.TelegramMessage, error) {
 	token, err := GetTelegramToken(ctx)
 	if err != nil {
 		cah.Delete("telegram_token")
@@ -173,7 +167,7 @@ func GetPandoraMessages(ctx context.Context, groupPrefix string) ([]TelegramMess
 		return nil, err
 	}
 
-	var msgs []TelegramMessage
+	var msgs []hera_openai_dbmodels.TelegramMessage
 	apiReq := &iris_api_requests.ApiProxyRequest{
 		Url:             "https://pandora.zeus.fyi",
 		PayloadTypeREST: "POST",

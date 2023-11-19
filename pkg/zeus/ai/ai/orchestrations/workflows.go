@@ -5,6 +5,7 @@ import (
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -34,7 +35,7 @@ const (
 	internalOrgID = 7138983863666903883
 )
 
-func (h *ZeusAiPlatformServiceWorkflows) AiIngestTelegramWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, msgs []TelegramMessage) error {
+func (h *ZeusAiPlatformServiceWorkflows) AiIngestTelegramWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, msgs []hera_openai_dbmodels.TelegramMessage) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout

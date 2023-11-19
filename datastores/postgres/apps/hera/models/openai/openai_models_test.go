@@ -2,7 +2,6 @@ package hera_openai_dbmodels
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/sashabaranov/go-openai"
@@ -56,18 +55,6 @@ func (s *HeraOpenAITestSuite) TestInsertCompletionResponse() {
 	s.Require().Nil(err)
 }
 
-type TestTelegramMetadata struct {
-	IsReply       bool   `json:"is_reply,omitempty"`
-	IsChannel     bool   `json:"is_channel,omitempty"`
-	IsGroup       bool   `json:"is_group,omitempty"`
-	IsPrivate     bool   `json:"is_private,omitempty"`
-	FirstName     string `json:"first_name,omitempty"`
-	LastName      string `json:"last_name,omitempty"`
-	Phone         string `json:"phone,omitempty"`
-	MutualContact bool   `json:"mutual_contact,omitempty"`
-	Username      string `json:"username,omitempty"`
-}
-
 func (s *HeraOpenAITestSuite) TestInsertTelegramMsg() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(context.Background(), s.Tc.LocalDbPgconn)
@@ -75,22 +62,27 @@ func (s *HeraOpenAITestSuite) TestInsertTelegramMsg() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-
-	tm := TestTelegramMetadata{
-		IsReply:       false,
-		IsChannel:     false,
-		IsGroup:       false,
-		IsPrivate:     false,
-		FirstName:     "fir",
-		LastName:      "sdf",
-		Phone:         "6267282",
-		MutualContact: false,
-		Username:      "sadfuoasd",
+	tm := TelegramMessage{
+		Timestamp:   222,
+		GroupName:   "sdf",
+		SenderID:    0,
+		MessageText: "dsfdsfds",
+		ChatID:      111,
+		MessageID:   1111,
+		TelegramMetadata: TelegramMetadata{
+			IsReply:       false,
+			IsChannel:     false,
+			IsGroup:       false,
+			IsPrivate:     false,
+			FirstName:     "fir",
+			LastName:      "sdf",
+			Phone:         "6267282",
+			MutualContact: false,
+			Username:      "sadfuoasd",
+		},
 	}
-	b, err := json.Marshal(tm)
-	s.Require().Nil(err)
 
-	re, err := InsertNewTgMessages(ctx, ou, 1586839808, 123456789, 123456789, 123456789, "test", "testsdfsd", b)
+	re, err := InsertNewTgMessages(ctx, ou, tm)
 	s.Require().Nil(err)
 	s.Assert().NotZero(re)
 }

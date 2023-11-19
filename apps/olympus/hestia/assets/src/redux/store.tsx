@@ -8,6 +8,7 @@ import resourcesReducer from "./resources/resources.reducer";
 import sessionReducer from "./auth/session.reducer";
 import loadbalancingReducer from "./loadbalancing/loadbalancing.reducer";
 import mevReducer from "./mev/mev.reducer";
+import aiReducer from "./ai/ai.reducer";
 
 const rootReducer = combineReducers({
     sessionState: sessionReducer,
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
     awsCredentials: awsCredentialsReducer,
     validatorSecrets: validatorSecretsReducer,
     billing: billingReducer,
+    ai: aiReducer,
 });
 
 const store = configureStore({

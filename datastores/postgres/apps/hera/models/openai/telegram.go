@@ -1,8 +1,12 @@
 package hera_openai_dbmodels
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"strings"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -44,10 +48,25 @@ type TelegramMetadata struct {
 	Username      string `json:"username,omitempty"`
 }
 
+func (t *TelegramMetadata) Sanitize() {
+	t.FirstName = sanitizeUTF8(t.FirstName)
+	t.LastName = sanitizeUTF8(t.LastName)
+	t.Phone = sanitizeUTF8(t.Phone)
+	t.Username = sanitizeUTF8(t.Username)
+}
 func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, msg TelegramMessage) (int, error) {
 	q := filterSeenTgMsgIds()
 	var msgID int
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, msg.TelegramMetadata).Scan(&msgID)
+	msg.TelegramMetadata.Sanitize()
+	msg.GroupName = sanitizeUTF8(msg.GroupName)
+	msg.MessageText = sanitizeUTF8(msg.MessageText)
+
+	metadataJSON, err := json.Marshal(msg.TelegramMetadata)
+	if err != nil {
+		// handle error, maybe return it
+		return 0, err
+	}
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, msg.Timestamp, msg.ChatID, msg.MessageID, msg.SenderID, msg.GroupName, msg.MessageText, pgtype.JSONB{Bytes: metadataJSON, Status: pgtype.Present}).Scan(&msgID)
 	if err == pgx.ErrNoRows {
 		return 0, nil
 	}
@@ -55,4 +74,8 @@ func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, msg Telegram
 		return 0, err
 	}
 	return msgID, nil
+}
+func sanitizeUTF8(s string) string {
+	bs := bytes.ReplaceAll([]byte(s), []byte{0}, []byte{})
+	return strings.ToValidUTF8(string(bs), "?")
 }

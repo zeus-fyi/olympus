@@ -64,9 +64,9 @@ func (s *HeraOpenAITestSuite) TestInsertTelegramMsg() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	tm := TelegramMessage{
 		Timestamp:   222,
-		GroupName:   "sdf",
+		GroupName:   "sdf\u0000Test",
 		SenderID:    0,
-		MessageText: "dsfdsfds",
+		MessageText: "dsfdsfds\u0000Test",
 		ChatID:      111,
 		MessageID:   1111,
 		TelegramMetadata: TelegramMetadata{
@@ -74,11 +74,11 @@ func (s *HeraOpenAITestSuite) TestInsertTelegramMsg() {
 			IsChannel:     false,
 			IsGroup:       false,
 			IsPrivate:     false,
-			FirstName:     "fir",
-			LastName:      "sdf",
-			Phone:         "6267282",
+			FirstName:     "fir\u0000Test",
+			LastName:      "sdf\u0000Test",
+			Phone:         "6267282\u0000Test",
 			MutualContact: false,
-			Username:      "sadfuoasd",
+			Username:      "sadfuoasd\u0000Test",
 		},
 	}
 

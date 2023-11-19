@@ -22,6 +22,13 @@ func (s *SearchAITestSuite) TestSelectTelegramResults() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
+	sp := AiSearchParams{
+		GroupFilter: "Ze",
+	}
+	res, err := SearchTelegram(ctx, ou, sp)
+	s.Require().Nil(err)
+	s.Assert().NotZero(res)
+
 }
 
 func TestSearchAITestSuite(t *testing.T) {

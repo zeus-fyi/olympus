@@ -1,6 +1,7 @@
 import os
 from datetime import timezone
 
+import tiktoken
 from flask import Flask, jsonify, request
 from telethon import TelegramClient
 
@@ -20,7 +21,8 @@ SESSION = 'session_name'
 API_ID = int(os.environ['TELEGRAM_API_ID'])
 API_HASH = os.environ['TELEGRAM_API_HASH']
 
-async def start_client(token_in, group):
+
+async def start_client(token_in, group, limit=50):
     client = TelegramClient('session_name', API_ID, API_HASH)
     await client.start(phone=lambda: get_number(), code_callback=lambda: token_in)
     await client.connect()
@@ -28,7 +30,7 @@ async def start_client(token_in, group):
     async for dialog in client.iter_dialogs():
         if dialog.is_group and str.startswith(dialog.name, group):
             print(f'Group name: {dialog.name}')
-            messages = await client.get_messages(dialog, limit=50)
+            messages = await client.get_messages(dialog, limit=limit)
             for message in messages:
                 if message.text is None or message.text == '':
                     continue
@@ -64,7 +66,24 @@ async def initialize_telegram_client_endpoint():
     group = request.json.get('group')
     if not group:
         return jsonify({'error': 'Group is required'}), 400
-    return await start_client(token, group)
+    limit = request.json.get('limit')
+    if not limit:
+        limit = 50
+    return await start_client(token, group, limit)
+
+
+@app.route('/tokenize', methods=['POST', 'OPTIONS'])
+def token_count():
+    try:
+        text = request.get_json().get('text')
+        model = request.json.get('model')
+        if not model:
+            model = 'gpt-4'
+        encoding = tiktoken.encoding_for_model(model)
+        count = len(encoding.encode(text))
+        return jsonify({'count': count}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':

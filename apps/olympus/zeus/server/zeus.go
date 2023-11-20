@@ -121,11 +121,10 @@ func Zeus() {
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
-		//_, err := hera_twitter.InitTwitterClient(ctx,
-		//	tc.TwitterConsumerPublicAPIKey, tc.TwitterConsumerSecretAPIKey,
-		//	tc.TwitterAccessToken, tc.TwitterAccessTokenSecret,
-		//)
-
+		_, err = hera_twitter.InitTwitterClient(ctx,
+			sw.TwitterConsumerPublicAPIKey, sw.TwitterConsumerSecretAPIKey,
+			sw.TwitterAccessToken, sw.TwitterAccessTokenSecret,
+		)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Zeus: InitTwitterClient failed")
 			misc.DelayedPanic(err)

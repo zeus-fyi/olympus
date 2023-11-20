@@ -7,7 +7,7 @@ on:
       - apps/pandora/**
     branches:
       - main
-      - dev
+      - ai-dev
 
 permissions:
   contents: read

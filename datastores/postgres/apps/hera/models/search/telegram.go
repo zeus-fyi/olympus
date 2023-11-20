@@ -1,9 +1,10 @@
-package hera_openai_dbmodels
+package hera_search
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/jackc/pgtype"
@@ -34,6 +35,21 @@ type TelegramMessage struct {
 	ChatID      int    `json:"chat_id"`
 	MessageID   int    `json:"message_id"`
 	TelegramMetadata
+}
+
+func FormatTgMessagesForAi(results []SearchResult) string {
+	var builder strings.Builder
+	for _, result := range results {
+		line := fmt.Sprintf("%s | %s \n",
+			escapeString(result.Metadata.Username),
+			escapeString(result.Value))
+		builder.WriteString(line)
+	}
+	return builder.String()
+}
+
+func escapeString(s string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(s, "\\u003c", "<"), "\\u003e", ">")
 }
 
 type TelegramMetadata struct {

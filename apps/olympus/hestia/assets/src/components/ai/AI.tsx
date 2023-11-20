@@ -33,6 +33,8 @@ import {
 import {aiApiGateway} from "../../gateway/ai";
 
 const mdTheme = createTheme();
+const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
+const analysisDone = "====================================================================================ANALYSIS-DONE===============================================================================\n"
 
 function AiWorkflowsDashboardContent(props: any) {
     const [open, setOpen] = useState(true);
@@ -96,6 +98,28 @@ function AiWorkflowsDashboardContent(props: any) {
         }
     }
 
+    const handleSearchAnalyzeRequest = async () => {
+        try {
+            setIsLoading(true)
+            const response = await aiApiGateway.analyzeSearchRequest({
+                'searchContentText': searchContentText,
+                'groupFilter': groupFilter,
+                'usernames': usernames,
+                'workflowInstructions': workflowInstructions,
+            });
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                const data = response.data;
+                dispatch(setSearchResults(data));
+                setCode(analysisStart + data+ analysisDone + code)
+            } else {
+                console.log('Failed to search', response);
+            }
+        } catch (e) {
+        } finally {
+            setIsLoading(false);
+        }
+    }
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -103,7 +127,9 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
     };
-
+    const onChangeText = (textInput: string) => {
+        setCode(textInput);
+    };
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -242,7 +268,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                             style={{ resize: "both", width: "100%" }}
                                         />
                                     </Box>
-                                    <Button fullWidth variant="contained" onClick={handleSearchRequest} >Analyze Results</Button>
+                                    <Button fullWidth variant="contained" onClick={handleSearchAnalyzeRequest} >Analyze Results</Button>
                                 </CardContent>
                             </Card>
                         </Stack>
@@ -257,7 +283,7 @@ function AiWorkflowsDashboardContent(props: any) {
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         { (selectedMainTab === 0) &&
-                            <AiSearchAnalysis code={code} />
+                            <AiSearchAnalysis code={code} onChange={onChangeText} />
                         }
                         { (selectedMainTab === 1) &&
                             <WorkflowTable loading={loading}/>

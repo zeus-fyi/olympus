@@ -1,6 +1,8 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
+
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
@@ -26,4 +28,12 @@ func (t *ZeusWorkerTestSuite) TestTgWorkflow() {
 		_, err = za.InsertTelegramMessageIfNew(ctx, ou, msg)
 		t.Require().Nil(err)
 	}
+}
+
+func (t *ZeusWorkerTestSuite) TestTokenize() {
+	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalTemporalBearerToken
+	tc, err := GetTokenCountEstimate(ctx, "The OpenAI Cookbook is a community-driven resource. Whether you're submitting an idea, fixing a typo, adding a new guide, or improving an existing one, your contributions are greatly appreciated!")
+	t.Require().Nil(err)
+	t.Require().NotZero(tc)
+	fmt.Println(tc)
 }

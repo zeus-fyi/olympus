@@ -24,7 +24,6 @@ import {heraApiGateway} from "../../gateway/hera";
 
 const mdTheme = createTheme();
 
-
 export function ChatGPTPage() {
     const [code, setCode] = useState('');
     const [tokenEstimate, setTokenEstimate] = useState(0);

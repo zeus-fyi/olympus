@@ -5,7 +5,7 @@ import (
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
+	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"

@@ -44,9 +44,19 @@ const (
 
 	awsS3ReaderAccessKey = "secrets/aws.s3.reader.access.key.txt"
 	awsS3ReaderSecretKey = "secrets/aws.s3.reader.secret.key.txt"
+
+	twitterConsumerPublicAPIKey = "secrets/twitter.consumer.public.api.key.txt"
+	twitterConsumerSecretAPIKey = "secrets/twitter.consumer.secret.api.key.txt"
+	twitterAccessToken          = "secrets/twitter.access.token.txt"
+	twitterAccessTokenSecret    = "secrets/twitter.access.secret.token.txt"
 )
 
 type SecretsWrapper struct {
+	TwitterConsumerPublicAPIKey string
+	TwitterConsumerSecretAPIKey string
+	TwitterAccessToken          string
+	TwitterAccessTokenSecret    string
+
 	OvhAppKey              string
 	OvhSecretKey           string
 	OvhConsumerKey         string

@@ -1,8 +1,10 @@
 package hera_openai_dbmodels
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
@@ -29,6 +31,10 @@ func insertCompletionResp() sql_query_templates.QueryParams {
 	`
 	return q
 }
+func sanitizeUTF8(s string) string {
+	bs := bytes.ReplaceAll([]byte(s), []byte{0}, []byte{})
+	return strings.ToValidUTF8(string(bs), "")
+}
 
 const Sn = "OpenAI"
 
@@ -36,7 +42,7 @@ func InsertCompletionResponseChatGpt(ctx context.Context, ou org_users.OrgUser, 
 	q := insertCompletionResp()
 	completionChoices, err := json.Marshal(response.Choices)
 	if err != nil {
-		log.Ctx(ctx).Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
+		log.Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
 		return err
 	}
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
@@ -54,13 +60,13 @@ func InsertCompletionResponse(ctx context.Context, ou org_users.OrgUser, respons
 	q := insertCompletionResp()
 	completionChoices, err := json.Marshal(response.Choices)
 	if err != nil {
-		log.Ctx(ctx).Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
+		log.Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
 		return err
 	}
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	r, err := apps.Pg.Exec(ctx, q.RawQuery, ou.OrgID, ou.UserID, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, response.Model, completionChoices)
 	if err != nil {
-		log.Ctx(ctx).Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
+		log.Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
 		return err
 	}
 	rowsAffected := r.RowsAffected()

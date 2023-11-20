@@ -13,6 +13,8 @@ import (
 	twitter2 "github.com/cvcio/twitter"
 	"github.com/g8rswimmer/go-twitter/v2"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -25,10 +27,10 @@ type TwitterTestSuite struct {
 
 func (s *TwitterTestSuite) SetupTest() {
 	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	tw, err := InitTwitterClient(ctx,
 		s.Tc.TwitterConsumerPublicAPIKey, s.Tc.TwitterConsumerSecretAPIKey,
 		s.Tc.TwitterAccessToken, s.Tc.TwitterAccessTokenSecret,
-		s.Tc.TwitterBearerToken,
 	)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tw.V1Client)
@@ -37,11 +39,13 @@ func (s *TwitterTestSuite) SetupTest() {
 
 func (s *TwitterTestSuite) TestTweetTopicSearchV2() {
 	vals := url.Values{}
-	query := `(("Kubernetes" OR "k8s" OR "kube") ("mlops" OR "migrating to" OR "suggest" OR "suggestion" OR "complexity") -horrible -worst -sucks -bad -disappointing -frustrated -confused -angry)`
+	query := `(("Kubernetes" OR "k8s" OR "#kube" OR "container orchestration") -is:retweet (has:links OR has:media OR has:mentions) (lang:en))`
+	//query := `(("Kubernetes" OR "k8s" OR "kube") ("mlops" OR "migrating to" OR "suggest" OR "suggestion" OR "complexity") -horrible -worst -sucks -bad -disappointing -frustrated -confused -angry)`
 	//query := `(("Kubernetes" OR "k8s" OR "kube") ("mlops" OR "gpu" OR "gpu sharing" OR "gpu management" OR "cost efficient") -horrible -worst -sucks -bad -disappointing -frustrated -confused -angry)`
 
 	vals.Set("query", query)
 	vals.Set("max_results", "10")
+	vals.Set("since_id", "1726707774195728627")
 
 	//urlWithParams := "https://api.twitter.com/2/tweets/search/recent?" + vals.Encode()
 	//
@@ -81,6 +85,10 @@ func (s *TwitterTestSuite) TestTweetTopicSearchV2() {
 	for _, tweet := range data {
 		fmt.Printf("TweetID %s: AuthorID %s, Text: %s \n", tweet.ID, tweet.AuthorID, tweet.Text)
 	}
+
+	resp, err := hera_search.InsertIncomingTweets(ctx, 1700514815519783000, data)
+	s.Require().NoError(err)
+	s.Assert().NotEmpty(resp)
 }
 
 func (s *TwitterTestSuite) TestTweetResponse() {
@@ -132,3 +140,9 @@ func (s *TwitterTestSuite) TestReadUserTweets() {
 func TestTwitterTestSuite(t *testing.T) {
 	suite.Run(t, new(TwitterTestSuite))
 }
+
+/*
+
+query := `(("Kubernetes" OR "k8s" OR "#kube" OR "container orchestration") -is:retweet (has:links OR has:media OR has:mentions) (lang:en OR lang:es))`
+id
+*/

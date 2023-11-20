@@ -36,5 +36,10 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	sw.SecretsManagerAuthAWS.AccessKey = sw.MustReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)
 	sw.SecretsManagerAuthAWS.SecretKey = sw.MustReadSecret(ctx, inMemSecrets, secretsManagerSecretKey)
 	InitAtlassianKeys(ctx, inMemSecrets, &sw)
+
+	sw.TwitterConsumerPublicAPIKey = sw.MustReadSecret(ctx, inMemSecrets, twitterConsumerPublicAPIKey)
+	sw.TwitterConsumerSecretAPIKey = sw.MustReadSecret(ctx, inMemSecrets, twitterConsumerSecretAPIKey)
+	sw.TwitterAccessToken = sw.MustReadSecret(ctx, inMemSecrets, twitterAccessToken)
+	sw.TwitterAccessTokenSecret = sw.MustReadSecret(ctx, inMemSecrets, twitterAccessTokenSecret)
 	return inMemSecrets, sw
 }

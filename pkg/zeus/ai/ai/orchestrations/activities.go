@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cvcio/twitter"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	hera_twitter "github.com/zeus-fyi/olympus/pkg/hera/twitter"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 )
@@ -30,6 +32,7 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	ka := kronos_helix.NewKronosActivities()
 	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew,
 		h.InsertAiResponse, h.InsertTelegramMessageIfNew,
+		h.InsertIncomingTweetsFromSearch, h.SearchTwitterUsingQuery, h.SelectTwitterSearchQuery,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -124,4 +127,34 @@ func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg her
 		return 0, err
 	}
 	return emailID, nil
+}
+
+func (h *ZeusAiPlatformActivities) SelectTwitterSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.TwitterSearchQuery, error) {
+	sq, err := hera_search.SelectTwitterSearchQuery(ctx, ou, groupName)
+	if err != nil {
+		log.Err(err).Msg("SelectTwitterSearchQuery")
+		return nil, err
+	}
+	if sq == nil {
+		return nil, fmt.Errorf("SelectTwitterSearchQuery: sq is nil")
+	}
+	return sq, nil
+}
+
+func (h *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, sp *hera_search.TwitterSearchQuery) ([]*twitter.Tweet, error) {
+	tweets, err := hera_twitter.TwitterClient.GetTweets(ctx, sp.Query, sp.MaxResults, sp.MaxTweetID)
+	if err != nil {
+		log.Err(err).Msg("SearchTwitterUsingQuery")
+		return nil, err
+	}
+	return tweets, nil
+}
+
+func (h *ZeusAiPlatformActivities) InsertIncomingTweetsFromSearch(ctx context.Context, searchID int, tweets []*twitter.Tweet) error {
+	_, err := hera_search.InsertIncomingTweets(ctx, searchID, tweets)
+	if err != nil {
+		log.Err(err).Msg("InsertIncomingTweetsFromSearch")
+		return err
+	}
+	return nil
 }

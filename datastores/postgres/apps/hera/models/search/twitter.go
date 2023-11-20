@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	twitter2 "github.com/cvcio/twitter"
+	"github.com/jackc/pgx/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -36,22 +38,32 @@ func InsertTwitterSearchQuery(ctx context.Context, ou org_users.OrgUser, searchG
 func selectTwitterSearchQuery() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "selectTwitterSearchQuery"
-	q.RawQuery = `SELECT search_id, query, max_results
-				  FROM ai_twitter_search_query 
-				  WHERE org_id = $1 AND user_id = $2 AND search_group_name = $3;`
+	q.RawQuery = `
+        SELECT sq.search_id, sq.query, sq.max_results, COALESCE(MAX(it.tweet_id), 0) AS max_tweet_id
+        FROM public.ai_twitter_search_query sq
+        LEFT JOIN public.ai_incoming_tweets it ON sq.search_id = it.search_id
+        WHERE sq.org_id = $1 AND sq.user_id = $2 AND sq.search_group_name = $3
+        GROUP BY sq.search_id, sq.query, sq.max_results;
+    `
 	return q
 }
 
-func SelectTwitterSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) (int, string, int, error) {
+type TwitterSearchQuery struct {
+	SearchID   int    `json:"search_id"`
+	Query      string `json:"query"`
+	MaxResults int    `json:"max_results"`
+	MaxTweetID int    `json:"max_tweet_id"`
+}
+
+func SelectTwitterSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) (*TwitterSearchQuery, error) {
 	queryTemplate := selectTwitterSearchQuery()
-	var searchID int
-	var maxResults int
-	var query string
-	err := apps.Pg.QueryRowWArgs(ctx, queryTemplate.RawQuery, ou.OrgID, ou.UserID, searchGroupName).Scan(&searchID, &query, &maxResults)
+	ts := &TwitterSearchQuery{}
+	err := apps.Pg.QueryRowWArgs(ctx, queryTemplate.RawQuery, ou.OrgID, ou.UserID, searchGroupName).Scan(&ts.SearchID, &ts.Query, &ts.MaxResults, &ts.MaxTweetID)
 	if err != nil {
-		return 0, query, maxResults, err
+		log.Err(err).Msg("SelectTwitterSearchQuery")
+		return nil, err
 	}
-	return searchID, query, maxResults, err
+	return ts, err
 }
 
 func insertIncomingTweets() sql_query_templates.QueryParams {
@@ -98,6 +110,9 @@ func InsertIncomingTweets(ctx context.Context, searchID int, tweets []*twitter2.
 	}
 
 	err = tx.Commit(ctx)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}

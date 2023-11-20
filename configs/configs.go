@@ -241,6 +241,9 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.HardhatNode = viper.GetString("HARDHAT_NODE_URL")
 	testCont.TwitterAccessToken = viper.GetString("TWITTER_ACCESS_TOKEN_KEY")
 	testCont.TwitterAccessTokenSecret = viper.GetString("TWITTER_ACCESS_TOKEN_SECRET_KEY")
+	testCont.TwitterBearerToken = viper.GetString("TWITTER_BEARER_TOKEN")
+	testCont.TwitterConsumerPublicAPIKey = viper.GetString("TWITTER_PUBLIC_API_KEY")
+	testCont.TwitterConsumerSecretAPIKey = viper.GetString("TWITTER_SECRET_API_KEY")
 
 	testCont.ZeroXApiKey = viper.GetString("ZERO_X_API_KEY")
 	testCont.QuikNodeLiveNode = viper.GetString("QUIKNODE_LIVE_NODE_URL")
@@ -249,9 +252,7 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.OvhConsumerKey = viper.GetString("OVH_CONSUMER_KEY")
 	testCont.QuikNodeStreamWsNode = viper.GetString("QUIKNODE_STREAM_WS_URL")
 	testCont.InfraCostAPIKey = viper.GetString("INFRA_COST_API_KEY")
-	testCont.TwitterBearerToken = viper.GetString("TWITTER_BEARER_TOKEN")
-	testCont.TwitterConsumerPublicAPIKey = viper.GetString("TWITTER_PUBLIC_API_KEY")
-	testCont.TwitterConsumerSecretAPIKey = viper.GetString("TWITTER_SECRET_API_KEY")
+
 	testCont.RedditUsername = viper.GetString("REDDIT_USERNAME")
 	testCont.RedditPassword = viper.GetString("REDDIT_PASSWORD")
 	testCont.RedditPublicOAuth2 = viper.GetString("REDDIT_PUBLIC_OAUTH2")

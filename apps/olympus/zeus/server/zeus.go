@@ -17,6 +17,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	hera_twitter "github.com/zeus-fyi/olympus/pkg/hera/twitter"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -120,6 +121,15 @@ func Zeus() {
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
+		//_, err := hera_twitter.InitTwitterClient(ctx,
+		//	tc.TwitterConsumerPublicAPIKey, tc.TwitterConsumerSecretAPIKey,
+		//	tc.TwitterAccessToken, tc.TwitterAccessTokenSecret,
+		//)
+
+		if err != nil {
+			log.Fatal().Err(err).Msg("Zeus: InitTwitterClient failed")
+			misc.DelayedPanic(err)
+		}
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -141,6 +151,14 @@ func Zeus() {
 		topology_auths.K8Util = cfg.K8sUtil
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
+		_, err := hera_twitter.InitTwitterClient(ctx,
+			tc.TwitterConsumerPublicAPIKey, tc.TwitterConsumerSecretAPIKey,
+			tc.TwitterAccessToken, tc.TwitterAccessTokenSecret,
+		)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Zeus: InitTwitterClient failed")
+			misc.DelayedPanic(err)
+		}
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -166,6 +184,14 @@ func Zeus() {
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 		topology_auths.K8Util = cfg.K8sUtil
+		_, err := hera_twitter.InitTwitterClient(ctx,
+			tc.TwitterConsumerPublicAPIKey, tc.TwitterConsumerSecretAPIKey,
+			tc.TwitterAccessToken, tc.TwitterAccessTokenSecret,
+		)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Zeus: InitTwitterClient failed")
+			misc.DelayedPanic(err)
+		}
 	}
 
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)

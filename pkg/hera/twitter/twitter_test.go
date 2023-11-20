@@ -31,7 +31,6 @@ func (s *TwitterTestSuite) SetupTest() {
 	tw, err := InitTwitterClient(ctx,
 		s.Tc.TwitterConsumerPublicAPIKey, s.Tc.TwitterConsumerSecretAPIKey,
 		s.Tc.TwitterAccessToken, s.Tc.TwitterAccessTokenSecret,
-		s.Tc.TwitterBearerToken,
 	)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tw.V1Client)
@@ -90,7 +89,6 @@ func (s *TwitterTestSuite) TestTweetTopicSearchV2() {
 	resp, err := hera_search.InsertIncomingTweets(ctx, 1700514815519783000, data)
 	s.Require().NoError(err)
 	s.Assert().NotEmpty(resp)
-
 }
 
 func (s *TwitterTestSuite) TestTweetResponse() {

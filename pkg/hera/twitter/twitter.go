@@ -2,10 +2,14 @@ package hera_twitter
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/cvcio/twitter"
+	twitter2 "github.com/cvcio/twitter"
 	twitter_auth "github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	v2twitter "github.com/g8rswimmer/go-twitter/v2"
@@ -35,7 +39,9 @@ func (a authorize) Add(req *http.Request) {
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", a.Token))
 }
 
-func InitTwitterClient(ctx context.Context, consumerKey, consumerSecret, accessToken, accessSecret, bearer string) (Twitter, error) {
+var TwitterClient Twitter
+
+func InitTwitterClient(ctx context.Context, consumerKey, consumerSecret, accessToken, accessSecret string) (Twitter, error) {
 	config := oauth1.NewConfig(consumerKey, consumerSecret)
 	token := oauth1.NewToken(accessToken, accessSecret)
 	httpClient := config.Client(ctx, token)
@@ -57,5 +63,47 @@ func InitTwitterClient(ctx context.Context, consumerKey, consumerSecret, accessT
 		Client: httpClient,
 		Host:   "https://api.twitter.com",
 	}
+	TwitterClient = Twitter{V1Client: client, V2Client: api, V2alt: v2C}
 	return Twitter{V1Client: client, V2Client: api, V2alt: v2C}, err
+}
+
+func (tc *Twitter) GetTweets(ctx context.Context, query string, maxResults, maxTweetID int) ([]*twitter2.Tweet, error) {
+	vals := url.Values{}
+	vals.Set("query", query)
+	vals.Set("max_results", fmt.Sprintf("%d", maxResults))
+	vals.Set("since_id", fmt.Sprintf("%d", maxTweetID))
+
+	resChan, errChan := tc.V2Client.GetTweetsSearchRecent(vals, twitter2.WithAuto(false))
+
+	// Handle channels and timeout
+	var response *twitter2.Data
+	timeout := 10 * time.Second
+	var data []*twitter2.Tweet
+
+	select {
+	case res := <-resChan:
+		response = res
+		b, err := json.Marshal(response.Data)
+		if err != nil {
+			log.Err(err).Msg("error marshalling response data")
+			return nil, err
+		}
+		err = json.Unmarshal(b, &data)
+		if err != nil {
+			log.Err(err).Msg("error marshalling response data")
+			return nil, err
+		}
+	case err := <-errChan:
+		if err != nil {
+			log.Err(err).Msg("error marshalling response data")
+			return nil, err
+		}
+	case <-time.After(timeout):
+		err := fmt.Errorf("error: Request timed out.")
+		if err != nil {
+			log.Err(err).Msg("error marshalling response data")
+			return nil, err
+		}
+	}
+	return data, nil
 }

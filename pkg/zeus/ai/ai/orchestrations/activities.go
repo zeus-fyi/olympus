@@ -181,14 +181,44 @@ func GetPandoraMessages(ctx context.Context, groupPrefix string) ([]hera_openai_
 	res := resty_base.GetBaseRestyClient(apiReq.Url, artemis_orchestration_auth.Bearer)
 	resp, err := res.R().SetBody(&apiReq.Payload).SetResult(&msgs).Post("msgs")
 	if err != nil {
-		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
+		log.Err(err).Msg("Zeus: GetPandoraMessages")
 		return nil, err
 	}
 	if resp != nil && resp.StatusCode() >= 400 {
 		if err != nil {
-			err = fmt.Errorf("Zeus: CreateAIServiceTaskRequestHandler: failed to relay api request: status code %d", resp.StatusCode())
+			err = fmt.Errorf("Zeus: GetPandoraMessages: failed to relay api request: status code %d", resp.StatusCode())
 		}
 		return nil, err
 	}
 	return msgs, nil
+}
+
+type TokenCountsEstimate struct {
+	Count int `json:"count"`
+}
+
+func GetTokenCountEstimate(ctx context.Context, text string) (int, error) {
+	var tc TokenCountsEstimate
+	apiReq := &iris_api_requests.ApiProxyRequest{
+		Url:             "https://pandora.zeus.fyi",
+		PayloadTypeREST: "POST",
+		Payload: echo.Map{
+			"text": text,
+		},
+		IsInternal: true,
+	}
+
+	res := resty_base.GetBaseRestyClient(apiReq.Url, artemis_orchestration_auth.Bearer)
+	resp, err := res.R().SetBody(&apiReq.Payload).SetResult(&tc).Post("tokenize")
+	if err != nil {
+		log.Err(err).Msg("Zeus: GetTokenCountEstimate")
+		return 0, err
+	}
+	if resp != nil && resp.StatusCode() >= 400 {
+		if err != nil {
+			err = fmt.Errorf("Zeus: GetTokenCountEstimate: failed to relay api request: status code %d", resp.StatusCode())
+		}
+		return 0, err
+	}
+	return tc.Count, nil
 }

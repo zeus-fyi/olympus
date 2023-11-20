@@ -12,9 +12,7 @@ import ChatGPTPageText from "../chatgpt/ChatGPT";
 const mdTheme = createTheme();
 
 export function AiSearchAnalysis(props: any) {
-    const {onClickSubmit, code, setCode} = props;
-
-    console.log('code', code)
+    const {onClickSubmit, code, onChange} = props;
     const [tokenEstimate, setTokenEstimate] = useState(0);
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
@@ -24,6 +22,8 @@ export function AiSearchAnalysis(props: any) {
     const handleLanguageChange = (event: any) => {
         setLanguage(event.target.value);
     };
+
+
     let navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -64,15 +64,10 @@ export function AiSearchAnalysis(props: any) {
             break;
     }
 
-    const onChange = async (textInput: string) => {
-        setCode(textInput);
-        // const tokenCount = await heraApiGateway.getTokenCountEstimate(textInput);
-        // setTokenEstimate(tokenCount);
-    };
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
-                {<ChatGPTPageText code={code} setCode={setCode} language={language} onChange={onChange}/>}
+                {<ChatGPTPageText code={code} language={language} onChange={onChange}/>}
             </Box>
         </ThemeProvider>
     );

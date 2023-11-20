@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_access_keygen "github.com/zeus-fyi/olympus/hestia/web/access"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
@@ -41,6 +42,14 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
+
+/*
+Model	Input	Output
+gpt-4-1106-preview	$0.01 / 1K tokens	$0.03 / 1K tokens
+
+max tokens out 4,096 output tokens
+
+*/
 
 func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {
 	//task := "write a bullet point summary of the email contents and suggest some responses if applicable. write your reply as html formatted\n"
@@ -108,8 +117,8 @@ func (h *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg her
 	return emailID, nil
 }
 
-func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg hera_openai_dbmodels.TelegramMessage) (int, error) {
-	tgId, err := hera_openai_dbmodels.InsertNewTgMessages(ctx, ou, msg)
+func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg hera_search.TelegramMessage) (int, error) {
+	tgId, err := hera_search.InsertNewTgMessages(ctx, ou, msg)
 	if err != nil {
 		log.Err(err).Interface("msg", msg).Msg("InsertTelegramMessageIfNew: failed")
 		return 0, err
@@ -159,7 +168,7 @@ func GetTelegramToken(ctx context.Context) (string, error) {
 
 	return token, err
 }
-func GetPandoraMessages(ctx context.Context, groupPrefix string) ([]hera_openai_dbmodels.TelegramMessage, error) {
+func GetPandoraMessages(ctx context.Context, groupPrefix string) ([]hera_search.TelegramMessage, error) {
 	token, err := GetTelegramToken(ctx)
 	if err != nil {
 		cah.Delete("telegram_token")
@@ -167,7 +176,7 @@ func GetPandoraMessages(ctx context.Context, groupPrefix string) ([]hera_openai_
 		return nil, err
 	}
 
-	var msgs []hera_openai_dbmodels.TelegramMessage
+	var msgs []hera_search.TelegramMessage
 	apiReq := &iris_api_requests.ApiProxyRequest{
 		Url:             "https://pandora.zeus.fyi",
 		PayloadTypeREST: "POST",
@@ -221,4 +230,43 @@ func GetTokenCountEstimate(ctx context.Context, text string) (int, error) {
 		return 0, err
 	}
 	return tc.Count, nil
+}
+
+func AiTelegramTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_search.SearchResult, params hera_search.AiSearchParams) (openai.ChatCompletionResponse, error) {
+	systemMessage := openai.ChatCompletionMessage{
+		Role: openai.ChatMessageRoleSystem,
+		Content: "You are a helpful sales bot that reads telegram messages and analyzes them for products, services," +
+			" or sales related questions and then summarizes and groups the users and predicts which users which need " +
+			"to be persuaded more and ranks them by importance. You then generate customer profiles with best effort, " +
+			"and predicts which pain points are more relevant, and which talking points aren't interesting or relevant, " +
+			"or are confusing and then suggest well thought out next steps the sales team should take. " +
+			"You aren't overly formal or stiff in tone",
+		Name: fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+	}
+	if len(params.WorkflowInstructions) > 0 {
+		systemMessage.Content = params.WorkflowInstructions
+	}
+	output := hera_search.FormatTgMessagesForAi(msgs)
+	tc, err := GetTokenCountEstimate(ctx, output)
+	if err != nil {
+		return openai.ChatCompletionResponse{}, err
+	}
+	if tc > 10000 {
+		return openai.ChatCompletionResponse{}, fmt.Errorf("token count too high: %d", tc)
+	}
+	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model: "gpt-4-1106-preview",
+			Messages: []openai.ChatCompletionMessage{
+				systemMessage,
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: output,
+					Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+				},
+			},
+		},
+	)
+	return resp, err
 }

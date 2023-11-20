@@ -2,10 +2,11 @@ package hera_search
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -19,11 +20,11 @@ type AiSearchParams struct {
 }
 
 type SearchResult struct {
-	UnixTimestamp int                                   `json:"unixTimestamp"`
-	Source        string                                `json:"source"`
-	Value         string                                `json:"value"`
-	Group         string                                `json:"group"`
-	Metadata      hera_openai_dbmodels.TelegramMetadata `json:"metadata"`
+	UnixTimestamp int              `json:"unixTimestamp"`
+	Source        string           `json:"source"`
+	Value         string           `json:"value"`
+	Group         string           `json:"group"`
+	Metadata      TelegramMetadata `json:"metadata"`
 }
 
 //	func telegramSearchQuery() sql_query_templates.QueryParams {
@@ -36,6 +37,23 @@ type SearchResult struct {
 //					  ORDER BY chat_id, message_id DESC;`
 //		return q
 //	}
+
+func FormatSearchResults(results []SearchResult) string {
+	var builder strings.Builder
+
+	for _, result := range results {
+		line := fmt.Sprintf("%d | %s | %s | %s | %s \n",
+			result.UnixTimestamp,
+			escapeString(result.Source),
+			escapeString(result.Group),
+			escapeString(result.Metadata.Username),
+			escapeString(result.Value))
+		builder.WriteString(line)
+	}
+
+	return builder.String()
+}
+
 func telegramSearchQuery() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "telegramSearchQuery"

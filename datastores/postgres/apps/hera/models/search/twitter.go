@@ -33,6 +33,27 @@ func InsertTwitterSearchQuery(ctx context.Context, ou org_users.OrgUser, searchG
 	return searchID, nil
 }
 
+func selectTwitterSearchQuery() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "selectTwitterSearchQuery"
+	q.RawQuery = `SELECT search_id, query, max_results
+				  FROM ai_twitter_search_query 
+				  WHERE org_id = $1 AND user_id = $2 AND search_group_name = $3;`
+	return q
+}
+
+func SelectTwitterSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) (int, string, int, error) {
+	queryTemplate := selectTwitterSearchQuery()
+	var searchID int
+	var maxResults int
+	var query string
+	err := apps.Pg.QueryRowWArgs(ctx, queryTemplate.RawQuery, ou.OrgID, ou.UserID, searchGroupName).Scan(&searchID, &query, &maxResults)
+	if err != nil {
+		return 0, query, maxResults, err
+	}
+	return searchID, query, maxResults, err
+}
+
 func insertIncomingTweets() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "insertIncomingTweets"

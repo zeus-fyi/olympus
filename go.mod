@@ -23,7 +23,7 @@ require (
 	github.com/cbergoon/merkletree v0.2.0
 	github.com/cockroachdb/errors v1.9.1
 	github.com/confluentinc/confluent-kafka-go v1.9.2
-	github.com/cvcio/twitter v0.0.0-20230406061554-fb2a880223e2
+	github.com/cvcio/twitter v0.0.0-20230702171346-58f04a1d303c
 	github.com/dave/jennifer v1.5.1
 	github.com/dghubble/go-twitter v0.0.0-20221104224141-912508c3888b
 	github.com/dghubble/oauth1 v0.7.2
@@ -276,14 +276,14 @@ require (
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2 // indirect
-	golang.org/x/crypto v0.14.0
-	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/oauth2 v0.12.0
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/crypto v0.15.0
+	golang.org/x/net v0.18.0 // indirect
+	golang.org/x/oauth2 v0.14.0
+	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/term v0.14.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

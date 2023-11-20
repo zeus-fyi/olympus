@@ -37,7 +37,8 @@ func (s *TwitterTestSuite) SetupTest() {
 
 func (s *TwitterTestSuite) TestTweetTopicSearchV2() {
 	vals := url.Values{}
-	query := `(("Kubernetes" OR "k8s" OR "kube") ("mlops" OR "migrating to" OR "suggest" OR "suggestion" OR "complexity") -horrible -worst -sucks -bad -disappointing -frustrated -confused -angry)`
+	query := `(("Kubernetes" OR "k8s" OR "#kube" OR "container orchestration") -is:retweet (has:links OR has:media OR has:mentions) (lang:en OR lang:es))`
+	//query := `(("Kubernetes" OR "k8s" OR "kube") ("mlops" OR "migrating to" OR "suggest" OR "suggestion" OR "complexity") -horrible -worst -sucks -bad -disappointing -frustrated -confused -angry)`
 	//query := `(("Kubernetes" OR "k8s" OR "kube") ("mlops" OR "gpu" OR "gpu sharing" OR "gpu management" OR "cost efficient") -horrible -worst -sucks -bad -disappointing -frustrated -confused -angry)`
 
 	vals.Set("query", query)
@@ -81,6 +82,7 @@ func (s *TwitterTestSuite) TestTweetTopicSearchV2() {
 	for _, tweet := range data {
 		fmt.Printf("TweetID %s: AuthorID %s, Text: %s \n", tweet.ID, tweet.AuthorID, tweet.Text)
 	}
+
 }
 
 func (s *TwitterTestSuite) TestTweetResponse() {
@@ -132,3 +134,9 @@ func (s *TwitterTestSuite) TestReadUserTweets() {
 func TestTwitterTestSuite(t *testing.T) {
 	suite.Run(t, new(TwitterTestSuite))
 }
+
+/*
+
+query := `(("Kubernetes" OR "k8s" OR "#kube" OR "container orchestration") -is:retweet (has:links OR has:media OR has:mentions) (lang:en OR lang:es))`
+id
+*/

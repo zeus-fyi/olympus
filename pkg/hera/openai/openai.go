@@ -13,6 +13,7 @@ import (
 var HeraOpenAI OpenAI
 
 var maxTokensByModel = map[string]int{
+	openai.GPT4TurboPreview:   40000,
 	openai.GPT3TextDavinci003: 2048,
 	openai.GPT3TextDavinci002: 2048,
 	openai.GPT3TextDavinci001: 2048,
@@ -46,10 +47,8 @@ func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.Org
 }
 
 func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.CompletionResponse, error) {
-	if len(params.Model) <= 0 {
-		params.Model = openai.GPT4
-	}
-
+	params.Model = openai.GPT4TurboPreview
+	params.MaxTokens = maxTokensByModel[params.Model]
 	req := openai.CompletionRequest{
 		Model:     params.Model,
 		MaxTokens: params.MaxTokens,

@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/go-resty/resty/v2"
 	gogpt "github.com/sashabaranov/go-gpt3"
 	"github.com/sashabaranov/go-openai"
@@ -27,6 +28,43 @@ func (s *HeraTestSuite) TestOpenAIGetModels() {
 	s.Require().Nil(err)
 	fmt.Println(string(resp.Body()))
 
+}
+
+func (s *HeraTestSuite) TestOpenAICreateAssistant() {
+	ctx := context.Background()
+
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+
+	InitHeraOpenAI(s.Tc.OpenAIAuth)
+
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	resp, err := HeraOpenAI.CreateAssistant(
+		context.Background(),
+		openai.AssistantRequest{
+			Model:        "gpt-4-1106-preview",
+			Name:         aws.String(fmt.Sprintf("%d", ou.UserID)),
+			Description:  aws.String(fmt.Sprintf("%s", "description")),
+			Instructions: aws.String(fmt.Sprintf("%s", "instructions")),
+			Tools: []openai.AssistantTool{
+				{
+					Type: "",
+					Function: &openai.FunctionDefinition{
+						Name:        "",
+						Description: "",
+						Parameters:  nil,
+					},
+				},
+			},
+			FileIDs:  nil,
+			Metadata: nil,
+		},
+	)
+	s.Require().Nil(err)
+	fmt.Println(resp)
 }
 
 func (s *HeraTestSuite) TestOpenAIChatGptInsert() {

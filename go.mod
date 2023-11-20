@@ -56,7 +56,7 @@ require (
 	github.com/puzpuzpuz/xsync/v2 v2.4.1
 	github.com/rs/zerolog v1.29.0
 	github.com/sashabaranov/go-gpt3 v0.0.0-20221216095610-1c20931ead68
-	github.com/sashabaranov/go-openai v1.9.0
+	github.com/sashabaranov/go-openai v1.17.8
 	github.com/sendgrid/rest v2.6.9+incompatible
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/shirou/gopsutil/v3 v3.22.10

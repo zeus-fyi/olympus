@@ -27,7 +27,7 @@ func NewZeusPlatformServiceWorkflows() ZeusAiPlatformServiceWorkflows {
 }
 
 func (h *ZeusAiPlatformServiceWorkflows) GetWorkflows() []interface{} {
-	return []interface{}{h.AiEmailWorkflow, h.AiIngestTelegramWorkflow, h.AiIngestTwitterWorkflow}
+	return []interface{}{h.AiEmailWorkflow, h.AiIngestTelegramWorkflow, h.AiIngestTwitterWorkflow, h.AiIngestRedditWorkflow}
 }
 
 const (

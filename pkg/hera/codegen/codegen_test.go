@@ -2,7 +2,6 @@ package hera_v1_codegen
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -41,7 +40,6 @@ func (s *CodeGenTestSuite) TestCreateWorkflow() {
 	b, err := CreateWorkflow(ctx, f)
 	s.NoError(err)
 	s.NotEmpty(b)
-	fmt.Println(string(b))
 }
 
 func TestCodeGenTestSuite(t *testing.T) {

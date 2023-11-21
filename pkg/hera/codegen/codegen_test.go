@@ -15,10 +15,7 @@ import (
 )
 
 var (
-	dirIn   = "../../.."
-	dirOut  = "template_preview/models"
-	pkgName = "models"
-	env     = "test"
+	dirIn = "../../.."
 )
 
 type CodeGenTestSuite struct {
@@ -32,13 +29,11 @@ func (s *CodeGenTestSuite) SetupTest() {
 func (s *CodeGenTestSuite) TestCreateWorkflow() {
 	ctx := context.Background()
 	sf := &strings_filter.FilterOpts{
-		DoesNotStartWithThese: nil,
-		StartsWithThese:       []string{"apps", "pkg", "docker", ".github", "cookbooks", "datastores"},
-		StartsWith:            "",
-		Contains:              "",
-		DoesNotInclude:        []string{"node_modules", ".kube", "bin", "build", ".git", "hardhat/cache", "apps/external/ethereum-helm-charts", "flashbotsrpc"},
+		DoesNotStartWithThese: []string{"configs", "sandbox", "apps/external", ".git", ".circleci", ".DS_Store", ".idea", "apps/zeus/test/configs", "pkg/.DS_Store"},
+		StartsWithAnyOfThese:  []string{"apps", "pkg", "docker", ".github", "cookbooks", "datastores"},
+		DoesNotInclude:        []string{"hardhat/artifacts", "node_modules", ".kube", "bin", "build", ".git", "hardhat/cache"},
 	}
-	sf.DoesNotInclude = append(sf.DoesNotInclude, []string{".git", ".circleci, .DS_Store", ".idea", "go-ethereum", "apps/external/tables-to-go", "vendor", "td", "tojen"}...)
+	sf.DoesNotInclude = append(sf.DoesNotInclude, []string{"go-ethereum", "apps/external/tables-to-go", "tmp", "vendor", "td", "tojen"}...)
 	f := filepaths.Path{
 		DirIn:       dirIn,
 		FilterFiles: sf,

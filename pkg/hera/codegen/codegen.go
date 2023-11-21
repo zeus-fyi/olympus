@@ -3,19 +3,26 @@ package hera_v1_codegen
 import (
 	"bufio"
 	"context"
-	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
-func CreateWorkflow(ctx context.Context, f filepaths.Path) (map[string]string, error) {
+const (
+	DbSchemaDir   = "datastores/postgres/local_docker/docker-entrypoint-initdb.d/init.sql"
+	PkgDir        = "pkg"
+	AppsDir       = "apps"
+	CookbooksDir  = "cookbooks"
+	DockerDir     = "docker"
+	DatastoresDir = "datastores"
+)
+
+func CreateWorkflow(ctx context.Context, f filepaths.Path) (CodeDirectoryMetadata, error) {
 	// Step one: read the entire codebase
-	fileMap := make(map[string]string)
 	cmd := CodeDirectoryMetadata{Map: make(map[string]CodeFilesMetadata)}
 
 	// Function to recursively walk through directories
@@ -39,10 +46,7 @@ func CreateWorkflow(ctx context.Context, f filepaths.Path) (map[string]string, e
 			} else {
 				// Read the contents of the file
 				if strings_filter.FilterStringWithOpts(relPath, f.FilterFiles) {
-					if strings.HasSuffix(relPath, ".DS_Store") {
-						continue
-					}
-					content, readErr := ioutil.ReadFile(path)
+					content, readErr := os.ReadFile(path)
 					if readErr != nil {
 						return readErr
 					}
@@ -59,13 +63,7 @@ func CreateWorkflow(ctx context.Context, f filepaths.Path) (map[string]string, e
 		panic(err)
 	}
 	aggregateDirectoryImports(&cmd)
-
-	// Convert the map to JSON
-	_, err = json.MarshalIndent(fileMap, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	return fileMap, err
+	return cmd, err
 }
 
 type CodeDirectoryMetadata struct {
@@ -73,8 +71,27 @@ type CodeDirectoryMetadata struct {
 }
 
 type CodeFilesMetadata struct {
-	DirectoryImports []string
-	GoCodeFiles      []GoCodeFile
+	GoCodeFiles   GoCodeFiles
+	SQLCodeFiles  SQLCodeFiles
+	YamlCodeFiles YamlCodeFiles
+}
+
+type SQLCodeFiles struct {
+	Files []SQLCodeFile
+}
+
+type SQLCodeFile struct {
+	FileName string
+	Contents string
+}
+
+type YamlCodeFiles struct {
+	Files []YamlCodeFile
+}
+
+type YamlCodeFile struct {
+	FileName string
+	Contents string
 }
 
 type GoCodeFiles struct {
@@ -83,6 +100,7 @@ type GoCodeFiles struct {
 }
 
 type GoCodeFile struct {
+	FileName    string
 	PackageName string
 	Imports     []string
 	Contents    string
@@ -124,33 +142,47 @@ func extractGoFileInfo(contents []byte) (string, []string) {
 func aggregateDirectoryImports(cmd *CodeDirectoryMetadata) {
 	for dir, metadata := range cmd.Map {
 		importSet := make(map[string]bool)
-		for _, file := range metadata.GoCodeFiles {
+		for _, file := range metadata.GoCodeFiles.Files {
 			for _, imp := range file.Imports {
 				importSet[imp] = true
 			}
 		}
-
 		var aggregatedImports []string
 		for imp := range importSet {
 			aggregatedImports = append(aggregatedImports, imp)
 		}
+		sort.Strings(aggregatedImports)
 		// Update the entire struct in the map, not just the DirectoryImports field
-		metadata.DirectoryImports = aggregatedImports
+		metadata.GoCodeFiles.DirectoryImports = aggregatedImports
 		cmd.Map[dir] = metadata
 	}
 }
+
 func (cm *CodeDirectoryMetadata) SetContents(dirIn, fn string, contents []byte) {
 	cmdd, exists := cm.Map[dirIn]
 	if !exists {
 		cmdd = CodeFilesMetadata{}
 	}
-
+	baseFileName := filepath.Base(fn)
 	if strings.HasSuffix(fn, ".go") {
 		packageName, imports := extractGoFileInfo(contents)
-		cmdd.GoCodeFiles = append(cmdd.GoCodeFiles, GoCodeFile{
+		cmdd.GoCodeFiles.Files = append(cmdd.GoCodeFiles.Files, GoCodeFile{
+			FileName:    baseFileName,
 			PackageName: packageName,
 			Imports:     imports,
 			Contents:    string(contents),
+		})
+	}
+	if strings.HasSuffix(baseFileName, ".sql") {
+		cmdd.SQLCodeFiles.Files = append(cmdd.SQLCodeFiles.Files, SQLCodeFile{
+			FileName: baseFileName,
+			Contents: string(contents),
+		})
+	}
+	if strings.HasSuffix(fn, ".yaml") || strings.HasSuffix(fn, ".yml") {
+		cmdd.YamlCodeFiles.Files = append(cmdd.YamlCodeFiles.Files, YamlCodeFile{
+			FileName: baseFileName,
+			Contents: string(contents),
 		})
 	}
 	cm.Map[dirIn] = cmdd

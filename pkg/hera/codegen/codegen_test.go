@@ -30,10 +30,9 @@ func (s *CodeGenTestSuite) TestCreateWorkflow() {
 	ctx := context.Background()
 	sf := &strings_filter.FilterOpts{
 		DoesNotStartWithThese: []string{"configs", "sandbox", "apps/external", ".git", ".circleci", ".DS_Store", ".idea", "apps/zeus/test/configs", "pkg/.DS_Store"},
-		StartsWithAnyOfThese:  []string{"apps", "pkg", "docker", ".github", "cookbooks", "datastores"},
-		DoesNotInclude:        []string{"hardhat/artifacts", "node_modules", ".kube", "bin", "build", ".git", "hardhat/cache"},
+		//StartsWithAnyOfThese:  []string{"apps", "pkg", "docker", ".github", "cookbooks", "datastores", "datastores/postgres/local_docker/docker-entrypoint-initdb.d/init.sql"},
+		DoesNotInclude: []string{"hardhat/artifacts", "node_modules", ".kube", "bin", "build", ".git", "hardhat/cache"},
 	}
-	sf.DoesNotInclude = append(sf.DoesNotInclude, []string{"go-ethereum", "apps/external/tables-to-go", "tmp", "vendor", "td", "tojen", ".DS_Store"}...)
 	f := filepaths.Path{
 		DirIn:       dirIn,
 		FilterFiles: sf,
@@ -42,8 +41,21 @@ func (s *CodeGenTestSuite) TestCreateWorkflow() {
 	s.NoError(err)
 	s.NotEmpty(b)
 
-	for k, _ := range b {
-		fmt.Println(k)
+	//tmp := b.Map[DbSchemaDir]
+	//for _, fvs := range tmp.SQLCodeFiles.Files {
+	//	fmt.Println(fvs.FileName)
+	//}
+
+	directoryPath := PkgDir + "/zeus/ai/orchestrations"
+	fmt.Println("Directory Path: ", directoryPath)
+	goCode := b.Map[PkgDir+"/zeus/ai/orchestrations"]
+	for _, fvs := range goCode.GoCodeFiles.Files {
+		fmt.Println(fvs.FileName)
+	}
+
+	fmt.Println("Directory Imports...")
+	for _, di := range goCode.GoCodeFiles.DirectoryImports {
+		fmt.Println(di)
 	}
 }
 

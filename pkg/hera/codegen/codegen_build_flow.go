@@ -25,6 +25,11 @@ type BuildAiInstruction struct {
 	DirIn               string
 	FileInstructionsMap map[string]string
 }
+
+type FileInfo struct {
+	Functions []FunctionInfo
+}
+
 type GeneratedBuildAiInstructions struct {
 	Instructions []GeneratedBuildAiInstruction
 }
@@ -49,7 +54,6 @@ func BuildAiInstructionsFromSourceCode(ctx context.Context, f filepaths.Path, bu
 		}
 		fmt.Println("dirIn: ", bd.DirIn)
 		for _, gf := range sc.Map[bd.DirIn].GoCodeFiles.Files {
-			fmt.Println(gf.PackageName, " | ", gf.FileName)
 			if bd.FileInstructionsMap[gf.FileName] == "" {
 				delete(bd.FileInstructionsMap, gf.FileName)
 			} else {

@@ -13,7 +13,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rs/zerolog/log"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
@@ -136,7 +135,7 @@ type GoCodeFile struct {
 	FileName    string
 	PackageName string
 	Imports     []string
-	Functions   map[string]string
+	Functions   map[string]FunctionInfo
 	Contents    string
 }
 
@@ -150,7 +149,7 @@ type FunctionInfo struct {
 func extractGoFileInfoV2(src interface{}) (*GoCodeFile, error) {
 	fset := token.NewFileSet() // positions are relative to fset
 	fileInfo := &GoCodeFile{
-		Functions: make(map[string]string),
+		Functions: make(map[string]FunctionInfo),
 	}
 	var reader *strings.Reader
 	switch s := src.(type) {
@@ -181,15 +180,25 @@ func extractGoFileInfoV2(src interface{}) (*GoCodeFile, error) {
 				fileInfo.Imports = append(fileInfo.Imports, x.Path.Value)
 			}
 		case *ast.FuncDecl:
+			var funcInfo FunctionInfo
 			if x.Name != nil {
-				var buf bytes.Buffer
-				err = printer.Fprint(&buf, fset, x)
+				funcInfo.Name = x.Name.Name
+			}
+
+			// Parameters and Return Type
+			funcInfo.Parameters = fieldListToString(fset, x.Type.Params)
+			funcInfo.ReturnType = fieldListToString(fset, x.Type.Results)
+
+			// Function body
+			var body bytes.Buffer
+			if x.Body != nil {
+				err = printer.Fprint(&body, fset, x.Body)
 				if err != nil {
-					log.Err(err).Msg("failed to print function")
 					panic(err)
 				}
-				fileInfo.Functions[x.Name.Name] = buf.String()
+				funcInfo.Body = body.String()
 			}
+			fileInfo.Functions[funcInfo.Name] = funcInfo
 		}
 		return true
 	})
@@ -268,4 +277,33 @@ func (cm *CodeDirectoryMetadata) SetContents(dirIn, fn string, contents []byte) 
 		return
 	}
 	cm.Map[dirIn] = cmdd
+}
+
+func fieldListToString(fset *token.FileSet, fl *ast.FieldList) string {
+	if fl == nil {
+		return ""
+	}
+
+	var buf bytes.Buffer
+	for _, field := range fl.List {
+		if len(field.Names) > 0 {
+			for _, name := range field.Names {
+				buf.WriteString(name.Name)
+				buf.WriteString(" ")
+			}
+		}
+
+		err := printer.Fprint(&buf, fset, field.Type)
+		if err != nil {
+			panic(err)
+		}
+		buf.WriteString(", ")
+	}
+
+	// Remove trailing comma and space
+	result := buf.String()
+	if len(result) >= 2 {
+		result = result[:len(result)-2]
+	}
+	return result
 }

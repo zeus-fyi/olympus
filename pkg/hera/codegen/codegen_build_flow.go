@@ -22,8 +22,15 @@ type BuildAiInstructions struct {
 }
 
 type BuildAiInstruction struct {
+	Instructions        string
 	DirIn               string
-	FileInstructionsMap map[string]string
+	FileFunctions       []FileFunctionInstruction
+	FileInstructionsMap map[string]FileInfo
+}
+
+type FileFunctionInstruction struct {
+	FunctionName string
+	Instruction  string
 }
 
 type FileInfo struct {
@@ -47,23 +54,26 @@ func BuildAiInstructionsFromSourceCode(ctx context.Context, f filepaths.Path, bu
 	if err != nil {
 		panic(err)
 	}
-	gbi := &GeneratedBuildAiInstructions{}
-	for _, bd := range buildDirs.Instructions {
-		if bd.FileInstructionsMap == nil {
-			continue
-		}
-		fmt.Println("dirIn: ", bd.DirIn)
-		for _, gf := range sc.Map[bd.DirIn].GoCodeFiles.Files {
-			if bd.FileInstructionsMap[gf.FileName] == "" {
-				delete(bd.FileInstructionsMap, gf.FileName)
-			} else {
-				gbi.Instructions = append(gbi.Instructions, GeneratedBuildAiInstruction{
-					DirIn:               bd.DirIn,
-					FileInstructionsMap: map[string]string{gf.FileName: FormatInstructionPrompt(bd.FileInstructionsMap[gf.FileName], gf.Contents)},
-				})
-			}
-		}
+	if sc.Map == nil {
+		return nil
 	}
+	gbi := &GeneratedBuildAiInstructions{}
+	//for _, bd := range buildDirs.Instructions {
+	//	if bd.FileInstructionsMap == nil {
+	//		continue
+	//	}
+	//	fmt.Println("dirIn: ", bd.DirIn)
+	//	for _, gf := range sc.Map[bd.DirIn].GoCodeFiles.Files {
+	//		if bd.FileInstructionsMap[gf.FileName].Functions == "" {
+	//			delete(bd.FileInstructionsMap, gf.FileName)
+	//		} else {
+	//			gbi.Instructions = append(gbi.Instructions, GeneratedBuildAiInstruction{
+	//				DirIn:               bd.DirIn,
+	//				FileInstructionsMap: map[string]string{gf.FileName: FormatInstructionPrompt(bd.FileInstructionsMap[gf.FileName], gf.Contents)},
+	//			})
+	//		}
+	//	}
+	//}
 	return gbi
 }
 

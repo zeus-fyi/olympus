@@ -43,21 +43,31 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
 	bi := BuildAiInstructions{
 		Instructions: []BuildAiInstruction{
 			{
-				DirIn: PkgDir + "/hera/reddit",
-				FileInstructionsMap: map[string]string{
-					"reddit.go": `reference func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions)
-							      reference var RedditClient Reddit`,
+				Instructions: actInst,
+				DirIn:        PkgDir + "/hera/reddit",
+				FileFunctions: []FileFunctionInstruction{
+					{
+						FunctionName: "GetNewPosts",
+						Instruction:  "Read Only",
+					},
 				},
 			},
 			{
-				DirIn: PkgDir + "/zeus/ai/orchestrations",
-				FileInstructionsMap: map[string]string{
-					"activities.go": actInst,
+				Instructions: actInst,
+				DirIn:        PkgDir + "/zeus/ai/orchestrations",
+				FileFunctions: []FileFunctionInstruction{
+					{
+						FunctionName: "GetActivities",
+						Instruction:  "Modify",
+					},
+					{
+						FunctionName: "SearchTwitterUsingQuery",
+						Instruction:  "Reference",
+					},
 				},
 			},
 		},
 	}
-
 	gbi := BuildAiInstructionsFromSourceCode(ctx, f, bi)
 	for _, g := range gbi.Instructions {
 		fmt.Println(g.DirIn)

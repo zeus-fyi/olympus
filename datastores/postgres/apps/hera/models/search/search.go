@@ -107,7 +107,7 @@ func telegramSearchQuery() sql_query_templates.QueryParams {
 
 func telegramSearchQueryWithContent() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
-	q.QueryName = "telegramSearchQuery"
+	q.QueryName = "telegramSearchQueryWithContent"
 	q.RawQuery = `SELECT timestamp, group_name, message_text, metadata
 				  FROM public.ai_incoming_telegram_msgs
               	  WHERE org_id = $1 AND group_name ILIKE '%' || $2 || '%' 
@@ -119,10 +119,12 @@ func telegramSearchQueryWithContent() sql_query_templates.QueryParams {
 func SearchTelegram(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
 	q := telegramSearchQuery()
 	var srs []SearchResult
+	args := []interface{}{ou.OrgID, sp.GroupFilter}
 	if sp.SearchContentText != "" {
+		args = append(args, sp.SearchContentText)
 		q = telegramSearchQueryWithContent()
 	}
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, sp.GroupFilter)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, args...)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchTelegram")); returnErr != nil {
 		return nil, err
 	}

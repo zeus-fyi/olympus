@@ -82,3 +82,4 @@ Thumbs.db
 /configs/ca-certificate.crt
 /configs/gcp/
 /configs/backup.txt
+/apps/external/td/

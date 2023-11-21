@@ -2,6 +2,7 @@ package hera_v1_codegen
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -32,7 +33,7 @@ func (s *CodeGenTestSuite) TestCreateWorkflow() {
 		StartsWithAnyOfThese:  []string{"apps", "pkg", "docker", ".github", "cookbooks", "datastores"},
 		DoesNotInclude:        []string{"hardhat/artifacts", "node_modules", ".kube", "bin", "build", ".git", "hardhat/cache"},
 	}
-	sf.DoesNotInclude = append(sf.DoesNotInclude, []string{"go-ethereum", "apps/external/tables-to-go", "tmp", "vendor", "td", "tojen"}...)
+	sf.DoesNotInclude = append(sf.DoesNotInclude, []string{"go-ethereum", "apps/external/tables-to-go", "tmp", "vendor", "td", "tojen", ".DS_Store"}...)
 	f := filepaths.Path{
 		DirIn:       dirIn,
 		FilterFiles: sf,
@@ -40,6 +41,10 @@ func (s *CodeGenTestSuite) TestCreateWorkflow() {
 	b, err := CreateWorkflow(ctx, f)
 	s.NoError(err)
 	s.NotEmpty(b)
+
+	for k, _ := range b {
+		fmt.Println(k)
+	}
 }
 
 func TestCodeGenTestSuite(t *testing.T) {

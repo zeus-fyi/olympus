@@ -63,7 +63,7 @@ func (s *PodsTestSuite) TestDeletePods() {
 	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral"}
 	filter := strings_filter.FilterOpts{
 		DoesNotStartWithThese: nil,
-		StartsWithThese:       nil,
+		StartsWithAnyOfThese:  nil,
 		StartsWith:            "",
 		Contains:              "client",
 		DoesNotInclude:        nil,

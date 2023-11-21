@@ -141,6 +141,18 @@ func (h *ZeusAiPlatformActivities) SelectTwitterSearchQuery(ctx context.Context,
 	return sq, nil
 }
 
+//func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.TwitterSearchQuery, error) {
+//	sq, err := hera_search.SelectRedditSearchQuery(ctx, ou, groupName)
+//	if err != nil {
+//		log.Err(err).Msg("SelectRedditSearchQuery")
+//		return nil, err
+//	}
+//	if sq == nil {
+//		return nil, fmt.Errorf("SelectRedditSearchQuery: sq is nil")
+//	}
+//	return sq, nil
+//}
+
 func (h *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, sp *hera_search.TwitterSearchQuery) ([]*twitter.Tweet, error) {
 	tweets, err := hera_twitter.TwitterClient.GetTweets(ctx, sp.Query, sp.MaxResults, sp.MaxTweetID)
 	if err != nil {

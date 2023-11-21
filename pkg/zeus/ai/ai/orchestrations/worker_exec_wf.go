@@ -55,7 +55,23 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiTwitterWorkflow(ctx context.Cont
 	wf := txWf.AiIngestTwitterWorkflow
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, searchGroupName)
 	if err != nil {
-		log.Err(err).Msg("ExecuteAiTelegramWorkflow")
+		log.Err(err).Msg("AiIngestTwitterWorkflow")
+		return err
+	}
+	return nil
+}
+func (h *ZeusAiPlatformServicesWorker) ExecuteAiRedditWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string) error {
+	tc := h.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: h.TaskQueueName,
+		ID:        uuid.New().String(),
+	}
+	txWf := NewZeusPlatformServiceWorkflows()
+	wf := txWf.AiIngestRedditWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, searchGroupName)
+	if err != nil {
+		log.Err(err).Msg("ExecuteAiRedditWorkflow")
 		return err
 	}
 	return nil

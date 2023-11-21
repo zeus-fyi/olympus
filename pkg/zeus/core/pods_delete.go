@@ -50,7 +50,7 @@ func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_ty
 	if filter == nil {
 		filter = &strings_filter.FilterOpts{
 			DoesNotStartWithThese: nil,
-			StartsWithThese:       nil,
+			StartsWithAnyOfThese:  nil,
 			StartsWith:            "",
 			Contains:              podName,
 			DoesNotInclude:        nil,

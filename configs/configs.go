@@ -172,7 +172,7 @@ func SetBaseURLs() TestURLs {
 	return tu
 }
 
-func forceDirToCallerLocation() string {
+func ForceDirToCallerLocation() string {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "")
 	err := os.Chdir(dir)
@@ -197,7 +197,7 @@ func InitArtemisLocalAccounts() {
 }
 
 func InitLocalTestConfigs() TestContainer {
-	InitEnvFromConfig(forceDirToCallerLocation())
+	InitEnvFromConfig(ForceDirToCallerLocation())
 	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "secrets",
@@ -388,7 +388,7 @@ func getDevAuthKeysCfg() auth_keys_config.AuthKeysCfg {
 	return DevAuthKeysCfg
 }
 func InitProductionConfigs() TestContainer {
-	InitEnvFromConfig(forceDirToCallerLocation())
+	InitEnvFromConfig(ForceDirToCallerLocation())
 	testCont.Env = "production"
 	testCont.LocalRedisConn = viper.GetString("LOCAL_REDIS_CONN")
 	testCont.StagingRedisConn = viper.GetString("STAGING_REDIS_CONN")
@@ -401,7 +401,7 @@ func InitProductionConfigs() TestContainer {
 }
 
 func InitStagingConfigs() TestContainer {
-	InitEnvFromConfig(forceDirToCallerLocation())
+	InitEnvFromConfig(ForceDirToCallerLocation())
 	testCont.Env = "staging"
 	testCont.LocalRedisConn = viper.GetString("LOCAL_REDIS_CONN")
 	testCont.StagingRedisConn = viper.GetString("STAGING_REDIS_CONN")

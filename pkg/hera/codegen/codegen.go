@@ -21,7 +21,7 @@ const (
 	DatastoresDir = "datastores"
 )
 
-func CreateWorkflow(ctx context.Context, f filepaths.Path) (CodeDirectoryMetadata, error) {
+func ExtractSourceCode(ctx context.Context, f filepaths.Path) (CodeDirectoryMetadata, error) {
 	// Step one: read the entire codebase
 	cmd := CodeDirectoryMetadata{Map: make(map[string]CodeFilesMetadata)}
 
@@ -74,6 +74,35 @@ type CodeFilesMetadata struct {
 	GoCodeFiles   GoCodeFiles
 	SQLCodeFiles  SQLCodeFiles
 	YamlCodeFiles YamlCodeFiles
+	JsCodeFiles   JsCodeFiles
+	CssCodeFiles  CssCodeFiles
+	HtmlCodeFiles HtmlCodeFiles
+}
+
+type JsCodeFiles struct {
+	Files            []JsCodeFile
+	DirectoryImports []string
+}
+
+type JsCodeFile struct {
+	FileName  string
+	Extension string
+	Imports   []string
+	Contents  string
+}
+type CssCodeFiles struct {
+	Files []CssCodeFile
+}
+
+type CssCodeFile struct {
+	FileName string
+}
+type HtmlCodeFiles struct {
+	Files []HtmlCodeFile
+}
+
+type HtmlCodeFile struct {
+	FileName string
 }
 
 type SQLCodeFiles struct {
@@ -164,7 +193,8 @@ func (cm *CodeDirectoryMetadata) SetContents(dirIn, fn string, contents []byte) 
 		cmdd = CodeFilesMetadata{}
 	}
 	baseFileName := filepath.Base(fn)
-	if strings.HasSuffix(fn, ".go") {
+	switch {
+	case strings.HasSuffix(fn, ".go"):
 		packageName, imports := extractGoFileInfo(contents)
 		cmdd.GoCodeFiles.Files = append(cmdd.GoCodeFiles.Files, GoCodeFile{
 			FileName:    baseFileName,
@@ -172,18 +202,39 @@ func (cm *CodeDirectoryMetadata) SetContents(dirIn, fn string, contents []byte) 
 			Imports:     imports,
 			Contents:    string(contents),
 		})
-	}
-	if strings.HasSuffix(baseFileName, ".sql") {
+	case strings.HasSuffix(fn, ".sql"):
 		cmdd.SQLCodeFiles.Files = append(cmdd.SQLCodeFiles.Files, SQLCodeFile{
 			FileName: baseFileName,
 			Contents: string(contents),
 		})
-	}
-	if strings.HasSuffix(fn, ".yaml") || strings.HasSuffix(fn, ".yml") {
+	case strings.HasSuffix(fn, ".yaml") || strings.HasSuffix(fn, ".yml"):
 		cmdd.YamlCodeFiles.Files = append(cmdd.YamlCodeFiles.Files, YamlCodeFile{
 			FileName: baseFileName,
 			Contents: string(contents),
 		})
+	case strings.HasSuffix(fn, ".css"):
+		cmdd.CssCodeFiles.Files = append(cmdd.CssCodeFiles.Files, CssCodeFile{
+			FileName: baseFileName,
+		})
+	case strings.HasSuffix(fn, ".html"):
+		cmdd.HtmlCodeFiles.Files = append(cmdd.HtmlCodeFiles.Files, HtmlCodeFile{
+			FileName: baseFileName,
+		})
+	case strings.HasSuffix(fn, ".js") || strings.HasSuffix(fn, ".tsx"), strings.HasSuffix(fn, ".ts"):
+		ext := ".js"
+		if strings.HasSuffix(fn, ".tsx") {
+			ext = ".tsx"
+		}
+		if strings.HasSuffix(fn, ".ts") {
+			ext = ".ts"
+		}
+		cmdd.JsCodeFiles.Files = append(cmdd.JsCodeFiles.Files, JsCodeFile{
+			FileName:  baseFileName,
+			Contents:  string(contents),
+			Extension: ext,
+		})
+	default:
+		return
 	}
 	cm.Map[dirIn] = cmdd
 }

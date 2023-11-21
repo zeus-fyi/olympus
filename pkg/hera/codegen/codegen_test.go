@@ -26,18 +26,17 @@ func (s *CodeGenTestSuite) SetupTest() {
 	UseAutoGenDirectory()
 }
 
-func (s *CodeGenTestSuite) TestCreateWorkflow() {
+func (s *CodeGenTestSuite) TestCreateCodeSourceParsing() {
 	ctx := context.Background()
 	sf := &strings_filter.FilterOpts{
 		DoesNotStartWithThese: []string{"configs", "sandbox", "apps/external", ".git", ".circleci", ".DS_Store", ".idea", "apps/zeus/test/configs", "pkg/.DS_Store"},
-		//StartsWithAnyOfThese:  []string{"apps", "pkg", "docker", ".github", "cookbooks", "datastores", "datastores/postgres/local_docker/docker-entrypoint-initdb.d/init.sql"},
-		DoesNotInclude: []string{"hardhat/artifacts", "node_modules", ".kube", "bin", "build", ".git", "hardhat/cache"},
+		DoesNotInclude:        []string{"hardhat/artifacts", "node_modules", ".kube", "bin", "build", ".git", "hardhat/cache"},
 	}
 	f := filepaths.Path{
 		DirIn:       dirIn,
 		FilterFiles: sf,
 	}
-	b, err := CreateWorkflow(ctx, f)
+	b, err := ExtractSourceCode(ctx, f)
 	s.NoError(err)
 	s.NotEmpty(b)
 
@@ -46,16 +45,21 @@ func (s *CodeGenTestSuite) TestCreateWorkflow() {
 	//	fmt.Println(fvs.FileName)
 	//}
 
-	directoryPath := PkgDir + "/zeus/ai/orchestrations"
-	fmt.Println("Directory Path: ", directoryPath)
-	goCode := b.Map[PkgDir+"/zeus/ai/orchestrations"]
-	for _, fvs := range goCode.GoCodeFiles.Files {
-		fmt.Println(fvs.FileName)
-	}
-
-	fmt.Println("Directory Imports...")
-	for _, di := range goCode.GoCodeFiles.DirectoryImports {
-		fmt.Println(di)
+	//directoryPath := PkgDir + "/zeus/ai/orchestrations"
+	//fmt.Println("Directory Path: ", directoryPath)
+	//goCode := b.Map[PkgDir+"/zeus/ai/orchestrations"]
+	//for _, fvs := range goCode.GoCodeFiles.Files {
+	//	fmt.Println(fvs.FileName)
+	//}
+	//
+	//fmt.Println("Directory Imports...")
+	//for _, di := range goCode.GoCodeFiles.DirectoryImports {
+	//	fmt.Println(di)
+	//}
+	jsCode := b.Map["apps/olympus/hestia/assets/src/app"]
+	fmt.Println("Js/Tsx Imports...")
+	for _, di := range jsCode.JsCodeFiles.Files {
+		fmt.Println(di.FileName)
 	}
 }
 

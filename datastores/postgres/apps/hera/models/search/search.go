@@ -19,6 +19,7 @@ import (
 type AiSearchParams struct {
 	SearchContentText    string `json:"searchContentText,omitempty"`
 	GroupFilter          string `json:"groupFilter,omitempty"`
+	Platforms            string `json:"platforms,omitempty"`
 	Usernames            string `json:"usernames,omitempty"`
 	WorkflowInstructions string `json:"workflowInstructions,omitempty"`
 }
@@ -31,30 +32,66 @@ type SearchResult struct {
 	Metadata      TelegramMetadata `json:"metadata"`
 }
 
-//	func telegramSearchQuery() sql_query_templates.QueryParams {
-//		q := sql_query_templates.QueryParams{}
-//		q.QueryName = "telegramSearchQuery"
-//		q.RawQuery = `SELECT group_name, message_text
-//					  FROM public.ai_incoming_telegram_msgs
-//					  WHERE org_id = $1 AND group_name ILIKE '%$1%'
-//					  AND to_tsvector('english', message_text) @@ plainto_tsquery('english', '$3')
-//					  ORDER BY chat_id, message_id DESC;`
-//		return q
-//	}
+func twitterSearchQuery() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "twitterSearchQuery"
+	q.RawQuery = `SELECT tweet_id, message_text
+				  FROM public.ai_incoming_tweets
+        		  WHERE message_text_tsvector @@ to_tsquery('english', $1)
+				  ORDER BY tweet_id DESC;`
+	return q
+}
 
-func FormatSearchResults(results []SearchResult) string {
+func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
+	q := twitterSearchQuery()
+	var srs []SearchResult
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchTwitter")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var sr SearchResult
+		sr.Source = "twitter"
+		rowErr := rows.Scan(
+			&sr.UnixTimestamp, &sr.Value,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SearchTwitter"))
+			return nil, rowErr
+		}
+		srs = append(srs, sr)
+	}
+	return srs, nil
+}
+
+func FormatSearchResultsV2(results []SearchResult) string {
 	var builder strings.Builder
 
 	for _, result := range results {
-		line := fmt.Sprintf("%d | %s | %s | %s | %s \n",
-			result.UnixTimestamp,
-			escapeString(result.Source),
-			escapeString(result.Group),
-			escapeString(result.Metadata.Username),
-			escapeString(result.Value))
+		var parts []string
+
+		// Always include the UnixTimestamp
+		parts = append(parts, fmt.Sprintf("%d", result.UnixTimestamp))
+
+		// Conditionally append other fields if they are not empty
+		if result.Source != "" {
+			parts = append(parts, escapeString(result.Source))
+		}
+		if result.Group != "" {
+			parts = append(parts, escapeString(result.Group))
+		}
+		if result.Metadata.Username != "" {
+			parts = append(parts, escapeString(result.Metadata.Username))
+		}
+		if result.Value != "" {
+			parts = append(parts, escapeString(result.Value))
+		}
+
+		// Join the parts with " | " and add a newline at the end
+		line := strings.Join(parts, " | ") + "\n"
 		builder.WriteString(line)
 	}
-
 	return builder.String()
 }
 
@@ -68,9 +105,23 @@ func telegramSearchQuery() sql_query_templates.QueryParams {
 	return q
 }
 
+func telegramSearchQueryWithContent() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "telegramSearchQuery"
+	q.RawQuery = `SELECT timestamp, group_name, message_text, metadata
+				  FROM public.ai_incoming_telegram_msgs
+              	  WHERE org_id = $1 AND group_name ILIKE '%' || $2 || '%' 
+              	  AND message_text_tsvector @@ to_tsquery('english', $3)
+				  ORDER BY chat_id, message_id DESC;`
+	return q
+}
+
 func SearchTelegram(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
 	q := telegramSearchQuery()
 	var srs []SearchResult
+	if sp.SearchContentText != "" {
+		q = telegramSearchQueryWithContent()
+	}
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, sp.GroupFilter)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchTelegram")); returnErr != nil {
 		return nil, err

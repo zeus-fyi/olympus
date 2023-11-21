@@ -7,6 +7,7 @@ const initialState: AiState = {
     groupFilter: '',
     workflowInstructions: '',
     searchResults: '',
+    platformFilter: ''
 }
 
 const aiSlice = createSlice({
@@ -28,8 +29,16 @@ const aiSlice = createSlice({
         setSearchResults: (state, action: PayloadAction<string>) => {
             state.searchResults = action.payload;
         },
+        setPlatformFilter: (state, action: PayloadAction<string>) => {
+            state.platformFilter = action.payload;
+        }
     }
 });
 
-export const { setSearchContent, setGroupFilter, setUsernames, setWorkflowInstructions, setSearchResults} = aiSlice.actions;
+export const { setSearchContent,
+    setGroupFilter,
+    setUsernames,
+    setWorkflowInstructions,
+    setSearchResults,
+    setPlatformFilter} = aiSlice.actions;
 export default aiSlice.reducer;

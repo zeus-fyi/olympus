@@ -4,4 +4,5 @@ export interface AiState {
     searchContentText: string;
     workflowInstructions: string;
     searchResults: string;
+    platformFilter: string;
 }

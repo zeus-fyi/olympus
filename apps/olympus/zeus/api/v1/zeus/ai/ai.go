@@ -36,16 +36,19 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	if ou.OrgID != internalOrgID {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	res, err := hera_search.SearchTelegram(c.Request().Context(), ou, r.AiSearchParams)
+	res, err := hera_search.SearchTwitter(c.Request().Context(), ou, r.AiSearchParams)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
-	return c.JSON(http.StatusOK, hera_search.FormatSearchResults(res))
+	resTelegram, err := hera_search.SearchTelegram(c.Request().Context(), ou, r.AiSearchParams)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	res = append(res, resTelegram...)
+	return c.JSON(http.StatusOK, hera_search.FormatSearchResultsV2(res))
 }
 
 func AiSearchAnalyzeRequestHandler(c echo.Context) error {

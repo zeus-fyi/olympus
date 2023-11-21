@@ -25,6 +25,7 @@ import {AppBar} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
     setGroupFilter,
+    setPlatformFilter,
     setSearchContent,
     setSearchResults,
     setUsernames,
@@ -46,6 +47,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const workflowInstructions = useSelector((state: RootState) => state.ai.workflowInstructions);
     const [code, setCode] = useState('');
     const searchResults = useSelector((state: RootState) => state.ai.searchResults);
+    const platformFilter = useSelector((state: RootState) => state.ai.platformFilter);
     const dispatch = useDispatch();
     const toggleDrawer = () => {
         setOpen(!open);
@@ -59,7 +61,9 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleUpdateGroupFilter = (value: string) => {
         dispatch(setGroupFilter(value));
     };
-
+    const handleUpdatePlatformFilter = (value: string) => {
+        dispatch(setPlatformFilter(value));
+    };
     const handleUpdateSearchUsernames =(value: string) => {
         dispatch(setUsernames(value));
     };
@@ -81,6 +85,7 @@ function AiWorkflowsDashboardContent(props: any) {
             const response = await aiApiGateway.searchRequest({
                 'searchContentText': searchContentText,
                 'groupFilter': groupFilter,
+                'platforms': platformFilter,
                 'usernames': usernames,
                 'workflowInstructions': workflowInstructions,
             });
@@ -104,6 +109,7 @@ function AiWorkflowsDashboardContent(props: any) {
             const response = await aiApiGateway.analyzeSearchRequest({
                 'searchContentText': searchContentText,
                 'groupFilter': groupFilter,
+                'platforms': platformFilter,
                 'usernames': usernames,
                 'workflowInstructions': workflowInstructions,
             });
@@ -216,6 +222,16 @@ function AiWorkflowsDashboardContent(props: any) {
                                 </CardContent>
                                 <CardContent>
                                     <Stack direction="column" >
+                                        <Box flexGrow={1} sx={{ mb: 2 }}>
+                                            <TextField
+                                                fullWidth
+                                                id="platforms-input"
+                                                label="Platforms"
+                                                variant="outlined"
+                                                value={platformFilter}
+                                                onChange={(e) => handleUpdatePlatformFilter(e.target.value)}
+                                            />
+                                        </Box>
                                         <Box flexGrow={1} sx={{ mb: 2 }}>
                                             <TextField
                                                 fullWidth

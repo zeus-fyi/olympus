@@ -27,33 +27,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 		logger.Error("failed to update ai orch services", "Error", err)
 		return err
 	}
-	//insertMsgCtx := workflow.WithActivityOptions(ctx, ao)
-	////var sq *hera_search.TwitterSearchQuery
-	//err = workflow.ExecuteActivity(insertMsgCtx, h.AiIngestRedditWorkf, ou, groupName).Get(insertMsgCtx, &sq)
-	//if err != nil {
-	//	logger.Error("failed to execute AiIngestRedditWorkflow", "Error", err)
-	//	// You can decide if you want to return the error or continue monitoring.
-	//	return err
-	//}
-	//var tweets []*twitter.Tweet
-	//searchCtx := workflow.WithActivityOptions(ctx, ao)
-	//err = workflow.ExecuteActivity(searchCtx, h.SearchTwitterUsingQuery, sq).Get(searchCtx, &tweets)
-	//if err != nil {
-	//	logger.Error("failed to execute InsertEmailIfNew", "Error", err)
-	//	// You can decide if you want to return the error or continue monitoring.
-	//	return err
-	//}
-	//if len(tweets) == 0 {
-	//	logger.Info("no new tweets found")
-	//	return nil
-	//}
-	//insertTweetsCtx := workflow.WithActivityOptions(ctx, ao)
-	//err = workflow.ExecuteActivity(insertTweetsCtx, h.InsertIncomingTweetsFromSearch, sq.SearchID, tweets).Get(insertTweetsCtx, &tweets)
-	//if err != nil {
-	//	logger.Error("failed to execute InsertIncomingTweetsFromSearch", "Error", err)
-	//	// You can decide if you want to return the error or continue monitoring.
-	//	return err
-	//}
+
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {

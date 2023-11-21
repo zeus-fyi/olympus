@@ -1,13 +1,19 @@
 package hera_v1_codegen
 
 import (
-	"bufio"
+	"bytes"
 	"context"
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/printer"
+	"go/token"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
@@ -130,42 +136,67 @@ type GoCodeFile struct {
 	FileName    string
 	PackageName string
 	Imports     []string
+	Functions   map[string]string
 	Contents    string
 }
 
-func extractGoFileInfo(contents []byte) (string, []string) {
-	scanner := bufio.NewScanner(strings.NewReader(string(contents)))
-	var packageName string
-	var imports []string
-	var inImportBlock bool
-
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-
-		if strings.HasPrefix(line, "package ") {
-			packageName = strings.TrimSpace(strings.TrimPrefix(line, "package"))
-		} else if strings.HasPrefix(line, "import (") {
-			inImportBlock = true
-		} else if inImportBlock && line == ")" {
-			inImportBlock = false
-		} else if inImportBlock {
-			// Remove the quotes around the import path
-			trimmedLine := strings.Trim(line, ` "`)
-			if trimmedLine != "" {
-				imports = append(imports, trimmedLine)
-			}
-		} else if strings.HasPrefix(line, "import ") {
-			// Single import
-			importedPackage := strings.Trim(strings.TrimPrefix(line, "import "), `"`)
-			imports = append(imports, importedPackage)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		// Handle the error according to your needs
-	}
-	return packageName, imports
+type FunctionInfo struct {
+	Name       string
+	Parameters string
+	ReturnType string
+	Body       string
 }
+
+func extractGoFileInfoV2(src interface{}) (*GoCodeFile, error) {
+	fset := token.NewFileSet() // positions are relative to fset
+	fileInfo := &GoCodeFile{
+		Functions: make(map[string]string),
+	}
+	var reader *strings.Reader
+	switch s := src.(type) {
+	case string:
+		reader = strings.NewReader(s)
+		fileInfo.Contents = s
+	case []byte:
+		reader = strings.NewReader(string(s))
+		fileInfo.Contents = string(s)
+	default:
+		return nil, fmt.Errorf("src must be a string or []byte")
+	}
+	// Parse the file given in arguments
+	// Parse the source code
+	node, err := parser.ParseFile(fset, "", reader, parser.ParseComments)
+	if err != nil {
+		return nil, err
+	}
+
+	// Package name
+	fileInfo.PackageName = node.Name.Name
+
+	// Inspect the AST and find all imports and functions
+	ast.Inspect(node, func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.ImportSpec:
+			if x.Path != nil {
+				fileInfo.Imports = append(fileInfo.Imports, x.Path.Value)
+			}
+		case *ast.FuncDecl:
+			if x.Name != nil {
+				var buf bytes.Buffer
+				err = printer.Fprint(&buf, fset, x)
+				if err != nil {
+					log.Err(err).Msg("failed to print function")
+					panic(err)
+				}
+				fileInfo.Functions[x.Name.Name] = buf.String()
+			}
+		}
+		return true
+	})
+
+	return fileInfo, nil
+}
+
 func aggregateDirectoryImports(cmd *CodeDirectoryMetadata) {
 	for dir, metadata := range cmd.Map {
 		importSet := make(map[string]bool)
@@ -193,13 +224,15 @@ func (cm *CodeDirectoryMetadata) SetContents(dirIn, fn string, contents []byte) 
 	baseFileName := filepath.Base(fn)
 	switch {
 	case strings.HasSuffix(fn, ".go"):
-		packageName, imports := extractGoFileInfo(contents)
-		cmdd.GoCodeFiles.Files = append(cmdd.GoCodeFiles.Files, GoCodeFile{
-			FileName:    baseFileName,
-			PackageName: packageName,
-			Imports:     imports,
-			Contents:    string(contents),
-		})
+		goFileInfo, err := extractGoFileInfoV2(contents)
+		if err != nil {
+			panic(err)
+		}
+		if goFileInfo == nil {
+			return
+		}
+		goFileInfo.FileName = baseFileName
+		cmdd.GoCodeFiles.Files = append(cmdd.GoCodeFiles.Files, *goFileInfo)
 	case strings.HasSuffix(fn, ".sql"):
 		cmdd.SQLCodeFiles.Files = append(cmdd.SQLCodeFiles.Files, SQLCodeFile{
 			FileName: baseFileName,

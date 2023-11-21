@@ -12,6 +12,8 @@ type Reddit struct {
 	FullClient *reddit.Client
 }
 
+var RedditClient Reddit
+
 func InitRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, error) {
 	r := Reddit{}
 	client, err := reddit.NewReadonlyClient(reddit.WithUserAgent("Zeusfyi/1.0 (by /u/zeus-fyi)"))
@@ -26,6 +28,8 @@ func InitRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, er
 		log.Err(err).Msg("Error initializing reddit client")
 		return Reddit{}, err
 	}
+	RedditClient.ReadOnly = r.ReadOnly
+	RedditClient.FullClient = client
 	r.FullClient = client
 	return r, err
 }

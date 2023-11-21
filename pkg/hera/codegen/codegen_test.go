@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
-	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
 var (
@@ -26,12 +25,23 @@ func (s *CodeGenTestSuite) SetupTest() {
 	UseAutoGenDirectory()
 }
 
-func (s *CodeGenTestSuite) TestCreateCodeSourceParsing() {
-	ctx := context.Background()
-	sf := &strings_filter.FilterOpts{
-		DoesNotStartWithThese: []string{"configs", "sandbox", "apps/external", ".git", ".circleci", ".DS_Store", ".idea", "apps/zeus/test/configs", "pkg/.DS_Store"},
-		DoesNotInclude:        []string{"hardhat/artifacts", "node_modules", ".kube", "bin", "build", ".git", "hardhat/cache"},
+var (
+	ctx = context.Background()
+)
+
+func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
 	}
+	BuildAiInstructionsFromSourceCode(ctx, f, BuildAiInstructions{
+		GoFileDirs: []string{
+			"pkg/zeus/ai/orchestrations",
+		},
+	})
+}
+
+func (s *CodeGenTestSuite) TestCreateCodeSourceParsing() {
 	f := filepaths.Path{
 		DirIn:       dirIn,
 		FilterFiles: sf,

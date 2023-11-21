@@ -12,13 +12,11 @@ import (
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
-const (
-	DbSchemaDir   = "datastores/postgres/local_docker/docker-entrypoint-initdb.d/init.sql"
-	PkgDir        = "pkg"
-	AppsDir       = "apps"
-	CookbooksDir  = "cookbooks"
-	DockerDir     = "docker"
-	DatastoresDir = "datastores"
+var (
+	sf = &strings_filter.FilterOpts{
+		DoesNotStartWithThese: []string{"configs", "sandbox", "apps/external", ".git", ".circleci", ".DS_Store", ".idea", "apps/zeus/test/configs", "pkg/.DS_Store"},
+		DoesNotInclude:        []string{"hardhat/artifacts", "node_modules", ".kube", "bin", "build", ".git", "hardhat/cache"},
+	}
 )
 
 func ExtractSourceCode(ctx context.Context, f filepaths.Path) (CodeDirectoryMetadata, error) {

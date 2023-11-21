@@ -29,7 +29,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 	}
 	//insertMsgCtx := workflow.WithActivityOptions(ctx, ao)
 	////var sq *hera_search.TwitterSearchQuery
-	//err = workflow.ExecuteActivity(insertMsgCtx, h.AiIngestRedditWorkflow, ou, groupName).Get(insertMsgCtx, &sq)
+	//err = workflow.ExecuteActivity(insertMsgCtx, h.AiIngestRedditWorkf, ou, groupName).Get(insertMsgCtx, &sq)
 	//if err != nil {
 	//	logger.Error("failed to execute AiIngestRedditWorkflow", "Error", err)
 	//	// You can decide if you want to return the error or continue monitoring.

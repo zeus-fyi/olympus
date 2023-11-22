@@ -92,6 +92,9 @@ func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) 
 		rowErr := rows.Scan(
 			&sr.UnixTimestamp, &title, &body,
 		)
+		if len(body) <= 0 {
+			continue
+		}
 		sr.Value = title + "\n " + body + "\n"
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SearchTwitter"))

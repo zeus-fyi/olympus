@@ -165,7 +165,7 @@ function AiWorkflowsDashboardContent(props: any) {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            ChatGPT
+                            LLM Workflow Engine
                         </Typography>
                         <Button
                             color="inherit"

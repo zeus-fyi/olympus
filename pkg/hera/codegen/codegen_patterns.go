@@ -50,9 +50,16 @@ func GenerateSqlTableFromExample(f filepaths.Path) string {
 				FileLevelInstruction: "Use the example SQL table definitions and indexes in this file to create the new SQL table definitions",
 			},
 			{
-				DirIn:                HeraDbModelsDir + "/search",
-				FileName:             "twitter.go",
-				FileLevelInstruction: "Use the example insert and select query functions to build an equivalent for the new reddit SQL definitions you create",
+				DirIn:    HeraDbModelsDir + "/search",
+				FileName: "twitter.go",
+				FileLevelInstruction: `Create the lowercase functions using the exact styling shown and assign it to q.RawQuery
+					INSERT INTO "public"."ai_incoming_tweets" ("search_id", "tweet_id", "message_text")
+					VALUES ($1, $2, $3)
+					ON CONFLICT ("tweet_id")
+					DO UPDATE SET
+						"message_text" = EXCLUDED."message_text"
+					RETURNING "tweet_id"
+`,
 				OrderedFileFunctionInstructions: []FunctionInstruction{
 					{
 						FunctionInstruction: "Reference 1",

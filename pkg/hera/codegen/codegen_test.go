@@ -35,11 +35,28 @@ var (
 func (s *CodeGenTestSuite) TestCodeGenFunction() {
 	f := filepaths.Path{
 		DirIn:       dirIn,
+		DirOut:      "./",
+		FnOut:       "codegen_output.json",
 		FilterFiles: sf,
 	}
-	pi := GenerateSqlTableFromExample(f)
-	s.Require().NotEmpty(pi)
-	fmt.Println(pi)
+	prompt := GenerateSqlTableFromExample(f)
+	s.Require().NotEmpty(prompt)
+	fmt.Println(prompt)
+
+	hera_openai.InitHeraOpenAI(s.Tc.OpenAIAuth)
+	params := hera_openai.OpenAIParams{
+		Prompt: prompt,
+	}
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
+	s.Require().NoError(err)
+	fmt.Println(resp.Choices[0].Message.Content)
+
+	s.Require().NoError(err)
+
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
+
 }
 
 func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {

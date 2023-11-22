@@ -83,3 +83,4 @@ Thumbs.db
 /configs/gcp/
 /configs/backup.txt
 /apps/external/td/
+/pkg/hera/codegen/generated_outputs/

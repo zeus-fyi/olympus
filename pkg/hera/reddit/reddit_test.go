@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -27,13 +29,16 @@ func (s *RedditTestSuite) SetupTest() {
 func (s *RedditTestSuite) TestReadPosts() {
 	posts, _, err := s.rc.ReadOnly.Subreddit.TopPosts(ctx, "kubernetes", &reddit.ListPostOptions{
 		ListOptions: reddit.ListOptions{
-			Limit: 25,
+			Limit: 1,
 		},
 		Time: "day",
 	})
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	searchID := 1700685362343578112
 
+	resp, err := hera_search.InsertIncomingRedditPosts(ctx, searchID, posts)
 	s.Require().Nil(err)
-	s.Assert().NotNil(posts)
+	s.Assert().NotZero(resp)
 }
 
 func TestRedditTestSuite(t *testing.T) {

@@ -56,9 +56,14 @@ func ExtractSourceCode(ctx context.Context, bai *BuildAiInstructions) (*BuildAiI
 					cp := filepath.Dir(filepath.Clean(relPath))
 					if bai.SearchPath != nil {
 						baseFileName := filepath.Base(relPath)
-						if fileName, ok := bai.SearchPath[cp]; ok {
-							if fileName == baseFileName {
-								bai.SetContents(cp, fileName, content)
+
+						tmp := bai.SearchPath[cp]
+						if tmp == nil {
+							continue
+						}
+						for _, v := range tmp {
+							if v == baseFileName {
+								bai.SetContents(cp, v, content)
 							}
 						}
 					} else {
@@ -97,8 +102,8 @@ func aggregateDirectoryImports(cmd *CodeDirectoryMetadata) {
 	}
 }
 
-func (cm *BuildAiInstructions) SetContents(dirIn, fn string, contents []byte) {
-	cmdd, exists := cm.FileReferencesMap[dirIn]
+func (b *BuildAiInstructions) SetContents(dirIn, fn string, contents []byte) {
+	cmdd, exists := b.FileReferencesMap[dirIn]
 	if !exists {
 		cmdd = CodeFilesMetadata{}
 	}
@@ -118,10 +123,13 @@ func (cm *BuildAiInstructions) SetContents(dirIn, fn string, contents []byte) {
 		goFileInfo.FileName = baseFileName
 		cmdd.GoCodeFiles.Files[baseFileName] = *goFileInfo
 	case strings.HasSuffix(fn, ".sql"):
-		cmdd.SQLCodeFiles.Files = append(cmdd.SQLCodeFiles.Files, SQLCodeFile{
+		if cmdd.SQLCodeFiles.Files == nil {
+			cmdd.SQLCodeFiles.Files = make(map[string]SQLCodeFile)
+		}
+		cmdd.SQLCodeFiles.Files[fn] = SQLCodeFile{
 			FileName: baseFileName,
 			Contents: string(contents),
-		})
+		}
 	case strings.HasSuffix(fn, ".yaml") || strings.HasSuffix(fn, ".yml"):
 		cmdd.YamlCodeFiles.Files = append(cmdd.YamlCodeFiles.Files, YamlCodeFile{
 			FileName: baseFileName,
@@ -151,5 +159,5 @@ func (cm *BuildAiInstructions) SetContents(dirIn, fn string, contents []byte) {
 	default:
 		return
 	}
-	cm.FileReferencesMap[dirIn] = cmdd
+	b.FileReferencesMap[dirIn] = cmdd
 }

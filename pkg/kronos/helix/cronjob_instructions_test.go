@@ -16,7 +16,7 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 		GroupName: olympus,
 		Type:      cronjob,
 		CronJob: CronJobInstructions{
-			Endpoint:     fmt.Sprintf("https://api.zeus.fyi/v1/webhooks/twitter/ai/zeusfyi"),
+			Endpoint:     fmt.Sprintf("https://api.zeus.fyi/v1/webhooks/reddit/ai/zeusfyi"),
 			PollInterval: 5 * time.Minute,
 		},
 	}
@@ -24,7 +24,7 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 	t.Require().Nil(err)
 
 	groupName := "ZeusAiPlatformServiceWorkflows"
-	instType := "AiIngestTwitterWorkflow-Cronjob-0"
+	instType := "AiIngestRedditWorkflow-Cronjob-0"
 
 	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	oj := artemis_orchestrations.OrchestrationJob{

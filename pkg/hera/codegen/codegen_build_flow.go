@@ -3,18 +3,20 @@ package hera_v1_codegen
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 const (
-	DbSchemaDir   = "datastores/postgres/local_docker/docker-entrypoint-initdb.d/init.sql"
-	PkgDir        = "pkg"
-	AppsDir       = "apps"
-	CookbooksDir  = "cookbooks"
-	DockerDir     = "docker"
-	DatastoresDir = "datastores"
-	AiZeusApi     = "apps/olympus/zeus/api/v1/zeus/ai"
+	DbSchemaDir     = "datastores/postgres/local_docker/docker-entrypoint-initdb.d/init.sql"
+	HeraDbModelsDir = "datastores/postgres/apps/hera/models"
+	PkgDir          = "pkg"
+	AppsDir         = "apps"
+	CookbooksDir    = "cookbooks"
+	DockerDir       = "docker"
+	DatastoresDir   = "datastores"
+	AiZeusApi       = "apps/olympus/zeus/api/v1/zeus/ai"
 )
 
 type BuildAiInstructions struct {
@@ -22,7 +24,7 @@ type BuildAiInstructions struct {
 	PromptInstructions  string
 	OrderedInstructions []BuildAiFileInstruction
 	FileReferencesMap   map[string]CodeFilesMetadata
-	SearchPath          map[string]string
+	SearchPath          map[string][]string
 }
 
 type BuildAiFileInstruction struct {
@@ -30,12 +32,22 @@ type BuildAiFileInstruction struct {
 	FileName                        string
 	FileLevelInstruction            string
 	OrderedFileFunctionInstructions []FunctionInstruction
+	OrderedGoTypeInstructions       []GoTypeInstruction
+}
+
+type GoTypeInstruction struct {
+	GoTypeInstruction string
+	GoTypeName        string
+	GoType            string
 }
 
 func (b *BuildAiInstructions) SetSearchPath() {
-	m := make(map[string]string)
-	for _, v := range b.OrderedInstructions {
-		m[v.DirIn] = v.FileName
+	m := make(map[string][]string)
+	for i, v := range b.OrderedInstructions {
+		if i == 0 {
+			m[v.DirIn] = []string{}
+		}
+		m[v.DirIn] = append(m[v.DirIn], v.FileName)
 	}
 	b.SearchPath = m
 }
@@ -62,12 +74,19 @@ func GenerateInstructions(ctx context.Context, bai *BuildAiInstructions) string 
 	if scMap == nil {
 		return ""
 	}
-	prompt := ""
+	prompt := bai.PromptInstructions
 	for _, v := range bai.OrderedInstructions {
 		fr, ok := bai.FileReferencesMap[v.DirIn]
 		if !ok {
 			continue
 		}
+
+		sqlFile, ok := fr.SQLCodeFiles.Files[v.FileName]
+		if ok {
+			prompt += fmt.Sprintf("%s \nFilepath: %s/%s \n%s\n", v.FileLevelInstruction, v.DirIn, v.FileName, sqlFile.Contents)
+			continue
+		}
+
 		goFile, ok := fr.GoCodeFiles.Files[v.FileName]
 		if !ok {
 			continue
@@ -81,8 +100,19 @@ func GenerateInstructions(ctx context.Context, bai *BuildAiInstructions) string 
 			}
 			switch f.FunctionInstruction {
 			default:
-				prompt += f.FunctionInfo.Name + ": " + f.FunctionInstruction + "\n" + funcInfo.Body + "\n"
+				prompt += f.FunctionInfo.Name + ": " + f.FunctionInstruction + "\n" + " func parameters: " + funcInfo.Parameters + " func return type:" + funcInfo.ReturnType + " body: " + funcInfo.Body + "\n"
 			}
+		}
+		for _, gt := range v.OrderedGoTypeInstructions {
+			switch strings.ToLower(gt.GoType) {
+			case "struct":
+				gtInfo, aok := goFile.Structs[gt.GoTypeName]
+				if !aok {
+					continue
+				}
+				prompt += gt.GoTypeInstruction + "\n" + gtInfo + "\n"
+			}
+
 		}
 	}
 	return FormatInstructionPrompt(prompt)

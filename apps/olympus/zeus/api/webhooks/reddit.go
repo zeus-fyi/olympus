@@ -29,7 +29,7 @@ func (a *AIServiceRequest) SupportAcknowledgeRedditAiTask(c echo.Context) error 
 	ou := org_users.NewOrgUserWithID(internalOrgID, 7138958574876245567)
 	err := ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteAiRedditWorkflow(c.Request().Context(), ou, group)
 	if err != nil {
-		log.Err(err).Msg("Zeus: ExecuteAiTwitterWorkflow")
+		log.Err(err).Msg("Zeus: ExecuteAiRedditWorkflow")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, nil)

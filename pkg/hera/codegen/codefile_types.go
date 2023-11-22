@@ -40,7 +40,7 @@ type HtmlCodeFile struct {
 }
 
 type SQLCodeFiles struct {
-	Files []SQLCodeFile
+	Files map[string]SQLCodeFile
 }
 
 type SQLCodeFile struct {

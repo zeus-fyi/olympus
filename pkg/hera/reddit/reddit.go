@@ -52,13 +52,22 @@ func (r *Reddit) GetControversialPosts(ctx context.Context, subreddit string, lp
 	return posts, resp, nil
 }
 
-func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, *reddit.Response, error) {
+type RedditPostSearchResponse struct {
+	Posts []*reddit.Post   `json:"posts"`
+	Resp  *reddit.Response `json:"resp"`
+}
+
+func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) (*RedditPostSearchResponse, error) {
 	posts, resp, err := r.ReadOnly.Subreddit.NewPosts(ctx, subreddit, lpo)
 	if err != nil {
 		log.Err(err).Msg("Error getting new posts")
-		return nil, nil, err
+		return nil, err
 	}
-	return posts, resp, nil
+	re := &RedditPostSearchResponse{
+		Posts: posts,
+		Resp:  resp,
+	}
+	return re, nil
 }
 
 func (r *Reddit) GetRisingPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, *reddit.Response, error) {

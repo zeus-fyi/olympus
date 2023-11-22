@@ -76,7 +76,7 @@ func redditSearchQuery() sql_query_templates.QueryParams {
 }
 
 func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q := twitterSearchQuery()
+	q := redditSearchQuery()
 	var srs []SearchResult
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchReddit")); returnErr != nil {

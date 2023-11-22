@@ -2,6 +2,7 @@ package auth_startup
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -58,7 +59,14 @@ func (t *AuthStartupTestSuite) TestAuthStartup() {
 	inMemFs := ReadEncryptedSecretsData(ctx, authCfg)
 
 	t.Require().NotEmpty(inMemFs)
+	ra := RedditAuthConfig{}
+	sw := SecretsWrapper{}
 
+	sb := sw.ReadSecretBytes(ctx, inMemFs, redditSecretsJson)
+	err := json.Unmarshal(sb, &ra)
+	if err != nil {
+		panic(err)
+	}
 	//authCfg.Path.FnIn = "secrets.tar.gz.age"
 	//authCfg.Path.FnOut = "secrets.tar.gz"
 	//inMemSecrets, sw := RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)

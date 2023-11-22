@@ -56,9 +56,14 @@ func ExtractSourceCode(ctx context.Context, bai *BuildAiInstructions) (*BuildAiI
 					cp := filepath.Dir(filepath.Clean(relPath))
 					if bai.SearchPath != nil {
 						baseFileName := filepath.Base(relPath)
-						if fileName, ok := bai.SearchPath[cp]; ok {
-							if fileName == baseFileName {
-								bai.SetContents(cp, fileName, content)
+
+						tmp := bai.SearchPath[cp]
+						if tmp == nil {
+							continue
+						}
+						for _, v := range tmp {
+							if v == baseFileName {
+								bai.SetContents(cp, v, content)
 							}
 						}
 					} else {

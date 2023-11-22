@@ -49,6 +49,8 @@ const (
 	twitterConsumerSecretAPIKey = "secrets/twitter.consumer.secret.api.key.txt"
 	twitterAccessToken          = "secrets/twitter.access.token.txt"
 	twitterAccessTokenSecret    = "secrets/twitter.access.secret.token.txt"
+
+	redditSecretsJson = "secrets/reddit.api.keys.json"
 )
 
 type SecretsWrapper struct {
@@ -96,6 +98,14 @@ type SecretsWrapper struct {
 	AtlassianOrgId  string
 	AtlassianApiKey string
 	GmailApiKey     string
+
+	RedditAuthConfig RedditAuthConfig
+}
+type RedditAuthConfig struct {
+	RedditUsername     string `json:"redditUsername"`
+	RedditPassword     string `json:"redditPassword"`
+	RedditSecretOAuth2 string `json:"redditSecretOAuth2"`
+	RedditPublicOAuth2 string `json:"redditPublicOAuth2"`
 }
 
 var secretsBucket = &s3.GetObjectInput{

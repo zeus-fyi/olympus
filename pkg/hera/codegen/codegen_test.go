@@ -32,6 +32,84 @@ var (
 	ctx = context.Background()
 )
 
+func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions2() {
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
+	}
+	actInst := ``
+	bins := BuildAiInstructions{
+		Path: f,
+		OrderedInstructions: []BuildAiFileInstruction{
+			{
+				DirIn:                PkgDir + "/zeus/ai/orchestrations",
+				FileName:             "workflows_twitter.go",
+				FileLevelInstruction: actInst,
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Use this function as an example reference for adding a new activity to the workflow",
+						FunctionInfo: FunctionInfo{
+							Name: "AiIngestTwitterWorkflow",
+						},
+					},
+				},
+			},
+			{
+				DirIn:                PkgDir + "/zeus/ai/orchestrations",
+				FileName:             "activities.go",
+				FileLevelInstruction: actInst,
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Use this activity function for adding a new activity to the workflow",
+						FunctionInfo: FunctionInfo{
+							Name: "SearchRedditNewPostsUsingSubreddit",
+						},
+					},
+				},
+			},
+			{
+				DirIn:                PkgDir + "/zeus/ai/orchestrations",
+				FileName:             "workflows_reddit.go",
+				FileLevelInstruction: "",
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Add the activity to the workflow section after the UpsertAssignmentActivity",
+						FunctionInfo: FunctionInfo{
+							Name: "AiIngestRedditWorkflow",
+						},
+					},
+				},
+			},
+			{
+				DirIn:    PkgDir + "/hera/reddit",
+				FileName: "reddit.go",
+				OrderedGoTypeInstructions: []GoTypeInstruction{
+					{
+						GoTypeInstruction: "create a var with this struct type that gets assigned from the output of the activity",
+						GoType:            "struct",
+						GoTypeName:        "RedditPostSearchResponse",
+					},
+				},
+			},
+		},
+	}
+	prompt := GenerateInstructions(ctx, &bins)
+	fmt.Println(prompt)
+
+	hera_openai.InitHeraOpenAI(s.Tc.OpenAIAuth)
+	params := hera_openai.OpenAIParams{
+		Prompt: prompt,
+	}
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
+	s.Require().NoError(err)
+	fmt.Println(resp.Choices[0].Message.Content)
+	f.DirOut = "./generated_outputs"
+	f.FnOut = "workflow_instructions.txt"
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
+}
+
 func (s *CodeGenTestSuite) TestCodeGenFunction() {
 	f := filepaths.Path{
 		DirIn:       dirIn,

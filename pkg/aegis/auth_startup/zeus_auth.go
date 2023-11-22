@@ -2,6 +2,7 @@ package auth_startup
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/rs/zerolog/log"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
@@ -41,5 +42,12 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	sw.TwitterConsumerSecretAPIKey = sw.MustReadSecret(ctx, inMemSecrets, twitterConsumerSecretAPIKey)
 	sw.TwitterAccessToken = sw.MustReadSecret(ctx, inMemSecrets, twitterAccessToken)
 	sw.TwitterAccessTokenSecret = sw.MustReadSecret(ctx, inMemSecrets, twitterAccessTokenSecret)
+
+	ra := RedditAuthConfig{}
+	sb := sw.ReadSecretBytes(ctx, inMemSecrets, redditSecretsJson)
+	err := json.Unmarshal(sb, &ra)
+	if err != nil {
+		panic(err)
+	}
 	return inMemSecrets, sw
 }

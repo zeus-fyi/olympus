@@ -58,13 +58,37 @@ func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, ou org_users.OrgUser, 
 
 	resp, err := ai.CreateCompletion(ctx, req)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("orgUser", ou).Msg("MakeCodeGenRequest")
+		log.Err(err).Interface("orgUser", ou).Msg("MakeCodeGenRequest")
 		return resp, err
 	}
 	err = hera_openai_dbmodels.InsertCompletionResponse(ctx, ou, resp)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Err(err)
 		return resp, err
 	}
+	return resp, err
+}
+
+func (ai *OpenAI) MakeCodeGenRequestV2(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.ChatCompletionResponse, error) {
+	systemMessage := openai.ChatCompletionMessage{
+		Role: openai.ChatMessageRoleSystem,
+		Content: "You are a helpful bot that analyzes the context, filepaths, and content of supplied code references and generates code from example functions, code references, and other guidance." +
+			" You respond only with code, and you are not a chatbot",
+		Name: fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+	}
+	resp, err := ai.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model: "gpt-4-1106-preview",
+			Messages: []openai.ChatCompletionMessage{
+				systemMessage,
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: params.Prompt,
+					Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+				},
+			},
+		},
+	)
 	return resp, err
 }

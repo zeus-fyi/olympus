@@ -27,6 +27,7 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context
 	}
 	return nil
 }
+
 func (h *ZeusAiPlatformServicesWorker) ExecuteAiTelegramWorkflow(ctx context.Context, ou org_users.OrgUser, msgs []hera_openai_dbmodels.TelegramMessage) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()

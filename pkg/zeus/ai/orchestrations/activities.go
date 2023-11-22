@@ -35,7 +35,7 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew,
 		h.InsertAiResponse, h.InsertTelegramMessageIfNew,
 		h.InsertIncomingTweetsFromSearch, h.SearchTwitterUsingQuery, h.SelectTwitterSearchQuery,
-		h.SearchRedditNewPostsUsingSubreddit,
+		h.SearchRedditNewPostsUsingSubreddit, h.InsertIncomingRedditDataFromSearch, h.SelectRedditSearchQuery,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -173,4 +173,22 @@ func (h *ZeusAiPlatformActivities) InsertIncomingTweetsFromSearch(ctx context.Co
 		return err
 	}
 	return nil
+}
+
+func (h *ZeusAiPlatformActivities) InsertIncomingRedditDataFromSearch(ctx context.Context, searchID int, redditData []*reddit.Post) error {
+	_, err := hera_search.InsertIncomingRedditPosts(ctx, searchID, redditData)
+	if err != nil {
+		log.Err(err).Msg("InsertIncomingRedditDataFromSearch")
+		return err
+	}
+	return nil
+}
+
+func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.RedditSearchQuery, error) {
+	rs, err := hera_search.SelectRedditSearchQuery(ctx, ou, groupName)
+	if err != nil {
+		log.Err(err).Msg("SelectRedditSearchQuery: activity failed")
+		return nil, err
+	}
+	return rs, nil
 }

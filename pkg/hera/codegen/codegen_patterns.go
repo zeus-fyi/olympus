@@ -17,6 +17,7 @@ err = workflow.ExecuteActivity(insertMsgCtx, h.SelectTwitterSearchQuery, ou, gro
 		return err
 	}
 */
+
 func AddActivityToWorkflow(f filepaths.Path) string {
 	actInst := `add an activity to the AiIngestReddit workflow`
 	bins := &BuildAiInstructions{
@@ -182,42 +183,3 @@ func GenerateSqlTableFromExample(f filepaths.Path) string {
 	prompt := GenerateInstructions(context.Background(), bins)
 	return prompt
 }
-
-/*
-// Post is a submitted post on Reddit.
-type Post struct {
-	ID      string     `json:"id,omitempty"`
-	FullID  string     `json:"name,omitempty"`
-	Created *Timestamp `json:"created_utc,omitempty"`
-	Edited  *Timestamp `json:"edited,omitempty"`
-
-	Permalink string `json:"permalink,omitempty"`
-	URL       string `json:"url,omitempty"`
-
-	Title string `json:"title,omitempty"`
-	Body  string `json:"selftext,omitempty"`
-
-	// Indicates if you've upvoted/downvoted (true/false).
-	// If neither, it will be nil.
-	Likes *bool `json:"likes"`
-
-	Score            int     `json:"score"`
-	UpvoteRatio      float32 `json:"upvote_ratio"`
-	NumberOfComments int     `json:"num_comments"`
-
-	SubredditName         string `json:"subreddit,omitempty"`
-	SubredditNamePrefixed string `json:"subreddit_name_prefixed,omitempty"`
-	SubredditID           string `json:"subreddit_id,omitempty"`
-	SubredditSubscribers  int    `json:"subreddit_subscribers"`
-
-	Author   string `json:"author,omitempty"`
-	AuthorID string `json:"author_fullname,omitempty"`
-
-	Spoiler    bool `json:"spoiler"`
-	Locked     bool `json:"locked"`
-	NSFW       bool `json:"over_18"`
-	IsSelfPost bool `json:"is_self"`
-	Saved      bool `json:"saved"`
-	Stickied   bool `json:"stickied"`
-}
-*/

@@ -32,6 +32,137 @@ var (
 	ctx = context.Background()
 )
 
+func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions4() {
+	actInst := ``
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
+	}
+	bins := &BuildAiInstructions{
+		Path:               f,
+		PromptInstructions: actInst,
+		OrderedInstructions: []BuildAiFileInstruction{
+			{
+				DirIn:                DbSchemaDir,
+				FileName:             "604_ai_reddit.sql",
+				FileLevelInstruction: "Use the example SQL table reference to build the new sql query function for reddit",
+			},
+			{
+				DirIn:                HeraDbModelsDir + "/search",
+				FileName:             "twitter.go",
+				FileLevelInstruction: "Use the example SQL table reference to build the new sql query function for reddit",
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Reference 1",
+						FunctionInfo: FunctionInfo{
+							Name: "SelectTwitterSearchQuery",
+						},
+					},
+					{
+						FunctionInstruction: "Reference 1",
+						FunctionInfo: FunctionInfo{
+							Name: "selectTwitterSearchQuery",
+						},
+					},
+				},
+			},
+		},
+	}
+	prompt := GenerateInstructions(context.Background(), bins)
+	fmt.Println(prompt)
+
+	hera_openai.InitHeraOpenAI(s.Tc.OpenAIAuth)
+	params := hera_openai.OpenAIParams{
+		Prompt: prompt,
+	}
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
+	s.Require().NoError(err)
+	fmt.Println(resp.Choices[0].Message.Content)
+	f.DirOut = "./generated_outputs"
+	f.FnOut = "workflow_instructions_reddit.txt"
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
+}
+
+func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions3() {
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
+	}
+	actInst := ``
+	bins := BuildAiInstructions{
+		Path: f,
+		OrderedInstructions: []BuildAiFileInstruction{
+			{
+				DirIn:                PkgDir + "/zeus/ai/orchestrations",
+				FileName:             "workflows_twitter.go",
+				FileLevelInstruction: actInst,
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Use this function as an example reference for adding a new activity to the workflow",
+						FunctionInfo: FunctionInfo{
+							Name: "AiIngestTwitterWorkflow",
+						},
+					},
+				},
+			},
+			{
+				DirIn:                PkgDir + "/zeus/ai/orchestrations",
+				FileName:             "activities.go",
+				FileLevelInstruction: actInst,
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Use this activity function for adding a new activity to the workflow",
+						FunctionInfo: FunctionInfo{
+							Name: "InsertIncomingRedditDataFromSearch",
+						},
+					},
+				},
+			},
+			{
+				DirIn:                PkgDir + "/zeus/ai/orchestrations",
+				FileName:             "workflows_reddit.go",
+				FileLevelInstruction: "",
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Add the activity to the workflow section after  SearchRedditNewPostsUsingSubreddit",
+						FunctionInfo: FunctionInfo{
+							Name: "AiIngestRedditWorkflow",
+						},
+					},
+				},
+			},
+			//{
+			//	DirIn:    PkgDir + "/hera/reddit",
+			//	FileName: "reddit.go",
+			//	OrderedGoTypeInstructions: []GoTypeInstruction{
+			//		{
+			//			GoTypeInstruction: "create a var with this struct type that gets assigned from the output of the activity",
+			//			GoType:            "struct",
+			//			GoTypeName:        "RedditPostSearchResponse",
+			//		},
+			//	},
+			//},
+		},
+	}
+	prompt := GenerateInstructions(ctx, &bins)
+	fmt.Println(prompt)
+
+	hera_openai.InitHeraOpenAI(s.Tc.OpenAIAuth)
+	params := hera_openai.OpenAIParams{
+		Prompt: prompt,
+	}
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
+	s.Require().NoError(err)
+	fmt.Println(resp.Choices[0].Message.Content)
+	f.DirOut = "./generated_outputs"
+	f.FnOut = "workflow_instructions.txt"
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
+}
+
 func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions2() {
 	f := filepaths.Path{
 		DirIn:       dirIn,
@@ -62,7 +193,7 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions2() {
 					{
 						FunctionInstruction: "Use this activity function for adding a new activity to the workflow",
 						FunctionInfo: FunctionInfo{
-							Name: "SearchRedditNewPostsUsingSubreddit",
+							Name: "SelectRedditSearchQuery",
 						},
 					},
 				},
@@ -80,14 +211,25 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions2() {
 					},
 				},
 			},
+			//{
+			//	DirIn:    PkgDir + "/hera/reddit",
+			//	FileName: "reddit.go",
+			//	OrderedGoTypeInstructions: []GoTypeInstruction{
+			//		{
+			//			GoTypeInstruction: "create a var with this struct type that gets assigned from the output of the activity",
+			//			GoType:            "struct",
+			//			GoTypeName:        "RedditSearchQuery",
+			//		},
+			//	},
+			//},
 			{
-				DirIn:    PkgDir + "/hera/reddit",
+				DirIn:    HeraDbModelsDir + "/search",
 				FileName: "reddit.go",
 				OrderedGoTypeInstructions: []GoTypeInstruction{
 					{
 						GoTypeInstruction: "create a var with this struct type that gets assigned from the output of the activity",
 						GoType:            "struct",
-						GoTypeName:        "RedditPostSearchResponse",
+						GoTypeName:        "RedditSearchQuery",
 					},
 				},
 			},
@@ -105,7 +247,7 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions2() {
 	s.Require().NoError(err)
 	fmt.Println(resp.Choices[0].Message.Content)
 	f.DirOut = "./generated_outputs"
-	f.FnOut = "workflow_instructions.txt"
+	f.FnOut = "workflow_instructionsszz.txt"
 	err = f.WriteToFileOutPath([]byte(prompt))
 	s.Require().NoError(err)
 }
@@ -142,10 +284,10 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
 		DirIn:       dirIn,
 		FilterFiles: sf,
 	}
-	actInst := `write: add a new activity name that matches the existing syntax style for Searching New SubReddit Posts,
-					the name should be derived from the reference func name in reddit.go
-					and then create a new func that matches the new activity name and
-				write the logic for the new wrapper func, which calls the reference func from reddit.go and uses RedditClient from reddit.go to make the call`
+	actInst := `write: add a new activity name that matches the existing syntax styles,
+					the name should be derived from the reference func name
+					and then create a new func that matches the new activity name 
+				write the logic for the new wrapper func, which calls the reference func`
 	bins := BuildAiInstructions{
 		Path: f,
 		OrderedInstructions: []BuildAiFileInstruction{
@@ -161,26 +303,40 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
 						},
 					},
 					{
-						FunctionInstruction: "Read Only Reference syntax style for Building Searching New SubReddit Post Activity",
+						FunctionInstruction: "Read Only example of similar function for new Activity",
 						FunctionInfo: FunctionInfo{
-							Name: "SearchTwitterUsingQuery",
+							Name: "SelectTwitterSearchQuery",
 						},
 					},
 				},
 			},
 			{
-				DirIn:                PkgDir + "/hera/reddit",
+				DirIn:                DatastoresDir + "/postgres/apps/hera/models/search",
 				FileName:             "reddit.go",
 				FileLevelInstruction: "",
 				OrderedFileFunctionInstructions: []FunctionInstruction{{
-					FunctionInstruction: "Read Only Reference syntax style for Building Searching New SubReddit Post Activity",
+					FunctionInstruction: "Use this to build the new activity function",
 					FunctionInfo: FunctionInfo{
-						Name: "GetNewPosts",
+						Name: "SelectRedditSearchQuery",
 					},
 				}},
 			},
 		},
 	}
+
+	/*
+			{
+			DirIn:                PkgDir + "/hera/reddit",
+			FileName:             "reddit.go",
+			FileLevelInstruction: "",
+			OrderedFileFunctionInstructions: []FunctionInstruction{{
+				FunctionInstruction: "Read Only Reference syntax style for Building Searching New SubReddit Post Activity",
+				FunctionInfo: FunctionInfo{
+					Name: "GetNewPosts",
+				},
+			}},
+		},
+	*/
 	//for _, is := range bins.OrderedInstructions {
 	//	fmt.Println(is.FileLevelInstruction)
 	//}
@@ -196,6 +352,10 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
 	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
 	s.Require().NoError(err)
 	fmt.Println(resp.Choices[0].Message.Content)
+	f.DirOut = "./generated_outputs"
+	f.FnOut = "workflow_add_activity_instructions21.txt"
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
 }
 
 func (s *CodeGenTestSuite) TestCreateCodeSourceParsing() {

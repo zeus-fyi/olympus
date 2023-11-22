@@ -129,3 +129,38 @@ func InsertIncomingRedditPosts(ctx context.Context, searchID int, posts []*reddi
 	}
 	return postIDs, nil
 }
+
+func selectRedditSearchQuery() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "selectRedditSearchQuery"
+	q.RawQuery = `
+        SELECT sq.search_id, sq.query, sq.max_results, ip.post_full_id, COALESCE(MAX(ip.created_at), 0) AS last_created_at
+        FROM public.ai_reddit_search_query sq
+        LEFT JOIN public.ai_reddit_incoming_posts ip ON sq.search_id = ip.search_id
+        WHERE sq.org_id = $1 AND sq.user_id = $2 AND sq.search_group_name = $3
+        GROUP BY sq.search_id, sq.query, sq.max_results, ip.post_full_id;
+    `
+	return q
+}
+
+type RedditSearchQuery struct {
+	SearchID        int    `json:"searchID"`
+	OrgID           int    `json:"orgID"`
+	UserID          int    `json:"userID"`
+	SearchGroupName string `json:"searchGroupName"`
+	MaxResults      int    `json:"maxResults"`
+	LastCreatedAt   int    `json:"lastCreatedAt"`
+	FullPostId      string `json:"fullPostId"`
+	Query           string `json:"query"`
+}
+
+func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) (*RedditSearchQuery, error) {
+	queryTemplate := selectRedditSearchQuery()
+	rs := &RedditSearchQuery{}
+	err := apps.Pg.QueryRowWArgs(ctx, queryTemplate.RawQuery, ou.OrgID, ou.UserID, searchGroupName).Scan(&rs.SearchID, &rs.Query, &rs.MaxResults, &rs.FullPostId, &rs.LastCreatedAt)
+	if err != nil {
+		log.Err(err).Msg("SelectRedditSearchQuery")
+		return nil, err
+	}
+	return rs, err
+}

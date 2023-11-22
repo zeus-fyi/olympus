@@ -106,7 +106,7 @@ func GenerateInstructions(ctx context.Context, bai *BuildAiInstructions) string 
 		for _, gt := range v.OrderedGoTypeInstructions {
 			switch strings.ToLower(gt.GoType) {
 			case "struct":
-				gtInfo, aok := goFile.Structs[gt.GoType]
+				gtInfo, aok := goFile.Structs[gt.GoTypeName]
 				if !aok {
 					continue
 				}

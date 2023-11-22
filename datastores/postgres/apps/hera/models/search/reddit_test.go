@@ -26,13 +26,10 @@ func (s *SearchAITestSuite) TestSelectRedditSearchQuery() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	query := `(("Kubernetes" OR "k8s" OR "#kube" OR "container orchestration") -is:retweet (has:links OR has:media OR has:mentions) (lang:en))`
-	ts, err := SelectTwitterSearchQuery(ctx, ou, defaultTwitterSearchGroupName)
+	ts, err := SelectRedditSearchQuery(ctx, ou, defaultTwitterSearchGroupName)
 	s.Require().Nil(err)
-	s.Assert().NotZero(ts.SearchID)
+	s.Assert().NotNil(ts)
 	s.Assert().Equal(100, ts.MaxResults)
-	s.Assert().Equal(query, ts.Query)
-	s.Assert().NotZero(ts.MaxTweetID)
 }
 
 func (s *SearchAITestSuite) TestInsertRedditPosts() {

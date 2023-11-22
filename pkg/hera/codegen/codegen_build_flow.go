@@ -18,63 +18,74 @@ const (
 )
 
 type BuildAiInstructions struct {
-	Instructions []BuildAiInstruction
+	Path                filepaths.Path
+	PromptInstructions  string
+	OrderedInstructions []BuildAiFileInstruction
+	FileReferencesMap   map[string]CodeFilesMetadata
+	SearchPath          map[string]string
 }
 
-type BuildAiInstruction struct {
-	Instructions        string
-	DirIn               string
-	FileFunctions       []FileFunctionInstruction
-	FileInstructionsMap map[string]FileInfo
+type BuildAiFileInstruction struct {
+	DirIn                           string
+	FileName                        string
+	FileLevelInstruction            string
+	OrderedFileFunctionInstructions []FunctionInstruction
 }
 
-type FileFunctionInstruction struct {
-	FunctionName string
-	Instruction  string
+func (b *BuildAiInstructions) SetSearchPath() {
+	m := make(map[string]string)
+	for _, v := range b.OrderedInstructions {
+		m[v.DirIn] = v.FileName
+	}
+	b.SearchPath = m
 }
 
-type FileInfo struct {
-	Functions []FunctionInfo
+type FunctionInstruction struct {
+	FunctionInstruction string
+	FunctionInfo        FunctionInfo
 }
 
-type GeneratedBuildAiInstructions struct {
-	Instructions []GeneratedBuildAiInstruction
-}
-type GeneratedBuildAiInstruction struct {
-	DirIn               string
-	FileInstructionsMap map[string]string
+func FormatInstructionPrompt(instructions string) string {
+	return fmt.Sprintf("START PROMPT: %s\nEND PROMPT\n", instructions)
 }
 
-func FormatInstructionPrompt(instructions, fileContents string) string {
-	return fmt.Sprintf("START PROMPT: %s\n END PROMPT\n %s \n", instructions, fileContents)
-}
-
-func BuildAiInstructionsFromSourceCode(ctx context.Context, f filepaths.Path, buildDirs BuildAiInstructions) *GeneratedBuildAiInstructions {
-	sc, err := ExtractSourceCode(ctx, f)
+func GenerateInstructions(ctx context.Context, bai *BuildAiInstructions) string {
+	if bai == nil {
+		return ""
+	}
+	bai.SetSearchPath()
+	scMap, err := ExtractSourceCode(ctx, bai)
 	if err != nil {
 		panic(err)
 	}
-	if sc.Map == nil {
-		return nil
+
+	if scMap == nil {
+		return ""
 	}
-	gbi := &GeneratedBuildAiInstructions{}
-	//for _, bd := range buildDirs.Instructions {
-	//	if bd.FileInstructionsMap == nil {
-	//		continue
-	//	}
-	//	fmt.Println("dirIn: ", bd.DirIn)
-	//	for _, gf := range sc.Map[bd.DirIn].GoCodeFiles.Files {
-	//		if bd.FileInstructionsMap[gf.FileName].Functions == "" {
-	//			delete(bd.FileInstructionsMap, gf.FileName)
-	//		} else {
-	//			gbi.Instructions = append(gbi.Instructions, GeneratedBuildAiInstruction{
-	//				DirIn:               bd.DirIn,
-	//				FileInstructionsMap: map[string]string{gf.FileName: FormatInstructionPrompt(bd.FileInstructionsMap[gf.FileName], gf.Contents)},
-	//			})
-	//		}
-	//	}
-	//}
-	return gbi
+	prompt := ""
+	for _, v := range bai.OrderedInstructions {
+		fr, ok := bai.FileReferencesMap[v.DirIn]
+		if !ok {
+			continue
+		}
+		goFile, ok := fr.GoCodeFiles.Files[v.FileName]
+		if !ok {
+			continue
+		}
+		prompt += fmt.Sprintf("%s \nFilepath: %s/%s \n", v.FileLevelInstruction, v.DirIn, v.FileName)
+		prompt += fmt.Sprintf("Imports: %s\n", goFile.Imports)
+		for _, f := range v.OrderedFileFunctionInstructions {
+			funcInfo, aok := goFile.Functions[f.FunctionInfo.Name]
+			if !aok {
+				continue
+			}
+			switch f.FunctionInstruction {
+			default:
+				prompt += f.FunctionInfo.Name + ": " + f.FunctionInstruction + "\n" + funcInfo.Body + "\n"
+			}
+		}
+	}
+	return FormatInstructionPrompt(prompt)
 }
 
 /*

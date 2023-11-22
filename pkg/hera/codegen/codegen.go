@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
@@ -18,9 +17,17 @@ var (
 	}
 )
 
-func ExtractSourceCode(ctx context.Context, f filepaths.Path) (CodeDirectoryMetadata, error) {
+func ExtractSourceCode(ctx context.Context, bai *BuildAiInstructions) (*BuildAiInstructions, error) {
 	// Step one: read the entire codebase
-	cmd := CodeDirectoryMetadata{Map: make(map[string]CodeFilesMetadata)}
+	if bai == nil {
+		return nil, nil
+	}
+	f := bai.Path
+
+	bai.FileReferencesMap = make(map[string]CodeFilesMetadata)
+	cmd := &CodeDirectoryMetadata{
+		Map: make(map[string]CodeFilesMetadata),
+	}
 	// Function to recursively walk through directories
 	var walkDir func(dir string, root string) error
 	walkDir = func(dir string, root string) error {
@@ -46,20 +53,29 @@ func ExtractSourceCode(ctx context.Context, f filepaths.Path) (CodeDirectoryMeta
 					if readErr != nil {
 						return readErr
 					}
-					cmd.SetContents(filepath.Dir(filepath.Clean(relPath)), relPath, content)
+					cp := filepath.Dir(filepath.Clean(relPath))
+					if bai.SearchPath != nil {
+						baseFileName := filepath.Base(relPath)
+						if fileName, ok := bai.SearchPath[cp]; ok {
+							if fileName == baseFileName {
+								bai.SetContents(cp, fileName, content)
+							}
+						}
+					} else {
+						bai.SetContents(cp, relPath, content)
+					}
 				}
 			}
 		}
 		return nil
 	}
-
 	// Start walking from the root directory
 	err := walkDir(f.DirIn, f.DirIn)
 	if err != nil {
 		panic(err)
 	}
-	aggregateDirectoryImports(&cmd)
-	return cmd, err
+	aggregateDirectoryImports(cmd)
+	return bai, err
 }
 
 func aggregateDirectoryImports(cmd *CodeDirectoryMetadata) {
@@ -81,8 +97,8 @@ func aggregateDirectoryImports(cmd *CodeDirectoryMetadata) {
 	}
 }
 
-func (cm *CodeDirectoryMetadata) SetContents(dirIn, fn string, contents []byte) {
-	cmdd, exists := cm.Map[dirIn]
+func (cm *BuildAiInstructions) SetContents(dirIn, fn string, contents []byte) {
+	cmdd, exists := cm.FileReferencesMap[dirIn]
 	if !exists {
 		cmdd = CodeFilesMetadata{}
 	}
@@ -96,8 +112,11 @@ func (cm *CodeDirectoryMetadata) SetContents(dirIn, fn string, contents []byte) 
 		if goFileInfo == nil {
 			return
 		}
+		if cmdd.GoCodeFiles.Files == nil {
+			cmdd.GoCodeFiles.Files = make(map[string]GoCodeFile)
+		}
 		goFileInfo.FileName = baseFileName
-		cmdd.GoCodeFiles.Files = append(cmdd.GoCodeFiles.Files, *goFileInfo)
+		cmdd.GoCodeFiles.Files[baseFileName] = *goFileInfo
 	case strings.HasSuffix(fn, ".sql"):
 		cmdd.SQLCodeFiles.Files = append(cmdd.SQLCodeFiles.Files, SQLCodeFile{
 			FileName: baseFileName,
@@ -132,5 +151,5 @@ func (cm *CodeDirectoryMetadata) SetContents(dirIn, fn string, contents []byte) 
 	default:
 		return
 	}
-	cm.Map[dirIn] = cmdd
+	cm.FileReferencesMap[dirIn] = cmdd
 }

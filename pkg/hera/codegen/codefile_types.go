@@ -58,7 +58,7 @@ type YamlCodeFile struct {
 }
 
 type GoCodeFiles struct {
-	Files            []GoCodeFile
+	Files            map[string]GoCodeFile
 	DirectoryImports []string
 }
 

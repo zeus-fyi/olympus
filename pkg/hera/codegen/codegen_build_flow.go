@@ -8,13 +8,14 @@ import (
 )
 
 const (
-	DbSchemaDir   = "datastores/postgres/local_docker/docker-entrypoint-initdb.d/init.sql"
-	PkgDir        = "pkg"
-	AppsDir       = "apps"
-	CookbooksDir  = "cookbooks"
-	DockerDir     = "docker"
-	DatastoresDir = "datastores"
-	AiZeusApi     = "apps/olympus/zeus/api/v1/zeus/ai"
+	DbSchemaDir     = "datastores/postgres/local_docker/docker-entrypoint-initdb.d/init.sql"
+	HeraDbModelsDir = "datastores/postgres/apps/hera/models"
+	PkgDir          = "pkg"
+	AppsDir         = "apps"
+	CookbooksDir    = "cookbooks"
+	DockerDir       = "docker"
+	DatastoresDir   = "datastores"
+	AiZeusApi       = "apps/olympus/zeus/api/v1/zeus/ai"
 )
 
 type BuildAiInstructions struct {
@@ -62,12 +63,19 @@ func GenerateInstructions(ctx context.Context, bai *BuildAiInstructions) string 
 	if scMap == nil {
 		return ""
 	}
-	prompt := ""
+	prompt := bai.PromptInstructions
 	for _, v := range bai.OrderedInstructions {
 		fr, ok := bai.FileReferencesMap[v.DirIn]
 		if !ok {
 			continue
 		}
+
+		sqlFile, ok := fr.SQLCodeFiles.Files[v.FileName]
+		if ok {
+			prompt += fmt.Sprintf("%s \nFilepath: %s/%s \n%s\n", v.FileLevelInstruction, v.DirIn, v.FileName, sqlFile.Contents)
+			continue
+		}
+
 		goFile, ok := fr.GoCodeFiles.Files[v.FileName]
 		if !ok {
 			continue

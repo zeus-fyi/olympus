@@ -8,10 +8,12 @@ import (
 	"github.com/cvcio/twitter"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
+	"github.com/vartanbeno/go-reddit/v2/reddit"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	hera_twitter "github.com/zeus-fyi/olympus/pkg/hera/twitter"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
@@ -33,17 +35,19 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew,
 		h.InsertAiResponse, h.InsertTelegramMessageIfNew,
 		h.InsertIncomingTweetsFromSearch, h.SearchTwitterUsingQuery, h.SelectTwitterSearchQuery,
+		h.SearchRedditNewPostsUsingSubreddit,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
 
-/*
-Model	Input	Output
-gpt-4-1106-preview	$0.01 / 1K tokens	$0.03 / 1K tokens
-
-max tokens out 4,096 output tokens
-
-*/
+func (h *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, *reddit.Response, error) {
+	posts, resp, err := hera_reddit.RedditClient.GetNewPosts(ctx, subreddit, lpo)
+	if err != nil {
+		log.Err(err).Interface("posts", posts).Interface("resp", resp).Msg("SearchRedditNewPostsUsingSubreddit")
+		return nil, nil, err
+	}
+	return posts, resp, nil
+}
 
 func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {
 	//task := "write a bullet point summary of the email contents and suggest some responses if applicable. write your reply as html formatted\n"

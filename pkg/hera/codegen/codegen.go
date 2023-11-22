@@ -97,8 +97,8 @@ func aggregateDirectoryImports(cmd *CodeDirectoryMetadata) {
 	}
 }
 
-func (cm *BuildAiInstructions) SetContents(dirIn, fn string, contents []byte) {
-	cmdd, exists := cm.FileReferencesMap[dirIn]
+func (b *BuildAiInstructions) SetContents(dirIn, fn string, contents []byte) {
+	cmdd, exists := b.FileReferencesMap[dirIn]
 	if !exists {
 		cmdd = CodeFilesMetadata{}
 	}
@@ -118,10 +118,13 @@ func (cm *BuildAiInstructions) SetContents(dirIn, fn string, contents []byte) {
 		goFileInfo.FileName = baseFileName
 		cmdd.GoCodeFiles.Files[baseFileName] = *goFileInfo
 	case strings.HasSuffix(fn, ".sql"):
-		cmdd.SQLCodeFiles.Files = append(cmdd.SQLCodeFiles.Files, SQLCodeFile{
+		if cmdd.SQLCodeFiles.Files == nil {
+			cmdd.SQLCodeFiles.Files = make(map[string]SQLCodeFile)
+		}
+		cmdd.SQLCodeFiles.Files[fn] = SQLCodeFile{
 			FileName: baseFileName,
 			Contents: string(contents),
-		})
+		}
 	case strings.HasSuffix(fn, ".yaml") || strings.HasSuffix(fn, ".yml"):
 		cmdd.YamlCodeFiles.Files = append(cmdd.YamlCodeFiles.Files, YamlCodeFile{
 			FileName: baseFileName,
@@ -151,5 +154,5 @@ func (cm *BuildAiInstructions) SetContents(dirIn, fn string, contents []byte) {
 	default:
 		return
 	}
-	cm.FileReferencesMap[dirIn] = cmdd
+	b.FileReferencesMap[dirIn] = cmdd
 }

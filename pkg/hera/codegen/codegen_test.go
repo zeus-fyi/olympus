@@ -32,6 +32,16 @@ var (
 	ctx = context.Background()
 )
 
+func (s *CodeGenTestSuite) TestCodeGenFunction() {
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
+	}
+	pi := GenerateSqlTableFromExample(f)
+	s.Require().NotEmpty(pi)
+	fmt.Println(pi)
+}
+
 func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
 	f := filepaths.Path{
 		DirIn:       dirIn,
@@ -41,7 +51,6 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
 					the name should be derived from the reference func name in reddit.go
 					and then create a new func that matches the new activity name and
 				write the logic for the new wrapper func, which calls the reference func from reddit.go and uses RedditClient from reddit.go to make the call`
-
 	bins := BuildAiInstructions{
 		Path: f,
 		OrderedInstructions: []BuildAiFileInstruction{
@@ -51,7 +60,7 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
 				FileLevelInstruction: actInst,
 				OrderedFileFunctionInstructions: []FunctionInstruction{
 					{
-						FunctionInstruction: "Add the new activity definition here to this function",
+						FunctionInstruction: "Add the new activity definition here to this function, this is an struct pointer function, and you need to add h. as the prefix to any new activity definition",
 						FunctionInfo: FunctionInfo{
 							Name: "GetActivities",
 						},

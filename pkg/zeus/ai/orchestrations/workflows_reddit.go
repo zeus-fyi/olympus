@@ -7,7 +7,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -45,19 +44,19 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 	}
 	redditCtx := workflow.WithActivityOptions(ctx, ao)
 	lpo := &reddit.ListOptions{Limit: redditSearchQuery.MaxResults, After: redditSearchQuery.FullPostId}
-	var redditPosts *hera_reddit.RedditPostSearchResponse
+	var redditPosts []*reddit.Post
 	err = workflow.ExecuteActivity(redditCtx, h.SearchRedditNewPostsUsingSubreddit, redditSearchQuery.Query, lpo).Get(redditCtx, &redditPosts)
 	if err != nil {
 		logger.Error("failed to fetch new Reddit posts", "Error", err)
 		return err
 	}
 	// Add the InsertIncomingRedditDataFromSearch activity here
-	if redditPosts == nil || len(redditPosts.Posts) == 0 {
+	if redditPosts == nil || len(redditPosts) == 0 {
 		logger.Info("no new Reddit posts found")
 		return nil
 	}
 	insertRedditDataCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(insertRedditDataCtx, h.InsertIncomingRedditDataFromSearch, redditSearchQuery.SearchID, redditPosts.Posts).Get(insertRedditDataCtx, nil)
+	err = workflow.ExecuteActivity(insertRedditDataCtx, h.InsertIncomingRedditDataFromSearch, redditSearchQuery.SearchID, redditPosts).Get(insertRedditDataCtx, nil)
 	if err != nil {
 		logger.Error("failed to insert incoming Reddit data from search", "Error", err)
 		return err

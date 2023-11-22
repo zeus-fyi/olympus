@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -157,7 +158,16 @@ type RedditSearchQuery struct {
 func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) (*RedditSearchQuery, error) {
 	queryTemplate := selectRedditSearchQuery()
 	rs := &RedditSearchQuery{}
-	err := apps.Pg.QueryRowWArgs(ctx, queryTemplate.RawQuery, ou.OrgID, ou.UserID, searchGroupName).Scan(&rs.SearchID, &rs.Query, &rs.MaxResults, &rs.FullPostId, &rs.LastCreatedAt)
+
+	var postId *string
+	err := apps.Pg.QueryRowWArgs(ctx, queryTemplate.RawQuery, ou.OrgID, ou.UserID, searchGroupName).Scan(&rs.SearchID, &rs.Query, &rs.MaxResults, &postId, &rs.LastCreatedAt)
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("SelectRedditSearchQuery: no rows")
+		return nil, nil
+	}
+	if postId != nil {
+		rs.FullPostId = *postId
+	}
 	if err != nil {
 		log.Err(err).Msg("SelectRedditSearchQuery")
 		return nil, err

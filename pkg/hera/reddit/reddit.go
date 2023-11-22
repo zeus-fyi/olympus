@@ -53,8 +53,8 @@ func (r *Reddit) GetControversialPosts(ctx context.Context, subreddit string, lp
 }
 
 type RedditPostSearchResponse struct {
-	Posts []*reddit.Post
-	Resp  *reddit.Response
+	Posts []*reddit.Post   `json:"posts"`
+	Resp  *reddit.Response `json:"resp"`
 }
 
 func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) (*RedditPostSearchResponse, error) {

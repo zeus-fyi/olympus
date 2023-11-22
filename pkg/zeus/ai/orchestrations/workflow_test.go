@@ -36,6 +36,23 @@ func TestZeusWorkerTestSuite(t *testing.T) {
 	suite.Run(t, new(ZeusWorkerTestSuite))
 }
 
+func (t *ZeusWorkerTestSuite) TestRedditWorkflow() {
+	ta := t.Tc.DevTemporalAuth
+	InitZeusAiServicesWorker(ctx, ta)
+	cZ := ZeusAiPlatformWorker.Worker.ConnectTemporalClient()
+	defer cZ.Close()
+	ZeusAiPlatformWorker.Worker.RegisterWorker(cZ)
+	err := ZeusAiPlatformWorker.Worker.Start()
+	t.Require().Nil(err)
+
+	ou := org_users.OrgUser{}
+	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = 7138958574876245565
+
+	err = ZeusAiPlatformWorker.ExecuteAiRedditWorkflow(ctx, ou, "zeusfyi")
+	t.Require().Nil(err)
+}
+
 func (t *ZeusWorkerTestSuite) TestAiWorkflow() {
 	ta := t.Tc.DevTemporalAuth
 	InitZeusAiServicesWorker(ctx, ta)

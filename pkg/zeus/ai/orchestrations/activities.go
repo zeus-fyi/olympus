@@ -40,13 +40,17 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	return append(actSlice, ka.GetActivities()...)
 }
 
-func (h *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, subreddit string, lpo *reddit.ListOptions) (*hera_reddit.RedditPostSearchResponse, error) {
+func (h *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
 	resp, err := hera_reddit.RedditClient.GetNewPosts(ctx, subreddit, lpo)
 	if err != nil {
 		log.Err(err).Interface("posts", resp.Posts).Interface("resp", resp.Resp).Msg("SearchRedditNewPostsUsingSubreddit")
 		return nil, err
 	}
-	return resp, nil
+	if resp.Resp.StatusCode >= 400 {
+		log.Err(err).Interface("posts", resp.Posts).Interface("resp", resp.Resp).Msg("SearchRedditNewPostsUsingSubreddit")
+		return nil, fmt.Errorf("SearchRedditNewPostsUsingSubreddit: resp.StatusCode >= 400")
+	}
+	return resp.Posts, nil
 }
 
 func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {

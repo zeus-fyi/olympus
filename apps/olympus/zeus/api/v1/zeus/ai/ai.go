@@ -75,6 +75,11 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		}
 		res = append(res, resReddit...)
 	}
+
+	//getDiscord := true
+	//if len(r.Platforms) > 0 {
+	//	getDiscord = strings.Contains(r.Platforms, "discord")
+	//}
 	return c.JSON(http.StatusOK, hera_search.FormatSearchResultsV2(res))
 }
 

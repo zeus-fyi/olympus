@@ -100,7 +100,7 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 	}
 	f := strings_filter.FilterOpts{
 		DoesNotStartWithThese: nil,
-		StartsWithThese:       []string{"swap"},
+		StartsWithAnyOfThese:  []string{"swap"},
 		Contains:              "",
 		DoesNotInclude:        []string{""},
 	}

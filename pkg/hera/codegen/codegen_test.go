@@ -24,6 +24,7 @@ type CodeGenTestSuite struct {
 }
 
 func (s *CodeGenTestSuite) SetupTest() {
+	s.InitLocalConfigs()
 	UseAutoGenDirectory()
 }
 
@@ -88,9 +89,9 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
 		Prompt: prompt,
 	}
 	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
-	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequest(ctx, ou, params)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
 	s.NoError(err)
-	fmt.Println(resp.Choices[0].Text)
+	fmt.Println(resp.Choices[0].Message.Content)
 }
 
 func (s *CodeGenTestSuite) TestCreateCodeSourceParsing() {

@@ -90,7 +90,7 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions() {
 	}
 	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
 	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
-	s.NoError(err)
+	s.Require().NoError(err)
 	fmt.Println(resp.Choices[0].Message.Content)
 }
 

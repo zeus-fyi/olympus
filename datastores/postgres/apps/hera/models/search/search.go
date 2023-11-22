@@ -65,6 +65,46 @@ func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 	return srs, nil
 }
 
+func redditSearchQuery() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "twitterSearchQuery"
+	q.RawQuery = `SELECT created_at, title, body
+				  FROM public.ai_reddit_incoming_posts
+        		  WHERE body_tsvector @@ to_tsquery('english', $1) OR title_tsvector @@ to_tsquery('english', $1)
+				  ORDER BY created_at DESC;`
+	return q
+}
+
+func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
+	q := redditSearchQuery()
+	var srs []SearchResult
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchReddit")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var sr SearchResult
+		sr.Source = "reddit"
+
+		title := ""
+		body := ""
+		rowErr := rows.Scan(
+			&sr.UnixTimestamp, &title, &body,
+		)
+		if len(body) <= 0 {
+			continue
+		}
+		sr.Value = title + "\n " + body + "\n"
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SearchTwitter"))
+			return nil, rowErr
+		}
+		srs = append(srs, sr)
+	}
+	return srs, nil
+}
+
 func FormatSearchResultsV2(results []SearchResult) string {
 	var builder strings.Builder
 

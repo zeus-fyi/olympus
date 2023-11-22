@@ -141,3 +141,44 @@ func UseAutoGenDirectory() string {
 	}
 	return dir
 }
+
+/*
+
+Generated output
+
+```go
+// pkg/zeus/ai/orchestrations/activities.go
+
+func GetActivities() []interface{} {
+	ka := kronos_helix.NewKronosActivities()
+	actSlice := []interface{}{
+		h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew,
+		h.InsertAiResponse, h.InsertTelegramMessageIfNew,
+		h.InsertIncomingTweetsFromSearch, h.SearchTwitterUsingQuery, h.SelectTwitterSearchQuery,
+		h.SearchNewSubRedditPosts,
+	}
+
+	return append(actSlice, ka.GetActivities()...)
+}
+
+func SearchNewSubRedditPosts(ctx context.Context, subreddit string, lpo RedditListPostOptions) ([]*reddit.Post, *reddit.Response, error) {
+	posts, resp, err := hera_reddit.RedditClient.GetNewPosts(ctx, subreddit, lpo)
+	if err != nil {
+		log.Err(err).Msg("SearchNewSubRedditPosts")
+		return nil, nil, err
+	}
+	return posts, resp, nil
+}
+
+// pkg/hera/reddit/reddit.go
+
+// Add this struct to the file if it's not already defined
+type RedditListPostOptions struct {
+	ListOptions reddit.ListOptions
+	Time        string
+}
+
+var RedditClient *reddit.Client
+
+// Add the RedditClient initialization somewhere in your codebase, if not already present.
+*/

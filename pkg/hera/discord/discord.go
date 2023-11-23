@@ -5,36 +5,36 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/rs/zerolog/log"
 )
 
-type Discord struct {
-	*discordgo.Session
+type DiscordWrapper struct {
+	DC *discordgo.Session
 }
 
-var DiscordClient Discord
+var DiscordClient *DiscordWrapper
 
-func InitDiscordClient(ctx context.Context, token string) Discord {
+func InitDiscordClient(ctx context.Context, token string) {
 	dg, err := discordgo.New(token)
 	if err != nil {
 		panic(err)
 	}
-	DiscordClient.Session = dg
-	return DiscordClient
+	DiscordClient = &DiscordWrapper{
+		DC: dg,
+	}
+	return
 }
 
-func (d *Discord) ListAllChannels(ctx context.Context) ([]*discordgo.Channel, error) {
+func (d *DiscordWrapper) ListAllChannels(ctx context.Context) ([]*discordgo.Channel, error) {
 	var allChannels []*discordgo.Channel
-	guilds, err := d.UserGuilds(0, "", "")
+	guilds, err := d.DC.UserGuilds(0, "", "")
 	if err != nil {
-		log.Err(err).Msg("Error getting guilds")
 		return nil, err
 	}
 
 	for _, guild := range guilds {
-		channels, cerr := d.GuildChannels(guild.ID)
+		channels, cerr := d.DC.GuildChannels(guild.ID)
 		if cerr != nil {
-			fmt.Printf("Error getting channels for guild %s: %s\n", guild.Name, err)
+			fmt.Printf("Error getting channels for guild %s: %s\n", guild.Name, cerr)
 			continue
 		}
 		allChannels = append(allChannels, channels...)

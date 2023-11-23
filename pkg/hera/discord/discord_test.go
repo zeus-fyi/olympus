@@ -2,7 +2,6 @@ package hera_discord
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -19,21 +18,22 @@ type DiscordTestSuite struct {
 
 func (s *DiscordTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	token, err := read_keys.GetDiscordKey(ctx, s.Tc.ProductionLocalTemporalUserID)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(token)
 	InitDiscordClient(ctx, token)
-	s.Require().NotNil(DiscordClient.Client)
+	s.Require().NotNil(DiscordClient.DC)
+
 }
 
+// https://discord.com/api/oauth2/authorize?client_id=1177043826133717112&redirect_uri=http%3A%2F%2Flocalhost%3A9002%2Fdiscord%2Fcallback&response_type=code&scope=guilds%20messages.read%20guilds.join%20guilds.members.read
 func (s *DiscordTestSuite) TestReadPosts() {
-	channels, err := DiscordClient.ListAllChannels(ctx)
+
+	d := DiscordClient
+	r, err := d.ListAllChannels(ctx)
 	s.Require().Nil(err)
-	s.Require().NotNil(channels)
-	for _, chn := range channels {
-		fmt.Println(chn.Name, chn.ID)
-	}
+	s.Require().NotEmpty(r)
 }
 
 func TestDiscordTestSuite(t *testing.T) {

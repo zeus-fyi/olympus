@@ -114,6 +114,11 @@ func Hestia() {
 		hestia_login.GoogleOAuthConfig.ClientID = sw.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = sw.GoogClientSecret
 		//hestia_analytics.GtagApiSecret = sw.GoogGtagSecret
+		hestia_login.DiscordRedirectURI = "https://hestia.zeus.fyi/discord/callback"
+
+		hestia_login.DiscordClientID = sw.DiscordAuthConfig.DiscordClientID
+		hestia_login.DiscordClientSecret = sw.DiscordAuthConfig.DiscordClientSecret
+		//DiscordRedirectURI
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -141,6 +146,9 @@ func Hestia() {
 		//hestia_analytics.GtagApiSecret = tc.GoogTagSecret
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		hestia_mev.PromqlProxy = "http://localhost:8000"
+		hestia_login.DiscordRedirectURI = "http://localhost:9002/discord/callback"
+		hestia_login.DiscordClientID = tc.DiscordClientID
+		hestia_login.DiscordClientSecret = tc.DiscordClientSecret
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -166,6 +174,9 @@ func Hestia() {
 		//hestia_analytics.GtagApiSecret = tc.GoogTagSecret
 		hestia_mev.PromqlProxy = "http://localhost:8000"
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
+		hestia_login.DiscordRedirectURI = "http://localhost:9002/discord/callback"
+		hestia_login.DiscordClientID = tc.DiscordClientID
+		hestia_login.DiscordClientSecret = tc.DiscordClientSecret
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

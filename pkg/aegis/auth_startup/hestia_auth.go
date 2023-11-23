@@ -2,6 +2,7 @@ package auth_startup
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/rs/zerolog/log"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
@@ -60,5 +61,13 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 
 	hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
+
+	da := DiscordAuthConfig{}
+	sb := sw.ReadSecretBytes(ctx, inMemSecrets, discordSecretsJson)
+	err := json.Unmarshal(sb, &da)
+	if err != nil {
+		panic(err)
+	}
+	sw.DiscordAuthConfig = da
 	return inMemSecrets, sw
 }

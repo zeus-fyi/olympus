@@ -49,5 +49,6 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	if err != nil {
 		panic(err)
 	}
+	sw.RedditAuthConfig = ra
 	return inMemSecrets, sw
 }

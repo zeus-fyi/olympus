@@ -388,3 +388,20 @@ func DeactivateQuickNodeApiKey(ctx context.Context, qid string) (int, error) {
 	}
 	return orgID, err
 }
+
+func GetDiscordKey(ctx context.Context, uid int) (string, error) {
+	var q sql_query_templates.QueryParams
+	query := fmt.Sprintf(`
+	SELECT usk.public_key
+	FROM users_keys usk
+	WHERE usk.user_id = $1 AND usk.public_key_type_id = $2
+	`)
+	q.RawQuery = query
+	key := ""
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, uid, keys.DiscordApiKeyID).Scan(&key)
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("No key found")
+		return "", nil
+	}
+	return key, err
+}

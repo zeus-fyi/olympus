@@ -49,7 +49,19 @@ func (s *CreateKeyTestSuite) TestInsertUserSessionID() {
 	nk.PublicKeyName = "sessionID"
 	nk.CreatedAt = time.Now()
 
-	err := nk.InsertUserSessionKey(ctx)
+	_, err := nk.InsertUserSessionKey(ctx)
+	s.Require().Nil(err)
+}
+
+func (s *CreateKeyTestSuite) TestInsertDiscordKey() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	token := "sssssss"
+	nk := NewCreateKey(s.Tc.ProductionLocalTemporalUserID, token)
+	nk.PublicKeyVerified = true
+	nk.PublicKeyName = "discord"
+	nk.CreatedAt = time.Now()
+
+	err := nk.InsertDiscordKey(ctx)
 	s.Require().Nil(err)
 }
 

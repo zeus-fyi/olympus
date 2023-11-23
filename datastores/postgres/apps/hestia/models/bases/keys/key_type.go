@@ -16,6 +16,7 @@ const (
 	PasswordResetTokenTypeID = 10
 	StripeCustomerID         = 11
 	QuickNodeCustomerID      = 12
+	DiscordApiKeyID          = 13
 )
 
 type KeyType struct {

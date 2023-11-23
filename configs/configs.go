@@ -152,6 +152,9 @@ type TestContainer struct {
 	GoogTagSecret    string
 
 	AtlassianKeys
+
+	DiscordClientID     string
+	DiscordClientSecret string
 }
 
 type AtlassianKeys struct {
@@ -220,6 +223,10 @@ func InitLocalTestConfigs() TestContainer {
 	for i := 1; i < 9; i++ {
 		qn.Routes = append(qn.Routes, viper.GetString(fmt.Sprintf("QUIKNODE_%d", i)))
 	}
+
+	testCont.DiscordClientID = viper.GetString("DISCORD_CLIENT_ID")
+	testCont.DiscordClientSecret = viper.GetString("DISCORD_CLIENT_SECRET")
+
 	testCont.TelegramApiToken = viper.GetString("TELEGRAM_BOT_TOKEN")
 	testCont.AtlassianKeys.ApiKey = viper.GetString("ATLASSIAN_API_KEY")
 	testCont.AtlassianKeys.OrgId = viper.GetString("ATLASSIAN_ORG_ID")

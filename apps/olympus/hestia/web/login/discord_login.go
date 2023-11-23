@@ -6,8 +6,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
+	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 )
 
 var (
@@ -33,6 +36,10 @@ func DiscordLoginHandler(c echo.Context) error {
 func (d *DiscordLoginRequest) VerifyDiscordLogin(c echo.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
+
+const (
+	internalOrgID = 7138983863666903883
+)
 
 // DiscordCallbackHandler handles the OAuth callback from Discord
 func DiscordCallbackHandler(c echo.Context) error {
@@ -73,8 +80,22 @@ func DiscordCallbackHandler(c echo.Context) error {
 	}
 	// Check if the response contains the access token
 	if token, ok := tokenResponse["access_token"]; ok {
-		return c.JSON(http.StatusOK, map[string]string{"token": token.(string)})
+		ts, aok := token.(string)
+		if !aok {
+			return c.JSON(http.StatusInternalServerError, "Failed to get access token")
+		}
+		nk := create_keys.NewCreateKey(internalOrgID, ts)
+		nk.PublicKeyVerified = true
+		nk.PublicKeyName = "discord"
+		nk.CreatedAt = time.Now()
+		err = nk.InsertDiscordKey(c.Request().Context())
+		if err != nil {
+			log.Err(err).Msg("Failed to insert discord key")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		return c.JSON(http.StatusOK, map[string]string{"token": ts})
 	}
+
 	return c.JSON(http.StatusInternalServerError, "Failed to get access token")
 
 }

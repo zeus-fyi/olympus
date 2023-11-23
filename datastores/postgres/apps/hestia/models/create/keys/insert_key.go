@@ -82,3 +82,22 @@ func (k *Key) InsertUserSessionKey(ctx context.Context) (string, error) {
 	}
 	return oldKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
+
+func (k *Key) InsertDiscordKey(ctx context.Context) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `WITH cte_delete_prev_session_keys AS (
+					DELETE FROM users_keys 
+					WHERE user_id = $2 AND public_key_type_id = $5
+					RETURNING public_key
+				)
+				  INSERT INTO users_keys(public_key, user_id, public_key_name, public_key_verified, public_key_type_id)
+				  VALUES ($1, $2, $3, $4, $5)
+				  `
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, k.PublicKey, k.UserID, "discord", true, keys.DiscordApiKeyID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return err
+	}
+	rowsAffected := r.RowsAffected()
+	log.Debug().Msgf("InsertUserKey: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
+	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+}

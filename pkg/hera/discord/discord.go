@@ -7,6 +7,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+const (
+	QuickNodeChannelID = "685243210829922350"
+	ZeusfyiChannelID   = "1018610566572544080"
+)
+
 type DiscordWrapper struct {
 	DC *discordgo.Session
 }
@@ -24,20 +29,11 @@ func InitDiscordClient(ctx context.Context, token string) {
 	return
 }
 
-func (d *DiscordWrapper) ListAllChannels(ctx context.Context) ([]*discordgo.Channel, error) {
-	var allChannels []*discordgo.Channel
-	guilds, err := d.DC.UserGuilds(0, "", "")
+func (d *DiscordWrapper) FetchChatMessages(ctx context.Context, chID, afterID string, limit int) ([]*discordgo.Message, error) {
+	messages, err := d.DC.ChannelMessages(chID, limit, "", afterID, "")
 	if err != nil {
+		fmt.Println("Error retrieving messages:", err)
 		return nil, err
 	}
-
-	for _, guild := range guilds {
-		channels, cerr := d.DC.GuildChannels(guild.ID)
-		if cerr != nil {
-			fmt.Printf("Error getting channels for guild %s: %s\n", guild.Name, cerr)
-			continue
-		}
-		allChannels = append(allChannels, channels...)
-	}
-	return allChannels, nil
+	return messages, nil
 }

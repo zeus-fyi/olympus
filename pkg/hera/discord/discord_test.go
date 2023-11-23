@@ -31,7 +31,7 @@ func (s *DiscordTestSuite) SetupTest() {
 func (s *DiscordTestSuite) TestReadPosts() {
 
 	d := DiscordClient
-	r, err := d.ListAllChannels(ctx)
+	r, err := d.FetchChatMessages(ctx, ZeusfyiChannelID, "", 100)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(r)
 }

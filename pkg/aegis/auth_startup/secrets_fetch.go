@@ -50,7 +50,8 @@ const (
 	twitterAccessToken          = "secrets/twitter.access.token.txt"
 	twitterAccessTokenSecret    = "secrets/twitter.access.secret.token.txt"
 
-	redditSecretsJson = "secrets/reddit.api.keys.json"
+	redditSecretsJson  = "secrets/reddit.api.keys.json"
+	discordSecretsJson = "secrets/discord.auth.json"
 )
 
 type SecretsWrapper struct {
@@ -99,13 +100,19 @@ type SecretsWrapper struct {
 	AtlassianApiKey string
 	GmailApiKey     string
 
-	RedditAuthConfig RedditAuthConfig
+	RedditAuthConfig  RedditAuthConfig
+	DiscordAuthConfig DiscordAuthConfig
 }
 type RedditAuthConfig struct {
 	RedditUsername     string `json:"redditUsername"`
 	RedditPassword     string `json:"redditPassword"`
 	RedditSecretOAuth2 string `json:"redditSecretOAuth2"`
 	RedditPublicOAuth2 string `json:"redditPublicOAuth2"`
+}
+
+type DiscordAuthConfig struct {
+	DiscordClientID     string `json:"discordClientID"`
+	DiscordClientSecret string `json:"discordClientSecret"`
 }
 
 var secretsBucket = &s3.GetObjectInput{

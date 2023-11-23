@@ -11,6 +11,7 @@ import (
 const (
 	DbSchemaDir     = "datastores/postgres/local_docker/docker-entrypoint-initdb.d/init.sql"
 	HeraDbModelsDir = "datastores/postgres/apps/hera/models"
+	HeraPkgsDir     = "pkg/hera"
 	PkgDir          = "pkg"
 	AppsDir         = "apps"
 	CookbooksDir    = "cookbooks"

@@ -85,11 +85,11 @@ func (k *Key) InsertUserSessionKey(ctx context.Context) (string, error) {
 
 func (k *Key) InsertDiscordKey(ctx context.Context) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO users_keys(public_key, user_id, public_key_name, public_key_verified, public_key_type_id)
-				  VALUES ($1, $2, $3, $4, $5)
-				  ON CONFLICT (public_key) DO UPDATE SET public_key = $1
-				  `
-	r, err := apps.Pg.Exec(ctx, q.RawQuery, k.PublicKey, k.UserID, "discord", true, keys.DiscordApiKeyID)
+	q.RawQuery = `UPDATE users_keys
+				  SET public_key=$1
+				  WHERE user_id=$2 AND public_key_type_id=$3	
+				  				  `
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, k.PublicKey, k.UserID, keys.DiscordApiKeyID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}

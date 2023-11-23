@@ -32,6 +32,101 @@ var (
 	ctx = context.Background()
 )
 
+func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions5() {
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
+	}
+	dbInfo := `
+			table_name ai_discord_search_query
+			----
+				search_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
+				org_id BIGINT NOT NULL REFERENCES orgs(org_id),
+				user_id BIGINT NOT NULL REFERENCES users(user_id),
+				search_group_name TEXT NOT NULL,
+				max_results BIGINT NOT NULL CHECK (max_results <= 100),
+				query TEXT NOT NULL
+
+			table_name ai_discord_guild
+			-----
+			guild_id text (PRIMARY KEY)
+			name text
+			
+			add appropriate indexes to the tables to support full text search on the name column
+
+			table_name: ai_discord_channel
+			----- 
+			guild_id text (FK)
+			channel_id text (PRIMARY KEY)
+			category id 
+			category text
+			name text 
+			topic text
+ 
+			add appropriate indexes to the tables to support full text search on the topic, name, category columns
+
+			table_name: ai_incoming_discord_messages
+			-----
+		    guild_id text (FK)
+			channel_id text (FK)
+			message_id (it will be converted to pg bigint) (PRIMARY KEY)
+			author jsonb
+			content text
+			mentions jsonb
+			reactions jsonb
+			reference jsonb
+			timestampEdited	(it will be converted to pg bigint, default 0)
+			type text
+			
+		add appropriate indexes to the tables to support full text search on the content column, and all the jsonb columns
+		add a regular index on the type column
+`
+
+	actInst := ``
+	bins := &BuildAiInstructions{
+		Path:               f,
+		PromptInstructions: actInst,
+		OrderedInstructions: []BuildAiFileInstruction{
+			{
+				DirIn:                DbSchemaDir,
+				FileName:             "604_ai_reddit.sql",
+				FileLevelInstruction: "Use the example SQL table definitions and indexes in this file to create the new SQL table definitions",
+			},
+			{
+				DirIn:                HeraPkgsDir + "/discord",
+				FileName:             "discord_messages.go",
+				FileLevelInstruction: "Use following struct definitions and this outline to build sql tables for channels, guilds, and messages:" + dbInfo,
+				OrderedGoTypeInstructions: []GoTypeInstruction{
+					{
+						GoTypeInstruction: "Use this struct reference to create a table for guild and for channel",
+						GoTypeName:        "ChannelMessages",
+						GoType:            "struct",
+					},
+					{
+						GoTypeInstruction: "Use this struct reference to create a table for messages",
+						GoTypeName:        "Message",
+						GoType:            "struct",
+					},
+				},
+			},
+		},
+	}
+	prompt := GenerateInstructions(context.Background(), bins)
+	fmt.Println(prompt)
+	hera_openai.InitHeraOpenAI(s.Tc.OpenAIAuth)
+	params := hera_openai.OpenAIParams{
+		Prompt: prompt,
+	}
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
+	s.Require().NoError(err)
+	fmt.Println(resp.Choices[0].Message.Content)
+	f.DirOut = "./generated_outputs"
+	f.FnOut = "workflow_instructions_discord.txt"
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
+}
+
 func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions4() {
 	actInst := ``
 	f := filepaths.Path{

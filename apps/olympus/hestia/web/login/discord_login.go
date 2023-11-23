@@ -58,6 +58,7 @@ func DiscordCallbackHandler(c echo.Context) error {
 	// Implement the logic to get the token using the code
 	req, err := http.NewRequest("POST", "https://discord.com/api/oauth2/token", bytes.NewBufferString(data.Encode()))
 	if err != nil {
+		log.Err(err).Msg("Failed to create request")
 		return err
 	}
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -88,14 +89,15 @@ func DiscordCallbackHandler(c echo.Context) error {
 		nk.PublicKeyVerified = true
 		nk.PublicKeyName = "discord"
 		nk.CreatedAt = time.Now()
+		nk.UserID = 7138958574876245567
 		err = nk.InsertDiscordKey(c.Request().Context())
 		if err != nil {
 			log.Err(err).Msg("Failed to insert discord key")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-		return c.JSON(http.StatusOK, map[string]string{"token": ts})
+		return c.JSON(http.StatusOK, "ok")
 	}
 
-	return c.JSON(http.StatusInternalServerError, "Failed to get access token")
+	return c.JSON(http.StatusInternalServerError, nil)
 
 }

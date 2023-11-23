@@ -19,14 +19,15 @@ type DiscordTestSuite struct {
 
 func (s *DiscordTestSuite) SetupTest() {
 	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	token, err := read_keys.GetDiscordKey(ctx, s.Tc.ProductionLocalTemporalUserID)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(token)
+	InitDiscordClient(ctx, token)
 	s.Require().NotNil(DiscordClient.Client)
 }
 
 func (s *DiscordTestSuite) TestReadPosts() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	channels, err := DiscordClient.ListAllChannels(ctx)
 	s.Require().Nil(err)
 	s.Require().NotNil(channels)

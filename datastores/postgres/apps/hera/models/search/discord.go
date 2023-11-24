@@ -138,8 +138,8 @@ type DiscordSearchResult struct {
 }
 
 type DiscordSearchResultWrapper struct {
-	SearchID int `json:"search_id"`
-	Results  []*DiscordSearchResult
+	SearchID int                    `json:"search_id"`
+	Results  []*DiscordSearchResult `json:"results"`
 }
 
 func SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) (*DiscordSearchResultWrapper, error) {

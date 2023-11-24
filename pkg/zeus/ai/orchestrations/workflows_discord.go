@@ -25,6 +25,9 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 			MaximumAttempts:    10,
 		},
 	}
+	if len(cm.Messages) == 0 {
+		return nil
+	}
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiIngestDiscordWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
@@ -40,12 +43,13 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 		// You can decide if you want to return the error or continue monitoring.
 		return err
 	}
-	if sq == nil || sq.SearchID == 0 {
-		logger.Info("no new tweets found")
-		return nil
+
+	searchID := 1700866280401889000
+	if sq != nil && sq.SearchID > 0 {
+		searchID = sq.SearchID
 	}
 	insertMessagesCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(insertMessagesCtx, h.InsertIncomingDiscordDataFromSearch, sq.SearchID, cm).Get(insertMessagesCtx, nil)
+	err = workflow.ExecuteActivity(insertMessagesCtx, h.InsertIncomingDiscordDataFromSearch, searchID, cm).Get(insertMessagesCtx, nil)
 	if err != nil {
 		logger.Error("failed to execute InsertIncomingDiscordDataFromSearch", "Error", err)
 		// You can decide if you want to return the error or continue monitoring.

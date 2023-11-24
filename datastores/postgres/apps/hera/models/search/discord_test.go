@@ -95,7 +95,7 @@ func (s *SearchAITestSuite) TestInsertIncomingDiscordMessages() {
 func (s *SearchAITestSuite) TestSelectDiscordSearchQuery() {
 	// Initialize context and necessary data
 	// Setup context and necessary data
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID

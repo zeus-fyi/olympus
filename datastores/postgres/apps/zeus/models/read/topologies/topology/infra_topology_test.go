@@ -16,10 +16,10 @@ func (s *TopologyTestSuite) TestSelectTopology() {
 	//apps.Pg.InitPG(context.Background(), s.Tc.ProdLocalDbPgconn)
 	tr := NewInfraTopologyReader()
 
-	tr.TopologyID = 1677360008013168128
+	tr.TopologyID = 1700785711692338585
 	tr.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	tr.UserID = s.Tc.ProductionLocalTemporalUserID
-	err := tr.SelectTopology(ctx)
+	err := tr.SelectTopologyForOrg(ctx)
 	s.Require().Nil(err)
 }
 

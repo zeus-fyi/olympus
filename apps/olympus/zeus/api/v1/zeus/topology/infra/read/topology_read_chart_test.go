@@ -47,9 +47,9 @@ func (t *TopologyReadActionRequestTestSuite) TestReadClusterDefinition() {
 }
 
 func (t *TopologyReadActionRequestTestSuite) TestReadChart() {
-	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	tr := read_topology.NewInfraTopologyReader()
-	tr.TopologyID = 1686076488089176000
+	tr.TopologyID = 1700788779135945000
 	// from auth lookup
 	tr.OrgID = t.Tc.ProductionLocalTemporalOrgID
 	tr.UserID = t.Tc.ProductionLocalTemporalUserID

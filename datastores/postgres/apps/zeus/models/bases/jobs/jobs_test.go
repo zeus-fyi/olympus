@@ -21,6 +21,24 @@ func (s *JobsTestSuite) SetupTest() {
 	s.TestDirectory = "."
 }
 
+func (s *JobsTestSuite) TestK8sToDBJobParsing() {
+	jo := NewJob()
+	filepath := path.Join(s.TestDirectory, "job.yaml")
+
+	b, err := ReadYamlConfig(filepath)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(b)
+
+	err = json.Unmarshal(b, &jo.K8sJob)
+	s.Require().Nil(err)
+
+	err = jo.ConvertK8JobToDB()
+	s.Require().Nil(err)
+
+	s.Assert().NotEmpty(jo.Metadata)
+	s.Require().Equal("example-job", jo.Metadata.Name.ChartSubcomponentValue)
+}
+
 func (s *JobsTestSuite) TestK8sJob() {
 	job := NewJob()
 	filepath := path.Join(s.TestDirectory, "job.yaml")

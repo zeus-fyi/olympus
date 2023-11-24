@@ -13,6 +13,7 @@ func (cj *CronJob) GetCronJobCTE(chart *charts.Chart) sql_query_templates.CTE {
 	var combinedSubCTEs sql_query_templates.SubCTEs
 	chart.ChartComponentResourceID = CronJobChartComponentResourceID
 	// metadata
+	cj.Metadata.Name.ChartSubcomponentValue = cj.K8sCronJob.Name
 	metaDataCtes := common.CreateParentMetadataSubCTEs(chart, cj.Metadata)
 	parentSpecCTE := common.CreateParentClassTypeSubCTE(chart, &cj.Spec.ChartSubcomponentParentClassTypes)
 	cj.Spec.ChildClassSingleValue.SetParentClassTypeID(cj.Spec.ParentClass.ChartSubcomponentParentClassTypeID)

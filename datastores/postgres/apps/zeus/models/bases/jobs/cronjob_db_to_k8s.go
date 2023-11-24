@@ -6,7 +6,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions/db_to_k8s_conversions"
-	v1Batch "k8s.io/api/batch/v1"
 )
 
 func (cj *CronJob) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildDB) error {
@@ -30,7 +29,6 @@ func (cj *CronJob) ConvertDBSpecToK8s(pcSlice []common_conversions.PC) error {
 		value := pc.ChartSubcomponentValue
 		switch subClassName {
 		case "CronJobJobSpec":
-			cj.K8sCronJob = v1Batch.CronJob{}
 			err := json.Unmarshal([]byte(value), &cj.K8sCronJob.Spec)
 			if err != nil {
 				log.Err(err)

@@ -163,7 +163,12 @@ type DiscordSearchResult struct {
 	MaxMessageID int    `json:"max_message_id"`
 }
 
-func SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) ([]*DiscordSearchResult, error) {
+type DiscordSearchResultWrapper struct {
+	SearchID int `json:"search_id"`
+	Results  []*DiscordSearchResult
+}
+
+func SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) (*DiscordSearchResultWrapper, error) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "selectDiscordSearchQuery"
 	q.RawQuery = `
@@ -182,12 +187,15 @@ func SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchG
 		return nil, err
 	}
 	defer rows.Close()
-
+	var searchID int
 	for rows.Next() {
 		var r DiscordSearchResult
 		if err = rows.Scan(&r.SearchID, &r.GuildID, &r.ChannelID, &r.MaxMessageID); err != nil {
 			log.Err(err).Msg("Error scanning row in SelectDiscordSearchQuery")
 			return nil, err
+		}
+		if searchID == 0 {
+			searchID = r.SearchID
 		}
 		results = append(results, &r)
 	}
@@ -197,5 +205,8 @@ func SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchG
 		return nil, err
 	}
 
-	return results, nil
+	return &DiscordSearchResultWrapper{
+		SearchID: searchID,
+		Results:  results,
+	}, nil
 }

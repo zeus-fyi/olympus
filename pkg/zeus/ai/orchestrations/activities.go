@@ -46,7 +46,7 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		h.InsertAiResponse, h.InsertTelegramMessageIfNew,
 		h.InsertIncomingTweetsFromSearch, h.SearchTwitterUsingQuery, h.SelectTwitterSearchQuery,
 		h.SearchRedditNewPostsUsingSubreddit, h.InsertIncomingRedditDataFromSearch, h.SelectRedditSearchQuery,
-		h.CreateDiscordJob,
+		h.CreateDiscordJob, h.SelectDiscordSearchQuery, h.InsertIncomingDiscordDataFromSearch,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -229,6 +229,15 @@ func (h *ZeusAiPlatformActivities) SelectTwitterSearchQuery(ctx context.Context,
 	}
 	if sq == nil {
 		return nil, fmt.Errorf("SelectTwitterSearchQuery: sq is nil")
+	}
+	return sq, nil
+}
+
+func (h *ZeusAiPlatformActivities) SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.DiscordSearchResultWrapper, error) {
+	sq, err := hera_search.SelectDiscordSearchQuery(ctx, ou, groupName)
+	if err != nil {
+		log.Err(err).Msg("SelectDiscordSearchQuery")
+		return nil, err
 	}
 	return sq, nil
 }

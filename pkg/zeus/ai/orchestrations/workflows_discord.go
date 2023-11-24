@@ -4,13 +4,14 @@ import (
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
-func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, messages hera_discord.ChannelMessages) error {
+func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, searchGroupName string, cm hera_discord.ChannelMessages) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -27,7 +28,25 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 		logger.Error("failed to update ai orch services", "Error", err)
 		return err
 	}
-
+	searchQueryCtx := workflow.WithActivityOptions(ctx, ao)
+	var sq *hera_search.DiscordSearchResultWrapper
+	err = workflow.ExecuteActivity(searchQueryCtx, h.SelectDiscordSearchQuery, ou, searchGroupName).Get(searchQueryCtx, &sq)
+	if err != nil {
+		logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
+		// You can decide if you want to return the error or continue monitoring.
+		return err
+	}
+	if sq == nil || sq.SearchID == 0 {
+		logger.Info("no new tweets found")
+		return nil
+	}
+	insertMessagesCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(insertMessagesCtx, h.InsertIncomingDiscordDataFromSearch, sq.SearchID, cm).Get(insertMessagesCtx, nil)
+	if err != nil {
+		logger.Error("failed to execute InsertIncomingDiscordDataFromSearch", "Error", err)
+		// You can decide if you want to return the error or continue monitoring.
+		return err
+	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {

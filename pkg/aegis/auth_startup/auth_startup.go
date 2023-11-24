@@ -71,12 +71,9 @@ func NewDefaultAuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeys
 
 var (
 	Ksp = filepaths.Path{
-		PackageName: "",
-		DirIn:       "/secrets",
-		DirOut:      "/secrets",
-		FnIn:        "kube.tar.gz.age",
-		Env:         "",
-		FilterFiles: string_utils.FilterOpts{},
+		DirIn:  "/secrets",
+		DirOut: "/secrets",
+		FnIn:   "kube.tar.gz.age",
 	}
 )
 
@@ -88,6 +85,8 @@ func ReadDecKubeSecretsFromInMemDir() []byte {
 	}
 	return b
 }
+
+// only used by Zeus
 
 func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthConfig) memfs.MemFS {
 	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure starting")

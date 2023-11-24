@@ -19,6 +19,13 @@ spec:
     spec:
       imagePullSecrets:
         - name: zeus-fyi-ext
+      initContainers:
+        - name: init-aegis-secrets
+          image: registry.digitalocean.com/zeus-fyi/aegis-secrets:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: "/secrets"
+              name: "secrets"
       containers:
         - name: "zeus"
           image: "registry.digitalocean.com/zeus-fyi/zeus:latest"

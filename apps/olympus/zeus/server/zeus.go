@@ -138,6 +138,8 @@ func Zeus() {
 		}
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
+		auth_startup.Ksp.DirIn = "../configs"
+		auth_startup.Sp.DirIn = "../configs"
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
@@ -172,6 +174,8 @@ func Zeus() {
 		}
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
+		auth_startup.Ksp.DirIn = "../configs"
+		auth_startup.Sp.DirIn = "../configs"
 		tc := configs.InitLocalTestConfigs()
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)

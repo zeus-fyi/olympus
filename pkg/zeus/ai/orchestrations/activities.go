@@ -124,6 +124,7 @@ func (h *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, timeAft
 	}, &j)
 	return err
 }
+
 func (h *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
 	resp, err := hera_reddit.RedditClient.GetNewPosts(ctx, subreddit, lpo)
 	if err != nil {

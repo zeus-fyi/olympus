@@ -62,7 +62,7 @@ func (a *DiscordRequest) RequestDiscordAiTaskStart(c echo.Context) error {
 	cms := hera_discord.ChannelMessages{}
 	err = json.Unmarshal(b, &cms)
 	if err != nil {
-		log.Err(err).Msg("Zeus: RequestDiscordAiTaskStart")
+		log.Err(err).Interface("body", a.Body).Msg("Zeus: RequestDiscordAiTaskStart")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteAiIngestDiscordWorkflow(c.Request().Context(), ou, cms)

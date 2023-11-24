@@ -3,7 +3,6 @@ package ai_platform_service_orchestrations
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/cvcio/twitter"
@@ -255,30 +254,6 @@ func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, 
 }
 
 func (h *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx context.Context, searchID int, messages hera_discord.ChannelMessages) error {
-	dms := make([]*hera_search.DiscordMessage, len(messages.Messages))
-	for i, cm := range messages.Messages {
-		intConv, err := strconv.Atoi(cm.Id)
-		if err != nil {
-			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
-			return err
-		}
-
-		dm := &hera_search.DiscordMessage{
-			MessageID: intConv,
-			SearchId:  searchID,
-			GuildID:   messages.Guild.Id,
-			ChannelID: messages.Channel.Id,
-			Author:    cm.Author,
-			Content:   cm.Content,
-			Mentions:  cm.Mentions,
-			Reactions: cm.Reactions,
-			Reference: cm.Reference,
-			EditedAt:  int(cm.TimestampEdited.Unix()),
-			Type:      cm.Type,
-		}
-		dms[i] = dm
-	}
-
 	err := hera_search.InsertDiscordGuild(ctx, messages.Guild.Id, messages.Guild.Name)
 	if err != nil {
 		log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
@@ -289,7 +264,7 @@ func (h *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx conte
 		log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
 		return err
 	}
-	_, err = hera_search.InsertIncomingDiscordMessages(ctx, searchID, dms)
+	_, err = hera_search.InsertIncomingDiscordMessages(ctx, searchID, messages)
 	if err != nil {
 		log.Err(err).Msg("InsertIncomingRedditDataFromSearch")
 		return err

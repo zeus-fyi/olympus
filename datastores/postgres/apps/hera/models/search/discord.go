@@ -3,11 +3,13 @@ package hera_search
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -78,7 +80,7 @@ func InsertDiscordChannel(ctx context.Context, searchID int, guildID, channelID,
 	return nil
 }
 
-func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages []*DiscordMessage) ([]int, error) {
+func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages hera_discord.ChannelMessages) ([]int, error) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "insertIncomingDiscordMessages"
 	q.RawQuery = `INSERT INTO "public"."ai_incoming_discord_messages" ("message_id", "search_id", "guild_id", "channel_id", "author", "content", "mentions", "reactions", "reference", "timestamp_edited", "type")
@@ -98,12 +100,13 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages [
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
-	for _, message := range messages {
-		if message == nil {
-			continue
-		}
+	for _, message := range messages.Messages {
 		var messageID int
-
+		mi, berr := strconv.Atoi(message.Id)
+		if berr != nil {
+			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
+			return nil, berr
+		}
 		ba, berr := json.Marshal(message.Author)
 		if berr != nil {
 			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
@@ -126,16 +129,16 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages [
 		}
 
 		err = tx.QueryRow(ctx, q.RawQuery,
-			message.MessageID,
+			mi,
 			searchID,
-			message.GuildID,
-			message.ChannelID,
+			messages.Guild.Id,
+			messages.Channel.Id,
 			ba,
 			message.Content,
 			bm,
 			br,
 			rrf,
-			message.EditedAt,
+			int(message.TimestampEdited.Unix()),
 			message.Type).Scan(&messageID)
 		if err != nil {
 			log.Err(err).Msg("InsertIncomingDiscordMessages")

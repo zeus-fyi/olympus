@@ -32,6 +32,250 @@ var (
 	ctx = context.Background()
 )
 
+func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions7() {
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
+	}
+
+	actInst := `
+			  - create a function to insert a discord search query
+			  - create a function to search by discord search query and get the max message id per guild and channel which will be added to the search query
+			  - update the function to insert a discord search query
+`
+	bins := &BuildAiInstructions{
+		Path:               f,
+		PromptInstructions: actInst,
+		OrderedInstructions: []BuildAiFileInstruction{
+			{
+				DirIn:                DbSchemaDir,
+				FileName:             "605_ai_discord.sql",
+				FileLevelInstruction: "Use the example SQL table reference to build the new sql query functions for discord",
+			},
+			{
+				DirIn:                HeraDbModelsDir + "/search",
+				FileName:             "discord.go",
+				FileLevelInstruction: "Use the example SQL table reference to build or update go sql query functions",
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Update this function so that it can insert a slice of discord messages",
+						FunctionInfo: FunctionInfo{
+							Name: "InsertDiscordMessage",
+						},
+					},
+				},
+			},
+			{
+				DirIn:                HeraDbModelsDir + "/search",
+				FileName:             "reddit.go",
+				FileLevelInstruction: "Use the example SQL table reference to build the new sql query functions for discord",
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Reference Similar Example: ",
+						FunctionInfo: FunctionInfo{
+							Name: "InsertRedditSearchQuery",
+						},
+					},
+					{
+						FunctionInstruction: "Use the same join pattern but on any matching channels and guilds being searched get the max message id per guild and channel",
+						FunctionInfo: FunctionInfo{
+							Name: "SelectRedditSearchQuery",
+						},
+					},
+				},
+			},
+		},
+	}
+	prompt := GenerateInstructions(context.Background(), bins)
+	fmt.Println(prompt)
+
+	hera_openai.InitHeraOpenAI(s.Tc.OpenAIAuth)
+	params := hera_openai.OpenAIParams{
+		Prompt: prompt,
+	}
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
+	s.Require().NoError(err)
+	fmt.Println(resp.Choices[0].Message.Content)
+	f.DirOut = "./generated_outputs"
+	f.FnOut = "sql_fns_discord.txt"
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
+}
+
+func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions6() {
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
+	}
+
+	actInst := `
+			table_name ai_discord_search_query
+			  - create a function to insert a discord search query
+			table_name ai_discord_guild
+			  - create a function to insert a guild
+			table_name: ai_discord_channel
+			  - create a function to insert a channel
+			table_name: ai_incoming_discord_messages
+			  - create a function to insert messages
+
+		use the references for similar functions to build the new sql query functions for discord
+			
+`
+	bins := &BuildAiInstructions{
+		Path:               f,
+		PromptInstructions: actInst,
+		OrderedInstructions: []BuildAiFileInstruction{
+			{
+				DirIn:                DbSchemaDir,
+				FileName:             "605_ai_discord.sql",
+				FileLevelInstruction: "Use the example SQL table reference to build the new sql query functions for discord",
+			},
+			{
+				DirIn:                HeraDbModelsDir + "/search",
+				FileName:             "reddit.go",
+				FileLevelInstruction: "Use the example SQL table reference to build the new sql query functions for discord",
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Reference Similar Example: ",
+						FunctionInfo: FunctionInfo{
+							Name: "InsertRedditSearchQuery",
+						},
+					},
+					{
+						FunctionInstruction: "Reference Use the same join pattern but on any matching channels and guilds being searched get the max message id per guild and channel",
+						FunctionInfo: FunctionInfo{
+							Name: "SelectRedditSearchQuery",
+						},
+					},
+					{
+						FunctionInstruction: "Reference Similar Example: to add discord messages",
+						FunctionInfo: FunctionInfo{
+							Name: "InsertIncomingRedditPosts",
+						},
+					},
+					{
+						FunctionInstruction: "Use the same join pattern but on any matching channels and guilds being searched get the max message id per guild and channel",
+						FunctionInfo: FunctionInfo{
+							Name: "SelectRedditSearchQuery",
+						},
+					},
+				},
+			},
+		},
+	}
+	prompt := GenerateInstructions(context.Background(), bins)
+	fmt.Println(prompt)
+
+	hera_openai.InitHeraOpenAI(s.Tc.OpenAIAuth)
+	params := hera_openai.OpenAIParams{
+		Prompt: prompt,
+	}
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
+	s.Require().NoError(err)
+	fmt.Println(resp.Choices[0].Message.Content)
+	f.DirOut = "./generated_outputs"
+	f.FnOut = "sql_fns_discord.txt"
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
+}
+
+func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions5() {
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
+	}
+	dbInfo := `
+			table_name ai_discord_search_query
+			----
+				search_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
+				org_id BIGINT NOT NULL REFERENCES orgs(org_id),
+				user_id BIGINT NOT NULL REFERENCES users(user_id),
+				search_group_name TEXT NOT NULL,
+				max_results BIGINT NOT NULL CHECK (max_results <= 100),
+				query TEXT NOT NULL
+
+			table_name ai_discord_guild
+			-----
+			guild_id text (PRIMARY KEY)
+			name text
+			
+			add appropriate indexes to the tables to support full text search on the name column
+
+			table_name: ai_discord_channel
+			----- 
+			guild_id text (FK)
+			channel_id text (PRIMARY KEY)
+			category id 
+			category text
+			name text 
+			topic text
+ 
+			add appropriate indexes to the tables to support full text search on the topic, name, category columns
+
+			table_name: ai_incoming_discord_messages
+			-----
+		    guild_id text (FK)
+			channel_id text (FK)
+			message_id (it will be converted to pg bigint) (PRIMARY KEY)
+			author jsonb
+			content text
+			mentions jsonb
+			reactions jsonb
+			reference jsonb
+			timestampEdited	(it will be converted to pg bigint, default 0)
+			type text
+			
+		add appropriate indexes to the tables to support full text search on the content column, and all the jsonb columns
+		add a regular index on the type column
+`
+
+	actInst := ``
+	bins := &BuildAiInstructions{
+		Path:               f,
+		PromptInstructions: actInst,
+		OrderedInstructions: []BuildAiFileInstruction{
+			{
+				DirIn:                DbSchemaDir,
+				FileName:             "605_ai_discord.sql",
+				FileLevelInstruction: "Use the example SQL table definitions and indexes in this file to create the new SQL table definitions",
+			},
+			{
+				DirIn:                HeraPkgsDir + "/discord",
+				FileName:             "discord_messages.go",
+				FileLevelInstruction: "Use following struct definitions and this outline to build sql tables for channels, guilds, and messages:" + dbInfo,
+				OrderedGoTypeInstructions: []GoTypeInstruction{
+					{
+						GoTypeInstruction: "Use this struct reference to create a table for guild and for channel",
+						GoTypeName:        "ChannelMessages",
+						GoType:            "struct",
+					},
+					{
+						GoTypeInstruction: "Use this struct reference to create a table for messages",
+						GoTypeName:        "Message",
+						GoType:            "struct",
+					},
+				},
+			},
+		},
+	}
+	prompt := GenerateInstructions(context.Background(), bins)
+	fmt.Println(prompt)
+	hera_openai.InitHeraOpenAI(s.Tc.OpenAIAuth)
+	params := hera_openai.OpenAIParams{
+		Prompt: prompt,
+	}
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
+	s.Require().NoError(err)
+	fmt.Println(resp.Choices[0].Message.Content)
+	f.DirOut = "./generated_outputs"
+	f.FnOut = "workflow_instructions_discord.txt"
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
+}
+
 func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions4() {
 	actInst := ``
 	f := filepaths.Path{

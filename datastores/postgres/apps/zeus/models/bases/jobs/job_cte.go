@@ -13,6 +13,7 @@ func (j *Job) GetJobCTE(chart *charts.Chart) sql_query_templates.CTE {
 	var combinedSubCTEs sql_query_templates.SubCTEs
 	chart.ChartComponentResourceID = JobChartComponentResourceID
 	// metadata
+	j.Metadata.Name.ChartSubcomponentValue = j.K8sJob.Name
 	metaDataCtes := common.CreateParentMetadataSubCTEs(chart, j.Metadata)
 	parentSpecCTE := common.CreateParentClassTypeSubCTE(chart, &j.Spec.ChartSubcomponentParentClassTypes)
 	j.Spec.ChildClassSingleValue.SetParentClassTypeID(j.Spec.ParentClass.ChartSubcomponentParentClassTypeID)

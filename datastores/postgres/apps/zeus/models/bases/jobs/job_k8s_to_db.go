@@ -9,8 +9,12 @@ import (
 )
 
 func (j *Job) ConvertK8JobToDB() error {
-	j.Metadata.ChartSubcomponentParentClassTypeName = "JobParentMetadata"
-	j.Metadata.Metadata = common_conversions.ConvertMetadata(j.K8sJob.ObjectMeta)
+	jo := NewJob()
+	j.KindDefinition = jo.KindDefinition
+	j.Metadata = jo.Metadata
+	j.Spec = jo.Spec
+	j.Metadata.Name.ChartSubcomponentValue = j.K8sJob.Name
+	j.Metadata.Metadata = common_conversions.CreateMetadataByFields(j.K8sJob.Name, j.K8sJob.Annotations, j.K8sJob.Labels)
 	j.Metadata.ChartComponentResourceID = JobChartComponentResourceID
 	err := j.ConvertK8sJobSpecToDB()
 	if err != nil {

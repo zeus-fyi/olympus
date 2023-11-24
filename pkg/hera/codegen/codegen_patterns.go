@@ -90,35 +90,7 @@ func GenerateSqlTableFromExample(f filepaths.Path) string {
 				is a unix timestamp, and filter on text from post body, subreddit, and title for the search query derive a solution based on how we used indexing for tweets
 				the final solution should allow us to insert the below data into the new tables and then query the data using the below data as an example
 		        group your generated answers using the filepath of the file that contains most likely the reference for the answer 
-				type Post struct {
-					// generate columns for the below fields, use bigint for every int field
-					ID                   string
-					FullID               string
-					Created              *Timestamp
-					Edited               *Timestamp
-					Permalink            string
-					URL                  string
-					Title                string
-					Body                 string
-					Likes                *bool
-					Score                int
-					UpvoteRatio          float32
-					NumberOfComments     int
-					
-					// all elements below this line should be stored in a jsonb column
-					SubredditName        string
-					SubredditNamePrefixed string
-					SubredditID          string
-					SubredditSubscribers int
-					Author               string
-					AuthorID             string
-					Spoiler              bool
-					Locked               bool
-					NSFW                 bool
-					IsSelfPost           bool
-					Saved                bool
-					Stickied             bool
-				}`
+				`
 	bins := &BuildAiInstructions{
 		Path:               f,
 		PromptInstructions: actInst,

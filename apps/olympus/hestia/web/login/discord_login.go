@@ -8,38 +8,40 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog/log"
+	"github.com/ravener/discord-oauth2"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
+	"golang.org/x/oauth2"
 )
 
 var (
-	DiscordClientID     = ""
-	DiscordRedirectURI  = ""
-	DiscordClientSecret = ""
+	DiscordClientID     = "your-discord-client-id"
+	DiscordClientSecret = "your-discord-client-secret"
+	DiscordRedirectURI  = "http://localhost:9002/discord/callback"
 )
 
-type DiscordLoginRequest struct {
-	Credential string `json:"credential"`
+// This is the state key used for security, sent in login, validated in callback.
+var state = uuid.New().String()
+
+func SetConf(ci, si string) {
+	DiscordClientID = ci
+	DiscordClientSecret = si
+	conf := &oauth2.Config{
+		RedirectURL:  DiscordRedirectURI,
+		ClientID:     ci,
+		ClientSecret: si,
+		Scopes:       []string{"identify", "guilds", "messages.read"},
+		Endpoint:     discord.Endpoint,
+	}
+	Conf = conf
 }
+
+var Conf = &oauth2.Config{}
 
 func DiscordLoginHandler(c echo.Context) error {
-	params := url.Values{}
-	params.Add("client_id", DiscordClientID)
-	params.Add("redirect_uri", DiscordRedirectURI)
-	params.Add("response_type", "code")
-	params.Add("scope", "identify guilds")
-
-	authURL := "https://discord.com/api/oauth2/authorize?" + params.Encode()
-	return c.Redirect(http.StatusTemporaryRedirect, authURL)
+	return c.Redirect(http.StatusTemporaryRedirect, Conf.AuthCodeURL(state))
 }
-func (d *DiscordLoginRequest) VerifyDiscordLogin(c echo.Context) error {
-	return c.JSON(http.StatusOK, nil)
-}
-
-const (
-	internalOrgID = 7138983863666903883
-)
 
 // DiscordCallbackHandler handles the OAuth callback from Discord
 func DiscordCallbackHandler(c echo.Context) error {
@@ -58,7 +60,6 @@ func DiscordCallbackHandler(c echo.Context) error {
 	// Implement the logic to get the token using the code
 	req, err := http.NewRequest("POST", "https://discord.com/api/oauth2/token", bytes.NewBufferString(data.Encode()))
 	if err != nil {
-		log.Err(err).Msg("Failed to create request")
 		return err
 	}
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -92,7 +93,6 @@ func DiscordCallbackHandler(c echo.Context) error {
 		nk.UserID = 7138958574876245567
 		err = nk.InsertDiscordKey(c.Request().Context())
 		if err != nil {
-			log.Err(err).Msg("Failed to insert discord key")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		return c.JSON(http.StatusOK, "ok")
@@ -101,3 +101,11 @@ func DiscordCallbackHandler(c echo.Context) error {
 	return c.JSON(http.StatusInternalServerError, nil)
 
 }
+
+const (
+	internalOrgID = 7138983863666903883
+)
+const (
+	QuickNodeChannelID = "685243210829922350"
+	ZeusfyiChannelID   = "1018610566572544080"
+)

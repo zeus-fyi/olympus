@@ -118,6 +118,7 @@ func Hestia() {
 
 		hestia_login.DiscordClientID = sw.DiscordAuthConfig.DiscordClientID
 		hestia_login.DiscordClientSecret = sw.DiscordAuthConfig.DiscordClientSecret
+		hestia_login.SetConf(sw.DiscordAuthConfig.DiscordClientID, sw.DiscordAuthConfig.DiscordClientSecret)
 		//DiscordRedirectURI
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
@@ -149,6 +150,7 @@ func Hestia() {
 		hestia_login.DiscordRedirectURI = "http://localhost:9002/discord/callback"
 		hestia_login.DiscordClientID = tc.DiscordClientID
 		hestia_login.DiscordClientSecret = tc.DiscordClientSecret
+		hestia_login.SetConf(tc.DiscordClientID, tc.DiscordClientSecret)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -177,6 +179,8 @@ func Hestia() {
 		hestia_login.DiscordRedirectURI = "http://localhost:9002/discord/callback"
 		hestia_login.DiscordClientID = tc.DiscordClientID
 		hestia_login.DiscordClientSecret = tc.DiscordClientSecret
+		hestia_login.SetConf(tc.DiscordClientID, tc.DiscordClientSecret)
+
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

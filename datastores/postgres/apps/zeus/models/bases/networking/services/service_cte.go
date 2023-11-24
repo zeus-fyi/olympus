@@ -7,7 +7,6 @@ import (
 )
 
 func (s *Service) GetServiceCTE(chart *charts.Chart) sql_query_templates.CTE {
-
 	if chart != nil {
 		s.SetChartPackageID(chart.GetChartPackageID())
 	}

@@ -64,7 +64,7 @@ func (s *JobsTestSuite) TestCreateJob() {
 						{
 							Name:    "discord-exporter-init",
 							Image:   "tyrrrz/discordchatexporter:stable",
-							Command: []string{"sh", "-c"},
+							Command: []string{"/bin/sh", "-c"},
 							Args: []string{
 								fmt.Sprintf("discordchatexporter export -t %s --after \"%s\" -f Json -c %s -o /data/%s.json", authToken, ts, chID, chID),
 							},
@@ -74,7 +74,7 @@ func (s *JobsTestSuite) TestCreateJob() {
 						{
 							Name:    "discord-job",
 							Image:   "zeusfyi/snapshots:latest",
-							Command: []string{"sh", "-c"},
+							Command: []string{"/bin/sh", "-c"},
 							Args: []string{
 								fmt.Sprintf("exec snapshots --bearer=\"%s\" --payload-base-path=\"https://api.zeus.fyi\" --payload-post-path=\"/vz/webhooks/discord/ai\" --workload-type=\"send-payload\" --fi %s.json", hs, chID),
 							},

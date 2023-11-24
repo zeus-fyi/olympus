@@ -2,7 +2,9 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/cvcio/twitter"
@@ -13,6 +15,7 @@ import (
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	hera_twitter "github.com/zeus-fyi/olympus/pkg/hera/twitter"
@@ -276,4 +279,66 @@ func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, 
 		return nil, err
 	}
 	return rs, nil
+}
+
+func (h *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx context.Context, searchID int, messages hera_discord.ChannelMessages) error {
+	dms := make([]*hera_search.DiscordMessage, 0, len(messages.Messages))
+	for i, cm := range messages.Messages {
+		intConv, err := strconv.Atoi(cm.Id)
+		if err != nil {
+			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
+			return err
+		}
+		ba, err := json.Marshal(cm.Author)
+		if err != nil {
+			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
+			return err
+		}
+		br, err := json.Marshal(cm.Reactions)
+		if err != nil {
+			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
+			return err
+		}
+		bm, err := json.Marshal(cm.Mentions)
+		if err != nil {
+			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
+			return err
+		}
+		rrf, err := json.Marshal(cm.Reference)
+		if err != nil {
+			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
+			return err
+		}
+		dm := &hera_search.DiscordMessage{
+			MessageID: intConv,
+			SearchId:  searchID,
+			GuildID:   messages.Guild.Id,
+			ChannelID: messages.Channel.Id,
+			Author:    ba,
+			Content:   cm.Content,
+			Mentions:  bm,
+			Reactions: br,
+			Reference: rrf,
+			EditedAt:  int(cm.TimestampEdited.Unix()),
+			Type:      cm.Type,
+		}
+		dms[i] = dm
+	}
+
+	err := hera_search.InsertDiscordGuild(ctx, messages.Guild.Id, messages.Guild.Name)
+	if err != nil {
+		log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
+		return err
+	}
+	err = hera_search.InsertDiscordChannel(ctx, searchID, messages.Guild.Id, messages.Channel.Id, messages.Channel.CategoryId, messages.Channel.Category, messages.Channel.Name, messages.Channel.Topic)
+	if err != nil {
+		log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
+		return err
+	}
+	_, err = hera_search.InsertIncomingDiscordMessages(ctx, searchID, dms)
+	if err != nil {
+		log.Err(err).Msg("InsertIncomingRedditDataFromSearch")
+		return err
+	}
+	return nil
 }

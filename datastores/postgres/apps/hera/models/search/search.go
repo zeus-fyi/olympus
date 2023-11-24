@@ -65,6 +65,39 @@ func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 	return srs, nil
 }
 
+func discordSearchQuery() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "discordSearchQuery"
+	q.RawQuery = `SELECT message_id, content
+				  FROM public.ai_incoming_discord_messages
+        		  WHERE content_tsvector @@ to_tsquery('english', $1)
+				  ORDER BY message_id DESC;`
+	return q
+}
+
+func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
+	q := discordSearchQuery()
+	var srs []SearchResult
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchDiscord")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var sr SearchResult
+		sr.Source = "discord"
+		rowErr := rows.Scan(
+			&sr.UnixTimestamp, &sr.Value,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SearchDiscord"))
+			return nil, rowErr
+		}
+		srs = append(srs, sr)
+	}
+	return srs, nil
+}
+
 func redditSearchQuery() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "twitterSearchQuery"

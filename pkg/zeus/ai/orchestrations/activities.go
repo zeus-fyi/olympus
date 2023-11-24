@@ -256,7 +256,7 @@ func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, 
 }
 
 func (h *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx context.Context, searchID int, messages hera_discord.ChannelMessages) error {
-	dms := make([]*hera_search.DiscordMessage, 0, len(messages.Messages))
+	dms := make([]*hera_search.DiscordMessage, len(messages.Messages))
 	for i, cm := range messages.Messages {
 		intConv, err := strconv.Atoi(cm.Id)
 		if err != nil {

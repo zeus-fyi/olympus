@@ -101,3 +101,13 @@ func FetchUserAuthToken(ctx context.Context, ou org_users.OrgUser) (read_keys.Or
 	return key, err
 
 }
+
+func FetchUserAuthTokenDiscord(ctx context.Context, userId int) (string, error) {
+	kv, err := read_keys.GetDiscordKey(ctx, userId)
+	if err != nil {
+		log.Err(err).Msg("FetchUserAuthToken, failed to query for auth token")
+		return "", err
+	}
+	return kv, err
+
+}

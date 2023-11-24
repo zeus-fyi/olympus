@@ -27,7 +27,7 @@ func NewZeusPlatformServiceWorkflows() ZeusAiPlatformServiceWorkflows {
 }
 
 func (h *ZeusAiPlatformServiceWorkflows) GetWorkflows() []interface{} {
-	return []interface{}{h.AiEmailWorkflow, h.AiIngestTelegramWorkflow, h.AiIngestTwitterWorkflow, h.AiIngestRedditWorkflow}
+	return []interface{}{h.AiEmailWorkflow, h.AiIngestTelegramWorkflow, h.AiIngestTwitterWorkflow, h.AiIngestRedditWorkflow, h.AiIngestDiscordWorkflow, h.AiFetchDataToIngestDiscordWorkflow}
 }
 
 const (
@@ -51,7 +51,6 @@ func (h *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, w
 		logger.Error("failed to update ai orch services", "Error", err)
 		return err
 	}
-
 	for _, msg := range msgs {
 		var emailID int
 		insertEmailCtx := workflow.WithActivityOptions(ctx, ao)
@@ -83,7 +82,6 @@ func (h *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, w
 			// You can decide if you want to return the error or continue monitoring.
 			return err
 		}
-
 		if ou.OrgID > 0 && ou.UserID > 0 {
 			saveAiTaskCompletionCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(saveAiTaskCompletionCtx, h.SaveAiTaskResponse, ou, resp).Get(saveAiTaskCompletionCtx, &resp)

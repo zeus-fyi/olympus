@@ -12,11 +12,18 @@ import (
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	hera_twitter "github.com/zeus-fyi/olympus/pkg/hera/twitter"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	v1Batch "k8s.io/api/batch/v1"
+	v1core "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ZeusAiPlatformActivities struct {
@@ -36,10 +43,84 @@ func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		h.InsertAiResponse, h.InsertTelegramMessageIfNew,
 		h.InsertIncomingTweetsFromSearch, h.SearchTwitterUsingQuery, h.SelectTwitterSearchQuery,
 		h.SearchRedditNewPostsUsingSubreddit, h.InsertIncomingRedditDataFromSearch, h.SelectRedditSearchQuery,
+		h.CreateDiscordJob,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
 
+const (
+	internalUser = 7138958574876245567
+)
+
+func (h *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, timeAfter, channelID string) error {
+	authToken, err := read_keys.GetDiscordKey(ctx, internalUser)
+	if err != nil {
+		log.Err(err).Msg("CreateDiscordJob: failed to get discord key")
+		return err
+	}
+	hs, err := misc.HashParams([]interface{}{authToken})
+	if err != nil {
+		log.Err(err).Msg("CreateDiscordJob: failed to hash params")
+		return err
+	}
+	j := v1Batch.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "batch/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "discord-job",
+		},
+		Spec: v1Batch.JobSpec{
+			Template: v1core.PodTemplateSpec{
+				Spec: v1core.PodSpec{
+					InitContainers: []v1core.Container{
+						{
+							Name:    "discord-exporter-init",
+							Image:   "tyrrrz/discordchatexporter:stable",
+							Command: []string{"sh", "-c"},
+							Args: []string{
+								fmt.Sprintf("discordchatexporter export -t %s --after \"%s\" -f Json -c %s -o /data/%s.json", authToken, timeAfter, channelID, channelID),
+							},
+						},
+					},
+					Containers: []v1core.Container{
+						{
+							Name:    "discord-job",
+							Image:   "appropriate/curl",
+							Command: []string{"sh", "-c"},
+							Args: []string{
+								fmt.Sprintf("echo '{\"body\":'$(cat /data/output.json)' }' > /tmp/payload.json && curl -X POST -H 'Authorization: Bearer %s' -H 'Content-Type: application/json' -d @/tmp/payload.json https://api.zeus.fyi/vz/webhooks/ai/discord", hs),
+							},
+							VolumeMounts: []v1core.VolumeMount{
+								{
+									Name:      "data-volume",
+									MountPath: "/data",
+								},
+							},
+						},
+					},
+					Volumes: []v1core.Volume{
+						{
+							Name: "data-volume",
+							VolumeSource: v1core.VolumeSource{
+								EmptyDir: &v1core.EmptyDirVolumeSource{},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err = zeus.K8Util.CreateJob(ctx, zeus_common_types.CloudCtxNs{
+		CloudProvider: "ovh",
+		Region:        "us-west-or-1",
+		Context:       "kubernetes-admin@zeusfyi",
+		Namespace:     "zeus",
+		Env:           "production",
+	}, &j)
+	return err
+}
 func (h *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
 	resp, err := hera_reddit.RedditClient.GetNewPosts(ctx, subreddit, lpo)
 	if err != nil {

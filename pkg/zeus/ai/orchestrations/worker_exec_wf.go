@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	"go.temporal.io/sdk/client"
 )
@@ -73,6 +74,40 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiRedditWorkflow(ctx context.Conte
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, searchGroupName)
 	if err != nil {
 		log.Err(err).Msg("ExecuteAiRedditWorkflow")
+		return err
+	}
+	return nil
+}
+
+func (h *ZeusAiPlatformServicesWorker) ExecuteAiIngestDiscordWorkflow(ctx context.Context, ou org_users.OrgUser, cm hera_discord.ChannelMessages) error {
+	tc := h.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: h.TaskQueueName,
+		ID:        uuid.New().String(),
+	}
+	txWf := NewZeusPlatformServiceWorkflows()
+	wf := txWf.AiIngestDiscordWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, cm)
+	if err != nil {
+		log.Err(err).Msg("ExecuteAiDiscordWorkflow")
+		return err
+	}
+	return nil
+}
+
+func (h *ZeusAiPlatformServicesWorker) ExecuteAiFetchDataToIngestDiscordWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string) error {
+	tc := h.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: h.TaskQueueName,
+		ID:        uuid.New().String(),
+	}
+	txWf := NewZeusPlatformServiceWorkflows()
+	wf := txWf.AiFetchDataToIngestDiscordWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, searchGroupName)
+	if err != nil {
+		log.Err(err).Msg("ExecuteAiFetchDataToIngestDiscordWorkflow")
 		return err
 	}
 	return nil

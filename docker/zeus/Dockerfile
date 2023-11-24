@@ -41,7 +41,7 @@ FROM ubuntu:22.04 as doctl
 RUN apt-get update && apt-get install -y wget
 WORKDIR /app
 
-RUN wget https://github.com/digitalocean/doctl/releases/download/v1.85.0/doctl-1.85.0-linux-amd64.tar.gz -O doctl.tar.gz
+RUN wget https://github.com/digitalocean/doctl/releases/download/v1.99.0/doctl-1.99.0-linux-amd64.tar.gz -O doctl.tar.gz
 RUN tar xf doctl.tar.gz
 
 FROM ubuntu:22.04 as gcp

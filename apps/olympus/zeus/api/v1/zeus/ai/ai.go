@@ -77,6 +77,7 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		}
 		res = append(res, resTelegram...)
 	}
+
 	getReddit := true
 	if len(r.Platforms) > 0 {
 		getReddit = strings.Contains(r.Platforms, "reddit")
@@ -88,11 +89,6 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		}
 		res = append(res, resReddit...)
 	}
-
-	//getDiscord := true
-	//if len(r.Platforms) > 0 {
-	//	getDiscord = strings.Contains(r.Platforms, "discord")
-	//}
 	return c.JSON(http.StatusOK, hera_search.FormatSearchResultsV2(res))
 }
 

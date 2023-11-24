@@ -22,7 +22,7 @@ func SupportAcknowledgeDiscordAiTaskRequestHandler(c echo.Context) error {
 }
 
 func (a *AIServiceRequest) SupportAcknowledgeDiscordAiTask(c echo.Context) error {
-	log.Info().Msg("Zeus: RequestDiscordAiTaskStart")
+	log.Info().Msg("Zeus: SupportAcknowledgeDiscordAiTask")
 	group := c.Param("group")
 	if len(group) == 0 {
 		group = defaultTwitterSearchGroupName
@@ -31,7 +31,7 @@ func (a *AIServiceRequest) SupportAcknowledgeDiscordAiTask(c echo.Context) error
 	ou := org_users.NewOrgUserWithID(internalOrgID, 7138958574876245567)
 	err := ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteAiFetchDataToIngestDiscordWorkflow(c.Request().Context(), ou, group)
 	if err != nil {
-		log.Err(err).Msg("Zeus: RequestDiscordAiTaskStart")
+		log.Err(err).Msg("Zeus: SupportAcknowledgeDiscordAiTask")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, nil)
@@ -56,18 +56,18 @@ func (a *DiscordRequest) RequestDiscordAiTaskStart(c echo.Context) error {
 	ou := org_users.NewOrgUserWithID(internalOrgID, 7138958574876245567)
 	b, err := json.Marshal(a.Body)
 	if err != nil {
-		log.Err(err).Msg("Zeus: SupportAcknowledgeDiscordAiTask")
+		log.Err(err).Msg("Zeus: RequestDiscordAiTaskStart")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	cms := hera_discord.ChannelMessages{}
 	err = json.Unmarshal(b, &cms)
 	if err != nil {
-		log.Err(err).Msg("Zeus: SupportAcknowledgeDiscordAiTask")
+		log.Err(err).Interface("body", a.Body).Msg("Zeus: RequestDiscordAiTaskStart")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteAiIngestDiscordWorkflow(c.Request().Context(), ou, cms)
 	if err != nil {
-		log.Err(err).Msg("Zeus: ExecuteAiIngestDiscordWorkflow")
+		log.Err(err).Msg("Zeus: RequestDiscordAiTaskStart")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, nil)

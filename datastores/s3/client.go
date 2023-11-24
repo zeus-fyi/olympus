@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
 type S3Client struct {
@@ -31,7 +32,7 @@ func NewConnS3ClientWithStaticCreds(ctx context.Context, key, secret string) (S3
 	err := s3client.ConnectS3SpacesDO(ctx)
 	if err != nil {
 		log.Err(err).Msg("NewConnS3ClientWithStaticCreds: ConnectS3SpacesDO failed")
-		panic(err)
+		misc.DelayedPanic(err)
 	}
 	return s3client, err
 }
@@ -58,7 +59,7 @@ func (s *S3Client) ConnectS3SpacesDO(ctx context.Context) error {
 		config.WithRetryMaxAttempts(100))
 	if err != nil {
 		log.Err(err).Msg("ConnectS3SpacesDO: config.LoadDefaultConfig failed")
-		panic(err)
+		misc.DelayedPanic(err)
 	}
 	// Create an Amazon S3 service client
 	s.AwsS3Client = s3.NewFromConfig(cfg)

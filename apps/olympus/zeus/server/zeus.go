@@ -56,6 +56,7 @@ func Zeus() {
 	switch env {
 	case "production":
 		log.Info().Msg("Zeus: production auth procedure starting")
+		awsAuthCfg.Region = awsRegion
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		log.Info().Msg("Zeus: k8s auth procedure starting")

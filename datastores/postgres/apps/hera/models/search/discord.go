@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -51,7 +52,7 @@ func InsertDiscordGuild(ctx context.Context, guildID, name string) error {
                       "name" = EXCLUDED.name;`
 
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, guildID, name)
-	if err != nil {
+	if err != nil && err != pgx.ErrNoRows {
 		log.Err(err).Msg("InsertDiscordGuild")
 		return err
 	}
@@ -70,14 +71,14 @@ func InsertDiscordChannel(ctx context.Context, searchID int, guildID, channelID,
             "category" = EXCLUDED.category;`
 
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, searchID, guildID, channelID, categoryID, category, name, topic)
-	if err != nil {
+	if err != nil && err != pgx.ErrNoRows {
 		log.Err(err).Msg("InsertDiscordChannel")
 		return err
 	}
 	return nil
 }
 
-func InsertIncomingDiscordMessages(ctx context.Context, messages []*DiscordMessage) ([]int, error) {
+func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages []*DiscordMessage) ([]int, error) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "insertIncomingDiscordMessages"
 	q.RawQuery = `INSERT INTO "public"."ai_incoming_discord_messages" ("message_id", "search_id", "guild_id", "channel_id", "author", "content", "mentions", "reactions", "reference", "timestamp_edited", "type")
@@ -105,7 +106,7 @@ func InsertIncomingDiscordMessages(ctx context.Context, messages []*DiscordMessa
 
 		err = tx.QueryRow(ctx, q.RawQuery,
 			message.MessageID,
-			message.SearchId,
+			searchID,
 			message.GuildID,
 			message.ChannelID,
 			message.Author,

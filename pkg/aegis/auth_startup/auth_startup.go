@@ -69,17 +69,38 @@ func NewDefaultAuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeys
 	return authCfg
 }
 
+var (
+	Ksp = filepaths.Path{
+		PackageName: "",
+		DirIn:       "/secrets",
+		DirOut:      "/secrets",
+		FnIn:        "kube.tar.gz.age",
+		Env:         "",
+		FilterFiles: string_utils.FilterOpts{},
+	}
+)
+
+func ReadDecKubeSecretsFromInMemDir() []byte {
+	b, err := Ksp.ReadFileInPath()
+	if err != nil {
+		log.Fatal().Err(err).Msg("ReadDecKubeSecretsFromInMemDir: failed to read file")
+		misc.DelayedPanic(err)
+	}
+	return b
+}
+
 func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthConfig) memfs.MemFS {
 	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure starting")
 
 	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
 
-	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Read Bytes")
-	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
-	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Done Read Bytes")
-
-	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
+	//
+	//log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Read Bytes")
+	//buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
+	//log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Done Read Bytes")
+	buf := ReadDecKubeSecretsFromInMemDir()
+	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf)
 	if err != nil {
 		log.Fatal().Err(err).Msg("RunDigitalOceanS3BucketObjAuthProcedure: MakeFile failed, shutting down the server")
 		misc.DelayedPanic(err)

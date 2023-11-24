@@ -147,16 +147,36 @@ func (s *SecretsWrapper) ReadSecretBytes(ctx context.Context, inMemSecrets memfs
 	return secret
 }
 
+var (
+	Sp = filepaths.Path{
+		PackageName: "",
+		DirIn:       "/secrets",
+		DirOut:      "/secrets",
+		FnIn:        "secrets.tar.gz.age",
+		Env:         "",
+		FilterFiles: string_utils.FilterOpts{},
+	}
+)
+
+func ReadEncSecretsFromInMemDir() []byte {
+	b, err := Sp.ReadFileInPath()
+	if err != nil {
+		log.Fatal().Err(err).Msg("ReadEncSecretsFromInMemDir: failed to read file")
+		misc.DelayedPanic(err)
+	}
+	return b
+}
+
 func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.MemFS {
 	authCfg.S3KeyValue = secretsBucket
 	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
-	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
-
+	//buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
+	buf := ReadEncSecretsFromInMemDir()
 	tmpPath := filepaths.Path{}
 	tmpPath.DirOut = "./"
 	tmpPath.FnOut = encryptedSecret
-	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
+	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf)
 	if err != nil {
 		log.Fatal().Msg("ReadEncryptedSecretsData: MakeFile failed, shutting down the server")
 		misc.DelayedPanic(err)

@@ -72,14 +72,14 @@ func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthCo
 
 	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
 	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjAuthProcedure: MakeFile failed, shutting down the server")
+		log.Fatal().Err(err).Msg("RunDigitalOceanS3BucketObjAuthProcedure: MakeFile failed, shutting down the server")
 		misc.DelayedPanic(err)
 	}
 
 	unzipDir := "./.kube"
 	err = s3SecretsReader.DecryptAndUnGzipToInMemFs(&authCfg.Path, unzipDir)
 	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjAuthProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
+		log.Fatal().Err(err).Msg("RunDigitalOceanS3BucketObjAuthProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
 		misc.DelayedPanic(err)
 	}
 

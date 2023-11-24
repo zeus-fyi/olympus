@@ -123,7 +123,7 @@ var secretsBucket = &s3.GetObjectInput{
 func (s *SecretsWrapper) MustReadSecret(ctx context.Context, inMemSecrets memfs.MemFS, fileName string) string {
 	secret, err := inMemSecrets.ReadFile(fileName)
 	if err != nil {
-		log.Ctx(ctx).Fatal().Msgf("SecretsWrapper: MustReadSecret failed, shutting down the server: %s", fileName)
+		log.Fatal().Msgf("SecretsWrapper: MustReadSecret failed, shutting down the server: %s", fileName)
 		misc.DelayedPanic(err)
 	}
 	return string(secret)
@@ -132,7 +132,7 @@ func (s *SecretsWrapper) MustReadSecret(ctx context.Context, inMemSecrets memfs.
 func (s *SecretsWrapper) ReadSecret(ctx context.Context, inMemSecrets memfs.MemFS, fileName string) (string, error) {
 	secret, err := inMemSecrets.ReadFile(fileName)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("SecretsWrapper: ReadSecret failed, shutting down the server: %s", fileName)
+		log.Err(err).Msgf("SecretsWrapper: ReadSecret failed, shutting down the server: %s", fileName)
 		return "", err
 	}
 	return string(secret), err
@@ -141,7 +141,7 @@ func (s *SecretsWrapper) ReadSecret(ctx context.Context, inMemSecrets memfs.MemF
 func (s *SecretsWrapper) ReadSecretBytes(ctx context.Context, inMemSecrets memfs.MemFS, fileName string) []byte {
 	secret, err := inMemSecrets.ReadFile(fileName)
 	if err != nil {
-		log.Ctx(ctx).Fatal().Msgf("SecretsWrapper: MustReadSecret failed, shutting down the server: %s", fileName)
+		log.Fatal().Msgf("SecretsWrapper: MustReadSecret failed, shutting down the server: %s", fileName)
 		misc.DelayedPanic(err)
 	}
 	return secret
@@ -158,13 +158,13 @@ func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.Mem
 	tmpPath.FnOut = encryptedSecret
 	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
 	if err != nil {
-		log.Ctx(ctx).Fatal().Msg("ReadEncryptedSecretsData: MakeFile failed, shutting down the server")
+		log.Fatal().Msg("ReadEncryptedSecretsData: MakeFile failed, shutting down the server")
 		misc.DelayedPanic(err)
 	}
 	unzipDir := "./secrets"
 	err = s3SecretsReader.DecryptAndUnGzipToInMemFs(&authCfg.Path, unzipDir)
 	if err != nil {
-		log.Ctx(ctx).Fatal().Msg("ReadEncryptedSecretsData: DecryptAndUnGzipToInMemFs failed, shutting down the server")
+		log.Fatal().Msg("ReadEncryptedSecretsData: DecryptAndUnGzipToInMemFs failed, shutting down the server")
 		misc.DelayedPanic(err)
 	}
 	return s3SecretsReader.MemFS

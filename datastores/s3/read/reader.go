@@ -34,6 +34,7 @@ func (s *S3ClientReader) CheckIfKeyExists(ctx context.Context, s3KeyValue *s3.Ge
 		if errors.As(err, &responseError) && responseError.ResponseError.HTTPStatusCode() == http.StatusNotFound {
 			return false, nil
 		}
+		log.Err(err).Msg("S3ClientReader, GetHeadObject(ctx, s3KeyValue)")
 		return false, err
 	}
 	return true, nil
@@ -46,13 +47,13 @@ func (s *S3ClientReader) Read(ctx context.Context, p *filepaths.Path, s3KeyValue
 	downloader := manager.NewDownloader(s.AwsS3Client)
 	newFile, err := os.Create(p.FileInPath())
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("S3ClientReader, os.Create(p.FileInPath()), path: %s", p.FileInPath())
+		log.Err(err).Msgf("S3ClientReader, os.Create(p.FileInPath()), path: %s", p.FileInPath())
 		return err
 	}
 	defer newFile.Close()
 	_, err = downloader.Download(ctx, newFile, s3KeyValue)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("S3ClientReader, downloader.Download(ctx, newFile, s3KeyValue)")
+		log.Err(err).Msg("S3ClientReader, downloader.Download(ctx, newFile, s3KeyValue)")
 		return err
 	}
 	return err
@@ -71,7 +72,7 @@ func (s *S3ClientReader) ReadBytes(ctx context.Context, p *filepaths.Path, s3Key
 	w := FakeWriterAt{w: buf}
 	_, err := downloader.Download(ctx, w, s3KeyValue)
 	if err != nil {
-		log.Fatal().Msg("S3ClientReader: download failed shutting down server")
+		log.Err(err).Interface("bucket", s3KeyValue).Msg("S3ClientReader: download failed shutting down server")
 		misc.DelayedPanic(err)
 	}
 	return buf
@@ -92,7 +93,7 @@ func (s *S3ClientReader) ReadBytesNoPanic(ctx context.Context, p *filepaths.Path
 	_, err := downloader.Download(ctx, w, s3KeyValue)
 
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("ReadBytesNoPanic")
+		log.Err(err).Msg("ReadBytesNoPanic")
 		return buf, nil
 	}
 

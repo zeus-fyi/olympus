@@ -47,6 +47,7 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	sb := sw.ReadSecretBytes(ctx, inMemSecrets, redditSecretsJson)
 	err := json.Unmarshal(sb, &ra)
 	if err != nil {
+		log.Err(err).Msg("error unmarshalling reddit auth config")
 		panic(err)
 	}
 	sw.RedditAuthConfig = ra

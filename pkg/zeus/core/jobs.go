@@ -3,8 +3,10 @@ package zeus_core
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	v1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,6 +28,10 @@ func (k *K8Util) DeleteJob(ctx context.Context, kns zeus_common_types.CloudCtxNs
 	k.SetContext(kns.Context)
 	err := k.kc.BatchV1().Jobs(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		log.Err(err).Msg("DeleteJob")
 		return err
 	}
 	return nil

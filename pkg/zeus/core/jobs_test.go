@@ -116,12 +116,19 @@ func (s *JobsTestSuite) TestCreateJob() {
 			},
 		},
 	}
-	// "discord-exporter-init "
+	err = s.K.DeleteAllPodsLike(ctx, kns, "discord-job", nil, nil)
+	s.Nil(err)
+
+	//// "discord-exporter-init "
 	jc, err := s.K.CreateJob(ctx, kns, &j)
 	s.Nil(err)
 	s.Require().NotEmpty(jc)
-	//err = s.K.DeleteJob(ctx, kns, "discord-job")
-	//s.Nil(err)
+
+	err = s.K.DeleteAllPodsLike(ctx, kns, "discord-job", nil, nil)
+	s.Nil(err)
+
+	err = s.K.DeleteJob(ctx, kns, j.Name)
+	s.Nil(err)
 }
 
 func (s *JobsTestSuite) TestDeleteJob() {

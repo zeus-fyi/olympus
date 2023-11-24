@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -9,6 +10,9 @@ import (
 	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
+	v1 "k8s.io/api/batch/v1"
+	v1core "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, searchGroupName string, cm hera_discord.ChannelMessages) error {
@@ -73,7 +77,28 @@ func (h *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx 
 		logger.Error("failed to update ai orch services", "Error", err)
 		return err
 	}
-
+	searchQueryCtx := workflow.WithActivityOptions(ctx, ao)
+	var sq *hera_search.DiscordSearchResultWrapper
+	err = workflow.ExecuteActivity(searchQueryCtx, h.SelectDiscordSearchQuery, ou, searchGroupName).Get(searchQueryCtx, &sq)
+	if err != nil {
+		logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
+		// You can decide if you want to return the error or continue monitoring.
+		return err
+	}
+	if sq == nil || sq.SearchID == 0 {
+		logger.Info("no new tweets found")
+		return nil
+	}
+	for _, jib := range sq.Results {
+		jobCtx := workflow.WithActivityOptions(ctx, ao)
+		timeAfter := time.Unix(int64(jib.MaxMessageID), 0).Format(time.RFC3339)
+		err = workflow.ExecuteActivity(jobCtx, h.CreateDiscordJob, sq.SearchID, jib.ChannelID, timeAfter).Get(jobCtx, nil)
+		if err != nil {
+			logger.Error("failed to execute CreateDiscordJob", "Error", err)
+			// You can decide if you want to return the error or continue monitoring.
+			return err
+		}
+	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {
@@ -81,4 +106,67 @@ func (h *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx 
 		return err
 	}
 	return nil
+}
+
+func DiscordJob(si int, authToken, hs, chID, ts string) v1.Job {
+	bof := int32(0)
+	j := v1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "batch/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("d-job-%d-%s", si, chID),
+		},
+		Spec: v1.JobSpec{
+			BackoffLimit: &bof, // Setting backoffLimit to 0 to prevent retries
+			Template: v1core.PodTemplateSpec{
+				Spec: v1core.PodSpec{
+					RestartPolicy: "OnFailure",
+					InitContainers: []v1core.Container{
+						{
+							Name:    "discord-exporter-init",
+							Image:   "tyrrrz/discordchatexporter:stable",
+							Command: []string{"/bin/sh", "-ac"},
+							Args: []string{
+								fmt.Sprintf("/opt/app/DiscordChatExporter.Cli export -t %s --after \"%s\" -f Json -c %s -o /data/%s.json", authToken, ts, chID, chID),
+							},
+							VolumeMounts: []v1core.VolumeMount{
+								{
+									Name:      "data-volume",
+									MountPath: "/data",
+								},
+							},
+						},
+					},
+					Containers: []v1core.Container{
+						{
+							Name:            "discord-job",
+							Image:           "zeusfyi/snapshots:latest",
+							ImagePullPolicy: "Always",
+							Command:         []string{"/bin/sh", "-c"},
+							Args: []string{
+								fmt.Sprintf("exec snapshots --bearer=\"%s\" --payload-base-path=\"https://api.zeus.fyi\" --payload-post-path=\"/vz/webhooks/discord/ai\" --workload-type=\"send-payload\" --fi %s.json", hs, chID),
+							},
+							VolumeMounts: []v1core.VolumeMount{
+								{
+									Name:      "data-volume",
+									MountPath: "/data",
+								},
+							},
+						},
+					},
+					Volumes: []v1core.Volume{
+						{
+							Name: "data-volume",
+							VolumeSource: v1core.VolumeSource{
+								EmptyDir: &v1core.EmptyDirVolumeSource{},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return j
 }

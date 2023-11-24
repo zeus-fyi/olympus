@@ -10,13 +10,13 @@ import (
 
 func (s *SearchAITestSuite) TestInsertDiscordSearchQuery() {
 	// Setup context and necessary data
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-	searchGroupName := "exampleGroupName"
+	searchGroupName := "zeusfyi"
 	maxResults := 100
-	query := "exampleQuery"
+	query := ""
 
 	// Call the function
 	searchID, err := InsertDiscordSearchQuery(ctx, ou, searchGroupName, maxResults, query)
@@ -83,7 +83,7 @@ func (s *SearchAITestSuite) TestInsertIncomingDiscordMessages() {
 	}
 
 	// Call the function
-	messageIDs, err := InsertIncomingDiscordMessages(ctx, messages)
+	messageIDs, err := InsertIncomingDiscordMessages(ctx, 0, messages)
 
 	// Assert expected outcomes
 	s.Require().NoError(err, "InsertIncomingDiscordMessages should not return an error")
@@ -99,7 +99,7 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchQuery() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-	searchGroupName := "exampleGroupName"
+	searchGroupName := "zeusfyi"
 
 	// Call the function
 	results, err := SelectDiscordSearchQuery(ctx, ou, searchGroupName)

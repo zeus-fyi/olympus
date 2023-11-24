@@ -2,6 +2,7 @@ package auth_startup
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -37,10 +38,15 @@ func FetchTemporalAuthBearer(ctx context.Context) string {
 func NewDefaultAuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeysCfg) AuthConfig {
 	if len(keysCfg.AgePrivKey) <= 0 {
 		log.Warn().Msg("no age priv key provided, auth will fail")
+		misc.DelayedPanic(fmt.Errorf("no age priv key provided, auth will fail"))
 	}
+	if len(keysCfg.AgePubKey) <= 0 {
+		log.Warn().Msg("no age pub key provided, auth will fail")
+		misc.DelayedPanic(fmt.Errorf("no age pub key provided, auth will fail"))
+	}
+
 	a := encryption.NewAge(keysCfg.AgePrivKey, keysCfg.AgePubKey)
 	s3BaseClient := NewDigitalOceanS3AuthClient(ctx, keysCfg)
-
 	input := &s3.GetObjectInput{
 		Bucket: aws.String("zeus-fyi"),
 		Key:    aws.String("kube.tar.gz.age"),
@@ -68,7 +74,10 @@ func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthCo
 
 	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
+
+	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Read Bytes")
 	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
+	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Done Read Bytes")
 
 	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
 	if err != nil {

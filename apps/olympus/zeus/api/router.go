@@ -156,13 +156,17 @@ func InitV1WebhooksRoutes(e *echo.Echo) {
 	eg.GET("/discord/ai/:group", zeus_webhooks.SupportAcknowledgeDiscordAiTaskRequestHandler)
 }
 
+const (
+	internalUser = 7138958574876245567
+)
+
 func InitVZWebhooksRoutes(e *echo.Echo) {
 	eg := e.Group("/vz/webhooks")
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.FetchUserAuthTokenDiscord(ctx, 0)
+			key, err := auth.FetchUserAuthTokenDiscord(ctx, internalUser)
 			if err != nil {
 				log.Err(err).Msg("InitV1InternalRoutes")
 				return false, c.JSON(http.StatusInternalServerError, nil)

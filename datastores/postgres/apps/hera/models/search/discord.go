@@ -13,17 +13,17 @@ import (
 
 type DiscordMessage struct {
 	// Define the struct fields that match your Discord message attributes
-	MessageID int             `json:"message_id"`
-	SearchId  int             `json:"search_id"`
-	GuildID   string          `json:"guild_id"`
-	ChannelID string          `json:"channel_id"`
-	Author    json.RawMessage `json:"author"`
-	Content   string          `json:"content"`
-	Mentions  json.RawMessage `json:"mentions"`
-	Reactions json.RawMessage `json:"reactions"`
-	Reference json.RawMessage `json:"reference"`
-	EditedAt  int             `json:"edited_at"`
-	Type      string          `json:"type"`
+	MessageID int    `json:"message_id"`
+	SearchId  int    `json:"search_id"`
+	GuildID   string `json:"guild_id"`
+	ChannelID string `json:"channel_id"`
+	Author    any    `json:"author"`
+	Content   string `json:"content"`
+	Mentions  any    `json:"mentions"`
+	Reactions any    `json:"reactions"`
+	Reference any    `json:"reference"`
+	EditedAt  int    `json:"edited_at"`
+	Type      string `json:"type"`
 }
 
 func InsertDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string, maxResults int, query string) (int, error) {
@@ -104,16 +104,37 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages [
 		}
 		var messageID int
 
+		ba, berr := json.Marshal(message.Author)
+		if berr != nil {
+			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
+			return nil, berr
+		}
+		br, berr := json.Marshal(message.Reactions)
+		if berr != nil {
+			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
+			return nil, berr
+		}
+		bm, berr := json.Marshal(message.Mentions)
+		if berr != nil {
+			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
+			return nil, berr
+		}
+		rrf, berr := json.Marshal(message.Reference)
+		if berr != nil {
+			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
+			return nil, berr
+		}
+
 		err = tx.QueryRow(ctx, q.RawQuery,
 			message.MessageID,
 			searchID,
 			message.GuildID,
 			message.ChannelID,
-			message.Author,
+			ba,
 			message.Content,
-			message.Mentions,
-			message.Reactions,
-			message.Reference,
+			bm,
+			br,
+			rrf,
 			message.EditedAt,
 			message.Type).Scan(&messageID)
 		if err != nil {

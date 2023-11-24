@@ -2,7 +2,6 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -263,36 +262,17 @@ func (h *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx conte
 			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
 			return err
 		}
-		ba, err := json.Marshal(cm.Author)
-		if err != nil {
-			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
-			return err
-		}
-		br, err := json.Marshal(cm.Reactions)
-		if err != nil {
-			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
-			return err
-		}
-		bm, err := json.Marshal(cm.Mentions)
-		if err != nil {
-			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
-			return err
-		}
-		rrf, err := json.Marshal(cm.Reference)
-		if err != nil {
-			log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
-			return err
-		}
+
 		dm := &hera_search.DiscordMessage{
 			MessageID: intConv,
 			SearchId:  searchID,
 			GuildID:   messages.Guild.Id,
 			ChannelID: messages.Channel.Id,
-			Author:    ba,
+			Author:    cm.Author,
 			Content:   cm.Content,
-			Mentions:  bm,
-			Reactions: br,
-			Reference: rrf,
+			Mentions:  cm.Mentions,
+			Reactions: cm.Reactions,
+			Reference: cm.Reference,
 			EditedAt:  int(cm.TimestampEdited.Unix()),
 			Type:      cm.Type,
 		}

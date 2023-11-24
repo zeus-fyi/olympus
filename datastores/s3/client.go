@@ -30,7 +30,8 @@ func NewConnS3ClientWithStaticCreds(ctx context.Context, key, secret string) (S3
 	s3client := S3Client{spacesKey: key, spacesSecret: secret}
 	err := s3client.ConnectS3SpacesDO(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Err(err).Msg("NewConnS3ClientWithStaticCreds: ConnectS3SpacesDO failed")
+		panic(err)
 	}
 	return s3client, err
 }
@@ -40,6 +41,9 @@ func (s *S3Client) ConnectS3SpacesDO(ctx context.Context) error {
 		log.Info().Msg("S3Client: ConnectS3SpacesDO had no provided param credentials, checking env vars")
 		s.spacesKey = os.Getenv("SPACES_KEY")
 		s.spacesSecret = os.Getenv("SPACES_SECRET")
+	}
+	if len(s.spacesKey) <= 0 || len(s.spacesSecret) <= 0 {
+		panic("S3Client: ConnectS3SpacesDO had no provided param credentials, and no env vars")
 	}
 	creds := credentials.NewStaticCredentialsProvider(s.spacesKey, s.spacesSecret, "")
 	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
@@ -53,8 +57,8 @@ func (s *S3Client) ConnectS3SpacesDO(ctx context.Context) error {
 		config.WithEndpointResolverWithOptions(customResolver),
 		config.WithRetryMaxAttempts(100))
 	if err != nil {
-		log.Ctx(ctx).Err(err)
-		return err
+		log.Err(err).Msg("ConnectS3SpacesDO: config.LoadDefaultConfig failed")
+		panic(err)
 	}
 	// Create an Amazon S3 service client
 	s.AwsS3Client = s3.NewFromConfig(cfg)

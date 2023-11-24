@@ -11,6 +11,7 @@ import (
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_v1_router "github.com/zeus-fyi/olympus/zeus/api/v1"
 	zeus_webhooks "github.com/zeus-fyi/olympus/zeus/api/webhooks"
@@ -27,6 +28,7 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc)
 	InitV1InternalRoutes(e, k8Cfg)
 
 	InitV1WebhooksRoutes(e)
+	InitVZWebhooksRoutes(e)
 	// external
 	InitV1ActionsRoutes(e, k8Cfg, mw)
 	InitV1RoutesUI(e, k8Cfg, mw)
@@ -151,7 +153,33 @@ func InitV1WebhooksRoutes(e *echo.Echo) {
 	eg.GET("/telegram/ai/:group", zeus_webhooks.AiTelegramSupportAcknowledgeTelegramAiTaskHandler)
 	eg.GET("/twitter/ai/:group", zeus_webhooks.SupportAcknowledgeTwitterAiTaskRequestHandler)
 	eg.GET("/reddit/ai/:group", zeus_webhooks.SupportAcknowledgeRedditAiTaskRequestHandler)
-	//eg.GET("/discord/ai/:group", zeus_webhooks.SupportAcknowledgeDiscordAiTaskRequestHandler)
+	eg.GET("/discord/ai/:group", zeus_webhooks.SupportAcknowledgeDiscordAiTaskRequestHandler)
+}
+
+func InitVZWebhooksRoutes(e *echo.Echo) {
+	eg := e.Group("/vz/webhooks")
+	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(token string, c echo.Context) (bool, error) {
+			ctx := context.Background()
+			key, err := auth.FetchUserAuthTokenDiscord(ctx, 0)
+			if err != nil {
+				log.Err(err).Msg("InitV1InternalRoutes")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			hs, err := misc.HashParams([]interface{}{key})
+			if err != nil {
+				log.Err(err).Msg("CreateDiscordJob: failed to hash params")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			if token != hs {
+				log.Err(err).Msg("InitV1InternalRoutes")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			return true, err
+		},
+	}))
+	eg.POST("/discord/ai", zeus_webhooks.RequestDiscordAiTaskStartRequestHandler)
 }
 
 func Health(c echo.Context) error {

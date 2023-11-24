@@ -53,6 +53,19 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		}
 		res = append(res, resTwitter...)
 	}
+
+	getDiscord := true
+	if len(r.Platforms) > 0 {
+		getDiscord = strings.Contains(r.Platforms, "discord")
+	}
+	if getDiscord {
+		resDiscord, err := hera_search.SearchDiscord(c.Request().Context(), ou, r.AiSearchParams)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		res = append(res, resDiscord...)
+	}
+
 	getTelegram := true
 	if len(r.Platforms) > 0 {
 		getTelegram = strings.Contains(r.Platforms, "telegram")

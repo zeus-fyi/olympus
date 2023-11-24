@@ -73,10 +73,10 @@ func (s *JobsTestSuite) TestCreateJob() {
 					Containers: []v1core.Container{
 						{
 							Name:    "discord-job",
-							Image:   "appropriate/curl",
+							Image:   "zeusfyi/snapshots:latest",
 							Command: []string{"sh", "-c"},
 							Args: []string{
-								fmt.Sprintf("echo '{\"body\":'$(cat /data/output.json)' }' > /tmp/payload.json && curl -X POST -H 'Authorization: Bearer %s' -H 'Content-Type: application/json' -d @/tmp/payload.json https://api.zeus.fyi/vz/webhooks/ai/discord", hs),
+								fmt.Sprintf("exec snapshots --bearer=\"%s\" --payload-base-path=\"https://api.zeus.fyi\" --payload-post-path=\"/vz/webhooks/discord/ai\" --workload-type=\"send-payload\" --fi %s.json", hs, chID),
 							},
 							VolumeMounts: []v1core.VolumeMount{
 								{

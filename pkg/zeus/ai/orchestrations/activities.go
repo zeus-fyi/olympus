@@ -266,7 +266,7 @@ func (h *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx conte
 	}
 	_, err = hera_search.InsertIncomingDiscordMessages(ctx, searchID, messages)
 	if err != nil {
-		log.Err(err).Msg("InsertIncomingRedditDataFromSearch")
+		log.Err(err).Interface("msgs", messages.Messages).Msg("InsertIncomingRedditDataFromSearch")
 		return err
 	}
 	return nil

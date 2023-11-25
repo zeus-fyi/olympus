@@ -9,12 +9,46 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 const (
 	defaultTwitterSearchGroupName = "zeusfyi"
 )
+
+func twitterSearchQuery() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "twitterSearchQuery"
+	q.RawQuery = `SELECT tweet_id, message_text
+				  FROM public.ai_incoming_tweets
+        		  WHERE message_text_tsvector @@ to_tsquery('english', $1)
+				  ORDER BY tweet_id DESC;`
+	return q
+}
+
+func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
+	q := twitterSearchQuery()
+	var srs []SearchResult
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchTwitter")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var sr SearchResult
+		sr.Source = "twitter"
+		rowErr := rows.Scan(
+			&sr.UnixTimestamp, &sr.Value,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SearchTwitter"))
+			return nil, rowErr
+		}
+		srs = append(srs, sr)
+	}
+	return srs, nil
+}
 
 func insertTwitterSearchQuery() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}

@@ -88,10 +88,17 @@ func (s *SearchAITestSuite) TestInsertIncomingDiscordMessages() {
 						{Id: "role1", Name: "Role One"},
 					},
 				},
-				Content:         "This is a test message",
-				Id:              "1700781280741432832",
-				Mentions:        []hera_discord.Mention{},
-				Reactions:       []hera_discord.Reaction{},
+				Content:  "This is a test message",
+				Id:       "1700781280741432832",
+				Mentions: []hera_discord.Mention{},
+				Reactions: []hera_discord.Reaction{
+					{
+						Count: 1,
+						Emoji: hera_discord.Emoji{
+							Code: "emoji1",
+						},
+					},
+				},
 				TimestampEdited: time.Now(), // use a specific time if necessary
 				Type:            "messageType",
 				Reference: hera_discord.Reference{

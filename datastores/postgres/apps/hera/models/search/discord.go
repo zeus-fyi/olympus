@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -133,11 +134,11 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages h
 			searchID,
 			messages.Guild.Id,
 			messages.Channel.Id,
-			ba,
+			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(ba), Status: IsNull(ba)},
 			message.Content,
-			bm,
-			br,
-			rrf,
+			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(bm), Status: IsNull(bm)},
+			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(br), Status: IsNull(br)},
+			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(rrf), Status: IsNull(rrf)},
 			int(message.TimestampEdited.Unix()),
 			message.Type).Scan(&messageID)
 		if err != nil {
@@ -152,6 +153,13 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages h
 		return nil, err
 	}
 	return messageIDs, nil
+}
+
+func IsNull(b []byte) pgtype.Status {
+	if b == nil {
+		return pgtype.Null
+	}
+	return pgtype.Present
 }
 
 type DiscordSearchResult struct {

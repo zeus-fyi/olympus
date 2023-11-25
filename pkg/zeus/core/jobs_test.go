@@ -58,7 +58,7 @@ func (s *JobsTestSuite) TestCreateJob() {
 	bof := int32(3)
 	chID := "844694823021576212"
 
-	timeAfter := time.Unix(int64(1700388338), 0).Add(-time.Minute * 5).Format(time.RFC3339)
+	timeAfter := time.Unix(int64(1700388338), 0).Add(-time.Hour * 1000).Format(time.RFC3339)
 
 	fmt.Println(timeAfter)
 	j := v1.Job{
@@ -124,7 +124,7 @@ func (s *JobsTestSuite) TestCreateJob() {
 	err = s.K.DeleteAllPodsLike(ctx, kns, j.Name, nil, nil)
 	s.Nil(err)
 
-	// "discord-exporter-init "
+	//// "discord-exporter-init "
 	jc, err := s.K.CreateJob(ctx, kns, &j)
 	s.Nil(err)
 	s.Require().NotEmpty(jc)

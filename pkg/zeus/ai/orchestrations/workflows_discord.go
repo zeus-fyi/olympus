@@ -93,7 +93,14 @@ func (h *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx 
 		logger.Info("no new tweets found")
 		return nil
 	}
-	for _, jib := range sq.Results {
+	for i, jib := range sq.Results {
+		if i > 0 {
+			err = workflow.Sleep(ctx, time.Second*5)
+			if err != nil {
+				logger.Error("failed to sleep", "Error", err)
+				return err
+			}
+		}
 		jobCtx := workflow.WithActivityOptions(ctx, ao)
 		timeAfter := time.Unix(int64(jib.MaxMessageID), 0).Add(-time.Minute * 5).Format(time.RFC3339)
 		err = workflow.ExecuteActivity(jobCtx, h.CreateDiscordJob, sq.SearchID, jib.ChannelID, timeAfter).Get(jobCtx, nil)

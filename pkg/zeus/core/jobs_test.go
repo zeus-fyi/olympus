@@ -56,9 +56,9 @@ func (s *JobsTestSuite) TestCreateJob() {
 
 	*/
 	bof := int32(3)
-	chID := "844694823021576212"
+	chID := "750489296884072620"
 
-	timeAfter := time.Unix(int64(1700388338), 0).Add(-time.Hour * 1000).Format(time.RFC3339)
+	timeAfter := time.Unix(int64(1700388338), 0).Add(-time.Hour * 20000).Format(time.RFC3339)
 
 	fmt.Println(timeAfter)
 	j := v1.Job{

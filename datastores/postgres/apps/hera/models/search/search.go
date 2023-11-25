@@ -42,10 +42,27 @@ func discordSearchQuery() sql_query_templates.QueryParams {
 	return q
 }
 
+func discordSearchQuery2() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "discordSearchQuery2"
+	q.RawQuery = `SELECT message_id, content
+				  FROM public.ai_incoming_discord_messages
+				  ORDER BY message_id DESC;`
+	return q
+}
+
 func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
 	q := discordSearchQuery()
 	var srs []SearchResult
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+
+	var rows pgx.Rows
+	var err error
+	if sp.SearchContentText == "" {
+		q = discordSearchQuery2()
+		rows, err = apps.Pg.Query(ctx, q.RawQuery)
+	} else {
+		rows, err = apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+	}
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchDiscord")); returnErr != nil {
 		return nil, err
 	}

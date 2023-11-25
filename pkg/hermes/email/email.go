@@ -23,7 +23,7 @@ type HermesEmailNotifications struct {
 func InitHermesSESEmailNotifications(ctx context.Context, a aws_aegis_auth.AuthAWS) HermesEmailNotifications {
 	cfg, err := a.CreateConfig(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("InitSES: error loading config")
+		log.Err(err).Msg("InitSES: error loading config")
 		panic(err)
 	}
 	client := sesv2.NewFromConfig(cfg)

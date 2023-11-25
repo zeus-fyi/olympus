@@ -135,7 +135,7 @@ func Hestia() {
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
-		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
+		//hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)

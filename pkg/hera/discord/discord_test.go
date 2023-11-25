@@ -3,7 +3,6 @@ package hera_discord
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -37,9 +36,9 @@ func (s *DiscordTestSuite) TestFetchChatMessages() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(zzz)
 
-	for _, cm := range zzz.Messages {
-		fmt.Println(cm.TimestampEdited.String())
-	}
+	//for _, cm := range zzz.Messages {
+	//	fmt.Println(cm.TimestampEdited.String())
+	//}
 }
 
 func TestDiscordTestSuite(t *testing.T) {

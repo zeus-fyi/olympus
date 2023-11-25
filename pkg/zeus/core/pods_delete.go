@@ -30,7 +30,7 @@ func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_t
 	k.SetContext(kubeCtxNs.Context)
 
 	p, err := k.GetFirstPodLike(ctx, kubeCtxNs, podName, filter)
-	if err != nil {
+	if errors.IsNotFound(err) {
 		return err
 	}
 	opts := metav1.DeleteOptions{}

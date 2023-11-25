@@ -118,15 +118,24 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages h
 			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
 			return nil, berr
 		}
+		if len(message.Reactions) <= 0 {
+			br = nil
+		}
 		bm, berr := json.Marshal(message.Mentions)
 		if berr != nil {
 			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
 			return nil, berr
 		}
+		if len(message.Mentions) <= 0 {
+			bm = nil
+		}
 		rrf, berr := json.Marshal(message.Reference)
 		if berr != nil {
 			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
 			return nil, berr
+		}
+		if message.Reference.IsEmpty() {
+			rrf = nil
 		}
 		if len(message.Content) <= 0 {
 			continue

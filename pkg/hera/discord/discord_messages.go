@@ -62,6 +62,10 @@ type Reference struct {
 	MessageId string `json:"messageId"`
 }
 
+func (r Reference) IsEmpty() bool {
+	return r.ChannelId == "" && r.GuildId == "" && r.MessageId == ""
+}
+
 type Message struct {
 	Author          Author     `json:"author"`
 	Content         string     `json:"content"`

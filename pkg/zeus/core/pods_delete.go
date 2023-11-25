@@ -31,7 +31,7 @@ func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_t
 
 	p, err := k.GetFirstPodLike(ctx, kubeCtxNs, podName, filter)
 	if errors.IsNotFound(err) {
-		return err
+		return nil
 	}
 	opts := metav1.DeleteOptions{}
 	if deletePodOpts == nil {
@@ -72,8 +72,11 @@ func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_ty
 		if strings_filter.FilterStringWithOpts(name, filter) {
 			p = pod
 			err = k.kc.CoreV1().Pods(kubeCtxNs.Namespace).Delete(ctx, p.GetName(), *deletePodOpts)
-			if err != nil && errors.IsNotFound(err) {
-				log.Err(err).Msg("DeleteAllPodsLike, Pods Like Not Found")
+			if err != nil {
+				if errors.IsNotFound(err) {
+					log.Err(err).Msg("DeleteAllPodsLike, Pods Like Not Found")
+					return nil
+				}
 				return err
 			}
 		}

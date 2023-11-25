@@ -1,5 +1,7 @@
 package hera_discord
 
+import "time"
+
 type Guild struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
@@ -66,7 +68,7 @@ type Message struct {
 	Id              string     `json:"id"`
 	Mentions        []Mention  `json:"mentions"`
 	Reactions       []Reaction `json:"reactions"`
-	TimestampEdited int        `json:"timestampEdited"`
+	TimestampEdited time.Time  `json:"timestampEdited"`
 	Type            string     `json:"type"`
 	Reference       Reference  `json:"reference,omitempty"`
 }

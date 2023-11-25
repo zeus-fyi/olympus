@@ -159,7 +159,7 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 
 func redditSearchQuery() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
-	q.QueryName = "twitterSearchQuery"
+	q.QueryName = "redditSearchQuery"
 	q.RawQuery = `SELECT created_at, title, body
 				  FROM public.ai_reddit_incoming_posts
         		  WHERE body_tsvector @@ to_tsquery('english', $1) OR title_tsvector @@ to_tsquery('english', $1)
@@ -167,10 +167,26 @@ func redditSearchQuery() sql_query_templates.QueryParams {
 	return q
 }
 
+func redditSearchQuery2() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "redditSearchQuery2"
+	q.RawQuery = `SELECT created_at, title, body
+				  FROM public.ai_reddit_incoming_posts
+				  ORDER BY created_at DESC;`
+	return q
+}
+
 func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
 	q := redditSearchQuery()
+	var rows pgx.Rows
+	var err error
+	if sp.SearchContentText == "" && sp.GroupFilter == "" {
+		q = redditSearchQuery2()
+		rows, err = apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+	} else {
+		rows, err = apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+	}
 	var srs []SearchResult
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchReddit")); returnErr != nil {
 		return nil, err
 	}

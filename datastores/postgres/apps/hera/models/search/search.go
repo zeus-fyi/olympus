@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/jackc/pgx/v4"
@@ -25,31 +26,63 @@ type AiSearchParams struct {
 }
 
 type SearchResult struct {
-	UnixTimestamp int              `json:"unixTimestamp"`
-	Source        string           `json:"source"`
-	Value         string           `json:"value"`
-	Group         string           `json:"group"`
-	Metadata      TelegramMetadata `json:"metadata"`
+	UnixTimestamp   int              `json:"unixTimestamp"`
+	Source          string           `json:"source"`
+	Value           string           `json:"value"`
+	Group           string           `json:"group"`
+	Metadata        TelegramMetadata `json:"metadata,omitempty"`
+	DiscordMetadata DiscordMetadata  `json:"discordMetadata"`
+}
+type ByTimestamp []SearchResult
+
+func (a ByTimestamp) Len() int           { return len(a) }
+func (a ByTimestamp) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByTimestamp) Less(i, j int) bool { return a[i].UnixTimestamp > a[j].UnixTimestamp }
+
+// SortSearchResults sorts the slice of SearchResult in descending order by UnixTimestamp.
+func SortSearchResults(results []SearchResult) {
+	sort.Sort(ByTimestamp(results))
+}
+
+type DiscordMetadata struct {
+	GuildName    string `json:"guildName"`
+	Category     string `json:"topic"`
+	CategoryName string `json:"categoryName"`
 }
 
 func discordSearchQuery() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "discordSearchQuery"
-	q.RawQuery = `SELECT message_id, content
-				  FROM public.ai_incoming_discord_messages
+	q.RawQuery = `SELECT cm.timestamp_creation, cm.content, gi.name, ci.category, ci.name
+				  FROM public.ai_incoming_discord_messages cm
+				  JOIN public.ai_discord_channel ci ON ci.channel_id = cm.channel_id
+				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id
         		  WHERE content_tsvector @@ to_tsquery('english', $1)
-				  ORDER BY message_id DESC;`
+				  ORDER BY cm.timestamp_creation DESC;`
 	return q
 }
 
 func discordSearchQuery2() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "discordSearchQuery2"
-	q.RawQuery = `SELECT message_id, content
-				  FROM public.ai_incoming_discord_messages
-				  ORDER BY message_id DESC;`
+	q.RawQuery = `SELECT cm.timestamp_creation, cm.content, gi.name, ci.category, ci.name
+				  FROM public.ai_incoming_discord_messages cm
+				  JOIN public.ai_discord_channel ci ON ci.channel_id = cm.channel_id
+				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id
+				  ORDER BY cm.timestamp_creation DESC;`
 	return q
 }
+
+//func discordSearchQuery3() sql_query_templates.QueryParams {
+//	q := sql_query_templates.QueryParams{}
+//	q.QueryName = "discordSearchQuery3"
+//	q.RawQuery = `SELECT cm.timestamp_creation, cm.content, gi.name, ci.category, ci.name
+//				  FROM public.ai_incoming_discord_messages cm
+//				  JOIN public.ai_discord_channel ci ON ci.channel_id = cm.channel_id
+//				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id
+//				  ORDER BY cm.timestamp_creation DESC;`
+//	return q
+//}
 
 func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
 	q := discordSearchQuery()
@@ -68,11 +101,8 @@ func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var sr SearchResult
-		sr.Source = "discord"
-		rowErr := rows.Scan(
-			&sr.UnixTimestamp, &sr.Value,
-		)
+		sr := SearchResult{Source: "discord"}
+		rowErr := rows.Scan(&sr.UnixTimestamp, &sr.Value, &sr.Group, &sr.DiscordMetadata.Category, &sr.DiscordMetadata.CategoryName)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SearchDiscord"))
 			return nil, rowErr
@@ -104,7 +134,12 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		if result.Value != "" {
 			parts = append(parts, escapeString(result.Value))
 		}
-
+		if result.DiscordMetadata.Category != "" {
+			parts = append(parts, escapeString(result.DiscordMetadata.Category))
+		}
+		if result.DiscordMetadata.CategoryName != "" {
+			parts = append(parts, escapeString(result.DiscordMetadata.CategoryName))
+		}
 		// Join the parts with " | " and add a newline at the end
 		line := strings.Join(parts, " | ") + "\n"
 		builder.WriteString(line)

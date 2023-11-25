@@ -89,6 +89,7 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		}
 		res = append(res, resReddit...)
 	}
+	hera_search.SortSearchResults(res)
 	return c.JSON(http.StatusOK, hera_search.FormatSearchResultsV2(res))
 }
 

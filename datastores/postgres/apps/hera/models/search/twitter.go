@@ -27,10 +27,26 @@ func twitterSearchQuery() sql_query_templates.QueryParams {
 	return q
 }
 
+func twitterSearchQuery2() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "twitterSearchQuery"
+	q.RawQuery = `SELECT tweet_id, message_text
+				  FROM public.ai_incoming_tweets
+				  ORDER BY tweet_id DESC;`
+	return q
+}
+
 func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
 	q := twitterSearchQuery()
 	var srs []SearchResult
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+	var rows pgx.Rows
+	var err error
+	if sp.SearchContentText == "" && sp.GroupFilter == "" {
+		q = twitterSearchQuery2()
+		rows, err = apps.Pg.Query(ctx, q.RawQuery)
+	} else {
+		rows, err = apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+	}
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchTwitter")); returnErr != nil {
 		return nil, err
 	}

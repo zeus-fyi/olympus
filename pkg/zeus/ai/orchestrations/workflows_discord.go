@@ -95,8 +95,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx 
 	}
 	for _, jib := range sq.Results {
 		jobCtx := workflow.WithActivityOptions(ctx, ao)
-		seconds := jib.MaxMessageID / 1e9
-		timeAfter := time.Unix(int64(seconds), 0).Format(time.UTC.String())
+		timeAfter := time.Unix(int64(jib.MaxMessageID), 0).Add(-time.Minute * 5).Format(time.RFC3339)
 		err = workflow.ExecuteActivity(jobCtx, h.CreateDiscordJob, sq.SearchID, jib.ChannelID, timeAfter).Get(jobCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute CreateDiscordJob", "Error", err)

@@ -58,11 +58,9 @@ func (s *JobsTestSuite) TestCreateJob() {
 	bof := int32(3)
 	chID := "844694823021576212"
 
-	tv := 1171729939213590558
+	timeAfter := time.Unix(int64(1700388338), 0).Add(-time.Minute * 5).Format(time.RFC3339)
 
-	seconds := tv / 1e9
-	ts := time.Unix(int64(seconds), 0).Add(-time.Hour * 1000).Format("2006-01-02T15:04:05.9Z07:00")
-	fmt.Println(ts)
+	fmt.Println(timeAfter)
 	j := v1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
@@ -82,7 +80,7 @@ func (s *JobsTestSuite) TestCreateJob() {
 							Image:   "tyrrrz/discordchatexporter:stable",
 							Command: []string{"/bin/sh", "-ac"},
 							Args: []string{
-								fmt.Sprintf("/opt/app/DiscordChatExporter.Cli export -t %s --after \"%s\" -f Json -c %s -o /data/%s.json", authToken, ts, chID, chID),
+								fmt.Sprintf("/opt/app/DiscordChatExporter.Cli export -t %s --after \"%s\" -f Json -c %s -o /data/%s.json", authToken, timeAfter, chID, chID),
 							},
 							VolumeMounts: []v1core.VolumeMount{
 								{

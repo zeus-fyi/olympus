@@ -26,7 +26,7 @@ func twitterSearchQuery() sql_query_templates.QueryParams {
 				  FROM public.ai_incoming_tweets, to_tsquery('english', $1) query
 				  WHERE NOT EXISTS (
 					  SELECT 1
-					  FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️']) as t(emoji)
+					  FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️', '💎', '🪂']) as t(emoji)
 					  WHERE message_text LIKE '%' || t.emoji || '%'
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '@', ''))) > 7
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2
@@ -42,7 +42,7 @@ func twitterSearchQuery2() sql_query_templates.QueryParams {
 				  FROM public.ai_incoming_tweets
 				  WHERE NOT EXISTS (
 					  SELECT 1
-					  FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️']) as t(emoji)
+					  FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️', '💎', '🪂']) as t(emoji)
 					  WHERE message_text LIKE '%' || t.emoji || '%'
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '@', ''))) > 7
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2

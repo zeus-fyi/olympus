@@ -3,6 +3,7 @@ package hera_search
 import (
 	"context"
 	"strconv"
+	"time"
 
 	twitter2 "github.com/cvcio/twitter"
 	"github.com/jackc/pgx/v4"
@@ -57,6 +58,7 @@ func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 		rowErr := rows.Scan(
 			&sr.UnixTimestamp, &sr.Value,
 		)
+		sr.UnixTimestamp = int(time.Unix(int64(sr.UnixTimestamp), 0).UnixNano())
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SearchTwitter"))
 			return nil, rowErr
@@ -156,6 +158,7 @@ func InsertIncomingTweets(ctx context.Context, searchID int, tweets []*twitter2.
 		if tweetID == 0 {
 			continue
 		}
+		tweetID = int(time.Unix(int64(tweetID), 0).UnixNano())
 		tweetIDs = append(tweetIDs, tweetID)
 	}
 

@@ -3,6 +3,7 @@ package hera_search
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -200,6 +201,7 @@ func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) 
 		rowErr := rows.Scan(
 			&sr.UnixTimestamp, &title, &body,
 		)
+		sr.UnixTimestamp = int(time.Unix(int64(sr.UnixTimestamp), 0).UnixNano())
 		if len(body) <= 0 {
 			continue
 		}

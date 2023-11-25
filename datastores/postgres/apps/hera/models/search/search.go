@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -107,6 +108,7 @@ func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 			log.Err(rowErr).Msg(q.LogHeader("SearchDiscord"))
 			return nil, rowErr
 		}
+		sr.UnixTimestamp = int(time.Unix(int64(sr.UnixTimestamp), 0).UnixNano())
 		srs = append(srs, sr)
 	}
 	return srs, nil
@@ -128,17 +130,17 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		if result.Group != "" {
 			parts = append(parts, escapeString(result.Group))
 		}
-		if result.Metadata.Username != "" {
-			parts = append(parts, escapeString(result.Metadata.Username))
-		}
-		if result.Value != "" {
-			parts = append(parts, escapeString(result.Value))
-		}
 		if result.DiscordMetadata.Category != "" {
 			parts = append(parts, escapeString(result.DiscordMetadata.Category))
 		}
 		if result.DiscordMetadata.CategoryName != "" {
 			parts = append(parts, escapeString(result.DiscordMetadata.CategoryName))
+		}
+		if result.Metadata.Username != "" {
+			parts = append(parts, escapeString(result.Metadata.Username))
+		}
+		if result.Value != "" {
+			parts = append(parts, escapeString(result.Value))
 		}
 		// Join the parts with " | " and add a newline at the end
 		line := strings.Join(parts, " | ") + "\n"
@@ -191,6 +193,7 @@ func SearchTelegram(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams
 			log.Err(rowErr).Msg(q.LogHeader("SearchTelegram"))
 			return nil, rowErr
 		}
+		sr.UnixTimestamp = int(time.Unix(int64(sr.UnixTimestamp), 0).UnixNano())
 		srs = append(srs, sr)
 	}
 	return srs, nil

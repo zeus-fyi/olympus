@@ -1,12 +1,13 @@
 package hera_search
 
 import (
+	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
+	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 func (s *SearchAITestSuite) TestInsertDiscordSearchQuery() {
@@ -66,51 +67,71 @@ func (s *SearchAITestSuite) TestInsertIncomingDiscordMessages() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 
 	// Initialize context and necessary data
-	messages := hera_discord.ChannelMessages{
-		Guild: hera_discord.Guild{
-			Id:   "exampleGuildID",
-			Name: "exampleGuildID",
-		},
-		Channel: hera_discord.Channel{
-			Id:         "testChannelID",
-			CategoryId: "123",
-			Category:   "Example Category",
-			Name:       "Example Channel",
-			Topic:      "Sample Topic",
-		},
-		Messages: []hera_discord.Message{
-			{
-				Author: hera_discord.Author{
-					Id:       "author_1",
-					Name:     "Author One",
-					Nickname: "Author1Nick",
-					Roles: []hera_discord.Role{
-						{Id: "role1", Name: "Role One"},
-					},
-				},
-				Content:  "This is a test message",
-				Id:       "1700781280741432832",
-				Mentions: []hera_discord.Mention{},
-				Reactions: []hera_discord.Reaction{
-					{
-						Count: 1,
-						Emoji: hera_discord.Emoji{
-							Code: "emoji1",
-						},
-					},
-				},
-				TimestampEdited: time.Now(), // use a specific time if necessary
-				Type:            "messageType",
-				Reference: hera_discord.Reference{
-					ChannelId: "ref_channel_1",
-					GuildId:   "ref_guild_1",
-					MessageId: "ref_msg_1",
-				},
-			},
-			// ... more messages as needed
-		},
-		MessageCount: 1, // Set this to the actual number of messages in Messages
+
+	f := filepaths.Path{
+		PackageName: "",
+		DirIn:       "/Users/alex/go/Olympus/olympus/datastores/postgres/apps/hera/models/search",
+		DirOut:      "",
+		FnIn:        "eth-discord.json",
+		FnOut:       "",
+		Env:         "",
+		FilterFiles: nil,
 	}
+	b := f.ReadFileInPath()
+	messages := hera_discord.ChannelMessages{}
+	err := json.Unmarshal(b, &messages)
+	s.Require().NoError(err)
+
+	err = InsertDiscordGuild(ctx, messages.Guild.Id, messages.Guild.Name)
+
+	s.Require().NoError(err)
+	err = InsertDiscordChannel(ctx, 1700781280741432832, messages.Guild.Id, messages.Channel.Id, messages.Channel.Id, messages.Channel.Category, messages.Channel.Name, messages.Channel.Topic)
+	s.Require().NoError(err)
+
+	//messages := hera_discord.ChannelMessages{
+	//	Guild: hera_discord.Guild{
+	//		Id:   "exampleGuildID",
+	//		Name: "exampleGuildID",
+	//	},
+	//	Channel: hera_discord.Channel{
+	//		Id:         "testChannelID",
+	//		CategoryId: "123",
+	//		Category:   "Example Category",
+	//		Name:       "Example Channel",
+	//		Topic:      "Sample Topic",
+	//	},
+	//	Messages: []hera_discord.Message{
+	//		{
+	//			Author: hera_discord.Author{
+	//				Id:       "author_1",
+	//				Name:     "Author One",
+	//				Nickname: "Author1Nick",
+	//				Roles: []hera_discord.Role{
+	//					{Id: "role1", Name: "Role One"},
+	//				},
+	//			},
+	//			Content:  "This is a test message",
+	//			Id:       "1700781280741432832",
+	//			Mentions: []hera_discord.Mention{},
+	//			Reactions: []hera_discord.Reaction{
+	//				{
+	//					Count: 1,
+	//					Emoji: hera_discord.Emoji{
+	//						Code: "emoji1",
+	//					},
+	//				},
+	//			},
+	//			TimestampEdited: time.Now(), // use a specific time if necessary
+	//			Type:            "messageType",
+	//			Reference: hera_discord.Reference{
+	//				ChannelId: "ref_channel_1",
+	//				GuildId:   "ref_guild_1",
+	//				MessageId: "ref_msg_1",
+	//			},
+	//		},
+	//	},
+	//	MessageCount: 1, // Set this to the actual number of messages in Messages
+	//}
 
 	// Call the function
 	messageIDs, err := InsertIncomingDiscordMessages(ctx, 1700781280741432832, messages)

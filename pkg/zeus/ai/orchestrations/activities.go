@@ -74,7 +74,7 @@ func (h *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, si int,
 		log.Err(err).Msg("CreateDiscordJob: failed to delete job")
 		return err
 	}
-	err = zeus.K8Util.DeleteFirstPodLike(ctx, kns, j.Name, nil, nil)
+	err = zeus.K8Util.DeleteAllPodsLike(ctx, kns, j.Name, nil, nil)
 	if err != nil {
 		log.Err(err).Msg("CreateDiscordJob: failed to delete pods")
 		return err

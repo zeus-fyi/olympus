@@ -47,6 +47,7 @@ func twitterSearchQuery2() sql_query_templates.QueryParams {
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '@', ''))) > 7
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2
 					)
+				 AND message_text NOT LIKE '%https://t.co%'
 				 ORDER BY tweet_id DESC`
 	return q
 }

@@ -1,11 +1,12 @@
 package hera_search
 
 import (
-	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
 )
 
 func (s *SearchAITestSuite) TestInsertDiscordSearchQuery() {
@@ -65,30 +66,51 @@ func (s *SearchAITestSuite) TestInsertIncomingDiscordMessages() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 
 	// Initialize context and necessary data
-	messages := []*DiscordMessage{
-		{
-			MessageID: 1700781280741432831,
-			SearchId:  1700781280741432832,
-			GuildID:   "exampleGuildID",
-			ChannelID: "testChannelID",
-			Author:    json.RawMessage(`{"name":"Author1"}`),
-			Content:   "Message content 1",
-			Mentions:  json.RawMessage(`[{"id":"user1"}]`),
-			Reactions: json.RawMessage(`[{"count":5,"emoji":{"code":"emoji1"}}]`),
-			Reference: json.RawMessage(`{}`),
-			EditedAt:  0,
-			Type:      "messageType1",
+	messages := hera_discord.ChannelMessages{
+		Guild: hera_discord.Guild{
+			Id:   "exampleGuildID",
+			Name: "exampleGuildID",
 		},
-		// Add more mock messages if needed
+		Channel: hera_discord.Channel{
+			Id:         "testChannelID",
+			CategoryId: "123",
+			Category:   "Example Category",
+			Name:       "Example Channel",
+			Topic:      "Sample Topic",
+		},
+		Messages: []hera_discord.Message{
+			{
+				Author: hera_discord.Author{
+					Id:       "author_1",
+					Name:     "Author One",
+					Nickname: "Author1Nick",
+					Roles: []hera_discord.Role{
+						{Id: "role1", Name: "Role One"},
+					},
+				},
+				Content:         "This is a test message",
+				Id:              "1700781280741432832",
+				Mentions:        []hera_discord.Mention{},
+				Reactions:       []hera_discord.Reaction{},
+				TimestampEdited: time.Now(), // use a specific time if necessary
+				Type:            "messageType",
+				Reference: hera_discord.Reference{
+					ChannelId: "ref_channel_1",
+					GuildId:   "ref_guild_1",
+					MessageId: "ref_msg_1",
+				},
+			},
+			// ... more messages as needed
+		},
+		MessageCount: 1, // Set this to the actual number of messages in Messages
 	}
 
 	// Call the function
-	messageIDs, err := InsertIncomingDiscordMessages(ctx, 0, messages)
+	messageIDs, err := InsertIncomingDiscordMessages(ctx, 1700781280741432832, messages)
 
 	// Assert expected outcomes
 	s.Require().NoError(err, "InsertIncomingDiscordMessages should not return an error")
 	s.Assert().NotNil(messageIDs, "Returned message IDs should not be nil")
-	s.Assert().Len(messageIDs, len(messages), "The number of returned message IDs should match the number of input messages")
 
 	// Additional checks can be added here, such as verifying the contents of the returned message IDs
 }

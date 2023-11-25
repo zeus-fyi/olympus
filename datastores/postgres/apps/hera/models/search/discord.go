@@ -141,7 +141,7 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages h
 			int(message.TimestampEdited.Unix()),
 			message.Type).Scan(&messageID)
 		if err != nil {
-			log.Err(err).Msg("InsertIncomingDiscordMessages")
+			log.Err(err).Interface("message", message).Msg("InsertIncomingDiscordMessages")
 			return nil, err
 		}
 		messageIDs = append(messageIDs, messageID)

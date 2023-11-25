@@ -128,7 +128,9 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages h
 			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
 			return nil, berr
 		}
-
+		if len(message.Content) <= 0 {
+			continue
+		}
 		err = tx.QueryRow(ctx, q.RawQuery,
 			mi,
 			searchID,

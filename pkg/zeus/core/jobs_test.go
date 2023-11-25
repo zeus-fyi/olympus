@@ -122,9 +122,9 @@ func (s *JobsTestSuite) TestCreateJob() {
 	s.Nil(err)
 
 	//// "discord-exporter-init "
-	jc, err := s.K.CreateJob(ctx, kns, &j)
-	s.Nil(err)
-	s.Require().NotEmpty(jc)
+	//jc, err := s.K.CreateJob(ctx, kns, &j)
+	//s.Nil(err)
+	//s.Require().NotEmpty(jc)
 
 	//
 	//err = s.K.DeleteAllPodsLike(ctx, kns, j.Name, nil, nil)

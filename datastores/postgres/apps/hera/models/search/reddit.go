@@ -182,7 +182,7 @@ func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) 
 	var err error
 	if sp.SearchContentText == "" && sp.GroupFilter == "" {
 		q = redditSearchQuery2()
-		rows, err = apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
+		rows, err = apps.Pg.Query(ctx, q.RawQuery)
 	} else {
 		rows, err = apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
 	}

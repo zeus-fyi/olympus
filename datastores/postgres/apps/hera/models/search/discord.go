@@ -3,7 +3,6 @@ package hera_search
 import (
 	"context"
 	"encoding/json"
-	"strconv"
 
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -84,8 +83,8 @@ func InsertDiscordChannel(ctx context.Context, searchID int, guildID, channelID,
 func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages hera_discord.ChannelMessages) ([]int, error) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "insertIncomingDiscordMessages"
-	q.RawQuery = `INSERT INTO "public"."ai_incoming_discord_messages" ("message_id", "search_id", "guild_id", "channel_id", "author", "content", "mentions", "reactions", "reference", "timestamp_edited", "type")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	q.RawQuery = `INSERT INTO "public"."ai_incoming_discord_messages" ("timestamp_creation","message_id", "search_id", "guild_id", "channel_id", "author", "content", "mentions", "reactions", "reference", "timestamp_edited", "type")
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		ON CONFLICT ("message_id")
 		DO UPDATE SET
 			"content" = EXCLUDED.content,
@@ -93,7 +92,7 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages h
 			"reactions" = EXCLUDED.reactions,
 			"reference" = EXCLUDED.reference,
 			"timestamp_edited" = EXCLUDED.timestamp_edited
-		RETURNING "message_id";`
+		RETURNING "timestamp_creation";`
 
 	var messageIDs []int
 	tx, err := apps.Pg.Begin(ctx)
@@ -102,12 +101,7 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages h
 	}
 	defer tx.Rollback(ctx)
 	for _, message := range messages.Messages {
-		var messageID int
-		mi, berr := strconv.Atoi(message.Id)
-		if berr != nil {
-			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
-			return nil, berr
-		}
+
 		ba, berr := json.Marshal(message.Author)
 		if berr != nil {
 			log.Err(berr).Msg("InsertIncomingDiscordDataFromSearch")
@@ -140,8 +134,10 @@ func InsertIncomingDiscordMessages(ctx context.Context, searchID int, messages h
 		if len(message.Content) <= 0 {
 			continue
 		}
+		var messageID int
 		err = tx.QueryRow(ctx, q.RawQuery,
-			mi,
+			int(message.TimestampCreated.Unix()),
+			message.Id,
 			searchID,
 			messages.Guild.Id,
 			messages.Channel.Id,

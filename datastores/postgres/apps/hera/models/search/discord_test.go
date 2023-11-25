@@ -85,7 +85,7 @@ func (s *SearchAITestSuite) TestInsertIncomingDiscordMessages() {
 	err = InsertDiscordGuild(ctx, messages.Guild.Id, messages.Guild.Name)
 
 	s.Require().NoError(err)
-	err = InsertDiscordChannel(ctx, 1700781280741432832, messages.Guild.Id, messages.Channel.Id, messages.Channel.Id, messages.Channel.Category, messages.Channel.Name, messages.Channel.Topic)
+	err = InsertDiscordChannel(ctx, 1700781280741432832, messages.Guild.Id, messages.Channel.Id, messages.Channel.CategoryId, messages.Channel.Category, messages.Channel.Name, messages.Channel.Topic)
 	s.Require().NoError(err)
 
 	//messages := hera_discord.ChannelMessages{

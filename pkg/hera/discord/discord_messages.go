@@ -67,12 +67,13 @@ func (r Reference) IsEmpty() bool {
 }
 
 type Message struct {
-	Author          Author     `json:"author"`
-	Content         string     `json:"content"`
-	Id              string     `json:"id"`
-	Mentions        []Mention  `json:"mentions"`
-	Reactions       []Reaction `json:"reactions"`
-	TimestampEdited time.Time  `json:"timestampEdited"`
-	Type            string     `json:"type"`
-	Reference       Reference  `json:"reference,omitempty"`
+	Author           Author     `json:"author"`
+	Content          string     `json:"content"`
+	Id               string     `json:"id"`
+	TimestampCreated time.Time  `json:"timestamp"`
+	Mentions         []Mention  `json:"mentions"`
+	Reactions        []Reaction `json:"reactions"`
+	TimestampEdited  time.Time  `json:"timestampEdited"`
+	Type             string     `json:"type"`
+	Reference        Reference  `json:"reference,omitempty"`
 }

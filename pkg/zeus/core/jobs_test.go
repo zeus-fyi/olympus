@@ -55,9 +55,14 @@ func (s *JobsTestSuite) TestCreateJob() {
 	   args: [ "-ac"," /opt/web3signer/bin/web3signer --http-host-allowlist=* --http-listen-host=0.0.0.0 --tls-allow-any-client=true eth2 --key-manager-api-enabled=true --slashing-protection-db-url=${WEB3SIGNER_SLASHING_PROTECTION_DB_URL} --slashing-protection-db-password=${WEB3SIGNER_SLASHING_PROTECTION_DB_PASSWORD} --slashing-protection-db-username=${WEB3SIGNER_SLASHING_PROTECTION_DB_USERNAME} --network=${WEB3SIGNER_NETWORK}"]
 
 	*/
-	bof := int32(0)
+	bof := int32(3)
 	chID := "844694823021576212"
-	ts := time.Now().Add(-time.Hour * 1000).Format(time.RFC3339)
+
+	tv := 1171729939213590558
+
+	seconds := tv / 1e9
+	ts := time.Unix(int64(seconds), 0).Add(-time.Hour * 1000).Format("2006-01-02T15:04:05.9Z07:00")
+	fmt.Println(ts)
 	j := v1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
@@ -121,14 +126,11 @@ func (s *JobsTestSuite) TestCreateJob() {
 	err = s.K.DeleteAllPodsLike(ctx, kns, j.Name, nil, nil)
 	s.Nil(err)
 
-	//// "discord-exporter-init "
-	//jc, err := s.K.CreateJob(ctx, kns, &j)
-	//s.Nil(err)
-	//s.Require().NotEmpty(jc)
+	// "discord-exporter-init "
+	jc, err := s.K.CreateJob(ctx, kns, &j)
+	s.Nil(err)
+	s.Require().NotEmpty(jc)
 
-	//
-	//err = s.K.DeleteAllPodsLike(ctx, kns, j.Name, nil, nil)
-	//s.Nil(err)
 }
 
 func (s *JobsTestSuite) TestDeleteJob() {

@@ -41,7 +41,8 @@ CREATE INDEX rd_channel_category_tsvector_idx ON public.ai_discord_channel USING
 
 -- Table for incoming Discord messages
 CREATE TABLE public.ai_incoming_discord_messages (
-    message_id BIGINT NOT NULL PRIMARY KEY,
+    message_id TEXT NOT NULL PRIMARY KEY,
+    timestamp_creation BIGINT NOT NULL,
     search_id BIGINT NOT NULL REFERENCES public.ai_discord_search_query(search_id),
     guild_id TEXT NOT NULL REFERENCES public.ai_discord_guild(guild_id),
     channel_id TEXT NOT NULL REFERENCES public.ai_discord_channel(channel_id),
@@ -53,6 +54,8 @@ CREATE TABLE public.ai_incoming_discord_messages (
     timestamp_edited BIGINT NOT NULL DEFAULT 0,
     type TEXT NOT NULL
 );
+
+CREATE INDEX rd_message_tssearch_idx ON public.ai_incoming_discord_messages (timestamp_creation DESC);
 CREATE INDEX rd_message_search_idx ON public.ai_incoming_discord_messages (search_id);
 CREATE INDEX rd_message_type_idx ON public.ai_incoming_discord_messages (type);
 ALTER TABLE public.ai_incoming_discord_messages ADD COLUMN content_tsvector tsvector GENERATED ALWAYS AS (to_tsvector('english', content)) STORED;

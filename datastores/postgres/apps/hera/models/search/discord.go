@@ -185,7 +185,7 @@ func SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchG
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "selectDiscordSearchQuery"
 	q.RawQuery = `
-        SELECT dm.search_id, dm.guild_id, dm.channel_id, MAX(dm.message_id) AS max_message_id
+        SELECT dm.search_id, dm.guild_id, dm.channel_id, MAX(dm.timestamp_creation) AS max_message_id
         FROM public.ai_incoming_discord_messages dm
         INNER JOIN public.ai_discord_search_query dsq 
         ON dm.search_id = dsq.search_id

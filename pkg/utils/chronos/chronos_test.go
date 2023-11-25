@@ -35,6 +35,13 @@ func (s *ChronosTestSuite) TestConvertToTime() {
 	s.Require().NotEmpty(nt)
 	fmt.Println(nt.String())
 }
+
+func (s *ChronosTestSuite) TestTweetIDConvertToTime() {
+	c := Chronos{}
+	nt := c.ConvertTweetIDToUnixTimestamp(1728520241175507422)
+	s.Require().NotEmpty(nt)
+	fmt.Println(nt)
+}
 func TestChronosTestSuite(t *testing.T) {
 	suite.Run(t, new(ChronosTestSuite))
 }

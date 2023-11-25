@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -51,6 +52,7 @@ func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchTwitter")); returnErr != nil {
 		return nil, err
 	}
+	ts := chronos.Chronos{}
 	defer rows.Close()
 	for rows.Next() {
 		var sr SearchResult
@@ -58,7 +60,7 @@ func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 		rowErr := rows.Scan(
 			&sr.UnixTimestamp, &sr.Value,
 		)
-		sr.UnixTimestamp = int(time.Unix(int64(sr.UnixTimestamp), 0).UnixNano())
+		sr.UnixTimestamp = ts.ConvertTweetIDToUnixTimestamp(sr.UnixTimestamp)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SearchTwitter"))
 			return nil, rowErr

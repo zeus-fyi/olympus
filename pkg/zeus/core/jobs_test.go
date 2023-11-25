@@ -56,9 +56,9 @@ func (s *JobsTestSuite) TestCreateJob() {
 
 	*/
 	bof := int32(3)
-	chID := "447826495638077462"
+	chID := "816017958395576400"
 
-	timeAfter := time.Unix(int64(1700388338), 0).Add(-time.Hour * 20000).Format(time.RFC3339)
+	timeAfter := time.Unix(int64(1700388338), 0).Add(-time.Hour * 3000).Format(time.RFC3339)
 
 	fmt.Println(timeAfter)
 	j := v1.Job{
@@ -67,7 +67,7 @@ func (s *JobsTestSuite) TestCreateJob() {
 			APIVersion: "batch/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "discord-job-2",
+			Name: fmt.Sprintf("discord-job-canary-%s", chID),
 		},
 		Spec: v1.JobSpec{
 			BackoffLimit: &bof, // Setting backoffLimit to 0 to prevent retries

@@ -14,7 +14,7 @@ func (s *SearchAITestSuite) TestInsertRedditSearchQuery() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	query := "devops"
+	query := "ethdev"
 	resp, err := InsertRedditSearchQuery(ctx, ou, defaultTwitterSearchGroupName, query, 100)
 	s.Require().Nil(err)
 	s.Assert().NotZero(resp)

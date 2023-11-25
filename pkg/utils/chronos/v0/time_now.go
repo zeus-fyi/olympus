@@ -1,6 +1,8 @@
 package v0
 
 import (
+	"fmt"
+	"math/big"
 	"strconv"
 	"time"
 
@@ -40,4 +42,33 @@ func (c *LibV0) UnixTimeStampNowSec() int {
 func (c *LibV0) ConvertUnixTimeStampToDate(uts int) time.Time {
 	seconds := uts / 1e9
 	return time.Unix(int64(seconds), 0)
+}
+
+// ConvertTweetIDToUnixTimestamp converts a Twitter tweet ID to a Unix timestamp.
+func (c *LibV0) ConvertTweetIDToUnixTimestamp(tweetID int) int {
+	// The Twitter epoch time.
+	const twitterEpoch int = 1288834974657
+
+	// Right shift the tweet ID by 22 bits and add the Twitter epoch time.
+	timestamp := (tweetID >> 22) + twitterEpoch
+
+	return timestamp / 1000
+}
+
+// ConvertRedditIDToUnixTimestamp converts a Reddit post ID to a Unix timestamp.
+func (c *LibV0) ConvertRedditIDToUnixTimestamp(redditID string) (int, error) {
+	// Remove the prefix "t3_" if present.
+	if len(redditID) > 3 && redditID[:3] == "t3_" {
+		redditID = redditID[3:]
+	}
+
+	// Decode the Base36 encoded string.
+	decodedID := new(big.Int)
+	_, success := decodedID.SetString(redditID, 36)
+	if !success {
+		return 0, fmt.Errorf("failed to decode Base36 Reddit ID")
+	}
+
+	// Convert to Unix timestamp.
+	return int(decodedID.Int64()), nil
 }

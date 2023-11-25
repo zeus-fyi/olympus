@@ -244,7 +244,7 @@ func (h *ZeusAiPlatformActivities) InsertIncomingRedditDataFromSearch(ctx contex
 	return nil
 }
 
-func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.RedditSearchQuery, error) {
+func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) ([]*hera_search.RedditSearchQuery, error) {
 	rs, err := hera_search.SelectRedditSearchQuery(ctx, ou, groupName)
 	if err != nil {
 		log.Err(err).Msg("SelectRedditSearchQuery: activity failed")

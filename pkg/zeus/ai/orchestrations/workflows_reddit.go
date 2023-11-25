@@ -31,35 +31,43 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 	}
 	// Activity to select the Reddit search query. Insert this part after the UpsertAssignmentActivity
 	selectRedditQueryCtx := workflow.WithActivityOptions(ctx, ao)
-	var redditSearchQuery *hera_search.RedditSearchQuery
-	err = workflow.ExecuteActivity(selectRedditQueryCtx, h.SelectRedditSearchQuery, ou, groupName).Get(selectRedditQueryCtx, &redditSearchQuery)
+	var redditSearchQuerySlice []*hera_search.RedditSearchQuery
+	err = workflow.ExecuteActivity(selectRedditQueryCtx, h.SelectRedditSearchQuery, ou, groupName).Get(selectRedditQueryCtx, &redditSearchQuerySlice)
 	if err != nil {
 		logger.Error("failed to select Reddit search query", "Error", err)
 		return err
 	}
-
-	if redditSearchQuery == nil {
+	if redditSearchQuerySlice == nil || len(redditSearchQuerySlice) == 0 {
 		logger.Info("no Reddit search query found")
 		return nil
 	}
-	redditCtx := workflow.WithActivityOptions(ctx, ao)
-	lpo := &reddit.ListOptions{Limit: redditSearchQuery.MaxResults, After: redditSearchQuery.FullPostId}
-	var redditPosts []*reddit.Post
-	err = workflow.ExecuteActivity(redditCtx, h.SearchRedditNewPostsUsingSubreddit, redditSearchQuery.Query, lpo).Get(redditCtx, &redditPosts)
-	if err != nil {
-		logger.Error("failed to fetch new Reddit posts", "Error", err)
-		return err
-	}
-	// Add the InsertIncomingRedditDataFromSearch activity here
-	if redditPosts == nil || len(redditPosts) == 0 {
-		logger.Info("no new Reddit posts found")
-		return nil
-	}
-	insertRedditDataCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(insertRedditDataCtx, h.InsertIncomingRedditDataFromSearch, redditSearchQuery.SearchID, redditPosts).Get(insertRedditDataCtx, nil)
-	if err != nil {
-		logger.Error("failed to insert incoming Reddit data from search", "Error", err)
-		return err
+	for i, redditSearchQuery := range redditSearchQuerySlice {
+		if i > 0 {
+			err = workflow.Sleep(ctx, time.Second*5)
+			if err != nil {
+				logger.Error("failed to sleep", "Error", err)
+				return err
+			}
+		}
+		redditCtx := workflow.WithActivityOptions(ctx, ao)
+		lpo := &reddit.ListOptions{Limit: redditSearchQuery.MaxResults, After: redditSearchQuery.FullPostId}
+		var redditPosts []*reddit.Post
+		err = workflow.ExecuteActivity(redditCtx, h.SearchRedditNewPostsUsingSubreddit, redditSearchQuery.Query, lpo).Get(redditCtx, &redditPosts)
+		if err != nil {
+			logger.Error("failed to fetch new Reddit posts", "Error", err)
+			return err
+		}
+		// Add the InsertIncomingRedditDataFromSearch activity here
+		if redditPosts == nil || len(redditPosts) == 0 {
+			logger.Info("no new Reddit posts found")
+			return nil
+		}
+		insertRedditDataCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(insertRedditDataCtx, h.InsertIncomingRedditDataFromSearch, redditSearchQuery.SearchID, redditPosts).Get(insertRedditDataCtx, nil)
+		if err != nil {
+			logger.Error("failed to insert incoming Reddit data from search", "Error", err)
+			return err
+		}
 	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)

@@ -129,7 +129,7 @@ type RedditSearchQuery struct {
 	Query           string `json:"query"`
 }
 
-func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) (*RedditSearchQuery, error) {
+func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) ([]*RedditSearchQuery, error) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "selectRedditSearchQuery"
 	q.RawQuery = `
@@ -139,22 +139,31 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
         WHERE sq.org_id = $1 AND sq.user_id = $2 AND sq.search_group_name = $3
         GROUP BY sq.search_id, sq.query, sq.max_results, ip.post_full_id;
     `
-	rs := &RedditSearchQuery{}
-
 	var postId *string
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, searchGroupName).Scan(&rs.SearchID, &rs.Query, &rs.MaxResults, &postId, &rs.LastCreatedAt)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, ou.UserID, searchGroupName)
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("SelectRedditSearchQuery: no rows")
 		return nil, nil
 	}
-	if postId != nil {
-		rs.FullPostId = *postId
+	var rss []*RedditSearchQuery
+	defer rows.Close()
+	for rows.Next() {
+		rs := &RedditSearchQuery{}
+		rowErr := rows.Scan(&rs.SearchID, &rs.Query, &rs.MaxResults, &postId, &rs.LastCreatedAt)
+		if rowErr != nil {
+			log.Err(rowErr).Msg("Error scanning row in SelectRedditSearchQuery")
+			return nil, rowErr
+		}
+		if postId != nil {
+			rs.FullPostId = *postId
+		}
+		rss = append(rss, rs)
 	}
 	if err != nil {
 		log.Err(err).Msg("SelectRedditSearchQuery")
 		return nil, err
 	}
-	return rs, err
+	return rss, nil
 }
 
 func redditSearchQuery() sql_query_templates.QueryParams {
@@ -205,7 +214,7 @@ func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) 
 		}
 		sr.Value = title + "\n " + body + "\n"
 		if rowErr != nil {
-			log.Err(rowErr).Msg(q.LogHeader("SearchTwitter"))
+			log.Err(rowErr).Msg(q.LogHeader("SearchReddit"))
 			return nil, rowErr
 		}
 		srs = append(srs, sr)

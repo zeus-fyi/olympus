@@ -67,7 +67,7 @@ func (s *JobsTestSuite) TestCreateJob() {
 			APIVersion: "batch/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "discord-job",
+			Name: "discord-job-2",
 		},
 		Spec: v1.JobSpec{
 			BackoffLimit: &bof, // Setting backoffLimit to 0 to prevent retries
@@ -124,7 +124,7 @@ func (s *JobsTestSuite) TestCreateJob() {
 	err = s.K.DeleteAllPodsLike(ctx, kns, j.Name, nil, nil)
 	s.Nil(err)
 
-	//// "discord-exporter-init "
+	// "discord-exporter-init "
 	jc, err := s.K.CreateJob(ctx, kns, &j)
 	s.Nil(err)
 	s.Require().NotEmpty(jc)

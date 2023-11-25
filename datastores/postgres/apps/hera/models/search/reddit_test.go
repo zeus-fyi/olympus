@@ -14,7 +14,7 @@ func (s *SearchAITestSuite) TestInsertRedditSearchQuery() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	query := "kubernetes"
+	query := "devops"
 	resp, err := InsertRedditSearchQuery(ctx, ou, defaultTwitterSearchGroupName, query, 100)
 	s.Require().Nil(err)
 	s.Assert().NotZero(resp)
@@ -29,7 +29,7 @@ func (s *SearchAITestSuite) TestSelectRedditSearchQuery() {
 	ts, err := SelectRedditSearchQuery(ctx, ou, defaultTwitterSearchGroupName)
 	s.Require().Nil(err)
 	s.Assert().NotNil(ts)
-	s.Assert().Equal(100, ts.MaxResults)
+	s.Assert().Equal(100, ts[0].MaxResults)
 }
 
 func (s *SearchAITestSuite) TestInsertRedditPosts() {

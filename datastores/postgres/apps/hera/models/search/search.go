@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -108,7 +107,6 @@ func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 			log.Err(rowErr).Msg(q.LogHeader("SearchDiscord"))
 			return nil, rowErr
 		}
-		sr.UnixTimestamp = int(time.Unix(int64(sr.UnixTimestamp), 0).UnixNano())
 		srs = append(srs, sr)
 	}
 	return srs, nil
@@ -193,7 +191,6 @@ func SearchTelegram(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams
 			log.Err(rowErr).Msg(q.LogHeader("SearchTelegram"))
 			return nil, rowErr
 		}
-		sr.UnixTimestamp = int(time.Unix(int64(sr.UnixTimestamp), 0).UnixNano())
 		srs = append(srs, sr)
 	}
 	return srs, nil

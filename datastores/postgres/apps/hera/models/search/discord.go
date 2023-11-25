@@ -212,7 +212,6 @@ func SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchG
 		}
 		results = append(results, &r)
 	}
-
 	if err = rows.Err(); err != nil {
 		log.Err(err).Msg("Error iterating rows in SelectDiscordSearchQuery")
 		return nil, err

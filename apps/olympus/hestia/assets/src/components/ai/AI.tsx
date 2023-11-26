@@ -82,7 +82,6 @@ function AiWorkflowsDashboardContent(props: any) {
         setSearchInterval(interval);
     }, []);
 
-    const [analysisInterval, setAnalysisInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(1)]);
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -121,9 +120,7 @@ function AiWorkflowsDashboardContent(props: any) {
                 'usernames': usernames,
                 'workflowInstructions': workflowInstructions,
                 'searchInterval': searchInterval,
-                'analysisInterval': analysisInterval,
             });
-            console.log(searchInterval, 'searchInterval')
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
@@ -148,7 +145,6 @@ function AiWorkflowsDashboardContent(props: any) {
                 'usernames': usernames,
                 'workflowInstructions': workflowInstructions,
                 'searchInterval': searchInterval,
-                'analysisInterval': analysisInterval,
                 'cycleCount': cycleCount,
                 'stepSize': stepSize,
                 'stepSizeUnit': stepSizeUnit,
@@ -315,10 +311,12 @@ function AiWorkflowsDashboardContent(props: any) {
                                         <Box flexGrow={1} sx={{ mt: 2, mb: -12 }}>
                                             <TimeRange
                                                 ticksNumber={12}
+                                                timelineInterval={[getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]}
                                                 // @ts-ignore
                                                 onChangeCallback={onTimeRangeChange}
                                                 formatTick={formatTick2}
                                                 showNow={true}
+                                                selectedInterval={searchInterval}
                                             />
                                         </Box>
                                         <Button fullWidth variant="contained" onClick={handleSearchRequest} >Search</Button>

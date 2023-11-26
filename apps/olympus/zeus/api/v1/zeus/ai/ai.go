@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
 const (
@@ -149,11 +150,10 @@ func (r *AiSearchRequest) SearchAnalyze(c echo.Context) error {
 		}
 		res = append(res, resReddit...)
 	}
-	return nil
-	//hera_search.SortSearchResults(res)
-	//resp, err := ai_platform_service_orchestrations.AiTelegramTask(c.Request().Context(), ou, res, r.AiSearchParams)
-	//if err != nil {
-	//	return c.JSON(http.StatusInternalServerError, nil)
-	//}
-	//return c.JSON(http.StatusOK, resp.Choices[0].Message.Content)
+	hera_search.SortSearchResults(res)
+	resp, err := ai_platform_service_orchestrations.AiTelegramTask(c.Request().Context(), ou, res, r.AiSearchParams)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, resp.Choices[0].Message.Content)
 }

@@ -2,6 +2,7 @@ package hera_search
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -19,20 +20,42 @@ const (
 	defaultTwitterSearchGroupName = "zeusfyi"
 )
 
-func twitterSearchQuery() sql_query_templates.QueryParams {
+func twitterSearchQuery(searchText string, intervals ...TimeInterval) (sql_query_templates.QueryParams, []interface{}) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "twitterSearchQuery"
-	q.RawQuery = `SELECT tweet_id, message_text
-				  FROM public.ai_incoming_tweets, to_tsquery('english', $1) query
-				  WHERE NOT EXISTS (
+	var args []interface{}
+
+	bq := `SELECT tweet_id, message_text
+		   FROM public.ai_incoming_tweets`
+	if searchText != "" {
+		bq += fmt.Sprintf(` ,to_tsquery('english', $%d) query`, len(args)+1)
+		args = append(args, searchText)
+	}
+	baseQuery := bq + ` WHERE NOT EXISTS (
 					  SELECT 1
 					  FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️', '💎', '🪂']) as t(emoji)
 					  WHERE message_text LIKE '%' || t.emoji || '%'
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '@', ''))) > 7
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2
-					)
-				 ORDER BY tweet_id DESC`
-	return q
+					)`
+
+	if searchText != "" {
+		baseQuery += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
+		args = append(args, searchText)
+	}
+
+	if len(intervals) > 0 && !intervals[0][0].IsZero() && !intervals[0][1].IsZero() {
+		baseQuery += ` AND`
+		tsRangeStart, tsEnd := intervals[0].GetUnixTimestamps()
+		baseQuery += fmt.Sprintf(` tweet_id BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
+		cts := chronos.Chronos{}
+		tweetStart := cts.ConvertUnixTimestampToTweetID(tsRangeStart)
+		tweetEnd := cts.ConvertUnixTimestampToTweetID(tsEnd)
+		args = append(args, tweetStart, tweetEnd)
+	}
+	baseQuery += ` ORDER BY tweet_id DESC`
+	q.RawQuery = baseQuery
+	return q, args
 }
 
 // links are mostly spam, filtering out links reduces the number of tweets by 75%, which results in ~90% less spam
@@ -55,16 +78,11 @@ func twitterSearchQuery2() sql_query_templates.QueryParams {
 }
 
 func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q := twitterSearchQuery()
+	q, args := twitterSearchQuery(sp.SearchContentText, sp.SearchInterval)
 	var srs []SearchResult
 	var rows pgx.Rows
 	var err error
-	if sp.SearchContentText == "" && sp.GroupFilter == "" {
-		q = twitterSearchQuery2()
-		rows, err = apps.Pg.Query(ctx, q.RawQuery)
-	} else {
-		rows, err = apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
-	}
+	rows, err = apps.Pg.Query(ctx, q.RawQuery, args...)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchTwitter")); returnErr != nil {
 		return nil, err
 	}

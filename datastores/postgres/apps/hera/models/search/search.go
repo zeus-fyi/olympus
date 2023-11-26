@@ -29,6 +29,13 @@ type AiSearchParams struct {
 }
 type TimeInterval [2]time.Time
 
+func (ti *TimeInterval) GetUnixTimestamps() (int, int) {
+	if ti == nil {
+		return 0, 0
+	}
+	return int(ti[0].Unix()), int(ti[1].Unix())
+}
+
 type SearchResult struct {
 	UnixTimestamp   int              `json:"unixTimestamp"`
 	Source          string           `json:"source"`
@@ -46,74 +53,6 @@ func (a ByTimestamp) Less(i, j int) bool { return a[i].UnixTimestamp > a[j].Unix
 // SortSearchResults sorts the slice of SearchResult in descending order by UnixTimestamp.
 func SortSearchResults(results []SearchResult) {
 	sort.Sort(ByTimestamp(results))
-}
-
-type DiscordMetadata struct {
-	GuildName    string `json:"guildName"`
-	Category     string `json:"topic"`
-	CategoryName string `json:"categoryName"`
-}
-
-func discordSearchQuery() sql_query_templates.QueryParams {
-	q := sql_query_templates.QueryParams{}
-	q.QueryName = "discordSearchQuery"
-	q.RawQuery = `SELECT cm.timestamp_creation, cm.content, gi.name, ci.category, ci.name
-				  FROM public.ai_incoming_discord_messages cm
-				  JOIN public.ai_discord_channel ci ON ci.channel_id = cm.channel_id
-				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id
-        		  WHERE content_tsvector @@ to_tsquery('english', $1)
-				  ORDER BY cm.timestamp_creation DESC;`
-	return q
-}
-
-func discordSearchQuery2() sql_query_templates.QueryParams {
-	q := sql_query_templates.QueryParams{}
-	q.QueryName = "discordSearchQuery2"
-	q.RawQuery = `SELECT cm.timestamp_creation, cm.content, gi.name, ci.category, ci.name
-				  FROM public.ai_incoming_discord_messages cm
-				  JOIN public.ai_discord_channel ci ON ci.channel_id = cm.channel_id
-				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id
-				  ORDER BY cm.timestamp_creation DESC;`
-	return q
-}
-
-//func discordSearchQuery3() sql_query_templates.QueryParams {
-//	q := sql_query_templates.QueryParams{}
-//	q.QueryName = "discordSearchQuery3"
-//	q.RawQuery = `SELECT cm.timestamp_creation, cm.content, gi.name, ci.category, ci.name
-//				  FROM public.ai_incoming_discord_messages cm
-//				  JOIN public.ai_discord_channel ci ON ci.channel_id = cm.channel_id
-//				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id
-//				  ORDER BY cm.timestamp_creation DESC;`
-//	return q
-//}
-
-func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q := discordSearchQuery()
-	var srs []SearchResult
-
-	var rows pgx.Rows
-	var err error
-	if sp.SearchContentText == "" {
-		q = discordSearchQuery2()
-		rows, err = apps.Pg.Query(ctx, q.RawQuery)
-	} else {
-		rows, err = apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
-	}
-	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchDiscord")); returnErr != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		sr := SearchResult{Source: "discord"}
-		rowErr := rows.Scan(&sr.UnixTimestamp, &sr.Value, &sr.Group, &sr.DiscordMetadata.Category, &sr.DiscordMetadata.CategoryName)
-		if rowErr != nil {
-			log.Err(rowErr).Msg(q.LogHeader("SearchDiscord"))
-			return nil, rowErr
-		}
-		srs = append(srs, sr)
-	}
-	return srs, nil
 }
 
 func FormatSearchResultsV2(results []SearchResult) string {
@@ -259,18 +198,6 @@ func insertCompletionResp() sql_query_templates.QueryParams {
         `
 	return q
 }
-
-/*
-CREATE TABLE public.ai_search_analysis_results(
-    analysis_id int8 NOT NULL DEFAULT next_id(),
-    response_id int8 NOT NULL REFERENCES completion_responses(response_id),
-    search_hash text NOT NULL, -- hash of the search parameters and results
-    analysis_hash text NOT NULL, -- hash of the search parameters, results, and response
-    search_params JSONB NOT NULL,
-    search_results JSONB NOT NULL,
-    UNIQUE(analysis_hash)
-);
-*/
 
 func SanitizeSearchResults(results []SearchResult) []SearchResult {
 	for i, _ := range results {

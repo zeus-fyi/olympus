@@ -1,6 +1,9 @@
 package hera_search
 
 import (
+	"fmt"
+	"time"
+
 	twitter2 "github.com/cvcio/twitter"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -49,4 +52,35 @@ func (s *SearchAITestSuite) TestInsertIncomingTweets() {
 	resp, err := InsertIncomingTweets(ctx, searchID, tweets)
 	s.Require().Nil(err)
 	s.Assert().NotZero(resp)
+}
+
+func (s *SearchAITestSuite) TestSelectTweets() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	si := TimeInterval{}
+	si[0] = time.Now().AddDate(0, 0, -7)
+
+	fmt.Println(si[0].Unix())
+	si[1] = time.Now()
+	fmt.Println(si[1].Unix())
+
+	// Call the function
+	sp := AiSearchParams{
+		SearchContentText:    "k8s",
+		GroupFilter:          "",
+		Platforms:            "",
+		Usernames:            "",
+		WorkflowInstructions: "",
+		SearchInterval:       si,
+		AnalysisInterval:     TimeInterval{},
+	}
+	results, err := SearchTwitter(ctx, ou, sp)
+
+	// Assert expected outcomes
+	s.Require().NoError(err, "SearchTwitter should not return an error")
+	s.Require().NotNil(results, "Results should not be nil")
 }

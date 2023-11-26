@@ -32,6 +32,86 @@ var (
 	ctx = context.Background()
 )
 
+func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions31() {
+	f := filepaths.Path{
+		DirIn:       dirIn,
+		FilterFiles: sf,
+	}
+	actInst := `Update the discord search query function to use the new search params when they are not empty,`
+	bins := BuildAiInstructions{
+		Path:               f,
+		PromptInstructions: actInst,
+		OrderedInstructions: []BuildAiFileInstruction{
+			{
+				DirIn:    DatastoresDir + "/postgres/apps/hera/models/search",
+				FileName: "search.go",
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Use this as a reference to extend",
+						FunctionInfo: FunctionInfo{
+							Name: "discordSearchQuery",
+						},
+					},
+					{
+						FunctionInstruction: "Use this as a reference to extend",
+						FunctionInfo: FunctionInfo{
+							Name: "discordSearchQuery2",
+						},
+					},
+					{
+						FunctionInstruction: "Update the below with a new query time that allows you to filter by timestamp_creation using the time range in the search params, " +
+							"if the search time interval is empty, nil or zero value, then use a different query that does not filter by timestamp_creation, refactor these functions to reduce" +
+							"code duplication when possible",
+						FunctionInfo: FunctionInfo{
+							Name: "SearchDiscord",
+						},
+					},
+					{
+						FunctionInstruction: "Use this as a reference",
+						FunctionInfo: FunctionInfo{
+							Name: "GetUnixTimestamps",
+						},
+					},
+				},
+				OrderedGoTypeInstructions: []GoTypeInstruction{
+					{
+						GoTypeInstruction: "Use this as a reference",
+						GoType:            "struct",
+						GoTypeName:        "AiSearchParams",
+					},
+				},
+			},
+			{
+				DirIn:    DatastoresDir + "/postgres/apps/hera/models/search",
+				FileName: "discord_test.go",
+				OrderedFileFunctionInstructions: []FunctionInstruction{
+					{
+						FunctionInstruction: "Update this test to use the new discord search query function",
+						FunctionInfo: FunctionInfo{
+							Name: "TestSelectDiscordSearchMessagesQuery",
+						},
+					},
+				},
+			},
+		},
+	}
+	prompt := GenerateInstructions(ctx, &bins)
+	fmt.Println(prompt)
+
+	hera_openai.InitHeraOpenAI(s.Tc.OpenAIAuth)
+	params := hera_openai.OpenAIParams{
+		Prompt: prompt,
+	}
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
+	s.Require().NoError(err)
+	fmt.Println(resp.Choices[0].Message.Content)
+	f.DirOut = "./generated_outputsaaa"
+	f.FnOut = "workflow_instructionsaaaa.txt"
+	err = f.WriteToFileOutPath([]byte(prompt))
+	s.Require().NoError(err)
+}
+
 func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions30() {
 	f := filepaths.Path{
 		DirIn:       dirIn,

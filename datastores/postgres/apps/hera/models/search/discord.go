@@ -3,6 +3,7 @@ package hera_search
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -10,6 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -26,6 +28,68 @@ type DiscordMessage struct {
 	Reference any    `json:"reference"`
 	EditedAt  int    `json:"edited_at"`
 	Type      string `json:"type"`
+}
+
+type DiscordMetadata struct {
+	GuildName    string `json:"guildName"`
+	Category     string `json:"topic"`
+	CategoryName string `json:"categoryName"`
+}
+
+// discordSearchQuery will be extended to support new search parameters when they are not empty
+func discordSearchQuery(searchText string, intervals ...TimeInterval) (sql_query_templates.QueryParams, []interface{}) {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "discordSearchQuery"
+
+	baseQuery := `SELECT cm.timestamp_creation, cm.content, gi.name, ci.category, ci.name
+				  FROM public.ai_incoming_discord_messages cm
+				  JOIN public.ai_discord_channel ci ON ci.channel_id = cm.channel_id
+				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id`
+
+	var args []interface{}
+	if searchText != "" {
+		baseQuery += fmt.Sprintf(` WHERE content_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
+		args = append(args, searchText)
+	}
+
+	if len(intervals) > 0 && !intervals[0][0].IsZero() && !intervals[0][1].IsZero() {
+		if searchText != "" {
+			baseQuery += ` AND`
+		} else {
+			baseQuery += ` WHERE`
+		}
+		tsRangeStart, tsEnd := intervals[0].GetUnixTimestamps()
+		baseQuery += fmt.Sprintf(` cm.timestamp_creation BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
+		args = append(args, tsRangeStart, tsEnd)
+	}
+
+	baseQuery += ` ORDER BY cm.timestamp_creation DESC;`
+	q.RawQuery = baseQuery
+	return q, args
+}
+
+func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
+	q, args := discordSearchQuery(sp.SearchContentText, sp.SearchInterval)
+	var srs []SearchResult
+	var rows pgx.Rows
+	var err error
+
+	rows, err = apps.Pg.Query(ctx, q.RawQuery, args...)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchDiscord")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		sr := SearchResult{Source: "discord"}
+		rowErr := rows.Scan(&sr.UnixTimestamp, &sr.Value, &sr.Group, &sr.DiscordMetadata.Category, &sr.DiscordMetadata.CategoryName)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SearchDiscord"))
+			return nil, rowErr
+		}
+		srs = append(srs, sr)
+	}
+	return srs, nil
 }
 
 func InsertDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string, maxResults int, query string) (int, error) {

@@ -55,6 +55,20 @@ func (c *LibV0) ConvertTweetIDToUnixTimestamp(tweetID int) int {
 	return timestamp / 1000
 }
 
+// ConvertUnixTimestampToTweetID converts a Unix timestamp to a Twitter tweet ID.
+func (c *LibV0) ConvertUnixTimestampToTweetID(unixTimestamp int) int64 {
+	// The Twitter epoch time in milliseconds.
+	const twitterEpoch int64 = 1288834974657
+
+	// Convert the Unix timestamp from seconds to milliseconds.
+	timestampMs := int64(unixTimestamp) * 1000
+
+	// Left shift the corrected timestamp by 22 bits.
+	tweetID := (timestampMs - twitterEpoch) << 22
+
+	return tweetID
+}
+
 // ConvertRedditIDToUnixTimestamp converts a Reddit post ID to a Unix timestamp.
 func (c *LibV0) ConvertRedditIDToUnixTimestamp(redditID string) (int, error) {
 	// Remove the prefix "t3_" if present.

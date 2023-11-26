@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
@@ -101,7 +102,7 @@ func InsertIncomingRedditPosts(ctx context.Context, searchID int, posts []*reddi
 			post.NumberOfComments,
 			post.Author,
 			post.AuthorID,
-			metaJSON,
+			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(metaJSON), Status: IsNull(metaJSON)},
 			post.SubredditName,
 		).Scan(&postID)
 		if err != nil {

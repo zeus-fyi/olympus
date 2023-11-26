@@ -32,6 +32,8 @@ import {
     setWorkflowInstructions
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
+import {endOfToday, set, setHours, setMinutes, startOfToday} from 'date-fns';
+import {TimeRange} from '@matiaslgonzalez/react-timeline-range-slider';
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -48,7 +50,19 @@ function AiWorkflowsDashboardContent(props: any) {
     const [code, setCode] = useState('');
     const searchResults = useSelector((state: RootState) => state.ai.searchResults);
     const platformFilter = useSelector((state: RootState) => state.ai.platformFilter);
+    const [value, onChange] = useState<Value>(['10:00', '11:00']);
     const dispatch = useDispatch();
+    const now = new Date();
+    const getTodayAtSpecificHour = (hour: number = 12) =>
+        set(now, { hours: hour, minutes: 0, seconds: 0, milliseconds: 0 });
+
+
+    const [error, setError] = useState(false);
+    const [selectedInterval, setSelectedInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]);
+    const onTimeRangeChange = (interval: [Date, Date]) => setSelectedInterval(interval);
+    const [selectedInterval2, setSelectedInterval2] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]);
+    const onTimeRangeChange2 = (interval: [Date, Date]) => setSelectedInterval2(selectedInterval2);
+
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -89,6 +103,8 @@ function AiWorkflowsDashboardContent(props: any) {
                 'usernames': usernames,
                 'workflowInstructions': workflowInstructions,
             });
+            console.log(selectedInterval, 'selectedInterval')
+            console.log(selectedInterval2, 'selectedInterval2')
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
@@ -135,6 +151,29 @@ function AiWorkflowsDashboardContent(props: any) {
     };
     const onChangeText = (textInput: string) => {
         setCode(textInput);
+    };
+
+    const getDefaultInterval = () => {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0); // Today at 00:00
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999); // Today at 23:59:59.999
+        return [start, end];
+    };
+    const startTime = new Date().setHours(0, 0, 0, 0);
+
+
+// Inside your component's render method or function body
+    const getDefaultInterval2 = () => {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0); // Today at 00:00
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 15, 0); // Today at 00:00
+        return [start, end];
+    };
+
+    const formatTick = (ms: number) => {
+        // Calculate the difference in minutes from the start time
+        const minutesSinceStart = Math.floor((ms - startTime) / 60000);
+        return `${minutesSinceStart} min`;
     };
     return (
         <ThemeProvider theme={mdTheme}>
@@ -231,8 +270,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 value={platformFilter}
                                                 onChange={(e) => handleUpdatePlatformFilter(e.target.value)}
                                             />
-                                        </Box>
-                                        <Box flexGrow={1} sx={{ mb: 2 }}>
+                                        </Box><Box flexGrow={1} sx={{ mb: 2 }}>
                                             <TextField
                                                 fullWidth
                                                 id="group-input"
@@ -262,6 +300,24 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 onChange={(e) => handleUpdateSearchContent(e.target.value)}
                                             />
                                         </Box>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Search Window
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Select a time window to search for data.
+                                            </Typography>
+                                        <Box flexGrow={1} sx={{ mt: 2, mb: -12 }}>
+                                            <TimeRange
+                                                error={error}
+                                                ticksNumber={12}
+                                                timelineInterval={[startOfToday(), endOfToday()]}
+                                                // @ts-ignore
+                                                selectedInterval={getDefaultInterval()} // Set the default selected interval
+                                                // disabledIntervals={selectedIntervalFuture}
+                                                formatTick={(ms: number) => new Date(ms).toLocaleTimeString([], { hour: 'numeric', hour12: true })}
+                                                onChangeCallback={onTimeRangeChange}
+                                            />
+                                        </Box>
                                         <Button fullWidth variant="contained" onClick={handleSearchRequest} >Search</Button>
                                     </Stack>
                                 </CardContent>
@@ -284,7 +340,38 @@ function AiWorkflowsDashboardContent(props: any) {
                                             style={{ resize: "both", width: "100%" }}
                                         />
                                     </Box>
-                                    <Button fullWidth variant="contained" onClick={handleSearchAnalyzeRequest} >Analyze Results</Button>
+                                    <CardContent>
+                                        <Typography gutterBottom variant="h5" component="div">
+                                            Time Intervals
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
+                                        </Typography>
+                                    </CardContent>
+                                    <Box flexGrow={1} sx={{ mt: 2, mb: -12 }}>
+                                        <TimeRange
+                                            error={error}
+                                            ticksNumber={20}
+                                            timelineInterval={[setMinutes(setHours(new Date(), 0), 0), setMinutes(setHours(new Date(), 1), 0)]}
+                                            step={5*60*1000} // 5 minutes in milliseconds
+                                            formatTick={formatTick}
+                                            // @ts-ignore
+                                            selectedInterval={getDefaultInterval2()} // Set the default selected interval
+                                            containerClassName="timeRangeContainer"
+                                            onChangeCallback={onTimeRangeChange2}
+                                        />
+                                    </Box>
+                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
+                                    {/*    <TextField*/}
+                                    {/*        fullWidth*/}
+                                    {/*        id="group-input"*/}
+                                    {/*        label="Group"*/}
+                                    {/*        variant="outlined"*/}
+                                    {/*        value={groupFilter}*/}
+                                    {/*        onChange={(e) => handleUpdateGroupFilter(e.target.value)}*/}
+                                    {/*    />*/}
+                                    {/*</Box>*/}
+                                    <Button fullWidth variant="contained" onClick={handleSearchAnalyzeRequest} >Start Working Analysis</Button>
                                 </CardContent>
                             </Card>
                         </Stack>
@@ -311,7 +398,9 @@ function AiWorkflowsDashboardContent(props: any) {
         </ThemeProvider>
     );
 }
+type ValuePiece = Date | string | null;
 
+type Value = ValuePiece | [ValuePiece, ValuePiece];
 export default function AiWorkflowsDashboard() {
     return <AiWorkflowsDashboardContent />;
 }

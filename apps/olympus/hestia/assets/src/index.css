@@ -16,3 +16,7 @@ code {
   font-family: sans-serif;
   text-align: center;
 }
+
+.timeRangeContainer {
+  margin-bottom: 0; /* Remove bottom margin */
+}

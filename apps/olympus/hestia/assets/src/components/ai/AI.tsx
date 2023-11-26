@@ -65,7 +65,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const now = new Date();
     const getTodayAtSpecificHour = (hour: number = 12) =>
         set(now, { hours: hour, minutes: 0, seconds: 0, milliseconds: 0 });
-    const [cycleCount, setCycleCount] = useState(1);
+    const [cycleCount, setCycleCount] = useState(0);
     const handleCycleCountChange = (event: any) => {
         setCycleCount(event.target.value);
     };
@@ -383,7 +383,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 label="Cycle Count"
                                                 variant="outlined"
                                                 value={cycleCount}
-                                                inputProps={{ min: 1 }}  // Set minimum value to 1
+                                                inputProps={{ min: 0 }}  // Set minimum value to 0
                                                 onChange={handleCycleCountChange}
                                                 fullWidth
                                             />

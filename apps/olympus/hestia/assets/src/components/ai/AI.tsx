@@ -58,10 +58,10 @@ function AiWorkflowsDashboardContent(props: any) {
 
 
     const [error, setError] = useState(false);
-    const [selectedInterval, setSelectedInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]);
-    const onTimeRangeChange = (interval: [Date, Date]) => setSelectedInterval(interval);
-    const [selectedInterval2, setSelectedInterval2] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]);
-    const onTimeRangeChange2 = (interval: [Date, Date]) => setSelectedInterval2(selectedInterval2);
+    const [searchInterval, setSearchInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]);
+    const onTimeRangeChange = (interval: [Date, Date]) => setSearchInterval(interval);
+    const [analysisInterval, setAnalysisInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(1)]);
+    const onTimeRangeChange2 = (interval: [Date, Date]) => setAnalysisInterval(analysisInterval);
 
     const toggleDrawer = () => {
         setOpen(!open);
@@ -102,9 +102,9 @@ function AiWorkflowsDashboardContent(props: any) {
                 'platforms': platformFilter,
                 'usernames': usernames,
                 'workflowInstructions': workflowInstructions,
+                'searchInterval': searchInterval,
+                'analysisInterval': analysisInterval,
             });
-            console.log(selectedInterval, 'selectedInterval')
-            console.log(selectedInterval2, 'selectedInterval2')
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
@@ -128,6 +128,8 @@ function AiWorkflowsDashboardContent(props: any) {
                 'platforms': platformFilter,
                 'usernames': usernames,
                 'workflowInstructions': workflowInstructions,
+                'searchInterval': searchInterval,
+                'analysisInterval': analysisInterval,
             });
             const statusCode = response.status;
             if (statusCode < 400) {

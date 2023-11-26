@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -18,12 +19,15 @@ import (
 )
 
 type AiSearchParams struct {
-	SearchContentText    string `json:"searchContentText,omitempty"`
-	GroupFilter          string `json:"groupFilter,omitempty"`
-	Platforms            string `json:"platforms,omitempty"`
-	Usernames            string `json:"usernames,omitempty"`
-	WorkflowInstructions string `json:"workflowInstructions,omitempty"`
+	SearchContentText    string       `json:"searchContentText,omitempty"`
+	GroupFilter          string       `json:"groupFilter,omitempty"`
+	Platforms            string       `json:"platforms,omitempty"`
+	Usernames            string       `json:"usernames,omitempty"`
+	WorkflowInstructions string       `json:"workflowInstructions,omitempty"`
+	SearchInterval       TimeInterval `json:"searchInterval,omitempty"`
+	AnalysisInterval     TimeInterval `json:"analysisInterval,omitempty"`
 }
+type TimeInterval [2]time.Time
 
 type SearchResult struct {
 	UnixTimestamp   int              `json:"unixTimestamp"`

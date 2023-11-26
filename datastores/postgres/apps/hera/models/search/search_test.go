@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/stretchr/testify/suite"
@@ -19,13 +20,21 @@ type SearchAITestSuite struct {
 }
 
 func (s *SearchAITestSuite) TestSelectTelegramResults() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
+	si := TimeInterval{}
+	si[0] = time.Now().AddDate(0, 0, -60)
+
+	fmt.Println(si[0].Unix())
+	si[1] = time.Now()
+	fmt.Println(si[1].Unix())
+
 	sp := AiSearchParams{
-		GroupFilter: "Ze",
+		GroupFilter:    "Ze",
+		SearchInterval: si,
 	}
 	res, err := SearchTelegram(ctx, ou, sp)
 	s.Require().Nil(err)

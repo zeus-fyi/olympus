@@ -90,35 +90,41 @@ func FormatSearchResultsV2(results []SearchResult) string {
 	return builder.String()
 }
 
-func telegramSearchQuery() sql_query_templates.QueryParams {
+func telegramSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "telegramSearchQuery"
-	q.RawQuery = `SELECT timestamp, group_name, message_text, metadata
-				  FROM public.ai_incoming_telegram_msgs
-              	  WHERE org_id = $1 AND group_name ILIKE '%' || $2 || '%' 
-				  ORDER BY chat_id, message_id DESC;`
-	return q
-}
 
-func telegramSearchQueryWithContent() sql_query_templates.QueryParams {
-	q := sql_query_templates.QueryParams{}
-	q.QueryName = "telegramSearchQueryWithContent"
+	args := []interface{}{ou.OrgID}
 	q.RawQuery = `SELECT timestamp, group_name, message_text, metadata
 				  FROM public.ai_incoming_telegram_msgs
-              	  WHERE org_id = $1 AND group_name ILIKE '%' || $2 || '%' 
-              	  AND message_text_tsvector @@ to_tsquery('english', $3)
-				  ORDER BY chat_id, message_id DESC;`
-	return q
+				  WHERE org_id = $1 `
+
+	if sp.SearchContentText != "" {
+		args = append(args, sp.SearchContentText)
+		q.RawQuery += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args))
+	}
+	if sp.GroupFilter != "" {
+		args = append(args, sp.GroupFilter)
+		q.RawQuery += `AND group_name ILIKE '%' || ` + fmt.Sprintf("$%d", len(args)) + ` || '%' `
+	}
+	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
+		if len(args) > 0 {
+			q.RawQuery += ` AND`
+		} else {
+			q.RawQuery += ` WHERE`
+		}
+		tsRangeStart, tsEnd := sp.SearchInterval.GetUnixTimestamps()
+		q.RawQuery += fmt.Sprintf(` timestamp BETWEEN $%d AND $%d `, len(args)+1, len(args)+2)
+		args = append(args, tsRangeStart, tsEnd)
+	}
+
+	q.RawQuery += ` ORDER BY timestamp DESC;`
+	return q, args
 }
 
 func SearchTelegram(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q := telegramSearchQuery()
+	q, args := telegramSearchQuery(ou, sp)
 	var srs []SearchResult
-	args := []interface{}{ou.OrgID, sp.GroupFilter}
-	if sp.SearchContentText != "" {
-		args = append(args, sp.SearchContentText)
-		q = telegramSearchQueryWithContent()
-	}
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, args...)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchTelegram")); returnErr != nil {
 		return nil, err

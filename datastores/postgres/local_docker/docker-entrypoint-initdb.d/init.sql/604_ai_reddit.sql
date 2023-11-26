@@ -28,12 +28,15 @@ CREATE TABLE public.ai_reddit_incoming_posts (
     reddit_meta JSONB NOT NULL,
     author TEXT NOT NULL,
     author_id TEXT NOT NULL,
+    subreddit TEXT NOT NULL,
     FOREIGN KEY (search_id) REFERENCES public.ai_reddit_search_query(search_id)
 );
 
 -- Add tsvector columns and indexes for full-text search
 ALTER TABLE public.ai_reddit_incoming_posts ADD COLUMN title_tsvector tsvector GENERATED ALWAYS AS (to_tsvector('english', title)) STORED;
 ALTER TABLE public.ai_reddit_incoming_posts ADD COLUMN body_tsvector tsvector GENERATED ALWAYS AS (to_tsvector('english', body)) STORED;
+CREATE INDEX idx_red_post_created_at ON public.ai_reddit_incoming_posts (created_at);
+CREATE INDEX idx_subreddit ON public.ai_reddit_incoming_posts (subreddit);
 
 CREATE INDEX rd_title_tsvector_idx ON public.ai_reddit_incoming_posts USING GIN (title_tsvector);
 CREATE INDEX rd_body_tsvector_idx ON public.ai_reddit_incoming_posts USING GIN (body_tsvector);

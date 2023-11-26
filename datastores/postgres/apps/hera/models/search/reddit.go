@@ -34,8 +34,8 @@ func InsertIncomingRedditPosts(ctx context.Context, searchID int, posts []*reddi
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "insertIncomingRedditPosts"
 
-	q.RawQuery = `INSERT INTO "public"."ai_reddit_incoming_posts" ("search_id", "post_id", "post_full_id", "created_at", "edited_at", "permalink", "url", "title", "body", "score", "upvote_ratio", "number_of_comments", "author", "author_id", "reddit_meta")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+	q.RawQuery = `INSERT INTO "public"."ai_reddit_incoming_posts" ("search_id", "post_id", "post_full_id", "created_at", "edited_at", "permalink", "url", "title", "body", "score", "upvote_ratio", "number_of_comments", "author", "author_id", "reddit_meta", "subreddit")
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		ON CONFLICT ("post_id")
 		DO UPDATE SET
 			"created_at" = EXCLUDED."created_at",
@@ -102,6 +102,7 @@ func InsertIncomingRedditPosts(ctx context.Context, searchID int, posts []*reddi
 			post.Author,
 			post.AuthorID,
 			metaJSON,
+			post.SubredditName,
 		).Scan(&postID)
 		if err != nil {
 			return nil, err
@@ -133,13 +134,25 @@ type RedditSearchQuery struct {
 func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) ([]*RedditSearchQuery, error) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "selectRedditSearchQuery"
-	q.RawQuery = `
-        SELECT sq.search_id, sq.query, sq.max_results, ip.post_full_id, COALESCE(MAX(ip.created_at), 0) AS last_created_at
-        FROM public.ai_reddit_search_query sq
-        LEFT JOIN public.ai_reddit_incoming_posts ip ON sq.search_id = ip.search_id
-        WHERE sq.org_id = $1 AND sq.user_id = $2 AND sq.search_group_name = $3
-        GROUP BY sq.search_id, sq.query, sq.max_results, ip.post_full_id;
-    `
+	q.RawQuery = `SELECT 
+					sq_sub.query as subreddit, 
+					sq_sub.last_created_at,
+					COALESCE(ip.post_full_id, '') AS post_full_id
+				FROM 
+					(SELECT 
+						 sq.query, 
+						 COALESCE(MAX(ip.created_at), 0) AS last_created_at
+					 FROM 
+						 public.ai_reddit_search_query sq
+					 LEFT JOIN 
+						 public.ai_reddit_incoming_posts ip ON sq.query = ip.subreddit
+					 WHERE 
+						 sq.org_id = $1 AND sq.user_id = $2 AND sq.search_group_name = $3
+					 GROUP BY 
+						 sq.query) AS sq_sub
+				LEFT JOIN 
+					public.ai_reddit_incoming_posts ip ON sq_sub.query = ip.subreddit AND sq_sub.last_created_at = ip.created_at;
+				`
 	var postId *string
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, ou.UserID, searchGroupName)
 	if err == pgx.ErrNoRows {
@@ -149,8 +162,10 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 	var rss []*RedditSearchQuery
 	defer rows.Close()
 	for rows.Next() {
-		rs := &RedditSearchQuery{}
-		rowErr := rows.Scan(&rs.SearchID, &rs.Query, &rs.MaxResults, &postId, &rs.LastCreatedAt)
+		rs := &RedditSearchQuery{
+			MaxResults: 100,
+		}
+		rowErr := rows.Scan(&rs.Query, &rs.LastCreatedAt, &rs.FullPostId)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("Error scanning row in SelectRedditSearchQuery")
 			return nil, rowErr

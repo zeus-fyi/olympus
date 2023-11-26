@@ -30,7 +30,6 @@ func (s *SearchAITestSuite) TestSelectRedditSearchQuery() {
 	ts, err := SelectRedditSearchQuery(ctx, ou, defaultTwitterSearchGroupName)
 	s.Require().Nil(err)
 	s.Assert().NotNil(ts)
-	s.Assert().Equal(100, ts[0].MaxResults)
 }
 
 func (s *SearchAITestSuite) TestInsertRedditPosts() {

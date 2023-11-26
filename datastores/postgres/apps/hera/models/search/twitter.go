@@ -35,6 +35,8 @@ func twitterSearchQuery() sql_query_templates.QueryParams {
 	return q
 }
 
+// links are mostly spam, filtering out links reduces the number of tweets by 75%, which results in ~90% less spam
+
 func twitterSearchQuery2() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "twitterSearchQuery"

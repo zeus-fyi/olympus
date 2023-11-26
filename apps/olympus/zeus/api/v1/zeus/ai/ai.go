@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
 const (
@@ -45,7 +44,6 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 	if len(r.Platforms) > 0 {
 		getTweets = strings.Contains(r.Platforms, "twitter")
 	}
-
 	if getTweets {
 		resTwitter, err := hera_search.SearchTwitter(c.Request().Context(), ou, r.AiSearchParams)
 		if err != nil {
@@ -53,7 +51,6 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		}
 		res = append(res, resTwitter...)
 	}
-
 	getDiscord := true
 	if len(r.Platforms) > 0 {
 		getDiscord = strings.Contains(r.Platforms, "discord")
@@ -65,7 +62,6 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		}
 		res = append(res, resDiscord...)
 	}
-
 	getTelegram := true
 	if len(r.Platforms) > 0 {
 		getTelegram = strings.Contains(r.Platforms, "telegram")
@@ -77,7 +73,6 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		}
 		res = append(res, resTelegram...)
 	}
-
 	getReddit := true
 	if len(r.Platforms) > 0 {
 		getReddit = strings.Contains(r.Platforms, "reddit")
@@ -109,14 +104,56 @@ func (r *AiSearchRequest) SearchAnalyze(c echo.Context) error {
 	if ou.OrgID != internalOrgID {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	res, err := hera_search.SearchTelegram(c.Request().Context(), ou, r.AiSearchParams)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, nil)
+	var res []hera_search.SearchResult
+	getTweets := true
+	if len(r.Platforms) > 0 {
+		getTweets = strings.Contains(r.Platforms, "twitter")
 	}
-
-	resp, err := ai_platform_service_orchestrations.AiTelegramTask(c.Request().Context(), ou, res, r.AiSearchParams)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, nil)
+	if getTweets {
+		resTwitter, err := hera_search.SearchTwitter(c.Request().Context(), ou, r.AiSearchParams)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		res = append(res, resTwitter...)
 	}
-	return c.JSON(http.StatusOK, resp.Choices[0].Message.Content)
+	getDiscord := true
+	if len(r.Platforms) > 0 {
+		getDiscord = strings.Contains(r.Platforms, "discord")
+	}
+	if getDiscord {
+		resDiscord, err := hera_search.SearchDiscord(c.Request().Context(), ou, r.AiSearchParams)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		res = append(res, resDiscord...)
+	}
+	getTelegram := true
+	if len(r.Platforms) > 0 {
+		getTelegram = strings.Contains(r.Platforms, "telegram")
+	}
+	if getTelegram {
+		resTelegram, err := hera_search.SearchTelegram(c.Request().Context(), ou, r.AiSearchParams)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		res = append(res, resTelegram...)
+	}
+	getReddit := true
+	if len(r.Platforms) > 0 {
+		getReddit = strings.Contains(r.Platforms, "reddit")
+	}
+	if getReddit {
+		resReddit, err := hera_search.SearchReddit(c.Request().Context(), ou, r.AiSearchParams)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		res = append(res, resReddit...)
+	}
+	return nil
+	//hera_search.SortSearchResults(res)
+	//resp, err := ai_platform_service_orchestrations.AiTelegramTask(c.Request().Context(), ou, res, r.AiSearchParams)
+	//if err != nil {
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//return c.JSON(http.StatusOK, resp.Choices[0].Message.Content)
 }

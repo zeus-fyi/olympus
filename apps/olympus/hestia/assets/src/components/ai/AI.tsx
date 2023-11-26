@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useState} from 'react';
+import {useCallback, useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -14,7 +14,18 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {Card, CardContent, Stack, Tab, Tabs, TextareaAutosize} from "@mui/material";
+import {
+    Card,
+    CardContent,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    Stack,
+    Tab,
+    Tabs,
+    TextareaAutosize
+} from "@mui/material";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
 import {WorkflowTable} from "./WorkflowTable";
@@ -32,7 +43,7 @@ import {
     setWorkflowInstructions
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
-import {endOfToday, set, setHours, setMinutes, startOfToday} from 'date-fns';
+import {set} from 'date-fns';
 import {TimeRange} from '@matiaslgonzalez/react-timeline-range-slider';
 
 const mdTheme = createTheme();
@@ -50,19 +61,28 @@ function AiWorkflowsDashboardContent(props: any) {
     const [code, setCode] = useState('');
     const searchResults = useSelector((state: RootState) => state.ai.searchResults);
     const platformFilter = useSelector((state: RootState) => state.ai.platformFilter);
-    const [value, onChange] = useState<Value>(['10:00', '11:00']);
     const dispatch = useDispatch();
     const now = new Date();
     const getTodayAtSpecificHour = (hour: number = 12) =>
         set(now, { hours: hour, minutes: 0, seconds: 0, milliseconds: 0 });
-
-
-    const [error, setError] = useState(false);
+    const [cycleCount, setCycleCount] = useState(1);
+    const handleCycleCountChange = (event: any) => {
+        setCycleCount(event.target.value);
+    };
+    const [stepSize, setStepSize] = useState(5);
+    const handleTimeStepChange = (event: any) => {
+        setStepSize(event.target.value);
+    };
+    const [stepSizeUnit, setStepSizeUnit] = React.useState('minutes');
+    const handleUpdateStepSizeUnit = (event: any) => {
+        setStepSizeUnit(event.target.value);
+    };
     const [searchInterval, setSearchInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]);
-    const onTimeRangeChange = (interval: [Date, Date]) => setSearchInterval(interval);
-    const [analysisInterval, setAnalysisInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(1)]);
-    const onTimeRangeChange2 = (interval: [Date, Date]) => setAnalysisInterval(analysisInterval);
+    const onTimeRangeChange = useCallback((interval: [Date, Date]) => {
+        setSearchInterval(interval);
+    }, []);
 
+    const [analysisInterval, setAnalysisInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(1)]);
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -71,7 +91,6 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleUpdateSearchContent = (value: string) => {
         dispatch(setSearchContent(value));
     };
-
     const handleUpdateGroupFilter = (value: string) => {
         dispatch(setGroupFilter(value));
     };
@@ -81,7 +100,6 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleUpdateSearchUsernames =(value: string) => {
         dispatch(setUsernames(value));
     };
-
     const handleUpdateWorkflowInstructions =(value: string) => {
         dispatch(setWorkflowInstructions(value));
     };
@@ -105,6 +123,7 @@ function AiWorkflowsDashboardContent(props: any) {
                 'searchInterval': searchInterval,
                 'analysisInterval': analysisInterval,
             });
+            console.log(searchInterval, 'searchInterval')
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
@@ -130,6 +149,9 @@ function AiWorkflowsDashboardContent(props: any) {
                 'workflowInstructions': workflowInstructions,
                 'searchInterval': searchInterval,
                 'analysisInterval': analysisInterval,
+                'cycleCount': cycleCount,
+                'stepSize': stepSize,
+                'stepSizeUnit': stepSizeUnit,
             });
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -155,28 +177,10 @@ function AiWorkflowsDashboardContent(props: any) {
         setCode(textInput);
     };
 
-    const getDefaultInterval = () => {
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0); // Today at 00:00
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999); // Today at 23:59:59.999
-        return [start, end];
-    };
-    const startTime = new Date().setHours(0, 0, 0, 0);
-
-
-// Inside your component's render method or function body
-    const getDefaultInterval2 = () => {
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0); // Today at 00:00
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 15, 0); // Today at 00:00
-        return [start, end];
+    const formatTick2 = (ms: number) => {
+        return new Date(ms).toLocaleTimeString([], { hour: 'numeric', hour12: true });
     };
 
-    const formatTick = (ms: number) => {
-        // Calculate the difference in minutes from the start time
-        const minutesSinceStart = Math.floor((ms - startTime) / 60000);
-        return `${minutesSinceStart} min`;
-    };
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -310,14 +314,11 @@ function AiWorkflowsDashboardContent(props: any) {
                                             </Typography>
                                         <Box flexGrow={1} sx={{ mt: 2, mb: -12 }}>
                                             <TimeRange
-                                                error={error}
                                                 ticksNumber={12}
-                                                timelineInterval={[startOfToday(), endOfToday()]}
                                                 // @ts-ignore
-                                                selectedInterval={getDefaultInterval()} // Set the default selected interval
-                                                // disabledIntervals={selectedIntervalFuture}
-                                                formatTick={(ms: number) => new Date(ms).toLocaleTimeString([], { hour: 'numeric', hour12: true })}
                                                 onChangeCallback={onTimeRangeChange}
+                                                formatTick={formatTick2}
+                                                showNow={true}
                                             />
                                         </Box>
                                         <Button fullWidth variant="contained" onClick={handleSearchRequest} >Search</Button>
@@ -342,37 +343,65 @@ function AiWorkflowsDashboardContent(props: any) {
                                             style={{ resize: "both", width: "100%" }}
                                         />
                                     </Box>
-                                    <CardContent>
                                         <Typography gutterBottom variant="h5" component="div">
                                             Time Intervals
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
                                         </Typography>
-                                    </CardContent>
-                                    <Box flexGrow={1} sx={{ mt: 2, mb: -12 }}>
-                                        <TimeRange
-                                            error={error}
-                                            ticksNumber={20}
-                                            timelineInterval={[setMinutes(setHours(new Date(), 0), 0), setMinutes(setHours(new Date(), 1), 0)]}
-                                            step={5*60*1000} // 5 minutes in milliseconds
-                                            formatTick={formatTick}
-                                            // @ts-ignore
-                                            selectedInterval={getDefaultInterval2()} // Set the default selected interval
-                                            containerClassName="timeRangeContainer"
-                                            onChangeCallback={onTimeRangeChange2}
+                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                        <Box sx={{ width: '50%' }}> {/* Adjusted Box for TextField */}
+                                            <TextField
+                                                type="number"
+                                                label="Time Step Size"
+                                                variant="outlined"
+                                                inputProps={{ min: 1 }}  // Set minimum value to 1
+                                                value={stepSize}
+                                                onChange={handleTimeStepChange}
+                                                fullWidth
+                                            />
+                                        </Box>
+                                        <Box sx={{ width: '30%' }}> {/* Adjusted Box for FormControl */}
+                                            <FormControl fullWidth>
+                                                <InputLabel id="time-unit-label">Time Unit</InputLabel>
+                                                <Select
+                                                    labelId="time-unit-label"
+                                                    id="time-unit-select"
+                                                    value={stepSizeUnit}
+                                                    label="Time Unit"
+                                                    onChange={handleUpdateStepSizeUnit}
+                                                >
+                                                    <MenuItem value="seconds">Seconds</MenuItem>
+                                                    <MenuItem value="minutes">Minutes</MenuItem>
+                                                    <MenuItem value="hours">Hours</MenuItem>
+                                                    <MenuItem value="days">Days</MenuItem>
+                                                    <MenuItem value="weeks">Weeks</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                        <Box sx={{ width: '20%'}}> {/* Adjusted Box for Cycle Count TextField */}
+                                            <TextField
+                                                type="number"
+                                                label="Cycle Count"
+                                                variant="outlined"
+                                                value={cycleCount}
+                                                inputProps={{ min: 1 }}  // Set minimum value to 1
+                                                onChange={handleCycleCountChange}
+                                                fullWidth
+                                            />
+                                        </Box>
+                                    </Stack>
+                                    <Box sx={{ width: '100%', mb: 4 }}> {/* New Box for Total Time TextField */}
+                                        <TextField
+                                            label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit
+                                            variant="outlined"
+                                            value={stepSize* cycleCount}
+                                            InputProps={{
+                                                readOnly: true,
+                                            }}
+                                            fullWidth
                                         />
                                     </Box>
-                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                    {/*    <TextField*/}
-                                    {/*        fullWidth*/}
-                                    {/*        id="group-input"*/}
-                                    {/*        label="Group"*/}
-                                    {/*        variant="outlined"*/}
-                                    {/*        value={groupFilter}*/}
-                                    {/*        onChange={(e) => handleUpdateGroupFilter(e.target.value)}*/}
-                                    {/*    />*/}
-                                    {/*</Box>*/}
                                     <Button fullWidth variant="contained" onClick={handleSearchAnalyzeRequest} >Start Working Analysis</Button>
                                 </CardContent>
                             </Card>

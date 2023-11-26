@@ -26,7 +26,11 @@ type AiSearchParams struct {
 	WorkflowInstructions string       `json:"workflowInstructions,omitempty"`
 	SearchInterval       TimeInterval `json:"searchInterval,omitempty"`
 	AnalysisInterval     TimeInterval `json:"analysisInterval,omitempty"`
+	CycleCount           int          `json:"cycleCount,omitempty"`
+	StepSize             int          `json:"stepSize,omitempty"`
+	StepSizeUnit         string       `json:"stepSizeUnit,omitempty"`
 }
+
 type TimeInterval [2]time.Time
 
 func (ti *TimeInterval) GetUnixTimestamps() (int, int) {

@@ -3,6 +3,7 @@ package hera_search
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -166,35 +167,38 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 	return rss, nil
 }
 
-func redditSearchQuery() sql_query_templates.QueryParams {
+func redditSearchQuery(sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "redditSearchQuery"
 	q.RawQuery = `SELECT created_at, title, body
 				  FROM public.ai_reddit_incoming_posts
-        		  WHERE body_tsvector @@ to_tsquery('english', $1) OR title_tsvector @@ to_tsquery('english', $1)
-				  ORDER BY created_at DESC;`
-	return q
-}
+				`
+	var args []interface{}
 
-func redditSearchQuery2() sql_query_templates.QueryParams {
-	q := sql_query_templates.QueryParams{}
-	q.QueryName = "redditSearchQuery2"
-	q.RawQuery = `SELECT created_at, title, body
-				  FROM public.ai_reddit_incoming_posts
-				  ORDER BY created_at DESC;`
-	return q
+	if sp.SearchContentText != "" {
+		args = append(args, sp.SearchContentText)
+		q.RawQuery += fmt.Sprintf("WHERE body_tsvector @@ to_tsquery('english', $%d) OR title_tsvector @@ to_tsquery('english', $%d)", len(args), len(args))
+	}
+
+	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
+		if sp.SearchContentText != "" {
+			q.RawQuery += ` AND`
+		} else {
+			q.RawQuery += ` WHERE`
+		}
+		tsRangeStart, tsEnd := sp.SearchInterval.GetUnixTimestamps()
+		q.RawQuery += fmt.Sprintf(` created_at BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
+		args = append(args, tsRangeStart, tsEnd)
+	}
+	q.RawQuery += ` ORDER BY created_at DESC;`
+	return q, args
 }
 
 func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q := redditSearchQuery()
+	q, args := redditSearchQuery(sp)
 	var rows pgx.Rows
 	var err error
-	if sp.SearchContentText == "" && sp.GroupFilter == "" {
-		q = redditSearchQuery2()
-		rows, err = apps.Pg.Query(ctx, q.RawQuery)
-	} else {
-		rows, err = apps.Pg.Query(ctx, q.RawQuery, sp.SearchContentText)
-	}
+	rows, err = apps.Pg.Query(ctx, q.RawQuery, args...)
 	var srs []SearchResult
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SearchReddit")); returnErr != nil {
 		return nil, err
@@ -203,7 +207,6 @@ func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) 
 	for rows.Next() {
 		var sr SearchResult
 		sr.Source = "reddit"
-
 		title := ""
 		body := ""
 		rowErr := rows.Scan(

@@ -37,25 +37,25 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions31() 
 		DirIn:       dirIn,
 		FilterFiles: sf,
 	}
-	actInst := `Update the discord search query function to use the new search params when they are not empty,`
+	actInst := `Update the reddit search query function to use the new search params when they are not empty,`
 	bins := BuildAiInstructions{
 		Path:               f,
 		PromptInstructions: actInst,
 		OrderedInstructions: []BuildAiFileInstruction{
 			{
 				DirIn:    DatastoresDir + "/postgres/apps/hera/models/search",
-				FileName: "search.go",
+				FileName: "reddit.go",
 				OrderedFileFunctionInstructions: []FunctionInstruction{
 					{
 						FunctionInstruction: "Use this as a reference to extend",
 						FunctionInfo: FunctionInfo{
-							Name: "discordSearchQuery",
+							Name: "redditSearchQuery",
 						},
 					},
 					{
 						FunctionInstruction: "Use this as a reference to extend",
 						FunctionInfo: FunctionInfo{
-							Name: "discordSearchQuery2",
+							Name: "redditSearchQuery2",
 						},
 					},
 					{
@@ -63,32 +63,19 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions31() 
 							"if the search time interval is empty, nil or zero value, then use a different query that does not filter by timestamp_creation, refactor these functions to reduce" +
 							"code duplication when possible",
 						FunctionInfo: FunctionInfo{
-							Name: "SearchDiscord",
+							Name: "SearchReddit",
 						},
-					},
-					{
-						FunctionInstruction: "Use this as a reference",
-						FunctionInfo: FunctionInfo{
-							Name: "GetUnixTimestamps",
-						},
-					},
-				},
-				OrderedGoTypeInstructions: []GoTypeInstruction{
-					{
-						GoTypeInstruction: "Use this as a reference",
-						GoType:            "struct",
-						GoTypeName:        "AiSearchParams",
 					},
 				},
 			},
 			{
 				DirIn:    DatastoresDir + "/postgres/apps/hera/models/search",
-				FileName: "discord_test.go",
+				FileName: "reddit_test.go",
 				OrderedFileFunctionInstructions: []FunctionInstruction{
 					{
-						FunctionInstruction: "Update this test to use the new discord search query function",
+						FunctionInstruction: "Update this test to use the new reddit search query function",
 						FunctionInfo: FunctionInfo{
-							Name: "TestSelectDiscordSearchMessagesQuery",
+							Name: "TestSearchReddit",
 						},
 					},
 				},
@@ -106,8 +93,8 @@ func (s *CodeGenTestSuite) TestCreateAiAssistantCodeGenWorkflowInstructions31() 
 	resp, err := hera_openai.HeraOpenAI.MakeCodeGenRequestV2(ctx, ou, params)
 	s.Require().NoError(err)
 	fmt.Println(resp.Choices[0].Message.Content)
-	f.DirOut = "./generated_outputsaaa"
-	f.FnOut = "workflow_instructionsaaaa.txt"
+	f.DirOut = "./generated_outputsaaar"
+	f.FnOut = "workflow_instructionsaaaar.txt"
 	err = f.WriteToFileOutPath([]byte(prompt))
 	s.Require().NoError(err)
 }

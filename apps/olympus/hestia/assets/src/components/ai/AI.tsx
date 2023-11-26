@@ -14,14 +14,14 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {Card, CardContent, Drawer, Stack, Tab, Tabs, TextareaAutosize} from "@mui/material";
+import {Card, CardContent, Stack, Tab, Tabs, TextareaAutosize} from "@mui/material";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
 import {WorkflowTable} from "./WorkflowTable";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import {AiSearchAnalysis} from "./AiAnalysisSummaries";
 import TextField from "@mui/material/TextField";
-import {AppBar} from "../dashboard/Dashboard";
+import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
     setGroupFilter,

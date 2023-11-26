@@ -16,7 +16,7 @@ func SupportAcknowledgeRedditAiTaskRequestHandler(c echo.Context) error {
 		log.Err(err).Msg("SupportAcknowledgeRedditAiTaskRequestHandler")
 		return err
 	}
-	return request.SupportAcknowledgeTwitterAiTask(c)
+	return request.SupportAcknowledgeRedditAiTask(c)
 }
 
 func (a *AIServiceRequest) SupportAcknowledgeRedditAiTask(c echo.Context) error {

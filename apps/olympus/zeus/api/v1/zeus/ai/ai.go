@@ -174,7 +174,7 @@ func (r *AiSearchRequest) SearchAnalyze(c echo.Context) error {
 		res = append(res, resReddit...)
 	}
 	hera_search.SortSearchResults(res)
-	resp, err := ai_platform_service_orchestrations.AiTelegramTask(c.Request().Context(), ou, res, r.AiSearchParams)
+	resp, err := ai_platform_service_orchestrations.AiAggregateTask(c.Request().Context(), ou, res, r.AiSearchParams)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}

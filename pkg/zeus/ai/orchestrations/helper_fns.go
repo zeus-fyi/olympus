@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -91,13 +92,24 @@ type TokenCountsEstimate struct {
 	Count int `json:"count"`
 }
 
-func GetTokenCountEstimate(ctx context.Context, text string) (int, error) {
+func GetTokenCountEstimate(ctx context.Context, model, text string) (int, error) {
+	if len(model) == 0 {
+		model = "gpt-4"
+	}
+	if strings.HasPrefix("gpt-4", model) {
+		model = "gpt-4"
+	}
+	if strings.HasPrefix("gpt-3.5", model) {
+		model = "gpt-3.5-turbo"
+	}
+
 	var tc TokenCountsEstimate
 	apiReq := &iris_api_requests.ApiProxyRequest{
 		Url:             "https://pandora.zeus.fyi",
 		PayloadTypeREST: "POST",
 		Payload: echo.Map{
-			"text": text,
+			"model": model,
+			"text":  text,
 		},
 		IsInternal: true,
 	}
@@ -132,7 +144,41 @@ func AiTelegramTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_searc
 		systemMessage.Content = params.WorkflowInstructions
 	}
 	output := hera_search.FormatTgMessagesForAi(msgs)
-	tc, err := GetTokenCountEstimate(ctx, output)
+	tc, err := GetTokenCountEstimate(ctx, output, params.AiModelParams.Model)
+	if err != nil {
+		return openai.ChatCompletionResponse{}, err
+	}
+	if tc > 10000 {
+		return openai.ChatCompletionResponse{}, fmt.Errorf("token count too high: %d", tc)
+	}
+	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model: "gpt-4-1106-preview",
+			Messages: []openai.ChatCompletionMessage{
+				systemMessage,
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: output,
+					Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+				},
+			},
+		},
+	)
+	return resp, err
+}
+
+func AiAggregateTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_search.SearchResult, params hera_search.AiSearchParams) (openai.ChatCompletionResponse, error) {
+	systemMessage := openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleSystem,
+		Content: params.WorkflowInstructions,
+		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+	}
+	if len(params.WorkflowInstructions) > 0 {
+		systemMessage.Content = params.WorkflowInstructions
+	}
+	output := hera_search.FormatTgMessagesForAi(msgs)
+	tc, err := GetTokenCountEstimate(ctx, params.AiModelParams.Model, output)
 	if err != nil {
 		return openai.ChatCompletionResponse{}, err
 	}

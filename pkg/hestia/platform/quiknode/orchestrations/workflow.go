@@ -38,7 +38,6 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID s
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "HestiaQuickNodeWorkflow", "ProvisionWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
@@ -111,6 +110,12 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID s
 func (h *HestiaQuickNodeWorkflow) DeleteSessionCacheWorkflow(ctx workflow.Context, sessionID string) error {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    5 * time.Minute,
+			BackoffCoefficient: 2,
+			MaximumInterval:    2 * time.Minute,
+			MaximumAttempts:    10,
+		},
 	}
 	aCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(aCtx, h.DeleteSessionAuthCache, sessionID).Get(aCtx, nil)

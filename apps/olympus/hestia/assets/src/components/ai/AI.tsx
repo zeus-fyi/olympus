@@ -54,13 +54,14 @@ function AiWorkflowsDashboardContent(props: any) {
     const [open, setOpen] = useState(true);
     const [loading, setIsLoading] = useState(false);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
-    const searchContentText = useSelector((state: RootState) => state.ai.searchContentText);
+    const searchKeywordsText = useSelector((state: RootState) => state.ai.searchContentText);
     const groupFilter = useSelector((state: RootState) => state.ai.groupFilter);
     const usernames = useSelector((state: RootState) => state.ai.usernames);
     const workflowInstructions = useSelector((state: RootState) => state.ai.workflowInstructions);
     const [code, setCode] = useState('');
     const searchResults = useSelector((state: RootState) => state.ai.searchResults);
     const platformFilter = useSelector((state: RootState) => state.ai.platformFilter);
+    const [analyzeNext, setAnalyzeNext] = useState(false);
     const dispatch = useDispatch();
     const now = new Date();
     const getTodayAtSpecificHour = (hour: number = 12) =>
@@ -77,6 +78,35 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleUpdateStepSizeUnit = (event: any) => {
         setStepSizeUnit(event.target.value);
     };
+    const [analysisModel, setAnalysisModel] = React.useState('gpt-3.5-turbo');
+    const handleUpdateAnalysisModel = (event: any) => {
+        setAnalysisModel(event.target.value);
+    };
+    const [analysisModelMaxTokens, setAnalysisModelMaxTokens] = React.useState(0);
+    const handleUpdateAnalysisModelMaxTokens = (event: any) => {
+        setAnalysisModelMaxTokens(event.target.value);
+    };
+    const [analysisModelTokenOverflowStrategy, setAnalysisModelTokenOverflowStrategy] = React.useState('deduce');
+    const handleUpdateAnalysisModelTokenOverflowStrategy = (event: any) => {
+        setAnalysisModelTokenOverflowStrategy(event.target.value);
+    };
+    const [aggregationModel, setAggregationModel] = React.useState('gpt-4-1106-preview');
+    const handleUpdateAggregationModel = (event: any) => {
+        setAggregationModel(event.target.value);
+    };
+    const [workflowName, setWorkflowName] = React.useState('');
+    const handleUpdateWorkflowName = (event: any) => {
+        setWorkflowName(event.target.value);
+    };
+
+    const [aggregationModelTokenOverflowStrategy, setAggregationModelTokenOverflowStrategy] = React.useState('deduce');
+    const handleUpdateAggregationModelTokenOverflowStrategy = (event: any) => {
+        setAggregationModelTokenOverflowStrategy(event.target.value);
+    };
+    const [aggregationModelMaxTokens, setAggregationModelMaxTokens] = React.useState(0);
+    const handleUpdateAggregationModelMaxTokens = (event: any) => {
+        setAggregationModelMaxTokens(event.target.value);
+    };
     const [searchInterval, setSearchInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]);
     const onTimeRangeChange = useCallback((interval: [Date, Date]) => {
         setSearchInterval(interval);
@@ -86,8 +116,10 @@ function AiWorkflowsDashboardContent(props: any) {
         setOpen(!open);
     };
     let navigate = useNavigate();
-
-    const handleUpdateSearchContent = (value: string) => {
+    const handleToggleChange = (event: any) => {
+        setAnalyzeNext(event.target.checked);
+    };
+    const handleUpdateSearchKeywords = (value: string) => {
         dispatch(setSearchContent(value));
     };
     const handleUpdateGroupFilter = (value: string) => {
@@ -115,7 +147,7 @@ function AiWorkflowsDashboardContent(props: any) {
             setIsLoading(true)
             console.log(searchInterval, 'sdfs')
             const response = await aiApiGateway.searchRequest({
-                'searchContentText': searchContentText,
+                'searchContentText': searchKeywordsText,
                 'groupFilter': groupFilter,
                 'platforms': platformFilter,
                 'usernames': usernames,
@@ -136,12 +168,11 @@ function AiWorkflowsDashboardContent(props: any) {
             setIsLoading(false);
         }
     }
-
-    const handleSearchAnalyzeRequest = async () => {
+    const handleSearchAnalyzeRequest = async (timeRange: '1 hour'| '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
         try {
             setIsLoading(true)
             const response = await aiApiGateway.analyzeSearchRequest({
-                'searchContentText': searchContentText,
+                'searchContentText': searchKeywordsText,
                 'groupFilter': groupFilter,
                 'platforms': platformFilter,
                 'usernames': usernames,
@@ -150,6 +181,14 @@ function AiWorkflowsDashboardContent(props: any) {
                 'cycleCount': cycleCount,
                 'stepSize': stepSize,
                 'stepSizeUnit': stepSizeUnit,
+                'timeRange': timeRange,
+                'workflowName': workflowName,
+                'analysisModel': analysisModel,
+                'analysisModelMaxTokens': analysisModelMaxTokens,
+                'analysisModelTokenOverflowStrategy': analysisModelTokenOverflowStrategy,
+                'aggregationModel': aggregationModel,
+                'aggregationModelMaxTokens': aggregationModelMaxTokens,
+                'aggregationModelTokenOverflowStrategy': aggregationModelTokenOverflowStrategy,
             });
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -179,6 +218,7 @@ function AiWorkflowsDashboardContent(props: any) {
         return new Date(ms).toLocaleTimeString([], { hour: 'numeric', hour12: true });
     };
 
+    const ti = analyzeNext ? 'Next' : 'Previous';
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -297,11 +337,11 @@ function AiWorkflowsDashboardContent(props: any) {
                                         <Box flexGrow={1} sx={{ mb: 2 }}>
                                             <TextField
                                                 fullWidth
-                                                id="content-input"
+                                                id="keywords-input"
                                                 label="Content"
                                                 variant="outlined"
-                                                value={searchContentText}
-                                                onChange={(e) => handleUpdateSearchContent(e.target.value)}
+                                                value={searchKeywordsText}
+                                                onChange={(e) => handleUpdateSearchKeywords(e.target.value)}
                                             />
                                         </Box>
                                         <Typography gutterBottom variant="h5" component="div">
@@ -348,14 +388,64 @@ function AiWorkflowsDashboardContent(props: any) {
                             <Card sx={{ minWidth: 500, maxWidth: 900 }}>
                                 <CardContent>
                                     <Typography gutterBottom variant="h5" component="div">
-                                        Workflow Instructions
+                                        Workflow Generation
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        This allows you to write natural language instructions to chain to your search queries.
+                                        This allows you to write natural language instructions to chain to your search queries. Add a name
+                                        for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.
                                     </Typography>
                                 </CardContent>
                                 <CardContent>
-                                    <Box  sx={{ mb: 2 }}>
+                                    <Box sx={{ width: '100%', mb: 2, mt: -2 }}>
+                                        <TextField
+                                            label={`Workflow Name`}
+                                            variant="outlined"
+                                            value={workflowName}
+                                            onChange={handleUpdateWorkflowName}
+                                            fullWidth
+                                        />
+                                    </Box>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        Analysis Instructions
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Token overflow strategy will determine how the AI will handle requests that are projected to exceed the maximum token length for the model you select, or has returned a result with that error.
+                                        Deduce will chunk your analysis into smaller pieces and aggregate them into a final analysis result. Truncate will simply truncate the request
+                                        to the maximum token length it can support.
+                                    </Typography>
+                                    <Stack direction="row" >
+                                        <Box flexGrow={1} sx={{ mb: 4, mt: 4 }}>
+                                            <FormControl fullWidth>
+                                                <InputLabel id="analysis-model-label">Analysis Model</InputLabel>
+                                                <Select
+                                                    labelId="analysis-model-label"
+                                                    id="analysis-model-select"
+                                                    value={analysisModel}
+                                                    label="Analysis Model"
+                                                    onChange={handleUpdateAnalysisModel}
+                                                >
+                                                    <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
+                                                    <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                        <Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>
+                                            <FormControl fullWidth>
+                                                <InputLabel id="token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
+                                                <Select
+                                                    labelId="token-overflow-analysis-label"
+                                                    id="analysis-overflow-analysis-select"
+                                                    value={analysisModelTokenOverflowStrategy}
+                                                    label="Token Overflow Strategy"
+                                                    onChange={handleUpdateAnalysisModelTokenOverflowStrategy}
+                                                >
+                                                    <MenuItem value="deduce">deduce</MenuItem>
+                                                    <MenuItem value="truncate">truncate</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                    </Stack>
+                                    <Box  sx={{ mb: 2, mt: -2 }}>
                                         <TextareaAutosize
                                             minRows={18}
                                             value={workflowInstructions}
@@ -363,12 +453,59 @@ function AiWorkflowsDashboardContent(props: any) {
                                             style={{ resize: "both", width: "100%" }}
                                         />
                                     </Box>
-                                        <Typography gutterBottom variant="h5" component="div">
-                                            Time Intervals
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
-                                        </Typography>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        Aggregation Instructions
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Use this to tell the AI how to aggregate the results of your analysis chunks into a rolling aggregation window. This is useful for
+                                        allowing you to create higher level analysis on top of your search results that isn't possible or desired in a single cycle.
+                                    </Typography>
+                                    <Stack direction="row" >
+                                        <Box flexGrow={1} sx={{ mb: 2, mt: 4 }}>
+                                            <FormControl fullWidth>
+                                                <InputLabel id="aggregation-model-label">Aggregation Model</InputLabel>
+                                                <Select
+                                                    labelId="aggregation-model-label"
+                                                    id="aggregation-model-select"
+                                                    value={aggregationModel}
+                                                    label="Aggregation Model"
+                                                    onChange={handleUpdateAggregationModel}
+                                                >
+                                                    <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
+                                                    <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                        <Box flexGrow={1} sx={{ mb: 2, mt: 4, ml:2 }}>
+                                            <FormControl fullWidth>
+                                                <InputLabel id="aggregation-token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
+                                                <Select
+                                                    labelId="aggregation-token-overflow-analysis-label"
+                                                    id="aggregation-token-overflow-analysis-select"
+                                                    value={aggregationModelTokenOverflowStrategy}
+                                                    label="Token Overflow Strategy"
+                                                    onChange={handleUpdateAggregationModelTokenOverflowStrategy}
+                                                >
+                                                    <MenuItem value="deduce">deduce</MenuItem>
+                                                    <MenuItem value="truncate">truncate</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                    </Stack>
+                                    <Box  sx={{ mb: 2, mt: 2 }}>
+                                        <TextareaAutosize
+                                            minRows={18}
+                                            value={workflowInstructions}
+                                            onChange={(e) => handleUpdateWorkflowInstructions(e.target.value)}
+                                            style={{ resize: "both", width: "100%" }}
+                                        />
+                                    </Box>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        Time Intervals
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
+                                    </Typography>
                                     <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                         <Box sx={{ width: '50%' }}> {/* Adjusted Box for TextField */}
                                             <TextField
@@ -422,7 +559,98 @@ function AiWorkflowsDashboardContent(props: any) {
                                             fullWidth
                                         />
                                     </Box>
-                                    <Button fullWidth variant="contained" onClick={handleSearchAnalyzeRequest} >Start Working Analysis</Button>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        Workflow Token Usage Limits
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Use this to define how many tokens you want to use for your analysis. This will allow you to control how much you spend on your analysis.
+                                        Set to 0 for unlimited, otherwise it will stop the analysis when it reaches the limit per model.
+                                    </Typography>
+                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                            <TextField
+                                                label={`Analysis Model`}
+                                                variant="outlined"
+                                                value={analysisModel}
+                                                InputProps={{
+                                                    readOnly: true,
+                                                }}
+                                                fullWidth
+                                            />
+                                        </Box>
+                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                            <TextField
+                                                type="number"
+                                                label={`Total Tokens Analysis Model`}
+                                                variant="outlined"
+                                                value={analysisModelMaxTokens}
+                                                inputProps={{ min: 0 }}
+                                                onChange={handleUpdateAnalysisModelMaxTokens}
+                                                fullWidth
+                                            />
+                                        </Box>
+                                    </Stack>
+                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                            <TextField
+                                                label={`Total Tokens Aggregation Model`}
+                                                variant="outlined"
+                                                value={aggregationModel}
+                                                InputProps={{
+                                                    readOnly: true,
+                                                }}
+                                                fullWidth
+                                            />
+                                        </Box>
+                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                            <TextField
+                                                type="number"
+                                                label={`Max Aggregation Token Usage`}
+                                                variant="outlined"
+                                                value={aggregationModelMaxTokens}
+                                                onChange={handleUpdateAggregationModelMaxTokens}
+                                                inputProps={{ min: 0 }}
+                                                fullWidth
+                                            />
+                                        </Box>
+                                    </Stack>
+                                    <Box flexGrow={1} sx={{ mb: 2 }}>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Save Workflow</Button>
+                                    </Box>
+                                    {/*<Typography gutterBottom variant="h5" component="div">*/}
+                                    {/*    Workflow Generations*/}
+                                    {/*</Typography>*/}
+                                    {/*<Typography variant="body2" color="text.secondary">*/}
+                                    {/*    Use Start Working Analysis to generate a workflow that will run the analysis on the time intervals you've defined. It will*/}
+                                    {/*    process the data that gets generated from your search query, and then aggregate the results into a rolling window.*/}
+                                    {/*</Typography>*/}
+                                    {/*<Box flexGrow={1} sx={{ mt: 2 }}>*/}
+                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Start Working Analysis</Button>*/}
+                                    {/*</Box>*/}
+                                    {/*<Box flexGrow={1} sx={{ mt: 2 }}>*/}
+                                    {/*    <Typography variant="body2" color="text.secondary">*/}
+                                    {/*        Use these buttons to search previous time intervals relative to the current time.*/}
+                                    {/*    </Typography>*/}
+                                    {/*</Box>*/}
+                                    {/*<FormControlLabel*/}
+                                    {/*    control={<Switch checked={analyzeNext} onChange={handleToggleChange} />}*/}
+                                    {/*    label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}*/}
+                                    {/*/>*/}
+                                    {/*<Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>*/}
+                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('1 hour')} >Analyze {ti} 1 Hour</Button>*/}
+                                    {/*</Box>*/}
+                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
+                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('24 hours')} >Analyze {ti} 24 Hours</Button>*/}
+                                    {/*</Box>*/}
+                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
+                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('7 days')} >Analyze {ti} 7 Days</Button>*/}
+                                    {/*</Box>*/}
+                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
+                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('30 days')} >Analyze {ti} 30 Days </Button>*/}
+                                    {/*</Box>*/}
+                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
+                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Analyze All {ti} Records</Button>*/}
+                                    {/*</Box>*/}
                                 </CardContent>
                             </Card>
                         </Stack>

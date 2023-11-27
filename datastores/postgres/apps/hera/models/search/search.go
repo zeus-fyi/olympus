@@ -19,19 +19,30 @@ import (
 )
 
 type AiSearchParams struct {
-	SearchContentText    string       `json:"searchContentText,omitempty"`
-	GroupFilter          string       `json:"groupFilter,omitempty"`
-	Platforms            string       `json:"platforms,omitempty"`
-	Usernames            string       `json:"usernames,omitempty"`
-	WorkflowInstructions string       `json:"workflowInstructions,omitempty"`
-	SearchInterval       TimeInterval `json:"searchInterval,omitempty"`
-	AnalysisInterval     TimeInterval `json:"analysisInterval,omitempty"`
-	CycleCount           int          `json:"cycleCount,omitempty"`
-	StepSize             int          `json:"stepSize,omitempty"`
-	StepSizeUnit         string       `json:"stepSizeUnit,omitempty"`
-	TimeRange            string       `json:"timeRange,omitempty"`
+	SearchContentText                     string       `json:"searchContentText,omitempty"`
+	GroupFilter                           string       `json:"groupFilter,omitempty"`
+	Platforms                             string       `json:"platforms,omitempty"`
+	Usernames                             string       `json:"usernames,omitempty"`
+	WorkflowInstructions                  string       `json:"workflowInstructions,omitempty"`
+	WorkflowCycleInstructions             string       `json:"workflowCycleInstructions,omitempty"`
+	SearchInterval                        TimeInterval `json:"searchInterval,omitempty"`
+	AnalysisInterval                      TimeInterval `json:"analysisInterval,omitempty"`
+	CycleCount                            int          `json:"cycleCount,omitempty"`
+	StepSize                              int          `json:"stepSize,omitempty"`
+	StepSizeUnit                          string       `json:"stepSizeUnit,omitempty"`
+	TimeRange                             string       `json:"timeRange,omitempty"`
+	WorkflowName                          string       `json:"workflowName,omitempty"`
+	AnalysisModel                         string       `json:"analysisModel,omitempty"`
+	AnalysisModelMaxTokens                int          `json:"analysisModelMaxTokens,omitempty"`
+	AnalysisModelTokenOverflowStrategy    string       `json:"analysisModelTokenOverflowStrategy,omitempty"`
+	AggregationModel                      string       `json:"aggregationModel,omitempty"`
+	AggregationModelMaxTokens             int          `json:"aggregationModelMaxTokens,omitempty"`
+	AggregationModelTokenOverflowStrategy string       `json:"aggregationModelTokenOverflowStrategy,omitempty"`
 }
-
+type AiModelParams struct {
+	Model         string `json:"model"`
+	TokenCountMax int    `json:"tokenCountMax"`
+}
 type TimeInterval [2]time.Time
 
 func (ti *TimeInterval) GetUnixTimestamps() (int, int) {
@@ -58,6 +69,11 @@ func (a ByTimestamp) Less(i, j int) bool { return a[i].UnixTimestamp > a[j].Unix
 // SortSearchResults sorts the slice of SearchResult in descending order by UnixTimestamp.
 func SortSearchResults(results []SearchResult) {
 	sort.Sort(ByTimestamp(results))
+}
+
+type SearchResults struct {
+	AiModelParams AiModelParams  `json:"aiModelParams"`
+	Results       []SearchResult `json:"results"`
 }
 
 func FormatSearchResultsV2(results []SearchResult) string {

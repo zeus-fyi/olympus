@@ -136,11 +136,13 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "selectRedditSearchQuery"
 	q.RawQuery = `SELECT 
+				    sq_sub.search_id AS search_id,
 					sq_sub.query as subreddit, 
 					sq_sub.last_created_at,
 					COALESCE(ip.post_full_id, '') AS post_full_id
 				FROM 
-					(SELECT 
+					(SELECT
+					     sq.search_id,
 						 sq.query, 
 						 COALESCE(MAX(ip.created_at), 0) AS last_created_at
 					 FROM 
@@ -150,7 +152,7 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 					 WHERE 
 						 sq.org_id = $1 AND sq.user_id = $2 AND sq.search_group_name = $3
 					 GROUP BY 
-						 sq.query) AS sq_sub
+						  sq.search_id, sq.query) AS sq_sub
 				LEFT JOIN 
 					public.ai_reddit_incoming_posts ip ON sq_sub.query = ip.subreddit AND sq_sub.last_created_at = ip.created_at;
 				`
@@ -166,7 +168,7 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 		rs := &RedditSearchQuery{
 			MaxResults: 100,
 		}
-		rowErr := rows.Scan(&rs.Query, &rs.LastCreatedAt, &rs.FullPostId)
+		rowErr := rows.Scan(&rs.SearchID, &rs.Query, &rs.LastCreatedAt, &rs.FullPostId)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("Error scanning row in SelectRedditSearchQuery")
 			return nil, rowErr

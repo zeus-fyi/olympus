@@ -188,7 +188,7 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 func redditSearchQuery(sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "redditSearchQuery"
-	q.RawQuery = `SELECT created_at, title, body
+	q.RawQuery = `SELECT created_at, subreddit, title, body
 				  FROM public.ai_reddit_incoming_posts
 				`
 	var args []interface{}
@@ -228,7 +228,7 @@ func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) 
 		title := ""
 		body := ""
 		rowErr := rows.Scan(
-			&sr.UnixTimestamp, &title, &body,
+			&sr.UnixTimestamp, &sr.Group, &title, &body,
 		)
 		if len(body) <= 0 {
 			continue

@@ -171,8 +171,13 @@ func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.Mem
 	authCfg.S3KeyValue = secretsBucket
 	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
-	//buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
-	buf := ReadEncSecretsFromInMemDir()
+
+	var buf []byte
+	if Sp.FileInPathExists() {
+		buf = ReadEncSecretsFromInMemDir()
+	} else {
+		buf = s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue).Bytes()
+	}
 	tmpPath := filepaths.Path{}
 	tmpPath.DirOut = "./"
 	tmpPath.FnOut = encryptedSecret

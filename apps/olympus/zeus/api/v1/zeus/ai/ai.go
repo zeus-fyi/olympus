@@ -44,6 +44,9 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 	}
 	ts := time.Now()
 	switch r.TimeRange {
+	case "1 hour":
+		r.SearchInterval[0] = ts.Add(-1 * time.Hour)
+		r.SearchInterval[1] = ts
 	case "24 hours":
 		r.SearchInterval[0] = ts.AddDate(0, 0, -1)
 		r.SearchInterval[1] = ts

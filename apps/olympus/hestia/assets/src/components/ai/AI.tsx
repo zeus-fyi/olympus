@@ -110,7 +110,7 @@ function AiWorkflowsDashboardContent(props: any) {
         navigate('/login');
     }
 
-    const handleSearchRequest = async (timeRange: '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
+    const handleSearchRequest = async (timeRange: '1 hour'| '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
         try {
             setIsLoading(true)
             console.log(searchInterval, 'sdfs')
@@ -322,7 +322,15 @@ function AiWorkflowsDashboardContent(props: any) {
                                             />
                                         </Box>
                                         <Button fullWidth variant="contained" onClick={() => handleSearchRequest('window')} >Search Window</Button>
+                                        <Box flexGrow={1} sx={{ mt: 2 }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Use these buttons to search previous time intervals relative to the current time.
+                                            </Typography>
+                                        </Box>
                                         <Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>
+                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('1 hour')} >Search 1 Hour</Button>
+                                        </Box>
+                                        <Box flexGrow={1} sx={{ mb: 2 }}>
                                             <Button fullWidth variant="contained" onClick={() => handleSearchRequest('24 hours')} >Search 24 Hours</Button>
                                         </Box>
                                         <Box flexGrow={1} sx={{ mb: 2 }}>

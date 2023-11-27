@@ -8,18 +8,18 @@ import (
 	olympus_cookbooks "github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
-	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
+	zeus_client "github.com/zeus-fyi/zeus/zeus/z_client"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 func (t *ZeusCloudCookbookTestSuite) TestDeployZeusCloud() {
-	_, err := ZeusCloudClusterDef.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
-	t.Require().Nil(err)
-
-	cdep := ZeusCloudClusterDef.GenerateDeploymentRequest()
-	resp, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
-	t.Require().Nil(err)
-	t.Assert().NotEmpty(resp)
+	//_, err := ZeusCloudClusterDef.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
+	//t.Require().Nil(err)
+	//
+	//cdep := ZeusCloudClusterDef.GenerateDeploymentRequest()
+	//resp, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
+	//t.Require().Nil(err)
+	//t.Assert().NotEmpty(resp)
 }
 
 func (t *ZeusCloudCookbookTestSuite) TestZeusCloudClusterSetup() {

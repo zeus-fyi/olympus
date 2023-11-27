@@ -8,7 +8,8 @@ on:
       - pkg/aegis/sessions/**
       - pkg/zeus/**
       - pkg/hestia/**
-      - datastores/apps/zeus/**
+      - datastores/postgres/apps/zeus/**
+      - datastores/postgres/apps/hera/models/**
       - datastores/s3/**
       - docker/zeus/Dockerfile
       - .github/workflows/zeus.yml

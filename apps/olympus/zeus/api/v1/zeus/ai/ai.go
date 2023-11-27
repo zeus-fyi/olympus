@@ -3,8 +3,10 @@ package zeus_v1_ai
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
@@ -40,6 +42,24 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 	if ou.OrgID != internalOrgID {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	ts := time.Now()
+	switch r.TimeRange {
+	case "24 hours":
+		r.SearchInterval[0] = ts.AddDate(0, 0, -1)
+		r.SearchInterval[1] = ts
+	case "7 days":
+		r.SearchInterval[0] = ts.AddDate(0, 0, -7)
+		r.SearchInterval[1] = ts
+	case "30 days":
+		r.SearchInterval[0] = ts.AddDate(0, 0, -30)
+		r.SearchInterval[1] = ts
+	case "all":
+		r.SearchInterval[0] = ts.AddDate(-4, 0, 0)
+		r.SearchInterval[1] = ts
+	case "window":
+		log.Info().Interface("searchInterval", r.SearchInterval).Msg("window")
+	}
+
 	var res []hera_search.SearchResult
 	getTweets := true
 	if len(r.Platforms) > 0 {

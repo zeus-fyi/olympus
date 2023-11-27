@@ -110,9 +110,10 @@ function AiWorkflowsDashboardContent(props: any) {
         navigate('/login');
     }
 
-    const handleSearchRequest = async () => {
+    const handleSearchRequest = async (timeRange: '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
         try {
             setIsLoading(true)
+            console.log(searchInterval, 'sdfs')
             const response = await aiApiGateway.searchRequest({
                 'searchContentText': searchContentText,
                 'groupFilter': groupFilter,
@@ -120,6 +121,7 @@ function AiWorkflowsDashboardContent(props: any) {
                 'usernames': usernames,
                 'workflowInstructions': workflowInstructions,
                 'searchInterval': searchInterval,
+                'timeRange': timeRange,
             });
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -302,12 +304,12 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 onChange={(e) => handleUpdateSearchContent(e.target.value)}
                                             />
                                         </Box>
-                                            <Typography gutterBottom variant="h5" component="div">
-                                                Search Window
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                Select a time window to search for data.
-                                            </Typography>
+                                        <Typography gutterBottom variant="h5" component="div">
+                                            Search Window
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Select a time window to search for data.
+                                        </Typography>
                                         <Box flexGrow={1} sx={{ mt: 2, mb: -12 }}>
                                             <TimeRange
                                                 ticksNumber={12}
@@ -319,7 +321,19 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 selectedInterval={searchInterval}
                                             />
                                         </Box>
-                                        <Button fullWidth variant="contained" onClick={handleSearchRequest} >Search</Button>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchRequest('window')} >Search Window</Button>
+                                        <Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>
+                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('24 hours')} >Search 24 Hours</Button>
+                                        </Box>
+                                        <Box flexGrow={1} sx={{ mb: 2 }}>
+                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('7 days')} >Search 7 Days</Button>
+                                        </Box>
+                                        <Box flexGrow={1} sx={{ mb: 2 }}>
+                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('30 days')} >Search 30 Days </Button>
+                                        </Box>
+                                        <Box flexGrow={1} sx={{ mb: 2 }}>
+                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('all')} >Search All Records</Button>
+                                        </Box>
                                     </Stack>
                                 </CardContent>
                             </Card>

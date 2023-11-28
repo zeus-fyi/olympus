@@ -28,6 +28,7 @@ type AiSearchParams struct {
 	SearchInterval                        TimeInterval `json:"searchInterval,omitempty"`
 	AnalysisInterval                      TimeInterval `json:"analysisInterval,omitempty"`
 	CycleCount                            int          `json:"cycleCount,omitempty"`
+	AggregationCycleCount                 int          `json:"aggregationCycleCount,omitempty"`
 	StepSize                              int          `json:"stepSize,omitempty"`
 	StepSizeUnit                          string       `json:"stepSizeUnit,omitempty"`
 	TimeRange                             string       `json:"timeRange,omitempty"`

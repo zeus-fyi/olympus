@@ -8,12 +8,16 @@ import (
 )
 
 type Instructions struct {
-	GroupName string              `json:"groupName"`
-	Type      string              `json:"type"`
-	CronJob   CronJobInstructions `json:"cronJob,omitempty"`
-	Monitors  MonitorInstructions `json:"monitors,omitempty"`
-	Alerts    AlertInstructions   `json:"alerts,omitempty"`
-	Trigger   TriggerInstructions `json:"trigger,omitempty"`
+	GroupName     string              `json:"groupName"`
+	Type          string              `json:"type"`
+	CronJob       CronJobInstructions `json:"cronJob,omitempty"`
+	Monitors      MonitorInstructions `json:"monitors,omitempty"`
+	Alerts        AlertInstructions   `json:"alerts,omitempty"`
+	Trigger       TriggerInstructions `json:"trigger,omitempty"`
+	AiInstruction TriggerInstructions `json:"aiInstruction,omitempty"`
+}
+
+type AiInstructions struct {
 }
 
 var (

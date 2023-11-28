@@ -70,6 +70,10 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleCycleCountChange = (event: any) => {
         setCycleCount(event.target.value);
     };
+    const [aggregationCycleCount, setAggregationCycleCount] = useState(0);
+    const handleAggregationCycleCountChange = (event: any) => {
+        setAggregationCycleCount(event.target.value);
+    };
     const [stepSize, setStepSize] = useState(5);
     const handleTimeStepChange = (event: any) => {
         setStepSize(event.target.value);
@@ -179,6 +183,7 @@ function AiWorkflowsDashboardContent(props: any) {
                 'workflowInstructions': workflowInstructions,
                 'searchInterval': searchInterval,
                 'cycleCount': cycleCount,
+                'aggregationCycleCount': aggregationCycleCount,
                 'stepSize': stepSize,
                 'stepSizeUnit': stepSizeUnit,
                 'timeRange': timeRange,
@@ -414,7 +419,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                         to the maximum token length it can support.
                                     </Typography>
                                     <Stack direction="row" >
-                                        <Box flexGrow={1} sx={{ mb: 4, mt: 4 }}>
+                                        <Box flexGrow={3} sx={{ mb: 4, mt: 4 }}>
                                             <FormControl fullWidth>
                                                 <InputLabel id="analysis-model-label">Analysis Model</InputLabel>
                                                 <Select
@@ -429,7 +434,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 </Select>
                                             </FormControl>
                                         </Box>
-                                        <Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>
+                                        <Box flexGrow={2} sx={{ mb: 4, mt: 4, ml:2 }}>
                                             <FormControl fullWidth>
                                                 <InputLabel id="token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
                                                 <Select
@@ -443,6 +448,17 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     <MenuItem value="truncate">truncate</MenuItem>
                                                 </Select>
                                             </FormControl>
+                                        </Box>
+                                        <Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>
+                                            <TextField
+                                                type="number"
+                                                label="Cycle Count"
+                                                variant="outlined"
+                                                value={cycleCount}
+                                                inputProps={{ min: 0 }}  // Set minimum value to 0
+                                                onChange={handleCycleCountChange}
+                                                fullWidth
+                                            />
                                         </Box>
                                     </Stack>
                                     <Box  sx={{ mb: 2, mt: -2 }}>
@@ -459,9 +475,13 @@ function AiWorkflowsDashboardContent(props: any) {
                                     <Typography variant="body2" color="text.secondary">
                                         Use this to tell the AI how to aggregate the results of your analysis chunks into a rolling aggregation window. This is useful for
                                         allowing you to create higher level analysis on top of your search results that isn't possible or desired in a single cycle.
+                                        Aggregation cycle count sets how many analysis cycles per aggregation cycle. For example if you set 10 total analysis cycles, and 2 aggregation cycles,
+                                        it will aggregate the results from each 5 analysis cycles into a single aggregation cycle,
+                                        and use that as the input for the next aggregation cycle. It will run a final aggregation cycle after the last analysis cycle if
+                                        the total analysis cycle doesn't divide evenly into the aggregation count.
                                     </Typography>
                                     <Stack direction="row" >
-                                        <Box flexGrow={1} sx={{ mb: 2, mt: 4 }}>
+                                        <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                             <FormControl fullWidth>
                                                 <InputLabel id="aggregation-model-label">Aggregation Model</InputLabel>
                                                 <Select
@@ -476,7 +496,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 </Select>
                                             </FormControl>
                                         </Box>
-                                        <Box flexGrow={1} sx={{ mb: 2, mt: 4, ml:2 }}>
+                                        <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
                                             <FormControl fullWidth>
                                                 <InputLabel id="aggregation-token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
                                                 <Select
@@ -490,6 +510,17 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     <MenuItem value="truncate">truncate</MenuItem>
                                                 </Select>
                                             </FormControl>
+                                        </Box>
+                                        <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
+                                            <TextField
+                                                type="number"
+                                                label="Aggregation Cycle Count"
+                                                variant="outlined"
+                                                value={aggregationCycleCount}
+                                                inputProps={{ min: 0, max: cycleCount }}  // Set minimum value to 0
+                                                onChange={handleAggregationCycleCountChange}
+                                                fullWidth
+                                            />
                                         </Box>
                                     </Stack>
                                     <Box  sx={{ mb: 2, mt: 2 }}>
@@ -507,7 +538,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                         You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
                                     </Typography>
                                     <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                        <Box sx={{ width: '50%' }}> {/* Adjusted Box for TextField */}
+                                        <Box sx={{ width: '33%' }}> {/* Adjusted Box for TextField */}
                                             <TextField
                                                 type="number"
                                                 label="Time Step Size"
@@ -518,7 +549,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 fullWidth
                                             />
                                         </Box>
-                                        <Box sx={{ width: '30%' }}> {/* Adjusted Box for FormControl */}
+                                        <Box sx={{ width: '33%' }}> {/* Adjusted Box for FormControl */}
                                             <FormControl fullWidth>
                                                 <InputLabel id="time-unit-label">Time Unit</InputLabel>
                                                 <Select
@@ -536,29 +567,18 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 </Select>
                                             </FormControl>
                                         </Box>
-                                        <Box sx={{ width: '20%'}}> {/* Adjusted Box for Cycle Count TextField */}
+                                        <Box sx={{ width: '33%', mb: 4 }}> {/* New Box for Total Time TextField */}
                                             <TextField
-                                                type="number"
-                                                label="Cycle Count"
+                                                label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit
                                                 variant="outlined"
-                                                value={cycleCount}
-                                                inputProps={{ min: 0 }}  // Set minimum value to 0
-                                                onChange={handleCycleCountChange}
+                                                value={stepSize* cycleCount}
+                                                InputProps={{
+                                                    readOnly: true,
+                                                }}
                                                 fullWidth
                                             />
                                         </Box>
                                     </Stack>
-                                    <Box sx={{ width: '100%', mb: 4 }}> {/* New Box for Total Time TextField */}
-                                        <TextField
-                                            label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit
-                                            variant="outlined"
-                                            value={stepSize* cycleCount}
-                                            InputProps={{
-                                                readOnly: true,
-                                            }}
-                                            fullWidth
-                                        />
-                                    </Box>
                                     <Typography gutterBottom variant="h5" component="div">
                                         Workflow Token Usage Limits
                                     </Typography>
@@ -581,7 +601,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                         <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
                                             <TextField
                                                 type="number"
-                                                label={`Total Tokens Analysis Model`}
+                                                label={`Max Tokens Analysis Model`}
                                                 variant="outlined"
                                                 value={analysisModelMaxTokens}
                                                 inputProps={{ min: 0 }}
@@ -593,7 +613,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                     <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                         <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
                                             <TextField
-                                                label={`Total Tokens Aggregation Model`}
+                                                label={`Aggregation Model`}
                                                 variant="outlined"
                                                 value={aggregationModel}
                                                 InputProps={{

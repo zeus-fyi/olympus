@@ -9,6 +9,7 @@ import sessionReducer from "./auth/session.reducer";
 import loadbalancingReducer from "./loadbalancing/loadbalancing.reducer";
 import mevReducer from "./mev/mev.reducer";
 import aiReducer from "./ai/ai.reducer";
+import menusReducer from "./menus/menus.reducer";
 
 const rootReducer = combineReducers({
     sessionState: sessionReducer,
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
     validatorSecrets: validatorSecretsReducer,
     billing: billingReducer,
     ai: aiReducer,
+    menus: menusReducer,
 });
 
 const store = configureStore({

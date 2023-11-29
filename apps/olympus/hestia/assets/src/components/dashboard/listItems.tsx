@@ -16,36 +16,34 @@ import SecurityIcon from '@mui/icons-material/Security';
 import ChatIcon from '@mui/icons-material/Chat';
 import DnsIcon from "@mui/icons-material/Dns";
 import SwapCallsIcon from '@mui/icons-material/SwapCalls';
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
+import {setOpenAiPanel, setOpenAppsPanel, setOpenComputePanel} from "../../redux/menus/menus.reducer";
 
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(false);
     const [openClusters, setOpenClusters] = React.useState(false);
-    const [openCompute, setOpenCompute] = React.useState(false);
-    const [openApps, setOpenApps] = React.useState(false);
-    const [openAiPanel, setOpenAiPanel] = React.useState(false);
+    const openApps = useSelector((state: RootState) => state.menus.openAppsPanel);
     const isInternal = useSelector((state: RootState) => state.sessionState.isInternal);
-    
+    const openAiPanel = useSelector((state: RootState) => state.menus.openAiPanel);
+    const openCompute = useSelector((state: RootState) => state.menus.openComputePanel);
+    const dispatch = useDispatch();
     const handleClickServices = () => {
         setOpenServices(!openServices);
     };
-
     const handleClickApps = () => {
-        setOpenApps(!openApps);
+        dispatch(setOpenAppsPanel(!openApps));
     };
-
     const handleClickCompute = () => {
-        setOpenCompute(!openCompute);
+        dispatch(setOpenComputePanel(!openCompute));
     };
     const handleClickAi = () => {
-        setOpenAiPanel(!openAiPanel);
+        dispatch(setOpenAiPanel(!openAiPanel));
     };
-
     return (
         <List
             sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}

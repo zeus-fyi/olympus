@@ -33,26 +33,3 @@ func (a *AiInstructions) GetInstructionByType(aiInstType string) AiInstruction {
 	}
 	return tmp
 }
-
-//type AiSearchParams struct {
-//	SearchContentText                     string       `json:"searchContentText,omitempty"`
-//	GroupFilter                           string       `json:"groupFilter,omitempty"`
-//	Platforms                             string       `json:"platforms,omitempty"`
-//	Usernames                             string       `json:"usernames,omitempty"`
-//	WorkflowInstructions                  string       `json:"workflowInstructions,omitempty"`
-//	WorkflowCycleInstructions             string       `json:"workflowCycleInstructions,omitempty"`
-//	SearchInterval                        TimeInterval `json:"searchInterval,omitempty"`
-//	AnalysisInterval                      TimeInterval `json:"analysisInterval,omitempty"`
-//	CycleCount                            int          `json:"cycleCount,omitempty"`
-//	AggregationCycleCount                 int          `json:"aggregationCycleCount,omitempty"`
-//	StepSize                              int          `json:"stepSize,omitempty"`
-//	StepSizeUnit                          string       `json:"stepSizeUnit,omitempty"`
-//	TimeRange                             string       `json:"timeRange,omitempty"`
-//	WorkflowName                          string       `json:"workflowName,omitempty"`
-//	AnalysisModel                         string       `json:"analysisModel,omitempty"`
-//	AnalysisModelMaxTokens                int          `json:"analysisModelMaxTokens,omitempty"`
-//	AnalysisModelTokenOverflowStrategy    string       `json:"analysisModelTokenOverflowStrategy,omitempty"`
-//	AggregationModel                      string       `json:"aggregationModel,omitempty"`
-//	AggregationModelMaxTokens             int          `json:"aggregationModelMaxTokens,omitempty"`
-//	AggregationModelTokenOverflowStrategy string       `json:"aggregationModelTokenOverflowStrategy,omitempty"`
-//}

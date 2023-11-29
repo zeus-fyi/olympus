@@ -1,9 +1,11 @@
 package artemis_orchestrations
 
 import (
+	"bytes"
 	"context"
 	"time"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -51,19 +53,33 @@ func NewActiveTemporalOrchestrationJobTemplateWithInstructions(orgID int, orchNa
 	return oj
 }
 
-func (o *OrchestrationJob) InsertOrchestrations(ctx context.Context) error {
+func InsertOrchestration(ctx context.Context, oj OrchestrationJob, b []byte) (int, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `
-				  INSERT INTO orchestrations(org_id, orchestration_name)
-				  VALUES ($1, $2)
-				  RETURNING orchestration_id;
-				  `
+	q.RawQuery = `INSERT INTO orchestrations(org_id, orchestration_name, group_name, type, instructions)
+				  VALUES ($1, $2, $3, $4, $5)
+				  ON CONFLICT (org_id, orchestration_name) 
+				  DO UPDATE SET instructions = EXCLUDED.instructions
+				  RETURNING orchestration_id;`
+
+	var id int
 	log.Debug().Interface("InsertOrchestrations", q.LogHeader(Orchestrations))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.OrgID, o.OrchestrationName).Scan(&o.OrchestrationID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, oj.OrgID, oj.OrchestrationName, oj.GroupName, oj.Type, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(b), Status: IsNull(b)}).Scan(&id)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
-		return err
+		return 0, err
 	}
-	return misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
+	return id, misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
+}
+
+func IsNull(b []byte) pgtype.Status {
+	if b == nil {
+		return pgtype.Null
+	}
+	return pgtype.Present
+}
+
+func sanitizeBytesUTF8(b []byte) []byte {
+	bs := bytes.ReplaceAll(b, []byte{0}, []byte{})
+	return bs
 }
 
 func SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx context.Context, orgID int, orchestType, groupName string, updatedAtWindowThreshold time.Duration) ([]OrchestrationJob, error) {
@@ -266,4 +282,29 @@ func (o *OrchestrationJob) SelectOrchestrationsAtCloudCtxNsWithStatus(ctx contex
 	}
 	// the query returned a row
 	return orchestrationTodo, misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
+}
+
+func SelectAiSystemOrchestrationsWithInstructionsByGroupType(ctx context.Context, orgID int, groupName, groupType string) ([]artemis_autogen_bases.Orchestrations, error) {
+	var ojs []artemis_autogen_bases.Orchestrations
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions, type, group_name, org_id
+				  FROM orchestrations
+				  WHERE org_id = $1 AND group_name = $2 AND type = $3
+				  `
+	log.Debug().Interface("SelectSystemOrchestrationsWithInstructionsByGroup", q.LogHeader(Orchestrations))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, groupName, groupType)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
+		return ojs, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		oj := artemis_autogen_bases.Orchestrations{}
+		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions, &oj.Type, &oj.GroupName, &oj.OrgID)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
+			return ojs, rowErr
+		}
+		ojs = append(ojs, oj)
+	}
+	return ojs, err
 }

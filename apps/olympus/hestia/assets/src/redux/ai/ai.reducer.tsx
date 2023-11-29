@@ -5,9 +5,11 @@ const initialState: AiState = {
     searchContentText: '',
     usernames: '',
     groupFilter: '',
-    workflowInstructions: '',
+    analysisWorkflowInstructions: '',
+    aggregationWorkflowInstructions: '',
     searchResults: '',
-    platformFilter: ''
+    platformFilter: '',
+    workflows: [{}]
 }
 
 const aiSlice = createSlice({
@@ -23,14 +25,20 @@ const aiSlice = createSlice({
         setSearchContent: (state, action: PayloadAction<string>) => {
             state.searchContentText = action.payload;
         },
-        setWorkflowInstructions: (state, action: PayloadAction<string>) => {
-            state.workflowInstructions = action.payload;
+        setAnalysisWorkflowInstructions: (state, action: PayloadAction<string>) => {
+            state.analysisWorkflowInstructions = action.payload;
+        },
+        setAggregationWorkflowInstructions: (state, action: PayloadAction<string>) => {
+            state.aggregationWorkflowInstructions = action.payload;
         },
         setSearchResults: (state, action: PayloadAction<string>) => {
             state.searchResults = action.payload;
         },
         setPlatformFilter: (state, action: PayloadAction<string>) => {
             state.platformFilter = action.payload;
+        },
+        setWorkflows: (state, action: PayloadAction<[{}]>) => {
+            state.workflows = action.payload;
         }
     }
 });
@@ -38,7 +46,9 @@ const aiSlice = createSlice({
 export const { setSearchContent,
     setGroupFilter,
     setUsernames,
-    setWorkflowInstructions,
+    setAnalysisWorkflowInstructions,
+    setAggregationWorkflowInstructions,
     setSearchResults,
+    setWorkflows,
     setPlatformFilter} = aiSlice.actions;
 export default aiSlice.reducer;

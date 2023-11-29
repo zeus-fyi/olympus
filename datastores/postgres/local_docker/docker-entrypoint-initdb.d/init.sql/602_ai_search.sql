@@ -14,3 +14,11 @@ CREATE INDEX idx_sh ON public.ai_search_analysis_results("search_hash");
 -- Create a composite index for the subject and contents columns to facilitate full text search
 CREATE INDEX search_params_idx ON public.ai_search_analysis_results USING GIN (search_params);
 CREATE INDEX search_results_idx ON public.ai_search_analysis_results USING GIN (search_results);
+
+
+ALTER TABLE "public"."ai_search_analysis_results" ADD CONSTRAINT "ai_search_analysis_results_pk" PRIMARY KEY ("analysis_id");
+CREATE INDEX idx_sh ON public.ai_search_analysis_results("search_hash");
+
+-- Create a composite index for the subject and contents columns to facilitate full text search
+CREATE INDEX search_params_idx ON public.ai_search_analysis_results USING GIN (search_params);
+CREATE INDEX search_results_idx ON public.ai_search_analysis_results USING GIN (search_results);

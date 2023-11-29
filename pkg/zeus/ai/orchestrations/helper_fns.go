@@ -102,7 +102,6 @@ func GetTokenCountEstimate(ctx context.Context, model, text string) (int, error)
 	if strings.HasPrefix("gpt-3.5", model) {
 		model = "gpt-3.5-turbo"
 	}
-
 	var tc TokenCountsEstimate
 	apiReq := &iris_api_requests.ApiProxyRequest{
 		Url:             "https://pandora.zeus.fyi",
@@ -144,7 +143,7 @@ func AiTelegramTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_searc
 		systemMessage.Content = params.WorkflowInstructions
 	}
 	output := hera_search.FormatTgMessagesForAi(msgs)
-	tc, err := GetTokenCountEstimate(ctx, output, params.AiModelParams.Model)
+	tc, err := GetTokenCountEstimate(ctx, output, params.AnalysisModel)
 	if err != nil {
 		return openai.ChatCompletionResponse{}, err
 	}
@@ -178,7 +177,7 @@ func AiAggregateTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_sear
 		systemMessage.Content = params.WorkflowInstructions
 	}
 	output := hera_search.FormatTgMessagesForAi(msgs)
-	tc, err := GetTokenCountEstimate(ctx, params.AiModelParams.Model, output)
+	tc, err := GetTokenCountEstimate(ctx, params.AnalysisModel, output)
 	if err != nil {
 		return openai.ChatCompletionResponse{}, err
 	}

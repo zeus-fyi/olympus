@@ -32,7 +32,7 @@ func (t *ZeusWorkerTestSuite) TestTgWorkflow() {
 
 func (t *ZeusWorkerTestSuite) TestTokenize() {
 	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalTemporalBearerToken
-	tc, err := GetTokenCountEstimate(ctx, "The OpenAI Cookbook is a community-driven resource. Whether you're submitting an idea, fixing a typo, adding a new guide, or improving an existing one, your contributions are greatly appreciated!")
+	tc, err := GetTokenCountEstimate(ctx, "", "The OpenAI Cookbook is a community-driven resource. Whether you're submitting an idea, fixing a typo, adding a new guide, or improving an existing one, your contributions are greatly appreciated!")
 	t.Require().Nil(err)
 	t.Require().NotZero(tc)
 	fmt.Println(tc)

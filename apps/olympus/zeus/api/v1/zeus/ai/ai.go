@@ -19,6 +19,8 @@ const (
 func AiV1Routes(e *echo.Group) *echo.Group {
 	e.POST("/search", AiSearchRequestHandler)
 	e.POST("/search/analyze", AiSearchAnalyzeRequestHandler)
+	e.GET("/workflows/ai", GetWorkflowsRequestHandler)
+	e.POST("/workflows/ai", PostWorkflowsRequestHandler)
 	return e
 }
 

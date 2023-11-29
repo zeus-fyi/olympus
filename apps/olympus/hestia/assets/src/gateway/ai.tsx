@@ -1,5 +1,6 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
+import {PostWorkflowsRequest} from "../redux/ai/ai.types";
 
 class AiApiGateway {
     async searchRequest(params: any): Promise<any> {
@@ -36,6 +37,40 @@ class AiApiGateway {
                 'searchParams': params
             }
             return await zeusApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending search request');
+            console.error(exc);
+            return
+        }
+    }
+    async createAiWorkflowRequest(params: PostWorkflowsRequest): Promise<any> {
+        const url = `/v1/workflows/ai`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.post(url, params, config)
+        } catch (exc) {
+            console.error('error sending search request');
+            console.error(exc);
+            return
+        }
+    }
+    async getWorkflowsRequest(): Promise<any> {
+        const url = `/v1/workflows/ai`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config)
         } catch (exc) {
             console.error('error sending search request');
             console.error(exc);

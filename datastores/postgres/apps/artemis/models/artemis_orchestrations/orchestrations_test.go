@@ -20,6 +20,17 @@ type OrchestrationsTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
+// SelectAiSystemOrchestrationsWithInstructionsByGroup
+
+func (s *OrchestrationsTestSuite) TestSelectAiSystemOrchestrationsWithInstructionsByGroup() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	// get internal assignments
+	ojs, err := SelectAiSystemOrchestrationsWithInstructionsByGroupType(ctx, s.Tc.ProductionLocalTemporalOrgID, "ai", "workflows")
+	s.Require().Nil(err)
+	fmt.Println(ojs)
+}
+
 func (s *OrchestrationsTestSuite) TestSelectActiveOrchestrationsWithInstructionsUsingTimeWindow() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
@@ -30,36 +41,35 @@ func (s *OrchestrationsTestSuite) TestSelectActiveOrchestrationsWithInstructions
 
 	oj, err := SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx, s.Tc.ProductionLocalTemporalOrgID, "IrisDeleteOrgRoutesWorkflow", "HestiaPlatformServiceWorkflows", time.Second)
 	s.Require().Nil(err)
-
 	fmt.Println(oj)
 }
 
-func (s *OrchestrationsTestSuite) TestInsertOrchestrationDefinition() {
-	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-
-	ou := org_users.OrgUser{}
-	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
-	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-	orch := artemis_autogen_bases.Orchestrations{
-		OrgID:             ou.OrgID,
-		OrchestrationName: "prysmDataDirDiskWipe",
-	}
-	os := OrchestrationJob{
-		Orchestrations: orch,
-		CloudCtxNs: zeus_common_types.CloudCtxNs{
-			CloudProvider: "do",
-			Region:        "sfo3",
-			Context:       "",
-			Namespace:     "",
-			Env:           "",
-		},
-	}
-
-	err := os.InsertOrchestrations(ctx)
-	s.Require().Nil(err)
-	s.Assert().NotZero(os.OrchestrationID)
-	fmt.Println(os.OrchestrationID)
-}
+//func (s *OrchestrationsTestSuite) TestInsertOrchestrationDefinition() {
+//	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+//
+//	ou := org_users.OrgUser{}
+//	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+//	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+//	orch := artemis_autogen_bases.Orchestrations{
+//		OrgID:             ou.OrgID,
+//		OrchestrationName: "prysmDataDirDiskWipe",
+//	}
+//	os := OrchestrationJob{
+//		Orchestrations: orch,
+//		CloudCtxNs: zeus_common_types.CloudCtxNs{
+//			CloudProvider: "do",
+//			Region:        "sfo3",
+//			Context:       "",
+//			Namespace:     "",
+//			Env:           "",
+//		},
+//	}
+//
+//	err := InsertOrchestrations(ctx)
+//	s.Require().Nil(err)
+//	s.Assert().NotZero(os.OrchestrationID)
+//	fmt.Println(os.OrchestrationID)
+//}
 
 func (s *OrchestrationsTestSuite) TestInsertOrchestrationsScheduledToCloudCtxNsUsingName() {
 	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)

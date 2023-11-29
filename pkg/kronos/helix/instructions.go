@@ -14,10 +14,7 @@ type Instructions struct {
 	Monitors      MonitorInstructions `json:"monitors,omitempty"`
 	Alerts        AlertInstructions   `json:"alerts,omitempty"`
 	Trigger       TriggerInstructions `json:"trigger,omitempty"`
-	AiInstruction TriggerInstructions `json:"aiInstruction,omitempty"`
-}
-
-type AiInstructions struct {
+	AiInstruction AiInstructions      `json:"aiInstruction,omitempty"`
 }
 
 var (

@@ -24,10 +24,11 @@ import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 
 export default function MainListItems() {
-    const [openServices, setOpenServices] = React.useState(true);
-    const [openClusters, setOpenClusters] = React.useState(true);
-    const [openCompute, setOpenCompute] = React.useState(true);
-    const [openApps, setOpenApps] = React.useState(true);
+    const [openServices, setOpenServices] = React.useState(false);
+    const [openClusters, setOpenClusters] = React.useState(false);
+    const [openCompute, setOpenCompute] = React.useState(false);
+    const [openApps, setOpenApps] = React.useState(false);
+    const [openAiPanel, setOpenAiPanel] = React.useState(false);
     const isInternal = useSelector((state: RootState) => state.sessionState.isInternal);
     
     const handleClickServices = () => {
@@ -40,6 +41,9 @@ export default function MainListItems() {
 
     const handleClickCompute = () => {
         setOpenCompute(!openCompute);
+    };
+    const handleClickAi = () => {
+        setOpenAiPanel(!openAiPanel);
     };
 
     return (
@@ -54,19 +58,32 @@ export default function MainListItems() {
             }
         >
             {isInternal && (
-                <ListItemButton component={Link} to="/ai">
-                <ListItemIcon>
-                    <GraphicEqIcon />
-                </ListItemIcon>
-                <ListItemText primary="AI" />
-            </ListItemButton>
+                <div>
+                <ListItemButton component={Link} onClick={handleClickAi} to="/ai">
+                    <ListItemIcon>
+                        <GraphicEqIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="AI" />
+                    {openAiPanel ? <ExpandLess  onClick={handleClickAi}/> : <ExpandMore onClick={handleClickAi}/>}
+                </ListItemButton>
+                    <Collapse in={openAiPanel} timeout="auto" unmountOnExit>
+                        <List component="div" disablePadding>
+                            <ListItemButton sx={{ pl: 4 }} component={Link} to="/ai/workflow/builder">
+                                <ListItemIcon>
+                                    <ConstructionIcon />
+                                </ListItemIcon>
+                                <ListItemText primary="Builder" />
+                            </ListItemButton>
+                        </List>
+                    </Collapse>
+                </div>
                 )}
-            <ListItemButton onClick={handleClickApps}  component={Link} to="/apps">
+            <ListItemButton component={Link} onClick={handleClickApps}  to="/apps">
                 <ListItemIcon>
                     <AppsIcon />
                 </ListItemIcon>
                 <ListItemText primary="Apps" />
-                {openApps ? <ExpandLess /> : <ExpandMore />}
+                {openApps ? <ExpandLess onClick={handleClickApps} /> : <ExpandMore onClick={handleClickApps}/>}
             </ListItemButton>
             <Collapse in={openApps} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
@@ -83,7 +100,7 @@ export default function MainListItems() {
                     <ManageSearchIcon />
                 </ListItemIcon>
                 <ListItemText primary="Compute" />
-                {openCompute ? <ExpandLess /> : <ExpandMore />}
+                {openCompute ? <ExpandLess onClick={handleClickCompute} /> : <ExpandMore onClick={handleClickCompute}/>}
             </ListItemButton>
             <Collapse in={openCompute} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>

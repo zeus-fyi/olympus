@@ -1,7 +1,6 @@
 package zeus_core
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -16,7 +15,6 @@ type ServiceMonitorsTestSuite struct {
 }
 
 func (s *ServiceMonitorsTestSuite) TestGetServiceMonitor() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral"}
 
 	sm, err := s.K.GetServiceMonitor(ctx, kns, "zeus-consensus-client-monitor", nil)
@@ -25,7 +23,6 @@ func (s *ServiceMonitorsTestSuite) TestGetServiceMonitor() {
 }
 
 func (s *ServiceMonitorsTestSuite) TestCreateServiceMonitor() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral"}
 
 	sm := servicemonitors.NewServiceMonitor()

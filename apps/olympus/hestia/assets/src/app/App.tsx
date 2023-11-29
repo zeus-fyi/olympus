@@ -28,6 +28,7 @@ import Mev from "../components/admin/mev/Mev";
 import SearchDashboard from "../components/compute/search/SearchNodes";
 import AiWorkflowsDashboard from "../components/ai/AI";
 import Secrets from "../components/secrets/Secrets";
+import AiWorkflowsEngineBuilderDashboard from "../components/ai/WorkflowBuilder";
 
 export const App = () => {
     ReactGA.initialize([
@@ -50,6 +51,7 @@ export const App = () => {
                         <Route path="/verify/email/:id" element={<VerifyEmail />} />
                         <Route>
                             <Route path="ai" element={<ProtectedLayout children={<AiWorkflowsDashboard />}/>}/>
+                            <Route path="ai/workflow/builder" element={<ProtectedLayout children={<AiWorkflowsEngineBuilderDashboard />}/>}/>
                             <Route path="apps/microservice" element={<ProtectedLayout children={<AppPageWrapper app={"microservice"} />}/>}/>
                             <Route path="apps/avax" element={<ProtectedLayout children={<AppPageWrapper app={"avax"} />}/>} />
                             <Route path="apps/eth" element={<ProtectedLayout children={<AppPageWrapper app={"ethereumEphemeralBeacons"} />}/>} />

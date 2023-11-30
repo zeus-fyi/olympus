@@ -6,16 +6,16 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
-import {useDispatch} from "react-redux";
 import {TasksRow} from "./TasksRow";
 
 export function TasksTable(props: any) {
-    const {selected, tasks, handleClick,handleSelectAllClick} = props;
+    const {selected, tasks, handleClick, handleSelectAllClick} = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
-    const dispatch = useDispatch();
-
+    const countTaskValues = (): number => {
+        return Object.keys(tasks).length;
+    };
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
@@ -34,18 +34,15 @@ export function TasksTable(props: any) {
     }
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - tasks.length) : 0;
-
-
     if (emptyRows) {
         return (<div></div>)
     }
-    const countTrueValues = (obj: { [key: number]: boolean }): number => {
-        return Object.values(obj).filter(value => value).length;
-    };
     if (loading) {
         return (<div></div>)
     }
-
+    const countTrueValues = (): number => {
+        return Object.values(selected).filter(value => value).length;
+    };
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="private apps pagination table">
@@ -54,8 +51,8 @@ export function TasksTable(props: any) {
                         <TableCell padding="checkbox">
                             <Checkbox
                                 color="primary"
-                                indeterminate={countTrueValues(selected) > 0 && countTrueValues(selected) < tasks.length}
-                                checked={(countTrueValues(selected) === tasks.length) && tasks.length > 0}
+                                indeterminate={countTrueValues() > 0 && countTrueValues() < countTaskValues()}
+                                checked={(countTrueValues() === countTaskValues()) && (countTaskValues()> 0)}
                                 onChange={handleSelectAllClick}
                             />
                         </TableCell>

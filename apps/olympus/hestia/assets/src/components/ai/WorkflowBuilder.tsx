@@ -54,6 +54,7 @@ function WorkflowEngineBuilder(props: any) {
     const allTasks = useSelector((state: any) => state.ai.tasks);
     const [taskType, setTaskType] = useState('analysis');
     const [tasks, setTasks] = useState(allTasks.filter((task: any) => task.taskType === taskType));
+
     const dispatch = useDispatch();
     const now = new Date();
     const getTodayAtSpecificHour = (hour: number = 12) =>
@@ -165,7 +166,6 @@ function WorkflowEngineBuilder(props: any) {
                 stepSizeUnit: stepSizeUnit,
                 models: models,
             }
-            console.log(payload,'sdfdsa')
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -212,33 +212,32 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         if (newValue === 1) {
+            setSelected({});
             setTaskType('analysis');
             setTasks(allTasks.filter((task: any) => task.taskType === 'analysis'));
         } else if (newValue === 2) {
+            setSelected({});
             setTaskType('aggregation');
             setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
         }
         setSelectedMainTab(newValue);
     };
     const handleClick = (index: number) => {
-        setIsLoading(true);
         setSelected((prevSelected) => ({
             ...prevSelected,
             [index]: !prevSelected[index]
         }));
-        setIsLoading(false);
-    };
+    }
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setIsLoading(true);
-        const newSelected = tasks.reduce((acc: any, index: number) => {
-            acc[index] = !event.target.checked;
+        const isChecked = event.target.checked;
+        const newSelection = tasks.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
+            acc[index] = isChecked;
             return acc;
         }, {});
-        console.log('newSelected', newSelected)
-        setSelected(newSelected);
-        setIsLoading(false);
+        setSelected(newSelection);
     };
+
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>

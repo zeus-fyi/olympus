@@ -62,7 +62,12 @@ function WorkflowEngineBuilder(props: any) {
     const [taskType, setTaskType] = useState('analysis');
     const [tasks, setTasks] = useState(allTasks.filter((task: any) => task.taskType === taskType));
     useEffect(() => {
-    }, [addAggregateView, addAnalysisView]); // Dependency array containing addAggregateView
+    }, [addAggregateView, addAnalysisView, selectedMainTab]); // Dependency array containing addAggregateView
+
+
+    const handleAddTasksToWorkflow = async (event: any) => {
+
+    }
 
     const addAnalysisStageView = async () => {
         const toggle = !addAnalysisView;
@@ -80,7 +85,7 @@ function WorkflowEngineBuilder(props: any) {
     const addAggregationStageView = async () => {
         const toggle = !addAggregateView;
         dispatch(setAddAnalysisView(false));
-        dispatch(setAddAggregationView(!addAggregateView));
+        dispatch(setAddAggregationView(toggle));
         if (toggle) {
             setSelected({});
             setTaskType('aggregation');
@@ -377,7 +382,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Typography>
                                             </Box>
                                             <Box flexGrow={1} sx={{ mb: 0, mt: 2 }}>
-                                                <Button fullWidth variant="contained" onClick={() => addAnalysisStageView()} >Add</Button>
+                                                <Button fullWidth variant="contained" onClick={() => addAnalysisStageView()} >{addAnalysisView ? 'Done Adding': 'Add Analysis Stages'}</Button>
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 2}}>
                                                 <Typography gutterBottom variant="h5" component="div">
@@ -388,7 +393,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Typography>
                                             </Box>
                                             <Box flexGrow={1} sx={{ mb: 0, mt: 2 }}>
-                                                <Button fullWidth variant="contained" onClick={() => addAggregationStageView()} >Add</Button>
+                                                <Button fullWidth variant="contained" onClick={() => addAggregationStageView()} >{addAggregateView ? 'Done Adding' : 'Add Aggregation Stages' }</Button>
                                             </Box>
                                         </CardContent>
                                         <CardContent>
@@ -748,10 +753,23 @@ function WorkflowEngineBuilder(props: any) {
                             <WorkflowTable />
                         </Container>
                     }
-                    { (selectedMainTab == 1 || selectedMainTab == 2) &&
+
+                    { (selectedMainTab === 1 || selectedMainTab === 2) && (addAggregateView || addAnalysisView) &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <TasksTable tasks={tasks} selected={selected} handleClick={handleClick} handleSelectAllClick={handleSelectAllClick} />
+                            <Box sx={{ mb: 2 }}>
+                                <span>({Object.values(selected).filter(value => value).length} selected endpoints)</span>
+                                <Button variant="outlined" color="secondary" onClick={handleAddTasksToWorkflow} style={{marginLeft: '10px'}}>
+                                    Add {addAnalysisView ? 'Analysis' : 'Aggregation'} Stages
+                                </Button>
+                            </Box>
                         </Container>
+                    }
+                    { (selectedMainTab === 1 || selectedMainTab === 2) &&
+                        <div>
+                            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                <TasksTable tasks={tasks} selected={selected} handleClick={handleClick} handleSelectAllClick={handleSelectAllClick} />
+                            </Container>
+                        </div>
                     }
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>
@@ -763,5 +781,6 @@ type ValuePiece = Date | string | null;
 
 type Value = ValuePiece | [ValuePiece, ValuePiece];
 export default function AiWorkflowsEngineBuilderDashboard() {
+
     return <WorkflowEngineBuilder />;
 }

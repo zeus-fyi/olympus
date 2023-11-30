@@ -35,7 +35,9 @@ import TextField from "@mui/material/TextField";
 import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
+    setAddAggregateTasks,
     setAddAggregationView,
+    setAddAnalysisTasks,
     setAddAnalysisView,
     setAggregationWorkflowInstructions,
     setAnalysisWorkflowInstructions,
@@ -46,8 +48,6 @@ import {PostWorkflowsRequest, TaskModelInstructions, WorkflowModelInstructions} 
 import {TasksTable} from "./TasksTable";
 
 const mdTheme = createTheme();
-const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
-const analysisDone = "====================================================================================ANALYSIS-DONE===============================================================================\n"
 
 function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
@@ -60,13 +60,27 @@ function WorkflowEngineBuilder(props: any) {
     const addAggregateView = useSelector((state: RootState) => state.ai.addAggregationView);
     const allTasks = useSelector((state: any) => state.ai.tasks);
     const [taskType, setTaskType] = useState('analysis');
+    const analysisStages = useSelector((state: RootState) => state.ai.addedAnalysisTasks);
+    const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
     const [tasks, setTasks] = useState(allTasks.filter((task: any) => task.taskType === taskType));
     useEffect(() => {
-    }, [addAggregateView, addAnalysisView, selectedMainTab]); // Dependency array containing addAggregateView
-
+    }, [addAggregateView, addAnalysisView, selectedMainTab, analysisStages, aggregationStages]); // Dependency array containing addAggregateView
 
     const handleAddTasksToWorkflow = async (event: any) => {
+        const selectedTasks = Object.keys(selected)
+            .filter(key => selected[Number(key)])
+            .map(key => tasks[Number(key)]);
+        if (addAnalysisView){
+            // @ts-ignore
+            dispatch(setAddAnalysisTasks(selectedTasks));
+        } else if (addAggregateView){
+            // @ts-ignore
+            dispatch(setAddAggregateTasks(selectedTasks));
+        }
+    }
 
+    const handleRemoveTasksFromWorkflow = async (event: any) => {
+        console.log('selectedKeys', selected);
     }
 
     const addAnalysisStageView = async () => {

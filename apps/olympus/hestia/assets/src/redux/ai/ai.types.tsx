@@ -10,6 +10,8 @@ export interface AiState {
     tasks: [];
     addAnalysisView: boolean;
     addAggregationView: boolean;
+    addedAnalysisTasks: [];
+    addedAggregateTasks: [];
 }
 
 export interface WorkflowModelInstructions {

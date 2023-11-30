@@ -13,6 +13,8 @@ const initialState: AiState = {
     tasks: [],
     addAnalysisView: false,
     addAggregationView: false,
+    addedAnalysisTasks: [],
+    addedAggregateTasks: [],
 }
 
 const aiSlice = createSlice({
@@ -51,7 +53,13 @@ const aiSlice = createSlice({
         },
         setTasks: (state, action: PayloadAction<[]>) => {
             state.tasks = action.payload;
-        }
+        },
+        setAddAnalysisTasks: (state, action: PayloadAction<[]>) => {
+            state.addedAnalysisTasks = action.payload;
+        },
+        setAddAggregateTasks: (state, action: PayloadAction<[]>) => {
+            state.addedAggregateTasks = action.payload;
+        },
     }
 });
 
@@ -65,6 +73,8 @@ export const { setSearchContent,
     setPlatformFilter,
     setTasks,
     setAddAnalysisView,
-    setAddAggregationView
+    setAddAggregationView,
+    setAddAnalysisTasks,
+    setAddAggregateTasks
 } = aiSlice.actions;
 export default aiSlice.reducer;

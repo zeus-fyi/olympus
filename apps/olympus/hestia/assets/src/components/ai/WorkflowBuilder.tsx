@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useCallback, useState} from 'react';
+import {useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -16,6 +16,7 @@ import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {
     Card,
+    CardActions,
     CardContent,
     FormControl,
     InputLabel,
@@ -36,7 +37,8 @@ import {RootState} from "../../redux/store";
 import {setAggregationWorkflowInstructions, setAnalysisWorkflowInstructions,} from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
-import {PostWorkflowsRequest, WorkflowModelInstructions} from "../../redux/ai/ai.types";
+import {PostWorkflowsRequest, TaskModelInstructions, WorkflowModelInstructions} from "../../redux/ai/ai.types";
+import {TasksTable} from "./TasksTable";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -54,6 +56,9 @@ function WorkflowEngineBuilder(props: any) {
         set(now, { hours: hour, minutes: 0, seconds: 0, milliseconds: 0 });
     const [cycleCount, setCycleCount] = useState(0);
     const handleCycleCountChange = (val: number) => {
+        if (val < aggregationCycleCount) {
+            setAggregationCycleCount(val);
+        }
         setCycleCount(val);
     };
     const [aggregationCycleCount, setAggregationCycleCount] = useState(0);
@@ -88,7 +93,22 @@ function WorkflowEngineBuilder(props: any) {
     const handleUpdateWorkflowName = (event: any) => {
         setWorkflowName(event.target.value);
     };
-
+    const [analysisName, setAnalysisName] = React.useState('');
+    const handleUpdateAnalysisName = (event: any) => {
+        setAnalysisName(event.target.value);
+    };
+    const [analysisGroupName, setAnalysisGroupName] = React.useState('default');
+    const handleUpdateAnalysisGroupName = (event: any) => {
+        setAnalysisGroupName(event.target.value);
+    };
+    const [aggregationName, setAggregationName] = React.useState('');
+    const handleUpdateAggregationName = (event: any) => {
+        setAggregationName(event.target.value);
+    };
+    const [aggregationGroupName, setAggregationGroupName] = React.useState('default');
+    const handleUpdateAggregationGroupName = (event: any) => {
+        setAggregationGroupName(event.target.value);
+    };
     const [aggregationModelTokenOverflowStrategy, setAggregationModelTokenOverflowStrategy] = React.useState('deduce');
     const handleUpdateAggregationModelTokenOverflowStrategy = (event: any) => {
         setAggregationModelTokenOverflowStrategy(event.target.value);
@@ -97,11 +117,6 @@ function WorkflowEngineBuilder(props: any) {
     const handleUpdateAggregationModelMaxTokens = (val: number) => {
         setAggregationModelMaxTokens(val);
     };
-    const [searchInterval, setSearchInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]);
-    const onTimeRangeChange = useCallback((interval: [Date, Date]) => {
-        setSearchInterval(interval);
-    }, []);
-
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -159,6 +174,34 @@ function WorkflowEngineBuilder(props: any) {
             setIsLoading(false);
         }
     }
+
+    const createOrUpdateTask = async (taskType: string) => {
+        try {
+            setIsLoading(true)
+            const task: TaskModelInstructions = {
+                taskType: taskType,
+                taskGroup: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
+                taskName: (taskType === 'analysis' ? analysisName : aggregationName),
+                model: (taskType === 'analysis' ? analysisModel : aggregationModel),
+                name: (taskType === 'analysis' ? analysisName : aggregationName),
+                group: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
+                prompt: (taskType === 'analysis' ? analysisWorkflowInstructions : aggregationWorkflowInstructions),
+                maxTokens:  (taskType === 'analysis' ? analysisModelMaxTokens : aggregationModelMaxTokens),
+                tokenOverflowStrategy: (taskType === 'analysis' ? analysisModelTokenOverflowStrategy : aggregationModelTokenOverflowStrategy),
+            };
+            const response = await aiApiGateway.createOrUpdateTaskRequest(task);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                const data = response.data;
+            } else {
+                console.log('Failed to search', response);
+            }
+        } catch (e) {
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -237,255 +280,335 @@ function WorkflowEngineBuilder(props: any) {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
                             <Card sx={{ minWidth: 500, maxWidth: 900 }}>
+                                { selectedMainTab == 0 &&
+                                    <div>
+                                        <CardContent>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Workflow Generation
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                            This allows you to write natural language instructions to chain to your search queries. Add a name
+                                            for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.
+                                            </Typography>
+                                            <Box sx={{ width: '100%', mb: 0, mt: 2 }}>
+                                                <TextField
+                                                    label={`Workflow Name`}
+                                                    variant="outlined"
+                                                    value={workflowName}
+                                                    onChange={handleUpdateWorkflowName}
+                                                    fullWidth
+                                                />
+                                            </Box>
+                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Analysis Stages
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Add Analysis Stages
+                                                </Typography>
+                                            </Box>
+                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Aggregation Stages
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Add Aggregation Stages
+                                                </Typography>
+                                            </Box>
+                                        </CardContent>
+                                        <CardActions>
+                                            <Box flexGrow={1} sx={{ mb: -2 }}>
+                                                <Button fullWidth variant="contained" onClick={() => createOrUpdateWorkflow('all')} >Save Workflow</Button>
+                                            </Box>
+                                        </CardActions>
+                                </div>
+                                }
                                 <CardContent>
-                                    <Typography gutterBottom variant="h5" component="div">
-                                        Workflow Generation
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        This allows you to write natural language instructions to chain to your search queries. Add a name
-                                        for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.
-                                    </Typography>
-                                </CardContent>
-                                <CardContent>
-                                    <Box sx={{ width: '100%', mb: 2, mt: -2 }}>
-                                        <TextField
-                                            label={`Workflow Name`}
-                                            variant="outlined"
-                                            value={workflowName}
-                                            onChange={handleUpdateWorkflowName}
-                                            fullWidth
-                                        />
-                                    </Box>
-                                    <Typography gutterBottom variant="h5" component="div">
-                                        Analysis Instructions
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Token overflow strategy will determine how the AI will handle requests that are projected to exceed the maximum token length for the model you select, or has returned a result with that error.
-                                        Deduce will chunk your analysis into smaller pieces and aggregate them into a final analysis result. Truncate will simply truncate the request
-                                        to the maximum token length it can support.
-                                    </Typography>
-                                    <Stack direction="row" >
-                                        <Box flexGrow={3} sx={{ mb: 4, mt: 4 }}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="analysis-model-label">Analysis Model</InputLabel>
-                                                <Select
-                                                    labelId="analysis-model-label"
-                                                    id="analysis-model-select"
-                                                    value={analysisModel}
-                                                    label="Analysis Model"
-                                                    onChange={handleUpdateAnalysisModel}
-                                                >
-                                                    <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
-                                                    <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Box>
-                                        <Box flexGrow={2} sx={{ mb: 4, mt: 4, ml:2 }}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
-                                                <Select
-                                                    labelId="token-overflow-analysis-label"
-                                                    id="analysis-overflow-analysis-select"
-                                                    value={analysisModelTokenOverflowStrategy}
-                                                    label="Token Overflow Strategy"
-                                                    onChange={handleUpdateAnalysisModelTokenOverflowStrategy}
-                                                >
-                                                    <MenuItem value="deduce">deduce</MenuItem>
-                                                    <MenuItem value="truncate">truncate</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Box>
-                                        <Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>
-                                            <TextField
-                                                type="number"
-                                                label="Cycle Count"
-                                                variant="outlined"
-                                                value={cycleCount}
-                                                inputProps={{ min: 0 }}  // Set minimum value to 0
-                                                onChange={(event) => handleCycleCountChange(parseInt(event.target.value, 10))}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                    </Stack>
-                                    <Box  sx={{ mb: 2, mt: -2 }}>
-                                        <TextareaAutosize
-                                            minRows={18}
-                                            value={analysisWorkflowInstructions}
-                                            onChange={(e) => handleUpdateAnalysisWorkflowInstructions(e.target.value)}
-                                            style={{ resize: "both", width: "100%" }}
-                                        />
-                                    </Box>
-                                    <Typography gutterBottom variant="h5" component="div">
-                                        Aggregation Instructions
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Use this to tell the AI how to aggregate the results of your analysis chunks into a rolling aggregation window. This is useful for
-                                        allowing you to create higher level analysis on top of your search results that isn't possible or desired in a single cycle.
-                                        Aggregation cycle count sets how many analysis cycles per aggregation cycle. For example if you set 10 total analysis cycles, and 2 aggregation cycles,
-                                        it will aggregate the results from each 5 analysis cycles into a single aggregation cycle,
-                                        and use that as the input for the next aggregation cycle. It will run a final aggregation cycle after the last analysis cycle if
-                                        the total analysis cycle doesn't divide evenly into the aggregation count.
-                                    </Typography>
-                                    <Stack direction="row" >
-                                        <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="aggregation-model-label">Aggregation Model</InputLabel>
-                                                <Select
-                                                    labelId="aggregation-model-label"
-                                                    id="aggregation-model-select"
+                                    { selectedMainTab == 1 &&
+                                        <div>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Analysis Instructions
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Token overflow strategy will determine how the AI will handle requests that are projected to exceed the maximum token length for the model you select, or has returned a result with that error.
+                                                Deduce will chunk your analysis into smaller pieces and aggregate them into a final analysis result. Truncate will simply truncate the request
+                                                to the maximum token length it can support.
+                                            </Typography>
+                                            <Stack direction="row" >
+                                                <Box flexGrow={3} sx={{ width: '50%', mb: 0, mt: 2, mr: 1 }}>
+                                                    <TextField
+                                                        label={`Analysis Name`}
+                                                        variant="outlined"
+                                                        value={analysisName}
+                                                        onChange={handleUpdateAnalysisName}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                                <Box flexGrow={3} sx={{ width: '50%', mb: 0, mt: 2, ml: 1 }}>
+                                                    <TextField
+                                                        label={`Analysis Group`}
+                                                        variant="outlined"
+                                                        value={analysisGroupName}
+                                                        onChange={handleUpdateAnalysisGroupName}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                            </Stack>
+                                            <Stack direction="row" >
+                                                <Box flexGrow={3} sx={{ mb: 4, mt: 4 }}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="analysis-model-label">Analysis Model</InputLabel>
+                                                        <Select
+                                                            labelId="analysis-model-label"
+                                                            id="analysis-model-select"
+                                                            value={analysisModel}
+                                                            label="Analysis Model"
+                                                            onChange={handleUpdateAnalysisModel}
+                                                        >
+                                                            <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
+                                                            <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Box>
+                                                <Box flexGrow={2} sx={{ mb: 4, mt: 4, ml:2 }}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
+                                                        <Select
+                                                            labelId="token-overflow-analysis-label"
+                                                            id="analysis-overflow-analysis-select"
+                                                            value={analysisModelTokenOverflowStrategy}
+                                                            label="Token Overflow Strategy"
+                                                            onChange={handleUpdateAnalysisModelTokenOverflowStrategy}
+                                                        >
+                                                            <MenuItem value="deduce">deduce</MenuItem>
+                                                            <MenuItem value="truncate">truncate</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Box>
+                                                {/*<Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>*/}
+                                                {/*    <TextField*/}
+                                                {/*        type="number"*/}
+                                                {/*        label="Cycle Count"*/}
+                                                {/*        variant="outlined"*/}
+                                                {/*        value={cycleCount}*/}
+                                                {/*        inputProps={{ min: 0 }}  // Set minimum value to 0*/}
+                                                {/*        onChange={(event) => handleCycleCountChange(parseInt(event.target.value, 10))}*/}
+                                                {/*        fullWidth*/}
+                                                {/*    />*/}
+                                                {/*</Box>*/}
+                                            </Stack>
+                                            <Box  sx={{ mb: 2, mt: -2 }}>
+                                                <TextareaAutosize
+                                                    minRows={18}
+                                                    value={analysisWorkflowInstructions}
+                                                    onChange={(e) => handleUpdateAnalysisWorkflowInstructions(e.target.value)}
+                                                    style={{ resize: "both", width: "100%" }}
+                                                />
+                                            </Box>
+                                        </div>
+                                    }
+                                    { selectedMainTab == 2 &&
+                                        <div>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Aggregation Instructions
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Use this to tell the AI how to aggregate the results of your analysis chunks into a rolling aggregation window. If aggregating on a single analysis, the aggregation cycle count sets how many
+                                                base analysis cycles to aggregate on. If aggregating on multiple analysis, it will aggregate whenever the the underlying analysis is run.
+                                            </Typography>
+                                            <Stack direction="row" >
+                                                <Box flexGrow={3} sx={{ width: '50%', mb: 0, mt: 2, mr: 1 }}>
+                                                    <TextField
+                                                        label={`Aggregation Name`}
+                                                        variant="outlined"
+                                                        value={aggregationName}
+                                                        onChange={handleUpdateAggregationName}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                                <Box flexGrow={3} sx={{ width: '50%', mb: 0, mt: 2, ml: 1 }}>
+                                                    <TextField
+                                                        label={`Aggregation Group`}
+                                                        variant="outlined"
+                                                        value={aggregationGroupName}
+                                                        onChange={handleUpdateAggregationGroupName}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                            </Stack>
+                                            <Stack direction="row" >
+                                                <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="aggregation-model-label">Aggregation Model</InputLabel>
+                                                        <Select
+                                                            labelId="aggregation-model-label"
+                                                            id="aggregation-model-select"
+                                                            value={aggregationModel}
+                                                            label="Aggregation Model"
+                                                            onChange={handleUpdateAggregationModel}
+                                                        >
+                                                            <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
+                                                            <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Box>
+                                                <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="aggregation-token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
+                                                        <Select
+                                                            labelId="aggregation-token-overflow-analysis-label"
+                                                            id="aggregation-token-overflow-analysis-select"
+                                                            value={aggregationModelTokenOverflowStrategy}
+                                                            label="Token Overflow Strategy"
+                                                            onChange={handleUpdateAggregationModelTokenOverflowStrategy}
+                                                        >
+                                                            <MenuItem value="deduce">deduce</MenuItem>
+                                                            <MenuItem value="truncate">truncate</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Box>
+                                                {/*<Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>*/}
+                                                {/*    <TextField*/}
+                                                {/*        type="number"*/}
+                                                {/*        label="Aggregation Cycle Count"*/}
+                                                {/*        variant="outlined"*/}
+                                                {/*        value={aggregationCycleCount}*/}
+                                                {/*        inputProps={{ min: 0 }}  // Set minimum value to 0*/}
+                                                {/*        onChange={(event) => handleAggregationCycleCountChange(parseInt(event.target.value, 10))}*/}
+                                                {/*        fullWidth*/}
+                                                {/*    />*/}
+                                                {/*</Box>*/}
+                                            </Stack>
+                                            <Box  sx={{ mb: 2, mt: 2 }}>
+                                                <TextareaAutosize
+                                                    minRows={18}
+                                                    value={aggregationWorkflowInstructions}
+                                                    onChange={(e) => handleUpdateAggregationWorkflowInstructions(e.target.value)}
+                                                    style={{ resize: "both", width: "100%" }}
+                                                />
+                                            </Box>
+                                        </div>
+                                    }
+                                    {/*<Typography gutterBottom variant="h5" component="div">*/}
+                                    {/*    Time Intervals*/}
+                                    {/*</Typography>*/}
+                                    {/*<Typography variant="body2" color="text.secondary">*/}
+                                    {/*    You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.*/}
+                                    {/*</Typography>*/}
+                                    {/*<Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>*/}
+                                    {/*    <Box sx={{ width: '33%' }}> /!* Adjusted Box for TextField *!/*/}
+                                    {/*        <TextField*/}
+                                    {/*            type="number"*/}
+                                    {/*            label="Time Step Size"*/}
+                                    {/*            variant="outlined"*/}
+                                    {/*            inputProps={{ min: 1 }}  // Set minimum value to 1*/}
+                                    {/*            value={stepSize}*/}
+                                    {/*            onChange={handleTimeStepChange}*/}
+                                    {/*            fullWidth*/}
+                                    {/*        />*/}
+                                    {/*    </Box>*/}
+                                    {/*    <Box sx={{ width: '33%' }}> /!* Adjusted Box for FormControl *!/*/}
+                                    {/*        <FormControl fullWidth>*/}
+                                    {/*            <InputLabel id="time-unit-label">Time Unit</InputLabel>*/}
+                                    {/*            <Select*/}
+                                    {/*                labelId="time-unit-label"*/}
+                                    {/*                id="time-unit-select"*/}
+                                    {/*                value={stepSizeUnit}*/}
+                                    {/*                label="Time Unit"*/}
+                                    {/*                onChange={handleUpdateStepSizeUnit}*/}
+                                    {/*            >*/}
+                                    {/*                <MenuItem value="seconds">Seconds</MenuItem>*/}
+                                    {/*                <MenuItem value="minutes">Minutes</MenuItem>*/}
+                                    {/*                <MenuItem value="hours">Hours</MenuItem>*/}
+                                    {/*                <MenuItem value="days">Days</MenuItem>*/}
+                                    {/*                <MenuItem value="weeks">Weeks</MenuItem>*/}
+                                    {/*            </Select>*/}
+                                    {/*        </FormControl>*/}
+                                    {/*    </Box>*/}
+                                    {/*    <Box sx={{ width: '33%', mb: 4 }}>*/}
+                                    {/*        <TextField*/}
+                                    {/*            label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit*/}
+                                    {/*            variant="outlined"*/}
+                                    {/*            value={stepSize* cycleCount}*/}
+                                    {/*            InputProps={{*/}
+                                    {/*                readOnly: true,*/}
+                                    {/*            }}*/}
+                                    {/*            fullWidth*/}
+                                    {/*        />*/}
+                                    {/*    </Box>*/}
+                                    {/*</Stack>*/}
+                                    {/*<Typography gutterBottom variant="h5" component="div">*/}
+                                    {/*    Token Usage Limits*/}
+                                    {/*</Typography>*/}
+                                    {/*<Typography variant="body2" color="text.secondary">*/}
+                                    {/*    Use this to limit how many tokens you want to use for your LLM stages. Set to 0 for unlimited.*/}
+                                    {/*</Typography>*/}
+                                    { selectedMainTab == 1 &&
+                                        <div>
+                                            <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                                    <TextField
+                                                        label={`Analysis Model`}
+                                                        variant="outlined"
+                                                        value={analysisModel}
+                                                        InputProps={{
+                                                            readOnly: true,
+                                                        }}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                                <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                                    <TextField
+                                                        type="number"
+                                                        label={`Max Tokens Analysis Model`}
+                                                        variant="outlined"
+                                                        value={analysisModelMaxTokens}
+                                                        inputProps={{ min: 0 }}
+                                                        onChange={(event) => handleUpdateAnalysisModelMaxTokens(parseInt(event.target.value, 10))}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                            </Stack>
+                                            <Box flexGrow={1} sx={{ mb: 2 }}>
+                                                <Button fullWidth variant="contained" onClick={() =>  createOrUpdateTask('analysis')} >Save Analysis</Button>
+                                            </Box>
+                                        </div>
+                                    }
+                                    { selectedMainTab == 2 &&
+                                        <div>
+                                            <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                            <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                                <TextField
+                                                    label={`Aggregation Model`}
+                                                    variant="outlined"
                                                     value={aggregationModel}
-                                                    label="Aggregation Model"
-                                                    onChange={handleUpdateAggregationModel}
-                                                >
-                                                    <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
-                                                    <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Box>
-                                        <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="aggregation-token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
-                                                <Select
-                                                    labelId="aggregation-token-overflow-analysis-label"
-                                                    id="aggregation-token-overflow-analysis-select"
-                                                    value={aggregationModelTokenOverflowStrategy}
-                                                    label="Token Overflow Strategy"
-                                                    onChange={handleUpdateAggregationModelTokenOverflowStrategy}
-                                                >
-                                                    <MenuItem value="deduce">deduce</MenuItem>
-                                                    <MenuItem value="truncate">truncate</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Box>
-                                        <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
-                                            <TextField
-                                                type="number"
-                                                label="Aggregation Cycle Count"
-                                                variant="outlined"
-                                                value={aggregationCycleCount}
-                                                inputProps={{ min: 0, max: cycleCount }}  // Set minimum value to 0
-                                                onChange={(event) => handleAggregationCycleCountChange(parseInt(event.target.value, 10))}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                    </Stack>
-                                    <Box  sx={{ mb: 2, mt: 2 }}>
-                                        <TextareaAutosize
-                                            minRows={18}
-                                            value={aggregationWorkflowInstructions}
-                                            onChange={(e) => handleUpdateAggregationWorkflowInstructions(e.target.value)}
-                                            style={{ resize: "both", width: "100%" }}
-                                        />
-                                    </Box>
-                                    <Typography gutterBottom variant="h5" component="div">
-                                        Time Intervals
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
-                                    </Typography>
-                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                        <Box sx={{ width: '33%' }}> {/* Adjusted Box for TextField */}
-                                            <TextField
-                                                type="number"
-                                                label="Time Step Size"
-                                                variant="outlined"
-                                                inputProps={{ min: 1 }}  // Set minimum value to 1
-                                                value={stepSize}
-                                                onChange={handleTimeStepChange}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Box sx={{ width: '33%' }}> {/* Adjusted Box for FormControl */}
-                                            <FormControl fullWidth>
-                                                <InputLabel id="time-unit-label">Time Unit</InputLabel>
-                                                <Select
-                                                    labelId="time-unit-label"
-                                                    id="time-unit-select"
-                                                    value={stepSizeUnit}
-                                                    label="Time Unit"
-                                                    onChange={handleUpdateStepSizeUnit}
-                                                >
-                                                    <MenuItem value="seconds">Seconds</MenuItem>
-                                                    <MenuItem value="minutes">Minutes</MenuItem>
-                                                    <MenuItem value="hours">Hours</MenuItem>
-                                                    <MenuItem value="days">Days</MenuItem>
-                                                    <MenuItem value="weeks">Weeks</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Box>
-                                        <Box sx={{ width: '33%', mb: 4 }}>
-                                            <TextField
-                                                label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit
-                                                variant="outlined"
-                                                value={stepSize* cycleCount}
-                                                InputProps={{
-                                                    readOnly: true,
-                                                }}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                    </Stack>
-                                    <Typography gutterBottom variant="h5" component="div">
-                                        Workflow Token Usage Limits
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Use this to define how many tokens you want to use for your analysis. This will allow you to control how much you spend on your analysis.
-                                        Set to 0 for unlimited, otherwise it will stop the analysis when it reaches the limit per model.
-                                    </Typography>
-                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                            <TextField
-                                                label={`Analysis Model`}
-                                                variant="outlined"
-                                                value={analysisModel}
-                                                InputProps={{
-                                                    readOnly: true,
-                                                }}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                            <TextField
-                                                type="number"
-                                                label={`Max Tokens Analysis Model`}
-                                                variant="outlined"
-                                                value={analysisModelMaxTokens}
-                                                inputProps={{ min: 0 }}
-                                                onChange={(event) => handleUpdateAnalysisModelMaxTokens(parseInt(event.target.value, 10))}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                    </Stack>
-                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                            <TextField
-                                                label={`Aggregation Model`}
-                                                variant="outlined"
-                                                value={aggregationModel}
-                                                InputProps={{
-                                                    readOnly: true,
-                                                }}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                            <TextField
-                                                type="number"
-                                                label={`Max Aggregation Token Usage`}
-                                                variant="outlined"
-                                                value={aggregationModelMaxTokens}
-                                                onChange={(event) => handleUpdateAggregationModelMaxTokens(parseInt(event.target.value, 10))}
-                                                inputProps={{ min: 0 }}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                    </Stack>
-                                    <Box flexGrow={1} sx={{ mb: 2 }}>
-                                        <Button fullWidth variant="contained" onClick={() => createOrUpdateWorkflow('all')} >Save Workflow</Button>
-                                    </Box>
+                                                    InputProps={{
+                                                        readOnly: true,
+                                                    }}
+                                                    fullWidth
+                                                />
+                                            </Box>
+                                            <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                                <TextField
+                                                    type="number"
+                                                    label={`Max Aggregation Token Usage`}
+                                                    variant="outlined"
+                                                    value={aggregationModelMaxTokens}
+                                                    onChange={(event) => handleUpdateAggregationModelMaxTokens(parseInt(event.target.value, 10))}
+                                                    inputProps={{ min: 0 }}
+                                                    fullWidth
+                                                />
+                                            </Box>
+                                            </Stack>
+                                            <Box flexGrow={1} sx={{ mb: 2 }}>
+                                                <Button fullWidth variant="contained" onClick={() => createOrUpdateTask('aggregation')} >Save Aggregation</Button>
+                                            </Box>
+                                        </div>
+                                    }
+
                                     {/*<Typography gutterBottom variant="h5" component="div">*/}
                                     {/*    Workflow Generations*/}
                                     {/*</Typography>*/}
@@ -528,12 +651,21 @@ function WorkflowEngineBuilder(props: any) {
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"  />
+                                <Tab className="onboarding-card-highlight-all-analysis" label="Analysis" />
+                                <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
                             </Tabs>
                         </Box>
                     </Container>
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <WorkflowTable />
-                    </Container>
+                    { selectedMainTab == 0 &&
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <WorkflowTable />
+                        </Container>
+                    }
+                    { (selectedMainTab == 1 || selectedMainTab == 2) &&
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <TasksTable taskType={selectedMainTab === 2 ? 'analysis' : 'aggregation'}/>
+                        </Container>
+                    }
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>
             </Box>

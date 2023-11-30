@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 )
@@ -32,13 +33,38 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get workflows")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, ojs)
+	//var tmp []kronos_helix.AiModelInstruction
+	//for i, _ := range ojs {
+	//	var ins kronos_helix.Instructions
+	//	err = json.Unmarshal([]byte(ojs[i].Instructions), &ins)
+	//	if err != nil {
+	//		log.Err(err).Msg("failed to unmarshal instructions")
+	//		return c.JSON(http.StatusInternalServerError, nil)
+	//	}
+	//	if len(ins.AiInstruction.Map) > 0 {
+	//		for _, v := range ins.AiInstruction.Map {
+	//			tmp = append(tmp, v...)
+	//		}
+	//	}
+	//}
+	tasks, err := artemis_orchestrations.SelectTasks(c.Request().Context(), ou.OrgID)
+	if err != nil {
+		log.Err(err).Msg("failed to get tasks")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, AiWorkflowWrapper{
+		Workflows: ojs,
+		Tasks:     tasks,
+	})
+}
+
+type AiWorkflowWrapper struct {
+	Workflows []artemis_autogen_bases.Orchestrations `json:"workflows"`
+	Tasks     []artemis_orchestrations.AITaskLibrary `json:"tasks"`
 }
 
 type PostWorkflowsRequest struct {
 	WorkflowName string                      `json:"workflowName"`
-	StepSize     int                         `json:"stepSize"`
-	StepSizeUnit string                      `json:"stepSizeUnit"`
 	Models       []WorkflowModelInstructions `json:"models"`
 }
 
@@ -64,32 +90,43 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	if w.WorkflowName == "" || w.StepSize == 0 || w.StepSizeUnit == "" || len(w.Models) == 0 {
+	if w.WorkflowName == "" || len(w.Models) == 0 {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	inst := kronos_helix.Instructions{
 		GroupName: "ai",
 		Type:      "workflows",
-		Alerts:    kronos_helix.AlertInstructions{},
 		AiInstruction: kronos_helix.AiInstructions{
 			WorkflowName: w.WorkflowName,
-			StepSize:     w.StepSize,
-			StepSizeUnit: w.StepSizeUnit,
-			Map:          make(map[string]kronos_helix.AiInstruction),
+			Map:          make(map[string][]kronos_helix.AiModelInstruction),
 		},
 	}
+
+	totalCycles := 0
 	for _, m := range w.Models {
 		if len(m.InstructionType) == 0 {
 			return c.JSON(http.StatusBadRequest, nil)
 		}
-		inst.AiInstruction.Map[m.InstructionType] = kronos_helix.AiInstruction{
-			InstructionType:       m.InstructionType,
-			Prompt:                m.Prompt,
-			Model:                 m.Model,
-			MaxTokens:             m.MaxTokens,
-			TokenOverflowStrategy: m.TokenOverflowStrategy,
-			CycleCount:            m.CycleCount,
+		totalCycles += m.CycleCount
+		if m.CycleCount == 0 {
+			continue
 		}
+		switch m.InstructionType {
+		case "analysis", "aggregation":
+			inst.AiInstruction.Map[m.InstructionType] = append(inst.AiInstruction.Map[m.InstructionType],
+				kronos_helix.AiModelInstruction{
+					Prompt:                m.Prompt,
+					Model:                 m.Model,
+					MaxTokens:             m.MaxTokens,
+					TokenOverflowStrategy: m.TokenOverflowStrategy,
+					CycleCount:            m.CycleCount,
+				})
+		default:
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+	}
+	if totalCycles == 0 {
+		return c.JSON(http.StatusBadRequest, nil)
 	}
 	b, err := json.Marshal(inst)
 	if err != nil {

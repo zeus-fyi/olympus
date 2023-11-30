@@ -14,7 +14,19 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs} from "@mui/material";
+import {
+    Card,
+    CardContent,
+    FormControl,
+    FormControlLabel,
+    InputLabel,
+    MenuItem,
+    Select,
+    Stack,
+    Switch,
+    Tab,
+    Tabs
+} from "@mui/material";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
 import {WorkflowTable} from "./WorkflowTable";
@@ -390,15 +402,6 @@ function AiWorkflowsDashboardContent(props: any) {
                                     </Typography>
                                 </CardContent>
                                 <CardContent>
-                                    {/*<Box sx={{ width: '100%', mb: 2, mt: -2 }}>*/}
-                                    {/*    <TextField*/}
-                                    {/*        label={`Workflow Name`}*/}
-                                    {/*        variant="outlined"*/}
-                                    {/*        value={workflowName}*/}
-                                    {/*        onChange={handleUpdateWorkflowName}*/}
-                                    {/*        fullWidth*/}
-                                    {/*    />*/}
-                                    {/*</Box>*/}
                                     <Typography gutterBottom variant="h5" component="div">
                                         Time Intervals
                                     </Typography>
@@ -448,97 +451,36 @@ function AiWorkflowsDashboardContent(props: any) {
                                         </Box>
                                     </Stack>
                                     <Typography gutterBottom variant="h5" component="div">
-                                        Workflow Token Usage Limits
+                                        Workflow Generations
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Use this to define how many tokens you want to use for your analysis. This will allow you to control how much you spend on your analysis.
-                                        Set to 0 for unlimited, otherwise it will stop the analysis when it reaches the limit per model.
+                                        Use Start Working Analysis to generate a workflow that will run the analysis on the time intervals you've defined. It will
+                                        process the data that gets generated from your search query, and then aggregate the results into a rolling window.
                                     </Typography>
-                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                            <TextField
-                                                label={`Analysis Model`}
-                                                variant="outlined"
-                                                value={analysisModel}
-                                                InputProps={{
-                                                    readOnly: true,
-                                                }}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                            <TextField
-                                                type="number"
-                                                label={`Max Tokens Analysis Model`}
-                                                variant="outlined"
-                                                value={analysisModelMaxTokens}
-                                                inputProps={{ min: 0 }}
-                                                onChange={handleUpdateAnalysisModelMaxTokens}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                    </Stack>
-                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                            <TextField
-                                                label={`Aggregation Model`}
-                                                variant="outlined"
-                                                value={aggregationModel}
-                                                InputProps={{
-                                                    readOnly: true,
-                                                }}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                            <TextField
-                                                type="number"
-                                                label={`Max Aggregation Token Usage`}
-                                                variant="outlined"
-                                                value={aggregationModelMaxTokens}
-                                                onChange={handleUpdateAggregationModelMaxTokens}
-                                                inputProps={{ min: 0 }}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                    </Stack>
-                                    <Box flexGrow={1} sx={{ mb: 2 }}>
-                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Start Workflow</Button>
+                                    <Box flexGrow={1} sx={{ mt: 2 }}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Use these buttons to search previous time intervals relative to the current time.
+                                        </Typography>
                                     </Box>
-                                    {/*<Typography gutterBottom variant="h5" component="div">*/}
-                                    {/*    Workflow Generations*/}
-                                    {/*</Typography>*/}
-                                    {/*<Typography variant="body2" color="text.secondary">*/}
-                                    {/*    Use Start Working Analysis to generate a workflow that will run the analysis on the time intervals you've defined. It will*/}
-                                    {/*    process the data that gets generated from your search query, and then aggregate the results into a rolling window.*/}
-                                    {/*</Typography>*/}
-                                    {/*<Box flexGrow={1} sx={{ mt: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Start Working Analysis</Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mt: 2 }}>*/}
-                                    {/*    <Typography variant="body2" color="text.secondary">*/}
-                                    {/*        Use these buttons to search previous time intervals relative to the current time.*/}
-                                    {/*    </Typography>*/}
-                                    {/*</Box>*/}
-                                    {/*<FormControlLabel*/}
-                                    {/*    control={<Switch checked={analyzeNext} onChange={handleToggleChange} />}*/}
-                                    {/*    label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}*/}
-                                    {/*/>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('1 hour')} >Analyze {ti} 1 Hour</Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('24 hours')} >Analyze {ti} 24 Hours</Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('7 days')} >Analyze {ti} 7 Days</Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('30 days')} >Analyze {ti} 30 Days </Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Analyze All {ti} Records</Button>*/}
-                                    {/*</Box>*/}
+                                    <FormControlLabel
+                                        control={<Switch checked={analyzeNext} onChange={handleToggleChange} />}
+                                        label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}
+                                    />
+                                    <Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('1 hour')} >Analyze {ti} 1 Hour</Button>
+                                    </Box>
+                                    <Box flexGrow={1} sx={{ mb: 2 }}>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('24 hours')} >Analyze {ti} 24 Hours</Button>
+                                    </Box>
+                                    <Box flexGrow={1} sx={{ mb: 2 }}>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('7 days')} >Analyze {ti} 7 Days</Button>
+                                    </Box>
+                                    <Box flexGrow={1} sx={{ mb: 2 }}>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('30 days')} >Analyze {ti} 30 Days </Button>
+                                    </Box>
+                                    <Box flexGrow={1} sx={{ mb: 2 }}>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Analyze All {ti} Records</Button>
+                                    </Box>
                                 </CardContent>
                             </Card>
                         </Stack>

@@ -6,7 +6,8 @@ export interface AiState {
     aggregationWorkflowInstructions: string,
     searchResults: string;
     platformFilter: string;
-    workflows: [{}];
+    workflows: [];
+    tasks: [];
 }
 
 export interface WorkflowModelInstructions {
@@ -23,4 +24,16 @@ export interface PostWorkflowsRequest {
     stepSize: number;
     stepSizeUnit: string;
     models: WorkflowModelInstructions[];
+}
+
+export interface TaskModelInstructions {
+    group: string;
+    name: string;
+    model: string;
+    taskType: string;
+    taskGroup: string;
+    taskName: string;
+    maxTokens: number;
+    tokenOverflowStrategy: string;
+    prompt: string;
 }

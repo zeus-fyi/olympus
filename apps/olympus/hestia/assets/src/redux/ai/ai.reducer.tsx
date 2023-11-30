@@ -9,7 +9,8 @@ const initialState: AiState = {
     aggregationWorkflowInstructions: '',
     searchResults: '',
     platformFilter: '',
-    workflows: [{}]
+    workflows: [],
+    tasks: []
 }
 
 const aiSlice = createSlice({
@@ -37,8 +38,11 @@ const aiSlice = createSlice({
         setPlatformFilter: (state, action: PayloadAction<string>) => {
             state.platformFilter = action.payload;
         },
-        setWorkflows: (state, action: PayloadAction<[{}]>) => {
+        setWorkflows: (state, action: PayloadAction<[]>) => {
             state.workflows = action.payload;
+        },
+        setTasks: (state, action: PayloadAction<[]>) => {
+            state.tasks = action.payload;
         }
     }
 });
@@ -50,5 +54,7 @@ export const { setSearchContent,
     setAggregationWorkflowInstructions,
     setSearchResults,
     setWorkflows,
-    setPlatformFilter} = aiSlice.actions;
+    setPlatformFilter,
+    setTasks,
+} = aiSlice.actions;
 export default aiSlice.reducer;

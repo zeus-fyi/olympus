@@ -1,17 +1,36 @@
 package kronos_helix
 
-import "time"
+import (
+	"time"
+)
 
 type AiInstructions struct {
-	WorkflowName string                   `json:"workflowName"`
-	StepSize     int                      `json:"stepSize"`
-	StepSizeUnit string                   `json:"stepSizeUnit"`
-	StartTime    time.Time                `json:"startTime"`
-	Map          map[string]AiInstruction `json:"map"`
+	WorkflowName string                          `json:"workflowName"`
+	StepSize     int                             `json:"stepSize"`
+	StepSizeUnit string                          `json:"stepSizeUnit"`
+	StartTime    time.Time                       `json:"startTime"`
+	Iteration    int                             `json:"iterations"`
+	Map          map[string][]AiModelInstruction `json:"map"`
 }
 
-type AiInstruction struct {
-	InstructionType       string `json:"instructionType"`
+func Iterate(is *AiInstructions) []AiModelInstruction {
+	is.Iteration++
+	var tmp []AiModelInstruction
+	ordering := []string{"analysis", "aggregation"}
+	for _, o := range ordering {
+		ai, ok := is.Map[o]
+		if ok {
+			for _, a := range ai {
+				if is.Iteration%a.CycleCount == 0 {
+					tmp = append(tmp, a)
+				}
+			}
+		}
+	}
+	return tmp
+}
+
+type AiModelInstruction struct {
 	Model                 string `json:"model"`
 	Prompt                string `json:"prompt"`
 	MaxTokens             int    `json:"maxTokens"`
@@ -20,16 +39,4 @@ type AiInstruction struct {
 
 	// working variables
 	TokensConsumed int `json:"tokensConsumed"`
-	CyclesLeft     int `json:"cyclesLeft"`
-}
-
-func (a *AiInstructions) GetInstructionByType(aiInstType string) AiInstruction {
-	tmp := a.Map["analysis"]
-	switch aiInstType {
-	case "analysis":
-		tmp = a.Map["analysis"]
-	case "aggregation":
-		tmp = a.Map["aggregation"]
-	}
-	return tmp
 }

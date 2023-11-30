@@ -64,7 +64,7 @@ function WorkflowEngineBuilder(props: any) {
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
     const [tasks, setTasks] = useState(allTasks.filter((task: any) => task.taskType === taskType));
     useEffect(() => {
-    }, [addAggregateView, addAnalysisView, selectedMainTab, analysisStages, aggregationStages]); // Dependency array containing addAggregateView
+    }, [addAggregateView, addAnalysisView, selectedMainTab, analysisStages, aggregationStages]);
 
     const handleAddTasksToWorkflow = async (event: any) => {
         const selectedTasks = Object.keys(selected)

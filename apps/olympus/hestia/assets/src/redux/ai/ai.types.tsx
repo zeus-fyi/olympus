@@ -10,8 +10,8 @@ export interface AiState {
     tasks: [];
     addAnalysisView: boolean;
     addAggregationView: boolean;
-    addedAnalysisTasks: [];
-    addedAggregateTasks: [];
+    addedAnalysisTasks: TaskModelInstructions[];
+    addedAggregateTasks: TaskModelInstructions[];
 }
 
 export interface WorkflowModelInstructions {
@@ -32,7 +32,6 @@ export interface PostWorkflowsRequest {
 
 export interface TaskModelInstructions {
     group: string;
-    name: string;
     model: string;
     taskType: string;
     taskGroup: string;

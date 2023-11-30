@@ -62,21 +62,21 @@ function WorkflowEngineBuilder(props: any) {
     const [taskType, setTaskType] = useState('analysis');
     const analysisStages = useSelector((state: RootState) => state.ai.addedAnalysisTasks);
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
-    const [tasks, setTasks] = useState(allTasks.filter((task: any) => task.taskType === taskType));
+    const [tasks, setTasks] = useState(allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
     useEffect(() => {
     }, [addAggregateView, addAnalysisView, selectedMainTab, analysisStages, aggregationStages]);
 
     const handleAddTasksToWorkflow = async (event: any) => {
-        const selectedTasks = Object.keys(selected)
+        setIsLoading(true)
+        const selectedTasks: TaskModelInstructions[] = Object.keys(selected)
             .filter(key => selected[Number(key)])
             .map(key => tasks[Number(key)]);
         if (addAnalysisView){
-            // @ts-ignore
             dispatch(setAddAnalysisTasks(selectedTasks));
         } else if (addAggregateView){
-            // @ts-ignore
             dispatch(setAddAggregateTasks(selectedTasks));
         }
+        setIsLoading(false)
     }
 
     const handleRemoveTasksFromWorkflow = async (event: any) => {
@@ -242,7 +242,6 @@ function WorkflowEngineBuilder(props: any) {
                 taskGroup: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
                 taskName: (taskType === 'analysis' ? analysisName : aggregationName),
                 model: (taskType === 'analysis' ? analysisModel : aggregationModel),
-                name: (taskType === 'analysis' ? analysisName : aggregationName),
                 group: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
                 prompt: (taskType === 'analysis' ? analysisWorkflowInstructions : aggregationWorkflowInstructions),
                 maxTokens:  (taskType === 'analysis' ? analysisModelMaxTokens : aggregationModelMaxTokens),
@@ -395,16 +394,60 @@ function WorkflowEngineBuilder(props: any) {
                                                     Add Analysis Stages
                                                 </Typography>
                                             </Box>
+                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                                {analysisStages && analysisStages.map((task, index) => (
+                                                    <Stack direction={"row"} key={index}>
+                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                            <TextField
+                                                                key={index}
+                                                                // label={`Task ${index + 1}`}
+                                                                value={task.taskName}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                variant="outlined"
+                                                                fullWidth
+                                                                margin="normal"
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
+                                                            <Button fullWidth variant="contained" >Remove</Button>
+                                                        </Box>
+                                                    </Stack>
+                                                ))}
+                                            </Box>
                                             <Box flexGrow={1} sx={{ mb: 0, mt: 2 }}>
                                                 <Button fullWidth variant="contained" onClick={() => addAnalysisStageView()} >{addAnalysisView ? 'Done Adding': 'Add Analysis Stages'}</Button>
                                             </Box>
-                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                            <Box flexGrow={2} sx={{mt: 2, mb: 2}}>
                                                 <Typography gutterBottom variant="h5" component="div">
                                                     Aggregation Stages
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
                                                     Add Aggregation Stages
                                                 </Typography>
+                                            </Box>
+                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                                {aggregationStages && aggregationStages.map((task, index) => (
+                                                    <Stack direction={"row"} key={index}>
+                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                            <TextField
+                                                                key={index}
+                                                                // label={`Task ${index + 1}`}
+                                                                value={task.taskName}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                variant="outlined"
+                                                                fullWidth
+                                                                margin="normal"
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
+                                                            <Button fullWidth variant="contained" >Remove</Button>
+                                                        </Box>
+                                                    </Stack>
+                                                ))}
                                             </Box>
                                             <Box flexGrow={1} sx={{ mb: 0, mt: 2 }}>
                                                 <Button fullWidth variant="contained" onClick={() => addAggregationStageView()} >{addAggregateView ? 'Done Adding' : 'Add Aggregation Stages' }</Button>

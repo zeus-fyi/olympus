@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {AiState} from "./ai.types";
+import {AiState, TaskModelInstructions} from "./ai.types";
 
 const initialState: AiState = {
     searchContentText: '',
@@ -54,10 +54,10 @@ const aiSlice = createSlice({
         setTasks: (state, action: PayloadAction<[]>) => {
             state.tasks = action.payload;
         },
-        setAddAnalysisTasks: (state, action: PayloadAction<[]>) => {
+        setAddAnalysisTasks: (state, action: PayloadAction<TaskModelInstructions[]>) => {
             state.addedAnalysisTasks = action.payload;
         },
-        setAddAggregateTasks: (state, action: PayloadAction<[]>) => {
+        setAddAggregateTasks: (state, action: PayloadAction<TaskModelInstructions[]>) => {
             state.addedAggregateTasks = action.payload;
         },
     }

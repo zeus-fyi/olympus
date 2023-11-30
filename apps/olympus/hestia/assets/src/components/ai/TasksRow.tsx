@@ -24,11 +24,13 @@ export function TasksRow(props: { row: ReturnType<typeof createTaskDetailsData>,
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>
                 </TableCell>
-                <Checkbox
-                    checked={checked}
-                    onChange={() => handleClick(index)}
-                    color="primary"
-                />
+                <TableCell align="center" >
+                    <Checkbox
+                        checked={checked}
+                        onChange={() => handleClick(index)}
+                        color="primary"
+                    />
+                </TableCell>
                 <TableCell align="left">{row.taskID}</TableCell>
                 <TableCell align="left">{row.taskGroup}</TableCell>
                 <TableCell align="left">{row.taskName}</TableCell>

@@ -1,6 +1,6 @@
 import {ethers} from "hardhat";
 import {ContractFactory} from "ethers";
-import rawDawgArtifact from "../artifacts/contracts/RawDawg.sol/RawDawg.json";
+import rawDawgArtifact from "../utils/Rawdawg.json";
 
 async function main() {
     const [deployer] = await ethers.getSigners();

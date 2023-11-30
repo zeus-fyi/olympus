@@ -48,8 +48,12 @@ function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
     const [loading, setIsLoading] = useState(false);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
+    const [selected, setSelected] = useState<{ [key: number]: boolean }>({});
     const analysisWorkflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
     const aggregationWorkflowInstructions = useSelector((state: RootState) => state.ai.aggregationWorkflowInstructions);
+    const allTasks = useSelector((state: any) => state.ai.tasks);
+    const [taskType, setTaskType] = useState('analysis');
+    const [tasks, setTasks] = useState(allTasks.filter((task: any) => task.taskType === taskType));
     const dispatch = useDispatch();
     const now = new Date();
     const getTodayAtSpecificHour = (hour: number = 12) =>
@@ -207,9 +211,34 @@ function WorkflowEngineBuilder(props: any) {
     }
 
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        if (newValue === 1) {
+            setTaskType('analysis');
+            setTasks(allTasks.filter((task: any) => task.taskType === 'analysis'));
+        } else if (newValue === 2) {
+            setTaskType('aggregation');
+            setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
+        }
         setSelectedMainTab(newValue);
     };
+    const handleClick = (index: number) => {
+        setIsLoading(true);
+        setSelected((prevSelected) => ({
+            ...prevSelected,
+            [index]: !prevSelected[index]
+        }));
+        setIsLoading(false);
+    };
 
+    const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setIsLoading(true);
+        const newSelected = tasks.reduce((acc: any, index: number) => {
+            acc[index] = !event.target.checked;
+            return acc;
+        }, {});
+        console.log('newSelected', newSelected)
+        setSelected(newSelected);
+        setIsLoading(false);
+    };
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -678,7 +707,7 @@ function WorkflowEngineBuilder(props: any) {
                     }
                     { (selectedMainTab == 1 || selectedMainTab == 2) &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <TasksTable taskType={selectedMainTab === 2 ? 'analysis' : 'aggregation'}/>
+                            <TasksTable tasks={tasks} selected={selected} handleClick={handleClick} handleSelectAllClick={handleSelectAllClick} />
                         </Container>
                     }
                     <ZeusCopyright sx={{ pt: 4 }} />

@@ -1,5 +1,4 @@
 import * as React from "react";
-import {useState} from "react";
 import {Checkbox, TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -7,18 +6,16 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
-import {useDispatch, useSelector} from "react-redux";
+import {useDispatch} from "react-redux";
 import {TasksRow} from "./TasksRow";
 
 export function TasksTable(props: any) {
-    const {taskType} = props;
+    const {selected, tasks, handleClick,handleSelectAllClick} = props;
     const [page, setPage] = React.useState(0);
-    const [selected, setSelected] = useState<{ [key: number]: boolean }>({});
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
-    const allTasks = useSelector((state: any) => state.ai.tasks);
-    const tasks = allTasks.filter((task: any) => task.taskType === taskType);
     const dispatch = useDispatch();
+
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
@@ -38,24 +35,6 @@ export function TasksTable(props: any) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - tasks.length) : 0;
 
-    const handleClick = (index: number) => {
-        setIsLoading(true);
-        setSelected(prevSelected => ({
-            ...prevSelected,
-            [index]: !prevSelected[index]
-        }));
-        setIsLoading(false);
-    };
-
-    const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setIsLoading(true);
-        const newSelected = tasks.reduce((acc: any, index: number) => {
-            acc[index] = !event.target.checked;
-            return acc;
-        }, {});
-        setSelected(newSelected);
-        setIsLoading(false);
-    };
 
     if (emptyRows) {
         return (<div></div>)

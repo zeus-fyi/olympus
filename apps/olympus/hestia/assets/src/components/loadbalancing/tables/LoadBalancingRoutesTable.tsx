@@ -25,9 +25,6 @@ export function LoadBalancingRoutesTable(props: any) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - safeEndpoints.length) : 0;
 
-    // if (selectedMainTab === 1 ) {
-    //     return <div></div>
-    // }
     return (
         <div>
             <Box sx={{ mt: 4, mb: 4 }}>

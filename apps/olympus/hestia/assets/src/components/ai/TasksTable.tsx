@@ -66,7 +66,7 @@ export function TasksTable(props: any) {
                 <TableBody>
                     {rowsPerPage > 0 && tasks && tasks.map((row: any, index: number) => (
                         <TasksRow
-                            key={tasks.taskID}
+                            key={index}
                             row={row}
                             index={index}
                             handleClick={handleClick}

@@ -8,6 +8,8 @@ export interface AiState {
     platformFilter: string;
     workflows: [];
     tasks: [];
+    addAnalysisView: boolean;
+    addAggregationView: boolean;
 }
 
 export interface WorkflowModelInstructions {

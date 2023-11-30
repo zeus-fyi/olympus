@@ -10,13 +10,21 @@ const initialState: AiState = {
     searchResults: '',
     platformFilter: '',
     workflows: [],
-    tasks: []
+    tasks: [],
+    addAnalysisView: false,
+    addAggregationView: false,
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setAddAnalysisView: (state, action: PayloadAction<boolean>) => {
+            state.addAnalysisView = action.payload;
+        },
+        setAddAggregationView: (state, action: PayloadAction<boolean>) => {
+            state.addAggregationView = action.payload;
+        },
         setUsernames: (state, action: PayloadAction<string>) => {
             state.usernames = action.payload;
         },
@@ -56,5 +64,7 @@ export const { setSearchContent,
     setWorkflows,
     setPlatformFilter,
     setTasks,
+    setAddAnalysisView,
+    setAddAggregationView
 } = aiSlice.actions;
 export default aiSlice.reducer;

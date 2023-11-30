@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -34,7 +34,12 @@ import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import TextField from "@mui/material/TextField";
 import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
-import {setAggregationWorkflowInstructions, setAnalysisWorkflowInstructions,} from "../../redux/ai/ai.reducer";
+import {
+    setAddAggregationView,
+    setAddAnalysisView,
+    setAggregationWorkflowInstructions,
+    setAnalysisWorkflowInstructions,
+} from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
 import {PostWorkflowsRequest, TaskModelInstructions, WorkflowModelInstructions} from "../../redux/ai/ai.types";
@@ -51,9 +56,40 @@ function WorkflowEngineBuilder(props: any) {
     const [selected, setSelected] = useState<{ [key: number]: boolean }>({});
     const analysisWorkflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
     const aggregationWorkflowInstructions = useSelector((state: RootState) => state.ai.aggregationWorkflowInstructions);
+    const addAnalysisView = useSelector((state: RootState) => state.ai.addAnalysisView);
+    const addAggregateView = useSelector((state: RootState) => state.ai.addAggregationView);
     const allTasks = useSelector((state: any) => state.ai.tasks);
     const [taskType, setTaskType] = useState('analysis');
     const [tasks, setTasks] = useState(allTasks.filter((task: any) => task.taskType === taskType));
+    useEffect(() => {
+    }, [addAggregateView, addAnalysisView]); // Dependency array containing addAggregateView
+
+    const addAnalysisStageView = async () => {
+        const toggle = !addAnalysisView;
+        dispatch(setAddAnalysisView(toggle));
+        dispatch(setAddAggregationView(false));
+        if (toggle) {
+            setSelectedMainTab(1)
+            setSelected({});
+            setTaskType('analysis');
+            setTasks(allTasks.filter((task: any) => task.taskType === 'analysis'));
+        } else {
+            setSelectedMainTab(0)
+        }
+    }
+    const addAggregationStageView = async () => {
+        const toggle = !addAggregateView;
+        dispatch(setAddAnalysisView(false));
+        dispatch(setAddAggregationView(!addAggregateView));
+        if (toggle) {
+            setSelected({});
+            setTaskType('aggregation');
+            setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
+            setSelectedMainTab(2)
+        } else {
+            setSelectedMainTab(0)
+        }
+    }
 
     const dispatch = useDispatch();
     const now = new Date();
@@ -220,6 +256,8 @@ function WorkflowEngineBuilder(props: any) {
             setTaskType('aggregation');
             setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
         }
+        dispatch(setAddAnalysisView(false));
+        dispatch(setAddAnalysisView(false));
         setSelectedMainTab(newValue);
     };
     const handleClick = (index: number) => {
@@ -311,7 +349,7 @@ function WorkflowEngineBuilder(props: any) {
                     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
                             <Card sx={{ minWidth: 500, maxWidth: 900 }}>
-                                { selectedMainTab == 0 &&
+                                {( selectedMainTab === 0 || addAnalysisView || addAggregateView) &&
                                     <div>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
@@ -338,6 +376,9 @@ function WorkflowEngineBuilder(props: any) {
                                                     Add Analysis Stages
                                                 </Typography>
                                             </Box>
+                                            <Box flexGrow={1} sx={{ mb: 0, mt: 2 }}>
+                                                <Button fullWidth variant="contained" onClick={() => addAnalysisStageView()} >Add</Button>
+                                            </Box>
                                             <Box flexGrow={2} sx={{mt: 2}}>
                                                 <Typography gutterBottom variant="h5" component="div">
                                                     Aggregation Stages
@@ -345,6 +386,9 @@ function WorkflowEngineBuilder(props: any) {
                                                 <Typography variant="body2" color="text.secondary">
                                                     Add Aggregation Stages
                                                 </Typography>
+                                            </Box>
+                                            <Box flexGrow={1} sx={{ mb: 0, mt: 2 }}>
+                                                <Button fullWidth variant="contained" onClick={() => addAggregationStageView()} >Add</Button>
                                             </Box>
                                         </CardContent>
                                         <CardContent>
@@ -405,7 +449,7 @@ function WorkflowEngineBuilder(props: any) {
                                 </div>
                                 }
                                 <CardContent>
-                                    { selectedMainTab == 1 &&
+                                    {!addAnalysisView && selectedMainTab == 1 &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Analysis Instructions
@@ -488,7 +532,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    { selectedMainTab == 2 &&
+                                    { !addAggregateView && !addAnalysisView && selectedMainTab == 2 &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Aggregation Instructions
@@ -624,7 +668,7 @@ function WorkflowEngineBuilder(props: any) {
                                     {/*<Typography variant="body2" color="text.secondary">*/}
                                     {/*    Use this to limit how many tokens you want to use for your LLM stages. Set to 0 for unlimited.*/}
                                     {/*</Typography>*/}
-                                    { selectedMainTab == 1 &&
+                                    { !addAnalysisView && selectedMainTab == 1 &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                 <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
@@ -655,7 +699,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    { selectedMainTab == 2 &&
+                                    { !addAggregateView && selectedMainTab == 2 &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                             <Box sx={{ width: '100%', mb: 4, mt: 4 }}>

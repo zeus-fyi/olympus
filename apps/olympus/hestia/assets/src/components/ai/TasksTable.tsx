@@ -1,6 +1,6 @@
 import * as React from "react";
 import {useState} from "react";
-import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
+import {Checkbox, TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -13,12 +13,11 @@ import {TasksRow} from "./TasksRow";
 export function TasksTable(props: any) {
     const {taskType} = props;
     const [page, setPage] = React.useState(0);
-    const [selected, setSelected] = useState<string[]>([]);
+    const [selected, setSelected] = useState<{ [key: number]: boolean }>({});
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
     const allTasks = useSelector((state: any) => state.ai.tasks);
     const tasks = allTasks.filter((task: any) => task.taskType === taskType);
-
     const dispatch = useDispatch();
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -33,52 +32,54 @@ export function TasksTable(props: any) {
         setPage(newPage);
     };
 
-    if (loading) {
-        return (<div></div>)
-    }
     if (tasks === null || tasks === undefined) {
         return (<div></div>)
     }
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - tasks.length) : 0;
 
-    const handleClick = (name: string) => {
-        const currentIndex = selected.indexOf(name);
-        const newSelected = [...selected];
-
-        if (currentIndex === -1) {
-            newSelected.push(name);
-        } else {
-            newSelected.splice(currentIndex, 1);
-        }
-
-        setSelected(newSelected);
+    const handleClick = (index: number) => {
+        setIsLoading(true);
+        setSelected(prevSelected => ({
+            ...prevSelected,
+            [index]: !prevSelected[index]
+        }));
+        setIsLoading(false);
     };
+
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.checked) {
-            const newSelected = tasks.map((wf: any) => wf);
-            setSelected(newSelected);
-            return;
-        }
-        setSelected([]);
+        setIsLoading(true);
+        const newSelected = tasks.reduce((acc: any, index: number) => {
+            acc[index] = !event.target.checked;
+            return acc;
+        }, {});
+        setSelected(newSelected);
+        setIsLoading(false);
     };
 
     if (emptyRows) {
         return (<div></div>)
     }
+    const countTrueValues = (obj: { [key: number]: boolean }): number => {
+        return Object.values(obj).filter(value => value).length;
+    };
+    if (loading) {
+        return (<div></div>)
+    }
+
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="private apps pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#333'}} >
-                        {/*<TableCell padding="checkbox">*/}
-                        {/*    <Checkbox*/}
-                        {/*        color="primary"*/}
-                        {/*        indeterminate={tasks.length > 0 && selected.length < tasks.length}*/}
-                        {/*        checked={tasks.length > 0 && selected.length === tasks.length}*/}
-                        {/*        onChange={handleSelectAllClick}*/}
-                        {/*    />*/}
-                        {/*</TableCell>*/}
+                        <TableCell padding="checkbox">
+                            <Checkbox
+                                color="primary"
+                                indeterminate={countTrueValues(selected) > 0 && countTrueValues(selected) < tasks.length}
+                                checked={(countTrueValues(selected) === tasks.length) && tasks.length > 0}
+                                onChange={handleSelectAllClick}
+                            />
+                        </TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Task ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
@@ -87,8 +88,14 @@ export function TasksTable(props: any) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rowsPerPage > 0 && tasks && tasks.map((row: any) => (
-                        <TasksRow key={tasks.taskID} row={row} />
+                    {rowsPerPage > 0 && tasks && tasks.map((row: any, index: number) => (
+                        <TasksRow
+                            key={tasks.taskID}
+                            row={row}
+                            index={index}
+                            handleClick={handleClick}
+                            checked={selected[index] || false}
+                        />
                     ))}
                     {emptyRows > 0 && (
                         <TableRow style={{ height: 53 * emptyRows }}>

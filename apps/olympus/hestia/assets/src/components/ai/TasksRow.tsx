@@ -6,9 +6,10 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
+import Checkbox from "@mui/material/Checkbox";
 
-export function TasksRow(props: { row: ReturnType<typeof createTaskDetailsData> }) {
-    const { row } = props;
+export function TasksRow(props: { row: ReturnType<typeof createTaskDetailsData>, index: number, handleClick: any, checked: boolean}) {
+    const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
 
     return (
@@ -23,6 +24,11 @@ export function TasksRow(props: { row: ReturnType<typeof createTaskDetailsData> 
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>
                 </TableCell>
+                <Checkbox
+                    checked={checked}
+                    onChange={() => handleClick(index)}
+                    color="primary"
+                />
                 <TableCell align="left">{row.taskID}</TableCell>
                 <TableCell align="left">{row.taskGroup}</TableCell>
                 <TableCell align="left">{row.taskName}</TableCell>

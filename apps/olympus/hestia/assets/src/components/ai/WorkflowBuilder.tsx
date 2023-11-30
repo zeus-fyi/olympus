@@ -319,8 +319,58 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Typography>
                                             </Box>
                                         </CardContent>
+                                        <CardContent>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Time Intervals
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
+                                            </Typography>
+                                            <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 2 }}>
+                                                <Box sx={{ width: '33%' }}> {/* Adjusted Box for TextField */}
+                                                    <TextField
+                                                        type="number"
+                                                        label="Time Step Size"
+                                                        variant="outlined"
+                                                        inputProps={{ min: 1 }}  // Set minimum value to 1
+                                                        value={stepSize}
+                                                        onChange={handleTimeStepChange}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                                <Box sx={{ width: '33%' }}> {/* Adjusted Box for FormControl */}
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="time-unit-label">Time Unit</InputLabel>
+                                                        <Select
+                                                            labelId="time-unit-label"
+                                                            id="time-unit-select"
+                                                            value={stepSizeUnit}
+                                                            label="Time Unit"
+                                                            onChange={handleUpdateStepSizeUnit}
+                                                        >
+                                                            <MenuItem value="seconds">Seconds</MenuItem>
+                                                            <MenuItem value="minutes">Minutes</MenuItem>
+                                                            <MenuItem value="hours">Hours</MenuItem>
+                                                            <MenuItem value="days">Days</MenuItem>
+                                                            <MenuItem value="weeks">Weeks</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Box>
+                                                <Box sx={{ width: '33%' }}>
+                                                    <TextField
+                                                        label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit
+                                                        variant="outlined"
+                                                        value={stepSize* cycleCount}
+                                                        InputProps={{
+                                                            readOnly: true,
+                                                        }}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                            </Stack>
+                                        </CardContent>
                                         <CardActions>
-                                            <Box flexGrow={1} sx={{ mb: -2 }}>
+                                            <Box flexGrow={1} sx={{ mb: -6, mt: -4 }}>
                                                 <Button fullWidth variant="contained" onClick={() => createOrUpdateWorkflow('all')} >Save Workflow</Button>
                                             </Box>
                                         </CardActions>
@@ -608,41 +658,6 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-
-                                    {/*<Typography gutterBottom variant="h5" component="div">*/}
-                                    {/*    Workflow Generations*/}
-                                    {/*</Typography>*/}
-                                    {/*<Typography variant="body2" color="text.secondary">*/}
-                                    {/*    Use Start Working Analysis to generate a workflow that will run the analysis on the time intervals you've defined. It will*/}
-                                    {/*    process the data that gets generated from your search query, and then aggregate the results into a rolling window.*/}
-                                    {/*</Typography>*/}
-                                    {/*<Box flexGrow={1} sx={{ mt: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Start Working Analysis</Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mt: 2 }}>*/}
-                                    {/*    <Typography variant="body2" color="text.secondary">*/}
-                                    {/*        Use these buttons to search previous time intervals relative to the current time.*/}
-                                    {/*    </Typography>*/}
-                                    {/*</Box>*/}
-                                    {/*<FormControlLabel*/}
-                                    {/*    control={<Switch checked={analyzeNext} onChange={handleToggleChange} />}*/}
-                                    {/*    label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}*/}
-                                    {/*/>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('1 hour')} >Analyze {ti} 1 Hour</Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('24 hours')} >Analyze {ti} 24 Hours</Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('7 days')} >Analyze {ti} 7 Days</Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('30 days')} >Analyze {ti} 30 Days </Button>*/}
-                                    {/*</Box>*/}
-                                    {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                    {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Analyze All {ti} Records</Button>*/}
-                                    {/*</Box>*/}
                                 </CardContent>
                             </Card>
                         </Stack>

@@ -511,7 +511,7 @@ function WorkflowEngineBuilder(props: any) {
                                 </div>
                                 }
                                 <CardContent>
-                                    {!addAnalysisView && selectedMainTab == 1 &&
+                                    {!addAnalysisView && !addAggregateView && selectedMainTab == 1 &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Analysis Instructions
@@ -572,17 +572,6 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
-                                                {/*<Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>*/}
-                                                {/*    <TextField*/}
-                                                {/*        type="number"*/}
-                                                {/*        label="Cycle Count"*/}
-                                                {/*        variant="outlined"*/}
-                                                {/*        value={cycleCount}*/}
-                                                {/*        inputProps={{ min: 0 }}  // Set minimum value to 0*/}
-                                                {/*        onChange={(event) => handleCycleCountChange(parseInt(event.target.value, 10))}*/}
-                                                {/*        fullWidth*/}
-                                                {/*    />*/}
-                                                {/*</Box>*/}
                                             </Stack>
                                             <Box  sx={{ mb: 2, mt: -2 }}>
                                                 <TextareaAutosize
@@ -730,7 +719,7 @@ function WorkflowEngineBuilder(props: any) {
                                     {/*<Typography variant="body2" color="text.secondary">*/}
                                     {/*    Use this to limit how many tokens you want to use for your LLM stages. Set to 0 for unlimited.*/}
                                     {/*</Typography>*/}
-                                    { !addAnalysisView && selectedMainTab == 1 &&
+                                    { !addAnalysisView && !addAggregateView && selectedMainTab == 1 &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                 <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
@@ -761,7 +750,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    { !addAggregateView && selectedMainTab == 2 &&
+                                    {  !addAnalysisView && !addAggregateView && selectedMainTab == 2 &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                             <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
@@ -810,11 +799,10 @@ function WorkflowEngineBuilder(props: any) {
                             <WorkflowTable />
                         </Container>
                     }
-
                     { (selectedMainTab === 1 || selectedMainTab === 2) && (addAggregateView || addAnalysisView) &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Box sx={{ mb: 2 }}>
-                                <span>({Object.values(selected).filter(value => value).length} selected endpoints)</span>
+                                <span>({Object.values(selected).filter(value => value).length} Selected Tasks)</span>
                                 <Button variant="outlined" color="secondary" onClick={handleAddTasksToWorkflow} style={{marginLeft: '10px'}}>
                                     Add {addAnalysisView ? 'Analysis' : 'Aggregation'} Stages
                                 </Button>

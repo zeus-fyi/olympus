@@ -27,12 +27,16 @@ var (
 	PromqlProxy = "http://promql.promql-edc89f30.svc.cluster.local"
 )
 
+const (
+	SamsOrgID = 1701381301753642000
+)
+
 func (r *MevRequest) GetDashboardInfo(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
-	if ou.OrgID != hestia_login.TemporalOrgID {
+	if ou.OrgID != hestia_login.TemporalOrgID && ou.OrgID != SamsOrgID {
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	ctx := context.Background()
@@ -40,7 +44,6 @@ func (r *MevRequest) GetDashboardInfo(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	callBundles, err := artemis_reporting.SelectCallBundleHistory(ctx, 0, 1)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)

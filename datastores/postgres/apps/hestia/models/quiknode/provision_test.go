@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 )
@@ -15,6 +16,15 @@ var ctx = context.Background()
 
 type QuickNodeProvisioningTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
+}
+
+func (s *QuickNodeProvisioningTestSuite) TestEnterUserExternal() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	email := "smedwards121@gmail.com'"
+	plan := "enterprise"
+	apiKey := "kH4KriZiEhSTUwyG6hTHCiQJWAabtjoJZAdMg2VsVUL7WTEYmkqjoxSsipdLxo3nH3LQi53o8u"
+	err := InsertIrisUserApiKey(ctx, email, plan, apiKey)
+	s.Require().Nil(err)
 }
 
 func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {

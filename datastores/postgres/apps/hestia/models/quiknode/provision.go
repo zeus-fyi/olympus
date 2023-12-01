@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -18,6 +20,50 @@ type QuickNodeService struct {
 	hestia_autogen_bases.ProvisionedQuickNodeServices
 	ProvisionedQuickNodeServicesContractAddresses []hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses
 	ProvisionedQuickNodeServicesReferrers         []hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers
+}
+
+func InsertIrisUserApiKey(ctx context.Context, email, plan, apiKey string) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+				WITH new_user_id AS (
+					SELECT user_id
+					FROM users
+					WHERE email = $1
+					LIMIT 1
+				), cte_marketplace_customer AS (
+					  INSERT INTO quicknode_marketplace_customer (quicknode_id, plan, is_test)
+					  VALUES ($2, $3, false)
+					  ON CONFLICT (quicknode_id) 
+					  DO UPDATE SET 
+					  plan = EXCLUDED.plan
+				), cte_quicknode_service AS (
+					INSERT INTO users_keys(user_id, public_key_name, public_key_verified, public_key_type_id, public_key)
+					SELECT nui.user_id, $4, true, $5, $6
+					FROM new_user_id nui
+					WHERE nui.user_id IS NOT NULL
+					ON CONFLICT (public_key) DO UPDATE SET 
+						public_key_verified = EXCLUDED.public_key_verified,
+						user_id = EXCLUDED.user_id
+					RETURNING public_key
+				), cte_qn_service AS (
+					INSERT INTO users_key_services(public_key, service_id)
+					SELECT cqs.public_key, $7
+					FROM cte_quicknode_service cqs
+					ON CONFLICT (public_key, service_id) DO NOTHING
+				)
+					INSERT INTO users_key_services(public_key, service_id)
+					SELECT cqs.public_key, 1677096782693758000
+					FROM cte_quicknode_service cqs
+					ON CONFLICT (public_key, service_id) DO NOTHING
+				`
+	qid := uuid.New().String()
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, email, qid, plan, "quickNodeMarketplaceCustomer", 12, apiKey, 11)
+	if err != nil && err != pgx.ErrNoRows {
+		log.Err(err).Msg("failed to execute query")
+		return err
+	}
+
+	return nil
 }
 
 func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService) error {

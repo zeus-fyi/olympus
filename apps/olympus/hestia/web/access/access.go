@@ -21,7 +21,10 @@ func AccessRequestHandler(c echo.Context) error {
 	return request.AuthCheck(c)
 }
 
-const TemporalOrgID = 7138983863666903883
+const (
+	TemporalOrgID = 7138983863666903883
+	SamsOrgID     = 1701381301753642000
+)
 
 func (a *AccessRequest) AuthCheck(c echo.Context) error {
 	var resp hestia_login.LoginResponse
@@ -43,7 +46,7 @@ func (a *AccessRequest) AuthCheck(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	isInternal := false
-	if ou.OrgID == TemporalOrgID {
+	if ou.OrgID == TemporalOrgID || ou.OrgID == SamsOrgID {
 		isInternal = true
 	}
 	resp.IsInternal = isInternal

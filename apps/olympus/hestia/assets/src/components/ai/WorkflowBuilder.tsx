@@ -43,7 +43,6 @@ import {
     setAnalysisWorkflowInstructions,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
-import {set} from 'date-fns';
 import {PostWorkflowsRequest, TaskModelInstructions, WorkflowModelInstructions} from "../../redux/ai/ai.types";
 import {TasksTable} from "./TasksTable";
 
@@ -65,6 +64,14 @@ function WorkflowEngineBuilder(props: any) {
     const [tasks, setTasks] = useState(allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
     useEffect(() => {
     }, [addAggregateView, addAnalysisView, selectedMainTab, analysisStages, aggregationStages]);
+    const dispatch = useDispatch();
+    const [analysisCycleCount, setAnalysisCycleCount] = useState(0);
+    const handleAnalysisCycleCountChange = (val: number) => {
+        if (val < aggregationCycleCount) {
+            setAggregationCycleCount(val);
+        }
+        setAnalysisCycleCount(val);
+    };
 
     const handleAddTasksToWorkflow = async (event: any) => {
         setIsLoading(true)
@@ -109,18 +116,6 @@ function WorkflowEngineBuilder(props: any) {
             setSelectedMainTab(0)
         }
     }
-
-    const dispatch = useDispatch();
-    const now = new Date();
-    const getTodayAtSpecificHour = (hour: number = 12) =>
-        set(now, { hours: hour, minutes: 0, seconds: 0, milliseconds: 0 });
-    const [cycleCount, setCycleCount] = useState(0);
-    const handleCycleCountChange = (val: number) => {
-        if (val < aggregationCycleCount) {
-            setAggregationCycleCount(val);
-        }
-        setCycleCount(val);
-    };
     const [aggregationCycleCount, setAggregationCycleCount] = useState(0);
     const handleAggregationCycleCountChange = (val: number) => {
         setAggregationCycleCount(val);
@@ -204,7 +199,7 @@ function WorkflowEngineBuilder(props: any) {
                     prompt: analysisWorkflowInstructions,
                     maxTokens: analysisModelMaxTokens, // Optional
                     tokenOverflowStrategy: analysisModelTokenOverflowStrategy, // Optional
-                    cycleCount: cycleCount
+                    cycleCount: analysisCycleCount
                 },
                 {
                     instructionType: "aggregation",
@@ -390,11 +385,11 @@ function WorkflowEngineBuilder(props: any) {
                                                 <Typography gutterBottom variant="h5" component="div">
                                                     Analysis Stages
                                                 </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Add Analysis Stages
-                                                </Typography>
+                                                {/*<Typography variant="body2" color="text.secondary">*/}
+                                                {/*    Add Analysis Stages*/}
+                                                {/*</Typography>*/}
                                             </Box>
-                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                            <Box flexGrow={2} sx={{mt: 4}}>
                                                 {analysisStages && analysisStages.map((task, index) => (
                                                     <Stack direction={"row"} key={index}>
                                                         <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
@@ -410,6 +405,17 @@ function WorkflowEngineBuilder(props: any) {
                                                                 margin="normal"
                                                             />
                                                         </Box>
+                                                        <Box flexGrow={2} sx={{ mb: 0, mt: -1, ml:2 }}>
+                                                            <TextField
+                                                                type="number"
+                                                                label="Analysis Cycle Count"
+                                                                variant="outlined"
+                                                                value={analysisCycleCount}
+                                                                inputProps={{ min: 0 }}  // Set minimum value to 0
+                                                                onChange={(event) => handleAnalysisCycleCountChange(parseInt(event.target.value, 10))}
+                                                                fullWidth
+                                                            />
+                                                        </Box>
                                                         <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
                                                             <Button fullWidth variant="contained" >Remove</Button>
                                                         </Box>
@@ -423,11 +429,11 @@ function WorkflowEngineBuilder(props: any) {
                                                 <Typography gutterBottom variant="h5" component="div">
                                                     Aggregation Stages
                                                 </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Add Aggregation Stages
-                                                </Typography>
+                                                {/*<Typography variant="body2" color="text.secondary">*/}
+                                                {/*    Add Aggregation Stages*/}
+                                                {/*</Typography>*/}
                                             </Box>
-                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                            <Box flexGrow={2} sx={{mt: 4}}>
                                                 {aggregationStages && aggregationStages.map((task, index) => (
                                                     <Stack direction={"row"} key={index}>
                                                         <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
@@ -441,6 +447,17 @@ function WorkflowEngineBuilder(props: any) {
                                                                 variant="outlined"
                                                                 fullWidth
                                                                 margin="normal"
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={2} sx={{ mb: 0, mt: -1, ml:2 }}>
+                                                            <TextField
+                                                                type="number"
+                                                                label="Aggregation Cycle Count"
+                                                                variant="outlined"
+                                                                value={aggregationCycleCount}
+                                                                inputProps={{ min: 0 }}  // Set minimum value to 0
+                                                                onChange={(event) => handleAggregationCycleCountChange(parseInt(event.target.value, 10))}
+                                                                fullWidth
                                                             />
                                                         </Box>
                                                         <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
@@ -494,7 +511,7 @@ function WorkflowEngineBuilder(props: any) {
                                                     <TextField
                                                         label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit
                                                         variant="outlined"
-                                                        value={stepSize* cycleCount}
+                                                        value={stepSize* analysisCycleCount}
                                                         InputProps={{
                                                             readOnly: true,
                                                         }}
@@ -643,17 +660,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
-                                                {/*<Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>*/}
-                                                {/*    <TextField*/}
-                                                {/*        type="number"*/}
-                                                {/*        label="Aggregation Cycle Count"*/}
-                                                {/*        variant="outlined"*/}
-                                                {/*        value={aggregationCycleCount}*/}
-                                                {/*        inputProps={{ min: 0 }}  // Set minimum value to 0*/}
-                                                {/*        onChange={(event) => handleAggregationCycleCountChange(parseInt(event.target.value, 10))}*/}
-                                                {/*        fullWidth*/}
-                                                {/*    />*/}
-                                                {/*</Box>*/}
+
                                             </Stack>
                                             <Box  sx={{ mb: 2, mt: 2 }}>
                                                 <TextareaAutosize

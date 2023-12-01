@@ -41,7 +41,10 @@ type LoginResponse struct {
 	PlanDetailsUsage *iris_service_plans.PlanUsageDetailsResponse `json:"planUsageDetails,omitempty"`
 }
 
-const TemporalOrgID = 7138983863666903883
+const (
+	TemporalOrgID = 7138983863666903883
+	SamsOrgID     = 1701381301753642000
+)
 
 func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 	ctx := context.Background()
@@ -74,7 +77,7 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		}
 	}
 	isInternal := false
-	if key.OrgID == TemporalOrgID {
+	if key.OrgID == TemporalOrgID || key.OrgID == SamsOrgID {
 		isInternal = true
 	}
 	resp := LoginResponse{

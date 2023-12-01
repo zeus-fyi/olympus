@@ -22,6 +22,7 @@ import {
     InputLabel,
     MenuItem,
     Select,
+    SelectChangeEvent,
     Stack,
     Tab,
     Tabs,
@@ -289,6 +290,23 @@ function WorkflowEngineBuilder(props: any) {
         setSelected(newSelection);
     };
 
+    // todo, create redux for aggregate-subtasks
+    const handleAddSubTaskToAggregate = (index: number, event: SelectChangeEvent<string>) => {
+        // const values = [...(selectedDockerImage.ports)];
+        // values[index] = { ...values[index], [event.target.name]: event.target.value };
+        // dispatch(
+        //     setDockerImagePort({
+        //         componentBaseKey: selectedComponentBaseName,
+        //         skeletonBaseKey: selectedSkeletonBaseName,
+        //         containerName: selectedContainerName,
+        //         dockerImageKey:
+        //         skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.imageName,
+        //         portIndex: index,
+        //         port: values[index],
+        //     })
+        // );
+    };
+
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -466,42 +484,40 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Box>
                                                         </Stack>
                                                         <Divider />
-                                                        {/*{analysisStages && analysisStages.map((task, index) => (*/}
-                                                            <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={index}>
-                                                                {/*<Box flexGrow={2} sx={{ mt: -5, ml: 2 }}>*/}
-                                                                {/*    <TextField*/}
-                                                                {/*        key={index}*/}
-                                                                {/*        // label={`Task ${index + 1}`}*/}
-                                                                {/*        value={task.taskName}*/}
-                                                                {/*        InputProps={{*/}
-                                                                {/*            readOnly: true,*/}
-                                                                {/*        }}*/}
-                                                                {/*        variant="outlined"*/}
-                                                                {/*        fullWidth*/}
-                                                                {/*        margin="normal"*/}
-                                                                {/*    />*/}
-                                                                {/*</Box>*/}
-                                                                <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
-                                                                    <FormControl fullWidth>
-                                                                        <InputLabel id={`stage-select-label-${index}`}>Aggregate On</InputLabel>
-                                                                        <Select
-                                                                            labelId={`stage-select-label-${index}`}
-                                                                            id={`stage-select-${index}`}
-                                                                            value={task.taskName} // This should correspond to the selected stage for each task
-                                                                            label="Analysis Source"
-                                                                            //onChange={(event) => handleStageChange(event, index)} // Replace with your actual event handler
-                                                                        >
-                                                                            {analysisStages.map((stage: any, index: number) => (
-                                                                                <MenuItem key={index} value={stage.taskID}>{stage.taskName}</MenuItem>
-                                                                            ))}
-                                                                        </Select>
-                                                                    </FormControl>
-                                                                </Box>
-                                                                <Box flexGrow={3} sx={{mt: -2, ml: 2 }}>
-                                                                    <Button variant="contained" >Add</Button>
-                                                                </Box>
-                                                            </Stack>
-                                                        {/*))}*/}
+                                                        <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={index}>
+                                                            {/*<Box flexGrow={2} sx={{ mt: -5, ml: 2 }}>*/}
+                                                            {/*    <TextField*/}
+                                                            {/*        key={index}*/}
+                                                            {/*        // label={`Task ${index + 1}`}*/}
+                                                            {/*        value={task.taskName}*/}
+                                                            {/*        InputProps={{*/}
+                                                            {/*            readOnly: true,*/}
+                                                            {/*        }}*/}
+                                                            {/*        variant="outlined"*/}
+                                                            {/*        fullWidth*/}
+                                                            {/*        margin="normal"*/}
+                                                            {/*    />*/}
+                                                            {/*</Box>*/}
+                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                <FormControl fullWidth>
+                                                                    <InputLabel id={`stage-select-label-${index}`}>Aggregate On</InputLabel>
+                                                                    <Select
+                                                                        labelId={`stage-select-label-${index}`}
+                                                                        id={`stage-select-${index}`}
+                                                                        value={task.taskName} // This should correspond to the selected stage for each task
+                                                                        label="Analysis Source"
+                                                                        //onChange={(event) => handleAddSubTaskToAggregate(event, index)} // Replace with your actual event handler
+                                                                    >
+                                                                        {analysisStages.map((stage: any, subIndex: number) => (
+                                                                            <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                            <Box flexGrow={3} sx={{mt: -2, ml: 2 }}>
+                                                                <Button variant="contained" >Add</Button>
+                                                            </Box>
+                                                        </Stack>
                                                     </Stack>
                                                 ))}
                                             </Box>

@@ -62,7 +62,6 @@ export const ClusterViews = (props: any) => {
         }
     }
 
-
     const onClickRolloutRestart = async (clusterClassName: string) => {
         if (appName === "-all") {
             return;

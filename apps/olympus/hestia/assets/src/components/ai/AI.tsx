@@ -224,64 +224,72 @@ function AiWorkflowsDashboardContent(props: any) {
         return new Date(ms).toLocaleTimeString([], { hour: 'numeric', hour12: true });
     };
 
+    const AppBarAi = (props: any) => {
+        const {toggleDrawer, open, handleLogout} = props;
+        return (
+            <div>
+            <AppBar position="absolute" open={open} style={{ backgroundColor: '#333'}}>
+                <Toolbar
+                    sx={{
+                        pr: '24px', // keep right padding when drawer closed
+                    }}
+                >
+                    <IconButton
+                        edge="start"
+                        color="inherit"
+                        aria-label="open drawer"
+                        onClick={toggleDrawer}
+                        sx={{
+                            marginRight: '36px',
+                            ...(open && { display: 'none' }),
+                        }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <Typography
+                        component="h1"
+                        variant="h6"
+                        color="inherit"
+                        noWrap
+                        sx={{ flexGrow: 1 }}
+                    >
+                        LLM Workflow Engine
+                    </Typography>
+                    <Button
+                        color="inherit"
+                        onClick={handleLogout}
+                    >Logout
+                    </Button>
+                </Toolbar>
+            </AppBar>
+            <Drawer variant="permanent" open={open}>
+                <Toolbar
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        px: [1],
+                    }}
+                >
+                    <IconButton onClick={toggleDrawer}>
+                        <ChevronLeftIcon />
+                    </IconButton>
+                </Toolbar>
+                <Divider />
+                <List component="nav">
+                    <MainListItems />
+                    <Divider sx={{ my: 1 }} />
+                </List>
+            </Drawer>
+            </div>
+        )};
+
     const ti = analyzeNext ? 'Next' : 'Previous';
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open} style={{ backgroundColor: '#333'}}>
-                    <Toolbar
-                        sx={{
-                            pr: '24px', // keep right padding when drawer closed
-                        }}
-                    >
-                        <IconButton
-                            edge="start"
-                            color="inherit"
-                            aria-label="open drawer"
-                            onClick={toggleDrawer}
-                            sx={{
-                                marginRight: '36px',
-                                ...(open && { display: 'none' }),
-                            }}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                        <Typography
-                            component="h1"
-                            variant="h6"
-                            color="inherit"
-                            noWrap
-                            sx={{ flexGrow: 1 }}
-                        >
-                            LLM Workflow Engine
-                        </Typography>
-                        <Button
-                            color="inherit"
-                            onClick={handleLogout}
-                        >Logout
-                        </Button>
-                    </Toolbar>
-                </AppBar>
-                <Drawer variant="permanent" open={open}>
-                    <Toolbar
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-end',
-                            px: [1],
-                        }}
-                    >
-                        <IconButton onClick={toggleDrawer}>
-                            <ChevronLeftIcon />
-                        </IconButton>
-                    </Toolbar>
-                    <Divider />
-                    <List component="nav">
-                        <MainListItems />
-                        <Divider sx={{ my: 1 }} />
-                    </List>
-                </Drawer>
+                <AppBarAi toggleDrawer={toggleDrawer} open={open} handleLogout={handleLogout} />
                 <Box
                     component="main"
                     sx={{

@@ -21,15 +21,10 @@ type QuickNodeService struct {
 	ProvisionedQuickNodeServicesReferrers         []hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers
 }
 
-func InsertIrisUserApiKey(ctx context.Context, email, plan, apiKey string) error {
+func InsertIrisUserApiKey(ctx context.Context, userID int, plan string) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
-				WITH new_user_id AS (
-					SELECT user_id
-					FROM users
-					WHERE email = $1
-					LIMIT 1
-				), cte_marketplace_customer AS (
+				WITH cte_marketplace_customer AS (
 					  INSERT INTO quicknode_marketplace_customer (quicknode_id, plan, is_test)
 					  VALUES ($2, $3, false)
 					  ON CONFLICT (quicknode_id) 
@@ -37,9 +32,7 @@ func InsertIrisUserApiKey(ctx context.Context, email, plan, apiKey string) error
 					  plan = EXCLUDED.plan
 				), cte_quicknode_service AS (
 					INSERT INTO users_keys(user_id, public_key_name, public_key_verified, public_key_type_id, public_key)
-					SELECT nui.user_id, $4, true, $5, $2
-					FROM new_user_id nui
-					WHERE nui.user_id IS NOT NULL
+					VALUES ($1, $4, true, $5, $2)
 					ON CONFLICT (public_key) DO UPDATE SET 
 						public_key_verified = EXCLUDED.public_key_verified,
 						user_id = EXCLUDED.user_id
@@ -56,7 +49,7 @@ func InsertIrisUserApiKey(ctx context.Context, email, plan, apiKey string) error
 					ON CONFLICT (public_key, service_id) DO NOTHING
 				`
 	qid := uuid.New().String()
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, email, qid, plan, "quickNodeMarketplaceCustomer", 12, 11)
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, userID, qid, plan, "quickNodeMarketplaceCustomer", 12, 11)
 	if err != nil {
 		log.Err(err).Msg("failed to execute query")
 		return err

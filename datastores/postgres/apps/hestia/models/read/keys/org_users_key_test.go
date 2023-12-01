@@ -25,8 +25,9 @@ func (s *ReadOrgUsersKeyTestSuite) TestGetAuthedServices() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	services, _, err := k.QueryUserAuthedServices(ctx, s.Tc.ProductionLocalTemporalBearerToken)
+	services, m, err := k.QueryUserAuthedServices(ctx, "jdb5b49gzx6jzzbc59k8b466c2kv52hwmqvb94mxgvvnfbnnxvmssnc26m5g5wh8")
 	s.Require().Nil(err)
+	s.Assert().NotEmpty(m)
 	s.NotEmpty(services)
 	s.Assert().Equal(7138983863666903883, k.OrgID)
 	s.Assert().Equal(7138958574876245567, k.UserID)

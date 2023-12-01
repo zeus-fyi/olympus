@@ -20,10 +20,10 @@ type QuickNodeProvisioningTestSuite struct {
 
 func (s *QuickNodeProvisioningTestSuite) TestEnterUserExternal() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	email := "smedwards121@gmail.com'"
+	//email := "smedwards121@gmail.com'"
 	plan := "enterprise"
-	apiKey := "kH4KriZiEhSTUwyG6hTHCiQJWAabtjoJZAdMg2VsVUL7WTEYmkqjoxSsipdLxo3nH3LQi53o8u"
-	err := InsertIrisUserApiKey(ctx, email, plan, apiKey)
+	uid := 1701381301753642000
+	err := InsertIrisUserApiKey(ctx, uid, plan)
 	s.Require().Nil(err)
 }
 

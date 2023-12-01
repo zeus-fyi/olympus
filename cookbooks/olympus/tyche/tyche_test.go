@@ -45,7 +45,7 @@ func (t *TycheCookbookTestSuite) SetupTest() {
 
 	// uses the bearer token from test/configs/config.yaml
 	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
-	t.ZeusExtTestClient = zeus_client_ext.NewZeusClient("http://localhost:9001", tc.Bearer)
+	t.ZeusExtTestClient = zeus_client_ext.NewDefaultZeusClient(tc.Bearer)
 
 	//t.ZeusTestClient = zeus_client.NewLocalZeusClient(tc.Bearer)
 	olympus_cookbooks.ChangeToCookbookDir()

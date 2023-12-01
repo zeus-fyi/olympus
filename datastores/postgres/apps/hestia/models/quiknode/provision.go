@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -38,7 +37,7 @@ func InsertIrisUserApiKey(ctx context.Context, email, plan, apiKey string) error
 					  plan = EXCLUDED.plan
 				), cte_quicknode_service AS (
 					INSERT INTO users_keys(user_id, public_key_name, public_key_verified, public_key_type_id, public_key)
-					SELECT nui.user_id, $4, true, $5, $6
+					SELECT nui.user_id, $4, true, $5, $2
 					FROM new_user_id nui
 					WHERE nui.user_id IS NOT NULL
 					ON CONFLICT (public_key) DO UPDATE SET 
@@ -47,7 +46,7 @@ func InsertIrisUserApiKey(ctx context.Context, email, plan, apiKey string) error
 					RETURNING public_key
 				), cte_qn_service AS (
 					INSERT INTO users_key_services(public_key, service_id)
-					SELECT cqs.public_key, $7
+					SELECT cqs.public_key, $6
 					FROM cte_quicknode_service cqs
 					ON CONFLICT (public_key, service_id) DO NOTHING
 				)
@@ -57,8 +56,8 @@ func InsertIrisUserApiKey(ctx context.Context, email, plan, apiKey string) error
 					ON CONFLICT (public_key, service_id) DO NOTHING
 				`
 	qid := uuid.New().String()
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, email, qid, plan, "quickNodeMarketplaceCustomer", 12, apiKey, 11)
-	if err != nil && err != pgx.ErrNoRows {
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, email, qid, plan, "quickNodeMarketplaceCustomer", 12, 11)
+	if err != nil {
 		log.Err(err).Msg("failed to execute query")
 		return err
 	}

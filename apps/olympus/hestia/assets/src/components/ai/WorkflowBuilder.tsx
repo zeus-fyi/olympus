@@ -435,34 +435,73 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 4}}>
                                                 {aggregationStages && aggregationStages.map((task, index) => (
-                                                    <Stack direction={"row"} key={index}>
-                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
-                                                            <TextField
-                                                                key={index}
-                                                                // label={`Task ${index + 1}`}
-                                                                value={task.taskName}
-                                                                InputProps={{
-                                                                    readOnly: true,
-                                                                }}
-                                                                variant="outlined"
-                                                                fullWidth
-                                                                margin="normal"
-                                                            />
-                                                        </Box>
-                                                        <Box flexGrow={2} sx={{ mb: 0, mt: -1, ml:2 }}>
-                                                            <TextField
-                                                                type="number"
-                                                                label="Aggregation Cycle Count"
-                                                                variant="outlined"
-                                                                value={aggregationCycleCount}
-                                                                inputProps={{ min: 0 }}  // Set minimum value to 0
-                                                                onChange={(event) => handleAggregationCycleCountChange(parseInt(event.target.value, 10))}
-                                                                fullWidth
-                                                            />
-                                                        </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
-                                                            <Button fullWidth variant="contained" >Remove</Button>
-                                                        </Box>
+                                                    <Stack direction={"column"} key={index}>
+                                                        <Stack direction={"row"} key={index}>
+                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                <TextField
+                                                                    key={index}
+                                                                    // label={`Task ${index + 1}`}
+                                                                    value={task.taskName}
+                                                                    InputProps={{
+                                                                        readOnly: true,
+                                                                    }}
+                                                                    variant="outlined"
+                                                                    fullWidth
+                                                                    margin="normal"
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mb: 0, mt: -1, ml:2 }}>
+                                                                <TextField
+                                                                    type="number"
+                                                                    label="Aggregation Cycle Count"
+                                                                    variant="outlined"
+                                                                    value={aggregationCycleCount}
+                                                                    inputProps={{ min: 0 }}  // Set minimum value to 0
+                                                                    onChange={(event) => handleAggregationCycleCountChange(parseInt(event.target.value, 10))}
+                                                                    fullWidth
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{ mb: 4, ml: 2 }}>
+                                                                <Button fullWidth variant="contained" >Remove</Button>
+                                                            </Box>
+                                                        </Stack>
+                                                        <Divider />
+                                                        {/*{analysisStages && analysisStages.map((task, index) => (*/}
+                                                            <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={index}>
+                                                                {/*<Box flexGrow={2} sx={{ mt: -5, ml: 2 }}>*/}
+                                                                {/*    <TextField*/}
+                                                                {/*        key={index}*/}
+                                                                {/*        // label={`Task ${index + 1}`}*/}
+                                                                {/*        value={task.taskName}*/}
+                                                                {/*        InputProps={{*/}
+                                                                {/*            readOnly: true,*/}
+                                                                {/*        }}*/}
+                                                                {/*        variant="outlined"*/}
+                                                                {/*        fullWidth*/}
+                                                                {/*        margin="normal"*/}
+                                                                {/*    />*/}
+                                                                {/*</Box>*/}
+                                                                <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                    <FormControl fullWidth>
+                                                                        <InputLabel id={`stage-select-label-${index}`}>Aggregate On</InputLabel>
+                                                                        <Select
+                                                                            labelId={`stage-select-label-${index}`}
+                                                                            id={`stage-select-${index}`}
+                                                                            value={task.taskName} // This should correspond to the selected stage for each task
+                                                                            label="Analysis Source"
+                                                                            //onChange={(event) => handleStageChange(event, index)} // Replace with your actual event handler
+                                                                        >
+                                                                            {analysisStages.map((stage: any, index: number) => (
+                                                                                <MenuItem key={index} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                            ))}
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                                <Box flexGrow={3} sx={{mt: -2, ml: 2 }}>
+                                                                    <Button variant="contained" >Add</Button>
+                                                                </Box>
+                                                            </Stack>
+                                                        {/*))}*/}
                                                     </Stack>
                                                 ))}
                                             </Box>

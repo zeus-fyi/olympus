@@ -174,6 +174,7 @@ func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.Mem
 
 	var buf []byte
 	if Sp.FileInPathExists() {
+		log.Info().Msg("ReadEncryptedSecretsData: reading from in mem dir")
 		buf = ReadEncSecretsFromInMemDir()
 	} else {
 		buf = s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue).Bytes()

@@ -17,10 +17,19 @@ spec:
         app.kubernetes.io/name: "tyche"
         app.kubernetes.io/instance: "tyche"
     spec:
+      initContainers:
+        - name: init-aegis-secrets
+          image: registry.digitalocean.com/zeus-fyi/aegis-secrets:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: "/secrets"
+              name: "secrets"
       containers:
         - name: "tyche"
           image: "registry.digitalocean.com/zeus-fyi/tyche:latest"
           volumeMounts:
+            - mountPath: "/secrets"
+              name: "secrets"
             - mountPath: "/scripts"
               name: "cm-tyche"
           imagePullPolicy: Always
@@ -65,6 +74,9 @@ spec:
           resources:
             {}
       volumes:
+        - name: secrets
+          emptyDir:
+            medium: Memory
         - name: cm-tyche
           configMap:
             name: cm-tyche

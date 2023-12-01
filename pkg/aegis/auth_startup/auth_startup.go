@@ -93,8 +93,6 @@ func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthCo
 
 	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
-
-	//
 	//log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Read Bytes")
 	//buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
 	//log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Done Read Bytes")

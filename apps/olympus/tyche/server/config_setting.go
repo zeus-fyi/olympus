@@ -13,11 +13,9 @@ import (
 	artemis_mev_tx_fetcher "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/mev"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
-	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
 	"github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/price_quoter"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
 )
 
@@ -49,6 +47,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		iris_redis.InitProductionBackupRedisIrisCache(ctx)
 		//iris_redis.InitProductionRedisIrisCache(ctx)
 	case "production-local":
+		auth_startup.Ksp.DirIn = "../configs"
+		auth_startup.Sp.DirIn = "../configs"
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
@@ -62,6 +62,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
 	case "local":
+		auth_startup.Ksp.DirIn = "../configs"
+		auth_startup.Sp.DirIn = "../configs"
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthCfg = tc.DevTemporalAuth
@@ -90,11 +92,11 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msg("Tyche: InitTokenFilter succeeded")
 
 	log.Info().Msg("Tyche: InitFlashbots starting")
-	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
+	//age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
 	tyche_metrics.InitTycheMetrics(ctx)
 	artemis_trading_cache.InitWeb3Client()
-	artemis_trade_executor.InitMainnetAuxiliaryTradingUtils(ctx, age)
-	artemis_trade_executor.InitGoerliAuxiliaryTradingUtils(ctx, age)
+	//artemis_trade_executor.InitMainnetAuxiliaryTradingUtils(ctx, age)
+	//artemis_trade_executor.InitGoerliAuxiliaryTradingUtils(ctx, age)
 	log.Info().Msg("Tyche: InitFlashbots succeeded")
 
 	artemis_mev_tx_fetcher.InitTycheUniswap(ctx, artemis_orchestration_auth.Bearer)

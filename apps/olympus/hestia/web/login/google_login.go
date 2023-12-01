@@ -135,7 +135,7 @@ func (g *GoogleLoginRequest) VerifyGoogleLogin(c echo.Context) error {
 
 	}
 	isInternal := false
-	if key.OrgID == TemporalOrgID {
+	if key.OrgID == TemporalOrgID || key.OrgID == SamsOrgID {
 		isInternal = true
 	}
 	li := LoginResponse{

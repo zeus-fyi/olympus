@@ -59,7 +59,7 @@ func (l *TokenRefreshRequest) RefreshToken(c echo.Context) error {
 		}
 	}
 	isInternal := false
-	if key.OrgID == TemporalOrgID {
+	if key.OrgID == TemporalOrgID || key.OrgID == SamsOrgID {
 		isInternal = true
 	}
 	resp := LoginResponse{

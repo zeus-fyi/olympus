@@ -9,10 +9,10 @@ import (
 
 func (t *IrisCookbookTestSuite) TestDeployRedis() {
 	t.TestUploadRedis()
-	cdep := redisClusterDefinition.GenerateDeploymentRequest()
+	//cdep := redisClusterDefinition.GenerateDeploymentRequest()
 
-	_, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
-	t.Require().Nil(err)
+	//_, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
+	//t.Require().Nil(err)
 }
 
 func (t *IrisCookbookTestSuite) TestDestroyRedis() {

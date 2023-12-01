@@ -41,7 +41,15 @@ func DBDeploymentContainer(d *deployments.Deployment, c *containers.Container) e
 		c.K8sContainer.Name = c.Metadata.ContainerName
 		c.K8sContainer.Image = c.Metadata.ContainerImageID
 		c.K8sContainer.ImagePullPolicy = v1.PullPolicy(c.Metadata.ContainerImagePullPolicy)
-		d.K8sDeployment.Spec.Template.Spec.Containers = append(deploymentContainers, c.K8sContainer)
+
+		if c.Metadata.IsInitContainer {
+			if d.K8sDeployment.Spec.Template.Spec.InitContainers == nil {
+				d.K8sDeployment.Spec.Template.Spec.InitContainers = []v1.Container{}
+			}
+			d.K8sDeployment.Spec.Template.Spec.InitContainers = append(d.K8sDeployment.Spec.Template.Spec.InitContainers, c.K8sContainer)
+		} else {
+			d.K8sDeployment.Spec.Template.Spec.Containers = append(deploymentContainers, c.K8sContainer)
+		}
 	}
 	return nil
 }

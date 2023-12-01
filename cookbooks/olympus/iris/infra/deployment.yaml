@@ -17,10 +17,19 @@ spec:
         app.kubernetes.io/name: "iris"
         app.kubernetes.io/instance: "iris"
     spec:
+      initContainers:
+        - name: init-aegis-secrets
+          image: registry.digitalocean.com/zeus-fyi/aegis-secrets:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: "/secrets"
+              name: "secrets"
       containers:
         - name: "iris"
           image: "registry.digitalocean.com/zeus-fyi/iris:latest"
           volumeMounts:
+            - mountPath: "/secrets"
+              name: "secrets"
             - mountPath: "/scripts"
               name: "cm-iris"
           imagePullPolicy: Always
@@ -73,6 +82,9 @@ spec:
               cpu: '2'
               memory: 4Gi
       volumes:
+        - name: secrets
+          emptyDir:
+            medium: Memory
         - name: cm-iris
           configMap:
             name: cm-iris

@@ -43,6 +43,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		iris_redis.InitProductionBackupRedisIrisCache(ctx)
 		//iris_redis.InitProductionRedisIrisCache(ctx)
 	case "production-local":
+		auth_startup.Ksp.DirIn = "../configs"
+		auth_startup.Sp.DirIn = "../configs"
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
@@ -53,6 +55,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
 	case "local":
+		auth_startup.Ksp.DirIn = "../configs"
+		auth_startup.Sp.DirIn = "../configs"
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthCfg = tc.DevTemporalAuth

@@ -14,6 +14,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import {
     Card,
     CardActions,
@@ -290,8 +291,7 @@ function WorkflowEngineBuilder(props: any) {
         setSelected(newSelection);
     };
 
-    // todo, create redux for aggregate-subtasks
-    const handleAddSubTaskToAggregate = (index: number, event: SelectChangeEvent<string>) => {
+    const handleAddSubTaskToAggregate = ( event: SelectChangeEvent<string>, index: number) => {
         // const values = [...(selectedDockerImage.ports)];
         // values[index] = { ...values[index], [event.target.name]: event.target.value };
         // dispatch(
@@ -305,6 +305,11 @@ function WorkflowEngineBuilder(props: any) {
         //         port: values[index],
         //     })
         // );
+    };
+
+    const selectSubTaskForAggregate = ( event: SelectChangeEvent<string>, index: number) => {
+    };
+    const selectAggregateToAddSources = ( event: SelectChangeEvent<string>, index: number) => {
     };
 
     return (
@@ -399,13 +404,14 @@ function WorkflowEngineBuilder(props: any) {
                                                     fullWidth
                                                 />
                                             </Box>
+                                            <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                                <Divider/>
+                                            </Box>
                                             <Box flexGrow={2} sx={{mt: 2}}>
                                                 <Typography gutterBottom variant="h5" component="div">
                                                     Analysis Stages
                                                 </Typography>
-                                                {/*<Typography variant="body2" color="text.secondary">*/}
-                                                {/*    Add Analysis Stages*/}
-                                                {/*</Typography>*/}
+
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 4}}>
                                                 {analysisStages && analysisStages.map((task, index) => (
@@ -440,10 +446,13 @@ function WorkflowEngineBuilder(props: any) {
                                                     </Stack>
                                                 ))}
                                             </Box>
-                                            <Box flexGrow={1} sx={{ mb: 0, mt: 2 }}>
-                                                <Button fullWidth variant="contained" onClick={() => addAnalysisStageView()} >{addAnalysisView ? 'Done Adding': 'Add Analysis Stages'}</Button>
+                                            <Box flexGrow={1} sx={{ mb: 0, mt: 2, ml: 2 }}>
+                                                <Button  variant="contained" onClick={() => addAnalysisStageView()} >{addAnalysisView ? 'Done Adding': 'Add Analysis Stages'}</Button>
                                             </Box>
-                                            <Box flexGrow={2} sx={{mt: 2, mb: 2}}>
+                                            <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                                <Divider/>
+                                            </Box>
+                                            <Box flexGrow={2} sx={{mt:2 , mb: 4}}>
                                                 <Typography gutterBottom variant="h5" component="div">
                                                     Aggregation Stages
                                                 </Typography>
@@ -484,29 +493,21 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Box>
                                                         </Stack>
                                                         <Divider />
+                                                        <Box sx={{ mt: 2 }} >
+                                                            <Typography variant="h6" color="text.secondary">
+                                                                Link Analysis Stages to Aggregates
+                                                            </Typography>
+                                                        </Box>
                                                         <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={index}>
-                                                            {/*<Box flexGrow={2} sx={{ mt: -5, ml: 2 }}>*/}
-                                                            {/*    <TextField*/}
-                                                            {/*        key={index}*/}
-                                                            {/*        // label={`Task ${index + 1}`}*/}
-                                                            {/*        value={task.taskName}*/}
-                                                            {/*        InputProps={{*/}
-                                                            {/*            readOnly: true,*/}
-                                                            {/*        }}*/}
-                                                            {/*        variant="outlined"*/}
-                                                            {/*        fullWidth*/}
-                                                            {/*        margin="normal"*/}
-                                                            {/*    />*/}
-                                                            {/*</Box>*/}
-                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                            <Box flexGrow={3} sx={{ mt: -3, ml: 2 }}>
                                                                 <FormControl fullWidth>
-                                                                    <InputLabel id={`stage-select-label-${index}`}>Aggregate On</InputLabel>
+                                                                    <InputLabel id={`stage-select-label-${index}`}>Analysis</InputLabel>
                                                                     <Select
                                                                         labelId={`stage-select-label-${index}`}
                                                                         id={`stage-select-${index}`}
                                                                         value={task.taskName} // This should correspond to the selected stage for each task
                                                                         label="Analysis Source"
-                                                                        //onChange={(event) => handleAddSubTaskToAggregate(event, index)} // Replace with your actual event handler
+                                                                        onChange={(event) => handleAddSubTaskToAggregate(event, index)} // Replace with your actual event handler
                                                                     >
                                                                         {analysisStages.map((stage: any, subIndex: number) => (
                                                                             <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
@@ -514,15 +515,34 @@ function WorkflowEngineBuilder(props: any) {
                                                                     </Select>
                                                                 </FormControl>
                                                             </Box>
+                                                            <Box flexGrow={1} sx={{ mt: -1.5, ml: 3, mr: -4 }}>
+                                                                <ArrowForwardIcon />
+                                                            </Box>
+                                                            <Box flexGrow={3} sx={{ mt: -3, ml: 0 }}>
+                                                                <FormControl fullWidth>
+                                                                    <InputLabel id={`stage-select-label-${index}`}>Aggregate</InputLabel>
+                                                                    <Select
+                                                                        labelId={`stage-select-label-${index}`}
+                                                                        id={`stage-select-${index}`}
+                                                                        value={task.taskName} // This should correspond to the selected stage for each task
+                                                                        label="Aggregate Source"
+                                                                        onChange={(event) => handleAddSubTaskToAggregate(event, index)} // Replace with your actual event handler
+                                                                    >
+                                                                        {aggregationStages.map((stage: any, subIndex: number) => (
+                                                                            <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
                                                             <Box flexGrow={3} sx={{mt: -2, ml: 2 }}>
-                                                                <Button variant="contained" >Add</Button>
+                                                                <Button variant="contained" >Add Source</Button>
                                                             </Box>
                                                         </Stack>
                                                     </Stack>
                                                 ))}
                                             </Box>
-                                            <Box flexGrow={1} sx={{ mb: 0, mt: 2 }}>
-                                                <Button fullWidth variant="contained" onClick={() => addAggregationStageView()} >{addAggregateView ? 'Done Adding' : 'Add Aggregation Stages' }</Button>
+                                            <Box flexGrow={1} sx={{ mb: 0, mt: 4, ml: 2 }}>
+                                                <Button variant="contained" onClick={() => addAggregationStageView()} >{addAggregateView ? 'Done Adding' : 'Add Aggregation Stages' }</Button>
                                             </Box>
                                         </CardContent>
                                         <CardContent>
@@ -576,7 +596,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Stack>
                                         </CardContent>
                                         <CardActions>
-                                            <Box flexGrow={1} sx={{ mb: -6, mt: -4 }}>
+                                            <Box flexGrow={1} sx={{ mb: -6, mt: -4, ml: 1, mr: 1}}>
                                                 <Button fullWidth variant="contained" onClick={() => createOrUpdateWorkflow('all')} >Save Workflow</Button>
                                             </Box>
                                         </CardActions>

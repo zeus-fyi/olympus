@@ -234,6 +234,11 @@ function WorkflowEngineBuilder(props: any) {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+    const [requestAggStatus, setRequestAggStatus] = useState('');
+    const [requestAggStatusError, setRequestAggStatusError] = useState('');
+    const [requestAnalysisStatus, setRequestAnalysisStatus] = useState('');
+    const [requestAnalysisStatusError, setRequestAnalysisStatusError] = useState('');
+
     const [requestStatus, setRequestStatus] = useState('');
     const [requestStatusError, setRequestStatusError] = useState('');
     const createOrUpdateWorkflow = async () => {
@@ -300,9 +305,45 @@ function WorkflowEngineBuilder(props: any) {
         try {
             setIsLoading(true)
             const tn = (taskType === 'analysis' ? analysisName : aggregationName);
+
+            if (!isValidLabel(tn)) {
+                if (taskType === 'analysis') {
+                    setRequestAnalysisStatus('Analysis task name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                    setRequestAnalysisStatusError('error')
+                } else if (taskType === 'aggregation') {
+                    setRequestAggStatus('Aggregation task name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                    setRequestAggStatusError('error')
+                }
+                return;
+            }
+
+            const taskGn = (taskType === 'analysis' ? analysisGroupName : aggregationGroupName);
+            if (!isValidLabel(taskGn)) {
+                if (taskType === 'analysis') {
+                    setRequestAnalysisStatus('Analysis task group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                    setRequestAnalysisStatusError('error')
+                } else if (taskType === 'aggregation') {
+                    setRequestAggStatus('Aggregation task group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                    setRequestAggStatusError('error')
+                }
+                return;
+            }
+
+            const prompt = (taskType === 'analysis' ? analysisWorkflowInstructions : aggregationWorkflowInstructions);
+            if (prompt.length <= 0) {
+                if (taskType === 'analysis') {
+                    setRequestAnalysisStatus('Analysis task prompt is empty')
+                    setRequestAnalysisStatusError('error')
+                } else if (taskType === 'aggregation') {
+                    setRequestAggStatus('Aggregation task prompt is empty')
+                    setRequestAggStatusError('error')
+                }
+                return;
+            }
+
             const task: TaskModelInstructions = {
                 taskType: taskType,
-                taskGroup: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
+                taskGroup:taskGn,
                 taskName: tn,
                 model: (taskType === 'analysis' ? analysisModel : aggregationModel),
                 group: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
@@ -315,10 +356,18 @@ function WorkflowEngineBuilder(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
+                if (taskType === 'analysis') {
+                    setRequestAnalysisStatus('Task created successfully')
+                    setRequestAnalysisStatusError('success')
+                } else if (taskType === 'aggregation') {
+                    setRequestAggStatus('Task created successfully')
+                    setRequestAggStatusError('success')
+                }
             } else {
                 console.log('Failed to update or add task', response);
             }
         } catch (e) {
+
         } finally {
             setIsLoading(false);
         }
@@ -338,6 +387,13 @@ function WorkflowEngineBuilder(props: any) {
             setTaskType('aggregation');
             setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
         }
+        setRequestStatus('');
+        setRequestStatusError('');
+        setRequestAnalysisStatus('');
+        setRequestAnalysisStatusError('');
+        setRequestAggStatus('');
+        setRequestAggStatusError('');
+
         dispatch(setAddAnalysisView(false));
         setSelectedMainTab(newValue);
     };
@@ -948,6 +1004,13 @@ function WorkflowEngineBuilder(props: any) {
                                                     />
                                                 </Box>
                                             </Stack>
+                                            {requestAnalysisStatus != '' && (
+                                                <Container sx={{ mb: 2, mt: -2}}>
+                                                    <Typography variant="h6" color={requestAnalysisStatusError}>
+                                                        {requestAnalysisStatus}
+                                                    </Typography>
+                                                </Container>
+                                            )}
                                             <Box flexGrow={1} sx={{ mb: 2 }}>
                                                 <Button fullWidth variant="contained" onClick={() =>  createOrUpdateTask('analysis')} >Save Analysis</Button>
                                             </Box>
@@ -979,6 +1042,13 @@ function WorkflowEngineBuilder(props: any) {
                                                 />
                                             </Box>
                                             </Stack>
+                                            {requestAggStatus != '' && (
+                                                <Container sx={{ mb: 2, mt: -2}}>
+                                                    <Typography variant="h6" color={requestAggStatusError}>
+                                                        {requestAggStatus}
+                                                    </Typography>
+                                                </Container>
+                                            )}
                                             <Box flexGrow={1} sx={{ mb: 2 }}>
                                                 <Button fullWidth variant="contained" onClick={() => createOrUpdateTask('aggregation')} >Save Aggregation</Button>
                                             </Box>

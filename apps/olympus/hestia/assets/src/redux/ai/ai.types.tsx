@@ -55,3 +55,13 @@ export type UpdateTaskCycleCountPayload = {
     key: number;
     count: number;
 };
+
+export function isValidCycleCount(taskMap: TaskMap): boolean {
+    return Object.values(taskMap).every(task => {
+        // Here we check if cycleCount is undefined and if it's <= 0
+        if(task.taskType === 'analysis' || task.taskType === 'aggregation') {
+            return task.cycleCount !== undefined && task.cycleCount > 0;
+        }
+        return true;
+    });
+}

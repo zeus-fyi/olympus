@@ -47,8 +47,9 @@ import {
     setWorkflowBuilderTaskMap,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
-import {PostWorkflowsRequest, TaskModelInstructions} from "../../redux/ai/ai.types";
+import {isValidCycleCount, PostWorkflowsRequest, TaskModelInstructions} from "../../redux/ai/ai.types";
 import {TasksTable} from "./TasksTable";
+import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 
 const mdTheme = createTheme();
 
@@ -233,10 +234,45 @@ function WorkflowEngineBuilder(props: any) {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
-
+    const [requestStatus, setRequestStatus] = useState('');
+    const [requestStatusError, setRequestStatusError] = useState('');
     const createOrUpdateWorkflow = async () => {
         try {
-            setIsLoading(true)
+            if (!isValidCycleCount(taskMap)) {
+                setRequestStatus('All analysis and aggregation tasks must have a cycle count greater than 0');
+                setRequestStatusError('error');
+                return;
+            }
+            if (analysisStages.length <= 0) {
+                setRequestStatus('Workflow must have at least one analysis stage')
+                setRequestStatusError('error')
+                return;
+            }
+            if (aggregationStages.length > 0 && analysisStages.length <= 0) {
+                setRequestStatus('Workflows with aggregation stages must have at least one connected analysis stage')
+                setRequestStatusError('error')
+                return;
+            }
+            if (Object.keys(workflowBuilderTaskMap).length <= 0) {
+                setRequestStatus('Workflows with aggregation stages must have at least one connected analysis stage')
+                setRequestStatusError('error')
+                return;
+            }
+            if (Object.keys(workflowBuilderTaskMap).length < aggregationStages.length) {
+                setRequestStatus('Workflows with aggregation stages must have at least one connected analysis stage')
+                setRequestStatusError('error')
+                return;
+            }
+            if (stepSize <= 0) {
+                setRequestStatus('Step size must be greater than 0')
+                setRequestStatusError('error')
+                return;
+            }
+            if (!isValidLabel(workflowName)) {
+                setRequestStatus('Workflow name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                setRequestStatusError('error')
+                return;
+            }
             const payload: PostWorkflowsRequest = {
                 workflowName: workflowName,
                 stepSize: stepSize,
@@ -244,12 +280,15 @@ function WorkflowEngineBuilder(props: any) {
                 models: taskMap,
                 aggregateSubTasksMap: workflowBuilderTaskMap
             }
+            setIsLoading(true)
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
+                setRequestStatus('Workflow created successfully')
+                setRequestStatusError('success')
             } else {
-                console.log('Failed to createAiWorkflowRequest', response);
+                console.log('failed to createAiWorkflowRequest', response);
             }
         } catch (e) {
         } finally {
@@ -260,10 +299,11 @@ function WorkflowEngineBuilder(props: any) {
     const createOrUpdateTask = async (taskType: string) => {
         try {
             setIsLoading(true)
+            const tn = (taskType === 'analysis' ? analysisName : aggregationName);
             const task: TaskModelInstructions = {
                 taskType: taskType,
                 taskGroup: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
-                taskName: (taskType === 'analysis' ? analysisName : aggregationName),
+                taskName: tn,
                 model: (taskType === 'analysis' ? analysisModel : aggregationModel),
                 group: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
                 prompt: (taskType === 'analysis' ? analysisWorkflowInstructions : aggregationWorkflowInstructions),
@@ -670,10 +710,17 @@ function WorkflowEngineBuilder(props: any) {
                                             </Stack>
                                         </CardContent>
                                         <CardActions>
-                                            <Box flexGrow={1} sx={{ mb: -6, mt: -4, ml: 1, mr: 1}}>
+                                            <Box flexGrow={1} sx={{ mb: -7, mt: -8, ml: 2, mr: 2}}>
                                                 <Button fullWidth variant="contained" onClick={createOrUpdateWorkflow} >Save Workflow</Button>
                                             </Box>
                                         </CardActions>
+                                            {requestStatus != '' && (
+                                                <Container sx={{  mt: 2}}>
+                                                    <Typography variant="h6" color={requestStatusError}>
+                                                        {requestStatus}
+                                                    </Typography>
+                                                </Container>
+                                            )}
                                 </div>
                                 }
                                 <CardContent>

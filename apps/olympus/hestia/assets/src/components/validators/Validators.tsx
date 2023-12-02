@@ -131,7 +131,7 @@ function ValidatorsServiceContent() {
                                     Validator Management for Ethereum Staking
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Currently, you can only view validators which have successfully registered for service. More functionality coming soon.
+                                    Currently, you can only view validators which have successfully registered for service. Contact us if you want to register your validator for service.
                                 </Typography>
                             </CardContent>
                         </Card>

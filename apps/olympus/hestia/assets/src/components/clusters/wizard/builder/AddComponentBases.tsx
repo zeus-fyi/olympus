@@ -98,7 +98,7 @@ export function AddComponentBases() {
 }
 
 // https://github.com/kubernetes/apimachinery/blob/master/pkg/util/validation/validation.go
-function isValidLabel(label: string): boolean {
+export function isValidLabel(label: string): boolean {
     // Check if the label is empty
     if (label.length === 0) {
         return false;

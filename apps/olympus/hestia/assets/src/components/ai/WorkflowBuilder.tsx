@@ -133,9 +133,9 @@ function WorkflowEngineBuilder(props: any) {
             .filter(key => selected[Number(key)])
             .map(key => tasks[Number(key)]);
         if (addAnalysisView){
-            dispatch(setAddAnalysisTasks(selectedTasks));
+            dispatch(setAddAnalysisTasks(selectedTasks.filter((task: TaskModelInstructions) => task.taskType === 'analysis')));
         } else if (addAggregateView){
-            dispatch(setAddAggregateTasks(selectedTasks));
+            dispatch(setAddAggregateTasks(selectedTasks.filter((task: TaskModelInstructions) => task.taskType === 'aggregation')));
         }
         setIsLoading(false)
     }
@@ -386,6 +386,12 @@ function WorkflowEngineBuilder(props: any) {
             setSelected({});
             setTaskType('aggregation');
             setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
+        }
+        if (addAggregateView && newValue !== 2) {
+            dispatch(setAddAggregationView(false));
+        }
+        if (addAnalysisView && newValue !== 1) {
+            dispatch(setAddAnalysisView(false));
         }
         setRequestStatus('');
         setRequestStatusError('');

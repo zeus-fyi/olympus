@@ -504,7 +504,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         <div>
                                                             <Box sx={{ mt: 2 }} >
                                                                 <Typography variant="h6" color="text.secondary">
-                                                                    Analysis {'->'} Aggregates Dependencies
+                                                                    Analysis {'->'} Aggregation Dependencies
                                                                 </Typography>
                                                             </Box>
                                                             { workflowBuilderTaskMap &&

@@ -525,7 +525,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
                                                             <TextField
                                                                 key={subIndex}
-                                                                // label={`Task ${index + 1}`}
+                                                                label={`Analysis Name`}
                                                                 value={task.taskName}
                                                                 InputProps={{
                                                                     readOnly: true,
@@ -535,12 +535,38 @@ function WorkflowEngineBuilder(props: any) {
                                                                 margin="normal"
                                                             />
                                                         </Box>
-                                                        <Box flexGrow={2} sx={{ mb: 0, mt: -1, ml:2 }}>
+                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                            <TextField
+                                                                key={subIndex}
+                                                                label={`Analysis Group`}
+                                                                value={task.taskGroup}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                variant="outlined"
+                                                                fullWidth
+                                                                margin="normal"
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                            <TextField
+                                                                key={subIndex+task.model}
+                                                                label={`Analysis Model`}
+                                                                value={task.model}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                variant="outlined"
+                                                                fullWidth
+                                                                margin="normal"
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 0, mt: -1, ml:2 }}>
                                                             <TextField
                                                                 type="number"
                                                                 label="Analysis Cycle Count"
                                                                 variant="outlined"
-                                                                value={taskMap[task?.taskID || 0]?.cycleCount || 0}
+                                                                value={taskMap[task?.taskID || 1]?.cycleCount || 1}
                                                                 inputProps={{ min: 0 }}  // Set minimum value to 0
                                                                 onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10), task)}
                                                                 fullWidth
@@ -564,7 +590,8 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Typography>
                                                 <Typography gutterBottom variant="body2" component="div">
                                                    One aggregation cycle is equal to the longest of any dependent analysis cycles.
-                                                    If you have an analysis stage that occurs every 2 time cycles, and set the aggregation cycle count to 2, it will run after 4 total time cycles, which equals two completions of the longest dependent analysis stage.
+                                                    If you have an analysis stage that occurs every 2 time cycles, and set the aggregation cycle count to 2,
+                                                    it will run on time cycle 4 after the analysis stage completes.
                                                 </Typography>
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 4}}>
@@ -574,8 +601,34 @@ function WorkflowEngineBuilder(props: any) {
                                                             <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
                                                                 <TextField
                                                                     key={subIndex}
-                                                                    // label={`Task ${index + 1}`}
+                                                                    label={`Aggregation Name`}
                                                                     value={task.taskName}
+                                                                    InputProps={{
+                                                                        readOnly: true,
+                                                                    }}
+                                                                    variant="outlined"
+                                                                    fullWidth
+                                                                    margin="normal"
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                <TextField
+                                                                    key={subIndex}
+                                                                    label={`Aggregation Group`}
+                                                                    value={task.taskGroup}
+                                                                    InputProps={{
+                                                                        readOnly: true,
+                                                                    }}
+                                                                    variant="outlined"
+                                                                    fullWidth
+                                                                    margin="normal"
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                <TextField
+                                                                    key={subIndex+task.model}
+                                                                    label={`Aggregation Model`}
+                                                                    value={task.model}
                                                                     InputProps={{
                                                                         readOnly: true,
                                                                     }}
@@ -589,7 +642,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     type="number"
                                                                     label="Aggregation Cycle Count"
                                                                     variant="outlined"
-                                                                    value={taskMap[task?.taskID || 0]?.cycleCount || 0}
+                                                                    value={taskMap[task?.taskID || 1]?.cycleCount || 1}
                                                                     inputProps={{ min: 0 }}  // Set minimum value to 0
                                                                     onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10),task)}
                                                                     fullWidth

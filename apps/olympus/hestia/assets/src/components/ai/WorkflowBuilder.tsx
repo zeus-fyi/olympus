@@ -174,7 +174,7 @@ function WorkflowEngineBuilder(props: any) {
     const handleUpdateStepSizeUnit = (event: any) => {
         setStepSizeUnit(event.target.value);
     };
-    const [analysisModel, setAnalysisModel] = React.useState('gpt-3.5-turbo');
+    const [analysisModel, setAnalysisModel] = React.useState('gpt-3.5-turbo-1106');
     const handleUpdateAnalysisModel = (event: any) => {
         setAnalysisModel(event.target.value);
     };
@@ -186,7 +186,7 @@ function WorkflowEngineBuilder(props: any) {
     const handleUpdateAnalysisModelTokenOverflowStrategy = (event: any) => {
         setAnalysisModelTokenOverflowStrategy(event.target.value);
     };
-    const [aggregationModel, setAggregationModel] = React.useState('gpt-4-1106-preview');
+    const [aggregationModel, setAggregationModel] = React.useState('gpt-4');
     const handleUpdateAggregationModel = (event: any) => {
         setAggregationModel(event.target.value);
     };
@@ -826,8 +826,15 @@ function WorkflowEngineBuilder(props: any) {
                                                             label="Analysis Model"
                                                             onChange={handleUpdateAnalysisModel}
                                                         >
-                                                            <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
+                                                            <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
+                                                            <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                                                            <MenuItem value="gpt-4">gpt-4</MenuItem>
+                                                            <MenuItem value="gpt-4-32k">gpt-4-32k</MenuItem>
+                                                            <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
+                                                            <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
                                                             <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                            <MenuItem value="babbage-002">babbage-002</MenuItem>
+                                                            <MenuItem value="davinci-002">davinci-002</MenuItem>
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
@@ -897,8 +904,15 @@ function WorkflowEngineBuilder(props: any) {
                                                             label="Aggregation Model"
                                                             onChange={handleUpdateAggregationModel}
                                                         >
-                                                            <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
+                                                            <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
+                                                            <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                                                            <MenuItem value="gpt-4">gpt-4</MenuItem>
+                                                            <MenuItem value="gpt-4-32k">gpt-4-32k</MenuItem>
+                                                            <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
+                                                            <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
                                                             <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                            <MenuItem value="babbage-002">babbage-002</MenuItem>
+                                                            <MenuItem value="davinci-002">davinci-002</MenuItem>
                                                         </Select>
                                                     </FormControl>
                                                 </Box>

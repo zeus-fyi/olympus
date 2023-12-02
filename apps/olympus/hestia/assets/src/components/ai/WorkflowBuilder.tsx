@@ -612,7 +612,7 @@ function WorkflowEngineBuilder(props: any) {
                                                     </Stack>
                                             </Box>
                                         </CardContent>
-                                        <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                        <Box flexGrow={1} sx={{ mt: 4, mb: 0}}>
                                             <Divider/>
                                         </Box>
                                         <CardContent>

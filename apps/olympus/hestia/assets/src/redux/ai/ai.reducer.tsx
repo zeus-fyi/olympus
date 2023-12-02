@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {AiState, TaskModelInstructions} from "./ai.types";
+import {AiState, TaskModelInstructions, UpdateTaskMapPayload} from "./ai.types";
 
 const initialState: AiState = {
     searchContentText: '',
@@ -15,6 +15,7 @@ const initialState: AiState = {
     addAggregationView: false,
     addedAnalysisTasks: [],
     addedAggregateTasks: [],
+    workflowBuilderTaskMap: {}
 }
 
 const aiSlice = createSlice({
@@ -60,6 +61,26 @@ const aiSlice = createSlice({
         setAddAggregateTasks: (state, action: PayloadAction<TaskModelInstructions[]>) => {
             state.addedAggregateTasks = action.payload;
         },
+        setWorkflowBuilderTaskMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
+            const { key, subKey, value } = action.payload;
+
+            if (value) {
+                if (!state.workflowBuilderTaskMap[key]) {
+                    state.workflowBuilderTaskMap[key] = {};
+                }
+                state.workflowBuilderTaskMap[key][subKey] = true;
+            } else {
+                if (state.workflowBuilderTaskMap[key]) {
+                    delete state.workflowBuilderTaskMap[key][subKey];
+
+                    // Check if the main key has no inner keys left
+                    if (Object.keys(state.workflowBuilderTaskMap[key]).length === 0) {
+                        // If so, delete the main key from the map
+                        delete state.workflowBuilderTaskMap[key];
+                    }
+                }
+            }
+        },
     }
 });
 
@@ -75,6 +96,8 @@ export const { setSearchContent,
     setAddAnalysisView,
     setAddAggregationView,
     setAddAnalysisTasks,
-    setAddAggregateTasks
+    setAddAggregateTasks,
+    setWorkflowBuilderTaskMap,
+
 } = aiSlice.actions;
 export default aiSlice.reducer;

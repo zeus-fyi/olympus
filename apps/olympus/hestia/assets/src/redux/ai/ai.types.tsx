@@ -12,6 +12,7 @@ export interface AiState {
     addAggregationView: boolean;
     addedAnalysisTasks: TaskModelInstructions[];
     addedAggregateTasks: TaskModelInstructions[];
+    workflowBuilderTaskMap: AggregateSubTasksMap
 }
 
 export interface WorkflowModelInstructions {
@@ -31,6 +32,7 @@ export interface PostWorkflowsRequest {
 }
 
 export interface TaskModelInstructions {
+    taskID?: number;
     group: string;
     model: string;
     taskType: string;
@@ -40,3 +42,13 @@ export interface TaskModelInstructions {
     tokenOverflowStrategy: string;
     prompt: string;
 }
+
+export interface AggregateSubTasksMap {
+    [key: number]: { [innerKey: number]: boolean };
+}
+
+export type UpdateTaskMapPayload = {
+    key: number;
+    subKey: number;
+    value: boolean;
+};

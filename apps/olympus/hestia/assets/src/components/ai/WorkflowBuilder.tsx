@@ -852,7 +852,7 @@ function WorkflowEngineBuilder(props: any) {
                                             <Typography variant="body2" color="text.secondary">
                                                 Token overflow strategy will determine how the AI will handle requests that are projected to exceed the maximum token length for the model you select, or has returned a result with that error.
                                                 Deduce will chunk your analysis into smaller pieces and aggregate them into a final analysis result. Truncate will simply truncate the request
-                                                to the maximum token length it can support.
+                                                to the maximum token length it can support. If you set the max tokens field greater than 0, it becomes the maximum number of tokens to spend per task request.
                                             </Typography>
                                             <Stack direction="row" >
                                                 <Box flexGrow={3} sx={{ width: '50%', mb: 0, mt: 2, mr: 1 }}>

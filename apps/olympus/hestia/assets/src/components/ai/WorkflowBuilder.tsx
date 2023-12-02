@@ -508,7 +508,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Typography>
                                                             </Box>
                                                             { workflowBuilderTaskMap &&
-                                                                <Box sx={{ ml: 2, mr: 2 }} >
+                                                                <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
                                                                     <Box >
                                                                         {Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
                                                                             const taskNameForKey = taskMap.get(Number(key));
@@ -612,6 +612,9 @@ function WorkflowEngineBuilder(props: any) {
                                                     </Stack>
                                             </Box>
                                         </CardContent>
+                                        <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                            <Divider/>
+                                        </Box>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Time Intervals
@@ -619,7 +622,7 @@ function WorkflowEngineBuilder(props: any) {
                                             <Typography variant="body2" color="text.secondary">
                                                 You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
                                             </Typography>
-                                            <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 2 }}>
+                                            <Stack direction="row" spacing={2} sx={{ ml: 2, mr: 2, mt: 4, mb: 2 }}>
                                                 <Box sx={{ width: '33%' }}> {/* Adjusted Box for TextField */}
                                                     <TextField
                                                         type="number"

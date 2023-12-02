@@ -77,7 +77,6 @@ type TaskMap map[int]TaskModelInstructions
 // TaskModelInstructions represents the equivalent of the TypeScript interface TaskModelInstructions
 type TaskModelInstructions struct {
 	TaskID                int    `json:"taskID"`
-	Group                 string `json:"group"`
 	Model                 string `json:"model"`
 	TaskType              string `json:"taskType"`
 	TaskGroup             string `json:"taskGroup"`

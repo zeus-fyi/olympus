@@ -603,7 +603,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     </FormControl>
                                                                 </Box>
                                                                 }
-                                                                <Box flexGrow={1} sx={{ mt: -1.5, ml: 3, mr: -1 }}>
+                                                                <Box flexGrow={1} sx={{ mt: -1.2, ml: 4, mr: -1 }}>
                                                                     <ArrowForwardIcon />
                                                                 </Box>
                                                                 { aggregationStages &&

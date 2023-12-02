@@ -321,7 +321,6 @@ function WorkflowEngineBuilder(props: any) {
             setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
         }
         dispatch(setAddAnalysisView(false));
-        dispatch(setAddAnalysisView(false));
         setSelectedMainTab(newValue);
     };
     const handleClick = (index: number) => {

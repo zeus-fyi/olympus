@@ -52,7 +52,7 @@ const aiSlice = createSlice({
         setWorkflows: (state, action: PayloadAction<[]>) => {
             state.workflows = action.payload;
         },
-        setTasks: (state, action: PayloadAction<[]>) => {
+        setAiTasks: (state, action: PayloadAction<[]>) => {
             state.tasks = action.payload;
         },
         setAddAnalysisTasks: (state, action: PayloadAction<TaskModelInstructions[]>) => {
@@ -63,7 +63,6 @@ const aiSlice = createSlice({
         },
         setWorkflowBuilderTaskMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
             const { key, subKey, value } = action.payload;
-
             if (value) {
                 if (!state.workflowBuilderTaskMap[key]) {
                     state.workflowBuilderTaskMap[key] = {};
@@ -81,10 +80,22 @@ const aiSlice = createSlice({
                 }
             }
         },
+        removeAggregationFromWorkflowBuilderTaskMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
+            const { key, subKey, value } = action.payload;
+                if (state.workflowBuilderTaskMap[key]) {
+                    // Delete all subkeys from the value
+                    Object.keys(state.workflowBuilderTaskMap[key]).forEach(subKey => {
+                        delete state.workflowBuilderTaskMap[key][Number(subKey)];
+                    });
+
+                    delete state.workflowBuilderTaskMap[key];
+                }
+        },
     }
 });
 
-export const { setSearchContent,
+export const {
+    setSearchContent,
     setGroupFilter,
     setUsernames,
     setAnalysisWorkflowInstructions,
@@ -92,12 +103,12 @@ export const { setSearchContent,
     setSearchResults,
     setWorkflows,
     setPlatformFilter,
-    setTasks,
+    setAiTasks,
     setAddAnalysisView,
     setAddAggregationView,
     setAddAnalysisTasks,
     setAddAggregateTasks,
     setWorkflowBuilderTaskMap,
-
+    removeAggregationFromWorkflowBuilderTaskMap,
 } = aiSlice.actions;
 export default aiSlice.reducer;

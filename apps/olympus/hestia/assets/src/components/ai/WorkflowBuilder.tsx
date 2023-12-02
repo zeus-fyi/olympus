@@ -36,6 +36,7 @@ import TextField from "@mui/material/TextField";
 import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
+    removeAggregationFromWorkflowBuilderTaskMap,
     setAddAggregateTasks,
     setAddAggregationView,
     setAddAnalysisTasks,
@@ -75,6 +76,9 @@ function WorkflowEngineBuilder(props: any) {
         return map;
     }, [tasks]);
     const handleAddSubTaskToAggregate = () => {
+        if (selectedAggregationStageForAnalysis.length <= 0 || selectedAnalysisStageForAggregation.length <= 0) {
+            return;
+        }
         const aggKey = Number(selectedAggregationStageForAnalysis);
         const analysisKey = Number(selectedAnalysisStageForAggregation);
         const payload = {
@@ -82,9 +86,28 @@ function WorkflowEngineBuilder(props: any) {
             subKey: analysisKey,
             value: true
         };
-        console.log(payload,workflowBuilderTaskMap )
         dispatch(setWorkflowBuilderTaskMap(payload));
     };
+    const handleRemoveAnalysisFromWorkflow = async (event: any, taskRemove: TaskModelInstructions) => {
+        Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
+            const payloadRemove = {
+                key: Number(key),
+                subKey: taskRemove.taskID? Number(taskRemove.taskID) : 0,
+                value: false
+            };
+            dispatch(setWorkflowBuilderTaskMap(payloadRemove));
+        })
+        dispatch(setAddAnalysisTasks(analysisStages.filter((task: TaskModelInstructions) => task.taskID !== taskRemove.taskID)));
+    }
+    const handleRemoveAggregationFromWorkflow = async (event: any, taskRemove: TaskModelInstructions) => {
+        const payload = {
+            key: Number(taskRemove.taskID),
+            subKey: 0,
+            value: true
+        };
+        dispatch(removeAggregationFromWorkflowBuilderTaskMap(payload));
+        dispatch(setAddAggregateTasks(aggregationStages.filter((task: TaskModelInstructions) => task.taskID !== taskRemove.taskID)));
+    }
     const handleRemoveTaskRelationshipFromWorkflow = async (event: any, keystr: string, value: number) => {
         const key = Number(keystr);
         const payload = {
@@ -95,7 +118,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     }
     useEffect(() => {
-    }, [addAggregateView, addAnalysisView, selectedMainTab, analysisStages, aggregationStages]);
+    }, [addAggregateView, addAnalysisView, selectedMainTab, analysisStages, aggregationStages, workflowBuilderTaskMap]);
     const dispatch = useDispatch();
     const [analysisCycleCount, setAnalysisCycleCount] = useState(0);
     const handleAnalysisCycleCountChange = (val: number) => {
@@ -317,7 +340,6 @@ function WorkflowEngineBuilder(props: any) {
         setSelected(newSelection);
     };
 
-
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -447,7 +469,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             />
                                                         </Box>
                                                         <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
-                                                            <Button fullWidth variant="contained" >Remove</Button>
+                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveAnalysisFromWorkflow(event, task)}>Remove</Button>
                                                         </Box>
                                                     </Stack>
                                                 ))}
@@ -492,7 +514,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 />
                                                             </Box>
                                                             <Box flexGrow={1} sx={{ mb: 4, ml: 2 }}>
-                                                                <Button fullWidth variant="contained" >Remove</Button>
+                                                                <Button fullWidth variant="contained" onClick={(event)=> handleRemoveAggregationFromWorkflow(event,task)}>Remove</Button>
                                                             </Box>
                                                         </Stack>
                                                         ))}
@@ -513,11 +535,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                         {Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
                                                                             const taskNameForKey = taskMap.get(Number(key));
                                                                             return Object.entries(value).map(([subKey, subValue], subIndex) => {
-                                                                                if (!subValue) {
+                                                                                if (!subValue || subKey.length <= 0) {
                                                                                     return null;
                                                                                 }
                                                                                 const subKeyNumber = Number(subKey);
                                                                                 const subTaskName = taskMap.get(subKeyNumber);
+                                                                                if (!subTaskName || subTaskName.length <= 0) {
+                                                                                    return null;
+                                                                                }
                                                                                 return (
                                                                                     <Stack direction={"row"} key={`${key}-${subKey}`}>
                                                                                         <React.Fragment key={subIndex}>

@@ -8,7 +8,7 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
-import {setTasks, setWorkflows} from "../../redux/ai/ai.reducer";
+import {setAiTasks, setWorkflows} from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
 
@@ -41,7 +41,7 @@ export function WorkflowTable(props: any) {
                 if (statusCode < 400) {
                     const data = response.data;
                     dispatch(setWorkflows(data.workflows));
-                    dispatch(setTasks(data.tasks));
+                    dispatch(setAiTasks(data.tasks));
                 } else {
                     console.log('Failed to get workflows', response);
                 }

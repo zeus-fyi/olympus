@@ -13,6 +13,7 @@ export interface AiState {
     addedAnalysisTasks: TaskModelInstructions[];
     addedAggregateTasks: TaskModelInstructions[];
     workflowBuilderTaskMap: AggregateSubTasksMap
+    taskMap: TaskMap;
 }
 
 export interface WorkflowModelInstructions {
@@ -41,6 +42,11 @@ export interface TaskModelInstructions {
     maxTokens: number;
     tokenOverflowStrategy: string;
     prompt: string;
+    cycleCount: number;
+}
+
+export interface TaskMap {
+    [key: number]: TaskModelInstructions;
 }
 
 export interface AggregateSubTasksMap {
@@ -51,4 +57,9 @@ export type UpdateTaskMapPayload = {
     key: number;
     subKey: number;
     value: boolean;
+};
+
+export type UpdateTaskCycleCountPayload = {
+    key: number;
+    count: number;
 };

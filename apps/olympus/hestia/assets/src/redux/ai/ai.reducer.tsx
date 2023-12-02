@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {AiState, TaskModelInstructions, UpdateTaskMapPayload} from "./ai.types";
+import {AiState, TaskModelInstructions, UpdateTaskCycleCountPayload, UpdateTaskMapPayload} from "./ai.types";
 
 const initialState: AiState = {
     searchContentText: '',
@@ -15,7 +15,8 @@ const initialState: AiState = {
     addAggregationView: false,
     addedAnalysisTasks: [],
     addedAggregateTasks: [],
-    workflowBuilderTaskMap: {}
+    workflowBuilderTaskMap: {},
+    taskMap: {},
 }
 
 const aiSlice = createSlice({
@@ -57,9 +58,27 @@ const aiSlice = createSlice({
         },
         setAddAnalysisTasks: (state, action: PayloadAction<TaskModelInstructions[]>) => {
             state.addedAnalysisTasks = action.payload;
+            for (let i = 0; i < state.addedAnalysisTasks.length; i++) {
+                const task  = state.addedAnalysisTasks[i]
+                if (task && task.taskID) {
+                    state.taskMap[task.taskID] = task;
+                }
+            }
         },
         setAddAggregateTasks: (state, action: PayloadAction<TaskModelInstructions[]>) => {
             state.addedAggregateTasks = action.payload;
+            for (let i = 0; i < state.addedAggregateTasks.length; i++) {
+                const task  = state.addedAggregateTasks[i]
+                if (task && task.taskID) {
+                    state.taskMap[task.taskID] = task;
+                }
+            }
+        },
+        setTaskMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
+            const { key, count } = action.payload;
+            const tmp = state.taskMap[key]
+            tmp.cycleCount = count;
+            state.taskMap[key] = tmp;
         },
         setWorkflowBuilderTaskMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
             const { key, subKey, value } = action.payload;
@@ -110,5 +129,6 @@ export const {
     setAddAggregateTasks,
     setWorkflowBuilderTaskMap,
     removeAggregationFromWorkflowBuilderTaskMap,
+    setTaskMap,
 } = aiSlice.actions;
 export default aiSlice.reducer;

@@ -47,7 +47,7 @@ import {
     setWorkflowBuilderTaskMap,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
-import {PostWorkflowsRequest, TaskModelInstructions, WorkflowModelInstructions} from "../../redux/ai/ai.types";
+import {PostWorkflowsRequest, TaskModelInstructions} from "../../redux/ai/ai.types";
 import {TasksTable} from "./TasksTable";
 
 const mdTheme = createTheme();
@@ -234,39 +234,22 @@ function WorkflowEngineBuilder(props: any) {
         navigate('/login');
     }
 
-    const createOrUpdateWorkflow = async (timeRange: '1 hour'| '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
+    const createOrUpdateWorkflow = async () => {
         try {
             setIsLoading(true)
-            const models: WorkflowModelInstructions[] = [
-                {
-                    instructionType: "analysis",
-                    model: analysisModel,
-                    prompt: analysisWorkflowInstructions,
-                    maxTokens: analysisModelMaxTokens, // Optional
-                    tokenOverflowStrategy: analysisModelTokenOverflowStrategy, // Optional
-                    cycleCount: 0
-                },
-                {
-                    instructionType: "aggregation",
-                    model: aggregationModel,
-                    prompt: aggregationWorkflowInstructions,
-                    maxTokens: aggregationModelMaxTokens, // Optional
-                    tokenOverflowStrategy: aggregationModelTokenOverflowStrategy, // Optional
-                    cycleCount: 0
-                }
-            ];
             const payload: PostWorkflowsRequest = {
                 workflowName: workflowName,
                 stepSize: stepSize,
                 stepSizeUnit: stepSizeUnit,
-                models: models,
+                models: taskMap,
+                aggregateSubTasksMap: workflowBuilderTaskMap
             }
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
             } else {
-                console.log('Failed to search', response);
+                console.log('Failed to createAiWorkflowRequest', response);
             }
         } catch (e) {
         } finally {
@@ -293,7 +276,7 @@ function WorkflowEngineBuilder(props: any) {
             if (statusCode < 400) {
                 const data = response.data;
             } else {
-                console.log('Failed to search', response);
+                console.log('Failed to update or add task', response);
             }
         } catch (e) {
         } finally {
@@ -688,7 +671,7 @@ function WorkflowEngineBuilder(props: any) {
                                         </CardContent>
                                         <CardActions>
                                             <Box flexGrow={1} sx={{ mb: -6, mt: -4, ml: 1, mr: 1}}>
-                                                <Button fullWidth variant="contained" onClick={() => createOrUpdateWorkflow('all')} >Save Workflow</Button>
+                                                <Button fullWidth variant="contained" onClick={createOrUpdateWorkflow} >Save Workflow</Button>
                                             </Box>
                                         </CardActions>
                                 </div>

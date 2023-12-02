@@ -16,20 +16,12 @@ export interface AiState {
     taskMap: TaskMap;
 }
 
-export interface WorkflowModelInstructions {
-    instructionType: string;
-    model: string;
-    maxTokens: number;
-    tokenOverflowStrategy: string;
-    cycleCount: number;
-    prompt: string;
-}
-
 export interface PostWorkflowsRequest {
     workflowName: string;
     stepSize: number;
     stepSizeUnit: string;
-    models: WorkflowModelInstructions[];
+    models: TaskMap;
+    aggregateSubTasksMap: AggregateSubTasksMap;
 }
 
 export interface TaskModelInstructions {

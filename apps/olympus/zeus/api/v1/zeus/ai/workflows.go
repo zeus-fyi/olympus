@@ -64,16 +64,27 @@ type AiWorkflowWrapper struct {
 }
 
 type PostWorkflowsRequest struct {
-	WorkflowName string                      `json:"workflowName"`
-	Models       []WorkflowModelInstructions `json:"models"`
+	WorkflowName         string               `json:"workflowName"`
+	StepSize             int                  `json:"stepSize"`
+	StepSizeUnit         string               `json:"stepSizeUnit"`
+	Models               TaskMap              `json:"models"`
+	AggregateSubTasksMap AggregateSubTasksMap `json:"aggregateSubTasksMap"`
 }
 
-type WorkflowModelInstructions struct {
-	InstructionType       string `json:"instructionType"`
-	Prompt                string `json:"prompt"`
+type AggregateSubTasksMap map[int]map[int]bool
+type TaskMap map[int]TaskModelInstructions
+
+// TaskModelInstructions represents the equivalent of the TypeScript interface TaskModelInstructions
+type TaskModelInstructions struct {
+	TaskID                int    `json:"taskID"`
+	Group                 string `json:"group"`
 	Model                 string `json:"model"`
-	MaxTokens             int    `json:"maxTokens,omitempty"`
-	TokenOverflowStrategy string `json:"tokenOverflowStrategy,omitempty"`
+	TaskType              string `json:"taskType"`
+	TaskGroup             string `json:"taskGroup"`
+	TaskName              string `json:"taskName"`
+	MaxTokens             int    `json:"maxTokens"`
+	TokenOverflowStrategy string `json:"tokenOverflowStrategy"`
+	Prompt                string `json:"prompt"`
 	CycleCount            int    `json:"cycleCount"`
 }
 
@@ -104,16 +115,16 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 
 	totalCycles := 0
 	for _, m := range w.Models {
-		if len(m.InstructionType) == 0 {
+		if len(m.TaskType) == 0 {
 			return c.JSON(http.StatusBadRequest, nil)
 		}
 		totalCycles += m.CycleCount
 		if m.CycleCount == 0 {
 			continue
 		}
-		switch m.InstructionType {
+		switch m.TaskType {
 		case "analysis", "aggregation":
-			inst.AiInstruction.Map[m.InstructionType] = append(inst.AiInstruction.Map[m.InstructionType],
+			inst.AiInstruction.Map[m.TaskType] = append(inst.AiInstruction.Map[m.TaskType],
 				kronos_helix.AiModelInstruction{
 					Prompt:                m.Prompt,
 					Model:                 m.Model,

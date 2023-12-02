@@ -481,7 +481,7 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box flexGrow={2} sx={{mt: 4}}>
                                                 <Stack direction={"column"} key={0}>
                                                 {aggregationStages && aggregationStages.map((task, subIndex) => (
-                                                        <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
+                                                        <Stack direction={"row"} key={subIndex} sx={{ mb: 1 }}>
                                                             <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
                                                                 <TextField
                                                                     key={subIndex}
@@ -511,7 +511,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Box>
                                                         </Stack>
                                                         ))}
-                                                        <Box flexGrow={1} sx={{ mb: 4, mt: -2, ml: 2 }}>
+                                                        <Box flexGrow={1} sx={{ mb: 4, mt: -1, ml: 2 }}>
                                                             <Button variant="contained" onClick={() => addAggregationStageView()} >{addAggregateView ? 'Done Adding' : 'Add Aggregation Stages' }</Button>
                                                         </Box>
                                                         <Divider />

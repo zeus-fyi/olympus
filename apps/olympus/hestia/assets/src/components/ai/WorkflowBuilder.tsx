@@ -556,6 +556,10 @@ function WorkflowEngineBuilder(props: any) {
                                                 <Typography gutterBottom variant="h5" component="div">
                                                     Aggregation Stages
                                                 </Typography>
+                                                <Typography gutterBottom variant="body2" component="div">
+                                                   One aggregation cycle is equal to the longest of any dependent analysis cycles.
+                                                    If you have an analysis stage that occurs every 2 time cycles, and set the aggregation cycle count to 2, it will run after 4 total time cycles, which equals two completions of the longest dependent analysis stage.
+                                                </Typography>
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 4}}>
                                                 <Stack direction={"column"} key={0}>
@@ -717,10 +721,11 @@ function WorkflowEngineBuilder(props: any) {
                                         </Box>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
-                                                Time Intervals
+                                                Fundamental Time Period
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
-                                                You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
+                                                This is the time period that each cycle is referenced against for determining its next execution time. The workflow will run every time period, and will run all analysis and aggregation stages that are due to run if
+                                                any during that discrete time step. If an analysis cycle is set to 1 and the fundamental time period is 5 minutes, it will run every 5 minutes.
                                             </Typography>
                                             <Stack direction="row" spacing={2} sx={{ ml: 2, mr: 2, mt: 4, mb: 2 }}>
                                                 <Box sx={{ width: '33%' }}> {/* Adjusted Box for TextField */}

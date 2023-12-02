@@ -14,19 +14,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {
-    Card,
-    CardContent,
-    FormControl,
-    FormControlLabel,
-    InputLabel,
-    MenuItem,
-    Select,
-    Stack,
-    Switch,
-    Tab,
-    Tabs
-} from "@mui/material";
+import {Card, CardContent, FormControlLabel, Stack, Switch, Tab, Tabs} from "@mui/material";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
 import {WorkflowTable} from "./WorkflowTable";
@@ -401,63 +389,60 @@ function AiWorkflowsDashboardContent(props: any) {
                             </Card>
                             <Card sx={{ minWidth: 500, maxWidth: 900 }}>
                                 <CardContent>
-                                    <Typography gutterBottom variant="h5" component="div">
-                                        Workflow Preview
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        This allows you to write natural language instructions to chain to your search queries. Add a name
-                                        for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.
-                                    </Typography>
-                                </CardContent>
-                                <CardContent>
-                                    <Typography gutterBottom variant="h5" component="div">
-                                        Time Intervals
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.
-                                    </Typography>
-                                    <Stack direction="row" spacing={2} sx={{ mt: 2, mb: 4 }}>
-                                        <Box sx={{ width: '33%' }}> {/* Adjusted Box for TextField */}
-                                            <TextField
-                                                type="number"
-                                                label="Time Step Size"
-                                                variant="outlined"
-                                                inputProps={{ min: 1 }}  // Set minimum value to 1
-                                                value={stepSize}
-                                                onChange={handleTimeStepChange}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Box sx={{ width: '33%' }}> {/* Adjusted Box for FormControl */}
-                                            <FormControl fullWidth>
-                                                <InputLabel id="time-unit-label">Time Unit</InputLabel>
-                                                <Select
-                                                    labelId="time-unit-label"
-                                                    id="time-unit-select"
-                                                    value={stepSizeUnit}
-                                                    label="Time Unit"
-                                                    onChange={handleUpdateStepSizeUnit}
-                                                >
-                                                    <MenuItem value="seconds">Seconds</MenuItem>
-                                                    <MenuItem value="minutes">Minutes</MenuItem>
-                                                    <MenuItem value="hours">Hours</MenuItem>
-                                                    <MenuItem value="days">Days</MenuItem>
-                                                    <MenuItem value="weeks">Weeks</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Box>
-                                        <Box sx={{ width: '33%', mb: 4 }}>
-                                            <TextField
-                                                label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit
-                                                variant="outlined"
-                                                value={stepSize* cycleCount}
-                                                InputProps={{
-                                                    readOnly: true,
-                                                }}
-                                                fullWidth
-                                            />
-                                        </Box>
-                                    </Stack>
+                                {/*    <Typography variant="body2" color="text.secondary">*/}
+                                {/*        This allows you to write natural language instructions to chain to your search queries. Add a name*/}
+                                {/*        for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.*/}
+                                {/*    </Typography>*/}
+                                {/*</CardContent>*/}
+                                {/*<CardContent>*/}
+                                {/*    <Typography gutterBottom variant="h5" component="div">*/}
+                                {/*        Time Intervals*/}
+                                {/*    </Typography>*/}
+                                {/*    <Typography variant="body2" color="text.secondary">*/}
+                                {/*        You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.*/}
+                                {/*    </Typography>*/}
+                                {/*    <Stack direction="row" spacing={2} sx={{ mt: 2, mb: 4 }}>*/}
+                                {/*        <Box sx={{ width: '33%' }}> /!* Adjusted Box for TextField *!/*/}
+                                {/*            <TextField*/}
+                                {/*                type="number"*/}
+                                {/*                label="Time Step Size"*/}
+                                {/*                variant="outlined"*/}
+                                {/*                inputProps={{ min: 1 }}  // Set minimum value to 1*/}
+                                {/*                value={stepSize}*/}
+                                {/*                onChange={handleTimeStepChange}*/}
+                                {/*                fullWidth*/}
+                                {/*            />*/}
+                                {/*        </Box>*/}
+                                {/*        <Box sx={{ width: '33%' }}> /!* Adjusted Box for FormControl *!/*/}
+                                {/*            <FormControl fullWidth>*/}
+                                {/*                <InputLabel id="time-unit-label">Time Unit</InputLabel>*/}
+                                {/*                <Select*/}
+                                {/*                    labelId="time-unit-label"*/}
+                                {/*                    id="time-unit-select"*/}
+                                {/*                    value={stepSizeUnit}*/}
+                                {/*                    label="Time Unit"*/}
+                                {/*                    onChange={handleUpdateStepSizeUnit}*/}
+                                {/*                >*/}
+                                {/*                    <MenuItem value="seconds">Seconds</MenuItem>*/}
+                                {/*                    <MenuItem value="minutes">Minutes</MenuItem>*/}
+                                {/*                    <MenuItem value="hours">Hours</MenuItem>*/}
+                                {/*                    <MenuItem value="days">Days</MenuItem>*/}
+                                {/*                    <MenuItem value="weeks">Weeks</MenuItem>*/}
+                                {/*                </Select>*/}
+                                {/*            </FormControl>*/}
+                                {/*        </Box>*/}
+                                {/*        <Box sx={{ width: '33%', mb: 4 }}>*/}
+                                {/*            <TextField*/}
+                                {/*                label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit*/}
+                                {/*                variant="outlined"*/}
+                                {/*                value={stepSize* cycleCount}*/}
+                                {/*                InputProps={{*/}
+                                {/*                    readOnly: true,*/}
+                                {/*                }}*/}
+                                {/*                fullWidth*/}
+                                {/*            />*/}
+                                {/*        </Box>*/}
+                                {/*    </Stack>*/}
                                     <Typography gutterBottom variant="h5" component="div">
                                         Workflow Generations
                                     </Typography>

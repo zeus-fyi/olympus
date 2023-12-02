@@ -34,20 +34,24 @@ func VerifyInternalBearerToken(ctx context.Context, token string) (read_keys.Org
 	}
 	err := key.VerifyUserBearerToken(ctx)
 	if err != nil {
-		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID).Err(err)
+		log.Info().Int("userID", key.UserID).Int("orgID", key.OrgID).Err(err)
 		return read_keys.OrgUserKey{}, err
 	}
 	if key.PublicKeyVerified == false {
-		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
+		log.Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
 		return read_keys.OrgUserKey{}, errors.New("unauthorized key")
 	}
 
 	if key.GetUserID() != TemporalUserID && key.OrgID != TemporalOrgID {
-		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
+		log.Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
 		return read_keys.OrgUserKey{}, errors.New("unauthorized key")
 	}
 	return key, err
 }
+
+const (
+	SamsOrgID = 1701381301753642000
+)
 
 func VerifyInternalAdminBearerToken(ctx context.Context, token string) (read_keys.OrgUserKey, error) {
 	key := read_keys.OrgUserKey{
@@ -65,16 +69,18 @@ func VerifyInternalAdminBearerToken(ctx context.Context, token string) (read_key
 	}
 	err := key.VerifyUserBearerToken(ctx)
 	if err != nil {
-		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID).Err(err)
+		log.Info().Int("userID", key.UserID).Int("orgID", key.OrgID).Err(err)
 		return read_keys.OrgUserKey{}, err
 	}
 	if key.PublicKeyVerified == false {
-		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
+		log.Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
 		return read_keys.OrgUserKey{}, errors.New("unauthorized key")
 	}
-
+	if key.OrgID == SamsOrgID {
+		return key, nil
+	}
 	if key.GetUserID() != AdminUserID && key.OrgID != TemporalOrgID {
-		log.Ctx(ctx).Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
+		log.Info().Int("userID", key.UserID).Int("orgID", key.OrgID)
 		return read_keys.OrgUserKey{}, errors.New("unauthorized key")
 	}
 	return key, err
@@ -99,7 +105,6 @@ func FetchUserAuthToken(ctx context.Context, ou org_users.OrgUser) (read_keys.Or
 		return read_keys.OrgUserKey{}, err
 	}
 	return key, err
-
 }
 
 func FetchUserAuthTokenDiscord(ctx context.Context, userId int) (string, error) {

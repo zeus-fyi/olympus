@@ -511,7 +511,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Box>
                                                         </Stack>
                                                         ))}
-                                                        <Box flexGrow={1} sx={{ mb: 4, mt: 0, ml: 2 }}>
+                                                        <Box flexGrow={1} sx={{ mb: 4, mt: -2, ml: 2 }}>
                                                             <Button variant="contained" onClick={() => addAggregationStageView()} >{addAggregateView ? 'Done Adding' : 'Add Aggregation Stages' }</Button>
                                                         </Box>
                                                         <Divider />

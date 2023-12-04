@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -14,6 +15,7 @@ type RetrievalItem struct {
 	RetrievalID    int    `json:"retrievalID"`    // ID of the retrieval
 	RetrievalName  string `json:"retrievalName"`  // Name of the retrieval
 	RetrievalGroup string `json:"retrievalGroup"` // Group of the retrieval
+	Instructions   []byte `json:"instructions"`   // Instructions for the retrieval
 }
 
 func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalItem, b []byte) error {
@@ -34,4 +36,45 @@ func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalI
 		return err
 	}
 	return nil
+}
+
+func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalItem, error) {
+	query := `
+        SELECT retrieval_id, retrieval_name, retrieval_group, instructions
+        FROM public.ai_retrieval_library
+        WHERE org_id = $1
+        ORDER BY retrieval_id;`
+
+	// Executing the query
+	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var retrievals []RetrievalItem
+
+	// Iterating over the result set
+	for rows.Next() {
+		var retrieval RetrievalItem
+		var instructions pgtype.JSONB
+		err = rows.Scan(&retrieval.RetrievalID, &retrieval.RetrievalName, &retrieval.RetrievalGroup, &instructions)
+		if err != nil {
+			log.Err(err).Msg("failed to scan retrieval")
+			return nil, err
+		}
+		retrieval.Instructions = instructions.Bytes // Assuming Instructions field in RetrievalItem is of type []byte
+		retrievals = append(retrievals, retrieval)
+	}
+
+	// Check for errors from iterating over rows
+	if err = rows.Err(); err != nil {
+		log.Err(err).Msg("error iterating retrieval rows")
+		return nil, err
+	}
+
+	return retrievals, nil
 }

@@ -34,7 +34,6 @@ CREATE INDEX ai_workflow_template_org_idx ON public.ai_workflow_template("org_id
 CREATE INDEX ai_workflow_template_user_idx ON public.ai_workflow_template("user_id");
 ALTER TABLE "public"."ai_workflow_template" ADD CONSTRAINT "ai_workflow_template_org_name_uniq" UNIQUE ("org_id", "workflow_name");
 
-
 CREATE TABLE public.ai_retrieval_library (
     retrieval_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
     org_id BIGINT NOT NULL REFERENCES orgs(org_id),

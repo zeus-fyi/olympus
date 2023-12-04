@@ -29,6 +29,7 @@ const initialState: AiState = {
         retrievalPlatformGroups: '',
     },
     retrievals: [],
+    workflowAnalysisRetrievalsMap: {}
 }
 
 const aiSlice = createSlice({
@@ -116,6 +117,25 @@ const aiSlice = createSlice({
         setAddRetrievalTasks: (state, action: PayloadAction<Retrieval[]>) => {
             state.addedRetrievals = action.payload;
         },
+        setAnalysisRetrievalsMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
+            const { key, subKey, value } = action.payload;
+            if (value) {
+                if (!state.workflowAnalysisRetrievalsMap[key]) {
+                    state.workflowAnalysisRetrievalsMap[key] = {};
+                }
+                state.workflowAnalysisRetrievalsMap[key][subKey] = true;
+            } else {
+                if (state.workflowAnalysisRetrievalsMap[key]) {
+                    delete state.workflowAnalysisRetrievalsMap[key][subKey];
+
+                    // Check if the main key has no inner keys left
+                    if (Object.keys(state.workflowAnalysisRetrievalsMap[key]).length === 0) {
+                        // If so, delete the main key from the map
+                        delete state.workflowAnalysisRetrievalsMap[key];
+                    }
+                }
+            }
+        },
         setTaskMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
             const { key, count } = action.payload;
             const tmp = state.taskMap[key]
@@ -181,6 +201,7 @@ export const {
     setRetrievalUsernames,
     setRetrievalPrompt,
     setAddRetrievalTasks,
-    setRetrievals
+    setRetrievals,
+    setAnalysisRetrievalsMap
 } = aiSlice.actions;
 export default aiSlice.reducer;

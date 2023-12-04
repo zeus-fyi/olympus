@@ -44,6 +44,7 @@ import {
     setAddRetrievalTasks,
     setAddRetrievalView,
     setAggregationWorkflowInstructions,
+    setAnalysisRetrievalsMap,
     setAnalysisWorkflowInstructions,
     setRetrievalGroup,
     setRetrievalKeywords,
@@ -86,15 +87,31 @@ function WorkflowEngineBuilder(props: any) {
     const retrievals = useSelector((state: RootState) => state.ai.retrievals);
     const workflowBuilderTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderTaskMap);
     const taskMap = useSelector((state: RootState) => state.ai.taskMap);
+    const workflowAnalysisRetrievalsMap = useSelector((state: RootState) => state.ai.workflowAnalysisRetrievalsMap);
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
 
     const handleAddRetrievalToAnalysis = () => {
-        if (selectedRetrievalForAnalysis.length <= 0) {
+        if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
             return;
         }
-        // todo
+        const retKey = Number(selectedRetrievalForAnalysis);
+        const analysisKey = Number(selectedAnalysisStageForRetrieval);
+        const payload = {
+            key: retKey,
+            subKey: analysisKey,
+            value: true
+        };
+        dispatch(setAnalysisRetrievalsMap(payload));
     };
-
+    const handleRemoveRetrievalRelationshipFromWorkflow = async (event: any, keystr: string, value: number) => {
+        const key = Number(keystr);
+        const payload = {
+            key: key,
+            subKey: value,
+            value: false
+        };
+        dispatch(setAnalysisRetrievalsMap(payload));
+    }
     const handleAddSubTaskToAggregate = () => {
         if (selectedAggregationStageForAnalysis.length <= 0 || selectedAnalysisStageForAggregation.length <= 0) {
             return;
@@ -739,16 +756,64 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                 <Divider/>
                                             </Box>
+
                                             { retrievalStages && analysisStages && retrievalStages.length > 0 && analysisStages.length > 0 &&
                                                 <div>
-                                                    <Box sx={{ mt: 4 }} >
-                                                        <Divider />
-                                                    </Box>
                                                     <Box sx={{ mt: 2 }} >
                                                         <Typography variant="h6" color="text.secondary">
                                                             Add Retrieval Stages to Analysis
                                                         </Typography>
                                                     </Box>
+                                                    { workflowAnalysisRetrievalsMap &&
+                                                        <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
+                                                            <Box >
+                                                                {Object.entries(workflowAnalysisRetrievalsMap).map(([key, value], index) => {
+                                                                    const taskNameForKey = taskMap[(Number(key))]?.taskName || '';
+                                                                    if (!taskNameForKey || taskNameForKey.length <= 0) {
+                                                                        return null;
+                                                                    }
+                                                                    return Object.entries(value).map(([subKey, subValue], subIndex) => {
+                                                                        if (!subValue || subKey.length <= 0) {
+                                                                            return null;
+                                                                        }
+                                                                        const subKeyNumber = Number(subKey);
+                                                                        const subTaskName = retrievalStages[(subKeyNumber)]?.retrievalName || '';
+                                                                        if (subTaskName.length <= 0) {
+                                                                            return null;
+                                                                        }
+                                                                        return (
+                                                                            <Stack direction={"row"} key={`${key}-${subKey}`}>
+                                                                                <React.Fragment key={subIndex}>
+                                                                                    <TextField
+                                                                                        label={`Retrieval`}
+                                                                                        value={subTaskName || ''}
+                                                                                        InputProps={{ readOnly: true }}
+                                                                                        variant="outlined"
+                                                                                        fullWidth
+                                                                                        margin="normal"
+                                                                                    />
+                                                                                    <Box flexGrow={1} sx={{ mt: 4, ml: 2, mr: 2 }}>
+                                                                                        <ArrowForwardIcon />
+                                                                                    </Box>
+                                                                                    <TextField
+                                                                                        label={`Analysis`}
+                                                                                        value={taskNameForKey || ''}
+                                                                                        InputProps={{ readOnly: true }}
+                                                                                        variant="outlined"
+                                                                                        fullWidth
+                                                                                        margin="normal"
+                                                                                    />
+                                                                                    <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
+                                                                                        <Button variant="contained" onClick={(event) => handleRemoveRetrievalRelationshipFromWorkflow(event, key, subKeyNumber)}>Remove</Button>
+                                                                                    </Box>
+                                                                                </React.Fragment>
+                                                                            </Stack>
+                                                                        );
+                                                                    });
+                                                                })}
+                                                            </Box>
+                                                        </Box>
+                                                    }
                                                     <Stack direction={"row"} sx={{ mt: 2 }}>
                                                         <Box flexGrow={3} sx={{ml: 2, mt: 2}}>
                                                             <FormControl fullWidth>

@@ -100,6 +100,8 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 				}
 				err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks (agg_task_id, workflow_template_id, analysis_task_id, cycle_count)
 											VALUES ($1, $2, $3, $4)
+											ON CONFLICT (workflow_template_id, agg_task_id, analysis_task_id)
+											DO UPDATE SET cycle_count = EXCLUDED.cycle_count
 											RETURNING analysis_task_id`,
 					aggTask.AggId, workflowTemplate.WorkflowTemplateID, aid, aggTask.CycleCount).Scan(&aid)
 				if err != nil {

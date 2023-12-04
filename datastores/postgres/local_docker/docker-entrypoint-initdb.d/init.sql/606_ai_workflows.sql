@@ -71,6 +71,8 @@ CREATE TABLE public.ai_workflow_template_agg_tasks(
     cycle_count BIGINT NOT NULL DEFAULT 1 CHECK ( cycle_count > 0 ),
     PRIMARY KEY (agg_task_id, analysis_task_id)
 );
+ALTER TABLE "public"."ai_workflow_template_agg_tasks" ADD CONSTRAINT "ai_workflow_template_agg_tasks_link_uniq" UNIQUE ("workflow_template_id", "agg_task_id", "analysis_task_id");
+
 CREATE INDEX ai_workflow_template_agg_tasks_idx ON public.ai_workflow_template_agg_tasks (workflow_template_id);
 CREATE INDEX ai_workflow_template_agg_tasks_idx2 ON public.ai_workflow_template_agg_tasks (agg_task_id);
 CREATE INDEX ai_workflow_template_agg_tasks_idx3 ON public.ai_workflow_template_agg_tasks (analysis_task_id);

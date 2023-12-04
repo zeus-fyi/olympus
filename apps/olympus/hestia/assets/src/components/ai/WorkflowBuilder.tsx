@@ -41,6 +41,7 @@ import {
     setAddAggregationView,
     setAddAnalysisTasks,
     setAddAnalysisView,
+    setAddRetrievalTasks,
     setAddRetrievalView,
     setAggregationWorkflowInstructions,
     setAnalysisWorkflowInstructions,
@@ -55,7 +56,7 @@ import {
     setWorkflowBuilderTaskMap,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
-import {PostWorkflowsRequest, TaskModelInstructions} from "../../redux/ai/ai.types";
+import {PostWorkflowsRequest, Retrieval, TaskModelInstructions} from "../../redux/ai/ai.types";
 import {TasksTable} from "./TasksTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {RetrievalsTable} from "./RetrievalsTable";
@@ -73,6 +74,7 @@ function WorkflowEngineBuilder(props: any) {
     const addAggregateView = useSelector((state: RootState) => state.ai.addAggregationView);
     const addRetrievalView = useSelector((state: RootState) => state.ai.addRetrievalView);
     const allTasks = useSelector((state: any) => state.ai.tasks);
+    const retrievalStages = useSelector((state: RootState) => state.ai.addedRetrievals);
     const [taskType, setTaskType] = useState('analysis');
     const analysisStages = useSelector((state: RootState) => state.ai.addedAnalysisTasks);
     const [selectedAnalysisStageForAggregation, setSelectedAnalysisStageForAggregation] = useState('');
@@ -97,6 +99,9 @@ function WorkflowEngineBuilder(props: any) {
         };
         dispatch(setWorkflowBuilderTaskMap(payload));
     };
+    const handleRemoveRetrievalFromWorkflow = async (event: any, retrievalRemove: Retrieval) => {
+
+    }
     const handleRemoveAnalysisFromWorkflow = async (event: any, taskRemove: TaskModelInstructions) => {
         Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
             const payloadRemove = {
@@ -127,7 +132,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     }
     useEffect(() => {
-    }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTab, analysisStages, aggregationStages, workflowBuilderTaskMap]);
+    }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTab, analysisStages, aggregationStages, retrievalStages, workflowBuilderTaskMap]);
     const dispatch = useDispatch();
     const handleTaskCycleCountChange = (val: number, task: TaskModelInstructions) => {
         if (task && task.taskID) {
@@ -141,21 +146,29 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleAddTasksToWorkflow = async (event: any) => {
         setIsLoading(true)
-        const selectedTasks: TaskModelInstructions[] = Object.keys(selected)
-            .filter(key => selected[Number(key)])
-            .map(key => tasks[Number(key)]);
         if (addAnalysisView){
+            const selectedTasks: TaskModelInstructions[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => tasks[Number(key)]);
             dispatch(setAddAnalysisTasks(selectedTasks.filter((task: TaskModelInstructions) => task.taskType === 'analysis')));
         } else if (addAggregateView){
+            const selectedTasks: TaskModelInstructions[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => tasks[Number(key)]);
             dispatch(setAddAggregateTasks(selectedTasks.filter((task: TaskModelInstructions) => task.taskType === 'aggregation')));
         } else if (addRetrievalView) {
-            //dispatch(setAddRetrievalTasks());
+            const selectedTasks: Retrieval[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => tasks[Number(key)]);
+            dispatch(setAddRetrievalTasks(selectedTasks));
         }
         setIsLoading(false)
     }
 
     const addRetrievalStageView = async () => {
         const toggle = !addRetrievalView;
+        dispatch(setAddAnalysisView(false));
+        dispatch(setAddAggregationView(false));
         dispatch(setAddRetrievalView(toggle));
         if (toggle) {
             setSelectedMainTab(3)
@@ -169,6 +182,7 @@ function WorkflowEngineBuilder(props: any) {
         const toggle = !addAnalysisView;
         dispatch(setAddAnalysisView(toggle));
         dispatch(setAddAggregationView(false));
+        dispatch(setAddRetrievalView(false));
         if (toggle) {
             setSelectedMainTab(1)
             setSelected({});
@@ -181,6 +195,7 @@ function WorkflowEngineBuilder(props: any) {
     const addAggregationStageView = async () => {
         const toggle = !addAggregateView;
         dispatch(setAddAnalysisView(false));
+        dispatch(setAddRetrievalView(false));
         dispatch(setAddAggregationView(toggle));
         if (toggle) {
             setSelected({});
@@ -456,6 +471,8 @@ function WorkflowEngineBuilder(props: any) {
             setSelected({});
             setTaskType('aggregation');
             setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
+        } else if (newValue === 3) {
+            setSelected({});
         }
         if (addAggregateView && newValue !== 2) {
             dispatch(setAddAggregationView(false));
@@ -463,7 +480,7 @@ function WorkflowEngineBuilder(props: any) {
         if (addAnalysisView && newValue !== 1) {
             dispatch(setAddAnalysisView(false));
         }
-        if (setAddRetrievalView && newValue !== 3) {
+        if (addRetrievalView && newValue !== 3) {
             dispatch(setAddRetrievalView(false));
         }
         setRequestStatus('');
@@ -472,6 +489,8 @@ function WorkflowEngineBuilder(props: any) {
         setRequestAnalysisStatusError('');
         setRequestAggStatus('');
         setRequestAggStatusError('');
+        setRequestRetrievalStatus('');
+        setRequestRetrievalStatusError('');
 
         dispatch(setAddAnalysisView(false));
         setSelectedMainTab(newValue);
@@ -485,11 +504,19 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = event.target.checked;
-        const newSelection = tasks.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
-            acc[index] = isChecked;
-            return acc;
-        }, {});
-        setSelected(newSelection);
+        if (addRetrievalView || selectedMainTab === 3) {
+            const newSelection = retrievals.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
+        } else {
+            const newSelection = tasks.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
+        }
     };
 
     return (
@@ -593,63 +620,39 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Typography>
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 4}}>
-                                                {/*{re && analysisStages.map((task, subIndex) => (*/}
-                                                {/*    <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>*/}
-                                                {/*        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>*/}
-                                                {/*            <TextField*/}
-                                                {/*                key={subIndex}*/}
-                                                {/*                label={`Analysis Name`}*/}
-                                                {/*                value={task.taskName}*/}
-                                                {/*                InputProps={{*/}
-                                                {/*                    readOnly: true,*/}
-                                                {/*                }}*/}
-                                                {/*                variant="outlined"*/}
-                                                {/*                fullWidth*/}
-                                                {/*                margin="normal"*/}
-                                                {/*            />*/}
-                                                {/*        </Box>*/}
-                                                {/*        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>*/}
-                                                {/*            <TextField*/}
-                                                {/*                key={subIndex}*/}
-                                                {/*                label={`Analysis Group`}*/}
-                                                {/*                value={task.taskGroup}*/}
-                                                {/*                InputProps={{*/}
-                                                {/*                    readOnly: true,*/}
-                                                {/*                }}*/}
-                                                {/*                variant="outlined"*/}
-                                                {/*                fullWidth*/}
-                                                {/*                margin="normal"*/}
-                                                {/*            />*/}
-                                                {/*        </Box>*/}
-                                                {/*        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>*/}
-                                                {/*            <TextField*/}
-                                                {/*                key={subIndex+task.model}*/}
-                                                {/*                label={`Analysis Model`}*/}
-                                                {/*                value={task.model}*/}
-                                                {/*                InputProps={{*/}
-                                                {/*                    readOnly: true,*/}
-                                                {/*                }}*/}
-                                                {/*                variant="outlined"*/}
-                                                {/*                fullWidth*/}
-                                                {/*                margin="normal"*/}
-                                                {/*            />*/}
-                                                {/*        </Box>*/}
-                                                {/*        <Box flexGrow={1} sx={{ mb: 0, mt: -1, ml:2 }}>*/}
-                                                {/*            <TextField*/}
-                                                {/*                type="number"*/}
-                                                {/*                label="Analysis Cycle Count"*/}
-                                                {/*                variant="outlined"*/}
-                                                {/*                value={taskMap[task?.taskID || 1]?.cycleCount || 1}*/}
-                                                {/*                inputProps={{ min: 0 }}  // Set minimum value to 0*/}
-                                                {/*                onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10), task)}*/}
-                                                {/*                fullWidth*/}
-                                                {/*            />*/}
-                                                {/*        </Box>*/}
-                                                {/*        <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>*/}
-                                                {/*            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveAnalysisFromWorkflow(event, task)}>Remove</Button>*/}
-                                                {/*        </Box>*/}
-                                                {/*    </Stack>*/}
-                                                {/*))}*/}
+                                                {retrievalStages && retrievalStages.map((task, subIndex) => (
+                                                    <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
+                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                            <TextField
+                                                                key={subIndex}
+                                                                label={`Retrieval Name`}
+                                                                value={task.retrievalName}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                variant="outlined"
+                                                                fullWidth
+                                                                margin="normal"
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                            <TextField
+                                                                key={subIndex}
+                                                                label={`Retrieval Group`}
+                                                                value={task.retrievalGroup}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                variant="outlined"
+                                                                fullWidth
+                                                                margin="normal"
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
+                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveRetrievalFromWorkflow(event, task)}>Remove</Button>
+                                                        </Box>
+                                                    </Stack>
+                                                ))}
                                             </Box>
                                             <Box flexGrow={1} sx={{ mb: 0, mt: 2, ml: 2 }}>
                                                 <Button  variant="contained" onClick={() => addRetrievalStageView()} >{addRetrievalView ? 'Done Adding': 'Add Retrieval Stages'}</Button>

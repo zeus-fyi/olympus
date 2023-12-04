@@ -1,11 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {
-    AiState,
-    RetrievalsMap,
-    TaskModelInstructions,
-    UpdateTaskCycleCountPayload,
-    UpdateTaskMapPayload
-} from "./ai.types";
+import {AiState, Retrieval, TaskModelInstructions, UpdateTaskCycleCountPayload, UpdateTaskMapPayload} from "./ai.types";
 
 const initialState: AiState = {
     searchContentText: '',
@@ -22,6 +16,7 @@ const initialState: AiState = {
     addRetrievalView: false,
     addedAnalysisTasks: [],
     addedAggregateTasks: [],
+    addedRetrievals: [],
     workflowBuilderTaskMap: {},
     taskMap: {},
     retrieval: {
@@ -118,8 +113,9 @@ const aiSlice = createSlice({
                 }
             }
         },
-        setAddRetrievalTasks: (state, action: PayloadAction<RetrievalsMap>) => {
-        // TODO
+        // TODO ^ complete with task map
+        setAddRetrievalTasks: (state, action: PayloadAction<Retrieval[]>) => {
+            state.addedRetrievals = action.payload;
         },
         setTaskMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
             const { key, count } = action.payload;

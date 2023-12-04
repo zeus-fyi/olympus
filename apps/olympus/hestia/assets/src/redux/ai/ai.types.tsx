@@ -13,10 +13,11 @@ export interface AiState {
     addRetrievalView: boolean;
     addedAnalysisTasks: TaskModelInstructions[];
     addedAggregateTasks: TaskModelInstructions[];
+    addedRetrievals: Retrieval[];
     workflowBuilderTaskMap: AggregateSubTasksMap
     taskMap: TaskMap;
     retrieval: Retrieval;
-    retrievals: RetrievalsMap;
+    retrievals: Retrieval[];
 }
 
 export interface PostWorkflowsRequest {

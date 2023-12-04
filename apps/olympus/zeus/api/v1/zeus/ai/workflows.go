@@ -163,13 +163,11 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
 			}
 			for k, v := range w.AnalysisRetrievalsMap {
-				if k == m.TaskID {
-					for rt, isTrue := range v {
-						if isTrue {
-							at.RetrievalDependencies = append(at.RetrievalDependencies, artemis_orchestrations.RetrievalItem{
-								RetrievalID: rt,
-							})
-						}
+				for rt, isTrue := range v {
+					if isTrue && k == m.TaskID {
+						at.RetrievalDependencies = append(at.RetrievalDependencies, artemis_orchestrations.RetrievalItem{
+							RetrievalID: rt,
+						})
 					}
 				}
 			}

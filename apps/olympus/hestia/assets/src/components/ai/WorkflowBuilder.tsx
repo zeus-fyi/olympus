@@ -376,6 +376,7 @@ function WorkflowEngineBuilder(props: any) {
                 aggregateSubTasksMap: workflowBuilderTaskMap,
                 analysisRetrievalsMap: workflowAnalysisRetrievalsMap
             }
+            console.log(workflowAnalysisRetrievalsMap, 'workflowAnalysisRetrievalsMap')
             setIsLoading(true)
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
             const statusCode = response.status;

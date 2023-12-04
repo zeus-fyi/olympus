@@ -1,5 +1,11 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {AiState, TaskModelInstructions, UpdateTaskCycleCountPayload, UpdateTaskMapPayload} from "./ai.types";
+import {
+    AiState,
+    RetrievalsMap,
+    TaskModelInstructions,
+    UpdateTaskCycleCountPayload,
+    UpdateTaskMapPayload
+} from "./ai.types";
 
 const initialState: AiState = {
     searchContentText: '',
@@ -13,6 +19,7 @@ const initialState: AiState = {
     tasks: [],
     addAnalysisView: false,
     addAggregationView: false,
+    addRetrievalView: false,
     addedAnalysisTasks: [],
     addedAggregateTasks: [],
     workflowBuilderTaskMap: {},
@@ -25,7 +32,8 @@ const initialState: AiState = {
         retrievalUsernames: '',
         retrievalPrompt: '',
         retrievalPlatformGroups: '',
-    }
+    },
+    retrievals: {},
 }
 
 const aiSlice = createSlice({
@@ -58,6 +66,9 @@ const aiSlice = createSlice({
         },
         setAddAggregationView: (state, action: PayloadAction<boolean>) => {
             state.addAggregationView = action.payload;
+        },
+        setAddRetrievalView: (state, action: PayloadAction<boolean>) => {
+            state.addRetrievalView = action.payload;
         },
         setUsernames: (state, action: PayloadAction<string>) => {
             state.usernames = action.payload;
@@ -103,6 +114,9 @@ const aiSlice = createSlice({
                     state.taskMap[task.taskID] = task;
                 }
             }
+        },
+        setAddRetrievalTasks: (state, action: PayloadAction<RetrievalsMap>) => {
+        // TODO
         },
         setTaskMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
             const { key, count } = action.payload;
@@ -155,6 +169,7 @@ export const {
     setAiTasks,
     setAddAnalysisView,
     setAddAggregationView,
+    setAddRetrievalView,
     setAddAnalysisTasks,
     setAddAggregateTasks,
     setWorkflowBuilderTaskMap,
@@ -166,6 +181,7 @@ export const {
     setRetrievalKeywords,
     setRetrievalPlatform,
     setRetrievalUsernames,
-    setRetrievalPrompt
+    setRetrievalPrompt,
+    setAddRetrievalTasks,
 } = aiSlice.actions;
 export default aiSlice.reducer;

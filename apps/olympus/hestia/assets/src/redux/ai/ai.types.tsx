@@ -10,11 +10,13 @@ export interface AiState {
     tasks: [];
     addAnalysisView: boolean;
     addAggregationView: boolean;
+    addRetrievalView: boolean;
     addedAnalysisTasks: TaskModelInstructions[];
     addedAggregateTasks: TaskModelInstructions[];
     workflowBuilderTaskMap: AggregateSubTasksMap
     taskMap: TaskMap;
     retrieval: Retrieval;
+    retrievals: RetrievalsMap;
 }
 
 export interface PostWorkflowsRequest {
@@ -36,6 +38,7 @@ export interface TaskModelInstructions {
     tokenOverflowStrategy: string;
     prompt: string;
     cycleCount: number;
+    retrievals?: RetrievalsMap;
 }
 
 export interface TaskMap {
@@ -57,7 +60,12 @@ export type UpdateTaskCycleCountPayload = {
     count: number;
 };
 
+export interface RetrievalsMap {
+    [key: number]: Retrieval;
+}
+
 export interface Retrieval {
+    retrievalID?: number;
     retrievalName: string;
     retrievalGroup: string;
     retrievalPrompt: string;

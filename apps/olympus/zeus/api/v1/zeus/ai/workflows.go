@@ -127,6 +127,9 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 		AnalysisOnlyTasks: []artemis_orchestrations.AITaskLibrary{},
 	}
 	for _, m := range w.Models {
+		if m.CycleCount < 1 {
+			m.CycleCount = 1
+		}
 		switch m.TaskType {
 		case "aggregation":
 			agt := artemis_orchestrations.AggTask{
@@ -162,6 +165,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				CycleCount:            m.CycleCount,
 				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
 			}
+
 			for k, v := range w.AnalysisRetrievalsMap {
 				for rt, isTrue := range v {
 					if isTrue && rt == m.TaskID {

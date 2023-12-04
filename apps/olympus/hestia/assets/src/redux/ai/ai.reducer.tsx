@@ -110,6 +110,9 @@ const aiSlice = createSlice({
             for (let i = 0; i < state.addedAnalysisTasks.length; i++) {
                 const task  = state.addedAnalysisTasks[i]
                 if (task && task.taskID) {
+                    if (task.cycleCount <= 0) {
+                        task.cycleCount = 1;
+                    }
                     state.taskMap[task.taskID] = task;
                 }
             }
@@ -119,6 +122,9 @@ const aiSlice = createSlice({
             for (let i = 0; i < state.addedAggregateTasks.length; i++) {
                 const task  = state.addedAggregateTasks[i]
                 if (task && task.taskID) {
+                    if (task.cycleCount <= 0) {
+                        task.cycleCount = 1;
+                    }
                     state.taskMap[task.taskID] = task;
                 }
             }
@@ -154,7 +160,11 @@ const aiSlice = createSlice({
         setTaskMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
             const { key, count } = action.payload;
             const tmp = state.taskMap[key]
-            tmp.cycleCount = count;
+            if (count <= 0) {
+                tmp.cycleCount = 1;
+            } else {
+                tmp.cycleCount = count;
+            }
             state.taskMap[key] = tmp;
         },
         setWorkflowBuilderTaskMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {

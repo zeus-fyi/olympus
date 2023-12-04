@@ -163,9 +163,12 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     }
     useEffect(() => {
-    }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTab, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap]);
+    }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTab, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap, taskMap]);
     const dispatch = useDispatch();
     const handleTaskCycleCountChange = (val: number, task: TaskModelInstructions) => {
+        if (val <= 0) {
+            val = 1
+        }
         if (task && task.taskID) {
             const payload = {
                 key: task.taskID,
@@ -174,7 +177,6 @@ function WorkflowEngineBuilder(props: any) {
             dispatch(setTaskMap(payload));
         }
     };
-
     const handleAddTasksToWorkflow = async (event: any) => {
         setIsLoading(true)
         if (addAnalysisView){
@@ -367,6 +369,7 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestStatusError('error')
                 return;
             }
+            console.log(taskMap, 'taskMap')
             const payload: PostWorkflowsRequest = {
                 workflowName: workflowName,
                 workflowGroupName: workflowGroupName,
@@ -376,7 +379,6 @@ function WorkflowEngineBuilder(props: any) {
                 aggregateSubTasksMap: workflowBuilderTaskMap,
                 analysisRetrievalsMap: workflowAnalysisRetrievalsMap
             }
-            console.log(workflowAnalysisRetrievalsMap, 'workflowAnalysisRetrievalsMap')
             setIsLoading(true)
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
             const statusCode = response.status;
@@ -485,7 +487,7 @@ function WorkflowEngineBuilder(props: any) {
                 group: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
                 prompt: (taskType === 'analysis' ? analysisWorkflowInstructions : aggregationWorkflowInstructions),
                 maxTokens:  (taskType === 'analysis' ? analysisModelMaxTokens : aggregationModelMaxTokens),
-                cycleCount: (taskType === 'analysis' ? 0 : 0),
+                cycleCount: (taskType === 'analysis' ? 1 : 1),
                 tokenOverflowStrategy: (taskType === 'analysis' ? analysisModelTokenOverflowStrategy : aggregationModelTokenOverflowStrategy),
             };
             const response = await aiApiGateway.createOrUpdateTaskRequest(task);
@@ -742,7 +744,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Typography>
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 4}}>
-                                                {analysisStages && analysisStages.map((task, subIndex) => (
+                                                {!loading && analysisStages && analysisStages.map((task, subIndex) => (
                                                     <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
                                                         <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
                                                             <TextField
@@ -759,7 +761,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                         <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
                                                             <TextField
-                                                                key={subIndex}
+                                                                key={subIndex + task.taskGroup}
                                                                 label={`Analysis Group`}
                                                                 value={task.taskGroup}
                                                                 InputProps={{
@@ -788,8 +790,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                 type="number"
                                                                 label="Analysis Cycle Count"
                                                                 variant="outlined"
-                                                                value={taskMap[task?.taskID || 1]?.cycleCount || 1}
-                                                                inputProps={{ min: 0 }}  // Set minimum value to 0
+                                                                value={(task?.taskID !== undefined && taskMap[task.taskID]?.cycleCount > 0) ? taskMap[task.taskID].cycleCount : 1}
+                                                                inputProps={{ min: 1 }}  // Set minimum value to 0
                                                                 onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10), task)}
                                                                 fullWidth
                                                             />
@@ -968,8 +970,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                             type="number"
                                                                             label="Aggregation Cycle Count"
                                                                             variant="outlined"
-                                                                            value={taskMap[task?.taskID || 1]?.cycleCount || 1}
-                                                                            inputProps={{ min: 0 }}  // Set minimum value to 0
+                                                                            value={task?.taskID !== undefined && taskMap[task.taskID]?.cycleCount > 0 ? taskMap[task.taskID].cycleCount : 1}
+                                                                            inputProps={{ min: 1 }}  // Set minimum value to 0
                                                                             onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10),task)}
                                                                             fullWidth
                                                                         />

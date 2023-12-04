@@ -34,6 +34,22 @@ CREATE INDEX ai_workflow_template_org_idx ON public.ai_workflow_template("org_id
 CREATE INDEX ai_workflow_template_user_idx ON public.ai_workflow_template("user_id");
 ALTER TABLE "public"."ai_workflow_template" ADD CONSTRAINT "ai_workflow_template_org_name_uniq" UNIQUE ("org_id", "workflow_name");
 
+
+CREATE TABLE public.ai_retrieval_library (
+    retrieval_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
+    org_id BIGINT NOT NULL REFERENCES orgs(org_id),
+    user_id BIGINT NOT NULL REFERENCES users(user_id),
+    retrieval_name TEXT NOT NULL,
+    retrieval_group TEXT NOT NULL,
+    instructions jsonb NOT NULL
+);
+CREATE INDEX ai_retrieval_library_inst_idx ON public.ai_retrieval_library USING GIN (instructions);
+CREATE INDEX ai_retrieval_library_name_idx ON public.ai_retrieval_library("retrieval_name");
+CREATE INDEX ai_retrieval_library_group_idx ON public.ai_retrieval_library("retrieval_group");
+CREATE INDEX ai_retrieval_library_org_idx ON public.ai_retrieval_library("org_id");
+CREATE INDEX ai_retrieval_library_user_idx ON public.ai_retrieval_library("user_id");
+ALTER TABLE "public"."ai_retrieval_library" ADD CONSTRAINT "ai_retrieval_library_org_gret_name_uniq" UNIQUE ("org_id", "retrieval_name");
+
 CREATE TABLE public.ai_workflow_template_analysis_tasks(
     analysis_task_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
     workflow_template_id BIGINT NOT NULL REFERENCES ai_workflow_template(workflow_template_id),
@@ -57,19 +73,3 @@ CREATE TABLE public.ai_workflow_template_agg_tasks(
 CREATE INDEX ai_workflow_template_agg_tasks_idx ON public.ai_workflow_template_agg_tasks (workflow_template_id);
 CREATE INDEX ai_workflow_template_agg_tasks_idx2 ON public.ai_workflow_template_agg_tasks (agg_task_id);
 CREATE INDEX ai_workflow_template_agg_tasks_idx3 ON public.ai_workflow_template_agg_tasks (analysis_task_id);
-
-CREATE TABLE public.ai_retrieval_library (
-    retrieval_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
-    org_id BIGINT NOT NULL REFERENCES orgs(org_id),
-    user_id BIGINT NOT NULL REFERENCES users(user_id),
-    retrieval_name TEXT NOT NULL,
-    retrieval_group TEXT NOT NULL,
-    instructions jsonb NOT NULL
-);
-CREATE INDEX ai_retrieval_library_inst_idx ON public.ai_retrieval_library USING GIN (instructions);
-CREATE INDEX ai_retrieval_library_name_idx ON public.ai_retrieval_library("retrieval_name");
-CREATE INDEX ai_retrieval_library_group_idx ON public.ai_retrieval_library("retrieval_group");
-CREATE INDEX ai_retrieval_library_org_idx ON public.ai_retrieval_library("org_id");
-CREATE INDEX ai_retrieval_library_user_idx ON public.ai_retrieval_library("user_id");
-ALTER TABLE "public"."ai_retrieval_library" ADD CONSTRAINT "ai_retrieval_library_org_gret_name_uniq" UNIQUE ("org_id", "retrieval_name");
-

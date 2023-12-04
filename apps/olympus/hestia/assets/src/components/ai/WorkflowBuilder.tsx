@@ -56,6 +56,8 @@ import {
     setRetrievalUsernames,
     setTaskMap,
     setWorkflowBuilderTaskMap,
+    setWorkflowGroupName,
+    setWorkflowName,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
 import {PostWorkflowsRequest, Retrieval, TaskModelInstructions} from "../../redux/ai/ai.types";
@@ -91,6 +93,8 @@ function WorkflowEngineBuilder(props: any) {
     const retrievalsMap = useSelector((state: RootState) => state.ai.retrievalsMap);
     const workflowAnalysisRetrievalsMap = useSelector((state: RootState) => state.ai.workflowAnalysisRetrievalsMap);
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
+    const workflowName = useSelector((state: RootState) => state.ai.workflowName);
+    const workflowGroupName = useSelector((state: RootState) => state.ai.workflowGroupName);
     const handleAddRetrievalToAnalysis = () => {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
             return;
@@ -257,10 +261,7 @@ function WorkflowEngineBuilder(props: any) {
     const handleUpdateAggregationModel = (event: any) => {
         setAggregationModel(event.target.value);
     };
-    const [workflowName, setWorkflowName] = React.useState('');
-    const handleUpdateWorkflowName = (event: any) => {
-        setWorkflowName(event.target.value);
-    };
+
     const [analysisName, setAnalysisName] = React.useState('');
     const handleUpdateAnalysisName = (event: any) => {
         setAnalysisName(event.target.value);
@@ -309,8 +310,6 @@ function WorkflowEngineBuilder(props: any) {
     const [requestRetrievalStatusError, setRequestRetrievalStatusError] = useState('');
     const [requestStatus, setRequestStatus] = useState('');
     const [requestStatusError, setRequestStatusError] = useState('');
-
-
 
     const createOrUpdateWorkflow = async () => {
         try {
@@ -363,8 +362,14 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestStatusError('error')
                 return;
             }
+            if (!isValidLabel(workflowGroupName)) {
+                setRequestStatus('Workflow group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                setRequestStatusError('error')
+                return;
+            }
             const payload: PostWorkflowsRequest = {
                 workflowName: workflowName,
+                workflowGroupName: workflowGroupName,
                 stepSize: stepSize,
                 stepSizeUnit: stepSizeUnit,
                 models: taskMap,
@@ -647,15 +652,27 @@ function WorkflowEngineBuilder(props: any) {
                                             This allows you to write natural language instructions to chain to your search queries. Add a name
                                             for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.
                                             </Typography>
-                                            <Box sx={{ width: '100%', mb: 0, mt: 2 }}>
-                                                <TextField
-                                                    label={`Workflow Name`}
-                                                    variant="outlined"
-                                                    value={workflowName}
-                                                    onChange={handleUpdateWorkflowName}
-                                                    fullWidth
-                                                />
-                                            </Box>
+
+                                            <Stack direction={"row"} >
+                                                <Box sx={{ width: '50%', mb: 0, mt: 2 }}>
+                                                    <TextField
+                                                        label={`Workflow Name`}
+                                                        variant="outlined"
+                                                        value={workflowName}
+                                                        onChange={(event) => dispatch(setWorkflowName(event.target.value))}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                                <Box sx={{ width: '50%', mb: 0, mt: 2, ml: 2 }}>
+                                                    <TextField
+                                                        label={`Workflow Group Name`}
+                                                        variant="outlined"
+                                                        value={workflowGroupName}
+                                                        onChange={(event) => dispatch(setWorkflowGroupName(event.target.value))}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                            </Stack>
                                             <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                 <Divider/>
                                             </Box>
@@ -887,200 +904,204 @@ function WorkflowEngineBuilder(props: any) {
                                                     </Box>
                                                 </div>
                                             }
-                                            <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
-                                                <Divider/>
-                                            </Box>
-                                            <Box flexGrow={2} sx={{mt:2 , mb: 4}}>
-                                                <Typography gutterBottom variant="h5" component="div">
-                                                    Aggregation Stages
-                                                </Typography>
-                                                <Typography gutterBottom variant="body2" component="div">
-                                                   One aggregation cycle is equal to the longest of any dependent analysis cycles.
-                                                    If you have an analysis stage that occurs every 2 time cycles, and set the aggregation cycle count to 2,
-                                                    it will run on time cycle 4 after the analysis stage completes.
-                                                </Typography>
-                                            </Box>
-                                            <Box flexGrow={2} sx={{mt: 4}}>
-                                                <Stack direction={"column"} key={0}>
-                                                {aggregationStages && aggregationStages.map((task, subIndex) => (
-                                                        <Stack direction={"row"} key={subIndex} sx={{ mb: 1 }}>
-                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
-                                                                <TextField
-                                                                    key={subIndex}
-                                                                    label={`Aggregation Name`}
-                                                                    value={task.taskName}
-                                                                    InputProps={{
-                                                                        readOnly: true,
-                                                                    }}
-                                                                    variant="outlined"
-                                                                    fullWidth
-                                                                    margin="normal"
-                                                                />
-                                                            </Box>
-                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
-                                                                <TextField
-                                                                    key={subIndex}
-                                                                    label={`Aggregation Group`}
-                                                                    value={task.taskGroup}
-                                                                    InputProps={{
-                                                                        readOnly: true,
-                                                                    }}
-                                                                    variant="outlined"
-                                                                    fullWidth
-                                                                    margin="normal"
-                                                                />
-                                                            </Box>
-                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
-                                                                <TextField
-                                                                    key={subIndex+task.model}
-                                                                    label={`Aggregation Model`}
-                                                                    value={task.model}
-                                                                    InputProps={{
-                                                                        readOnly: true,
-                                                                    }}
-                                                                    variant="outlined"
-                                                                    fullWidth
-                                                                    margin="normal"
-                                                                />
-                                                            </Box>
-                                                            <Box flexGrow={2} sx={{ mb: 0, mt: -1, ml:2 }}>
-                                                                <TextField
-                                                                    type="number"
-                                                                    label="Aggregation Cycle Count"
-                                                                    variant="outlined"
-                                                                    value={taskMap[task?.taskID || 1]?.cycleCount || 1}
-                                                                    inputProps={{ min: 0 }}  // Set minimum value to 0
-                                                                    onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10),task)}
-                                                                    fullWidth
-                                                                />
-                                                            </Box>
-                                                            <Box flexGrow={1} sx={{ mb: 4, ml: 2 }}>
-                                                                <Button fullWidth variant="contained" onClick={(event)=> handleRemoveAggregationFromWorkflow(event,task)}>Remove</Button>
-                                                            </Box>
-                                                        </Stack>
-                                                        ))}
-                                                        <Box flexGrow={1} sx={{ mb: 4, mt: -1, ml: 2 }}>
-                                                            <Button variant="contained" onClick={() => addAggregationStageView()} >{addAggregateView ? 'Done Adding' : 'Add Aggregation Stages' }</Button>
-                                                        </Box>
-                                                        <Divider />
-                                                    {aggregationStages.length > 0 && analysisStages.length > 0 &&
-                                                        <div>
-                                                            <Box sx={{ mt: 2 }} >
-                                                                <Typography variant="h6" color="text.secondary">
-                                                                    Analysis {'->'} Aggregation Dependencies
-                                                                </Typography>
-                                                            </Box>
-                                                            { workflowBuilderTaskMap &&
-                                                                <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
-                                                                    <Box >
-                                                                        {Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
-                                                                            const taskNameForKey = taskMap[(Number(key))]?.taskName || '';
-                                                                            if (!taskNameForKey || taskNameForKey.length <= 0) {
-                                                                                return null;
-                                                                            }
-                                                                            return Object.entries(value).map(([subKey, subValue], subIndex) => {
-                                                                                if (!subValue || subKey.length <= 0) {
-                                                                                    return null;
-                                                                                }
-                                                                                const subKeyNumber = Number(subKey);
-                                                                                const subTaskName = taskMap[(subKeyNumber)]?.taskName || '';
-                                                                                if (subTaskName.length <= 0) {
-                                                                                    return null;
-                                                                                }
-                                                                                return (
-                                                                                    <Stack direction={"row"} key={`${key}-${subKey}`}>
-                                                                                        <React.Fragment key={subIndex}>
-                                                                                            <TextField
-                                                                                                label={`Analysis`}
-                                                                                                value={subTaskName || ''}
-                                                                                                InputProps={{ readOnly: true }}
-                                                                                                variant="outlined"
-                                                                                                fullWidth
-                                                                                                margin="normal"
-                                                                                            />
-                                                                                            <Box flexGrow={1} sx={{ mt: 4, ml: 2, mr: 2 }}>
-                                                                                                <ArrowForwardIcon />
-                                                                                            </Box>
-                                                                                            <TextField
-                                                                                                label={`Aggregate`}
-                                                                                                value={taskNameForKey || ''}
-                                                                                                InputProps={{ readOnly: true }}
-                                                                                                variant="outlined"
-                                                                                                fullWidth
-                                                                                                margin="normal"
-                                                                                            />
-                                                                                            <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
-                                                                                                <Button variant="contained" onClick={(event) => handleRemoveTaskRelationshipFromWorkflow(event, key, subKeyNumber)}>Remove</Button>
-                                                                                            </Box>
-                                                                                        </React.Fragment>
-                                                                                    </Stack>
-                                                                                );
-                                                                            });
-                                                                        })}
+                                            { analysisStages && analysisStages.length > 0 &&
+                                                <div>
+                                                    <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                                        <Divider/>
+                                                    </Box>
+                                                    <Box flexGrow={2} sx={{mt:2 , mb: 4}}>
+                                                        <Typography gutterBottom variant="h5" component="div">
+                                                            Aggregation Stages
+                                                        </Typography>
+                                                        <Typography gutterBottom variant="body2" component="div">
+                                                           One aggregation cycle is equal to the longest of any dependent analysis cycles.
+                                                            If you have an analysis stage that occurs every 2 time cycles, and set the aggregation cycle count to 2,
+                                                            it will run on time cycle 4 after the analysis stage completes.
+                                                        </Typography>
+                                                    </Box>
+                                                    <Box flexGrow={2} sx={{mt: 4}}>
+                                                        <Stack direction={"column"} key={0}>
+                                                        {aggregationStages && aggregationStages.map((task, subIndex) => (
+                                                                <Stack direction={"row"} key={subIndex} sx={{ mb: 1 }}>
+                                                                    <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                        <TextField
+                                                                            key={subIndex}
+                                                                            label={`Aggregation Name`}
+                                                                            value={task.taskName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                            variant="outlined"
+                                                                            fullWidth
+                                                                            margin="normal"
+                                                                        />
                                                                     </Box>
+                                                                    <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                        <TextField
+                                                                            key={subIndex}
+                                                                            label={`Aggregation Group`}
+                                                                            value={task.taskGroup}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                            variant="outlined"
+                                                                            fullWidth
+                                                                            margin="normal"
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                        <TextField
+                                                                            key={subIndex+task.model}
+                                                                            label={`Aggregation Model`}
+                                                                            value={task.model}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                            variant="outlined"
+                                                                            fullWidth
+                                                                            margin="normal"
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={2} sx={{ mb: 0, mt: -1, ml:2 }}>
+                                                                        <TextField
+                                                                            type="number"
+                                                                            label="Aggregation Cycle Count"
+                                                                            variant="outlined"
+                                                                            value={taskMap[task?.taskID || 1]?.cycleCount || 1}
+                                                                            inputProps={{ min: 0 }}  // Set minimum value to 0
+                                                                            onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10),task)}
+                                                                            fullWidth
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mb: 4, ml: 2 }}>
+                                                                        <Button fullWidth variant="contained" onClick={(event)=> handleRemoveAggregationFromWorkflow(event,task)}>Remove</Button>
+                                                                    </Box>
+                                                                </Stack>
+                                                                ))}
+                                                                <Box flexGrow={1} sx={{ mb: 4, mt: -1, ml: 2 }}>
+                                                                    <Button variant="contained" onClick={() => addAggregationStageView()} >{addAggregateView ? 'Done Adding' : 'Add Aggregation Stages' }</Button>
                                                                 </Box>
-                                                            }
-
-                                                            { analysisStages &&
+                                                                <Divider />
+                                                            {aggregationStages.length > 0 && analysisStages.length > 0 &&
                                                                 <div>
-                                                                    <Box sx={{ mt: 4 }} >
-                                                                        <Divider />
-                                                                    </Box>
                                                                     <Box sx={{ mt: 2 }} >
                                                                         <Typography variant="h6" color="text.secondary">
-                                                                            Add Analysis Stages to Aggregates
+                                                                            Analysis {'->'} Aggregation Dependencies
                                                                         </Typography>
                                                                     </Box>
+                                                                    { workflowBuilderTaskMap &&
+                                                                        <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
+                                                                            <Box >
+                                                                                {Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
+                                                                                    const taskNameForKey = taskMap[(Number(key))]?.taskName || '';
+                                                                                    if (!taskNameForKey || taskNameForKey.length <= 0) {
+                                                                                        return null;
+                                                                                    }
+                                                                                    return Object.entries(value).map(([subKey, subValue], subIndex) => {
+                                                                                        if (!subValue || subKey.length <= 0) {
+                                                                                            return null;
+                                                                                        }
+                                                                                        const subKeyNumber = Number(subKey);
+                                                                                        const subTaskName = taskMap[(subKeyNumber)]?.taskName || '';
+                                                                                        if (subTaskName.length <= 0) {
+                                                                                            return null;
+                                                                                        }
+                                                                                        return (
+                                                                                            <Stack direction={"row"} key={`${key}-${subKey}`}>
+                                                                                                <React.Fragment key={subIndex}>
+                                                                                                    <TextField
+                                                                                                        label={`Analysis`}
+                                                                                                        value={subTaskName || ''}
+                                                                                                        InputProps={{ readOnly: true }}
+                                                                                                        variant="outlined"
+                                                                                                        fullWidth
+                                                                                                        margin="normal"
+                                                                                                    />
+                                                                                                    <Box flexGrow={1} sx={{ mt: 4, ml: 2, mr: 2 }}>
+                                                                                                        <ArrowForwardIcon />
+                                                                                                    </Box>
+                                                                                                    <TextField
+                                                                                                        label={`Aggregate`}
+                                                                                                        value={taskNameForKey || ''}
+                                                                                                        InputProps={{ readOnly: true }}
+                                                                                                        variant="outlined"
+                                                                                                        fullWidth
+                                                                                                        margin="normal"
+                                                                                                    />
+                                                                                                    <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
+                                                                                                        <Button variant="contained" onClick={(event) => handleRemoveTaskRelationshipFromWorkflow(event, key, subKeyNumber)}>Remove</Button>
+                                                                                                    </Box>
+                                                                                                </React.Fragment>
+                                                                                            </Stack>
+                                                                                        );
+                                                                                    });
+                                                                                })}
+                                                                            </Box>
+                                                                        </Box>
+                                                                    }
+
+                                                                    { analysisStages &&
+                                                                        <div>
+                                                                            <Box sx={{ mt: 4 }} >
+                                                                                <Divider />
+                                                                            </Box>
+                                                                            <Box sx={{ mt: 2 }} >
+                                                                                <Typography variant="h6" color="text.secondary">
+                                                                                    Add Analysis Stages to Aggregates
+                                                                                </Typography>
+                                                                            </Box>
+                                                                        </div>
+                                                                    }
+                                                                    <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={1}>
+                                                                        { analysisStages &&
+                                                                        <Box flexGrow={3} sx={{ mt: -3, ml: 2 }}>
+                                                                            <FormControl fullWidth>
+                                                                                <InputLabel id={`analysis-stage-select-label-${1}`}>Analysis</InputLabel>
+                                                                                <Select
+                                                                                    labelId={`analysis-stage-select-label-${1}`}
+                                                                                    id={`analysis-stage-select-${1}`}
+                                                                                    value={selectedAnalysisStageForAggregation} // Use the state for the selected value
+                                                                                    label="Analysis Source"
+                                                                                    onChange={(event) => setSelectedAnalysisStageForAggregation(event.target.value)} // Update the state on change
+                                                                                >
+                                                                                    {analysisStages && analysisStages.map((stage, subIndex) => (
+                                                                                        <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                                    ))}
+                                                                                </Select>
+                                                                            </FormControl>
+                                                                        </Box>
+                                                                        }
+                                                                        <Box flexGrow={1} sx={{ mt: -1.2, ml: 4, mr: -1 }}>
+                                                                            <ArrowForwardIcon />
+                                                                        </Box>
+                                                                        { aggregationStages &&
+                                                                        <Box flexGrow={3} sx={{ mt: -3, ml: 0 }}>
+                                                                            <FormControl fullWidth>
+                                                                                <InputLabel id={`agg-stage-select-label-${2}`}>Aggregate</InputLabel>
+                                                                                <Select
+                                                                                    labelId={`agg-stage-select-label-${2}`}
+                                                                                    id={`agg-stage-select-${2}`}
+                                                                                    value={selectedAggregationStageForAnalysis} // This should correspond to the selected stage for each task
+                                                                                    label="Aggregate Source"
+                                                                                    onChange={(event) => setSelectedAggregationStageForAnalysis(event.target.value)} // Update the state on change)
+                                                                                >
+                                                                                    {aggregationStages && aggregationStages.map((stage: any, subIndex: number) => (
+                                                                                        <MenuItem key={stage.taskID} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                                    ))}
+                                                                                </Select>
+                                                                            </FormControl>
+                                                                        </Box>
+                                                                        }
+                                                                        <Box flexGrow={3} sx={{mt: -2, ml: 2 }}>
+                                                                            <Button variant="contained" onClick={handleAddSubTaskToAggregate}>Add Source</Button>
+                                                                        </Box>
+                                                                    </Stack>
                                                                 </div>
                                                             }
-                                                            <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={1}>
-                                                                { analysisStages &&
-                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 2 }}>
-                                                                    <FormControl fullWidth>
-                                                                        <InputLabel id={`analysis-stage-select-label-${1}`}>Analysis</InputLabel>
-                                                                        <Select
-                                                                            labelId={`analysis-stage-select-label-${1}`}
-                                                                            id={`analysis-stage-select-${1}`}
-                                                                            value={selectedAnalysisStageForAggregation} // Use the state for the selected value
-                                                                            label="Analysis Source"
-                                                                            onChange={(event) => setSelectedAnalysisStageForAggregation(event.target.value)} // Update the state on change
-                                                                        >
-                                                                            {analysisStages && analysisStages.map((stage, subIndex) => (
-                                                                                <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
-                                                                            ))}
-                                                                        </Select>
-                                                                    </FormControl>
-                                                                </Box>
-                                                                }
-                                                                <Box flexGrow={1} sx={{ mt: -1.2, ml: 4, mr: -1 }}>
-                                                                    <ArrowForwardIcon />
-                                                                </Box>
-                                                                { aggregationStages &&
-                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 0 }}>
-                                                                    <FormControl fullWidth>
-                                                                        <InputLabel id={`agg-stage-select-label-${2}`}>Aggregate</InputLabel>
-                                                                        <Select
-                                                                            labelId={`agg-stage-select-label-${2}`}
-                                                                            id={`agg-stage-select-${2}`}
-                                                                            value={selectedAggregationStageForAnalysis} // This should correspond to the selected stage for each task
-                                                                            label="Aggregate Source"
-                                                                            onChange={(event) => setSelectedAggregationStageForAnalysis(event.target.value)} // Update the state on change)
-                                                                        >
-                                                                            {aggregationStages && aggregationStages.map((stage: any, subIndex: number) => (
-                                                                                <MenuItem key={stage.taskID} value={stage.taskID}>{stage.taskName}</MenuItem>
-                                                                            ))}
-                                                                        </Select>
-                                                                    </FormControl>
-                                                                </Box>
-                                                                }
-                                                                <Box flexGrow={3} sx={{mt: -2, ml: 2 }}>
-                                                                    <Button variant="contained" onClick={handleAddSubTaskToAggregate}>Add Source</Button>
-                                                                </Box>
                                                             </Stack>
-                                                        </div>
-                                                    }
-                                                    </Stack>
-                                            </Box>
+                                                    </Box>
+                                                </div>
+                                            }
                                         </CardContent>
                                         <Box flexGrow={1} sx={{ mt: 4, mb: 0}}>
                                             <Divider/>

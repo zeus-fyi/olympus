@@ -8,6 +8,8 @@ export interface AiState {
     platformFilter: string;
     workflows: [];
     tasks: [];
+    workflowName: string;
+    workflowGroupName: string;
     addAnalysisView: boolean;
     addAggregationView: boolean;
     addRetrievalView: boolean;
@@ -24,10 +26,11 @@ export interface AiState {
 
 export interface PostWorkflowsRequest {
     workflowName: string;
+    workflowGroupName: string;
     stepSize: number;
     stepSizeUnit: string;
     models: TaskMap;
-    aggregateSubTasksMap: AggregateSubTasksMap;
+    aggregateSubTasksMap?: AggregateSubTasksMap;
     analysisRetrievalsMap: AnalysisRetrievalsMap
 }
 

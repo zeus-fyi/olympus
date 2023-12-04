@@ -72,13 +72,16 @@ type AiWorkflowWrapper struct {
 }
 
 type PostWorkflowsRequest struct {
-	WorkflowName         string               `json:"workflowName"`
-	StepSize             int                  `json:"stepSize"`
-	StepSizeUnit         string               `json:"stepSizeUnit"`
-	Models               TaskMap              `json:"models"`
-	AggregateSubTasksMap AggregateSubTasksMap `json:"aggregateSubTasksMap"`
+	WorkflowName          string                `json:"workflowName"`
+	WorkflowGroupName     string                `json:"workflowGroupName"`
+	StepSize              int                   `json:"stepSize"`
+	StepSizeUnit          string                `json:"stepSizeUnit"`
+	Models                TaskMap               `json:"models"`
+	AggregateSubTasksMap  AggregateSubTasksMap  `json:"aggregateSubTasksMap"`
+	AnalysisRetrievalsMap AnalysisRetrievalsMap `json:"analysisRetrievalsMap"`
 }
 
+type AnalysisRetrievalsMap map[int]map[int]bool
 type AggregateSubTasksMap map[int]map[int]bool
 type TaskMap map[int]TaskModelInstructions
 
@@ -104,6 +107,85 @@ func PostWorkflowsRequestHandler(c echo.Context) error {
 }
 
 func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if w.WorkflowName == "" || len(w.Models) == 0 {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+
+	wt := artemis_orchestrations.WorkflowTemplate{
+		WorkflowName:              w.WorkflowName,
+		WorkflowGroup:             w.WorkflowGroupName,
+		FundamentalPeriod:         w.StepSize,
+		FundamentalPeriodTimeUnit: w.StepSizeUnit,
+	}
+
+	wft := artemis_orchestrations.WorkflowTasks{
+		AggTasks:          []artemis_orchestrations.AggTask{},
+		AnalysisOnlyTasks: []artemis_orchestrations.AITaskLibrary{},
+	}
+	for _, m := range w.Models {
+		switch m.TaskType {
+		case "aggregation":
+			agt := artemis_orchestrations.AggTask{
+				AggId:      m.TaskID,
+				CycleCount: m.CycleCount,
+				Tasks:      []artemis_orchestrations.AITaskLibrary{},
+			}
+			for k, v := range w.AggregateSubTasksMap {
+				if k == m.TaskID {
+					for at, isTrue := range v {
+						if isTrue {
+							agt.Tasks = append(agt.Tasks, artemis_orchestrations.AITaskLibrary{
+								TaskID:     at,
+								CycleCount: m.CycleCount,
+							})
+						}
+					}
+				}
+			}
+			wft.AggTasks = append(wft.AggTasks, agt)
+		case "analysis":
+			at := artemis_orchestrations.AITaskLibrary{
+				TaskID:                m.TaskID,
+				OrgID:                 ou.OrgID,
+				UserID:                ou.UserID,
+				MaxTokensPerTask:      m.MaxTokens,
+				TaskType:              m.TaskType,
+				TaskName:              m.TaskName,
+				TaskGroup:             m.TaskGroup,
+				TokenOverflowStrategy: m.TokenOverflowStrategy,
+				Model:                 m.Model,
+				Prompt:                m.Prompt,
+				CycleCount:            m.CycleCount,
+				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
+			}
+			for k, v := range w.AnalysisRetrievalsMap {
+				if k == m.TaskID {
+					for rt, isTrue := range v {
+						if isTrue {
+							at.RetrievalDependencies = append(at.RetrievalDependencies, artemis_orchestrations.RetrievalItem{
+								RetrievalID: rt,
+							})
+						}
+					}
+				}
+			}
+			wft.AnalysisOnlyTasks = append(wft.AnalysisOnlyTasks, at)
+		default:
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+	}
+	err := artemis_orchestrations.InsertWorkflowWithComponents(c.Request().Context(), ou, &wt, artemis_orchestrations.WorkflowTasks{})
+	if err != nil {
+		log.Err(err).Msg("failed to insert workflow")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, wt)
+}
+func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow2(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)

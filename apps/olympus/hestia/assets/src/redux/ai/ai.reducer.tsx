@@ -30,13 +30,21 @@ const initialState: AiState = {
         retrievalPlatformGroups: '',
     },
     retrievals: [],
-    workflowAnalysisRetrievalsMap: {}
+    workflowAnalysisRetrievalsMap: {},
+    workflowName: '',
+    workflowGroupName: '',
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setWorkflowName: (state, action: PayloadAction<string>) => {
+            state.workflowName = action.payload;
+        },
+        setWorkflowGroupName: (state, action: PayloadAction<string>) => {
+            state.workflowGroupName = action.payload;
+        },
         setRetrievalName: (state, action: PayloadAction<string>) => {
             state.retrieval.retrievalName = action.payload;
         },
@@ -209,6 +217,8 @@ export const {
     setRetrievalPrompt,
     setAddRetrievalTasks,
     setRetrievals,
-    setAnalysisRetrievalsMap
+    setAnalysisRetrievalsMap,
+    setWorkflowGroupName,
+    setWorkflowName
 } = aiSlice.actions;
 export default aiSlice.reducer;

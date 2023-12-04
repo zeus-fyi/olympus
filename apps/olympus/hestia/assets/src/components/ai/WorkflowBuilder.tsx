@@ -79,6 +79,7 @@ function WorkflowEngineBuilder(props: any) {
     const [selectedAggregationStageForAnalysis, setSelectedAggregationStageForAnalysis] = useState('');
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
     const [tasks, setTasks] = useState(allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
+    const retrievals = useSelector((state: RootState) => state.ai.retrievals);
     const workflowBuilderTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderTaskMap);
     const taskMap = useSelector((state: RootState) => state.ai.taskMap);
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
@@ -159,8 +160,6 @@ function WorkflowEngineBuilder(props: any) {
         if (toggle) {
             setSelectedMainTab(3)
             setSelected({});
-            // setTaskType('analysis');
-            // setTasks(allTasks.filter((task: any) => task.taskType === 'analysis'));
         } else {
             setSelectedMainTab(0)
         }
@@ -1435,7 +1434,7 @@ function WorkflowEngineBuilder(props: any) {
                     { (selectedMainTab === 3) &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                                <RetrievalsTable tasks={tasks} selected={selected} handleClick={handleClick} handleSelectAllClick={handleSelectAllClick} />
+                                <RetrievalsTable retrievals={retrievals} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
                             </Container>
                         </div>
                     }

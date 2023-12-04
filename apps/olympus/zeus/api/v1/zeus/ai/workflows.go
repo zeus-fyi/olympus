@@ -47,20 +47,28 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 	//		}
 	//	}
 	//}
+
+	ret, err := artemis_orchestrations.SelectRetrievals(c.Request().Context(), ou)
+	if err != nil {
+		log.Err(err).Msg("failed to get retrievals")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	tasks, err := artemis_orchestrations.SelectTasks(c.Request().Context(), ou.OrgID)
 	if err != nil {
 		log.Err(err).Msg("failed to get tasks")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, AiWorkflowWrapper{
-		Workflows: ojs,
-		Tasks:     tasks,
+		Workflows:  ojs,
+		Tasks:      tasks,
+		Retrievals: ret,
 	})
 }
 
 type AiWorkflowWrapper struct {
-	Workflows []artemis_autogen_bases.Orchestrations `json:"workflows"`
-	Tasks     []artemis_orchestrations.AITaskLibrary `json:"tasks"`
+	Workflows  []artemis_autogen_bases.Orchestrations `json:"workflows"`
+	Tasks      []artemis_orchestrations.AITaskLibrary `json:"tasks"`
+	Retrievals []artemis_orchestrations.RetrievalItem `json:"retrievals"`
 }
 
 type PostWorkflowsRequest struct {

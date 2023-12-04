@@ -6,15 +6,15 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
-import {TasksRow} from "./TasksRow";
+import {RetrievalsRow} from "./RetrievalsRow";
 
 export function RetrievalsTable(props: any) {
-    const {selected, tasks, handleClick, handleSelectAllClick} = props;
+    const {selected, retrievals, handleClick, handleSelectAllClick} = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
     const countTaskValues = (): number => {
-        return Object.keys(tasks).length;
+        return Object.keys(retrievals).length;
     };
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -29,11 +29,11 @@ export function RetrievalsTable(props: any) {
         setPage(newPage);
     };
 
-    if (tasks === null || tasks === undefined) {
+    if (retrievals === null || retrievals === undefined) {
         return (<div></div>)
     }
     const emptyRows =
-        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - tasks.length) : 0;
+        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - retrievals.length) : 0;
     if (emptyRows) {
         return (<div></div>)
     }
@@ -60,12 +60,11 @@ export function RetrievalsTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Retrieval ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Platform</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rowsPerPage > 0 && tasks && tasks.map((row: any, index: number) => (
-                        <TasksRow
+                    {rowsPerPage > 0 && retrievals && retrievals.map((row: any, index: number) => (
+                        <RetrievalsRow
                             key={index}
                             row={row}
                             index={index}
@@ -84,7 +83,7 @@ export function RetrievalsTable(props: any) {
                         <TablePagination
                             rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
                             colSpan={4}
-                            count={tasks.length}
+                            count={retrievals.length}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             SelectProps={{

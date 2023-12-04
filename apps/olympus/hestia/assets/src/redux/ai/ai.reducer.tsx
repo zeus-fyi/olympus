@@ -33,7 +33,7 @@ const initialState: AiState = {
         retrievalPrompt: '',
         retrievalPlatformGroups: '',
     },
-    retrievals: {},
+    retrievals: [],
 }
 
 const aiSlice = createSlice({
@@ -96,6 +96,9 @@ const aiSlice = createSlice({
         },
         setAiTasks: (state, action: PayloadAction<[]>) => {
             state.tasks = action.payload;
+        },
+        setRetrievals: (state, action: PayloadAction<[]>) => {
+            state.retrievals = action.payload;
         },
         setAddAnalysisTasks: (state, action: PayloadAction<TaskModelInstructions[]>) => {
             state.addedAnalysisTasks = action.payload;
@@ -183,5 +186,6 @@ export const {
     setRetrievalUsernames,
     setRetrievalPrompt,
     setAddRetrievalTasks,
+    setRetrievals
 } = aiSlice.actions;
 export default aiSlice.reducer;

@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 )
@@ -28,26 +27,17 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	ojs, err := artemis_orchestrations.SelectAiSystemOrchestrationsWithInstructionsByGroupType(c.Request().Context(), ou.OrgID, "ai", "workflows")
+	//ojs, err := artemis_orchestrations.SelectAiSystemOrchestrationsWithInstructionsByGroupType(c.Request().Context(), ou.OrgID, "ai", "workflows")
+	//if err != nil {
+	//	log.Err(err).Msg("failed to get workflows")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+
+	ojs, err := artemis_orchestrations.SelectWorkflowTemplates(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Msg("failed to get workflows")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	//var tmp []kronos_helix.AiModelInstruction
-	//for i, _ := range ojs {
-	//	var ins kronos_helix.Instructions
-	//	err = json.Unmarshal([]byte(ojs[i].Instructions), &ins)
-	//	if err != nil {
-	//		log.Err(err).Msg("failed to unmarshal instructions")
-	//		return c.JSON(http.StatusInternalServerError, nil)
-	//	}
-	//	if len(ins.AiInstruction.Map) > 0 {
-	//		for _, v := range ins.AiInstruction.Map {
-	//			tmp = append(tmp, v...)
-	//		}
-	//	}
-	//}
-
 	ret, err := artemis_orchestrations.SelectRetrievals(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Msg("failed to get retrievals")
@@ -66,9 +56,9 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 }
 
 type AiWorkflowWrapper struct {
-	Workflows  []artemis_autogen_bases.Orchestrations `json:"workflows"`
-	Tasks      []artemis_orchestrations.AITaskLibrary `json:"tasks"`
-	Retrievals []artemis_orchestrations.RetrievalItem `json:"retrievals"`
+	Workflows  []artemis_orchestrations.WorkflowTemplate `json:"workflows"`
+	Tasks      []artemis_orchestrations.AITaskLibrary    `json:"tasks"`
+	Retrievals []artemis_orchestrations.RetrievalItem    `json:"retrievals"`
 }
 
 type PostWorkflowsRequest struct {
@@ -114,14 +104,12 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 	if w.WorkflowName == "" || len(w.Models) == 0 {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-
 	wt := artemis_orchestrations.WorkflowTemplate{
 		WorkflowName:              w.WorkflowName,
 		WorkflowGroup:             w.WorkflowGroupName,
 		FundamentalPeriod:         w.StepSize,
 		FundamentalPeriodTimeUnit: w.StepSizeUnit,
 	}
-
 	wft := artemis_orchestrations.WorkflowTasks{
 		AggTasks:          []artemis_orchestrations.AggTask{},
 		AnalysisOnlyTasks: []artemis_orchestrations.AITaskLibrary{},

@@ -99,7 +99,8 @@ export function WorkflowTable(props: any) {
                         </TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Workflow ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Active</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Base Period</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -116,15 +117,20 @@ export function WorkflowTable(props: any) {
                                 />
                             </TableCell>
                             <TableCell component="th" scope="row">
-                                {row.orchestrationID}
+                                {row.workflowID}
                             </TableCell>
                             <TableCell component="th" scope="row">
-                                {row.orchestrationName}
+                                {row.workflowName}
                             </TableCell>
-
                             <TableCell component="th" scope="row">
-                                {row.active ? 'Yes' : 'No'}
+                                {row.workflowGroup}
                             </TableCell>
+                            <TableCell component="th" scope="row">
+                                {row.fundamentalPeriod + ' ' + row.fundamentalPeriodTimeUnit}
+                            </TableCell>
+                            {/*<TableCell component="th" scope="row">*/}
+                            {/*    {row.active ? 'Yes' : 'No'}*/}
+                            {/*</TableCell>*/}
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (

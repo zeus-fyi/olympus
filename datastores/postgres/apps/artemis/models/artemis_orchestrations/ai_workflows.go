@@ -115,14 +115,17 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 		// Link component to the workflow template
 		for _, rd := range at.RetrievalDependencies {
 			aid := ts.UnixTimeStampNow()
-			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(analysis_task_id, workflow_template_id, task_id, retrieval_id, cycle_count) VALUES ($1, $2, $3, $4, $5) RETURNING analysis_task_id`, aid, workflowTemplate.WorkflowTemplateID, at.TaskID, rd.RetrievalID, at.CycleCount).Scan(&aid)
+			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(analysis_task_id, workflow_template_id, task_id, retrieval_id, cycle_count)
+										VALUES ($1, $2, $3, $4, $5)
+										ON CONFLICT (workflow_template_id, task_id, retrieval_id)
+										DO UPDATE SET cycle_count = EXCLUDED.cycle_count										
+										RETURNING analysis_task_id`, aid, workflowTemplate.WorkflowTemplateID, at.TaskID, rd.RetrievalID, at.CycleCount).Scan(&aid)
 			if err != nil {
 				log.Err(err).Msg("failed to insert workflow component")
 				return err
 			}
 		}
 	}
-
 	// Commit the transaction
 	err = tx.Commit(ctx)
 	if err != nil {

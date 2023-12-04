@@ -17,7 +17,18 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplate() {
 		FundamentalPeriodTimeUnit: "days",
 	}
 
-	res, err := SelectWorkflowTemplate(ctx, ou, newTemplate.WorkflowName)
+	res, err := SelectWorkflowTemplate(ctx, ou, newTemplate.WorkflowGroup)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(res)
+}
+
+func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplates() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	res, err := SelectWorkflowTemplates(ctx, ou)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
 }

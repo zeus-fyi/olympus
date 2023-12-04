@@ -105,3 +105,48 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
 
 	return results, nil
 }
+
+func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) ([]WorkflowTemplate, error) {
+	var results []WorkflowTemplate
+
+	q := sql_query_templates.QueryParams{}
+	params := []interface{}{ou.OrgID}
+	q.RawQuery = `SELECT
+                    wate.workflow_template_id,
+                    wate.workflow_name,
+                    wate.workflow_group,
+                    wate.fundamental_period,
+                    wate.fundamental_period_time_unit
+                FROM ai_workflow_template wate
+                WHERE wate.org_id = $1
+                ORDER BY wate.workflow_name, wate.workflow_group ASC`
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var data WorkflowTemplate
+		rowErr := rows.Scan(
+			&data.WorkflowTemplateID,
+			&data.WorkflowName,
+			&data.WorkflowGroup,
+			&data.FundamentalPeriod,
+			&data.FundamentalPeriodTimeUnit,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg("Error scanning row in SelectWorkflowTemplate")
+			return nil, rowErr
+		}
+		results = append(results, data)
+	}
+	// Check for errors from iterating over rows
+	if err = rows.Err(); err != nil {
+		log.Err(err).Msg("error iterating over rows")
+		return nil, err
+	}
+
+	return results, nil
+}

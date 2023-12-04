@@ -16,6 +16,7 @@ export interface AiState {
     addedRetrievals: Retrieval[];
     workflowBuilderTaskMap: AggregateSubTasksMap
     taskMap: TaskMap;
+    retrievalsMap: RetrievalsMap;
     retrieval: Retrieval;
     retrievals: Retrieval[];
     workflowAnalysisRetrievalsMap: AnalysisRetrievalsMap
@@ -61,6 +62,10 @@ export type UpdateTaskCycleCountPayload = {
     key: number;
     count: number;
 };
+
+export interface RetrievalsMap {
+    [key: number]: Retrieval;
+}
 
 export interface AnalysisRetrievalsMap {
     [key: number]: { [innerKey: number]: boolean };

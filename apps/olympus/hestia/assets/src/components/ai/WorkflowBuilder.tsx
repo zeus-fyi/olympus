@@ -87,6 +87,7 @@ function WorkflowEngineBuilder(props: any) {
     const retrievals = useSelector((state: RootState) => state.ai.retrievals);
     const workflowBuilderTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderTaskMap);
     const taskMap = useSelector((state: RootState) => state.ai.taskMap);
+    const retrievalsMap = useSelector((state: RootState) => state.ai.retrievalsMap);
     const workflowAnalysisRetrievalsMap = useSelector((state: RootState) => state.ai.workflowAnalysisRetrievalsMap);
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
 
@@ -768,16 +769,18 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
                                                             <Box >
                                                                 {Object.entries(workflowAnalysisRetrievalsMap).map(([key, value], index) => {
-                                                                    const taskNameForKey = taskMap[(Number(key))]?.taskName || '';
+                                                                    const taskNameForKey= retrievalsMap[(Number(key))]?.retrievalName || '';
                                                                     if (!taskNameForKey || taskNameForKey.length <= 0) {
                                                                         return null;
                                                                     }
                                                                     return Object.entries(value).map(([subKey, subValue], subIndex) => {
+                                                                        const subKeyNumber = Number(subKey);
+                                                                        const subTask = taskMap[(Number(subKeyNumber))]
+                                                                        const subTaskName = subTask?.taskName || '';
+
                                                                         if (!subValue || subKey.length <= 0) {
                                                                             return null;
                                                                         }
-                                                                        const subKeyNumber = Number(subKey);
-                                                                        const subTaskName = retrievalStages[(subKeyNumber)]?.retrievalName || '';
                                                                         if (subTaskName.length <= 0) {
                                                                             return null;
                                                                         }

@@ -19,6 +19,7 @@ const initialState: AiState = {
     addedRetrievals: [],
     workflowBuilderTaskMap: {},
     taskMap: {},
+    retrievalsMap: {},
     retrieval: {
         retrievalName: '',
         retrievalGroup: '',
@@ -116,6 +117,12 @@ const aiSlice = createSlice({
         },
         setAddRetrievalTasks: (state, action: PayloadAction<Retrieval[]>) => {
             state.addedRetrievals = action.payload;
+            for (let i = 0; i < state.addedRetrievals.length; i++) {
+                const retrieval  = state.addedRetrievals[i]
+                if (retrieval && retrieval.retrievalID) {
+                    state.retrievalsMap[retrieval.retrievalID] = retrieval;
+                }
+            }
         },
         setAnalysisRetrievalsMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
             const { key, subKey, value } = action.payload;

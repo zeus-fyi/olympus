@@ -1363,8 +1363,8 @@ function WorkflowEngineBuilder(props: any) {
                                                     />
                                                 </Box>
                                                 <Typography variant="h5" color="text.secondary">
-                                                    Describe what you're looking for, and the AI will generate a list of keywords to search for,
-                                                    you can preview, edit, or give the AI more information to refine the search.
+                                                    Describe what you're looking for, and the AI will generate a list of keywords to search for after saving in the background. A few minutes after saving it
+                                                    will be ready and display the generated keywords. You can preview, edit, or give the AI more information to refine the search.
                                                 </Typography>
                                                 <Box  sx={{ mb: 2, mt: 2 }}>
                                                     <TextareaAutosize

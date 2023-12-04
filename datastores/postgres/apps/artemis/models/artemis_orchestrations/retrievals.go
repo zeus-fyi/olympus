@@ -2,6 +2,8 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -12,15 +14,39 @@ import (
 )
 
 type RetrievalItem struct {
-	RetrievalID       int    `json:"retrievalID"`    // ID of the retrieval
-	RetrievalName     string `json:"retrievalName"`  // Name of the retrieval
-	RetrievalGroup    string `json:"retrievalGroup"` // Group of the retrieval
-	RetrievalPlatform string `json:"retrievalPlatform"`
-	Instructions      []byte `json:"instructions"` // Instructions for the retrieval
+	RetrievalID    int    `json:"retrievalID,omitempty"` // ID of the retrieval
+	RetrievalName  string `json:"retrievalName"`         // Name of the retrieval
+	RetrievalGroup string `json:"retrievalGroup"`        // Group of the retrieval
+	RetrievalItemInstruction
+	Instructions []byte `json:"instructions,omitempty"` // Instructions for the retrieval
+}
+type RetrievalItemInstruction struct {
+	RetrievalPlatform       string `json:"retrievalPlatform"`
+	RetrievalPrompt         string `json:"retrievalPrompt,omitempty"`         // Prompt for the retrieval
+	RetrievalPlatformGroups string `json:"retrievalPlatformGroups,omitempty"` // Platform groups for the retrieval
+	RetrievalKeywords       string `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
 }
 
-func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalItem, b []byte) error {
+func SetInstructions(r *RetrievalItem) error {
+	b, err := json.Marshal(r.RetrievalItemInstruction)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal retrieval instructions")
+		return err
+	}
+	r.Instructions = b
+	return nil
+}
+
+func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalItem) error {
 	q := sql_query_templates.QueryParams{}
+	err := SetInstructions(item)
+	if err != nil {
+		log.Err(err).Msg("failed to set retrieval instructions")
+		return err
+	}
+	if item.Instructions == nil {
+		return errors.New("instructions cannot be nil")
+	}
 	q.RawQuery = `
         INSERT INTO public.ai_retrieval_library (org_id, user_id, retrieval_name, retrieval_group, retrieval_platform, instructions)
         VALUES ($1, $2, $3, $4, $5, $6)
@@ -32,7 +58,7 @@ func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalI
             instructions = EXCLUDED.instructions
         RETURNING retrieval_id;`
 	// Executing the query
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, item.RetrievalName, item.RetrievalGroup, item.RetrievalPlatform, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(b), Status: IsNull(b)}).Scan(&item.RetrievalID)
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, item.RetrievalName, item.RetrievalGroup, item.RetrievalPlatform, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(item.Instructions), Status: IsNull(item.Instructions)}).Scan(&item.RetrievalID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert retrieval")
 		return err

@@ -13,15 +13,13 @@ func (s *OrchestrationsTestSuite) TestInsertRetrieval() {
 
 	mockRetrievalItem := RetrievalItem{
 		RetrievalName:     "tel-1",
-		RetrievalGroup:    "telegram-1",
+		RetrievalGroup:    "telegram-2",
 		RetrievalPlatform: "telegram",
+		Instructions:      []byte(`{"key": "value"}`),
 	}
 
-	// Example instructions in byte array
-	instructions := []byte(`{"key": "value"}`)
-
 	// Step 2: Call InsertRetrieval
-	err := InsertRetrieval(ctx, ou, &mockRetrievalItem, instructions)
+	err := InsertRetrieval(ctx, ou, &mockRetrievalItem)
 	s.Require().Nil(err)
 	s.Require().NotZero(mockRetrievalItem.RetrievalID)
 }

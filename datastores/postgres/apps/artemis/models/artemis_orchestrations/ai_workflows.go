@@ -66,7 +66,6 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 	defer tx.Rollback(ctx)
 
 	// Insert the workflow template and get its ID
-
 	query := `
         INSERT INTO public.ai_workflow_template (workflow_name, workflow_group, org_id, user_id, fundamental_period, fundamental_period_time_unit)
         VALUES ($1, $2, $3, $4, $5, $6)
@@ -90,12 +89,19 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 		for _, at := range aggTask.Tasks {
 			for _, rd := range at.RetrievalDependencies {
 				aid := ts.UnixTimeStampNow()
-				err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(analysis_task_id, workflow_template_id, task_id, retrieval_id, cycle_count) VALUES ($1, $2, $3, $4, $5) RETURNING analysis_task_id`, aid, workflowTemplate.WorkflowTemplateID, at.TaskID, rd.RetrievalID, at.CycleCount).Scan(&aid)
+				err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(analysis_task_id, workflow_template_id, task_id, retrieval_id, cycle_count)
+											VALUES ($1, $2, $3, $4, $5)
+											ON CONFLICT (workflow_template_id, task_id, retrieval_id)
+											DO UPDATE SET cycle_count = EXCLUDED.cycle_count
+											RETURNING analysis_task_id`, aid, workflowTemplate.WorkflowTemplateID, at.TaskID, rd.RetrievalID, at.CycleCount).Scan(&aid)
 				if err != nil {
 					log.Err(err).Msg("failed to insert workflow component")
 					return err
 				}
-				err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks (agg_task_id, workflow_template_id, analysis_task_id, cycle_count) VALUES ($1, $2, $3, $4) RETURNING analysis_task_id`, aggTask.AggId, workflowTemplate.WorkflowTemplateID, aid, aggTask.CycleCount).Scan(&aid)
+				err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks (agg_task_id, workflow_template_id, analysis_task_id, cycle_count)
+											VALUES ($1, $2, $3, $4)
+											RETURNING analysis_task_id`,
+					aggTask.AggId, workflowTemplate.WorkflowTemplateID, aid, aggTask.CycleCount).Scan(&aid)
 				if err != nil {
 					log.Err(err).Msg("failed to insert workflow component")
 					return err

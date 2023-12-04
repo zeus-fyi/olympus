@@ -126,6 +126,8 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 		AggTasks:          []artemis_orchestrations.AggTask{},
 		AnalysisOnlyTasks: []artemis_orchestrations.AITaskLibrary{},
 	}
+
+	ms := make(map[int]int)
 	for _, m := range w.Models {
 		if m.CycleCount < 1 {
 			m.CycleCount = 1
@@ -141,6 +143,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				if k == m.TaskID {
 					for at, isTrue := range v {
 						if isTrue {
+							ms[at] = m.TaskID
 							agt.Tasks = append(agt.Tasks, artemis_orchestrations.AITaskLibrary{
 								TaskID:     at,
 								CycleCount: m.CycleCount,
@@ -165,7 +168,6 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				CycleCount:            m.CycleCount,
 				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
 			}
-
 			for k, v := range w.AnalysisRetrievalsMap {
 				for rt, isTrue := range v {
 					if isTrue && rt == m.TaskID {
@@ -178,6 +180,29 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 			wft.AnalysisOnlyTasks = append(wft.AnalysisOnlyTasks, at)
 		default:
 			return c.JSON(http.StatusBadRequest, nil)
+		}
+	}
+
+	aggSubTaskMap := make(map[int]artemis_orchestrations.AITaskLibrary)
+	var analysisOnlyTasks []artemis_orchestrations.AITaskLibrary
+
+	for _, v := range wft.AnalysisOnlyTasks {
+		aggId, tok := ms[v.TaskID]
+		if tok {
+			aggSubTaskMap[aggId] = v
+		} else {
+			analysisOnlyTasks = append(analysisOnlyTasks, v)
+		}
+	}
+	wft.AnalysisOnlyTasks = analysisOnlyTasks
+	for _, v := range wft.AggTasks {
+		sbt, tok := aggSubTaskMap[v.AggId]
+		if tok {
+			for ti, aa := range v.Tasks {
+				if aa.TaskID == sbt.TaskID {
+					v.Tasks[ti] = sbt
+				}
+			}
 		}
 	}
 	err := artemis_orchestrations.InsertWorkflowWithComponents(c.Request().Context(), ou, &wt, wft)

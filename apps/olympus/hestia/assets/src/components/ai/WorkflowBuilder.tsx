@@ -307,11 +307,27 @@ function WorkflowEngineBuilder(props: any) {
     const [requestAnalysisStatusError, setRequestAnalysisStatusError] = useState('');
     const [requestRetrievalStatus, setRequestRetrievalStatus] = useState('');
     const [requestRetrievalStatusError, setRequestRetrievalStatusError] = useState('');
-
     const [requestStatus, setRequestStatus] = useState('');
     const [requestStatusError, setRequestStatusError] = useState('');
+
+
+
     const createOrUpdateWorkflow = async () => {
         try {
+            const allMappedRetrievalIDs: Set<number> = new Set();
+            Object.entries(workflowAnalysisRetrievalsMap).forEach(([retrievalID, innerMap])=> {
+                Object.entries(innerMap).forEach(([analysisID, isAdded], subInd) => {
+                    if (isAdded) {
+                        //allMappedAnalysisIDs.add(parseInt(analysisID, 10));
+                        allMappedRetrievalIDs.add(parseInt(retrievalID, 10));
+                    }
+                });
+            });
+            if (allMappedRetrievalIDs.size < retrievalStages.length) {
+                setRequestStatus('All retrieval stages must be connected to at least one analysis stage')
+                setRequestStatusError('error')
+                return;
+            }
             if (analysisStages.length <= 0) {
                 setRequestStatus('Workflow must have at least one analysis stage')
                 setRequestStatusError('error')
@@ -332,11 +348,11 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestStatusError('error')
                 return;
             }
-            // if (!isValidCycleCount(taskMap)) {
-            //     setRequestStatus('All analysis and aggregation tasks must have a cycle count greater than 0');
-            //     setRequestStatusError('error');
-            //     return;
-            // }
+            if (Object.keys(workflowAnalysisRetrievalsMap) && retrievalStages.length <= 0) {
+                setRequestStatus('Workflows with retrieval stages must have at least one connected analysis stage')
+                setRequestStatusError('error')
+                return;
+            }
             if (stepSize <= 0) {
                 setRequestStatus('Step size must be greater than 0')
                 setRequestStatusError('error')
@@ -352,7 +368,8 @@ function WorkflowEngineBuilder(props: any) {
                 stepSize: stepSize,
                 stepSizeUnit: stepSizeUnit,
                 models: taskMap,
-                aggregateSubTasksMap: workflowBuilderTaskMap
+                aggregateSubTasksMap: workflowBuilderTaskMap,
+                analysisRetrievalsMap: workflowAnalysisRetrievalsMap
             }
             setIsLoading(true)
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
@@ -783,8 +800,8 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
                                                             <Box >
                                                                 {Object.entries(workflowAnalysisRetrievalsMap).map(([key, value], index) => {
-                                                                    const taskNameForKey= retrievalsMap[(Number(key))]?.retrievalName || '';
-                                                                    if (!taskNameForKey || taskNameForKey.length <= 0) {
+                                                                    const retrievalNameForKey= retrievalsMap[(Number(key))]?.retrievalName || '';
+                                                                    if (!retrievalNameForKey || retrievalNameForKey.length <= 0) {
                                                                         return null;
                                                                     }
                                                                     return Object.entries(value).map(([subKey, subValue], subIndex) => {
@@ -803,7 +820,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 <React.Fragment key={subIndex}>
                                                                                     <TextField
                                                                                         label={`Retrieval`}
-                                                                                        value={subTaskName || ''}
+                                                                                        value={retrievalNameForKey || ''}
                                                                                         InputProps={{ readOnly: true }}
                                                                                         variant="outlined"
                                                                                         fullWidth
@@ -814,7 +831,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                     </Box>
                                                                                     <TextField
                                                                                         label={`Analysis`}
-                                                                                        value={taskNameForKey || ''}
+                                                                                        value={subTaskName || ''}
                                                                                         InputProps={{ readOnly: true }}
                                                                                         variant="outlined"
                                                                                         fullWidth
@@ -1293,7 +1310,6 @@ function WorkflowEngineBuilder(props: any) {
                                         </div>
                                     }
                                     {
-
                                         selectedMainTab == 3 && !addRetrievalView && !loading &&
                                     <CardContent>
                                         <div>
@@ -1303,7 +1319,7 @@ function WorkflowEngineBuilder(props: any) {
                                             <Typography variant="body2" color="text.secondary">
                                                 This allows you to modularize your retrieval procedures and reuse them across multiple workflows.
                                             </Typography>
-                                            <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                            <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 0 }}>
                                                 <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                         <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
                                                             <TextField

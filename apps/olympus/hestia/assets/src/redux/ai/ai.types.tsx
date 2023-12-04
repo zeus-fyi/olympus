@@ -28,6 +28,7 @@ export interface PostWorkflowsRequest {
     stepSizeUnit: string;
     models: TaskMap;
     aggregateSubTasksMap: AggregateSubTasksMap;
+    analysisRetrievalsMap: AnalysisRetrievalsMap
 }
 
 export interface TaskModelInstructions {

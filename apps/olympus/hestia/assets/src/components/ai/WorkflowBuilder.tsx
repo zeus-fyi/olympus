@@ -77,6 +77,7 @@ function WorkflowEngineBuilder(props: any) {
     const retrievalStages = useSelector((state: RootState) => state.ai.addedRetrievals);
     const [taskType, setTaskType] = useState('analysis');
     const analysisStages = useSelector((state: RootState) => state.ai.addedAnalysisTasks);
+    const [selectedRetrievalForAnalysis, setSelectedRetrievalForAnalysis] = useState('');
     const [selectedAnalysisStageForAggregation, setSelectedAnalysisStageForAggregation] = useState('');
     const [selectedAggregationStageForAnalysis, setSelectedAggregationStageForAnalysis] = useState('');
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
@@ -85,6 +86,13 @@ function WorkflowEngineBuilder(props: any) {
     const workflowBuilderTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderTaskMap);
     const taskMap = useSelector((state: RootState) => state.ai.taskMap);
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
+
+    const handleAddRetrievalToAnalysis = () => {
+        if (selectedRetrievalForAnalysis.length <= 0) {
+            return;
+        }
+        // todo
+    };
 
     const handleAddSubTaskToAggregate = () => {
         if (selectedAggregationStageForAnalysis.length <= 0 || selectedAnalysisStageForAggregation.length <= 0) {
@@ -620,13 +628,13 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Typography>
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 4}}>
-                                                {retrievalStages && retrievalStages.map((task, subIndex) => (
+                                                {retrievalStages && retrievalStages.map((ret, subIndex) => (
                                                     <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
                                                         <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
                                                             <TextField
                                                                 key={subIndex}
                                                                 label={`Retrieval Name`}
-                                                                value={task.retrievalName}
+                                                                value={ret?.retrievalName || ''}
                                                                 InputProps={{
                                                                     readOnly: true,
                                                                 }}
@@ -639,7 +647,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             <TextField
                                                                 key={subIndex}
                                                                 label={`Retrieval Group`}
-                                                                value={task.retrievalGroup}
+                                                                value={ret?.retrievalGroup || ''}
                                                                 InputProps={{
                                                                     readOnly: true,
                                                                 }}
@@ -649,7 +657,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             />
                                                         </Box>
                                                         <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
-                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveRetrievalFromWorkflow(event, task)}>Remove</Button>
+                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveRetrievalFromWorkflow(event, ret)}>Remove</Button>
                                                         </Box>
                                                     </Stack>
                                                 ))}
@@ -860,6 +868,36 @@ function WorkflowEngineBuilder(props: any) {
                                                                     </Box>
                                                                 </Box>
                                                             }
+
+                                                            { retrievalStages &&
+                                                                <div>
+                                                                    <Box sx={{ mt: 4 }} >
+                                                                        <Divider />
+                                                                    </Box>
+                                                                    <Box sx={{ mt: 2 }} >
+                                                                        <Typography variant="h6" color="text.secondary">
+                                                                            Add Retrieval Stages to Analysis
+                                                                        </Typography>
+                                                                    </Box>
+                                                                    <Box flexGrow={3} sx={{ mt: -3, ml: 2 }}>
+                                                                        <FormControl fullWidth>
+                                                                            <InputLabel id={`retrieval-stage-select-label-${1}`}>Retrieval</InputLabel>
+                                                                            <Select
+                                                                                labelId={`retrieval-stage-select-label-${1}`}
+                                                                                id={`retrieval-stage-select-${1}`}
+                                                                                value={selectedAnalysisStageForAggregation} // Use the state for the selected value
+                                                                                label="Retrieval Source"
+                                                                                onChange={(event) => setSelectedRetrievalForAnalysis(event.target.value)} // Update the state on change
+                                                                            >
+                                                                                {retrieval && retrievalStages.map((ret, subIndex) => (
+                                                                                    <MenuItem key={subIndex} value={ret.retrievalID || 0}>{ret.retrievalName}</MenuItem>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </FormControl>
+                                                                    </Box>
+                                                                </div>
+                                                            }
+
                                                             { analysisStages &&
                                                                 <div>
                                                                     <Box sx={{ mt: 4 }} >

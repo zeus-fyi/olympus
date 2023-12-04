@@ -113,7 +113,6 @@ const aiSlice = createSlice({
                 }
             }
         },
-        // TODO ^ complete with task map
         setAddRetrievalTasks: (state, action: PayloadAction<Retrieval[]>) => {
             state.addedRetrievals = action.payload;
         },

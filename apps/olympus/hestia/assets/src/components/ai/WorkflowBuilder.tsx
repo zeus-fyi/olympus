@@ -78,6 +78,7 @@ function WorkflowEngineBuilder(props: any) {
     const [taskType, setTaskType] = useState('analysis');
     const analysisStages = useSelector((state: RootState) => state.ai.addedAnalysisTasks);
     const [selectedRetrievalForAnalysis, setSelectedRetrievalForAnalysis] = useState('');
+    const [selectedAnalysisStageForRetrieval, setSelectedAnalysisStageForRetrieval] = useState('');
     const [selectedAnalysisStageForAggregation, setSelectedAnalysisStageForAggregation] = useState('');
     const [selectedAggregationStageForAnalysis, setSelectedAggregationStageForAnalysis] = useState('');
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
@@ -108,7 +109,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     };
     const handleRemoveRetrievalFromWorkflow = async (event: any, retrievalRemove: Retrieval) => {
-
+        dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalID !== retrievalRemove.retrievalID)));
     }
     const handleRemoveAnalysisFromWorkflow = async (event: any, taskRemove: TaskModelInstructions) => {
         Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
@@ -167,7 +168,7 @@ function WorkflowEngineBuilder(props: any) {
         } else if (addRetrievalView) {
             const selectedTasks: Retrieval[] = Object.keys(selected)
                 .filter(key => selected[Number(key)])
-                .map(key => tasks[Number(key)]);
+                .map(key => retrievals[Number(key)]);
             dispatch(setAddRetrievalTasks(selectedTasks));
         }
         setIsLoading(false)
@@ -738,6 +739,58 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                 <Divider/>
                                             </Box>
+                                            { retrievalStages && analysisStages && retrievalStages.length > 0 && analysisStages.length > 0 &&
+                                                <div>
+                                                    <Box sx={{ mt: 4 }} >
+                                                        <Divider />
+                                                    </Box>
+                                                    <Box sx={{ mt: 2 }} >
+                                                        <Typography variant="h6" color="text.secondary">
+                                                            Add Retrieval Stages to Analysis
+                                                        </Typography>
+                                                    </Box>
+                                                    <Stack direction={"row"} sx={{ mt: 2 }}>
+                                                        <Box flexGrow={3} sx={{ml: 2, mt: 2}}>
+                                                            <FormControl fullWidth>
+                                                                <InputLabel id={`retrieval-stage-select-label-${1}`}>Retrieval</InputLabel>
+                                                                <Select
+                                                                    labelId={`retrieval-stage-select-label-${1}`}
+                                                                    id={`retrieval-stage-select-${1}`}
+                                                                    value={selectedRetrievalForAnalysis} // Use the state for the selected value
+                                                                    label="Retrieval Source"
+                                                                    onChange={(event) => setSelectedRetrievalForAnalysis(event.target.value)} // Update the state on change
+                                                                >
+                                                                    {retrieval && retrievalStages.map((ret, subIndex) => (
+                                                                        <MenuItem key={subIndex} value={ret.retrievalID || 0}>{ret.retrievalName}</MenuItem>
+                                                                    ))}
+                                                                </Select>
+                                                            </FormControl>
+                                                        </Box>
+                                                        <Box flexGrow={3} sx={{mt: 2, ml: 2, mr: 2}}>
+                                                            <FormControl fullWidth>
+                                                                <InputLabel id={`ret-analysis-stage-select-label-${1}`}>Analysis</InputLabel>
+                                                                <Select
+                                                                    labelId={`ret-analysis-stage-select-label-${1}`}
+                                                                    id={`ret-analysis-stage-select-${1}`}
+                                                                    value={selectedAnalysisStageForRetrieval} // Use the state for the selected value
+                                                                    label="Analysis Source"
+                                                                    onChange={(event) => setSelectedAnalysisStageForRetrieval(event.target.value)} // Update the state on change
+                                                                >
+                                                                    {analysisStages && analysisStages.map((stage, subIndex) => (
+                                                                        <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                    ))}
+                                                                </Select>
+                                                            </FormControl>
+                                                        </Box>
+                                                    </Stack>
+                                                    <Box flexGrow={3} sx={{mt: 2, ml: 2, mr: 2 }}>
+                                                        <Button variant="contained" onClick={handleAddRetrievalToAnalysis}>Add Source</Button>
+                                                    </Box>
+                                                </div>
+                                            }
+                                            <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                                <Divider/>
+                                            </Box>
                                             <Box flexGrow={2} sx={{mt:2 , mb: 4}}>
                                                 <Typography gutterBottom variant="h5" component="div">
                                                     Aggregation Stages
@@ -867,35 +920,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                         })}
                                                                     </Box>
                                                                 </Box>
-                                                            }
-
-                                                            { retrievalStages &&
-                                                                <div>
-                                                                    <Box sx={{ mt: 4 }} >
-                                                                        <Divider />
-                                                                    </Box>
-                                                                    <Box sx={{ mt: 2 }} >
-                                                                        <Typography variant="h6" color="text.secondary">
-                                                                            Add Retrieval Stages to Analysis
-                                                                        </Typography>
-                                                                    </Box>
-                                                                    <Box flexGrow={3} sx={{ mt: -3, ml: 2 }}>
-                                                                        <FormControl fullWidth>
-                                                                            <InputLabel id={`retrieval-stage-select-label-${1}`}>Retrieval</InputLabel>
-                                                                            <Select
-                                                                                labelId={`retrieval-stage-select-label-${1}`}
-                                                                                id={`retrieval-stage-select-${1}`}
-                                                                                value={selectedAnalysisStageForAggregation} // Use the state for the selected value
-                                                                                label="Retrieval Source"
-                                                                                onChange={(event) => setSelectedRetrievalForAnalysis(event.target.value)} // Update the state on change
-                                                                            >
-                                                                                {retrieval && retrievalStages.map((ret, subIndex) => (
-                                                                                    <MenuItem key={subIndex} value={ret.retrievalID || 0}>{ret.retrievalName}</MenuItem>
-                                                                                ))}
-                                                                            </Select>
-                                                                        </FormControl>
-                                                                    </Box>
-                                                                </div>
                                                             }
 
                                                             { analysisStages &&

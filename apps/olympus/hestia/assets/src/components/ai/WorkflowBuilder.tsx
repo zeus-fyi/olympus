@@ -43,6 +43,13 @@ import {
     setAddAnalysisView,
     setAggregationWorkflowInstructions,
     setAnalysisWorkflowInstructions,
+    setRetrievalGroup,
+    setRetrievalKeywords,
+    setRetrievalName,
+    setRetrievalPlatform,
+    setRetrievalPlatformGroups,
+    setRetrievalPrompt,
+    setRetrievalUsernames,
     setTaskMap,
     setWorkflowBuilderTaskMap,
 } from "../../redux/ai/ai.reducer";
@@ -71,7 +78,11 @@ function WorkflowEngineBuilder(props: any) {
     const [tasks, setTasks] = useState(allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
     const workflowBuilderTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderTaskMap);
     const taskMap = useSelector((state: RootState) => state.ai.taskMap);
+    const retrieval = useSelector((state: RootState) => state.ai.retrieval);
 
+    const handleUpdateRetrievalName =  async (event: any, name: string) => {
+        dispatch(setRetrievalName(name));
+    }
     const handleAddSubTaskToAggregate = () => {
         if (selectedAggregationStageForAnalysis.length <= 0 || selectedAnalysisStageForAggregation.length <= 0) {
             return;
@@ -238,6 +249,8 @@ function WorkflowEngineBuilder(props: any) {
     const [requestAggStatusError, setRequestAggStatusError] = useState('');
     const [requestAnalysisStatus, setRequestAnalysisStatus] = useState('');
     const [requestAnalysisStatusError, setRequestAnalysisStatusError] = useState('');
+    const [requestRetrievalStatus, setRequestRetrievalStatus] = useState('');
+    const [requestRetrievalStatusError, setRequestRetrievalStatusError] = useState('');
 
     const [requestStatus, setRequestStatus] = useState('');
     const [requestStatusError, setRequestStatusError] = useState('');
@@ -296,6 +309,49 @@ function WorkflowEngineBuilder(props: any) {
                 console.log('failed to createAiWorkflowRequest', response);
             }
         } catch (e) {
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    const createOrUpdateRetrieval= async () => {
+        try {
+            setIsLoading(true)
+
+            if (!isValidLabel(retrieval.retrievalName)) {
+                setRequestRetrievalStatus('Retrieval name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                setRequestRetrievalStatusError('error')
+                return;
+            }
+
+            if (!isValidLabel(retrieval.retrievalGroup)) {
+                setRequestRetrievalStatus('Retrieval group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                setRequestRetrievalStatusError('error')
+                return;
+            }
+
+            if ((retrieval.retrievalKeywords.length <= 0 && retrieval.retrievalPrompt.length <= 0))  {
+                setRequestRetrievalStatus('At least one of retrieval keywords or prompt must be set')
+                setRequestRetrievalStatusError('error')
+                return;
+            }
+
+            if (retrieval.retrievalPlatform.length <= 0) {
+                setRequestRetrievalStatus('Retrieval platform must be set')
+                setRequestRetrievalStatusError('error')
+                return;
+            }
+            const response = await aiApiGateway.createOrUpdateRetrieval(retrieval);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                const data = response.data;
+                setRequestRetrievalStatus('Retrieval created successfully')
+                setRequestRetrievalStatusError('success')
+            } else {
+                console.log('Failed to update or add retrieval', response);
+            }
+        } catch (e) {
+
         } finally {
             setIsLoading(false);
         }
@@ -1019,21 +1075,21 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
                                                             <TextField
                                                                 fullWidth
-                                                                id="keywords-input"
+                                                                id="retrieval-name"
                                                                 label="Retrieval Name"
                                                                 variant="outlined"
-                                                                // value={searchKeywordsText}
-                                                                // onChange={(e) => handleUpdateSearchKeywords(e.target.value)}
+                                                                value={retrieval.retrievalName}
+                                                                onChange={(e) => dispatch(setRetrievalName(e.target.value))}
                                                             />
                                                         </Box>
                                                     <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
                                                         <TextField
                                                             fullWidth
-                                                            id="keywords-input"
+                                                            id="retrieval-group"
                                                             label="Retrieval Group"
                                                             variant="outlined"
-                                                            // value={searchKeywordsText}
-                                                            // onChange={(e) => handleUpdateSearchKeywords(e.target.value)}
+                                                            value={retrieval.retrievalGroup}
+                                                            onChange={(e) => dispatch(setRetrievalGroup(e.target.value))}
                                                         />
                                                     </Box>
                                                     </Stack>
@@ -1043,9 +1099,9 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Select
                                                             labelId="platform-label"
                                                             id="platforms-input"
-                                                            // value={platformFilter}
+                                                            value={retrieval.retrievalPlatform}
                                                             label="Platform"
-                                                            // onChange={(e) => handleUpdatePlatformFilter(e.target.value)}
+                                                            onChange={(e) => dispatch(setRetrievalPlatform(e.target.value))}
                                                         >
                                                             <MenuItem value="reddit">Reddit</MenuItem>
                                                             <MenuItem value="twitter">Twitter</MenuItem>
@@ -1058,10 +1114,10 @@ function WorkflowEngineBuilder(props: any) {
                                                     <TextField
                                                         fullWidth
                                                         id="group-input"
-                                                        label="Groups"
+                                                        label="Platform Groups"
                                                         variant="outlined"
-                                                        // value={groupFilter}
-                                                        // onChange={(e) => handleUpdateGroupFilter(e.target.value)}
+                                                        value={retrieval.retrievalPlatformGroups}
+                                                         onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
                                                     />
                                                 </Box>
                                                 <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
@@ -1070,8 +1126,8 @@ function WorkflowEngineBuilder(props: any) {
                                                         id="usernames-input"
                                                         label="Usernames"
                                                         variant="outlined"
-                                                        // value={usernames}
-                                                        // onChange={(e) => handleUpdateSearchUsernames(e.target.value)}
+                                                        value={retrieval.retrievalUsernames}
+                                                        onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}
                                                     />
                                                 </Box>
                                                 <Typography variant="h5" color="text.secondary">
@@ -1081,8 +1137,8 @@ function WorkflowEngineBuilder(props: any) {
                                                 <Box  sx={{ mb: 2, mt: 2 }}>
                                                     <TextareaAutosize
                                                         minRows={18}
-                                                        // value={aggregationWorkflowInstructions}
-                                                        // onChange={(e) => handleUpdateAggregationWorkflowInstructions(e.target.value)}
+                                                        value={retrieval.retrievalPrompt}
+                                                        onChange={(e) => dispatch(setRetrievalPrompt(e.target.value))}
                                                         style={{ resize: "both", width: "100%" }}
                                                     />
                                                 </Box>
@@ -1095,12 +1151,19 @@ function WorkflowEngineBuilder(props: any) {
                                                         id="keywords-input"
                                                         label="Keywords"
                                                         variant="outlined"
-                                                        // value={searchKeywordsText}
-                                                        // onChange={(e) => handleUpdateSearchKeywords(e.target.value)}
+                                                        value={retrieval.retrievalKeywords}
+                                                        onChange={(e) => dispatch(setRetrievalKeywords(e.target.value))}
                                                     />
                                                 </Box>
+                                                {requestRetrievalStatus != '' && (
+                                                    <Container sx={{ mb: 2, mt: -2}}>
+                                                        <Typography variant="h6" color={requestRetrievalStatusError}>
+                                                            {requestRetrievalStatus}
+                                                        </Typography>
+                                                    </Container>
+                                                )}
                                                 <Box flexGrow={1} sx={{ mb: 0 }}>
-                                                    <Button fullWidth variant="contained" onClick={() =>  createOrUpdateTask('analysis')} >Save Search Procedure</Button>
+                                                    <Button fullWidth variant="contained" onClick={createOrUpdateRetrieval} >Save Retrieval</Button>
                                                 </Box>
                                             </Stack>
                                         </div>

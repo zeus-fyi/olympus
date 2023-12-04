@@ -1,6 +1,6 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
-import {PostWorkflowsRequest, TaskModelInstructions} from "../redux/ai/ai.types";
+import {PostWorkflowsRequest, Retrieval, TaskModelInstructions} from "../redux/ai/ai.types";
 
 class AiApiGateway {
     async searchRequest(params: any): Promise<any> {
@@ -62,6 +62,23 @@ class AiApiGateway {
     }
     async createOrUpdateTaskRequest(params: TaskModelInstructions): Promise<any> {
         const url = `/v1/tasks/ai`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.post(url, params, config)
+        } catch (exc) {
+            console.error('error sending task create or update request');
+            console.error(exc);
+            return
+        }
+    }
+    async createOrUpdateRetrieval(params: Retrieval): Promise<any> {
+        const url = `/v1/retrievals/ai`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

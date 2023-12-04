@@ -17,12 +17,42 @@ const initialState: AiState = {
     addedAggregateTasks: [],
     workflowBuilderTaskMap: {},
     taskMap: {},
+    retrieval: {
+        retrievalName: '',
+        retrievalGroup: '',
+        retrievalKeywords: '',
+        retrievalPlatform: '',
+        retrievalUsernames: '',
+        retrievalPrompt: '',
+        retrievalPlatformGroups: '',
+    }
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setRetrievalName: (state, action: PayloadAction<string>) => {
+            state.retrieval.retrievalName = action.payload;
+        },
+        setRetrievalPlatformGroups: (state, action: PayloadAction<string>) => {
+            state.retrieval.retrievalPlatformGroups = action.payload;
+        },
+        setRetrievalGroup: (state, action: PayloadAction<string>) => {
+            state.retrieval.retrievalGroup = action.payload;
+        },
+        setRetrievalKeywords: (state, action: PayloadAction<string>) => {
+            state.retrieval.retrievalKeywords = action.payload;
+        },
+        setRetrievalUsernames: (state, action: PayloadAction<string>) => {
+            state.retrieval.retrievalUsernames = action.payload;
+        },
+        setRetrievalPlatform: (state, action: PayloadAction<string>) => {
+            state.retrieval.retrievalPlatform = action.payload;
+        },
+        setRetrievalPrompt: (state, action: PayloadAction<string>) => {
+            state.retrieval.retrievalPrompt = action.payload;
+        },
         setAddAnalysisView: (state, action: PayloadAction<boolean>) => {
             state.addAnalysisView = action.payload;
         },
@@ -130,5 +160,12 @@ export const {
     setWorkflowBuilderTaskMap,
     removeAggregationFromWorkflowBuilderTaskMap,
     setTaskMap,
+    setRetrievalName,
+    setRetrievalGroup,
+    setRetrievalPlatformGroups,
+    setRetrievalKeywords,
+    setRetrievalPlatform,
+    setRetrievalUsernames,
+    setRetrievalPrompt
 } = aiSlice.actions;
 export default aiSlice.reducer;

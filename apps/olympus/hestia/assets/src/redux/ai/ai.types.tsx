@@ -14,6 +14,7 @@ export interface AiState {
     addedAggregateTasks: TaskModelInstructions[];
     workflowBuilderTaskMap: AggregateSubTasksMap
     taskMap: TaskMap;
+    retrieval: Retrieval;
 }
 
 export interface PostWorkflowsRequest {
@@ -55,3 +56,13 @@ export type UpdateTaskCycleCountPayload = {
     key: number;
     count: number;
 };
+
+export interface Retrieval {
+    retrievalName: string;
+    retrievalGroup: string;
+    retrievalPrompt: string;
+    retrievalKeywords: string;
+    retrievalPlatform: string;
+    retrievalUsernames: string;
+    retrievalPlatformGroups: string;
+}

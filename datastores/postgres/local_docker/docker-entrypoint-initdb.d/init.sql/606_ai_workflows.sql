@@ -22,10 +22,17 @@ CREATE INDEX ai_task_library_user_idx ON public.ai_task_library("user_id");
 CREATE TABLE public.ai_workflow_template(
     workflow_template_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
     workflow_name TEXT NOT NULL,
+    workflow_group TEXT NOT NULL,
+    org_id BIGINT NOT NULL REFERENCES orgs(org_id),
+    user_id BIGINT NOT NULL REFERENCES users(user_id),
     fundamental_period BIGINT NOT NULL DEFAULT 1 CHECK ( fundamental_period > 0 ),
     fundamental_period_time_unit TEXT NOT NULL CHECK (fundamental_period_time_unit IN ('seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'))
 );
 CREATE INDEX workflow_name_index ON public.ai_workflow_template (workflow_name);
+CREATE INDEX workflow_gname_index ON public.ai_workflow_template (workflow_group);
+CREATE INDEX ai_workflow_template_org_idx ON public.ai_workflow_template("org_id");
+CREATE INDEX ai_workflow_template_user_idx ON public.ai_workflow_template("user_id");
+ALTER TABLE "public"."ai_workflow_template" ADD CONSTRAINT "ai_workflow_template_org_name_uniq" UNIQUE ("org_id", "workflow_name");
 
 CREATE TABLE public.ai_workflow_component(
     component_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY

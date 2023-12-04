@@ -180,7 +180,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, nil)
 		}
 	}
-	err := artemis_orchestrations.InsertWorkflowWithComponents(c.Request().Context(), ou, &wt, artemis_orchestrations.WorkflowTasks{})
+	err := artemis_orchestrations.InsertWorkflowWithComponents(c.Request().Context(), ou, &wt, wft)
 	if err != nil {
 		log.Err(err).Msg("failed to insert workflow")
 		return c.JSON(http.StatusInternalServerError, nil)

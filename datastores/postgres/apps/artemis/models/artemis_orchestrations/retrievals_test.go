@@ -12,7 +12,7 @@ func (s *OrchestrationsTestSuite) TestInsertRetrieval() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	mockRetrievalItem := RetrievalItem{
-		RetrievalName:  "TestRetrieval",
+		RetrievalName:  "TestRetrievalzzzsasdfz",
 		RetrievalGroup: "TestGroup1",
 	}
 

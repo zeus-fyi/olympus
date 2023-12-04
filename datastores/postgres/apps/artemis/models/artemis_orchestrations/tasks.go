@@ -21,7 +21,6 @@ type AITaskLibrary struct {
 	Prompt                string          `db:"prompt" json:"prompt"`
 	CycleCount            int             `db:"cycle_count" json:"cycleCount,omitempty"`
 	RetrievalDependencies []RetrievalItem `json:"retrievalDependencies,omitempty"`
-	TaskDependencies      []AITaskLibrary `json:"taskDependencies,omitempty"`
 }
 
 func InsertTask(ctx context.Context, task *AITaskLibrary) error {

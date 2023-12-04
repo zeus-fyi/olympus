@@ -3,7 +3,6 @@ package artemis_orchestrations
 import (
 	"context"
 
-	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -45,7 +44,18 @@ func InsertWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, template 
 	return nil
 }
 
-func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, workflowTemplate *WorkflowTemplate, tasks []AITaskLibrary) error {
+type AggTask struct {
+	AggId      int
+	CycleCount int
+	Tasks      []AITaskLibrary
+}
+
+type WorkflowTasks struct {
+	AggTasks          []AggTask
+	AnalysisOnlyTasks []AITaskLibrary
+}
+
+func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, workflowTemplate *WorkflowTemplate, tasks WorkflowTasks) error {
 	// Start a transaction
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
@@ -75,88 +85,31 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 	}
 
 	ts := chronos.Chronos{}
-
-	for _, task := range tasks {
-
-		mainTaskId := ts.UnixTimeStampNow()
-		task.TaskDependencies = append(task.TaskDependencies, task)
-		for i, td := range task.TaskDependencies {
-			componentID := ts.UnixTimeStampNow()
-			if i == 0 {
-				componentID = mainTaskId
-			}
-
-			query = `INSERT INTO ai_workflow_component(component_id) VALUES($1) RETURNING component_id`
-			err = tx.QueryRow(ctx, query, componentID).Scan(&componentID)
-			if err != nil {
-				log.Err(err).Msg("failed to insert workflow component")
-				return err
-			}
-			// Link component to the workflow template
-			_, err = tx.Exec(ctx, `INSERT INTO ai_workflow_template_components (workflow_template_id, component_id) VALUES ($1, $2)`, workflowTemplate.WorkflowTemplateID, componentID)
-			if err == pgx.ErrNoRows {
-				err = nil // Ignore if the component is already linked
-			}
-			if err != nil {
-				log.Err(err).Msg("failed to insert workflow component")
-				return err
-			}
-			// Link component to the workflow template
-			_, err = tx.Exec(ctx, `INSERT INTO ai_workflow_template_component_task(component_id, task_id, cycle_count) VALUES ($1, $2, $3)`, componentID, td.TaskID, task.CycleCount)
-			if err == pgx.ErrNoRows {
-				err = nil // Ignore if the component is already linked
-			}
-			if err != nil {
-				log.Err(err).Msg("failed to insert workflow component")
-				return err
-			}
-
-			if i > 0 {
-				// Link component to the workflow template
-				_, err = tx.Exec(ctx, `INSERT INTO ai_workflow_component_dependency(component_id, component_dependency_id) VALUES ($1, $2)`, mainTaskId, componentID)
-				if err == pgx.ErrNoRows {
-					err = nil // Ignore if the component is already linked
-				}
+	for _, aggTask := range tasks.AggTasks {
+		// Link component to the workflow template
+		for _, at := range aggTask.Tasks {
+			for _, rd := range at.RetrievalDependencies {
+				aid := ts.UnixTimeStampNow()
+				err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(analysis_task_id, workflow_template_id, task_id, retrieval_id, cycle_count) VALUES ($1, $2, $3, $4, $5) RETURNING analysis_task_id`, aid, workflowTemplate.WorkflowTemplateID, at.TaskID, rd.RetrievalID, at.CycleCount).Scan(&aid)
 				if err != nil {
-					log.Err(err).Msg("failed to insert workflow ai_workflow_component_dependency")
+					log.Err(err).Msg("failed to insert workflow component")
+					return err
+				}
+				err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks (agg_task_id, workflow_template_id, analysis_task_id, cycle_count) VALUES ($1, $2, $3, $4) RETURNING analysis_task_id`, aggTask.AggId, workflowTemplate.WorkflowTemplateID, aid, aggTask.CycleCount).Scan(&aid)
+				if err != nil {
+					log.Err(err).Msg("failed to insert workflow component")
 					return err
 				}
 			}
 		}
-
-		// fyi component of last is the main task id
-		for _, rd := range task.RetrievalDependencies {
-			retCompId := ts.UnixTimeStampNow()
-			query = `INSERT INTO ai_workflow_component(component_id) VALUES($1) RETURNING component_id`
-			err = tx.QueryRow(ctx, query, retCompId).Scan(&retCompId)
+	}
+	for _, at := range tasks.AnalysisOnlyTasks {
+		// Link component to the workflow template
+		for _, rd := range at.RetrievalDependencies {
+			aid := ts.UnixTimeStampNow()
+			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(analysis_task_id, workflow_template_id, task_id, retrieval_id, cycle_count) VALUES ($1, $2, $3, $4, $5) RETURNING analysis_task_id`, aid, workflowTemplate.WorkflowTemplateID, at.TaskID, rd.RetrievalID, at.CycleCount).Scan(&aid)
 			if err != nil {
 				log.Err(err).Msg("failed to insert workflow component")
-				return err
-			}
-			// Link component to the workflow template
-			_, err = tx.Exec(ctx, `INSERT INTO ai_workflow_template_components (workflow_template_id, component_id) VALUES ($1, $2)`, workflowTemplate.WorkflowTemplateID, retCompId)
-			if err == pgx.ErrNoRows {
-				err = nil // Ignore if the component is already linked
-			}
-			if err != nil {
-				log.Err(err).Msg("failed to insert workflow component")
-				return err
-			}
-			// Link component to the workflow template
-			_, err = tx.Exec(ctx, `INSERT INTO ai_workflow_template_component_retrieval(component_id, retrieval_id) VALUES ($1, $2)`, retCompId, rd.RetrievalID)
-			if err == pgx.ErrNoRows {
-				err = nil // Ignore if the component is already linked
-			}
-			if err != nil {
-				log.Err(err).Msg("failed to insert workflow component")
-				return err
-			}
-			_, err = tx.Exec(ctx, `INSERT INTO ai_workflow_component_dependency(component_id, component_dependency_id) VALUES ($1, $2)`, mainTaskId, retCompId)
-			if err == pgx.ErrNoRows {
-				err = nil // Ignore if the component is already linked
-			}
-			if err != nil {
-				log.Err(err).Msg("failed to insert workflow ai_workflow_component_dependency")
 				return err
 			}
 		}

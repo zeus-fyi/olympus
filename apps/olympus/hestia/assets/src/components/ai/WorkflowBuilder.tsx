@@ -47,7 +47,7 @@ import {
     setWorkflowBuilderTaskMap,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
-import {isValidCycleCount, PostWorkflowsRequest, TaskModelInstructions} from "../../redux/ai/ai.types";
+import {PostWorkflowsRequest, TaskModelInstructions} from "../../redux/ai/ai.types";
 import {TasksTable} from "./TasksTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 
@@ -243,11 +243,6 @@ function WorkflowEngineBuilder(props: any) {
     const [requestStatusError, setRequestStatusError] = useState('');
     const createOrUpdateWorkflow = async () => {
         try {
-            if (!isValidCycleCount(taskMap)) {
-                setRequestStatus('All analysis and aggregation tasks must have a cycle count greater than 0');
-                setRequestStatusError('error');
-                return;
-            }
             if (analysisStages.length <= 0) {
                 setRequestStatus('Workflow must have at least one analysis stage')
                 setRequestStatusError('error')
@@ -258,7 +253,7 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestStatusError('error')
                 return;
             }
-            if (Object.keys(workflowBuilderTaskMap).length <= 0) {
+            if (Object.keys(workflowBuilderTaskMap).length <= 0 && analysisStages.length <= 0) {
                 setRequestStatus('Workflows with aggregation stages must have at least one connected analysis stage')
                 setRequestStatusError('error')
                 return;
@@ -268,6 +263,11 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestStatusError('error')
                 return;
             }
+            // if (!isValidCycleCount(taskMap)) {
+            //     setRequestStatus('All analysis and aggregation tasks must have a cycle count greater than 0');
+            //     setRequestStatusError('error');
+            //     return;
+            // }
             if (stepSize <= 0) {
                 setRequestStatus('Step size must be greater than 0')
                 setRequestStatusError('error')
@@ -955,10 +955,10 @@ function WorkflowEngineBuilder(props: any) {
                                             <Stack direction="row" >
                                                 <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                                     <FormControl fullWidth>
-                                                        <InputLabel id="aggregation-model-label">Aggregation Model</InputLabel>
+                                                        <InputLabel id="platform-label">Aggregation Model</InputLabel>
                                                         <Select
-                                                            labelId="aggregation-model-label"
-                                                            id="aggregation-model-select"
+                                                            labelId="platform-label"
+                                                            id="platform-select"
                                                             value={aggregationModel}
                                                             label="Aggregation Model"
                                                             onChange={handleUpdateAggregationModel}
@@ -1001,6 +1001,110 @@ function WorkflowEngineBuilder(props: any) {
                                                 />
                                             </Box>
                                         </div>
+                                    }
+                                    {
+
+                                        selectedMainTab == 3 &&
+
+                                    <CardContent>
+                                        <div>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Retrieval Procedures
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                This allows you to modularize your retrieval procedures and reuse them across multiple workflows.
+                                            </Typography>
+                                            <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="keywords-input"
+                                                                label="Retrieval Name"
+                                                                variant="outlined"
+                                                                // value={searchKeywordsText}
+                                                                // onChange={(e) => handleUpdateSearchKeywords(e.target.value)}
+                                                            />
+                                                        </Box>
+                                                    <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="keywords-input"
+                                                            label="Retrieval Group"
+                                                            variant="outlined"
+                                                            // value={searchKeywordsText}
+                                                            // onChange={(e) => handleUpdateSearchKeywords(e.target.value)}
+                                                        />
+                                                    </Box>
+                                                    </Stack>
+                                                    <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="platform-label">Platform</InputLabel>
+                                                        <Select
+                                                            labelId="platform-label"
+                                                            id="platforms-input"
+                                                            // value={platformFilter}
+                                                            label="Platform"
+                                                            // onChange={(e) => handleUpdatePlatformFilter(e.target.value)}
+                                                        >
+                                                            <MenuItem value="reddit">Reddit</MenuItem>
+                                                            <MenuItem value="twitter">Twitter</MenuItem>
+                                                            <MenuItem value="discord">Discord</MenuItem>
+                                                            <MenuItem value="telegram">Telegram</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Box>
+                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="group-input"
+                                                        label="Groups"
+                                                        variant="outlined"
+                                                        // value={groupFilter}
+                                                        // onChange={(e) => handleUpdateGroupFilter(e.target.value)}
+                                                    />
+                                                </Box>
+                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="usernames-input"
+                                                        label="Usernames"
+                                                        variant="outlined"
+                                                        // value={usernames}
+                                                        // onChange={(e) => handleUpdateSearchUsernames(e.target.value)}
+                                                    />
+                                                </Box>
+                                                <Typography variant="h5" color="text.secondary">
+                                                    Describe what you're looking for, and the AI will generate a list of keywords to search for,
+                                                    you can preview, edit, or give the AI more information to refine the search.
+                                                </Typography>
+                                                <Box  sx={{ mb: 2, mt: 2 }}>
+                                                    <TextareaAutosize
+                                                        minRows={18}
+                                                        // value={aggregationWorkflowInstructions}
+                                                        // onChange={(e) => handleUpdateAggregationWorkflowInstructions(e.target.value)}
+                                                        style={{ resize: "both", width: "100%" }}
+                                                    />
+                                                </Box>
+                                                <Typography variant="h5" color="text.secondary">
+                                                    You can provide your own keywords directly with comma separated values below, and the AI will refine it over time to improve your search.
+                                                </Typography>
+                                                <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="keywords-input"
+                                                        label="Keywords"
+                                                        variant="outlined"
+                                                        // value={searchKeywordsText}
+                                                        // onChange={(e) => handleUpdateSearchKeywords(e.target.value)}
+                                                    />
+                                                </Box>
+                                                <Box flexGrow={1} sx={{ mb: 0 }}>
+                                                    <Button fullWidth variant="contained" onClick={() =>  createOrUpdateTask('analysis')} >Save Search Procedure</Button>
+                                                </Box>
+                                            </Stack>
+                                        </div>
+                                    </CardContent>
                                     }
                                     {/*<Typography gutterBottom variant="h5" component="div">*/}
                                     {/*    Time Intervals*/}
@@ -1142,6 +1246,7 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"  />
                                 <Tab className="onboarding-card-highlight-all-analysis" label="Analysis" />
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
+                                <Tab className="onboarding-card-highlight-all-retrieval" label="Retrieval" />
                             </Tabs>
                         </Box>
                     </Container>

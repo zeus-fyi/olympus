@@ -52,6 +52,7 @@ import {
     setRetrievalPlatform,
     setRetrievalPlatformGroups,
     setRetrievalPrompt,
+    setRetrievals,
     setRetrievalUsernames,
     setTaskMap,
     setWorkflowBuilderTaskMap,
@@ -90,7 +91,6 @@ function WorkflowEngineBuilder(props: any) {
     const retrievalsMap = useSelector((state: RootState) => state.ai.retrievalsMap);
     const workflowAnalysisRetrievalsMap = useSelector((state: RootState) => state.ai.workflowAnalysisRetrievalsMap);
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
-
     const handleAddRetrievalToAnalysis = () => {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
             return;
@@ -159,7 +159,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     }
     useEffect(() => {
-    }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTab, analysisStages, aggregationStages, retrievalStages, workflowBuilderTaskMap]);
+    }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTab, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap]);
     const dispatch = useDispatch();
     const handleTaskCycleCountChange = (val: number, task: TaskModelInstructions) => {
         if (task && task.taskID) {
@@ -400,7 +400,8 @@ function WorkflowEngineBuilder(props: any) {
             const response = await aiApiGateway.createOrUpdateRetrieval(retrieval);
             const statusCode = response.status;
             if (statusCode < 400) {
-                const data = response.data;
+                const data = response.data as Retrieval;
+                dispatch(setRetrievals([...retrievals, data]))
                 setRequestRetrievalStatus('Retrieval created successfully')
                 setRequestRetrievalStatusError('success')
             } else {
@@ -1293,7 +1294,7 @@ function WorkflowEngineBuilder(props: any) {
                                     }
                                     {
 
-                                        selectedMainTab == 3 && !addRetrievalView &&
+                                        selectedMainTab == 3 && !addRetrievalView && !loading &&
                                     <CardContent>
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">

@@ -94,7 +94,7 @@ const aiSlice = createSlice({
         setAiTasks: (state, action: PayloadAction<[]>) => {
             state.tasks = action.payload;
         },
-        setRetrievals: (state, action: PayloadAction<[]>) => {
+        setRetrievals: (state, action: PayloadAction<Retrieval[]>) => {
             state.retrievals = action.payload;
         },
         setAddAnalysisTasks: (state, action: PayloadAction<TaskModelInstructions[]>) => {

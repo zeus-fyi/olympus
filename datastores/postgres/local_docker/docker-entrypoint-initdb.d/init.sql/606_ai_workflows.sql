@@ -40,11 +40,13 @@ CREATE TABLE public.ai_retrieval_library (
     user_id BIGINT NOT NULL REFERENCES users(user_id),
     retrieval_name TEXT NOT NULL,
     retrieval_group TEXT NOT NULL,
+    retrieval_platform TEXT NOT NULL,
     instructions jsonb NOT NULL
 );
 CREATE INDEX ai_retrieval_library_inst_idx ON public.ai_retrieval_library USING GIN (instructions);
 CREATE INDEX ai_retrieval_library_name_idx ON public.ai_retrieval_library("retrieval_name");
 CREATE INDEX ai_retrieval_library_group_idx ON public.ai_retrieval_library("retrieval_group");
+CREATE INDEX ai_retrieval_library_platform_idx ON public.ai_retrieval_library("retrieval_platform");
 CREATE INDEX ai_retrieval_library_org_idx ON public.ai_retrieval_library("org_id");
 CREATE INDEX ai_retrieval_library_user_idx ON public.ai_retrieval_library("user_id");
 ALTER TABLE "public"."ai_retrieval_library" ADD CONSTRAINT "ai_retrieval_library_org_gret_name_uniq" UNIQUE ("org_id", "retrieval_name");

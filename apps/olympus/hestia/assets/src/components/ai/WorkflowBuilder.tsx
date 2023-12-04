@@ -675,6 +675,19 @@ function WorkflowEngineBuilder(props: any) {
                                                                 margin="normal"
                                                             />
                                                         </Box>
+                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                            <TextField
+                                                                key={subIndex}
+                                                                label={`Platform`}
+                                                                value={ret?.retrievalPlatform || ''}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                variant="outlined"
+                                                                fullWidth
+                                                                margin="normal"
+                                                            />
+                                                        </Box>
                                                         <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
                                                             <Button fullWidth variant="contained" onClick={(event)=>handleRemoveRetrievalFromWorkflow(event, ret)}>Remove</Button>
                                                         </Box>

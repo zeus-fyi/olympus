@@ -9,16 +9,19 @@ import (
 )
 
 type AITaskLibrary struct {
-	TaskID                int    `db:"task_id" json:"taskID,omitempty"`
-	OrgID                 int    `db:"org_id" json:"orgID,omitempty"`
-	UserID                int    `db:"user_id" json:"userID,omitempty"`
-	MaxTokensPerTask      int    `db:"max_tokens_per_task" json:"maxTokensPerTask"`
-	TaskType              string `db:"task_type" json:"taskType"`
-	TaskName              string `db:"task_name" json:"taskName"`
-	TaskGroup             string `db:"task_group" json:"taskGroup"`
-	TokenOverflowStrategy string `db:"token_overflow_strategy" json:"tokenOverflowStrategy"`
-	Model                 string `db:"model" json:"model"`
-	Prompt                string `db:"prompt" json:"prompt"`
+	TaskID                int             `db:"task_id" json:"taskID,omitempty"`
+	OrgID                 int             `db:"org_id" json:"orgID,omitempty"`
+	UserID                int             `db:"user_id" json:"userID,omitempty"`
+	MaxTokensPerTask      int             `db:"max_tokens_per_task" json:"maxTokensPerTask"`
+	TaskType              string          `db:"task_type" json:"taskType"`
+	TaskName              string          `db:"task_name" json:"taskName"`
+	TaskGroup             string          `db:"task_group" json:"taskGroup"`
+	TokenOverflowStrategy string          `db:"token_overflow_strategy" json:"tokenOverflowStrategy"`
+	Model                 string          `db:"model" json:"model"`
+	Prompt                string          `db:"prompt" json:"prompt"`
+	CycleCount            int             `db:"cycle_count" json:"cycleCount,omitempty"`
+	RetrievalDependencies []RetrievalItem `json:"retrievalDependencies,omitempty"`
+	TaskDependencies      []AITaskLibrary `json:"taskDependencies,omitempty"`
 }
 
 func InsertTask(ctx context.Context, task *AITaskLibrary) error {

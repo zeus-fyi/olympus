@@ -5,17 +5,17 @@ import (
 )
 
 func (s *OrchestrationsTestSuite) TestInsertTask() {
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	// Test data for insertion
 	testTask := AITaskLibrary{
 		OrgID:                 s.Tc.ProductionLocalTemporalOrgID,
 		UserID:                s.Tc.ProductionLocalTemporalUserID,
 		MaxTokensPerTask:      100,
-		TaskType:              "type1",
-		TaskName:              "Task One",
+		TaskType:              "aggregation",
+		TaskName:              "task-aggregation-2",
 		TaskGroup:             "default",
 		TokenOverflowStrategy: "deduce",
-		Model:                 "model1",
+		Model:                 "gpt-4",
 		Prompt:                "zzztest prompt",
 	}
 

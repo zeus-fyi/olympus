@@ -12,11 +12,11 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (h *ZeusAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context, ou org_users.OrgUser, msgs []hermes_email_notifications.EmailContents) error {
-	tc := h.ConnectTemporalClient()
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context, ou org_users.OrgUser, msgs []hermes_email_notifications.EmailContents) error {
+	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: h.TaskQueueName,
+		TaskQueue: z.TaskQueueName,
 		ID:        uuid.New().String(),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
@@ -29,11 +29,11 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiTaskWorkflow(ctx context.Context
 	return nil
 }
 
-func (h *ZeusAiPlatformServicesWorker) ExecuteAiTelegramWorkflow(ctx context.Context, ou org_users.OrgUser, msgs []hera_openai_dbmodels.TelegramMessage) error {
-	tc := h.ConnectTemporalClient()
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiTelegramWorkflow(ctx context.Context, ou org_users.OrgUser, msgs []hera_openai_dbmodels.TelegramMessage) error {
+	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: h.TaskQueueName,
+		TaskQueue: z.TaskQueueName,
 		ID:        uuid.New().String(),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
@@ -46,11 +46,11 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiTelegramWorkflow(ctx context.Con
 	return nil
 }
 
-func (h *ZeusAiPlatformServicesWorker) ExecuteAiTwitterWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string) error {
-	tc := h.ConnectTemporalClient()
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiTwitterWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string) error {
+	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: h.TaskQueueName,
+		TaskQueue: z.TaskQueueName,
 		ID:        uuid.New().String(),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
@@ -62,11 +62,11 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiTwitterWorkflow(ctx context.Cont
 	}
 	return nil
 }
-func (h *ZeusAiPlatformServicesWorker) ExecuteAiRedditWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string) error {
-	tc := h.ConnectTemporalClient()
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiRedditWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string) error {
+	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: h.TaskQueueName,
+		TaskQueue: z.TaskQueueName,
 		ID:        uuid.New().String(),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
@@ -79,11 +79,11 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiRedditWorkflow(ctx context.Conte
 	return nil
 }
 
-func (h *ZeusAiPlatformServicesWorker) ExecuteAiIngestDiscordWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string, cm hera_discord.ChannelMessages) error {
-	tc := h.ConnectTemporalClient()
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiIngestDiscordWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string, cm hera_discord.ChannelMessages) error {
+	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: h.TaskQueueName,
+		TaskQueue: z.TaskQueueName,
 		ID:        uuid.New().String(),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
@@ -96,11 +96,11 @@ func (h *ZeusAiPlatformServicesWorker) ExecuteAiIngestDiscordWorkflow(ctx contex
 	return nil
 }
 
-func (h *ZeusAiPlatformServicesWorker) ExecuteAiFetchDataToIngestDiscordWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string) error {
-	tc := h.ConnectTemporalClient()
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiFetchDataToIngestDiscordWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string) error {
+	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: h.TaskQueueName,
+		TaskQueue: z.TaskQueueName,
 		ID:        uuid.New().String(),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()

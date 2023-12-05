@@ -26,9 +26,10 @@ func NewZeusPlatformServiceWorkflows() ZeusAiPlatformServiceWorkflows {
 	return deployWf
 }
 
-func (h *ZeusAiPlatformServiceWorkflows) GetWorkflows() []interface{} {
-	return []interface{}{h.AiEmailWorkflow, h.AiIngestTelegramWorkflow, h.AiIngestTwitterWorkflow,
-		h.AiIngestRedditWorkflow, h.AiIngestDiscordWorkflow, h.AiFetchDataToIngestDiscordWorkflow,
+func (z *ZeusAiPlatformServiceWorkflows) GetWorkflows() []interface{} {
+	return []interface{}{z.AiEmailWorkflow, z.AiIngestTelegramWorkflow, z.AiIngestTwitterWorkflow,
+		z.AiIngestRedditWorkflow, z.AiIngestDiscordWorkflow, z.AiFetchDataToIngestDiscordWorkflow,
+		z.RunAiWorkflowProcess,
 	}
 }
 
@@ -36,7 +37,7 @@ const (
 	internalOrgID = 7138983863666903883
 )
 
-func (h *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, msgs []hermes_email_notifications.EmailContents) error {
+func (z *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, msgs []hermes_email_notifications.EmailContents) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -56,7 +57,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, w
 	for _, msg := range msgs {
 		var emailID int
 		insertEmailCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(insertEmailCtx, h.InsertEmailIfNew, msg).Get(insertEmailCtx, &emailID)
+		err = workflow.ExecuteActivity(insertEmailCtx, z.InsertEmailIfNew, msg).Get(insertEmailCtx, &emailID)
 		if err != nil {
 			logger.Error("failed to execute InsertEmailIfNew", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.
@@ -70,7 +71,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, w
 		tmp := ao
 		tmp.RetryPolicy.MaximumAttempts = 3
 		runAiTaskCtx := workflow.WithActivityOptions(ctx, tmp)
-		err = workflow.ExecuteActivity(runAiTaskCtx, h.AiTask, ou, msg).Get(runAiTaskCtx, &resp)
+		err = workflow.ExecuteActivity(runAiTaskCtx, z.AiTask, ou, msg).Get(runAiTaskCtx, &resp)
 		if err != nil {
 			logger.Error("failed to execute AiTask", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.
@@ -78,7 +79,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, w
 		}
 
 		sendEmailTaskCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(sendEmailTaskCtx, h.SendTaskResponseEmail, msg.From, resp).Get(sendEmailTaskCtx, &resp)
+		err = workflow.ExecuteActivity(sendEmailTaskCtx, z.SendTaskResponseEmail, msg.From, resp).Get(sendEmailTaskCtx, &resp)
 		if err != nil {
 			logger.Error("failed to execute SaveAiTaskResponse", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.
@@ -86,7 +87,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, w
 		}
 		if ou.OrgID > 0 && ou.UserID > 0 {
 			saveAiTaskCompletionCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(saveAiTaskCompletionCtx, h.SaveAiTaskResponse, ou, resp).Get(saveAiTaskCompletionCtx, &resp)
+			err = workflow.ExecuteActivity(saveAiTaskCompletionCtx, z.SaveAiTaskResponse, ou, resp).Get(saveAiTaskCompletionCtx, &resp)
 			if err != nil {
 				logger.Error("failed to execute SaveAiTaskResponse", "Error", err)
 				// You can decide if you want to return the error or continue monitoring.

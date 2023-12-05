@@ -11,7 +11,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (h *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, groupName string) error {
+func (z *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, groupName string) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -32,7 +32,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 	// Activity to select the Reddit search query. Insert this part after the UpsertAssignmentActivity
 	selectRedditQueryCtx := workflow.WithActivityOptions(ctx, ao)
 	var redditSearchQuerySlice []*hera_search.RedditSearchQuery
-	err = workflow.ExecuteActivity(selectRedditQueryCtx, h.SelectRedditSearchQuery, ou, groupName).Get(selectRedditQueryCtx, &redditSearchQuerySlice)
+	err = workflow.ExecuteActivity(selectRedditQueryCtx, z.SelectRedditSearchQuery, ou, groupName).Get(selectRedditQueryCtx, &redditSearchQuerySlice)
 	if err != nil {
 		logger.Error("failed to select Reddit search query", "Error", err)
 		return err
@@ -52,7 +52,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 		redditCtx := workflow.WithActivityOptions(ctx, ao)
 		lpo := &reddit.ListOptions{Limit: redditSearchQuery.MaxResults, After: redditSearchQuery.FullPostId}
 		var redditPosts []*reddit.Post
-		err = workflow.ExecuteActivity(redditCtx, h.SearchRedditNewPostsUsingSubreddit, redditSearchQuery.Query, lpo).Get(redditCtx, &redditPosts)
+		err = workflow.ExecuteActivity(redditCtx, z.SearchRedditNewPostsUsingSubreddit, redditSearchQuery.Query, lpo).Get(redditCtx, &redditPosts)
 		if err != nil {
 			logger.Error("failed to fetch new Reddit posts", "Error", err)
 			return err
@@ -63,7 +63,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 			return nil
 		}
 		insertRedditDataCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(insertRedditDataCtx, h.InsertIncomingRedditDataFromSearch, redditSearchQuery.SearchID, redditPosts).Get(insertRedditDataCtx, nil)
+		err = workflow.ExecuteActivity(insertRedditDataCtx, z.InsertIncomingRedditDataFromSearch, redditSearchQuery.SearchID, redditPosts).Get(insertRedditDataCtx, nil)
 		if err != nil {
 			logger.Error("failed to insert incoming Reddit data from search", "Error", err)
 			return err

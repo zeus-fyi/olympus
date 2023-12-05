@@ -15,7 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, searchGroupName string, cm hera_discord.ChannelMessages) error {
+func (z *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, searchGroupName string, cm hera_discord.ChannelMessages) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -37,7 +37,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 	}
 	searchQueryCtx := workflow.WithActivityOptions(ctx, ao)
 	var sq *hera_search.DiscordSearchResultWrapper
-	err = workflow.ExecuteActivity(searchQueryCtx, h.SelectDiscordSearchQuery, ou, searchGroupName).Get(searchQueryCtx, &sq)
+	err = workflow.ExecuteActivity(searchQueryCtx, z.SelectDiscordSearchQuery, ou, searchGroupName).Get(searchQueryCtx, &sq)
 	if err != nil {
 		logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
 		// You can decide if you want to return the error or continue monitoring.
@@ -49,7 +49,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 		searchID = sq.SearchID
 	}
 	insertMessagesCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(insertMessagesCtx, h.InsertIncomingDiscordDataFromSearch, searchID, cm).Get(insertMessagesCtx, nil)
+	err = workflow.ExecuteActivity(insertMessagesCtx, z.InsertIncomingDiscordDataFromSearch, searchID, cm).Get(insertMessagesCtx, nil)
 	if err != nil {
 		logger.Error("failed to execute InsertIncomingDiscordDataFromSearch", "Error", err)
 		// You can decide if you want to return the error or continue monitoring.
@@ -64,7 +64,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 	return nil
 }
 
-func (h *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, searchGroupName string) error {
+func (z *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, searchGroupName string) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -83,7 +83,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx 
 	}
 	searchQueryCtx := workflow.WithActivityOptions(ctx, ao)
 	var sq *hera_search.DiscordSearchResultWrapper
-	err = workflow.ExecuteActivity(searchQueryCtx, h.SelectDiscordSearchQuery, ou, searchGroupName).Get(searchQueryCtx, &sq)
+	err = workflow.ExecuteActivity(searchQueryCtx, z.SelectDiscordSearchQuery, ou, searchGroupName).Get(searchQueryCtx, &sq)
 	if err != nil {
 		logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
 		// You can decide if you want to return the error or continue monitoring.
@@ -103,7 +103,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx 
 		}
 		jobCtx := workflow.WithActivityOptions(ctx, ao)
 		timeAfter := time.Unix(int64(jib.MaxMessageID), 0).Add(-time.Minute * 5).Format(time.RFC3339)
-		err = workflow.ExecuteActivity(jobCtx, h.CreateDiscordJob, sq.SearchID, jib.ChannelID, timeAfter).Get(jobCtx, nil)
+		err = workflow.ExecuteActivity(jobCtx, z.CreateDiscordJob, sq.SearchID, jib.ChannelID, timeAfter).Get(jobCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute CreateDiscordJob", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.

@@ -10,7 +10,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (h *ZeusAiPlatformServiceWorkflows) AiIngestTelegramWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, msgs []hera_openai_dbmodels.TelegramMessage) error {
+func (z *ZeusAiPlatformServiceWorkflows) AiIngestTelegramWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, msgs []hera_openai_dbmodels.TelegramMessage) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -31,7 +31,7 @@ func (h *ZeusAiPlatformServiceWorkflows) AiIngestTelegramWorkflow(ctx workflow.C
 	for _, msg := range msgs {
 		var msgID int
 		insertMsgCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(insertMsgCtx, h.InsertTelegramMessageIfNew, ou, msg).Get(insertMsgCtx, &msgID)
+		err = workflow.ExecuteActivity(insertMsgCtx, z.InsertTelegramMessageIfNew, ou, msg).Get(insertMsgCtx, &msgID)
 		if err != nil {
 			logger.Error("failed to execute InsertEmailIfNew", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.

@@ -22,6 +22,7 @@ export interface AiState {
     retrieval: Retrieval;
     retrievals: Retrieval[];
     workflowAnalysisRetrievalsMap: AnalysisRetrievalsMap
+    selectedWorkflows: string[];
 }
 
 export interface PostWorkflowsRequest {

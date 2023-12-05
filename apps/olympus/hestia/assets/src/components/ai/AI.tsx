@@ -34,6 +34,7 @@ import {
 import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
 import {TimeRange} from '@matiaslgonzalez/react-timeline-range-slider';
+import {WorkflowAnalysisTable} from "./WorkflowAnalysisTable";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -44,6 +45,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const [loading, setIsLoading] = useState(false);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
     const searchKeywordsText = useSelector((state: RootState) => state.ai.searchContentText);
+    const selected = useSelector((state: any) => state.ai.selectedWorkflows);
     const groupFilter = useSelector((state: RootState) => state.ai.groupFilter);
     const usernames = useSelector((state: RootState) => state.ai.usernames);
     const workflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
@@ -127,6 +129,10 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleUpdateWorkflowInstructions =(value: string) => {
         dispatch(setAnalysisWorkflowInstructions(value));
     };
+
+    const handleWorkflowAction = async (event: any) => {
+
+    }
 
     const handleLogout = async (event: any) => {
         event.preventDefault();
@@ -291,6 +297,8 @@ function AiWorkflowsDashboardContent(props: any) {
                     }}
                 >
                     <Toolbar />
+
+                    { (selectedMainTab === 0) &&
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
                             <Card sx={{ minWidth: 100, maxWidth: 600 }}>
@@ -346,143 +354,100 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 onChange={(e) => handleUpdateSearchKeywords(e.target.value)}
                                             />
                                         </Box>
-                                        <Typography gutterBottom variant="h5" component="div">
-                                            Search Window
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Select a time window to search for data.
-                                        </Typography>
-                                        <Box flexGrow={1} sx={{ mt: 2, mb: -12 }}>
-                                            <TimeRange
-                                                ticksNumber={12}
-                                                timelineInterval={[getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]}
-                                                // @ts-ignore
-                                                onChangeCallback={onTimeRangeChange}
-                                                formatTick={formatTick2}
-                                                showNow={true}
-                                                selectedInterval={searchInterval}
-                                            />
-                                        </Box>
-                                        <Button fullWidth variant="contained" onClick={() => handleSearchRequest('window')} >Search Window</Button>
-                                        <Box flexGrow={1} sx={{ mt: 2 }}>
-                                            <Typography variant="body2" color="text.secondary">
-                                                Use these buttons to search previous time intervals relative to the current time.
-                                            </Typography>
-                                        </Box>
-                                        <Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>
-                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('1 hour')} >Search 1 Hour</Button>
-                                        </Box>
-                                        <Box flexGrow={1} sx={{ mb: 2 }}>
-                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('24 hours')} >Search 24 Hours</Button>
-                                        </Box>
-                                        <Box flexGrow={1} sx={{ mb: 2 }}>
-                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('7 days')} >Search 7 Days</Button>
-                                        </Box>
-                                        <Box flexGrow={1} sx={{ mb: 2 }}>
-                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('30 days')} >Search 30 Days </Button>
-                                        </Box>
-                                        <Box flexGrow={1} sx={{ mb: 2 }}>
-                                            <Button fullWidth variant="contained" onClick={() => handleSearchRequest('all')} >Search All Records</Button>
-                                        </Box>
                                     </Stack>
                                 </CardContent>
                             </Card>
                             <Card sx={{ minWidth: 500, maxWidth: 900 }}>
                                 <CardContent>
-                                {/*    <Typography variant="body2" color="text.secondary">*/}
-                                {/*        This allows you to write natural language instructions to chain to your search queries. Add a name*/}
-                                {/*        for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.*/}
-                                {/*    </Typography>*/}
-                                {/*</CardContent>*/}
-                                {/*<CardContent>*/}
-                                {/*    <Typography gutterBottom variant="h5" component="div">*/}
-                                {/*        Time Intervals*/}
-                                {/*    </Typography>*/}
-                                {/*    <Typography variant="body2" color="text.secondary">*/}
-                                {/*        You can run an analysis on demand or use this to define an analysis chunk interval as part of an aggregate analysis.*/}
-                                {/*    </Typography>*/}
-                                {/*    <Stack direction="row" spacing={2} sx={{ mt: 2, mb: 4 }}>*/}
-                                {/*        <Box sx={{ width: '33%' }}> /!* Adjusted Box for TextField *!/*/}
-                                {/*            <TextField*/}
-                                {/*                type="number"*/}
-                                {/*                label="Time Step Size"*/}
-                                {/*                variant="outlined"*/}
-                                {/*                inputProps={{ min: 1 }}  // Set minimum value to 1*/}
-                                {/*                value={stepSize}*/}
-                                {/*                onChange={handleTimeStepChange}*/}
-                                {/*                fullWidth*/}
-                                {/*            />*/}
-                                {/*        </Box>*/}
-                                {/*        <Box sx={{ width: '33%' }}> /!* Adjusted Box for FormControl *!/*/}
-                                {/*            <FormControl fullWidth>*/}
-                                {/*                <InputLabel id="time-unit-label">Time Unit</InputLabel>*/}
-                                {/*                <Select*/}
-                                {/*                    labelId="time-unit-label"*/}
-                                {/*                    id="time-unit-select"*/}
-                                {/*                    value={stepSizeUnit}*/}
-                                {/*                    label="Time Unit"*/}
-                                {/*                    onChange={handleUpdateStepSizeUnit}*/}
-                                {/*                >*/}
-                                {/*                    <MenuItem value="seconds">Seconds</MenuItem>*/}
-                                {/*                    <MenuItem value="minutes">Minutes</MenuItem>*/}
-                                {/*                    <MenuItem value="hours">Hours</MenuItem>*/}
-                                {/*                    <MenuItem value="days">Days</MenuItem>*/}
-                                {/*                    <MenuItem value="weeks">Weeks</MenuItem>*/}
-                                {/*                </Select>*/}
-                                {/*            </FormControl>*/}
-                                {/*        </Box>*/}
-                                {/*        <Box sx={{ width: '33%', mb: 4 }}>*/}
-                                {/*            <TextField*/}
-                                {/*                label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit*/}
-                                {/*                variant="outlined"*/}
-                                {/*                value={stepSize* cycleCount}*/}
-                                {/*                InputProps={{*/}
-                                {/*                    readOnly: true,*/}
-                                {/*                }}*/}
-                                {/*                fullWidth*/}
-                                {/*            />*/}
-                                {/*        </Box>*/}
-                                {/*    </Stack>*/}
                                     <Typography gutterBottom variant="h5" component="div">
-                                        Workflow Generations
+                                        Search Window
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Use Start Working Analysis to generate a workflow that will run the analysis on the time intervals you've defined. It will
-                                        process the data that gets generated from your search query, and then aggregate the results into a rolling window.
+                                        Select a time window to search for data.
                                     </Typography>
+                                    <Box flexGrow={1} sx={{ mt: 2, mb: -12 }}>
+                                        <TimeRange
+                                            ticksNumber={12}
+                                            timelineInterval={[getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]}
+                                            // @ts-ignore
+                                            onChangeCallback={onTimeRangeChange}
+                                            formatTick={formatTick2}
+                                            showNow={true}
+                                            selectedInterval={searchInterval}
+                                        />
+                                    </Box>
+                                    <Button fullWidth variant="contained" onClick={() => handleSearchRequest('window')} >Search Window</Button>
                                     <Box flexGrow={1} sx={{ mt: 2 }}>
                                         <Typography variant="body2" color="text.secondary">
                                             Use these buttons to search previous time intervals relative to the current time.
                                         </Typography>
                                     </Box>
-                                    <FormControlLabel
-                                        control={<Switch checked={analyzeNext} onChange={handleToggleChange} />}
-                                        label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}
-                                    />
                                     <Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>
-                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('1 hour')} >Analyze {ti} 1 Hour</Button>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchRequest('1 hour')} >Search 1 Hour</Button>
                                     </Box>
                                     <Box flexGrow={1} sx={{ mb: 2 }}>
-                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('24 hours')} >Analyze {ti} 24 Hours</Button>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchRequest('24 hours')} >Search 24 Hours</Button>
                                     </Box>
                                     <Box flexGrow={1} sx={{ mb: 2 }}>
-                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('7 days')} >Analyze {ti} 7 Days</Button>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchRequest('7 days')} >Search 7 Days</Button>
                                     </Box>
                                     <Box flexGrow={1} sx={{ mb: 2 }}>
-                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('30 days')} >Analyze {ti} 30 Days </Button>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchRequest('30 days')} >Search 30 Days </Button>
                                     </Box>
                                     <Box flexGrow={1} sx={{ mb: 2 }}>
-                                        <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Analyze All {ti} Records</Button>
+                                        <Button fullWidth variant="contained" onClick={() => handleSearchRequest('all')} >Search All Records</Button>
                                     </Box>
                                 </CardContent>
                             </Card>
                         </Stack>
                     </Container>
+                    }
+                    { (selectedMainTab === 1) &&
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Card sx={{ minWidth: 500, maxWidth: 900 }}>
+                            <CardContent>
+                                <Typography gutterBottom variant="h5" component="div">
+                                    Workflow Generations
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Use Start Working Analysis to generate a workflow that will run the analysis on the time intervals you've defined. It will
+                                    process the data that gets generated from your search query, and then aggregate the results into a rolling window.
+                                </Typography>
+                                <Box flexGrow={1} sx={{ mt: 2 }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Use these buttons to search previous time intervals relative to the current time.
+                                    </Typography>
+                                </Box>
+                                <FormControlLabel
+                                    control={<Switch checked={analyzeNext} onChange={handleToggleChange} />}
+                                    label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}
+                                />
+                                <Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>
+                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('1 hour')} >Analyze {ti} 1 Hour</Button>
+                                </Box>
+                                <Box flexGrow={1} sx={{ mb: 2 }}>
+                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('24 hours')} >Analyze {ti} 24 Hours</Button>
+                                </Box>
+                                <Box flexGrow={1} sx={{ mb: 2 }}>
+                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('7 days')} >Analyze {ti} 7 Days</Button>
+                                </Box>
+                                <Box flexGrow={1} sx={{ mb: 2 }}>
+                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('30 days')} >Analyze {ti} 30 Days </Button>
+                                </Box>
+                                <Box flexGrow={1} sx={{ mb: 2 }}>
+                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Analyze All {ti} Records</Button>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Container>
+                    }
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
                                 <Tab label="Search" />
-                                <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"  />
+                                <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"/>
+                                <Tab className="onboarding-card-highlight-all-workflows" label="Running"/>
+
                             </Tabs>
                         </Box>
                     </Container>
@@ -491,7 +456,23 @@ function AiWorkflowsDashboardContent(props: any) {
                             <AiSearchAnalysis code={code} onChange={onChangeText} />
                         }
                         { (selectedMainTab === 1) &&
-                            <WorkflowTable />
+                            <div>
+                                { selected && selected.length > 0  &&
+                                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                        <Box sx={{ mb: 2 }}>
+                                            <span>({Object.values(selected).filter(value => value).length} Selected Workflows)</span>
+                                            <Button variant="outlined" color="secondary" onClick={handleWorkflowAction} style={{marginLeft: '10px'}}>
+                                                Start { selected.length === 1 ? 'Workflow' : 'Workflows' }
+                                            </Button>
+                                        </Box>
+                                    </Container>
+                                }
+                                <WorkflowTable />
+                            </div>
+                        }
+
+                        { (selectedMainTab === 2) &&
+                            <WorkflowAnalysisTable  />
                         }
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

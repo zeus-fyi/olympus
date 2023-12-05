@@ -1588,7 +1588,7 @@ function WorkflowEngineBuilder(props: any) {
                     </Container>
                     { selectedMainTab == 0 &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <WorkflowTable />
+                            <WorkflowTable selected={selected} setSelected={setSelected}/>
                         </Container>
                     }
                     { (selectedMainTab === 1 || selectedMainTab === 2) && (addAggregateView || addAnalysisView) &&

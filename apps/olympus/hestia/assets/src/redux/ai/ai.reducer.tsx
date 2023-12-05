@@ -33,12 +33,16 @@ const initialState: AiState = {
     workflowAnalysisRetrievalsMap: {},
     workflowName: '',
     workflowGroupName: '',
+    selectedWorkflows: [],
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setSelectedWorkflows: (state, action: PayloadAction<string[]>) => {
+            state.selectedWorkflows = action.payload;
+        },
         setWorkflowName: (state, action: PayloadAction<string>) => {
             state.workflowName = action.payload;
         },
@@ -229,6 +233,7 @@ export const {
     setRetrievals,
     setAnalysisRetrievalsMap,
     setWorkflowGroupName,
-    setWorkflowName
+    setWorkflowName,
+    setSelectedWorkflows
 } = aiSlice.actions;
 export default aiSlice.reducer;

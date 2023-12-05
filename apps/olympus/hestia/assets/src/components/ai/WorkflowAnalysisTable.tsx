@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -8,13 +8,14 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
-import {setAiTasks, setRetrievals, setSelectedWorkflows, setWorkflows} from "../../redux/ai/ai.reducer";
+import {setAiTasks, setRetrievals, setWorkflows} from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
 
-export function WorkflowTable(props: any) {
+
+export function WorkflowAnalysisTable(props: any) {
     const [page, setPage] = React.useState(0);
-    const selected = useSelector((state: any) => state.ai.selectedWorkflows);
+    const [selected, setSelected] = useState<string[]>([]);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
     const workflows = useSelector((state: any) => state.ai.workflows);
@@ -73,15 +74,16 @@ export function WorkflowTable(props: any) {
         } else {
             newSelected.splice(currentIndex, 1);
         }
-        dispatch(setSelectedWorkflows(newSelected));
+
+        setSelected(newSelected);
     };
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
             const newSelected = workflows.map((wf: any) => wf);
-            dispatch(setSelectedWorkflows(newSelected));
+            setSelected(newSelected);
             return;
         }
-        dispatch(setSelectedWorkflows([] as string[]));
+        setSelected([]);
     };
     return (
         <TableContainer component={Paper}>

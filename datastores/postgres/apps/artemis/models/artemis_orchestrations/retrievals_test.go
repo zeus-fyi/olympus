@@ -12,10 +12,15 @@ func (s *OrchestrationsTestSuite) TestInsertRetrieval() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	mockRetrievalItem := RetrievalItem{
-		RetrievalName:     "tel-1",
-		RetrievalGroup:    "telegram-2",
-		RetrievalPlatform: "telegram",
-		Instructions:      []byte(`{"key": "value"}`),
+		RetrievalName:  "tel-1",
+		RetrievalGroup: "telegram-2",
+		RetrievalItemInstruction: RetrievalItemInstruction{
+			RetrievalPlatform:       "telegram",
+			RetrievalPrompt:         "",
+			RetrievalPlatformGroups: "",
+			RetrievalKeywords:       "",
+		},
+		Instructions: []byte(`{"key": "value"}`),
 	}
 
 	// Step 2: Call InsertRetrieval

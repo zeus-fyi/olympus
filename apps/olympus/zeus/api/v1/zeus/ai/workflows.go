@@ -1,14 +1,12 @@
 package zeus_v1_ai
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 )
 
 type GetWorkflowsRequest struct {
@@ -199,60 +197,4 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, wt)
-}
-func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow2(c echo.Context) error {
-	ou, ok := c.Get("orgUser").(org_users.OrgUser)
-	if !ok {
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	if w.WorkflowName == "" || len(w.Models) == 0 {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	inst := kronos_helix.Instructions{
-		GroupName: "ai",
-		Type:      "workflows",
-		AiInstruction: kronos_helix.AiInstructions{
-			WorkflowName: w.WorkflowName,
-			Map:          make(map[string][]kronos_helix.AiModelInstruction),
-		},
-	}
-
-	totalCycles := 0
-	for _, m := range w.Models {
-		if len(m.TaskType) == 0 {
-			return c.JSON(http.StatusBadRequest, nil)
-		}
-		totalCycles += m.CycleCount
-		if m.CycleCount == 0 {
-			continue
-		}
-		switch m.TaskType {
-		case "analysis", "aggregation":
-			inst.AiInstruction.Map[m.TaskType] = append(inst.AiInstruction.Map[m.TaskType],
-				kronos_helix.AiModelInstruction{
-					Prompt:                m.Prompt,
-					Model:                 m.Model,
-					MaxTokens:             m.MaxTokens,
-					TokenOverflowStrategy: m.TokenOverflowStrategy,
-					CycleCount:            m.CycleCount,
-				})
-		default:
-			return c.JSON(http.StatusBadRequest, nil)
-		}
-	}
-	if totalCycles == 0 {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	b, err := json.Marshal(inst)
-	if err != nil {
-		log.Err(err).Msg("failed to marshal instructions")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, w.WorkflowName, "ai", "workflows")
-	ojs, err := artemis_orchestrations.InsertOrchestration(c.Request().Context(), oj, b)
-	if err != nil {
-		log.Err(err).Msg("failed to insert workflow")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	return c.JSON(http.StatusOK, ojs)
 }

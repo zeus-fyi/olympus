@@ -43,14 +43,13 @@ type WorkflowTemplateData struct {
 	TaskType           string
 	AggTaskID          *int
 	AggCycleCount      *int
-	RetrievalName      string
-	RetrievalGroup     string
-	Instructions       []byte // Assuming instructions are stored as binary data
+	RetrievalName      *string
+	RetrievalGroup     *string
+	Instructions       []byte
 }
 
 func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowName string) ([]WorkflowTemplateData, error) {
 	var results []WorkflowTemplateData
-
 	q := sql_query_templates.QueryParams{}
 	params := []interface{}{ou.OrgID, workflowName}
 	q.RawQuery = `SELECT
@@ -62,7 +61,8 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
                     ait1.task_id as agg_task_id,
                     agt.cycle_count as agg_cycle_count,
                     art.retrieval_name,
-                    art.retrieval_group, art.instructions
+                    art.retrieval_group,
+                    art.instructions
                 FROM ai_workflow_template wate
                 INNER JOIN public.ai_workflow_template_analysis_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
                 LEFT JOIN public.ai_retrieval_library art ON art.retrieval_id = awtat.retrieval_id
@@ -70,9 +70,9 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
                 LEFT JOIN public.ai_task_library ait ON ait.task_id = awtat.task_id
                 LEFT JOIN public.ai_task_library ait1 ON ait1.task_id = agt.agg_task_id
                 WHERE wate.org_id = $1 AND wate.workflow_name = $2`
-
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
 	if err != nil {
+		log.Err(err).Msg("Error querying SelectWorkflowTemplate")
 		return nil, err
 	}
 	defer rows.Close()
@@ -108,7 +108,6 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
 
 func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) ([]WorkflowTemplate, error) {
 	var results []WorkflowTemplate
-
 	q := sql_query_templates.QueryParams{}
 	params := []interface{}{ou.OrgID}
 	q.RawQuery = `SELECT
@@ -120,7 +119,6 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) ([]Workf
                 FROM ai_workflow_template wate
                 WHERE wate.org_id = $1
                 ORDER BY wate.workflow_name, wate.workflow_group ASC`
-
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
 	if err != nil {
 		return nil, err

@@ -88,6 +88,10 @@ export interface Retrieval {
     retrievalPlatformGroups: string;
 }
 
+export interface DeleteWorkflowsActionRequest {
+    workflows: WorkflowTemplate[];
+}
+
 export interface PostWorkflowsActionRequest {
     action: string;
     unixStartTime: number;

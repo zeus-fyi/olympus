@@ -54,13 +54,20 @@ import {
     setRetrievalPrompt,
     setRetrievals,
     setRetrievalUsernames,
+    setSelectedWorkflows,
     setTaskMap,
     setWorkflowBuilderTaskMap,
     setWorkflowGroupName,
     setWorkflowName,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
-import {PostWorkflowsRequest, Retrieval, TaskModelInstructions} from "../../redux/ai/ai.types";
+import {
+    DeleteWorkflowsActionRequest,
+    PostWorkflowsRequest,
+    Retrieval,
+    TaskModelInstructions,
+    WorkflowTemplate
+} from "../../redux/ai/ai.types";
 import {TasksTable} from "./TasksTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {RetrievalsTable} from "./RetrievalsTable";
@@ -70,6 +77,7 @@ const mdTheme = createTheme();
 function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
     const [loading, setIsLoading] = useState(false);
+    const selectedWorkflows = useSelector((state: any) => state.ai.selectedWorkflows);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
     const [selected, setSelected] = useState<{ [key: number]: boolean }>({});
     const analysisWorkflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
@@ -177,6 +185,31 @@ function WorkflowEngineBuilder(props: any) {
             dispatch(setTaskMap(payload));
         }
     };
+    const handleDeleteWorkflows = async (event: any) => {
+        const params: DeleteWorkflowsActionRequest = {
+            workflows: selectedWorkflows.map((wf: WorkflowTemplate) => {
+                return wf
+            })
+        }
+        if (params.workflows.length === 0) {
+            return
+        }
+        try {
+            setIsLoading(true)
+            const response = await aiApiGateway.deleteWorkflowsActionRequest(params);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                dispatch(setSelectedWorkflows([]));
+                const data = response.data;
+            } else {
+                console.log('Failed to delete', response);
+            }
+        } catch (e) {
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleAddTasksToWorkflow = async (event: any) => {
         setIsLoading(true)
         if (addAnalysisView){
@@ -1575,6 +1608,21 @@ function WorkflowEngineBuilder(props: any) {
                             </Tabs>
                         </Box>
                     </Container>
+
+                    { selectedMainTab === 0 && !addAnalysisView && !addAggregateView && !addRetrievalView && selectedWorkflows && selectedWorkflows.length > 0  &&
+                        <div>
+                                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                    <Box sx={{ mb: 2 }}>
+                                        <span>({Object.values(selectedWorkflows).filter(value => value).length} Selected Workflows)</span>
+                                        <Button variant="outlined" color="secondary" onClick={(event) => handleDeleteWorkflows(event)} style={{marginLeft: '10px'}}>
+                                            Delete { selectedWorkflows.length === 1 ? 'Workflow' : 'Workflows' }
+                                        </Button>
+                                    </Box>
+                                </Container>
+
+                        </div>
+
+                    }
                     { selectedMainTab == 0 &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <WorkflowTable selected={selected} setSelected={setSelected}/>

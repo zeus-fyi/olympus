@@ -3,6 +3,7 @@ package artemis_orchestrations
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -12,7 +13,6 @@ import (
 
 func DeleteWorkflowTemplates(ctx context.Context, ou org_users.OrgUser, wfs []WorkflowTemplate) error {
 	q := sql_query_templates.QueryParams{}
-
 	var wfIds []int
 	for _, wf := range wfs {
 		wfIds = append(wfIds, wf.WorkflowTemplateID)
@@ -32,7 +32,7 @@ func DeleteWorkflowTemplates(ctx context.Context, ou org_users.OrgUser, wfs []Wo
 					WHERE workflow_template_id IN (SELECT workflow_template_id FROM verified_ids)
 				  `
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, params...)
-	if err != nil {
+	if err != nil && err != pgx.ErrNoRows {
 		log.Err(err).Msg(q.LogHeader(Orchestrations))
 		return err
 	}

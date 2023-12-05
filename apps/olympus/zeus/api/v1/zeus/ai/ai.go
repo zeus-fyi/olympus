@@ -24,6 +24,9 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 	e.POST("/workflows/ai/start", WorkflowsActionsRequestHandler)
 	e.POST("/tasks/ai", CreateOrUpdateTaskRequestHandler)
 	e.POST("/retrievals/ai", CreateOrUpdateRetrievalRequestHandler)
+
+	// destructive
+	e.DELETE("/workflows/ai", WorkflowsDeletionRequestHandler)
 	return e
 }
 

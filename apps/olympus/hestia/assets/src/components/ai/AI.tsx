@@ -69,7 +69,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const [analysisCycleCount, setAnalysisCycleCount] = useState(1);
     const searchResults = useSelector((state: RootState) => state.ai.searchResults);
     const platformFilter = useSelector((state: RootState) => state.ai.platformFilter);
-    const [analyzeNext, setAnalyzeNext] = useState(false);
+    const [analyzeNext, setAnalyzeNext] = useState(true);
     const dispatch = useDispatch();
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);

@@ -363,12 +363,6 @@ function AiWorkflowsDashboardContent(props: any) {
                                     <Box flexGrow={1} sx={{ mb: 2 }}>
                                         <Button fullWidth variant="contained" onClick={() => handleSearchRequest('all')} >Search All Records</Button>
                                     </Box>
-                                    {/*<div>*/}
-                                    {/*    <button onClick={() => handleOffsetClick(3600)}>+1 Hour</button>*/}
-                                    {/*    <button onClick={() => handleOffsetClick(86400)}>+24 Hours</button>*/}
-                                    {/*    <button onClick={() => handleOffsetClick(604800)}>+7 Days</button>*/}
-                                    {/*    <button onClick={() => handleOffsetClick(2592000)}>+30 Days</button>*/}
-                                    {/*</div>*/}
                                 </CardContent>
                             </Card>
                         </Stack>

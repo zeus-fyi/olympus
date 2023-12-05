@@ -14,7 +14,19 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {Card, CardContent, FormControlLabel, Stack, Switch, Tab, Tabs} from "@mui/material";
+import {
+    Card,
+    CardContent,
+    FormControl,
+    FormControlLabel,
+    InputLabel,
+    MenuItem,
+    Select,
+    Stack,
+    Switch,
+    Tab,
+    Tabs
+} from "@mui/material";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
 import {WorkflowTable} from "./WorkflowTable";
@@ -50,10 +62,19 @@ function AiWorkflowsDashboardContent(props: any) {
     const usernames = useSelector((state: RootState) => state.ai.usernames);
     const workflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
     const [code, setCode] = useState('');
+    const [unixStartTime, setUnixStartTime] = useState(0);
+    const [stepSize, setStepSize] = useState(1);
+    const [stepSizeUnit, setStepSizeUnit] = useState('hours');
+    const [analysisCycleCount, setAnalysisCycleCount] = useState(1);
     const searchResults = useSelector((state: RootState) => state.ai.searchResults);
     const platformFilter = useSelector((state: RootState) => state.ai.platformFilter);
     const [analyzeNext, setAnalyzeNext] = useState(false);
     const dispatch = useDispatch();
+    const getCurrentUnixTimestamp = (): number => {
+        return Math.floor(Date.now() / 1000);
+    };
+    const [unixTimestamp, setUnixTimestamp] = useState(getCurrentUnixTimestamp());
+
     const now = new Date();
     const getTodayAtSpecificHour = (hour: number = 12) =>
         set(now, { hours: hour, minutes: 0, seconds: 0, milliseconds: 0 });
@@ -86,6 +107,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleWorkflowAction = async (event: any, action: string) => {
         const params: PostWorkflowsActionRequest = {
             action: action,
+            unixStartTime: unixStartTime,
             workflows: selected.map((wf: WorkflowTemplate) => {
                 return wf
             })
@@ -221,6 +243,7 @@ function AiWorkflowsDashboardContent(props: any) {
             </div>
         )};
 
+
     const ti = analyzeNext ? 'Next' : 'Previous';
     return (
         <ThemeProvider theme={mdTheme}>
@@ -340,6 +363,12 @@ function AiWorkflowsDashboardContent(props: any) {
                                     <Box flexGrow={1} sx={{ mb: 2 }}>
                                         <Button fullWidth variant="contained" onClick={() => handleSearchRequest('all')} >Search All Records</Button>
                                     </Box>
+                                    {/*<div>*/}
+                                    {/*    <button onClick={() => handleOffsetClick(3600)}>+1 Hour</button>*/}
+                                    {/*    <button onClick={() => handleOffsetClick(86400)}>+24 Hours</button>*/}
+                                    {/*    <button onClick={() => handleOffsetClick(604800)}>+7 Days</button>*/}
+                                    {/*    <button onClick={() => handleOffsetClick(2592000)}>+30 Days</button>*/}
+                                    {/*</div>*/}
                                 </CardContent>
                             </Card>
                         </Stack>
@@ -349,37 +378,90 @@ function AiWorkflowsDashboardContent(props: any) {
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Card sx={{ minWidth: 500, maxWidth: 900 }}>
                             <CardContent>
-                                <Typography gutterBottom variant="h5" component="div">
-                                    Workflow Generations
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Use Start Working Analysis to generate a workflow that will run the analysis on the time intervals you've defined. It will
-                                    process the data that gets generated from your search query, and then aggregate the results into a rolling window.
-                                </Typography>
-                                <Box flexGrow={1} sx={{ mt: 2 }}>
+                                <Box flexGrow={1} sx={{ mb: 2, mt: 0 }}>
+                                    <Typography gutterBottom variant="h4" component="div">
+                                        Run Scheduler
+                                    </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Use these buttons to search previous time intervals relative to the current time.
+                                        Press Start to schedule a workflow that will run the analysis on the time intervals you've defined. It will
+                                        process the data that gets generated from your search query, and then aggregate the results into over a rolling window.
                                     </Typography>
                                 </Box>
-                                <FormControlLabel
-                                    control={<Switch checked={analyzeNext} onChange={handleToggleChange} />}
-                                    label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}
-                                />
-                                {/*<Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>*/}
-                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('1 hour')} >Analyze {ti} 1 Hour</Button>*/}
-                                {/*</Box>*/}
-                                {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('24 hours')} >Analyze {ti} 24 Hours</Button>*/}
-                                {/*</Box>*/}
-                                {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('7 days')} >Analyze {ti} 7 Days</Button>*/}
-                                {/*</Box>*/}
-                                {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('30 days')} >Analyze {ti} 30 Days </Button>*/}
-                                {/*</Box>*/}
-                                {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
-                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Analyze All {ti} Records</Button>*/}
-                                {/*</Box>*/}
+                                    <Stack direction="row" spacing={2} sx={{ ml: 2, mr: 2, mt: 4, mb: 2 }}>
+                                        <Box sx={{ width: '33%' }}> {/* Adjusted Box for TextField */}
+                                            <TextField
+                                                type="number"
+                                                label="Runtime Duration"
+                                                variant="outlined"
+                                                inputProps={{ min: 1 }}  // Set minimum value to 1
+                                                value={stepSize}
+                                                onChange={(e)=> setStepSize(Number(e.target.value))}
+                                                fullWidth
+                                            />
+                                        </Box>
+                                        <Box sx={{ width: '33%' }}> {/* Adjusted Box for FormControl */}
+                                            <FormControl fullWidth>
+                                                <InputLabel id="time-unit-label">Time Unit</InputLabel>
+                                                <Select
+                                                    labelId="time-unit-label"
+                                                    id="time-unit-select"
+                                                    value={stepSizeUnit}
+                                                    label="Time Unit"
+                                                    onChange={(e) => setStepSizeUnit(e.target.value)}
+                                                >
+                                                    <MenuItem value="minutes">Minutes</MenuItem>
+                                                    <MenuItem value="hours">Hours</MenuItem>
+                                                    <MenuItem value="days">Days</MenuItem>
+                                                    <MenuItem value="weeks">Weeks</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                        <FormControlLabel
+                                            control={<Switch checked={analyzeNext} onChange={handleToggleChange} />}
+                                            label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}
+                                        />
+                                    </Stack>
+                                <Stack direction="row"  sx={{ ml: 2, mr: 2, mt: 4, mb: 2 }}>
+                                    <Box sx={{ width: '50%', mr: 2 }}> {/* Adjusted Box for TextField */}
+                                        <TextField
+                                            type="number"
+                                            label="Unix Start Time"
+                                            variant="outlined"
+                                            inputProps={{ min: 0 }}  // Set minimum value to 1
+                                            value={unixStartTime}
+                                            onChange={(e)=> setUnixStartTime(Number(e.target.value))}
+                                            fullWidth
+                                        />
+                                    </Box>
+                                    <Box flexGrow={3} sx={{ mb: 0, mt: 1, mr: 2 }}>
+                                        <Button fullWidth variant="outlined" onClick={() => unixStartTime > 0 ? setUnixStartTime(0) : setUnixStartTime(getCurrentUnixTimestamp())} >{ unixStartTime > 0 ? 'Reset' : 'Now'}</Button>
+                                    </Box>
+                                    <Box flexGrow={3} sx={{ mb: 0, mt: 1}}>
+                                        <Button fullWidth variant="contained" onClick={() =>  setUnixStartTime(0)} >Start</Button>
+                                    </Box>
+                                </Stack>
+                                <Stack direction="row"  sx={{ ml: 2, mr: 0, mt: 4, mb: 2 }}>
+                                    <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
+                                        <Button fullWidth variant="outlined" onClick={() =>  'Previous' === ti ? setUnixStartTime(unixStartTime-300) : setUnixStartTime(unixStartTime+300)} >{'Previous' === ti ? '-' : '+' } { ti} 5 Minutes</Button>
+                                    </Box>
+                                    <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
+                                        <Button fullWidth variant="outlined" onClick={() =>  'Previous' === ti ? setUnixStartTime(unixStartTime-3600) : setUnixStartTime(unixStartTime+3600)} >{'Previous' === ti ? '-' : '+' } { ti} 1 Hour</Button>
+                                    </Box>
+                                    <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
+                                        <Button fullWidth variant="outlined" onClick={() =>   'Previous' === ti ? setUnixStartTime(unixStartTime-86400) : setUnixStartTime(unixStartTime+86400)} >{'Previous' === ti ? '-' : '+' }{ ti} 24 Hours</Button>
+                                    </Box>
+                                    <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
+                                        <Button fullWidth variant="outlined" onClick={() => 'Previous' === ti ? setUnixStartTime(unixStartTime-604800) : setUnixStartTime(unixStartTime+604800)} >{'Previous' === ti ? '-' : '+' }{ ti} 7 Days</Button>
+                                    </Box>
+                                    <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
+                                        <Button fullWidth variant="outlined" onClick={() =>  'Previous' === ti ? setUnixStartTime(unixStartTime-2592000) : setUnixStartTime(unixStartTime+2592000)}>{'Previous' === ti ? '-' : '+' } {ti} 30 Days </Button>
+                                    </Box>
+                                </Stack>
+                                <Box flexGrow={3} sx={{ mb: 2, ml: 1, mr: 1 }}>
+                                    <Typography variant="h6" color="text.secondary">
+                                        If you want it to start running immediately use 0. Otherwise set the unix start time to when you want the workflow to start running.
+                                    </Typography>
+                                </Box>
                             </CardContent>
                         </Card>
                     </Container>

@@ -90,6 +90,7 @@ export interface Retrieval {
 
 export interface PostWorkflowsActionRequest {
     action: string;
+    unixStartTime: number;
     workflows: WorkflowTemplate[];
 }
 export interface WorkflowTemplate {

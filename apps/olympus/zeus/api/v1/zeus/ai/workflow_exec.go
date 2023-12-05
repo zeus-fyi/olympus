@@ -10,8 +10,9 @@ import (
 )
 
 type WorkflowsActionsRequest struct {
-	Action    string                                    `json:"action"`
-	Workflows []artemis_orchestrations.WorkflowTemplate `json:"workflows"`
+	Action        string                                    `json:"action"`
+	UnixStartTime int                                       `json:"unixStartTime,omitempty"`
+	Workflows     []artemis_orchestrations.WorkflowTemplate `json:"workflows"`
 }
 
 func WorkflowsActionsRequestHandler(c echo.Context) error {
@@ -31,6 +32,7 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 	switch w.Action {
 	case "start":
 		// do x
+
 	case "stop":
 		// do y
 	}

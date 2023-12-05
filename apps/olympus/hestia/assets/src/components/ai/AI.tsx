@@ -40,6 +40,7 @@ import {
     setPlatformFilter,
     setSearchContent,
     setSearchResults,
+    setSelectedWorkflows,
     setUsernames
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
@@ -177,6 +178,9 @@ function AiWorkflowsDashboardContent(props: any) {
     }
 
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        if (newValue !== 1) {
+            dispatch(setSelectedWorkflows([]))
+        }
         setSelectedMainTab(newValue);
     };
     const onChangeText = (textInput: string) => {

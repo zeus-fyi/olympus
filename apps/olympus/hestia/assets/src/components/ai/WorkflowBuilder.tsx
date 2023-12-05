@@ -1147,17 +1147,6 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
-                                                <Box sx={{ width: '33%' }}>
-                                                    {/*<TextField*/}
-                                                    {/*    label={`Total Time (${stepSizeUnit})`} // Label now reflects the selected unit*/}
-                                                    {/*    variant="outlined"*/}
-                                                    {/*    value={stepSize* analysisCycleCount}*/}
-                                                    {/*    InputProps={{*/}
-                                                    {/*        readOnly: true,*/}
-                                                    {/*    }}*/}
-                                                    {/*    fullWidth*/}
-                                                    {/*/>*/}
-                                                </Box>
                                             </Stack>
                                         </CardContent>
                                         <CardActions>

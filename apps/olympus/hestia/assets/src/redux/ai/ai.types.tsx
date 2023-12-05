@@ -88,8 +88,14 @@ export interface Retrieval {
     retrievalPlatformGroups: string;
 }
 
-
 export interface PostWorkflowsActionRequest {
     action: string;
-    workflowIDs: string[];
+    workflows: WorkflowTemplate[];
+}
+export interface WorkflowTemplate {
+    workflowID: number;
+    workflowName: string;
+    workflowGroup: string;
+    fundamentalPeriod: number;
+    fundamentalPeriodTimeUnit: string;
 }

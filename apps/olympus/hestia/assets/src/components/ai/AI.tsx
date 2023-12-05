@@ -24,7 +24,6 @@ import TextField from "@mui/material/TextField";
 import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
-    setAnalysisWorkflowInstructions,
     setGroupFilter,
     setPlatformFilter,
     setSearchContent,
@@ -35,7 +34,7 @@ import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
 import {TimeRange} from '@matiaslgonzalez/react-timeline-range-slider';
 import {WorkflowAnalysisTable} from "./WorkflowAnalysisTable";
-import {PostWorkflowsActionRequest} from "../../redux/ai/ai.types";
+import {PostWorkflowsActionRequest, WorkflowTemplate} from "../../redux/ai/ai.types";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -83,14 +82,18 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleUpdateSearchUsernames =(value: string) => {
         dispatch(setUsernames(value));
     };
-    const handleUpdateWorkflowInstructions =(value: string) => {
-        dispatch(setAnalysisWorkflowInstructions(value));
-    };
 
     const handleWorkflowAction = async (event: any, action: string) => {
         const params: PostWorkflowsActionRequest = {
             action: action,
-            workflowIDs: selected
+            workflows: selected.map((wf: WorkflowTemplate) => {
+                return wf
+            })
+        }
+        console.log(params)
+
+        if (params.workflows.length === 0) {
+            return
         }
         try {
             setIsLoading(true)

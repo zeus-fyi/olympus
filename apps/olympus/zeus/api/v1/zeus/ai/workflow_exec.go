@@ -5,12 +5,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 type WorkflowsActionsRequest struct {
-	Action      string   `json:"action"`
-	WorkflowIDs []string `json:"workflowIDs"`
+	Action    string                                    `json:"action"`
+	Workflows []artemis_orchestrations.WorkflowTemplate `json:"workflows"`
 }
 
 func WorkflowsActionsRequestHandler(c echo.Context) error {
@@ -24,8 +25,14 @@ func WorkflowsActionsRequestHandler(c echo.Context) error {
 func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
+		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	log.Info().Interface("ou", ou)
-	return nil
+	switch w.Action {
+	case "start":
+		// do x
+	case "stop":
+		// do y
+	}
+	return c.JSON(http.StatusOK, nil)
 }

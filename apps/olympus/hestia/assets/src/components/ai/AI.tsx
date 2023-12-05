@@ -436,19 +436,19 @@ function AiWorkflowsDashboardContent(props: any) {
                                 </Stack>
                                 <Stack direction="row"  sx={{ ml: 2, mr: 0, mt: 4, mb: 2 }}>
                                     <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
-                                        <Button fullWidth variant="outlined" onClick={() =>  'Previous' === ti ? setUnixStartTime(unixStartTime-300) : setUnixStartTime(unixStartTime+300)} >{'Previous' === ti ? '-' : '+' } { ti} 5 Minutes</Button>
+                                        <Button fullWidth variant="outlined" onClick={() => 'Previous' === ti ? setUnixStartTime(unixStartTime-300) : setUnixStartTime(unixStartTime+300)} >{'Previous' === ti ? '-' : '+' } { ti} 5 Minutes</Button>
                                     </Box>
                                     <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
-                                        <Button fullWidth variant="outlined" onClick={() =>  'Previous' === ti ? setUnixStartTime(unixStartTime-3600) : setUnixStartTime(unixStartTime+3600)} >{'Previous' === ti ? '-' : '+' } { ti} 1 Hour</Button>
+                                        <Button fullWidth variant="outlined" onClick={() => 'Previous' === ti ? setUnixStartTime(unixStartTime-3600) : setUnixStartTime(unixStartTime+3600)} >{'Previous' === ti ? '-' : '+' } { ti} 1 Hour</Button>
                                     </Box>
                                     <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
-                                        <Button fullWidth variant="outlined" onClick={() =>   'Previous' === ti ? setUnixStartTime(unixStartTime-86400) : setUnixStartTime(unixStartTime+86400)} >{'Previous' === ti ? '-' : '+' }{ ti} 24 Hours</Button>
+                                        <Button fullWidth variant="outlined" onClick={() =>  'Previous' === ti ? setUnixStartTime(unixStartTime-86400) : setUnixStartTime(unixStartTime+86400)} >{'Previous' === ti ? '-' : '+' }{ ti} 24 Hours</Button>
                                     </Box>
                                     <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
                                         <Button fullWidth variant="outlined" onClick={() => 'Previous' === ti ? setUnixStartTime(unixStartTime-604800) : setUnixStartTime(unixStartTime+604800)} >{'Previous' === ti ? '-' : '+' }{ ti} 7 Days</Button>
                                     </Box>
                                     <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
-                                        <Button fullWidth variant="outlined" onClick={() =>  'Previous' === ti ? setUnixStartTime(unixStartTime-2592000) : setUnixStartTime(unixStartTime+2592000)}>{'Previous' === ti ? '-' : '+' } {ti} 30 Days </Button>
+                                        <Button fullWidth variant="outlined" onClick={() => 'Previous' === ti ? setUnixStartTime(unixStartTime-2592000) : setUnixStartTime(unixStartTime+2592000)}>{'Previous' === ti ? '-' : '+' } {ti} 30 Days </Button>
                                     </Box>
                                 </Stack>
                                 <Box flexGrow={3} sx={{ mb: 2, ml: 1, mr: 1 }}>

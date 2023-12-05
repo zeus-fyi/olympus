@@ -111,8 +111,6 @@ function AiWorkflowsDashboardContent(props: any) {
                 return wf
             })
         }
-        console.log(params)
-
         if (params.workflows.length === 0) {
             return
         }

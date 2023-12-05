@@ -472,7 +472,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                 </Stack>
                                 <Box flexGrow={3} sx={{ mb: 2, ml: 1, mr: 1 }}>
                                     <Typography variant="h6" color="text.secondary">
-                                        If you want it to start running immediately use 0. Otherwise set the unix start time to when you want the workflow to start running. Select workflows from table below to run.
+                                        If you want it to start running immediately use 0. Otherwise set the time to when the workflow should start running, then select workflows from table below for scheduling.
                                     </Typography>
                                 </Box>
                             </CardContent>

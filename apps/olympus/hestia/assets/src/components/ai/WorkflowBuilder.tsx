@@ -406,7 +406,7 @@ function WorkflowEngineBuilder(props: any) {
             const payload: PostWorkflowsRequest = {
                 workflowName: workflowName,
                 workflowGroupName: workflowGroupName,
-                stepSize: stepSize,
+                stepSize: Number(stepSize),
                 stepSizeUnit: stepSizeUnit,
                 models: taskMap,
                 aggregateSubTasksMap: workflowBuilderTaskMap,
@@ -552,12 +552,15 @@ function WorkflowEngineBuilder(props: any) {
         if (newValue === 1) {
             setSelected({});
             setTaskType('analysis');
+            dispatch(setSelectedWorkflows([]));
             setTasks(allTasks.filter((task: any) => task.taskType === 'analysis'));
         } else if (newValue === 2) {
+            dispatch(setSelectedWorkflows([]));
             setSelected({});
             setTaskType('aggregation');
             setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
         } else if (newValue === 3) {
+            dispatch(setSelectedWorkflows([]));
             setSelected({});
         }
         if (addAggregateView && newValue !== 2) {

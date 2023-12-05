@@ -25,6 +25,30 @@ func InsertAiOrchestrations(ctx context.Context, ou org_users.OrgUser, action st
 	return 1, nil
 }
 
+func CalculateAggCycleCount(aggBaseCycleCount int, analysisCycleCounts []int) int {
+	for _, ac := range analysisCycleCounts {
+		if ac > aggBaseCycleCount {
+			aggBaseCycleCount = ac
+		}
+	}
+	return aggBaseCycleCount
+}
+
+func AggregateTasks(wd []WorkflowTemplateData) {
+
+	for _, w := range wd {
+		switch w.TaskType {
+
+		case "analysis":
+			fmt.Println("analysis")
+		case "aggregation":
+			fmt.Println("aggregation")
+
+		}
+	}
+
+}
+
 func InsertOrchestrationRef(ctx context.Context, oj OrchestrationJob, b []byte) (int, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO orchestrations(org_id, orchestration_name, group_name, type, instructions)

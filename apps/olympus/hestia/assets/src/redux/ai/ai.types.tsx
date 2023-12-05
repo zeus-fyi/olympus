@@ -87,3 +87,9 @@ export interface Retrieval {
     retrievalUsernames: string;
     retrievalPlatformGroups: string;
 }
+
+
+export interface PostWorkflowsActionRequest {
+    action: string;
+    workflowIDs: string[];
+}

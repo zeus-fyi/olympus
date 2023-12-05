@@ -35,6 +35,7 @@ import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
 import {TimeRange} from '@matiaslgonzalez/react-timeline-range-slider';
 import {WorkflowAnalysisTable} from "./WorkflowAnalysisTable";
+import {PostWorkflowsActionRequest} from "../../redux/ai/ai.types";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -57,51 +58,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const now = new Date();
     const getTodayAtSpecificHour = (hour: number = 12) =>
         set(now, { hours: hour, minutes: 0, seconds: 0, milliseconds: 0 });
-    const [cycleCount, setCycleCount] = useState(0);
-    const handleCycleCountChange = (event: any) => {
-        setCycleCount(event.target.value);
-    };
-    const [aggregationCycleCount, setAggregationCycleCount] = useState(0);
-    const handleAggregationCycleCountChange = (event: any) => {
-        setAggregationCycleCount(event.target.value);
-    };
-    const [stepSize, setStepSize] = useState(5);
-    const handleTimeStepChange = (event: any) => {
-        setStepSize(event.target.value);
-    };
-    const [stepSizeUnit, setStepSizeUnit] = React.useState('minutes');
-    const handleUpdateStepSizeUnit = (event: any) => {
-        setStepSizeUnit(event.target.value);
-    };
-    const [analysisModel, setAnalysisModel] = React.useState('gpt-3.5-turbo');
-    const handleUpdateAnalysisModel = (event: any) => {
-        setAnalysisModel(event.target.value);
-    };
-    const [analysisModelMaxTokens, setAnalysisModelMaxTokens] = React.useState(0);
-    const handleUpdateAnalysisModelMaxTokens = (event: any) => {
-        setAnalysisModelMaxTokens(event.target.value);
-    };
-    const [analysisModelTokenOverflowStrategy, setAnalysisModelTokenOverflowStrategy] = React.useState('deduce');
-    const handleUpdateAnalysisModelTokenOverflowStrategy = (event: any) => {
-        setAnalysisModelTokenOverflowStrategy(event.target.value);
-    };
-    const [aggregationModel, setAggregationModel] = React.useState('gpt-4-1106-preview');
-    const handleUpdateAggregationModel = (event: any) => {
-        setAggregationModel(event.target.value);
-    };
-    const [workflowName, setWorkflowName] = React.useState('');
-    const handleUpdateWorkflowName = (event: any) => {
-        setWorkflowName(event.target.value);
-    };
 
-    const [aggregationModelTokenOverflowStrategy, setAggregationModelTokenOverflowStrategy] = React.useState('deduce');
-    const handleUpdateAggregationModelTokenOverflowStrategy = (event: any) => {
-        setAggregationModelTokenOverflowStrategy(event.target.value);
-    };
-    const [aggregationModelMaxTokens, setAggregationModelMaxTokens] = React.useState(0);
-    const handleUpdateAggregationModelMaxTokens = (event: any) => {
-        setAggregationModelMaxTokens(event.target.value);
-    };
     const [searchInterval, setSearchInterval] = useState<[Date, Date]>([getTodayAtSpecificHour(0), getTodayAtSpecificHour(24)]);
     const onTimeRangeChange = useCallback((interval: [Date, Date]) => {
         setSearchInterval(interval);
@@ -130,8 +87,26 @@ function AiWorkflowsDashboardContent(props: any) {
         dispatch(setAnalysisWorkflowInstructions(value));
     };
 
-    const handleWorkflowAction = async (event: any) => {
-
+    const handleWorkflowAction = async (event: any, action: string) => {
+        const params: PostWorkflowsActionRequest = {
+            action: action,
+            workflowIDs: selected
+        }
+        try {
+            setIsLoading(true)
+            const response = await aiApiGateway.execWorkflowsActionRequest(params);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                const data = response.data;
+                dispatch(setSearchResults(data));
+                setCode(data)
+            } else {
+                console.log('Failed to search', response);
+            }
+        } catch (e) {
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     const handleLogout = async (event: any) => {
@@ -167,42 +142,7 @@ function AiWorkflowsDashboardContent(props: any) {
             setIsLoading(false);
         }
     }
-    const handleSearchAnalyzeRequest = async (timeRange: '1 hour'| '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
-        try {
-            setIsLoading(true)
-            const response = await aiApiGateway.analyzeSearchRequest({
-                'searchContentText': searchKeywordsText,
-                'groupFilter': groupFilter,
-                'platforms': platformFilter,
-                'usernames': usernames,
-                'workflowInstructions': workflowInstructions,
-                'searchInterval': searchInterval,
-                'cycleCount': cycleCount,
-                'aggregationCycleCount': aggregationCycleCount,
-                'stepSize': stepSize,
-                'stepSizeUnit': stepSizeUnit,
-                'timeRange': timeRange,
-                'workflowName': workflowName,
-                'analysisModel': analysisModel,
-                'analysisModelMaxTokens': analysisModelMaxTokens,
-                'analysisModelTokenOverflowStrategy': analysisModelTokenOverflowStrategy,
-                'aggregationModel': aggregationModel,
-                'aggregationModelMaxTokens': aggregationModelMaxTokens,
-                'aggregationModelTokenOverflowStrategy': aggregationModelTokenOverflowStrategy,
-            });
-            const statusCode = response.status;
-            if (statusCode < 400) {
-                const data = response.data;
-                dispatch(setSearchResults(data));
-                setCode(analysisStart + data+ analysisDone + code)
-            } else {
-                console.log('Failed to search', response);
-            }
-        } catch (e) {
-        } finally {
-            setIsLoading(false);
-        }
-    }
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -422,21 +362,21 @@ function AiWorkflowsDashboardContent(props: any) {
                                     control={<Switch checked={analyzeNext} onChange={handleToggleChange} />}
                                     label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}
                                 />
-                                <Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>
-                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('1 hour')} >Analyze {ti} 1 Hour</Button>
-                                </Box>
-                                <Box flexGrow={1} sx={{ mb: 2 }}>
-                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('24 hours')} >Analyze {ti} 24 Hours</Button>
-                                </Box>
-                                <Box flexGrow={1} sx={{ mb: 2 }}>
-                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('7 days')} >Analyze {ti} 7 Days</Button>
-                                </Box>
-                                <Box flexGrow={1} sx={{ mb: 2 }}>
-                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('30 days')} >Analyze {ti} 30 Days </Button>
-                                </Box>
-                                <Box flexGrow={1} sx={{ mb: 2 }}>
-                                    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Analyze All {ti} Records</Button>
-                                </Box>
+                                {/*<Box flexGrow={1} sx={{ mb: 2, mt: 2 }}>*/}
+                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('1 hour')} >Analyze {ti} 1 Hour</Button>*/}
+                                {/*</Box>*/}
+                                {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
+                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('24 hours')} >Analyze {ti} 24 Hours</Button>*/}
+                                {/*</Box>*/}
+                                {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
+                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('7 days')} >Analyze {ti} 7 Days</Button>*/}
+                                {/*</Box>*/}
+                                {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
+                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('30 days')} >Analyze {ti} 30 Days </Button>*/}
+                                {/*</Box>*/}
+                                {/*<Box flexGrow={1} sx={{ mb: 2 }}>*/}
+                                {/*    <Button fullWidth variant="contained" onClick={() => handleSearchAnalyzeRequest('all')} >Analyze All {ti} Records</Button>*/}
+                                {/*</Box>*/}
                             </CardContent>
                         </Card>
                     </Container>
@@ -461,7 +401,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                         <Box sx={{ mb: 2 }}>
                                             <span>({Object.values(selected).filter(value => value).length} Selected Workflows)</span>
-                                            <Button variant="outlined" color="secondary" onClick={handleWorkflowAction} style={{marginLeft: '10px'}}>
+                                            <Button variant="outlined" color="secondary" onClick={(event) => handleWorkflowAction(event, 'start')} style={{marginLeft: '10px'}}>
                                                 Start { selected.length === 1 ? 'Workflow' : 'Workflows' }
                                             </Button>
                                         </Box>

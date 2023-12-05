@@ -7,6 +7,7 @@ export interface AiState {
     searchResults: string;
     platformFilter: string;
     workflows: [];
+    executedWorkflows: [];
     tasks: [];
     workflowName: string;
     workflowGroupName: string;

@@ -34,12 +34,16 @@ const initialState: AiState = {
     workflowName: '',
     workflowGroupName: '',
     selectedWorkflows: [],
+    executedWorkflows: [],
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setExecutedWorkflows: (state, action: PayloadAction<[]>) => {
+            state.executedWorkflows = action.payload;
+        },
         setSelectedWorkflows: (state, action: PayloadAction<string[]>) => {
             state.selectedWorkflows = action.payload;
         },

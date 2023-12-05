@@ -12,13 +12,12 @@ import {setAiTasks, setRetrievals, setWorkflows} from "../../redux/ai/ai.reducer
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
 
-
 export function WorkflowAnalysisTable(props: any) {
     const [page, setPage] = React.useState(0);
     const [selected, setSelected] = useState<string[]>([]);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
-    const workflows = useSelector((state: any) => state.ai.workflows);
+    const workflows = useSelector((state: any) => state.ai.executedWorkflows);
     const dispatch = useDispatch();
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,

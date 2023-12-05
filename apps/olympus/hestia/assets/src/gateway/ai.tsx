@@ -128,8 +128,6 @@ class AiApiGateway {
             return
         }
     }
-
-
 }
 
 export const aiApiGateway = new AiApiGateway();

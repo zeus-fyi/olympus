@@ -73,7 +73,6 @@ function AiWorkflowsDashboardContent(props: any) {
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);
     };
-    const [unixTimestamp, setUnixTimestamp] = useState(getCurrentUnixTimestamp());
 
     const now = new Date();
     const getTodayAtSpecificHour = (hour: number = 12) =>
@@ -132,6 +131,13 @@ function AiWorkflowsDashboardContent(props: any) {
         } finally {
             setIsLoading(false);
         }
+    }
+    function convertUnixToDateTimeLocal(unixTime: number): string {
+        if (!unixTime) return '';
+
+        const date = new Date(unixTime * 1000);
+        const offset = date.getTimezoneOffset() * 60000; // offset in milliseconds
+        return new Date(date.getTime() - offset).toISOString().slice(0, 16);
     }
 
     const handleLogout = async (event: any) => {
@@ -242,6 +248,11 @@ function AiWorkflowsDashboardContent(props: any) {
             </Drawer>
             </div>
         )};
+
+    const handleDateTimeChange = (e: any) => {
+        const date = new Date(e.target.value);
+        setUnixStartTime(date.getTime() / 1000); // Convert back to Unix timestamp
+    };
 
 
     const ti = analyzeNext ? 'Next' : 'Previous';
@@ -427,11 +438,17 @@ function AiWorkflowsDashboardContent(props: any) {
                                             fullWidth
                                         />
                                     </Box>
+                                    <Box sx={{ width: '50%', mr: 2 }}> {/* Adjusted Box for TextField */}
+                                        <TextField
+                                            type="datetime-local"
+                                            variant="outlined"
+                                            value={convertUnixToDateTimeLocal(unixStartTime)}
+                                            onChange={handleDateTimeChange}
+                                            fullWidth
+                                        />
+                                    </Box>
                                     <Box flexGrow={3} sx={{ mb: 0, mt: 1, mr: 2 }}>
                                         <Button fullWidth variant="outlined" onClick={() => unixStartTime > 0 ? setUnixStartTime(0) : setUnixStartTime(getCurrentUnixTimestamp())} >{ unixStartTime > 0 ? 'Reset' : 'Now'}</Button>
-                                    </Box>
-                                    <Box flexGrow={3} sx={{ mb: 0, mt: 1}}>
-                                        <Button fullWidth variant="contained" onClick={() =>  setUnixStartTime(0)} >Start</Button>
                                     </Box>
                                 </Stack>
                                 <Stack direction="row"  sx={{ ml: 2, mr: 0, mt: 4, mb: 2 }}>
@@ -453,7 +470,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                 </Stack>
                                 <Box flexGrow={3} sx={{ mb: 2, ml: 1, mr: 1 }}>
                                     <Typography variant="h6" color="text.secondary">
-                                        If you want it to start running immediately use 0. Otherwise set the unix start time to when you want the workflow to start running.
+                                        If you want it to start running immediately use 0. Otherwise set the unix start time to when you want the workflow to start running. Select workflows from table below to run.
                                     </Typography>
                                 </Box>
                             </CardContent>

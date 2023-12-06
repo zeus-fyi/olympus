@@ -1,5 +1,12 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {AiState, Retrieval, TaskModelInstructions, UpdateTaskCycleCountPayload, UpdateTaskMapPayload} from "./ai.types";
+import {
+    AiState,
+    Orchestration,
+    Retrieval,
+    TaskModelInstructions,
+    UpdateTaskCycleCountPayload,
+    UpdateTaskMapPayload
+} from "./ai.types";
 
 const initialState: AiState = {
     searchContentText: '',
@@ -34,15 +41,19 @@ const initialState: AiState = {
     workflowName: '',
     workflowGroupName: '',
     selectedWorkflows: [],
-    executedWorkflows: [],
+    runs: [],
+    selectedRuns: [],
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
-        setExecutedWorkflows: (state, action: PayloadAction<[]>) => {
-            state.executedWorkflows = action.payload;
+        setRuns: (state, action: PayloadAction<Orchestration[]>) => {
+            state.runs = action.payload;
+        },
+        setSelectedRuns: (state, action: PayloadAction<[]>) => {
+            state.runs = action.payload;
         },
         setSelectedWorkflows: (state, action: PayloadAction<string[]>) => {
             state.selectedWorkflows = action.payload;
@@ -238,6 +249,8 @@ export const {
     setAnalysisRetrievalsMap,
     setWorkflowGroupName,
     setWorkflowName,
-    setSelectedWorkflows
+    setSelectedWorkflows,
+    setSelectedRuns,
+    setRuns,
 } = aiSlice.actions;
 export default aiSlice.reducer;

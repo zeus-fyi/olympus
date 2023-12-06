@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -8,16 +8,17 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
-import {setAiTasks, setRetrievals, setWorkflows} from "../../redux/ai/ai.reducer";
+import {setAiTasks, setRetrievals, setRuns, setSelectedRuns, setWorkflows} from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
+import {Orchestration} from "../../redux/ai/ai.types";
 
 export function WorkflowAnalysisTable(props: any) {
     const [page, setPage] = React.useState(0);
-    const [selected, setSelected] = useState<string[]>([]);
+    const selectedRungs = useSelector((state: any) => state.ai.selectedRuns);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
-    const workflows = useSelector((state: any) => state.ai.executedWorkflows);
+    const workflows = useSelector((state: any) => state.ai.runs);
     const dispatch = useDispatch();
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -43,6 +44,7 @@ export function WorkflowAnalysisTable(props: any) {
                     dispatch(setWorkflows(data.workflows));
                     dispatch(setAiTasks(data.tasks));
                     dispatch(setRetrievals(data.retrievals));
+                    dispatch(setRuns(data.runs))
                 } else {
                     console.log('Failed to get workflows', response);
                 }
@@ -65,8 +67,8 @@ export function WorkflowAnalysisTable(props: any) {
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - workflows.length) : 0;
 
     const handleClick = (name: string) => {
-        const currentIndex = selected.indexOf(name);
-        const newSelected = [...selected];
+        const currentIndex = selectedRungs.indexOf(name);
+        const newSelected = [...selectedRungs];
 
         if (currentIndex === -1) {
             newSelected.push(name);
@@ -74,15 +76,15 @@ export function WorkflowAnalysisTable(props: any) {
             newSelected.splice(currentIndex, 1);
         }
 
-        setSelected(newSelected);
+        dispatch(setSelectedRuns([]));
     };
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
             const newSelected = workflows.map((wf: any) => wf);
-            setSelected(newSelected);
+            // setSelected(newSelected);
             return;
         }
-        setSelected([]);
+        // setSelected([]);
     };
     return (
         <TableContainer component={Paper}>
@@ -92,45 +94,42 @@ export function WorkflowAnalysisTable(props: any) {
                         <TableCell padding="checkbox">
                             <Checkbox
                                 color="primary"
-                                indeterminate={workflows.length > 0 && selected.length < workflows.length && selected.length > 0}
-                                checked={workflows.length > 0 && selected.length === workflows.length}
+                                // indeterminate={workflows.length > 0 && selected.length < workflows.length && selected.length > 0}
+                                // checked={workflows.length > 0 && selected.length === workflows.length}
                                 onChange={handleSelectAllClick}
                             />
                         </TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Workflow ID</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Run ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Base Period</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Active</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {workflows.map((row: any, i: number) => (
+                    {workflows.map((row: Orchestration, i: number) => (
                         <TableRow
                             key={i}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell padding="checkbox">
                                 <Checkbox
-                                    checked={selected.indexOf(row) !== -1}
-                                    onChange={() => handleClick(row)}
+                                    // checked={selected.indexOf(row[i]) !== -1}
+                                    // onChange={() => handleClick(row)}
                                     color="primary"
                                 />
                             </TableCell>
                             <TableCell component="th" scope="row">
-                                {row.workflowID}
+                                {row.orchestrationID}
                             </TableCell>
                             <TableCell component="th" scope="row">
-                                {row.workflowName}
+                                {row.orchestrationName}
                             </TableCell>
                             <TableCell component="th" scope="row">
-                                {row.workflowGroup}
+                                {row.groupName}
                             </TableCell>
                             <TableCell component="th" scope="row">
-                                {row.fundamentalPeriod + ' ' + row.fundamentalPeriodTimeUnit}
+                                {row.active ? 'Yes' : 'No'}
                             </TableCell>
-                            {/*<TableCell component="th" scope="row">*/}
-                            {/*    {row.active ? 'Yes' : 'No'}*/}
-                            {/*</TableCell>*/}
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (

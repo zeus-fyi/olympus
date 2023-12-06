@@ -7,7 +7,6 @@ export interface AiState {
     searchResults: string;
     platformFilter: string;
     workflows: [];
-    executedWorkflows: [];
     tasks: [];
     workflowName: string;
     workflowGroupName: string;
@@ -24,6 +23,8 @@ export interface AiState {
     retrievals: Retrieval[];
     workflowAnalysisRetrievalsMap: AnalysisRetrievalsMap
     selectedWorkflows: string[];
+    runs: Orchestration[];
+    selectedRuns: [];
 }
 
 export interface PostWorkflowsRequest {
@@ -106,3 +107,12 @@ export interface WorkflowTemplate {
     fundamentalPeriod: number;
     fundamentalPeriodTimeUnit: string;
 }
+
+export type Orchestration = {
+    orchestrationID: number;
+    active: boolean;
+    groupName: string;
+    type: string;
+    instructions: string;
+    orchestrationName: string;
+};

@@ -108,7 +108,8 @@ function AiWorkflowsDashboardContent(props: any) {
         const params: PostWorkflowsActionRequest = {
             action: action,
             unixStartTime: unixStartTime,
-            unixEndTime: 0,
+            duration: stepSizeUnit,
+            durationUnit: stepSize,
             workflows: selected.map((wf: WorkflowTemplate) => {
                 return wf
             })

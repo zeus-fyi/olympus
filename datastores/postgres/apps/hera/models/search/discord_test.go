@@ -28,13 +28,12 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
 
 	// Call the function
 	sp := AiSearchParams{
-		SearchContentText:    "node",
-		GroupFilter:          "",
-		Platforms:            "",
-		Usernames:            "",
-		WorkflowInstructions: "",
-		SearchInterval:       si,
-		AnalysisInterval:     TimeInterval{},
+		SearchContentText: "node",
+		GroupFilter:       "",
+		Platforms:         "",
+		Usernames:         "",
+		SearchInterval:    si,
+		AnalysisInterval:  TimeInterval{},
 	}
 	results, err := SearchDiscord(ctx, ou, sp)
 

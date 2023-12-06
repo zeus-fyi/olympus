@@ -8,9 +8,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
-// todo, using the workflow template data values, should check analysis cycle against current cycle count, and then agg against normalized agg value
-// todo, should use analysis cycle count diff to derive time window for search
-
 func (s *OrchestrationsTestSuite) TestInsertAiOrchestrations() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
@@ -46,4 +43,8 @@ func (s *OrchestrationsTestSuite) TestCalculateTimeWindow() {
 	tw := CalculateTimeWindow(now, 0, 3, time.Minute*5)
 	fmt.Println(tw.UnixStartTime, tw.UnixEndTime, tw.UnixEndTime-tw.UnixStartTime)
 	fmt.Println(tw.Start, tw.End)
+}
+
+func (s *OrchestrationsTestSuite) TestName() {
+
 }

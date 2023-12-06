@@ -2,6 +2,7 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -276,35 +277,52 @@ func (z *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx conte
 	return nil
 }
 
-func (z *ZeusAiPlatformActivities) UpsertAiOrchestration(ctx context.Context, ou org_users.OrgUser, wfParentID string, wfExecParams artemis_orchestrations.WorkflowExecParams) error {
-	_, err := artemis_orchestrations.UpsertAiOrchestration(ctx, ou, wfParentID, wfExecParams)
+func (z *ZeusAiPlatformActivities) UpsertAiOrchestration(ctx context.Context, ou org_users.OrgUser, wfParentID string, wfExecParams artemis_orchestrations.WorkflowExecParams) (int, error) {
+	id, err := artemis_orchestrations.UpsertAiOrchestration(ctx, ou, wfParentID, wfExecParams)
 	if err != nil {
 		log.Err(err).Msg("UpsertAiOrchestration: activity failed")
-		return err
+		return id, err
 	}
-	return nil
+	return id, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) (string, error) {
+func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) ([]hera_search.SearchResult, error) {
 	if taskInst.RetrievalPlatform == nil || taskInst.RetrievalName == nil || taskInst.RetrievalInstructions == nil {
-		return "", nil
+		return nil, nil
 	}
+	sp := hera_search.AiSearchParams{}
+	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &sp)
+	if jerr != nil {
+		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
+		return nil, jerr
+	}
+	sw := hera_search.TimeInterval{}
+	sw[0] = window.Start
+	sw[1] = window.End
+	sp.SearchInterval = sw
+	var resp []hera_search.SearchResult
+	var err error
 	switch *taskInst.RetrievalPlatform {
 	case "twitter":
-		//
+		resp, err = hera_search.SearchTwitter(ctx, ou, sp)
 	case "reddit":
-		//
+		resp, err = hera_search.SearchReddit(ctx, ou, sp)
 	case "discord":
-		//
+		resp, err = hera_search.SearchDiscord(ctx, ou, sp)
 	case "telegram":
-		//
+		resp, err = hera_search.SearchTelegram(ctx, ou, sp)
 	case "web":
 		// todo
 	}
-	return "", nil
+	if err != nil {
+		log.Err(err).Msg("AiRetrievalTask: failed")
+		return nil, err
+	}
+	return resp, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, content string) (openai.ChatCompletionResponse, error) {
+func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, sr []hera_search.SearchResult) (openai.ChatCompletionResponse, error) {
+	content := hera_search.FormatSearchResultsV2(sr)
 	if len(content) <= 0 {
 		return openai.ChatCompletionResponse{}, nil
 	}
@@ -337,7 +355,8 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 	return resp, err
 }
 
-func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, content string) (openai.ChatCompletionResponse, error) {
+func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (openai.ChatCompletionResponse, error) {
+	content := artemis_orchestrations.GenerateContentText(dataIn)
 	if len(content) <= 0 || aggInst.AggPrompt == nil || aggInst.AggModel == nil || aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil {
 		return openai.ChatCompletionResponse{}, nil
 	}
@@ -377,16 +396,6 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	return resp, err
 }
 
-func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) (string, error) {
-
-	return "", nil
-}
-
-func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, ou org_users.OrgUser, oj artemis_orchestrations.OrchestrationJob, taskID string, window artemis_orchestrations.Window, respId int) (string, error) {
-
-	return "", nil
-}
-
 func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse) (int, error) {
 	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, resp)
 	if err != nil {
@@ -394,4 +403,23 @@ func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context,
 		return rid, err
 	}
 	return rid, nil
+}
+
+func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.Context, window artemis_orchestrations.Window, ojIDs, sourceTaskIds []int) ([]artemis_orchestrations.AIWorkflowAnalysisResult, error) {
+	results, err := artemis_orchestrations.SelectAiWorkflowAnalysisResults(ctx, window, ojIDs, sourceTaskIds)
+	if err != nil {
+		log.Err(err).Msg("AiAggregateAnalysisRetrievalTask: failed")
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr artemis_orchestrations.AIWorkflowAnalysisResult) error {
+	respID, err := artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
+	if err != nil {
+		log.Err(err).Interface("respID", respID).Interface("wr", wr).Msg("SaveTaskOutput: failed")
+		return err
+	}
+	return nil
 }

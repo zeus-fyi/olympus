@@ -19,26 +19,12 @@ import (
 )
 
 type AiSearchParams struct {
-	SearchContentText                     string       `json:"searchContentText,omitempty"`
-	GroupFilter                           string       `json:"groupFilter,omitempty"`
-	Platforms                             string       `json:"platforms,omitempty"`
-	Usernames                             string       `json:"usernames,omitempty"`
-	WorkflowInstructions                  string       `json:"workflowInstructions,omitempty"`
-	WorkflowCycleInstructions             string       `json:"workflowCycleInstructions,omitempty"`
-	SearchInterval                        TimeInterval `json:"searchInterval,omitempty"`
-	AnalysisInterval                      TimeInterval `json:"analysisInterval,omitempty"`
-	CycleCount                            int          `json:"cycleCount,omitempty"`
-	AggregationCycleCount                 int          `json:"aggregationCycleCount,omitempty"`
-	StepSize                              int          `json:"stepSize,omitempty"`
-	StepSizeUnit                          string       `json:"stepSizeUnit,omitempty"`
-	TimeRange                             string       `json:"timeRange,omitempty"`
-	WorkflowName                          string       `json:"workflowName,omitempty"`
-	AnalysisModel                         string       `json:"analysisModel,omitempty"`
-	AnalysisModelMaxTokens                int          `json:"analysisModelMaxTokens,omitempty"`
-	AnalysisModelTokenOverflowStrategy    string       `json:"analysisModelTokenOverflowStrategy,omitempty"`
-	AggregationModel                      string       `json:"aggregationModel,omitempty"`
-	AggregationModelMaxTokens             int          `json:"aggregationModelMaxTokens,omitempty"`
-	AggregationModelTokenOverflowStrategy string       `json:"aggregationModelTokenOverflowStrategy,omitempty"`
+	SearchContentText string       `json:"searchContentText,omitempty"`
+	GroupFilter       string       `json:"groupFilter,omitempty"`
+	Platforms         string       `json:"platforms,omitempty"`
+	Usernames         string       `json:"usernames,omitempty"`
+	SearchInterval    TimeInterval `json:"searchInterval,omitempty"`
+	AnalysisInterval  TimeInterval `json:"analysisInterval,omitempty"`
 }
 type AiModelParams struct {
 	Model         string `json:"model"`
@@ -241,7 +227,6 @@ func SanitizeSearchParams(sp *AiSearchParams) {
 		return
 	}
 	sp.Usernames = sanitizeUTF8(sp.Usernames)
-	sp.WorkflowInstructions = sanitizeUTF8(sp.WorkflowInstructions)
 	sp.SearchContentText = sanitizeUTF8(sp.SearchContentText)
 	sp.GroupFilter = sanitizeUTF8(sp.GroupFilter)
 }

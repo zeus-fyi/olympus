@@ -5,6 +5,7 @@ import (
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -24,8 +25,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		return err
 	}
 	ojCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(ojCtx, z.UpsertAiOrchestration, ou, wfID, wfExecParams).Get(ojCtx, nil)
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, wfExecParams.WorkflowTemplate.WorkflowGroup, wfExecParams.WorkflowTemplate.WorkflowName)
+	err = workflow.ExecuteActivity(ojCtx, z.UpsertAiOrchestration, ou, wfID, wfExecParams).Get(ojCtx, &oj.OrchestrationID)
 	if err != nil {
+		logger.Error("failed to UpsertAiOrchestration", "Error", err)
+		return err
+	}
+	if oj.OrchestrationID == 0 {
 		logger.Error("failed to UpsertAiOrchestration", "Error", err)
 		return err
 	}
@@ -34,7 +40,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		logger.Error("failed to sleep until", "Error", err)
 		return err
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, wfExecParams.WorkflowTemplate.WorkflowGroup, wfExecParams.WorkflowTemplate.WorkflowName)
 	startCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(startCtx, "UpdateAndMarkOrchestrationActive", oj).Get(startCtx, nil)
 	if err != nil {
@@ -59,25 +64,22 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				return err
 			}
 		}
-
 		for _, analysisInst := range wfExecParams.WorkflowTasks {
 			if i%analysisInst.AnalysisTaskID == 0 {
-				// run retrieval
 				retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 				window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.RunWindow.UnixStartTime, i-analysisInst.AnalysisCycleCount, i, wfExecParams.TimeStepSize)
-
-				var content string
-				err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, ou, analysisInst, window).Get(retrievalCtx, &content)
+				var sr []hera_search.SearchResult
+				err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, ou, analysisInst, window).Get(retrievalCtx, &sr)
 				if err != nil {
 					logger.Error("failed to run retrieval", "Error", err)
 					return err
 				}
-				if len(content) == 0 {
+				if len(sr) == 0 {
 					continue
 				}
 				analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				var aiResp openai.ChatCompletionResponse
-				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, content).Get(analysisCtx, &aiResp)
+				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sr).Get(analysisCtx, &aiResp)
 				if err != nil {
 					logger.Error("failed to run analysis", "Error", err)
 					return err
@@ -92,8 +94,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					logger.Error("failed to save analysis response", "Error", err)
 					return err
 				}
+				wr := artemis_orchestrations.AIWorkflowAnalysisResult{
+					OrchestrationsID:      oj.OrchestrationID,
+					ResponseID:            analysisRespId,
+					SourceTaskID:          analysisInst.AnalysisTaskID,
+					RunningCycleNumber:    i,
+					SearchWindowUnixStart: window.UnixStartTime,
+					SearchWindowUnixEnd:   window.UnixEndTime,
+				}
 				recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, ou, oj, analysisInst.AnalysisTaskID, window, analysisRespId).Get(recordAnalysisCtx, nil)
+				err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr).Get(recordAnalysisCtx, nil)
 				if err != nil {
 					logger.Error("failed to save analysis", "Error", err)
 					return err
@@ -109,18 +119,21 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			if i%aggCycle == 0 {
 				retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 				window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.TimeStepSize)
-				var content string
-				err = workflow.ExecuteActivity(retrievalCtx, z.AiAggregateAnalysisRetrievalTask, ou, aggInst, window).Get(retrievalCtx, &content)
+				var dataIn []artemis_orchestrations.AIWorkflowAnalysisResult
+				// todo, if agg processed in current cycle edge case review
+
+				// TODO add all dependent analysis task ids to the search
+				err = workflow.ExecuteActivity(retrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, []int{aggInst.AnalysisTaskID}).Get(retrievalCtx, &dataIn)
 				if err != nil {
-					logger.Error("failed to run retrieval", "Error", err)
+					logger.Error("failed to run aggregate retrieval", "Error", err)
 					return err
 				}
-				if len(content) == 0 {
+				if len(dataIn) == 0 {
 					continue
 				}
 				aggCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				var aiAggResp openai.ChatCompletionResponse
-				err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, content).Get(aggCtx, &aiAggResp)
+				err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, dataIn).Get(aggCtx, &aiAggResp)
 				if err != nil {
 					logger.Error("failed to run aggregation", "Error", err)
 					return err
@@ -135,8 +148,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					logger.Error("failed to save agg response", "Error", err)
 					return err
 				}
+				wr := artemis_orchestrations.AIWorkflowAnalysisResult{
+					OrchestrationsID:      oj.OrchestrationID,
+					ResponseID:            aggRespId,
+					SourceTaskID:          *aggInst.AggTaskID,
+					RunningCycleNumber:    i,
+					SearchWindowUnixStart: window.UnixStartTime,
+					SearchWindowUnixEnd:   window.UnixEndTime,
+				}
 				recordAggCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, ou, oj, *aggInst.AggTaskID, window, aggRespId).Get(recordAggCtx, nil)
+				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr).Get(recordAggCtx, nil)
 				if err != nil {
 					logger.Error("failed to save aggregation resp", "Error", err)
 					return err
@@ -144,14 +165,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			}
 		}
 	}
-
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {
 		logger.Error("failed to update cache for qn services", "Error", err)
 		return err
 	}
-
 	return nil
 }
 

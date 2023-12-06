@@ -143,13 +143,7 @@ func AiTelegramTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_searc
 		systemMessage.Content = params.WorkflowInstructions
 	}
 	output := hera_search.FormatTgMessagesForAi(msgs)
-	tc, err := GetTokenCountEstimate(ctx, output, params.AnalysisModel)
-	if err != nil {
-		return openai.ChatCompletionResponse{}, err
-	}
-	if tc > 10000 {
-		return openai.ChatCompletionResponse{}, fmt.Errorf("token count too high: %d", tc)
-	}
+
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
@@ -177,17 +171,17 @@ func AiAggregateTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_sear
 		systemMessage.Content = params.WorkflowInstructions
 	}
 	output := hera_search.FormatTgMessagesForAi(msgs)
-	tc, err := GetTokenCountEstimate(ctx, params.AnalysisModel, output)
+	tc, err := GetTokenCountEstimate(ctx, "gpt-4", output)
 	if err != nil {
 		return openai.ChatCompletionResponse{}, err
 	}
-	if tc > 10000 {
+	if tc > 8000 {
 		return openai.ChatCompletionResponse{}, fmt.Errorf("token count too high: %d", tc)
 	}
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: "gpt-4-1106-preview",
+			Model: "gpt-4",
 			Messages: []openai.ChatCompletionMessage{
 				systemMessage,
 				{

@@ -38,7 +38,7 @@ type OpenAIParams struct {
 
 func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.OrgUser, params openai.ChatCompletionResponse) error {
 	log.Info().Interface("params", params).Msg("RecordUIChatRequestUsage")
-	err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, params)
+	_, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, params)
 	if err != nil {
 		log.Err(err).Interface("params", params).Msg("RecordUIChatRequestUsage")
 		return err

@@ -19,12 +19,14 @@ import (
 )
 
 type AiSearchParams struct {
-	SearchContentText string       `json:"searchContentText,omitempty"`
-	GroupFilter       string       `json:"groupFilter,omitempty"`
-	Platforms         string       `json:"platforms,omitempty"`
-	Usernames         string       `json:"usernames,omitempty"`
-	SearchInterval    TimeInterval `json:"searchInterval,omitempty"`
-	AnalysisInterval  TimeInterval `json:"analysisInterval,omitempty"`
+	SearchContentText    string       `json:"searchContentText,omitempty"`
+	WorkflowInstructions string       `json:"workflowInstructions,omitempty"`
+	TimeRange            string       `json:"timeRange,omitempty"`
+	GroupFilter          string       `json:"groupFilter,omitempty"`
+	Platforms            string       `json:"platforms,omitempty"`
+	Usernames            string       `json:"usernames,omitempty"`
+	SearchInterval       TimeInterval `json:"searchInterval,omitempty"`
+	AnalysisInterval     TimeInterval `json:"analysisInterval,omitempty"`
 }
 type AiModelParams struct {
 	Model         string `json:"model"`

@@ -60,6 +60,7 @@ export function RetrievalsTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Retrieval ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Platform</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>

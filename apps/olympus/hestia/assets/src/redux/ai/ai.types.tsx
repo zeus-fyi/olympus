@@ -23,7 +23,7 @@ export interface AiState {
     retrievals: Retrieval[];
     workflowAnalysisRetrievalsMap: AnalysisRetrievalsMap
     selectedWorkflows: string[];
-    runs: Orchestration[];
+    runs: OrchestrationsAnalysis[];
     selectedRuns: [];
 }
 
@@ -78,6 +78,29 @@ export interface AnalysisRetrievalsMap {
     [key: number]: { [innerKey: number]: boolean };
 }
 
+export interface AggregatedData {
+    workflowResultId: number;
+    responseId: number;
+    sourceTaskId: number;
+    taskName: string;
+    taskType: string;
+    runningCycleNumber: number;
+    searchWindowUnixStart: number;
+    searchWindowUnixEnd: number;
+    metadata?: string; // or a more specific type if the structure of metadata is known
+    completionChoices?: string; // similar to metadata, define a more specific type if possible
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+}
+
+export interface OrchestrationsAnalysis {
+    totalWorkflowTokenUsage: number;
+    runCycles: number;
+    aggregatedData: AggregatedData[];
+    orchestrations: Orchestration;
+}
+
 export interface Retrieval {
     retrievalID?: number;
     retrievalName: string;
@@ -118,6 +141,6 @@ export type Orchestration = {
     active: boolean;
     groupName: string;
     type: string;
-    instructions: string;
+    instructions?: string;
     orchestrationName: string;
 };

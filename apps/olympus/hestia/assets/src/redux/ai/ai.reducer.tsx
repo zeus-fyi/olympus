@@ -1,7 +1,7 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     AiState,
-    Orchestration,
+    OrchestrationsAnalysis,
     Retrieval,
     TaskModelInstructions,
     UpdateTaskCycleCountPayload,
@@ -52,7 +52,7 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
-        setRuns: (state, action: PayloadAction<Orchestration[]>) => {
+        setRuns: (state, action: PayloadAction<OrchestrationsAnalysis[]>) => {
             state.runs = action.payload;
         },
         setSelectedRuns: (state, action: PayloadAction<[]>) => {

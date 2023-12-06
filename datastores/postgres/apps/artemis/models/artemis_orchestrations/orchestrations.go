@@ -3,6 +3,7 @@ package artemis_orchestrations
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/jackc/pgtype"
@@ -284,40 +285,97 @@ func (o *OrchestrationJob) SelectOrchestrationsAtCloudCtxNsWithStatus(ctx contex
 	return orchestrationTodo, misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
 }
 
-func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]artemis_autogen_bases.Orchestrations, error) {
-	var ojs []artemis_autogen_bases.Orchestrations
+type AggregatedData struct {
+	WorkflowResultID      int             `json:"workflowResultId"`
+	ResponseID            int             `json:"responseId"`
+	SourceTaskID          int             `json:"sourceTaskId"`
+	TaskName              string          `json:"taskName"`
+	TaskType              string          `json:"taskType"`
+	RunningCycleNumber    int             `json:"runningCycleNumber"`
+	SearchWindowUnixStart int             `json:"searchWindowUnixStart"`
+	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd"`
+	Metadata              json.RawMessage `json:"metadata,omitempty"`
+	CompletionChoices     json.RawMessage `json:"completionChoices,omitempty"`
+	PromptTokens          int             `json:"promptTokens"`
+	CompletionTokens      int             `json:"completionTokens"`
+	TotalTokens           int             `json:"totalTokens"`
+}
+
+type OrchestrationsAnalysis struct {
+	TotalWorkflowTokenUsage int              `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
+	RunCycles               int              `db:"max_run_cycle" json:"runCycles"`
+	AggregatedData          []AggregatedData `db:"aggregated_data" json:"aggregatedData"`
+
+	artemis_autogen_bases.Orchestrations `json:"orchestrations,omitempty"`
+}
+
+func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]OrchestrationsAnalysis, error) {
+	var ojs []OrchestrationsAnalysis
 	q := sql_query_templates.QueryParams{}
 
 	// uses main for unique id, so type == real name for related workflow
-	q.RawQuery = `	SELECT orchestration_id, orchestration_name, instructions, type, group_name, org_id
-					FROM orchestrations
-					WHERE org_id = $1 
+	q.RawQuery = `SELECT orchestrations_id,
+						 orchestrations.orchestration_name as orch_name,
+						 orchestrations.group_name as orch_group_name,
+						 orchestrations."type" as orch_type,
+						 orchestrations.active as active,
+						MAX(running_cycle_number) as max_run_cycle,
+						SUM(cr.total_tokens) as total_workflow_token_usage,
+						JSON_AGG(
+							JSON_BUILD_OBJECT(
+								'workflowResultId', workflow_result_id, 
+								'responseId', ar.response_id, 
+								'sourceTaskId', source_task_id,
+								'taskName', ait.task_name,
+								'taskType', ait.task_type,
+								'runningCycleNumber', running_cycle_number, 
+								'searchWindowUnixStart', search_window_unix_start, 
+								'searchWindowUnixEnd', search_window_unix_end, 
+								'metadata', metadata,
+								'completionChoices', cr.completion_choices, 
+								'promptTokens', cr.prompt_tokens, 
+								'completionTokens', cr.completion_tokens, 
+								'totalTokens', cr.total_tokens
+							) ORDER BY running_cycle_number DESC, ar.response_id DESC
+						) AS aggregated_data
+				FROM 
+					ai_workflow_analysis_results ar
+				JOIN 
+					ai_task_library ait ON ait.task_id = ar.source_task_id
+				JOIN 
+					completion_responses cr ON cr.response_id = ar.response_id
+				JOIN 
+					orchestrations ON orchestrations.orchestration_id = ar.orchestrations_id
+				WHERE orchestrations.org_id = $1 
 					AND (
 						EXISTS (
 							SELECT 1
 							FROM ai_workflow_template 
-							WHERE org_id = $1 AND workflow_name = orchestrations.type
+							WHERE workflow_name = orchestrations.type
 						) 
 						OR EXISTS (
 							SELECT 1
 							FROM ai_workflow_template 
-							WHERE org_id = $1 AND workflow_group = orchestrations.group_name
+							WHERE workflow_group = orchestrations.group_name
 						)
 					)
+				GROUP BY 
+					orchestrations_id, orchestration_name, group_name, orch_type, active
+				ORDER BY orchestrations_id DESC
 				`
 
 	log.Debug().Interface("SelectSystemOrchestrationsWithInstructionsByGroup", q.LogHeader(Orchestrations))
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
-		return ojs, err
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		oj := artemis_autogen_bases.Orchestrations{}
-		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions, &oj.Type, &oj.GroupName, &oj.OrgID)
+		oj := OrchestrationsAnalysis{}
+		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.GroupName, &oj.Type, &oj.Active, &oj.RunCycles, &oj.TotalWorkflowTokenUsage, &oj.AggregatedData)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
-			return ojs, rowErr
+			return nil, rowErr
 		}
 		ojs = append(ojs, oj)
 	}

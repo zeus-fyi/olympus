@@ -486,7 +486,6 @@ function AiWorkflowsDashboardContent(props: any) {
                                 <Tab label="Search" />
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"/>
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Runs"/>
-
                             </Tabs>
                         </Box>
                     </Container>

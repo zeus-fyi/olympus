@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
@@ -55,10 +54,10 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 }
 
 type AiWorkflowWrapper struct {
-	Workflows  []artemis_orchestrations.WorkflowTemplate `json:"workflows"`
-	Runs       []artemis_autogen_bases.Orchestrations    `json:"runs"`
-	Tasks      []artemis_orchestrations.AITaskLibrary    `json:"tasks"`
-	Retrievals []artemis_orchestrations.RetrievalItem    `json:"retrievals"`
+	Workflows  []artemis_orchestrations.WorkflowTemplate       `json:"workflows"`
+	Runs       []artemis_orchestrations.OrchestrationsAnalysis `json:"runs"`
+	Tasks      []artemis_orchestrations.AITaskLibrary          `json:"tasks"`
+	Retrievals []artemis_orchestrations.RetrievalItem          `json:"retrievals"`
 }
 
 type PostWorkflowsRequest struct {

@@ -11,11 +11,12 @@ import {aiApiGateway} from "../../gateway/ai";
 import {setAiTasks, setRetrievals, setRuns, setSelectedRuns, setWorkflows} from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
-import {Orchestration} from "../../redux/ai/ai.types";
+import {OrchestrationsAnalysis} from "../../redux/ai/ai.types";
+import {WorkflowAnalysisRow} from "./WorkflowAnalysisRow";
 
 export function WorkflowAnalysisTable(props: any) {
     const [page, setPage] = React.useState(0);
-    const selectedRungs = useSelector((state: any) => state.ai.selectedRuns);
+    const selectedRuns = useSelector((state: any) => state.ai.selectedRuns);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
     const workflows = useSelector((state: any) => state.ai.runs);
@@ -67,8 +68,8 @@ export function WorkflowAnalysisTable(props: any) {
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - workflows.length) : 0;
 
     const handleClick = (name: string) => {
-        const currentIndex = selectedRungs.indexOf(name);
-        const newSelected = [...selectedRungs];
+        const currentIndex = selectedRuns.indexOf(name);
+        const newSelected = [...selectedRuns];
 
         if (currentIndex === -1) {
             newSelected.push(name);
@@ -81,10 +82,10 @@ export function WorkflowAnalysisTable(props: any) {
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
             const newSelected = workflows.map((wf: any) => wf);
-            // setSelected(newSelected);
+                dispatch(setSelectedRuns(newSelected));
             return;
         }
-        // setSelected([]);
+        dispatch(setSelectedRuns([]));
     };
     return (
         <TableContainer component={Paper}>
@@ -99,38 +100,25 @@ export function WorkflowAnalysisTable(props: any) {
                                 onChange={handleSelectAllClick}
                             />
                         </TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Run ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Type</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Active</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Run Cycles</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Total Token Usage</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {workflows.map((row: Orchestration, i: number) => (
-                        <TableRow
-                            key={i}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                            <TableCell padding="checkbox">
-                                <Checkbox
-                                    // checked={selected.indexOf(row[i]) !== -1}
-                                    // onChange={() => handleClick(row)}
-                                    color="primary"
-                                />
-                            </TableCell>
-                            <TableCell component="th" scope="row">
-                                {row.orchestrationID}
-                            </TableCell>
-                            <TableCell component="th" scope="row">
-                                {row.orchestrationName}
-                            </TableCell>
-                            <TableCell component="th" scope="row">
-                                {row.groupName}
-                            </TableCell>
-                            <TableCell component="th" scope="row">
-                                {row.active ? 'Yes' : 'No'}
-                            </TableCell>
-                        </TableRow>
+                    {rowsPerPage > 0 && workflows && workflows.map((row: OrchestrationsAnalysis, index: number) => (
+                        <WorkflowAnalysisRow
+                            key={index}
+                            row={row}
+                            index={index}
+                            handleClick={handleClick}
+                            checked={selectedRuns[index] || false}
+                        />
                     ))}
                     {emptyRows > 0 && (
                         <TableRow style={{ height: 53 * emptyRows }}>

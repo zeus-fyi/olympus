@@ -2,7 +2,7 @@ package artemis_orchestrations
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/jackc/pgtype"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -11,42 +11,81 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func InsertAiOrchestrations(ctx context.Context, ou org_users.OrgUser, action string, wfs []WorkflowTemplate) (int, error) {
-	for _, wf := range wfs {
-		fmt.Println(wf.WorkflowName, wf.WorkflowGroup, "=======")
-		wtd, err := SelectWorkflowTemplate(ctx, ou, wf.WorkflowName)
-		if err != nil {
-			return 0, err
-		}
-		for _, wd := range wtd {
-			fmt.Println(wd.TaskID)
-		}
-	}
-	return 1, nil
+type WorkflowExecParams struct {
+	CurrentCycleCount                           int                    `json:"currentCycleCount"`
+	UnixStartTime                               int                    `json:"startTimeUnix"`
+	AggNormalizedCycleCounts                    map[int]int            `json:"aggNormalizedCycleCounts"`
+	TimeStepSize                                time.Duration          `json:"unixTimeStepSize"`
+	TotalCyclesPerOneCompleteWorkflow           int                    `json:"totalCyclesPerOneCompleteWorkflow"`
+	TotalCyclesPerOneCompleteWorkflowAsDuration time.Duration          `json:"totalCyclesPerOneCompleteWorkflowAsDuration"`
+	WorkflowTemplate                            WorkflowTemplate       `json:"workflowTemplate"`
+	WorkflowTasks                               []WorkflowTemplateData `json:"workflowTasks"`
 }
 
-func CalculateAggCycleCount(aggBaseCycleCount int, analysisCycleCounts []int) int {
-	for _, ac := range analysisCycleCounts {
-		if ac > aggBaseCycleCount {
-			aggBaseCycleCount = ac
+func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, unixStartTime int, wfs []WorkflowTemplate) ([]WorkflowExecParams, error) {
+	var wfExecParams []WorkflowExecParams
+	for _, wf := range wfs {
+		wtd, err := SelectWorkflowTemplate(ctx, ou, wf.WorkflowName)
+		if err != nil {
+			return nil, err
 		}
+		wfTimeParams := AggregateTasks(wf, wtd)
+		wfTimeParams.WorkflowTasks = wtd
+		wfTimeParams.WorkflowTemplate = wf
+		wfTimeParams.UnixStartTime = unixStartTime
+		wfExecParams = append(wfExecParams, wfTimeParams)
+	}
+	return wfExecParams, nil
+}
+
+func CalculateStepSizeUnix(stepSize int, stepUnit string) int {
+	switch stepUnit {
+	case "seconds":
+		return stepSize
+	case "minutes":
+		return stepSize * 60
+	case "days":
+		return stepSize * 60 * 24
+	case "weeks":
+		return stepSize * 60 * 60 * 24 * 7
+	}
+	return 0
+}
+
+func CalculateAggCycleCount(aggBaseCycleCount int, analysisCycleCounts int) int {
+	if analysisCycleCounts > aggBaseCycleCount {
+		aggBaseCycleCount = analysisCycleCounts
 	}
 	return aggBaseCycleCount
 }
 
-func AggregateTasks(wd []WorkflowTemplateData) {
+func AggregateTasks(wf WorkflowTemplate, wd []WorkflowTemplateData) WorkflowExecParams {
+	aggMap := make(map[int]int)
+	aggNormalizedCycleCount := make(map[int]int)
 
+	maxCycleLength := 1
 	for _, w := range wd {
-		switch w.TaskType {
-
-		case "analysis":
-			fmt.Println("analysis")
-		case "aggregation":
-			fmt.Println("aggregation")
-
+		if w.AnalysisCycleCount > maxCycleLength {
+			maxCycleLength = w.AnalysisCycleCount
+		}
+		if w.AggTaskID != nil && w.AggCycleCount != nil {
+			aggVal := aggMap[*w.AggTaskID]
+			aggNormalizedCycleCount[*w.AggTaskID] = *w.AggCycleCount
+			aggMap[*w.AggTaskID] = CalculateAggCycleCount(aggVal, w.AnalysisCycleCount)
 		}
 	}
-
+	for k, v := range aggMap {
+		aggNormalizedCycleCount[k] = v * aggNormalizedCycleCount[k]
+		if aggNormalizedCycleCount[k] > maxCycleLength {
+			maxCycleLength = aggNormalizedCycleCount[k]
+		}
+	}
+	return WorkflowExecParams{
+		AggNormalizedCycleCounts:                    aggNormalizedCycleCount,
+		TotalCyclesPerOneCompleteWorkflow:           maxCycleLength,
+		TimeStepSize:                                time.Duration(CalculateStepSizeUnix(wf.FundamentalPeriod, wf.FundamentalPeriodTimeUnit)) * time.Second,
+		TotalCyclesPerOneCompleteWorkflowAsDuration: time.Duration(CalculateStepSizeUnix(wf.FundamentalPeriod, wf.FundamentalPeriodTimeUnit)*maxCycleLength) * time.Second,
+	}
 }
 
 func InsertOrchestrationRef(ctx context.Context, oj OrchestrationJob, b []byte) (int, error) {

@@ -27,7 +27,6 @@ func (w *WorkflowsDeletionRequest) DeleteWorkflows(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	err := artemis_orchestrations.DeleteWorkflowTemplates(c.Request().Context(), ou, w.Workflows)
 	if err != nil {
 		log.Err(err).Msg("failed to delete workflows")

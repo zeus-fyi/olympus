@@ -1175,7 +1175,6 @@ function WorkflowEngineBuilder(props: any) {
                                                             label="Time Unit"
                                                             onChange={handleUpdateStepSizeUnit}
                                                         >
-                                                            <MenuItem value="seconds">Seconds</MenuItem>
                                                             <MenuItem value="minutes">Minutes</MenuItem>
                                                             <MenuItem value="hours">Hours</MenuItem>
                                                             <MenuItem value="days">Days</MenuItem>

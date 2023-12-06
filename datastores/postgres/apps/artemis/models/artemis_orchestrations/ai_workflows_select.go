@@ -36,16 +36,27 @@ WHERE
 */
 
 type WorkflowTemplateData struct {
-	AnalysisTaskID     int
-	TaskID             int
-	AnalysisCycleCount int
-	TaskName           string
-	TaskType           string
-	AggTaskID          *int
-	AggCycleCount      *int
-	RetrievalName      *string
-	RetrievalGroup     *string
-	Instructions       []byte
+	WfAnalysisTaskID              int
+	AnalysisTaskID                int
+	AnalysisCycleCount            int
+	AnalysisPrompt                string
+	AnalysisModel                 string
+	AnalysisTokenOverflowStrategy string
+	AnalysisTaskName              string
+	AnalysisTaskType              string
+	AnalysisMaxTokensPerTask      int
+	AggTaskID                     *int
+	AggCycleCount                 *int
+	AggTaskName                   *string
+	AggTaskType                   *string
+	AggPrompt                     *string
+	AggModel                      *string
+	AggTokenOverflowStrategy      *string
+	AggMaxTokensPerTask           *int
+	RetrievalName                 *string
+	RetrievalGroup                *string
+	RetrievalPlatform             *string
+	RetrievalInstructions         []byte
 }
 
 func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowName string) ([]WorkflowTemplateData, error) {
@@ -56,13 +67,24 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
                     awtat.analysis_task_id,
                     awtat.task_id,
                     awtat.cycle_count as analysis_cycle_count,
-                    ait.task_name,
-                    ait.task_type,
+                    ait.task_name AS analysis_task_name,
+                    ait.task_type AS analysis_task_type,
+                    ait.prompt AS analysis_prompt, 
+                    ait.model AS analysis_model,
+                    ait.token_overflow_strategy AS analysis_token_overflow_strategy,
+                    ait.max_tokens_per_task AS analysis_max_tokens_per_task,
                     ait1.task_id as agg_task_id,
+                    ait1.task_name as agg_task_name,
+                    ait1.task_type as agg_task_type,
+                    ait1.prompt as agg_prompt,
+                    ait1.model as agg_model,
+                    ait1.token_overflow_strategy as agg_token_overflow_strategy,
+                    ait1.max_tokens_per_task as agg_max_tokens_per_task,
                     agt.cycle_count as agg_cycle_count,
                     art.retrieval_name,
                     art.retrieval_group,
-                    art.instructions
+                    art.retrieval_platform as retrieval_platform,
+                    art.instructions as retrieval_instructions
                 FROM ai_workflow_template wate
                 INNER JOIN public.ai_workflow_template_analysis_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
                 LEFT JOIN public.ai_retrieval_library art ON art.retrieval_id = awtat.retrieval_id
@@ -80,16 +102,27 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
 	for rows.Next() {
 		var data WorkflowTemplateData
 		rowErr := rows.Scan(
+			&data.WfAnalysisTaskID,
 			&data.AnalysisTaskID,
-			&data.TaskID,
 			&data.AnalysisCycleCount,
-			&data.TaskName,
-			&data.TaskType,
+			&data.AnalysisTaskName,
+			&data.AnalysisTaskType,
+			&data.AnalysisPrompt,
+			&data.AnalysisModel,
+			&data.AnalysisTokenOverflowStrategy,
+			&data.AnalysisMaxTokensPerTask,
 			&data.AggTaskID,
+			&data.AggTaskName,
+			&data.AggTaskType,
+			&data.AggPrompt,
+			&data.AggModel,
+			&data.AggTokenOverflowStrategy,
+			&data.AggMaxTokensPerTask,
 			&data.AggCycleCount,
 			&data.RetrievalName,
 			&data.RetrievalGroup,
-			&data.Instructions,
+			&data.RetrievalPlatform,
+			&data.RetrievalInstructions,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("Error scanning row in SelectWorkflowTemplate")

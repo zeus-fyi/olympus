@@ -14,7 +14,7 @@ func (s *OrchestrationsTestSuite) TestInsertAiOrchestrations() {
 	res, err := SelectWorkflowTemplates(ctx, ou)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
-	res2, err := InsertAiOrchestrations(ctx, ou, "start", res)
+	res2, err := GetAiOrchestrationParams(ctx, ou, 0, res)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res2)
 }

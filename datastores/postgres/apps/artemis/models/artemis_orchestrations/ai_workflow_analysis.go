@@ -19,8 +19,8 @@ type AIWorkflowAnalysisResult struct {
 	RunningCycleNumber    int    `json:"runningCycleNumber"`
 	SearchWindowUnixStart int    `json:"searchWindowUnixStart"`
 	SearchWindowUnixEnd   int    `json:"searchWindowUnixEnd"`
-	Metadata              []byte `json:"metadata"`
-	CompletionChoices     []byte `json:"completionChoices"`
+	Metadata              []byte `json:"metadata,omitempty"`
+	CompletionChoices     []byte `json:"completionChoices,omitempty"`
 }
 
 func InsertAiWorkflowAnalysisResult(ctx context.Context, wr AIWorkflowAnalysisResult) (int, error) {

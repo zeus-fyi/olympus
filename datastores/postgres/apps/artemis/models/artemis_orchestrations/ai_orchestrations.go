@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgtype"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -81,6 +82,9 @@ func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, unixSta
 		wfTimeParams.RunWindow.UnixEndTime = unixEndTime
 		wfTimeParams.RunWindow.End = time.Unix(int64(unixEndTime), 0)
 		wfTimeParams.RunTimeDuration = wfTimeParams.RunWindow.End.Sub(wfTimeParams.RunWindow.Start)
+		if wfTimeParams.TimeStepSize == 0 {
+			return nil, errors.New("time step size is 0")
+		}
 		wfTimeParams.RunCycles = int(wfTimeParams.RunTimeDuration / wfTimeParams.TimeStepSize)
 		wfExecParams = append(wfExecParams, wfTimeParams)
 	}
@@ -93,8 +97,10 @@ func CalculateStepSizeUnix(stepSize int, stepUnit string) int {
 		return stepSize
 	case "minutes":
 		return stepSize * 60
+	case "hours", "hour":
+		return stepSize * 60 * 60
 	case "days":
-		return stepSize * 60 * 24
+		return stepSize * 60 * 60 * 24
 	case "weeks":
 		return stepSize * 60 * 60 * 24 * 7
 	}
@@ -129,10 +135,11 @@ func AggregateTasks(wf WorkflowTemplate, wd []WorkflowTemplateData) WorkflowExec
 			maxCycleLength = aggNormalizedCycleCount[k]
 		}
 	}
+	stepSizeNormalized := time.Duration(CalculateStepSizeUnix(wf.FundamentalPeriod, wf.FundamentalPeriodTimeUnit)) * time.Second
 	return WorkflowExecParams{
 		AggNormalizedCycleCounts:                    aggNormalizedCycleCount,
 		TotalCyclesPerOneCompleteWorkflow:           maxCycleLength,
-		TimeStepSize:                                time.Duration(CalculateStepSizeUnix(wf.FundamentalPeriod, wf.FundamentalPeriodTimeUnit)) * time.Second,
+		TimeStepSize:                                stepSizeNormalized,
 		TotalCyclesPerOneCompleteWorkflowAsDuration: time.Duration(CalculateStepSizeUnix(wf.FundamentalPeriod, wf.FundamentalPeriodTimeUnit)*maxCycleLength) * time.Second,
 	}
 }

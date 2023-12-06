@@ -65,7 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			}
 		}
 		for _, analysisInst := range wfExecParams.WorkflowTasks {
-			if i%analysisInst.AnalysisTaskID == 0 {
+			if i%analysisInst.AnalysisCycleCount == 0 {
 				retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 				window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.RunWindow.UnixStartTime, i-analysisInst.AnalysisCycleCount, i, wfExecParams.TimeStepSize)
 				var sr []hera_search.SearchResult

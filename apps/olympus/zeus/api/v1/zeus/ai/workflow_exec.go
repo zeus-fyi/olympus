@@ -35,19 +35,38 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 	}
 	switch w.Action {
 	case "start":
+		if w.UnixStartTime == 0 {
+			w.UnixStartTime = int(time.Now().Unix())
+		}
 		endTime := 0
 		switch w.DurationUnit {
 		case "minutes", "minute":
 			minutes := time.Minute
+			if w.Duration < 0 {
+				w.UnixStartTime += int(minutes.Seconds()) * w.Duration
+				w.Duration = -1 * w.Duration
+			}
 			endTime = w.UnixStartTime + int(minutes.Seconds())*w.Duration
 		case "hours", "hour", "hrs", "hr":
 			hours := time.Hour
+			if w.Duration < 0 {
+				w.UnixStartTime += int(hours.Seconds()) * w.Duration
+				w.Duration = -1 * w.Duration
+			}
 			endTime = w.UnixStartTime + int(hours.Seconds())*w.Duration
 		case "days", "day":
 			days := 24 * time.Hour
+			if w.Duration < 0 {
+				w.UnixStartTime += int(days.Seconds()) * w.Duration
+				w.Duration = -1 * w.Duration
+			}
 			endTime = w.UnixStartTime + int(days.Seconds())*w.Duration
 		case "weeks", "week":
 			weeks := 7 * 24 * time.Hour
+			if w.Duration < 0 {
+				w.UnixStartTime += int(weeks.Seconds()) * w.Duration
+				w.Duration = -1 * w.Duration
+			}
 			endTime = w.UnixStartTime + int(weeks.Seconds())*w.Duration
 		}
 

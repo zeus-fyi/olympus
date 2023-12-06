@@ -123,8 +123,7 @@ function AiWorkflowsDashboardContent(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
-                dispatch(setSearchResults(data));
-                setCode(data)
+                dispatch(setSelectedWorkflows([]));
             } else {
                 console.log('Failed to search', response);
             }

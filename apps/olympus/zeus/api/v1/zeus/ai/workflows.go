@@ -26,7 +26,6 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	ojs, err := artemis_orchestrations.SelectWorkflowTemplates(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Msg("failed to get workflows")

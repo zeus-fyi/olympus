@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -37,7 +38,7 @@ type DiscordMetadata struct {
 }
 
 // discordSearchQuery will be extended to support new search parameters when they are not empty
-func discordSearchQuery(searchText string, intervals ...TimeInterval) (sql_query_templates.QueryParams, []interface{}) {
+func discordSearchQuery(sp AiSearchParams, intervals ...TimeInterval) (sql_query_templates.QueryParams, []interface{}) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "discordSearchQuery"
 
@@ -47,13 +48,13 @@ func discordSearchQuery(searchText string, intervals ...TimeInterval) (sql_query
 				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id`
 
 	var args []interface{}
-	if searchText != "" {
+	if sp.SearchContentText != "" {
 		baseQuery += fmt.Sprintf(` WHERE content_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
-		args = append(args, searchText)
+		args = append(args, sp.SearchContentText)
 	}
 
 	if len(intervals) > 0 && !intervals[0][0].IsZero() && !intervals[0][1].IsZero() {
-		if searchText != "" {
+		if sp.SearchContentText != "" {
 			baseQuery += ` AND`
 		} else {
 			baseQuery += ` WHERE`
@@ -63,13 +64,54 @@ func discordSearchQuery(searchText string, intervals ...TimeInterval) (sql_query
 		args = append(args, tsRangeStart, tsEnd)
 	}
 
+	if sp.GroupFilter != "" {
+		groupFilters := strings.Split(sp.GroupFilter, ",")
+		if baseQuery != "" {
+			baseQuery += ` AND`
+		} else {
+			baseQuery += ` WHERE`
+		}
+
+		queryParts := make([]string, 0, len(groupFilters))
+		for _, filter := range groupFilters {
+			trimmedFilter := strings.TrimSpace(filter)
+			if trimmedFilter != "" {
+				argCount := len(args) + 1
+				queryPart := fmt.Sprintf(`gi.name ILIKE $%d`, argCount)
+				queryParts = append(queryParts, queryPart)
+				args = append(args, "%"+trimmedFilter+"%")
+			}
+		}
+		baseQuery += ` (` + strings.Join(queryParts, " OR ") + `)`
+	}
+	if sp.DiscordFilters != nil && sp.DiscordFilters.CategoryName != "" {
+		categoryNames := strings.Split(sp.DiscordFilters.CategoryName, ",")
+		if baseQuery != "" {
+			baseQuery += ` AND`
+		} else {
+			baseQuery += ` WHERE`
+		}
+
+		queryParts := make([]string, 0, len(categoryNames))
+		for _, filter := range categoryNames {
+			trimmedFilter := strings.TrimSpace(filter)
+			if trimmedFilter != "" {
+				argCount := len(args) + 1
+				queryPart := fmt.Sprintf(`ci.name ILIKE $%d`, argCount)
+				queryParts = append(queryParts, queryPart)
+				args = append(args, "%"+trimmedFilter+"%")
+			}
+		}
+		baseQuery += ` (` + strings.Join(queryParts, " OR ") + `)`
+	}
+
 	baseQuery += ` ORDER BY cm.timestamp_creation DESC;`
 	q.RawQuery = baseQuery
 	return q, args
 }
 
 func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q, args := discordSearchQuery(sp.SearchContentText, sp.SearchInterval)
+	q, args := discordSearchQuery(sp, sp.SearchInterval)
 	var srs []SearchResult
 	var rows pgx.Rows
 	var err error

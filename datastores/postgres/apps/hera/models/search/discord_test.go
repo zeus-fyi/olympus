@@ -20,7 +20,7 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	si := TimeInterval{}
-	si[0] = time.Now().AddDate(0, 0, -7)
+	si[0] = time.Now().AddDate(0, 0, -1)
 
 	fmt.Println(si[0].Unix())
 	si[1] = time.Now()
@@ -28,18 +28,48 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
 
 	// Call the function
 	sp := AiSearchParams{
-		SearchContentText: "node",
-		GroupFilter:       "",
-		Platforms:         "",
+		SearchContentText: "",
+		GroupFilter:       "CryptoDevs",
+		Platforms:         "discord",
 		Usernames:         "",
 		SearchInterval:    si,
 		AnalysisInterval:  TimeInterval{},
+		DiscordFilters: &DiscordFilters{
+			CategoryTopic: "",
+			CategoryName:  "solidity",
+			Category:      "",
+		},
 	}
 	results, err := SearchDiscord(ctx, ou, sp)
 
 	// Assert expected outcomes
 	s.Require().NoError(err, "SelectDiscordSearchQuery should not return an error")
 	s.Require().NotNil(results, "Results should not be nil")
+
+	fmt.Println(FormatSearchResultsV2(results))
+
+	fmt.Println("===========Second test==========================")
+	// Call the function
+	sp = AiSearchParams{
+		SearchContentText: "",
+		GroupFilter:       "CryptoDevs",
+		Platforms:         "discord",
+		Usernames:         "",
+		SearchInterval:    si,
+		AnalysisInterval:  TimeInterval{},
+		DiscordFilters: &DiscordFilters{
+			CategoryTopic: "",
+			CategoryName:  "js-and",
+			Category:      "",
+		},
+	}
+	results, err = SearchDiscord(ctx, ou, sp)
+
+	// Assert expected outcomes
+	s.Require().NoError(err, "SelectDiscordSearchQuery should not return an error")
+	s.Require().NotNil(results, "Results should not be nil")
+
+	fmt.Println(FormatSearchResultsV2(results))
 }
 
 func (s *SearchAITestSuite) TestInsertDiscordSearchQuery() {

@@ -29,7 +29,7 @@ func (t *CreateOrUpdateRetrievalRequest) CreateOrUpdateRetrieval(c echo.Context)
 	if ou.OrgID <= 0 || ou.UserID <= 0 {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	if t.RetrievalName == "" || t.RetrievalPlatform == "" || (t.RetrievalKeywords == "" && t.RetrievalPrompt == "") {
+	if t.RetrievalName == "" || t.RetrievalPlatform == "" || (t.RetrievalKeywords == "" && t.RetrievalPrompt == "" && t.RetrievalGroup == "") {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	err := artemis_orchestrations.InsertRetrieval(c.Request().Context(), ou, &t.RetrievalItem)

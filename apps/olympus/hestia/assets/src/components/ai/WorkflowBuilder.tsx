@@ -46,6 +46,7 @@ import {
     setAggregationWorkflowInstructions,
     setAnalysisRetrievalsMap,
     setAnalysisWorkflowInstructions,
+    setDiscordOptionsCategoryName,
     setRetrievalGroup,
     setRetrievalKeywords,
     setRetrievalName,
@@ -444,8 +445,8 @@ function WorkflowEngineBuilder(props: any) {
                 return;
             }
 
-            if ((retrieval.retrievalKeywords.length <= 0 && retrieval.retrievalPrompt.length <= 0))  {
-                setRequestRetrievalStatus('At least one of retrieval keywords or prompt must be set')
+            if ((retrieval.retrievalKeywords.length <= 0 && retrieval.retrievalPrompt.length <= 0 && retrieval.retrievalGroup.length <= 0 ))  {
+                setRequestRetrievalStatus('At least one of retrieval keywords or prompt or group must be set')
                 setRequestRetrievalStatusError('error')
                 return;
             }
@@ -1417,6 +1418,18 @@ function WorkflowEngineBuilder(props: any) {
                                                          onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
                                                     />
                                                 </Box>
+                                                { retrieval.retrievalPlatform === 'discord' &&
+                                                    <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="category-name-input"
+                                                            label="Discord Category Name"
+                                                            variant="outlined"
+                                                            value={retrieval.discordFilters?.categoryName || ''}
+                                                            onChange={(e) => dispatch(setDiscordOptionsCategoryName(e.target.value))}
+                                                        />
+                                                </Box>
+                                                }
                                                 <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                     <TextField
                                                         fullWidth
@@ -1428,8 +1441,8 @@ function WorkflowEngineBuilder(props: any) {
                                                     />
                                                 </Box>
                                                 <Typography variant="h5" color="text.secondary">
-                                                    Describe what you're looking for, and the AI will generate a list of keywords to search for after saving in the background. A few minutes after saving it
-                                                    will be ready and display the generated keywords. You can preview, edit, or give the AI more information to refine the search.
+                                                    Describe what you're looking for, and the AI will generate a list of keywords to search for after it runs for the first time.
+                                                    You can preview, edit, or give the AI more information to refine the search.
                                                 </Typography>
                                                 <Box  sx={{ mb: 2, mt: 2 }}>
                                                     <TextareaAutosize

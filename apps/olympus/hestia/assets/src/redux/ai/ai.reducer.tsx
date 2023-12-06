@@ -35,6 +35,9 @@ const initialState: AiState = {
         retrievalUsernames: '',
         retrievalPrompt: '',
         retrievalPlatformGroups: '',
+        discordFilters: {
+            categoryName: '',
+        }
     },
     retrievals: [],
     workflowAnalysisRetrievalsMap: {},
@@ -69,6 +72,14 @@ const aiSlice = createSlice({
         },
         setRetrievalPlatformGroups: (state, action: PayloadAction<string>) => {
             state.retrieval.retrievalPlatformGroups = action.payload;
+        },
+        setDiscordOptionsCategoryName: (state, action: PayloadAction<string>) => {
+            if (!state.retrieval.discordFilters) {
+                state.retrieval.discordFilters = {
+                    categoryName: '',
+                }
+            }
+            state.retrieval.discordFilters.categoryName = action.payload;
         },
         setRetrievalGroup: (state, action: PayloadAction<string>) => {
             state.retrieval.retrievalGroup = action.payload;
@@ -252,5 +263,6 @@ export const {
     setSelectedWorkflows,
     setSelectedRuns,
     setRuns,
+    setDiscordOptionsCategoryName,
 } = aiSlice.actions;
 export default aiSlice.reducer;

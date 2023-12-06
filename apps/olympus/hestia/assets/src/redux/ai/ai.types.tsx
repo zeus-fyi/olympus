@@ -87,6 +87,11 @@ export interface Retrieval {
     retrievalPlatform: string;
     retrievalUsernames: string;
     retrievalPlatformGroups: string;
+    discordFilters?: DiscordFilters;
+}
+
+export interface DiscordFilters {
+    categoryName: string;
 }
 
 export interface DeleteWorkflowsActionRequest {

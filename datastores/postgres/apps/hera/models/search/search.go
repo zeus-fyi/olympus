@@ -19,15 +19,23 @@ import (
 )
 
 type AiSearchParams struct {
-	SearchContentText    string       `json:"searchContentText,omitempty"`
-	WorkflowInstructions string       `json:"workflowInstructions,omitempty"`
-	TimeRange            string       `json:"timeRange,omitempty"`
-	GroupFilter          string       `json:"groupFilter,omitempty"`
-	Platforms            string       `json:"platforms,omitempty"`
-	Usernames            string       `json:"usernames,omitempty"`
-	SearchInterval       TimeInterval `json:"searchInterval,omitempty"`
-	AnalysisInterval     TimeInterval `json:"analysisInterval,omitempty"`
+	SearchContentText    string          `json:"searchContentText,omitempty"`
+	WorkflowInstructions string          `json:"workflowInstructions,omitempty"`
+	TimeRange            string          `json:"timeRange,omitempty"`
+	GroupFilter          string          `json:"groupFilter,omitempty"`
+	Platforms            string          `json:"platforms,omitempty"`
+	Usernames            string          `json:"usernames,omitempty"`
+	SearchInterval       TimeInterval    `json:"searchInterval,omitempty"`
+	AnalysisInterval     TimeInterval    `json:"analysisInterval,omitempty"`
+	DiscordFilters       *DiscordFilters `json:"discordFilters,omitempty"`
 }
+
+type DiscordFilters struct {
+	CategoryTopic string `json:"categoryTopic,omitempty"`
+	CategoryName  string `json:"categoryName,omitempty"`
+	Category      string `json:"category,omitempty"`
+}
+
 type AiModelParams struct {
 	Model         string `json:"model"`
 	TokenCountMax int    `json:"tokenCountMax"`

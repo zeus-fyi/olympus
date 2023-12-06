@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -21,10 +22,11 @@ type RetrievalItem struct {
 	Instructions []byte `json:"instructions,omitempty"` // Instructions for the retrieval
 }
 type RetrievalItemInstruction struct {
-	RetrievalPlatform       string `json:"retrievalPlatform"`
-	RetrievalPrompt         string `json:"retrievalPrompt,omitempty"`         // Prompt for the retrieval
-	RetrievalPlatformGroups string `json:"retrievalPlatformGroups,omitempty"` // Platform groups for the retrieval
-	RetrievalKeywords       string `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
+	RetrievalPlatform       string                      `json:"retrievalPlatform"`
+	RetrievalPrompt         string                      `json:"retrievalPrompt,omitempty"`         // Prompt for the retrieval
+	RetrievalPlatformGroups string                      `json:"retrievalPlatformGroups,omitempty"` // Platform groups for the retrieval
+	RetrievalKeywords       string                      `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
+	DiscordFilters          *hera_search.DiscordFilters `json:"discordFilters,omitempty"`          // Discord filters for the retrieval
 }
 
 func SetInstructions(r *RetrievalItem) error {

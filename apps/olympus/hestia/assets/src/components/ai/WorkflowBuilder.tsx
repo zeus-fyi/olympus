@@ -418,6 +418,11 @@ function WorkflowEngineBuilder(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
+                setSelected({});
+                dispatch(setAddAnalysisView(false));
+                dispatch(setAddAggregationView(false));
+                dispatch(setAddRetrievalView(false));
+                setSelectedMainTab(0);
                 setRequestStatus('Workflow created successfully')
                 setRequestStatusError('success')
             } else {

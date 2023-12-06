@@ -485,7 +485,7 @@ function AiWorkflowsDashboardContent(props: any) {
                             <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
                                 <Tab label="Search" />
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"/>
-                                <Tab className="onboarding-card-highlight-all-workflows" label="Running"/>
+                                <Tab className="onboarding-card-highlight-all-workflows" label="Runs"/>
 
                             </Tabs>
                         </Box>

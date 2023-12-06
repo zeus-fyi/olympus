@@ -26,7 +26,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowProcess(ctx context.C
 	if resp != nil {
 		// Check if the workflow is in a running state.
 		if resp.WorkflowExecutionInfo.Status == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-			log.Warn().Msg("ExecuteIrisServerlessPodRestartWorkflow: workflow already running")
+			log.Warn().Msg("ExecuteRunAiWorkflowProcess: workflow already running")
 			return nil
 		}
 	}

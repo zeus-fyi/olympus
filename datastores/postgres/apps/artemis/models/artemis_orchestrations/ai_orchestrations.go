@@ -63,9 +63,17 @@ func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, unixSta
 	for _, wf := range wfs {
 		wtd, err := SelectWorkflowTemplate(ctx, ou, wf.WorkflowName)
 		if err != nil {
+			log.Err(err).Msg("error selecting workflow template")
 			return nil, err
 		}
+		if unixStartTime == 0 {
+			unixStartTime = int(time.Now().Unix())
+		}
 		wfTimeParams := AggregateTasks(wf, wtd)
+		if unixEndTime == 0 {
+			unixEndTime = unixStartTime + int(wfTimeParams.TotalCyclesPerOneCompleteWorkflowAsDuration.Seconds())
+		}
+
 		wfTimeParams.WorkflowTasks = wtd
 		wfTimeParams.WorkflowTemplate = wf
 		wfTimeParams.RunWindow.UnixStartTime = unixStartTime

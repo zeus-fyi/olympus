@@ -26,7 +26,7 @@ func (s *OrchestrationsTestSuite) TestSelectAiSystemOrchestrationsWithInstructio
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	// get internal assignments
-	ojs, err := SelectAiSystemOrchestrationsWithInstructionsByGroupType(ctx, s.Tc.ProductionLocalTemporalOrgID, "ai", "workflows")
+	ojs, err := SelectAiSystemOrchestrations(ctx, s.Tc.ProductionLocalTemporalOrgID)
 	s.Require().Nil(err)
 	fmt.Println(ojs)
 }

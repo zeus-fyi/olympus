@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
@@ -25,11 +26,6 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	//ojs, err := artemis_orchestrations.SelectAiSystemOrchestrationsWithInstructionsByGroupType(c.Request().Context(), ou.OrgID, "ai", "workflows")
-	//if err != nil {
-	//	log.Err(err).Msg("failed to get workflows")
-	//	return c.JSON(http.StatusInternalServerError, nil)
-	//}
 
 	ojs, err := artemis_orchestrations.SelectWorkflowTemplates(c.Request().Context(), ou)
 	if err != nil {
@@ -46,15 +42,23 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get tasks")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(c.Request().Context(), ou.OrgID)
+	if err != nil {
+		log.Err(err).Msg("failed to get workflows")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
 	return c.JSON(http.StatusOK, AiWorkflowWrapper{
 		Workflows:  ojs,
 		Tasks:      tasks,
 		Retrievals: ret,
+		Runs:       ojsRuns,
 	})
 }
 
 type AiWorkflowWrapper struct {
 	Workflows  []artemis_orchestrations.WorkflowTemplate `json:"workflows"`
+	Runs       []artemis_autogen_bases.Orchestrations    `json:"runs"`
 	Tasks      []artemis_orchestrations.AITaskLibrary    `json:"tasks"`
 	Retrievals []artemis_orchestrations.RetrievalItem    `json:"retrievals"`
 }

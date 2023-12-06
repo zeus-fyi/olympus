@@ -284,15 +284,28 @@ func (o *OrchestrationJob) SelectOrchestrationsAtCloudCtxNsWithStatus(ctx contex
 	return orchestrationTodo, misc.ReturnIfErr(err, q.LogHeader(Orchestrations))
 }
 
-func SelectAiSystemOrchestrationsWithInstructionsByGroupType(ctx context.Context, orgID int, groupName, groupType string) ([]artemis_autogen_bases.Orchestrations, error) {
+func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]artemis_autogen_bases.Orchestrations, error) {
 	var ojs []artemis_autogen_bases.Orchestrations
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions, type, group_name, org_id
-				  FROM orchestrations
-				  WHERE org_id = $1 AND group_name = $2 AND type = $3
-				  `
+	q.RawQuery = `	SELECT orchestration_id, orchestration_name, instructions, type, group_name, org_id
+					FROM orchestrations
+					WHERE org_id = $1 
+					AND (
+						EXISTS (
+							SELECT 1
+							FROM ai_workflow_template 
+							WHERE org_id = $1 AND workflow_name = orchestrations.orchestration_name
+						) 
+						OR EXISTS (
+							SELECT 1
+							FROM ai_workflow_template 
+							WHERE org_id = $1 AND workflow_group = orchestrations.group_name
+						)
+					)
+				`
+
 	log.Debug().Interface("SelectSystemOrchestrationsWithInstructionsByGroup", q.LogHeader(Orchestrations))
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, groupName, groupType)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return ojs, err
 	}

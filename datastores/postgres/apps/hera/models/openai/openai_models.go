@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"strings"
 
+	"github.com/jackc/pgtype"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -22,38 +22,51 @@ func insertCompletionResp() sql_query_templates.QueryParams {
 		`WITH cte_insert_token_usage AS (
 			SELECT tokens_remaining, tokens_consumed FROM hera_openai_usage WHERE org_id = $1
 		), cte_update_token_usage AS (
-			UPDATE hera_openai_usage
-			SET tokens_remaining = (SELECT tokens_remaining - $5 FROM cte_insert_token_usage), tokens_consumed = (SELECT tokens_consumed + $5 FROM cte_insert_token_usage)
-   			WHERE org_id = $1
+     		INSERT INTO hera_openai_usage (org_id, tokens_remaining, tokens_consumed)
+            VALUES ($1, 0, 0)
+            ON CONFLICT (org_id) 
+            DO UPDATE SET
+                tokens_remaining = hera_openai_usage.tokens_remaining - $5,
+                tokens_consumed = hera_openai_usage.tokens_consumed + $5
+            WHERE hera_openai_usage.org_id = $1
+            RETURNING tokens_remaining, tokens_consumed
 		)
 		INSERT INTO completion_responses(org_id, user_id, prompt_tokens, completion_tokens, total_tokens, model, completion_choices)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING response_id;
 	`
 	return q
-}
-func sanitizeUTF8(s string) string {
-	bs := bytes.ReplaceAll([]byte(s), []byte{0}, []byte{})
-	return strings.ToValidUTF8(string(bs), "")
 }
 
 const Sn = "OpenAI"
 
-func InsertCompletionResponseChatGpt(ctx context.Context, ou org_users.OrgUser, response openai.ChatCompletionResponse) error {
+func IsNull(b []byte) pgtype.Status {
+	if b == nil {
+		return pgtype.Null
+	}
+	return pgtype.Present
+}
+
+func sanitizeBytesUTF8(b []byte) []byte {
+	bs := bytes.ReplaceAll(b, []byte{0}, []byte{})
+	return bs
+}
+
+func InsertCompletionResponseChatGpt(ctx context.Context, ou org_users.OrgUser, response openai.ChatCompletionResponse) (int, error) {
 	q := insertCompletionResp()
 	completionChoices, err := json.Marshal(response.Choices)
 	if err != nil {
 		log.Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
-		return err
+		return 0, err
 	}
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-	r, err := apps.Pg.Exec(ctx, q.RawQuery, ou.OrgID, ou.UserID, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, response.Model, completionChoices)
+	var rid int
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, response.Model, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(completionChoices), Status: IsNull(completionChoices)}).Scan(&rid)
 	if err != nil {
 		log.Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
-		return err
+		return rid, err
 	}
-	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("OrgUser: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
-	return err
+	return rid, err
 }
 
 func InsertCompletionResponse(ctx context.Context, ou org_users.OrgUser, response openai.CompletionResponse) error {
@@ -64,7 +77,8 @@ func InsertCompletionResponse(ctx context.Context, ou org_users.OrgUser, respons
 		return err
 	}
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-	r, err := apps.Pg.Exec(ctx, q.RawQuery, ou.OrgID, ou.UserID, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, response.Model, completionChoices)
+
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, ou.OrgID, ou.UserID, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, response.Model, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(completionChoices), Status: IsNull(completionChoices)})
 	if err != nil {
 		log.Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
 		return err

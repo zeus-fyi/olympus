@@ -85,8 +85,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				if len(aiResp.Choices) == 0 {
 					continue
 				}
+				var analysisRespId int
+				analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
+				if err != nil {
+					logger.Error("failed to save analysis response", "Error", err)
+					return err
+				}
 				recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, ou, analysisInst, window, aiResp).Get(recordAnalysisCtx, nil)
+				err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, ou, oj, analysisInst.AnalysisTaskID, window, analysisRespId).Get(recordAnalysisCtx, nil)
 				if err != nil {
 					logger.Error("failed to save analysis", "Error", err)
 					return err
@@ -95,7 +102,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		}
 
 		for _, aggInst := range wfExecParams.WorkflowTasks {
-			if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggPrompt == nil || aggInst.AggModel == nil {
+			if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggPrompt == nil || aggInst.AggModel == nil || wfExecParams.AggNormalizedCycleCounts == nil {
 				continue
 			}
 			aggCycle := wfExecParams.AggNormalizedCycleCounts[*aggInst.AggTaskID]
@@ -121,8 +128,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				if len(aiAggResp.Choices) == 0 {
 					continue
 				}
+				var aggRespId int
+				aggCompCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &aggRespId)
+				if err != nil {
+					logger.Error("failed to save agg response", "Error", err)
+					return err
+				}
 				recordAggCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, ou, aggInst, window, aiAggResp).Get(recordAggCtx, nil)
+				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, ou, oj, *aggInst.AggTaskID, window, aggRespId).Get(recordAggCtx, nil)
 				if err != nil {
 					logger.Error("failed to save aggregation resp", "Error", err)
 					return err

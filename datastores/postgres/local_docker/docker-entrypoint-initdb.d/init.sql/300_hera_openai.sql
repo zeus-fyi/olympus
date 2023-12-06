@@ -4,6 +4,7 @@ CREATE TABLE "public"."hera_openai_usage" (
     "tokens_consumed" int8 NOT NULL DEFAULT 0
 );
 CREATE INDEX idx_oai_usage_org_cr ON public.hera_openai_usage("org_id");
+ALTER TABLE "public"."hera_openai_usage" ADD CONSTRAINT "hera_openai_usage_pk" PRIMARY KEY ("org_id");
 
 CREATE TABLE "public"."completion_responses" (
     response_id int8 NOT NULL DEFAULT next_id(),

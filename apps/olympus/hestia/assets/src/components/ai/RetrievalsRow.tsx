@@ -47,8 +47,8 @@ export function RetrievalsRow(props: { row: ReturnType<typeof createRetrievalDet
                             <Table size="small" aria-label="purchases">
                                 <TableBody>
                                     <TableRow >
-                                        <TableCell component="th" scope="row">
-                                            {prettyPrintJSON(row.instructions)}
+                                        <TableCell component="th" scope="row" style={{ width: '50%', whiteSpace: 'pre-wrap' }}>
+                                                {prettyPrintJSONFromBytes(row.instructions)}
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>

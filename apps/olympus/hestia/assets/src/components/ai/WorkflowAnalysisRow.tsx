@@ -43,7 +43,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                 <TableCell align="left">{row.totalWorkflowTokenUsage}</TableCell>
             </TableRow>
             <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ margin: 1 }}>
                             <Typography variant="h6" gutterBottom component="div">
@@ -58,7 +58,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableCell>Cycle</TableCell>
                                         <TableCell>Start</TableCell>
                                         <TableCell>End</TableCell>
-                                        <TableCell>Model</TableCell>
+                                        <TableCell style={{ width: '15%'}}>Model</TableCell>
                                         <TableCell>Prompt Tokens</TableCell>
                                         <TableCell>Completion Tokens</TableCell>
                                         <TableCell>Total Tokens</TableCell>
@@ -74,7 +74,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>{data.runningCycleNumber}</TableCell>
                                             <TableCell>{data.searchWindowUnixStart}</TableCell>
                                             <TableCell>{data.searchWindowUnixEnd}</TableCell>
-                                            <TableCell>{data.model}</TableCell>
+                                            <TableCell style={{ width: '15%'}}>{data.model}</TableCell>
                                             <TableCell>{data.promptTokens}</TableCell>
                                             <TableCell>{data.completionTokens}</TableCell>
                                             <TableCell>{data.totalTokens}</TableCell>

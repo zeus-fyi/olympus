@@ -26,6 +26,7 @@ type RetrievalItemInstruction struct {
 	RetrievalPrompt         string                      `json:"retrievalPrompt,omitempty"`         // Prompt for the retrieval
 	RetrievalPlatformGroups string                      `json:"retrievalPlatformGroups,omitempty"` // Platform groups for the retrieval
 	RetrievalKeywords       string                      `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
+	RetrievalUsernames      string                      `json:"retrievalUsernames,omitempty"`      // Usernames for the retrieval
 	DiscordFilters          *hera_search.DiscordFilters `json:"discordFilters,omitempty"`          // Discord filters for the retrieval
 }
 

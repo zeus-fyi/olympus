@@ -290,12 +290,20 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 	if taskInst.RetrievalPlatform == nil || taskInst.RetrievalName == nil || taskInst.RetrievalInstructions == nil {
 		return nil, nil
 	}
-	sp := hera_search.AiSearchParams{}
-	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &sp)
+	retInst := artemis_orchestrations.RetrievalItemInstruction{}
+	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &retInst)
 	if jerr != nil {
 		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
 		return nil, jerr
 	}
+	sp := hera_search.AiSearchParams{
+		SearchContentText: retInst.RetrievalKeywords,
+		GroupFilter:       retInst.RetrievalPlatformGroups,
+		Platforms:         retInst.RetrievalPlatform,
+		Usernames:         retInst.RetrievalUsernames,
+		DiscordFilters:    retInst.DiscordFilters,
+	}
+
 	sw := hera_search.TimeInterval{}
 	sw[0] = window.Start
 	sw[1] = window.End

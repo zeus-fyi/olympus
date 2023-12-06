@@ -47,7 +47,6 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get workflows")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	return c.JSON(http.StatusOK, AiWorkflowWrapper{
 		Workflows:  ojs,
 		Tasks:      tasks,

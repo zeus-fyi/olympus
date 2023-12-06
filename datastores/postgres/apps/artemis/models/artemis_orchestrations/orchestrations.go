@@ -287,6 +287,8 @@ func (o *OrchestrationJob) SelectOrchestrationsAtCloudCtxNsWithStatus(ctx contex
 func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]artemis_autogen_bases.Orchestrations, error) {
 	var ojs []artemis_autogen_bases.Orchestrations
 	q := sql_query_templates.QueryParams{}
+
+	// uses main for unique id, so type == real name for related workflow
 	q.RawQuery = `	SELECT orchestration_id, orchestration_name, instructions, type, group_name, org_id
 					FROM orchestrations
 					WHERE org_id = $1 
@@ -294,7 +296,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]artemis_aut
 						EXISTS (
 							SELECT 1
 							FROM ai_workflow_template 
-							WHERE org_id = $1 AND workflow_name = orchestrations.orchestration_name
+							WHERE org_id = $1 AND workflow_name = orchestrations.type
 						) 
 						OR EXISTS (
 							SELECT 1

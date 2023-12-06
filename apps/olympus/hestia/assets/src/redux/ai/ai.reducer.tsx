@@ -55,8 +55,8 @@ const aiSlice = createSlice({
         setRuns: (state, action: PayloadAction<OrchestrationsAnalysis[]>) => {
             state.runs = action.payload;
         },
-        setSelectedRuns: (state, action: PayloadAction<[]>) => {
-            state.runs = action.payload;
+        setSelectedRuns: (state, action: PayloadAction<string[]>) => {
+            state.selectedRuns = action.payload;
         },
         setSelectedWorkflows: (state, action: PayloadAction<string[]>) => {
             state.selectedWorkflows = action.payload;

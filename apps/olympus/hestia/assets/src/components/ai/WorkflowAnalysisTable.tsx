@@ -33,6 +33,8 @@ export function WorkflowAnalysisTable(props: any) {
     ) => {
         setPage(newPage);
     };
+    // useEffect(() => {}
+    // , [selectedRuns]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -76,13 +78,13 @@ export function WorkflowAnalysisTable(props: any) {
         } else {
             newSelected.splice(currentIndex, 1);
         }
-
-        dispatch(setSelectedRuns([]));
+        dispatch(setSelectedRuns(newSelected));
     };
+
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
-            const newSelected = workflows.map((wf: any) => wf);
-                dispatch(setSelectedRuns(newSelected));
+            const newSelected = workflows.map((wf: any, ind: number) => ind);
+            dispatch(setSelectedRuns(newSelected));
             return;
         }
         dispatch(setSelectedRuns([]));
@@ -95,8 +97,8 @@ export function WorkflowAnalysisTable(props: any) {
                         <TableCell padding="checkbox">
                             <Checkbox
                                 color="primary"
-                                // indeterminate={workflows.length > 0 && selected.length < workflows.length && selected.length > 0}
-                                // checked={workflows.length > 0 && selected.length === workflows.length}
+                                indeterminate={workflows.length > 0 && selectedRuns.length < workflows.length && selectedRuns.length > 0}
+                                checked={workflows.length > 0 && selectedRuns.length === workflows.length}
                                 onChange={handleSelectAllClick}
                             />
                         </TableCell>
@@ -117,7 +119,7 @@ export function WorkflowAnalysisTable(props: any) {
                             row={row}
                             index={index}
                             handleClick={handleClick}
-                            checked={selectedRuns[index] || false}
+                            checked={selectedRuns.indexOf(index) >= 0 || false}
                         />
                     ))}
                     {emptyRows > 0 && (

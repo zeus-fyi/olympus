@@ -24,7 +24,7 @@ export interface AiState {
     workflowAnalysisRetrievalsMap: AnalysisRetrievalsMap
     selectedWorkflows: string[];
     runs: OrchestrationsAnalysis[];
-    selectedRuns: [];
+    selectedRuns: string[];
 }
 
 export interface PostWorkflowsRequest {
@@ -87,6 +87,7 @@ export interface AggregatedData {
     runningCycleNumber: number;
     searchWindowUnixStart: number;
     searchWindowUnixEnd: number;
+    model: string;
     metadata?: string; // or a more specific type if the structure of metadata is known
     completionChoices?: string; // similar to metadata, define a more specific type if possible
     promptTokens: number;

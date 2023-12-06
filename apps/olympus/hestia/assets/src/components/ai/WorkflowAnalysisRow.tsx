@@ -58,6 +58,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableCell>Cycle</TableCell>
                                         <TableCell>Start</TableCell>
                                         <TableCell>End</TableCell>
+                                        <TableCell>Model</TableCell>
                                         <TableCell>Prompt Tokens</TableCell>
                                         <TableCell>Completion Tokens</TableCell>
                                         <TableCell>Total Tokens</TableCell>
@@ -73,6 +74,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>{data.runningCycleNumber}</TableCell>
                                             <TableCell>{data.searchWindowUnixStart}</TableCell>
                                             <TableCell>{data.searchWindowUnixEnd}</TableCell>
+                                            <TableCell>{data.model}</TableCell>
                                             <TableCell>{data.promptTokens}</TableCell>
                                             <TableCell>{data.completionTokens}</TableCell>
                                             <TableCell>{data.totalTokens}</TableCell>

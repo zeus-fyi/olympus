@@ -291,6 +291,7 @@ type AggregatedData struct {
 	SourceTaskID          int             `json:"sourceTaskId"`
 	TaskName              string          `json:"taskName"`
 	TaskType              string          `json:"taskType"`
+	Model                 string          `json:"model"`
 	RunningCycleNumber    int             `json:"runningCycleNumber"`
 	SearchWindowUnixStart int             `json:"searchWindowUnixStart"`
 	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd"`
@@ -328,6 +329,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]Orchestrati
 								'sourceTaskId', source_task_id,
 								'taskName', ait.task_name,
 								'taskType', ait.task_type,
+								'model', ait.model,
 								'runningCycleNumber', running_cycle_number, 
 								'searchWindowUnixStart', search_window_unix_start, 
 								'searchWindowUnixEnd', search_window_unix_end, 

@@ -36,27 +36,27 @@ WHERE
 */
 
 type WorkflowTemplateData struct {
-	WfAnalysisTaskID              int
-	AnalysisTaskID                int
-	AnalysisCycleCount            int
-	AnalysisPrompt                string
-	AnalysisModel                 string
-	AnalysisTokenOverflowStrategy string
-	AnalysisTaskName              string
-	AnalysisTaskType              string
-	AnalysisMaxTokensPerTask      int
-	AggTaskID                     *int
-	AggCycleCount                 *int
-	AggTaskName                   *string
-	AggTaskType                   *string
-	AggPrompt                     *string
-	AggModel                      *string
-	AggTokenOverflowStrategy      *string
-	AggMaxTokensPerTask           *int
-	RetrievalName                 *string
-	RetrievalGroup                *string
-	RetrievalPlatform             *string
-	RetrievalInstructions         []byte
+	WfAnalysisTaskID              int     `json:"wfAnalysisTaskID"`
+	AnalysisTaskID                int     `json:"analysisTaskID"`
+	AnalysisCycleCount            int     `json:"analysisCycleCount"`
+	AnalysisPrompt                string  `json:"analysisPrompt"`
+	AnalysisModel                 string  `json:"analysisModel"`
+	AnalysisTokenOverflowStrategy string  `json:"analysisTokenOverflowStrategy"`
+	AnalysisTaskName              string  `json:"analysisTaskName"`
+	AnalysisTaskType              string  `json:"analysisTaskType"`
+	AnalysisMaxTokensPerTask      int     `json:"analysisMaxTokensPerTask"`
+	AggTaskID                     *int    `json:"aggTaskID,omitempty"`
+	AggCycleCount                 *int    `json:"aggCycleCount,omitempty"`
+	AggTaskName                   *string `json:"aggTaskName,omitempty"`
+	AggTaskType                   *string `json:"aggTaskType,omitempty"`
+	AggPrompt                     *string `json:"aggPrompt,omitempty"`
+	AggModel                      *string `json:"aggModel,omitempty"`
+	AggTokenOverflowStrategy      *string `json:"aggTokenOverflowStrategy,omitempty"`
+	AggMaxTokensPerTask           *int    `json:"aggMaxTokensPerTask,omitempty"`
+	RetrievalName                 *string `json:"retrievalName,omitempty"`
+	RetrievalGroup                *string `json:"retrievalGroup,omitempty"`
+	RetrievalPlatform             *string `json:"retrievalPlatform,omitempty"`
+	RetrievalInstructions         []byte  `json:"retrievalInstructions,omitempty"`
 }
 
 func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowName string) ([]WorkflowTemplateData, error) {

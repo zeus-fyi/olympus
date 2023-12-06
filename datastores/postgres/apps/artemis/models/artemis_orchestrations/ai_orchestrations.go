@@ -2,9 +2,11 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/jackc/pgtype"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -13,7 +15,9 @@ import (
 
 type WorkflowExecParams struct {
 	CurrentCycleCount                           int                    `json:"currentCycleCount"`
-	UnixStartTime                               int                    `json:"startTimeUnix"`
+	RunWindow                                   Window                 `json:"runWindow"`
+	RunTimeDuration                             time.Duration          `json:"runTimeDuration"`
+	RunCycles                                   int                    `json:"runCycles"`
 	AggNormalizedCycleCounts                    map[int]int            `json:"aggNormalizedCycleCounts"`
 	TimeStepSize                                time.Duration          `json:"unixTimeStepSize"`
 	TotalCyclesPerOneCompleteWorkflow           int                    `json:"totalCyclesPerOneCompleteWorkflow"`
@@ -22,7 +26,39 @@ type WorkflowExecParams struct {
 	WorkflowTasks                               []WorkflowTemplateData `json:"workflowTasks"`
 }
 
-func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, unixStartTime int, wfs []WorkflowTemplate) ([]WorkflowExecParams, error) {
+type Window struct {
+	Start         time.Time `json:"start"`
+	End           time.Time `json:"end"`
+	UnixStartTime int       `json:"unixStartTime"`
+	UnixEndTime   int       `json:"unixEndTime"`
+}
+
+// CalculateTimeWindow [0, 1] gives the time window for the first cycle
+func CalculateTimeWindow(unixStartTime int, cycleStart, cycleEnd, timeStep time.Duration) Window {
+	start := (cycleStart) * timeStep
+	end := (cycleEnd) * timeStep
+	wind := Window{
+		Start: time.Unix(int64(unixStartTime), 0).Add(start),
+		End:   time.Unix(int64(unixStartTime), 0).Add(end),
+	}
+	wind.UnixStartTime = int(wind.Start.Unix())
+	wind.UnixEndTime = int(wind.End.Unix())
+	return wind
+}
+
+func CalculateTimeWindowFromCycles(unixStartTime int, cycleStart, cycleEnd int, timeStep time.Duration) Window {
+	start := time.Duration(cycleStart) * timeStep
+	end := time.Duration(cycleEnd) * timeStep
+	wind := Window{
+		Start: time.Unix(int64(unixStartTime), 0).Add(start),
+		End:   time.Unix(int64(unixStartTime), 0).Add(end),
+	}
+	wind.UnixStartTime = int(wind.Start.Unix())
+	wind.UnixEndTime = int(wind.End.Unix())
+	return wind
+}
+
+func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, unixStartTime, unixEndTime int, wfs []WorkflowTemplate) ([]WorkflowExecParams, error) {
 	var wfExecParams []WorkflowExecParams
 	for _, wf := range wfs {
 		wtd, err := SelectWorkflowTemplate(ctx, ou, wf.WorkflowName)
@@ -32,7 +68,12 @@ func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, unixSta
 		wfTimeParams := AggregateTasks(wf, wtd)
 		wfTimeParams.WorkflowTasks = wtd
 		wfTimeParams.WorkflowTemplate = wf
-		wfTimeParams.UnixStartTime = unixStartTime
+		wfTimeParams.RunWindow.UnixStartTime = unixStartTime
+		wfTimeParams.RunWindow.Start = time.Unix(int64(unixStartTime), 0)
+		wfTimeParams.RunWindow.UnixEndTime = unixEndTime
+		wfTimeParams.RunWindow.End = time.Unix(int64(unixEndTime), 0)
+		wfTimeParams.RunTimeDuration = wfTimeParams.RunWindow.End.Sub(wfTimeParams.RunWindow.Start)
+		wfTimeParams.RunCycles = int(wfTimeParams.RunTimeDuration / wfTimeParams.TimeStepSize)
 		wfExecParams = append(wfExecParams, wfTimeParams)
 	}
 	return wfExecParams, nil
@@ -88,16 +129,28 @@ func AggregateTasks(wf WorkflowTemplate, wd []WorkflowTemplateData) WorkflowExec
 	}
 }
 
-func InsertOrchestrationRef(ctx context.Context, oj OrchestrationJob, b []byte) (int, error) {
+func UpsertAiOrchestration(ctx context.Context, ou org_users.OrgUser, wfParentID string, wfExec WorkflowExecParams) (int, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO orchestrations(org_id, orchestration_name, group_name, type, instructions)
-				  VALUES ($1, $2, $3, $4, $5)
-				  ON CONFLICT (org_id, orchestration_name) 
-				  DO UPDATE SET instructions = EXCLUDED.instructions
-				  RETURNING orchestration_id;`
+	q.RawQuery = `INSERT INTO orchestrations(org_id, orchestration_name, group_name, type, active, instructions)
+              VALUES ($1, $2, $3, $4, $5, $6)
+              ON CONFLICT (org_id, orchestration_name) 
+			  DO UPDATE SET 
+				  instructions = EXCLUDED.instructions,
+				  active = EXCLUDED.active
+			  RETURNING orchestration_id;`
 
 	var id int
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, oj.OrgID, oj.OrchestrationName, oj.GroupName, oj.Type, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(b), Status: IsNull(b)}).Scan(&id)
+	b, err := json.Marshal(wfExec)
+	if err != nil {
+		log.Err(err).Msg("error marshalling workflow execution params")
+		return 0, err
+	}
+	active := false
+	tn := time.Now().Unix()
+	if wfExec.RunWindow.UnixStartTime == 0 || wfExec.RunWindow.UnixStartTime >= int(tn) {
+		active = true
+	}
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, wfParentID, wfExec.WorkflowTemplate.WorkflowGroup, wfExec.WorkflowTemplate.WorkflowName, active, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(b), Status: IsNull(b)}).Scan(&id)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return 0, err
 	}

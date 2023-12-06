@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/cvcio/twitter"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -35,13 +37,15 @@ func NewZeusAiPlatformActivities() ZeusAiPlatformActivities {
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
-func (h *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
+func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	ka := kronos_helix.NewKronosActivities()
-	actSlice := []interface{}{h.AiTask, h.SaveAiTaskResponse, h.SendTaskResponseEmail, h.InsertEmailIfNew,
-		h.InsertAiResponse, h.InsertTelegramMessageIfNew,
-		h.InsertIncomingTweetsFromSearch, h.SearchTwitterUsingQuery, h.SelectTwitterSearchQuery,
-		h.SearchRedditNewPostsUsingSubreddit, h.InsertIncomingRedditDataFromSearch, h.SelectRedditSearchQuery,
-		h.CreateDiscordJob, h.SelectDiscordSearchQuery, h.InsertIncomingDiscordDataFromSearch,
+	actSlice := []interface{}{z.AiTask, z.SaveAiTaskResponse, z.SendTaskResponseEmail, z.InsertEmailIfNew,
+		z.InsertAiResponse, z.InsertTelegramMessageIfNew,
+		z.InsertIncomingTweetsFromSearch, z.SearchTwitterUsingQuery, z.SelectTwitterSearchQuery,
+		z.SearchRedditNewPostsUsingSubreddit, z.InsertIncomingRedditDataFromSearch, z.SelectRedditSearchQuery,
+		z.CreateDiscordJob, z.SelectDiscordSearchQuery, z.InsertIncomingDiscordDataFromSearch,
+		z.UpsertAiOrchestration, z.AiAnalysisTask, z.AiRetrievalTask,
+		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -50,7 +54,7 @@ const (
 	internalUser = 7138958574876245567
 )
 
-func (h *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, si int, channelID, timeAfter string) error {
+func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, si int, channelID, timeAfter string) error {
 	authToken, err := read_keys.GetDiscordKey(ctx, internalUser)
 	if err != nil {
 		log.Err(err).Msg("CreateDiscordJob: failed to get discord key")
@@ -87,7 +91,7 @@ func (h *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, si int,
 	return err
 }
 
-func (h *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
+func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
 	resp, err := hera_reddit.RedditClient.GetNewPosts(ctx, subreddit, lpo)
 	if err != nil {
 		log.Err(err).Interface("posts", resp.Posts).Interface("resp", resp.Resp).Msg("SearchRedditNewPostsUsingSubreddit")
@@ -100,7 +104,7 @@ func (h *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx contex
 	return resp.Posts, nil
 }
 
-func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {
+func (z *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {
 	//task := "write a bullet point summary of the email contents and suggest some responses if applicable. write your reply as html formatted\n"
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
@@ -124,7 +128,7 @@ func (h *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgU
 	return resp, err
 }
 
-func (h *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse) error {
+func (z *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse) error {
 	err := hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
 	if err != nil {
 		log.Err(err).Msg("SaveAiTaskResponse: RecordUIChatRequestUsage failed")
@@ -133,7 +137,7 @@ func (h *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou or
 	return nil
 }
 
-func (h *ZeusAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, email string, resp openai.ChatCompletionResponse) error {
+func (z *ZeusAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, email string, resp openai.ChatCompletionResponse) error {
 	content := ""
 	for _, msg := range resp.Choices {
 		// Remove markdown code block characters
@@ -157,7 +161,7 @@ func (h *ZeusAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, em
 	return nil
 }
 
-func (h *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
+func (z *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
 	emailID, err := hera_openai_dbmodels.InsertNewEmails(ctx, msg)
 	if err != nil {
 		log.Err(err).Msg("SaveNewEmail: failed")
@@ -166,7 +170,7 @@ func (h *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg her
 	return emailID, nil
 }
 
-func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg hera_search.TelegramMessage) (int, error) {
+func (z *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg hera_search.TelegramMessage) (int, error) {
 	tgId, err := hera_search.InsertNewTgMessages(ctx, ou, msg)
 	if err != nil {
 		log.Err(err).Interface("msg", msg).Msg("InsertTelegramMessageIfNew: failed")
@@ -175,7 +179,7 @@ func (h *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Contex
 	return tgId, nil
 }
 
-func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
+func (z *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
 	emailID, err := hera_openai_dbmodels.InsertNewEmails(ctx, msg)
 	if err != nil {
 		log.Err(err).Msg("SaveNewEmail: failed")
@@ -184,7 +188,7 @@ func (h *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg her
 	return emailID, nil
 }
 
-func (h *ZeusAiPlatformActivities) SelectTwitterSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.TwitterSearchQuery, error) {
+func (z *ZeusAiPlatformActivities) SelectTwitterSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.TwitterSearchQuery, error) {
 	sq, err := hera_search.SelectTwitterSearchQuery(ctx, ou, groupName)
 	if err != nil {
 		log.Err(err).Msg("SelectTwitterSearchQuery")
@@ -196,7 +200,7 @@ func (h *ZeusAiPlatformActivities) SelectTwitterSearchQuery(ctx context.Context,
 	return sq, nil
 }
 
-func (h *ZeusAiPlatformActivities) SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.DiscordSearchResultWrapper, error) {
+func (z *ZeusAiPlatformActivities) SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.DiscordSearchResultWrapper, error) {
 	sq, err := hera_search.SelectDiscordSearchQuery(ctx, ou, groupName)
 	if err != nil {
 		log.Err(err).Msg("SelectDiscordSearchQuery")
@@ -217,7 +221,7 @@ func (h *ZeusAiPlatformActivities) SelectDiscordSearchQuery(ctx context.Context,
 //	return sq, nil
 //}
 
-func (h *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, sp *hera_search.TwitterSearchQuery) ([]*twitter.Tweet, error) {
+func (z *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, sp *hera_search.TwitterSearchQuery) ([]*twitter.Tweet, error) {
 	tweets, err := hera_twitter.TwitterClient.GetTweets(ctx, sp.Query, sp.MaxResults, sp.MaxTweetID)
 	if err != nil {
 		log.Err(err).Msg("SearchTwitterUsingQuery")
@@ -226,7 +230,7 @@ func (h *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, 
 	return tweets, nil
 }
 
-func (h *ZeusAiPlatformActivities) InsertIncomingTweetsFromSearch(ctx context.Context, searchID int, tweets []*twitter.Tweet) error {
+func (z *ZeusAiPlatformActivities) InsertIncomingTweetsFromSearch(ctx context.Context, searchID int, tweets []*twitter.Tweet) error {
 	_, err := hera_search.InsertIncomingTweets(ctx, searchID, tweets)
 	if err != nil {
 		log.Err(err).Msg("InsertIncomingTweetsFromSearch")
@@ -235,7 +239,7 @@ func (h *ZeusAiPlatformActivities) InsertIncomingTweetsFromSearch(ctx context.Co
 	return nil
 }
 
-func (h *ZeusAiPlatformActivities) InsertIncomingRedditDataFromSearch(ctx context.Context, searchID int, redditData []*reddit.Post) error {
+func (z *ZeusAiPlatformActivities) InsertIncomingRedditDataFromSearch(ctx context.Context, searchID int, redditData []*reddit.Post) error {
 	_, err := hera_search.InsertIncomingRedditPosts(ctx, searchID, redditData)
 	if err != nil {
 		log.Err(err).Msg("InsertIncomingRedditDataFromSearch")
@@ -244,7 +248,7 @@ func (h *ZeusAiPlatformActivities) InsertIncomingRedditDataFromSearch(ctx contex
 	return nil
 }
 
-func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) ([]*hera_search.RedditSearchQuery, error) {
+func (z *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) ([]*hera_search.RedditSearchQuery, error) {
 	rs, err := hera_search.SelectRedditSearchQuery(ctx, ou, groupName)
 	if err != nil {
 		log.Err(err).Msg("SelectRedditSearchQuery: activity failed")
@@ -253,7 +257,7 @@ func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, 
 	return rs, nil
 }
 
-func (h *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx context.Context, searchID int, messages hera_discord.ChannelMessages) error {
+func (z *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx context.Context, searchID int, messages hera_discord.ChannelMessages) error {
 	err := hera_search.InsertDiscordGuild(ctx, messages.Guild.Id, messages.Guild.Name)
 	if err != nil {
 		log.Err(err).Msg("InsertIncomingDiscordDataFromSearch")
@@ -270,4 +274,115 @@ func (h *ZeusAiPlatformActivities) InsertIncomingDiscordDataFromSearch(ctx conte
 		return err
 	}
 	return nil
+}
+
+func (z *ZeusAiPlatformActivities) UpsertAiOrchestration(ctx context.Context, ou org_users.OrgUser, wfParentID string, wfExecParams artemis_orchestrations.WorkflowExecParams) error {
+	_, err := artemis_orchestrations.UpsertAiOrchestration(ctx, ou, wfParentID, wfExecParams)
+	if err != nil {
+		log.Err(err).Msg("UpsertAiOrchestration: activity failed")
+		return err
+	}
+	return nil
+}
+
+func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) (string, error) {
+	if taskInst.RetrievalPlatform == nil || taskInst.RetrievalName == nil || taskInst.RetrievalInstructions == nil {
+		return "", nil
+	}
+	switch *taskInst.RetrievalPlatform {
+	case "twitter":
+		//
+	case "reddit":
+		//
+	case "discord":
+		//
+	case "telegram":
+		//
+	case "web":
+		// todo
+	}
+	return "", nil
+}
+
+func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, content string) (openai.ChatCompletionResponse, error) {
+	if len(content) <= 0 {
+		return openai.ChatCompletionResponse{}, nil
+	}
+	systemMessage := openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleSystem,
+		Content: taskInst.AnalysisPrompt,
+		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+	}
+	cr := openai.ChatCompletionRequest{
+		Model: taskInst.AnalysisModel,
+		Messages: []openai.ChatCompletionMessage{
+			systemMessage,
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: content,
+				Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+			},
+		},
+	}
+	if taskInst.AnalysisMaxTokensPerTask > 0 {
+		cr.MaxTokens = taskInst.AnalysisMaxTokensPerTask
+	}
+	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
+		ctx, cr,
+	)
+	if err != nil {
+		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed")
+		return resp, err
+	}
+	return resp, err
+}
+
+func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, content string) (openai.ChatCompletionResponse, error) {
+	if len(content) <= 0 || aggInst.AggPrompt == nil || aggInst.AggModel == nil || aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil {
+		return openai.ChatCompletionResponse{}, nil
+	}
+	if len(*aggInst.AggPrompt) <= 0 {
+		return openai.ChatCompletionResponse{}, nil
+	}
+	systemMessage := openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleSystem,
+		Content: *aggInst.AggPrompt,
+		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+	}
+	cr := openai.ChatCompletionRequest{
+		Model: *aggInst.AggModel,
+		Messages: []openai.ChatCompletionMessage{
+			systemMessage,
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: content,
+				Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+			},
+		},
+	}
+
+	if aggInst.AggMaxTokensPerTask == nil {
+		aggInst.AggMaxTokensPerTask = aws.Int(0)
+	}
+	if *aggInst.AggMaxTokensPerTask > 0 {
+		cr.MaxTokens = *aggInst.AggMaxTokensPerTask
+	}
+	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
+		ctx, cr,
+	)
+	if err != nil {
+		log.Err(err).Msg("AiAggregateTask: CreateChatCompletion failed")
+		return resp, err
+	}
+	return resp, err
+}
+
+func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) (string, error) {
+
+	return "", nil
+}
+
+func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window, resp openai.ChatCompletionResponse) (string, error) {
+
+	return "", nil
 }

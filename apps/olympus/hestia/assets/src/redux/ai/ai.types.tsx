@@ -95,6 +95,7 @@ export interface DeleteWorkflowsActionRequest {
 export interface PostWorkflowsActionRequest {
     action: string;
     unixStartTime: number;
+    unixEndTime: number;
     workflows: WorkflowTemplate[];
 }
 export interface WorkflowTemplate {

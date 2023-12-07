@@ -15,11 +15,17 @@ type WorkflowTemplate struct {
 	WorkflowGroup             string `json:"workflowGroup"`
 	FundamentalPeriod         int    `json:"fundamentalPeriod"`
 	FundamentalPeriodTimeUnit string `json:"fundamentalPeriodTimeUnit"`
+	Tasks                     []Task `json:"tasks"` // Array of Task to hold the JSON aggregated tasks
 }
-
-type WorkflowComponentDependency struct {
-	ComponentID           int
-	ComponentDependencyID int
+type Task struct {
+	TaskID            int    `json:"taskID"`
+	TaskName          string `json:"taskName"`
+	TaskType          string `json:"taskType"`
+	Model             string `json:"model"`
+	Prompt            string `json:"prompt"`
+	CycleCount        int    `json:"cycleCount"`
+	RetrievalName     string `json:"retrievalName,omitempty"`
+	RetrievalPlatform string `json:"retrievalPlatform,omitempty"`
 }
 
 func InsertWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, template *WorkflowTemplate) error {

@@ -135,7 +135,17 @@ export interface WorkflowTemplate {
     workflowGroup: string;
     fundamentalPeriod: number;
     fundamentalPeriodTimeUnit: string;
+    tasks: Task[]; // Array of Task
 }
+export type Task = {
+    taskName: string;
+    taskType: string;
+    model: string;
+    prompt: string;
+    cycleCount: number;
+    retrievalName?: string;
+    retrievalPlatform?: string;
+};
 
 export type Orchestration = {
     orchestrationID: number;

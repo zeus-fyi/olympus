@@ -2,38 +2,14 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
-
-/*
-SELECT
-	awtat.analysis_task_id,
-	awtat.task_id,
-	awtat.cycle_count as analysis_cycle_count,
-	ait.task_name,
-	ait.task_type,
-	ait1.task_id as agg_task_id,
-	agt.cycle_count as agg_cycle_count,
-	art.retrieval_name,
-	art.retrieval_group, art.instructions
-FROM
-    public.ai_workflow_template_analysis_tasks awtat
-LEFT JOIN
-    public.ai_retrieval_library art ON art.retrieval_id = awtat.retrieval_id
- LEFT JOIN
-    public.ai_workflow_template_agg_tasks agt ON agt.analysis_task_id = awtat.analysis_task_id
-LEFT JOIN
-	 public.ai_task_library ait ON ait.task_id = awtat.task_id
-LEFT JOIN
-    public.ai_task_library ait1 ON ait1.task_id = agt.agg_task_id
-WHERE
-    awtat.workflow_template_id =1701667609583734016
-
-*/
 
 type WorkflowTemplateData struct {
 	WfAnalysisTaskID              int     `json:"wfAnalysisTaskID"`
@@ -138,20 +114,64 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
 
 	return results, nil
 }
-
 func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) ([]WorkflowTemplate, error) {
 	var results []WorkflowTemplate
 	q := sql_query_templates.QueryParams{}
 	params := []interface{}{ou.OrgID}
 	q.RawQuery = `SELECT
-                    wate.workflow_template_id,
-                    wate.workflow_name,
-                    wate.workflow_group,
-                    wate.fundamental_period,
-                    wate.fundamental_period_time_unit
-                FROM ai_workflow_template wate
-                WHERE wate.org_id = $1
-                ORDER BY wate.workflow_name, wate.workflow_group ASC`
+					wate.workflow_template_id,
+					wate.workflow_name,
+					wate.workflow_group,
+					wate.fundamental_period,
+					wate.fundamental_period_time_unit,
+					JSON_AGG(
+						JSON_BUILD_OBJECT(
+							'taskID', ait.task_id,
+							'taskName', ait.task_name,
+							'taskType', ait.task_type,
+							'model', ait.model,
+							'prompt', ait.prompt,
+							'cycleCount', awtat.cycle_count,
+							'retrievalName', COALESCE(art.retrieval_name, 'none'),
+							'retrievalPlatform', COALESCE(art.retrieval_platform, 'none')
+						)
+					) AS tasks,
+					JSON_AGG(
+						CASE 
+							WHEN ait2.task_name IS NOT NULL AND ait2.task_type IS NOT NULL AND ait2.model IS NOT NULL AND ait2.prompt IS NOT NULL AND agt.cycle_count IS NOT NULL THEN
+								JSON_BUILD_OBJECT(
+									'retrievalName', COALESCE(ait.task_name, 'none'),
+									'taskID', ait2.task_id,
+									'taskName', ait2.task_name,
+									'taskType', ait2.task_type,
+									'model', ait2.model,
+									'prompt', ait2.prompt,
+									'cycleCount', agt.cycle_count
+								)
+							END
+					) AS agg_tasks
+				FROM 
+					ai_workflow_template wate
+				LEFT JOIN 
+					ai_workflow_template_analysis_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
+				LEFT JOIN
+					ai_retrieval_library art ON art.retrieval_id = awtat.retrieval_id
+				LEFT JOIN 
+					ai_task_library ait ON ait.task_id = awtat.task_id
+				LEFT JOIN 
+					ai_workflow_template_agg_tasks agt ON agt.analysis_task_id = awtat.analysis_task_id
+				LEFT JOIN 
+					ai_task_library ait2 ON ait2.task_id = agt.agg_task_id
+				WHERE wate.org_id = $1
+				GROUP BY 
+					wate.workflow_template_id,
+					wate.workflow_name,
+					wate.workflow_group,
+					wate.fundamental_period,
+					wate.fundamental_period_time_unit
+				ORDER BY 
+					wate.workflow_name, wate.workflow_group`
+
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
 	if err != nil {
 		return nil, err
@@ -160,17 +180,60 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) ([]Workf
 
 	for rows.Next() {
 		var data WorkflowTemplate
+		var taskJSON string    // To store the JSON data
+		var aggTaskJSON string // To store the JSON data
+
 		rowErr := rows.Scan(
 			&data.WorkflowTemplateID,
 			&data.WorkflowName,
 			&data.WorkflowGroup,
 			&data.FundamentalPeriod,
 			&data.FundamentalPeriodTimeUnit,
+			&taskJSON, // Scan the JSON data into a string
+			&aggTaskJSON,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("Error scanning row in SelectWorkflowTemplate")
 			return nil, rowErr
 		}
+
+		// Unmarshal the JSON data into the Tasks field
+		jsonErr := json.Unmarshal([]byte(taskJSON), &data.Tasks)
+		if jsonErr != nil {
+			log.Err(jsonErr).Msg("Error unmarshalling task JSON")
+			return nil, jsonErr
+		}
+
+		// Unmarshal the JSON data into the Tasks field
+		var aggTasks []Task
+		jsonErr = json.Unmarshal([]byte(aggTaskJSON), &aggTasks)
+		if jsonErr != nil {
+			log.Err(jsonErr).Msg("Error unmarshalling task JSON")
+			return nil, jsonErr
+		}
+		for _, at := range aggTasks {
+			if at.TaskName != "" && at.TaskType != "" && at.Model != "" && at.Prompt != "" && at.CycleCount != 0 {
+				data.Tasks = append(data.Tasks, at)
+			}
+		}
+
+		uniqueTasks := make(map[string]bool)
+		for _, at := range data.Tasks {
+			if at.TaskName != "" && at.TaskType != "" && at.Model != "" && at.Prompt != "" && at.CycleCount != 0 {
+				// Create a unique key for each task. This could be a concatenation of the fields.
+				taskKey := fmt.Sprintf("%s-%s-%s-%s-%d-%s-%s", at.TaskName, at.TaskType, at.Model, at.Prompt, at.CycleCount, at.RetrievalPlatform, at.RetrievalName)
+				uniqueTasks[taskKey] = true
+			}
+		}
+		var dt []Task
+		for _, at := range data.Tasks {
+			taskKey := fmt.Sprintf("%s-%s-%s-%s-%d-%s-%s", at.TaskName, at.TaskType, at.Model, at.Prompt, at.CycleCount, at.RetrievalPlatform, at.RetrievalName)
+			if uniqueTasks[taskKey] {
+				dt = append(dt, at)
+				uniqueTasks[taskKey] = false
+			}
+		}
+		data.Tasks = dt
 		results = append(results, data)
 	}
 	// Check for errors from iterating over rows

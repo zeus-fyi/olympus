@@ -11,6 +11,8 @@ import {aiApiGateway} from "../../gateway/ai";
 import {setAiTasks, setRetrievals, setSelectedWorkflows, setWorkflows} from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
+import {WorkflowTemplate} from "../../redux/ai/ai.types";
+import {WorkflowRow} from "./WorkflowRow";
 
 export function WorkflowTable(props: any) {
     const [page, setPage] = React.useState(0);
@@ -96,6 +98,7 @@ export function WorkflowTable(props: any) {
                                 onChange={handleSelectAllClick}
                             />
                         </TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Workflow ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
@@ -103,34 +106,14 @@ export function WorkflowTable(props: any) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {workflows.map((row: any, i: number) => (
-                        <TableRow
-                            key={i}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                            <TableCell padding="checkbox">
-                                <Checkbox
-                                    checked={selected.indexOf(row) !== -1}
-                                    onChange={() => handleClick(row)}
-                                    color="primary"
-                                />
-                            </TableCell>
-                            <TableCell component="th" scope="row">
-                                {row.workflowID}
-                            </TableCell>
-                            <TableCell component="th" scope="row">
-                                {row.workflowName}
-                            </TableCell>
-                            <TableCell component="th" scope="row">
-                                {row.workflowGroup}
-                            </TableCell>
-                            <TableCell component="th" scope="row">
-                                {row.fundamentalPeriod + ' ' + row.fundamentalPeriodTimeUnit}
-                            </TableCell>
-                            {/*<TableCell component="th" scope="row">*/}
-                            {/*    {row.active ? 'Yes' : 'No'}*/}
-                            {/*</TableCell>*/}
-                        </TableRow>
+                    {rowsPerPage > 0 && workflows && workflows.map((row: WorkflowTemplate, index: number) => (
+                        <WorkflowRow
+                            key={index}
+                            row={row}
+                            index={index}
+                            handleClick={handleClick}
+                            checked={selected.indexOf(index) >= 0 || false}
+                        />
                     ))}
                     {emptyRows > 0 && (
                         <TableRow style={{ height: 53 * emptyRows }}>

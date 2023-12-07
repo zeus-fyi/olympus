@@ -6,16 +6,16 @@ import (
 )
 
 func (s *OrchestrationsTestSuite) TestInsertRetrieval() {
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	mockRetrievalItem := RetrievalItem{
-		RetrievalName:  "tel-1",
-		RetrievalGroup: "telegram-2",
+		RetrievalName:  "r-2",
+		RetrievalGroup: "r-2",
 		RetrievalItemInstruction: RetrievalItemInstruction{
-			RetrievalPlatform:       "telegram",
+			RetrievalPlatform:       "reddit",
 			RetrievalPrompt:         "",
 			RetrievalPlatformGroups: "",
 			RetrievalKeywords:       "",

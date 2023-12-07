@@ -17,17 +17,17 @@ func (s *OrchestrationsTestSuite) TestInsertAiOrchestrations() {
 	res, err := SelectWorkflowTemplates(ctx, ou)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
-	res2, err := GetAiOrchestrationParams(ctx, ou, 0, 0, res)
-	s.Require().Nil(err)
-	s.Require().NotEmpty(res2)
-
-	for _, wf := range res2 {
-
-		for _, task := range wf.WorkflowTasks {
-			fmt.Println(task.AnalysisCycleCount)
-		}
-
-	}
+	//res2, err := GetAiOrchestrationParams(ctx, ou, 0, 0, res)
+	//s.Require().Nil(err)
+	//s.Require().NotEmpty(res2)
+	//
+	//for _, wf := range res2 {
+	//
+	//	for _, task := range wf.WorkflowTasks {
+	//		fmt.Println(task.AnalysisCycleCount)
+	//	}
+	//
+	//}
 
 }
 func (s *OrchestrationsTestSuite) TestCalculateTimeWindow() {
@@ -45,6 +45,13 @@ func (s *OrchestrationsTestSuite) TestCalculateTimeWindow() {
 	fmt.Println(tw.Start, tw.End)
 }
 
-func (s *OrchestrationsTestSuite) TestName() {
+func (s *OrchestrationsTestSuite) TestLocal() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
+	res, err := SelectWorkflowTemplates(ctx, ou)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(res)
 }

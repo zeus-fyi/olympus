@@ -12,7 +12,7 @@ func (s *OrchestrationsTestSuite) TestInsertTask() {
 		UserID:                s.Tc.ProductionLocalTemporalUserID,
 		MaxTokensPerTask:      100,
 		TaskType:              "aggregation",
-		TaskName:              "task-aggregation-2",
+		TaskName:              "task-aggregation-3",
 		TaskGroup:             "default",
 		TokenOverflowStrategy: "deduce",
 		Model:                 "gpt-4",

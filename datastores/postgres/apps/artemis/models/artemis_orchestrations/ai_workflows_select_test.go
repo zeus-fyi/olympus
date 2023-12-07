@@ -1,6 +1,8 @@
 package artemis_orchestrations
 
 import (
+	"fmt"
+
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -13,17 +15,54 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplate() {
 	newTemplate := WorkflowTemplate{
 		WorkflowName:              "Example Workflow1",
 		FundamentalPeriod:         5,
-		WorkflowGroup:             "TestGroup1",
+		WorkflowGroup:             "TestGroup2",
 		FundamentalPeriodTimeUnit: "days",
 	}
 
-	res, err := SelectWorkflowTemplate(ctx, ou, newTemplate.WorkflowGroup)
+	res, err := SelectWorkflowTemplate(ctx, ou, newTemplate.WorkflowName)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
+
+	md := MapDependencies(res)
+	fmt.Println("\nAnalysis")
+
+	if newTemplate.WorkflowName == "Example Workflow1" {
+		fmt.Println("newTemplate.WorkflowName", newTemplate.WorkflowName)
+		s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701653245709972992])
+		s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701667813254964224])
+		s.Require().Equal(true, md.AnalysisRetrievals[1701657795016150016][1701667784112279040])
+
+		for k, v := range md.AnalysisRetrievals {
+			fmt.Println(k, v)
+		}
+		fmt.Println("\nAgg")
+		s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657822027992064])
+		s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
+		for k, v := range md.AggregateAnalysis {
+			fmt.Println(k, v)
+		}
+	}
+	if newTemplate.WorkflowName == "Example Workflow2" {
+		s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701653245709972992])
+		s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701667813254964224])
+		s.Require().Equal(true, md.AnalysisRetrievals[1701657795016150016][1701667784112279040])
+
+		for k, v := range md.AnalysisRetrievals {
+			fmt.Println(k, v)
+		}
+		fmt.Println("\nAgg")
+		s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657822027992064])
+		s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
+		s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657822027992064])
+		s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
+		for k, v := range md.AggregateAnalysis {
+			fmt.Println(k, v)
+		}
+	}
 }
 
 func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplates() {
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
@@ -31,4 +70,43 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplates() {
 	res, err := SelectWorkflowTemplates(ctx, ou)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
+
+	for _, newTemplate := range res.WorkflowTemplatesMap {
+
+		md := MapDependencies1(newTemplate)
+
+		if newTemplate.WorkflowName == "Example Workflow1" {
+			fmt.Println("newTemplate.WorkflowName", newTemplate.WorkflowName)
+
+			s.Require().Equal(true, md.AnalysisRetrievals[1701657795016150016][1701667784112279040])
+			s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701653245709972992])
+			s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701667813254964224])
+			for k, v := range md.AnalysisRetrievals {
+				fmt.Println(k, v)
+			}
+			fmt.Println("\nAgg")
+			s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657822027992064])
+			s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
+			for k, v := range md.AggregateAnalysis {
+				fmt.Println(k, v)
+			}
+		}
+		if newTemplate.WorkflowName == "Example Workflow2" {
+			s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701653245709972992])
+			s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701667813254964224])
+			s.Require().Equal(true, md.AnalysisRetrievals[1701657795016150016][1701667784112279040])
+
+			for k, v := range md.AnalysisRetrievals {
+				fmt.Println(k, v)
+			}
+			fmt.Println("\nAgg")
+			s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657822027992064])
+			s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
+			s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657822027992064])
+			s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
+			for k, v := range md.AggregateAnalysis {
+				fmt.Println(k, v)
+			}
+		}
+	}
 }

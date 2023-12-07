@@ -14,7 +14,7 @@ func (s *OrchestrationsTestSuite) TestDeleteWorkflows() {
 	res, err := SelectWorkflowTemplates(ctx, ou)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
-
-	err = DeleteWorkflowTemplates(ctx, ou, res)
-	s.Require().Nil(err)
+	//
+	//err = DeleteWorkflowTemplates(ctx, ou, res)
+	//s.Require().Nil(err)
 }

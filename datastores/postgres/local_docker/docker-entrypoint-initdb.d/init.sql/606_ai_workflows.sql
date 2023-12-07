@@ -53,27 +53,32 @@ CREATE INDEX ai_retrieval_library_user_idx ON public.ai_retrieval_library("user_
 ALTER TABLE "public"."ai_retrieval_library" ADD CONSTRAINT "ai_retrieval_library_org_gret_name_uniq" UNIQUE ("org_id", "retrieval_name");
 
 CREATE TABLE public.ai_workflow_template_analysis_tasks(
-    analysis_task_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
     workflow_template_id BIGINT NOT NULL REFERENCES ai_workflow_template(workflow_template_id),
     task_id BIGINT NOT NULL REFERENCES ai_task_library(task_id),
     cycle_count BIGINT NOT NULL DEFAULT 1 CHECK ( cycle_count > 0 ),
     retrieval_id BIGINT NOT NULL REFERENCES ai_retrieval_library(retrieval_id)
 );
 ALTER TABLE "public"."ai_workflow_template_analysis_tasks" ADD CONSTRAINT "ai_workflow_template_analysis_tasks_uniq" UNIQUE ("workflow_template_id", "task_id", "retrieval_id");
+ALTER TABLE public.ai_workflow_template_analysis_tasks
+    DROP CONSTRAINT ai_workflow_template_analysis_tasks_uniq,
+    ADD PRIMARY KEY (workflow_template_id, task_id, retrieval_id);
 
 CREATE INDEX ai_workflow_template_analysis_tasks_idx ON public.ai_workflow_template_analysis_tasks (workflow_template_id);
 CREATE INDEX ai_workflow_template_analysis_tasks_idx2 ON public.ai_workflow_template_analysis_tasks (task_id);
 CREATE INDEX ai_workflow_template_analysis_tasks_idx3 ON public.ai_workflow_template_analysis_tasks (retrieval_id);
 
 CREATE TABLE public.ai_workflow_template_agg_tasks(
-    agg_task_id BIGINT NOT NULL REFERENCES ai_task_library(task_id),
     workflow_template_id BIGINT NOT NULL REFERENCES ai_workflow_template(workflow_template_id),
-    analysis_task_id BIGINT NOT NULL REFERENCES ai_workflow_template_analysis_tasks(analysis_task_id),
-    cycle_count BIGINT NOT NULL DEFAULT 1 CHECK ( cycle_count > 0 ),
-    PRIMARY KEY (agg_task_id, analysis_task_id)
+    agg_task_id BIGINT NOT NULL REFERENCES ai_task_library(task_id) CHECK (agg_task_id != analysis_task_id),
+    analysis_task_id BIGINT NOT NULL REFERENCES ai_task_library(task_id) CHECK (agg_task_id != analysis_task_id),
+    cycle_count BIGINT NOT NULL DEFAULT 1 CHECK ( cycle_count > 0 )
 );
 ALTER TABLE "public"."ai_workflow_template_agg_tasks" ADD CONSTRAINT "ai_workflow_template_agg_tasks_link_uniq" UNIQUE ("workflow_template_id", "agg_task_id", "analysis_task_id");
 
 CREATE INDEX ai_workflow_template_agg_tasks_idx ON public.ai_workflow_template_agg_tasks (workflow_template_id);
 CREATE INDEX ai_workflow_template_agg_tasks_idx2 ON public.ai_workflow_template_agg_tasks (agg_task_id);
 CREATE INDEX ai_workflow_template_agg_tasks_idx3 ON public.ai_workflow_template_agg_tasks (analysis_task_id);
+
+ALTER TABLE public.ai_workflow_template_agg_tasks
+    DROP CONSTRAINT ai_workflow_template_agg_tasks_link_uniq,
+    ADD PRIMARY KEY (workflow_template_id, agg_task_id, analysis_task_id);

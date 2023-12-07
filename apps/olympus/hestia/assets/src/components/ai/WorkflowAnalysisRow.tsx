@@ -38,7 +38,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                 <TableCell align="left">{row.orchestrations.orchestrationName}</TableCell>
                 <TableCell align="left">{row.orchestrations.groupName}</TableCell>
                 <TableCell align="left">{row.orchestrations.type}</TableCell>
-                <TableCell align="left">{row.orchestrations.active}</TableCell>
+                <TableCell align="left">{row.orchestrations.active ? 'Yes' : 'No'}</TableCell>
                 <TableCell align="left">{row.runCycles}</TableCell>
                 <TableCell align="left">{row.totalWorkflowTokenUsage}</TableCell>
             </TableRow>

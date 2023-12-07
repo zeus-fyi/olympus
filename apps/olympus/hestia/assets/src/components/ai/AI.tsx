@@ -70,6 +70,10 @@ function AiWorkflowsDashboardContent(props: any) {
     const searchResults = useSelector((state: RootState) => state.ai.searchResults);
     const platformFilter = useSelector((state: RootState) => state.ai.platformFilter);
     const [analyzeNext, setAnalyzeNext] = useState(true);
+    const [customBasePeriod, setCustomBasePeriod] = useState(true);
+    const [customBasePeriodStepSize, setCustomBasePeriodStepSize] = useState(5);
+    const [customBasePeriodStepSizeUnit, setCustomBasePeriodStepSizeUnit] = useState('minutes');
+
     const dispatch = useDispatch();
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);
@@ -91,6 +95,9 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleToggleChange = (event: any) => {
         setAnalyzeNext(event.target.checked);
     };
+    const handleToggleChangePeriod = (event: any) => {
+        setCustomBasePeriod(event.target.checked);
+    };
     const handleUpdateSearchKeywords = (value: string) => {
         dispatch(setSearchContent(value));
     };
@@ -110,6 +117,9 @@ function AiWorkflowsDashboardContent(props: any) {
             unixStartTime: unixStartTime,
             duration: stepSize,
             durationUnit: stepSizeUnit,
+            customBasePeriod: customBasePeriod,
+            customBasePeriodStepSize: customBasePeriodStepSize,
+            customBasePeriodStepSizeUnit: customBasePeriodStepSizeUnit,
             workflows: selected.map((wf: WorkflowTemplate) => {
                 return wf
             })
@@ -384,7 +394,7 @@ function AiWorkflowsDashboardContent(props: any) {
                     }
                     { (selectedMainTab === 1) &&
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <Card sx={{ minWidth: 500, maxWidth: 900 }}>
+                        <Card sx={{ minWidth: 500, maxWidth: 1000 }}>
                             <CardContent>
                                 <Box flexGrow={1} sx={{ mb: 2, mt: 0 }}>
                                     <Typography gutterBottom variant="h4" component="div">
@@ -429,6 +439,47 @@ function AiWorkflowsDashboardContent(props: any) {
                                             label={analyzeNext ? 'Analyze Next' : 'Analyze Previous'}
                                         />
                                     </Stack>
+                                    { customBasePeriod &&
+                                        <div>
+                                            <Stack direction="row" spacing={2} sx={{ ml: 2, mr: 2, mt: 4, mb: 2 }}>
+                                            <Box sx={{ width: '33%' }}>
+                                                <TextField
+                                                    type="number"
+                                                    label="Override Workflow Step Size"
+                                                    variant="outlined"
+                                                    inputProps={{ min: 1 }}  // Set minimum value to 1
+                                                    value={customBasePeriod ? customBasePeriodStepSize: 0}
+                                                    onChange={(e) => setCustomBasePeriodStepSize(Number(e.target.value))}
+                                                    fullWidth
+                                                />
+                                            </Box>
+                                            <Box sx={{ width: '33%' }}> {/* Adjusted Box for FormControl */}
+                                                <FormControl fullWidth>
+                                                    <InputLabel id="time-unit-label">Override Workflow Time Unit</InputLabel>
+                                                    <Select
+                                                        labelId="or-time-unit-label"
+                                                        id="time-unit-select"
+                                                        value={customBasePeriodStepSizeUnit}
+                                                        label="Time Unit"
+                                                        onChange={(e) => setCustomBasePeriodStepSizeUnit(e.target.value)}
+
+                                                    >
+                                                        <MenuItem value="minutes">Minutes</MenuItem>
+                                                        <MenuItem value="hours">Hours</MenuItem>
+                                                        <MenuItem value="days">Days</MenuItem>
+                                                        <MenuItem value="weeks">Weeks</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </Box>
+                                            </Stack>
+                                        </div>
+                                    }
+                                <Box sx={{ width: '50%', ml: 2 }}> {/* Adjusted Box for TextField */}
+                                    <FormControlLabel
+                                        control={<Switch checked={customBasePeriod} onChange={handleToggleChangePeriod} />}
+                                        label={customBasePeriod ? 'Override Base Period' : 'Default Base Period' }
+                                    />
+                                </Box>
                                 <Stack direction="row"  sx={{ ml: 2, mr: 2, mt: 4, mb: 2 }}>
                                     <Box sx={{ width: '50%', mr: 2 }}> {/* Adjusted Box for TextField */}
                                         <TextField

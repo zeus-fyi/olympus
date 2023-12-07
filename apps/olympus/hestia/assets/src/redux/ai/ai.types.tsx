@@ -127,6 +127,9 @@ export interface PostWorkflowsActionRequest {
     unixStartTime: number;
     durationUnit: string;
     duration: number;
+    customBasePeriod: boolean,
+    customBasePeriodStepSize: number,
+    customBasePeriodStepSizeUnit: string,
     workflows: WorkflowTemplate[];
 }
 export interface WorkflowTemplate {

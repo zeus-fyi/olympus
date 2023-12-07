@@ -12,11 +12,15 @@ import (
 )
 
 type WorkflowsActionsRequest struct {
-	Action        string                                    `json:"action"`
-	UnixStartTime int                                       `json:"unixStartTime,omitempty"`
-	Duration      int                                       `json:"duration,omitempty"`
-	DurationUnit  string                                    `json:"durationUnit,omitempty"`
-	Workflows     []artemis_orchestrations.WorkflowTemplate `json:"workflows"`
+	Action        string `json:"action"`
+	UnixStartTime int    `json:"unixStartTime,omitempty"`
+	Duration      int    `json:"duration,omitempty"`
+	DurationUnit  string `json:"durationUnit,omitempty"`
+
+	CustomBasePeriod             bool                                      `json:"customBasePeriod,omitempty"`
+	CustomBasePeriodStepSize     int                                       `json:"customBasePeriodStepSize,omitempty"`
+	CustomBasePeriodStepSizeUnit string                                    `json:"customBasePeriodStepSizeUnit,omitempty"`
+	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows"`
 }
 
 func WorkflowsActionsRequestHandler(c echo.Context) error {
@@ -33,6 +37,13 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	if w.CustomBasePeriod && w.CustomBasePeriodStepSize > 0 && w.CustomBasePeriodStepSizeUnit != "" {
+		for i, _ := range w.Workflows {
+			w.Workflows[i].FundamentalPeriod = w.CustomBasePeriodStepSize
+			w.Workflows[i].FundamentalPeriodTimeUnit = w.CustomBasePeriodStepSizeUnit
+		}
+	}
+
 	switch w.Action {
 	case "start":
 		if w.UnixStartTime == 0 {

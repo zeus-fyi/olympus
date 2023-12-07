@@ -13,7 +13,7 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplate() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	newTemplate := WorkflowTemplate{
-		WorkflowName:              "Example Workflow1",
+		WorkflowName:              "Example Workflow4",
 		FundamentalPeriod:         5,
 		WorkflowGroup:             "TestGroup2",
 		FundamentalPeriodTimeUnit: "days",
@@ -55,6 +55,20 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplate() {
 		s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
 		s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657822027992064])
 		s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
+		for k, v := range md.AggregateAnalysis {
+			fmt.Println(k, v)
+		}
+	}
+	if newTemplate.WorkflowName == "Example Workflow4" {
+		s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701667813254964224])
+
+		s.Require().Equal(1, len(md.AnalysisRetrievals))
+		for k, v := range md.AnalysisRetrievals {
+			fmt.Println(k, v)
+		}
+		fmt.Println("\nAgg")
+		s.Require().Equal(0, len(md.AggregateAnalysis))
+
 		for k, v := range md.AggregateAnalysis {
 			fmt.Println(k, v)
 		}
@@ -104,6 +118,21 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplates() {
 			s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
 			s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657822027992064])
 			s.Require().Equal(true, md.AggregateAnalysis[1701657830780669952][1701657795016150016])
+			for k, v := range md.AggregateAnalysis {
+				fmt.Println(k, v)
+			}
+		}
+
+		if newTemplate.WorkflowName == "Example Workflow4" {
+			s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701667813254964224])
+
+			s.Require().Equal(1, len(md.AnalysisRetrievals))
+			for k, v := range md.AnalysisRetrievals {
+				fmt.Println(k, v)
+			}
+			fmt.Println("\nAgg")
+			s.Require().Equal(0, len(md.AggregateAnalysis))
+
 			for k, v := range md.AggregateAnalysis {
 				fmt.Println(k, v)
 			}

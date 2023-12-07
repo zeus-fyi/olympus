@@ -29,9 +29,9 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	newTemplate := WorkflowTemplate{
-		WorkflowName:              "Example Workflow2",
+		WorkflowName:              "Example Workflow4",
 		FundamentalPeriod:         5,
-		WorkflowGroup:             "TestGroup2",
+		WorkflowGroup:             "TestGroup4",
 		FundamentalPeriodTimeUnit: "days",
 	}
 
@@ -75,61 +75,74 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 	//	},
 	//}
 
+	//wt := WorkflowTasks{
+	//	AggTasks: []AggTask{
+	//		{
+	//			AggId:      1701657830780669952,
+	//			CycleCount: 1,
+	//			Tasks: []AITaskLibrary{
+	//				{
+	//					TaskID:     1701657822027992064,
+	//					CycleCount: 1,
+	//					RetrievalDependencies: []RetrievalItem{
+	//						{
+	//							RetrievalID: 1701653245709972992,
+	//						},
+	//					},
+	//				},
+	//				{
+	//					TaskID:     1701657795016150016,
+	//					CycleCount: 2,
+	//					RetrievalDependencies: []RetrievalItem{
+	//						{
+	//							RetrievalID: 1701667784112279040,
+	//						},
+	//					},
+	//				},
+	//			},
+	//		},
+	//		{
+	//			AggId:      1701924144891567872,
+	//			CycleCount: 1,
+	//			Tasks: []AITaskLibrary{
+	//				{
+	//					TaskID:     1701657822027992064,
+	//					CycleCount: 1,
+	//					RetrievalDependencies: []RetrievalItem{
+	//						{
+	//							RetrievalID: 1701653245709972992,
+	//						},
+	//					},
+	//				},
+	//				{
+	//					TaskID:     1701657795016150016,
+	//					CycleCount: 2,
+	//					RetrievalDependencies: []RetrievalItem{
+	//						{
+	//							RetrievalID: 1701667784112279040,
+	//						},
+	//					},
+	//				},
+	//			},
+	//		},
+	//	},
+	//	AnalysisOnlyTasks: []AITaskLibrary{
+	//		{
+	//			TaskID:     1701657822027992064,
+	//			CycleCount: 1,
+	//			RetrievalDependencies: []RetrievalItem{
+	//				{
+	//					RetrievalID: 1701667813254964224,
+	//				},
+	//			},
+	//		},
+	//	},
+	//}
 	wt := WorkflowTasks{
-		AggTasks: []AggTask{
-			{
-				AggId:      1701657830780669952,
-				CycleCount: 1,
-				Tasks: []AITaskLibrary{
-					{
-						TaskID:     1701657822027992064,
-						CycleCount: 1,
-						RetrievalDependencies: []RetrievalItem{
-							{
-								RetrievalID: 1701653245709972992,
-							},
-						},
-					},
-					{
-						TaskID:     1701657795016150016,
-						CycleCount: 2,
-						RetrievalDependencies: []RetrievalItem{
-							{
-								RetrievalID: 1701667784112279040,
-							},
-						},
-					},
-				},
-			},
-			{
-				AggId:      1701924144891567872,
-				CycleCount: 1,
-				Tasks: []AITaskLibrary{
-					{
-						TaskID:     1701657822027992064,
-						CycleCount: 1,
-						RetrievalDependencies: []RetrievalItem{
-							{
-								RetrievalID: 1701653245709972992,
-							},
-						},
-					},
-					{
-						TaskID:     1701657795016150016,
-						CycleCount: 2,
-						RetrievalDependencies: []RetrievalItem{
-							{
-								RetrievalID: 1701667784112279040,
-							},
-						},
-					},
-				},
-			},
-		},
 		AnalysisOnlyTasks: []AITaskLibrary{
 			{
 				TaskID:     1701657822027992064,
-				CycleCount: 1,
+				CycleCount: 3,
 				RetrievalDependencies: []RetrievalItem{
 					{
 						RetrievalID: 1701667813254964224,
@@ -138,6 +151,7 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 			},
 		},
 	}
+
 	err := InsertWorkflowWithComponents(ctx, ou, &newTemplate, wt)
 	s.Require().Nil(err)
 	s.Require().NotZero(newTemplate.WorkflowTemplateID)

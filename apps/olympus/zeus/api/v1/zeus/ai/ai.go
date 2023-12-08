@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
@@ -47,9 +48,7 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	if ou.OrgID != internalOrgID {
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
+
 	ts := time.Now()
 	switch r.TimeRange {
 	case "1 hour":
@@ -77,6 +76,14 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 	}
 	hera_search.SortSearchResults(res)
 	if len(r.Retrieval.RetrievalPrompt) > 0 {
+		isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+		if berr != nil {
+			log.Error().Err(berr).Msg("failed to check if user has billing method")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		if !isBillingSetup {
+			return c.JSON(http.StatusPreconditionFailed, nil)
+		}
 		aiResp, arr := ai_platform_service_orchestrations.AiAggregateTask(c.Request().Context(), ou, res, r.AiSearchParams)
 		if arr != nil {
 			log.Err(arr).Msg("error aggregating tasks")
@@ -101,14 +108,21 @@ func (r *AiSearchRequest) SearchAnalyze(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	if ou.OrgID != internalOrgID {
+	isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	if berr != nil {
+		log.Error().Err(berr).Msg("failed to check if user has billing method")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	if !isBillingSetup {
+		return c.JSON(http.StatusPreconditionFailed, nil)
+	}
+
 	res, err := hera_search.PerformPlatformSearches(c.Request().Context(), ou, r.AiSearchParams)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("error performing platform searches")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+
 	hera_search.SortSearchResults(res)
 	resp, err := ai_platform_service_orchestrations.AiAggregateTask(c.Request().Context(), ou, res, r.AiSearchParams)
 	if err != nil {

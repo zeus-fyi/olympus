@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
@@ -37,13 +38,20 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to check if user has billing method")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if !isBillingSetup {
+		return c.JSON(http.StatusPreconditionFailed, nil)
+	}
 	if w.CustomBasePeriod && w.CustomBasePeriodStepSize > 0 && w.CustomBasePeriodStepSizeUnit != "" {
 		for i, _ := range w.Workflows {
 			w.Workflows[i].FundamentalPeriod = w.CustomBasePeriodStepSize
 			w.Workflows[i].FundamentalPeriodTimeUnit = w.CustomBasePeriodStepSizeUnit
 		}
 	}
-
 	switch w.Action {
 	case "start":
 		if w.UnixStartTime == 0 {
@@ -81,9 +89,9 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			endTime = w.UnixStartTime + int(weeks.Seconds())*w.Duration
 		}
 
-		resp, err := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, w.UnixStartTime, endTime, w.Workflows)
-		if err != nil {
-			log.Err(err).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
+		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, w.UnixStartTime, endTime, w.Workflows)
+		if rerr != nil {
+			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		for _, v := range resp {

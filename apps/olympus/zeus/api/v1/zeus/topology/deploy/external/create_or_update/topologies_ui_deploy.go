@@ -70,9 +70,9 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	if ou.UserID == 1685378241971196000 || ou.UserID == 7138958574876245565 {
 		t.FreeTrial = false
 	} else {
-		isFreeTrialOngoing, err := hestia_compute_resources.DoesOrgHaveOngoingFreeTrial(ctx, ou.OrgID)
-		if err != nil {
-			log.Error().Err(err).Msg("failed to check if org has ongoing free trial")
+		isFreeTrialOngoing, ferr := hestia_compute_resources.DoesOrgHaveOngoingFreeTrial(ctx, ou.OrgID)
+		if ferr != nil {
+			log.Error().Err(ferr).Msg("failed to check if org has ongoing free trial")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		log.Info().Interface("isFreeTrialOngoing", isFreeTrialOngoing).Interface("ou", ou).Msg("isFreeTrialOngoing")

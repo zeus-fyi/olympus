@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 )
 
 type GetWorkflowsRequest struct {
@@ -101,6 +102,14 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to check if user has billing method")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if !isBillingSetup {
+		return c.JSON(http.StatusPreconditionFailed, nil)
+	}
 	if w.WorkflowName == "" || len(w.Models) == 0 {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
@@ -170,7 +179,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, nil)
 		}
 	}
-	err := artemis_orchestrations.InsertWorkflowWithComponents(c.Request().Context(), ou, &wt, wft)
+	err = artemis_orchestrations.InsertWorkflowWithComponents(c.Request().Context(), ou, &wt, wft)
 	if err != nil {
 		log.Err(err).Msg("failed to insert workflow")
 		return c.JSON(http.StatusInternalServerError, nil)

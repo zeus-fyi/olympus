@@ -38,17 +38,13 @@ import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
     setDiscordOptionsCategoryName,
-    setGroupFilter,
-    setPlatformFilter,
     setRetrievalKeywords,
     setRetrievalPlatform,
     setRetrievalPlatformGroups,
     setRetrievalPrompt,
     setRetrievalUsernames,
-    setSearchContent,
     setSearchResults,
-    setSelectedWorkflows,
-    setUsernames
+    setSelectedWorkflows
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
@@ -81,12 +77,13 @@ function AiWorkflowsDashboardContent(props: any) {
     const [customBasePeriodStepSize, setCustomBasePeriodStepSize] = useState(5);
     const [customBasePeriodStepSizeUnit, setCustomBasePeriodStepSizeUnit] = useState('minutes');
     const workflows = useSelector((state: any) => state.ai.workflows);
+    const [requestStatus, setRequestStatus] = useState('');
+    const [requestStatusError, setRequestStatusError] = useState('');
     useEffect(() => {}, [selected]);
     const dispatch = useDispatch();
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);
     };
-
     const now = new Date();
     const getTodayAtSpecificHour = (hour: number = 12) =>
         set(now, { hours: hour, minutes: 0, seconds: 0, milliseconds: 0 });
@@ -106,19 +103,6 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleToggleChangePeriod = (event: any) => {
         setCustomBasePeriod(event.target.checked);
     };
-    const handleUpdateSearchKeywords = (value: string) => {
-        dispatch(setSearchContent(value));
-    };
-    const handleUpdateGroupFilter = (value: string) => {
-        dispatch(setGroupFilter(value));
-    };
-    const handleUpdatePlatformFilter = (value: string) => {
-        dispatch(setPlatformFilter(value));
-    };
-    const handleUpdateSearchUsernames =(value: string) => {
-        dispatch(setUsernames(value));
-    };
-
     const handleWorkflowAction = async (event: any, action: string) => {
         const params: PostWorkflowsActionRequest = {
             action: action,
@@ -142,8 +126,13 @@ function AiWorkflowsDashboardContent(props: any) {
             if (statusCode < 400) {
                 const data = response.data;
                 dispatch(setSelectedWorkflows([]));
+                setRequestStatus('Workflow run start successfully')
+                setRequestStatusError('success')
+            } else if (statusCode === 412) {
+                setRequestStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestStatusError('error')
             } else {
-                console.log('Failed to search', response);
+                console.log('Failed to start run', response);
             }
         } catch (e) {
         } finally {
@@ -152,7 +141,6 @@ function AiWorkflowsDashboardContent(props: any) {
     }
     function convertUnixToDateTimeLocal(unixTime: number): string {
         if (!unixTime) return '';
-
         const date = new Date(unixTime * 1000);
         const offset = date.getTimezoneOffset() * 60000; // offset in milliseconds
         return new Date(date.getTime() - offset).toISOString().slice(0, 16);
@@ -185,6 +173,11 @@ function AiWorkflowsDashboardContent(props: any) {
                 const data = response.data;
                 dispatch(setSearchResults(data));
                 setCode(data)
+                setRequestStatus('')
+                setRequestStatusError('')
+            } else if (statusCode === 412) {
+                setRequestStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestStatusError('error')
             } else {
                 console.log('Failed to search', response);
             }
@@ -202,6 +195,8 @@ function AiWorkflowsDashboardContent(props: any) {
         if (newValue !== 1) {
             dispatch(setSelectedWorkflows([]))
         }
+        setRequestStatus('')
+        setRequestStatusError('')
         setSelectedMainTab(newValue);
     };
     const onChangeText = (textInput: string) => {
@@ -597,6 +592,13 @@ function AiWorkflowsDashboardContent(props: any) {
                         </Card>
                     </Container>
                     }
+                    {requestStatus != '' && (
+                        <Container sx={{  mt: 2}}>
+                            <Typography variant="h6" color={requestStatusError}>
+                                {requestStatus}
+                            </Typography>
+                        </Container>
+                    )}
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">

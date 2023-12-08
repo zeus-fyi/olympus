@@ -424,6 +424,9 @@ function WorkflowEngineBuilder(props: any) {
                 setSelectedMainTab(0);
                 setRequestStatus('Workflow created successfully')
                 setRequestStatusError('success')
+            } else if (statusCode === 412) {
+                setRequestStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestStatusError('error')
             } else {
                 console.log('failed to createAiWorkflowRequest', response);
             }

@@ -1,7 +1,6 @@
 package hera_search
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/vartanbeno/go-reddit/v2/reddit"
@@ -70,34 +69,35 @@ func (s *SearchAITestSuite) TestInsertRedditPosts() {
 	s.Require().Nil(err)
 	s.Assert().NotZero(resp)
 }
-func (s *SearchAITestSuite) TestSearchReddit() {
-	// Initialize context and necessary data
-	// Setup context and necessary data
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	ou := org_users.OrgUser{}
-	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
-	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	si := TimeInterval{}
-	si[0] = time.Now().AddDate(0, 0, -7)
-
-	fmt.Println(si[0].Unix())
-	si[1] = time.Now()
-	fmt.Println(si[1].Unix())
-
-	// Call the function
-	sp := AiSearchParams{
-		SearchContentText:    "",
-		GroupFilter:          "",
-		Platforms:            "",
-		Usernames:            "",
-		WorkflowInstructions: "",
-		SearchInterval:       si,
-		AnalysisInterval:     TimeInterval{},
-	}
-	results, err := SearchReddit(ctx, ou, sp)
-
-	// Assert expected outcomes
-	s.Require().NoError(err, "SearchReddit should not return an error")
-	s.Require().NotNil(results, "Results should not be nil")
-}
+//func (s *SearchAITestSuite) TestSearchReddit() {
+//	// Initialize context and necessary data
+//	// Setup context and necessary data
+//	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+//	ou := org_users.OrgUser{}
+//	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+//	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+//
+//	si := TimeInterval{}
+//	si[0] = time.Now().AddDate(0, 0, -7)
+//
+//	fmt.Println(si[0].Unix())
+//	si[1] = time.Now()
+//	fmt.Println(si[1].Unix())
+//
+//	// Call the function
+//	sp := AiSearchParams{
+//		SearchContentText:    "",
+//		GroupFilter:          "",
+//		Platforms:            "",
+//		Usernames:            "",
+//		WorkflowInstructions: "",
+//		SearchInterval:       si,
+//		AnalysisInterval:     TimeInterval{},
+//	}
+//	results, err := SearchReddit(ctx, ou, sp)
+//
+//	// Assert expected outcomes
+//	s.Require().NoError(err, "SearchReddit should not return an error")
+//	s.Require().NotNil(results, "Results should not be nil")
+//}

@@ -20,41 +20,40 @@ const (
 	defaultTwitterSearchGroupName = "zeusfyi"
 )
 
-func twitterSearchQuery(searchText string, intervals ...TimeInterval) (sql_query_templates.QueryParams, []interface{}) {
+func twitterSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "twitterSearchQuery"
-	var args []interface{}
+	args := []interface{}{ou.OrgID}
 
 	bq := `SELECT tweet_id, message_text
-		   FROM public.ai_incoming_tweets`
-	if searchText != "" {
-		bq += fmt.Sprintf(` ,to_tsquery('english', $%d) query`, len(args)+1)
-		args = append(args, searchText)
-	}
-	baseQuery := bq + ` WHERE NOT EXISTS (
-					  SELECT 1
-					  FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️', '💎', '🪂']) as t(emoji)
-					  WHERE message_text LIKE '%' || t.emoji || '%'
-						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '@', ''))) > 7
-						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2
-					)`
-
-	if searchText != "" {
-		baseQuery += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
-		args = append(args, searchText)
+		   FROM public.ai_incoming_tweets
+		   JOIN ai_twitter_search_query sq ON sq.search_id = ai_incoming_tweets.search_id
+		   WHERE sq.org_id = $1
+		   `
+	if sp.Retrieval.RetrievalKeywords != "" {
+		bq += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
+		args = append(args, sp.Retrieval.RetrievalKeywords)
 	}
 
-	if len(intervals) > 0 && !intervals[0][0].IsZero() && !intervals[0][1].IsZero() {
-		baseQuery += ` AND`
-		tsRangeStart, tsEnd := intervals[0].GetUnixTimestamps()
-		baseQuery += fmt.Sprintf(` tweet_id BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
+	bq += ` AND NOT EXISTS (
+				SELECT 1
+				FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️', '💎', '🪂']) as t(emoji)
+				WHERE message_text LIKE '%' || t.emoji || '%'
+					OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '@', ''))) > 7
+					OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2
+				)`
+
+	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
+		bq += ` AND`
+		tsRangeStart, tsEnd := sp.SearchInterval.GetUnixTimestamps()
+		bq += fmt.Sprintf(` tweet_id BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
 		cts := chronos.Chronos{}
 		tweetStart := cts.ConvertUnixTimestampToTweetID(tsRangeStart)
 		tweetEnd := cts.ConvertUnixTimestampToTweetID(tsEnd)
 		args = append(args, tweetStart, tweetEnd)
 	}
-	baseQuery += ` ORDER BY tweet_id DESC`
-	q.RawQuery = baseQuery
+	bq += ` ORDER BY tweet_id DESC`
+	q.RawQuery = bq
 	return q, args
 }
 
@@ -65,6 +64,7 @@ func twitterSearchQuery2() sql_query_templates.QueryParams {
 	q.QueryName = "twitterSearchQuery"
 	q.RawQuery = `SELECT tweet_id, message_text
 				  FROM public.ai_incoming_tweets
+				  JOIN ai_twitter_search_query sq ON sq.search_id = ai_incoming_tweets.search_id
 				  WHERE NOT EXISTS (
 					  SELECT 1
 					  FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️', '💎', '🪂']) as t(emoji)
@@ -72,13 +72,12 @@ func twitterSearchQuery2() sql_query_templates.QueryParams {
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '@', ''))) > 7
 						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2
 					)
-				 AND message_text NOT LIKE '%https://t.co%'
-				 ORDER BY tweet_id DESC`
+				 AND message_text NOT LIKE '%https://t.co%' AND sq.org_id = $1`
 	return q
 }
 
 func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q, args := twitterSearchQuery(sp.Retrieval.RetrievalKeywords, sp.SearchInterval)
+	q, args := twitterSearchQuery(ou, sp)
 	var srs []SearchResult
 	var rows pgx.Rows
 	var err error

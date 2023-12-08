@@ -1,10 +1,12 @@
 package hera_search
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
@@ -70,34 +72,47 @@ func (s *SearchAITestSuite) TestInsertRedditPosts() {
 	s.Assert().NotZero(resp)
 }
 
-//func (s *SearchAITestSuite) TestSearchReddit() {
-//	// Initialize context and necessary data
-//	// Setup context and necessary data
-//	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-//	ou := org_users.OrgUser{}
-//	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
-//	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-//
-//	si := TimeInterval{}
-//	si[0] = time.Now().AddDate(0, 0, -7)
-//
-//	fmt.Println(si[0].Unix())
-//	si[1] = time.Now()
-//	fmt.Println(si[1].Unix())
-//
-//	// Call the function
-//	sp := AiSearchParams{
-//		SearchContentText:    "",
-//		GroupFilter:          "",
-//		Platforms:            "",
-//		Usernames:            "",
-//		WorkflowInstructions: "",
-//		SearchInterval:       si,
-//		AnalysisInterval:     TimeInterval{},
-//	}
-//	results, err := SearchReddit(ctx, ou, sp)
-//
-//	// Assert expected outcomes
-//	s.Require().NoError(err, "SearchReddit should not return an error")
-//	s.Require().NotNil(results, "Results should not be nil")
-//}
+func (s *SearchAITestSuite) TestSearchReddit() {
+	// Initialize context and necessary data
+	// Setup context and necessary data
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	si := TimeInterval{}
+	si[0] = time.Now().AddDate(0, 0, -7)
+
+	fmt.Println(si[0].Unix())
+	si[1] = time.Now()
+	fmt.Println(si[1].Unix())
+
+	// Call the function
+	sp := AiSearchParams{
+		Retrieval: artemis_orchestrations.RetrievalItem{
+			RetrievalID:    0,
+			RetrievalName:  "",
+			RetrievalGroup: "",
+			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
+				RetrievalPlatform:       "reddit",
+				RetrievalPrompt:         "",
+				RetrievalPlatformGroups: "",
+				RetrievalKeywords:       "",
+				RetrievalUsernames:      "",
+				DiscordFilters:          nil,
+			},
+			Instructions: nil,
+		},
+		SearchInterval: si,
+	}
+	results, err := SearchReddit(ctx, ou, sp)
+
+	// Assert expected outcomes
+	s.Require().NoError(err, "SearchReddit should not return an error")
+	s.Require().NotNil(results, "Results should not be nil")
+
+	ou.OrgID = 0
+	results, err = SearchReddit(ctx, ou, sp)
+	s.Require().Nil(err)
+	s.Require().Nil(results)
+}

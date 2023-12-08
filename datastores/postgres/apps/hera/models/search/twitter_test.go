@@ -91,4 +91,9 @@ func (s *SearchAITestSuite) TestSelectTweets() {
 	// Assert expected outcomes
 	s.Require().NoError(err, "SearchTwitter should not return an error")
 	s.Require().NotNil(results, "Results should not be nil")
+
+	ou.OrgID = 0
+	results, err = SearchTwitter(ctx, ou, sp)
+	s.Require().Nil(err)
+	s.Require().Nil(results)
 }

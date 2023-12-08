@@ -38,40 +38,32 @@ type DiscordMetadata struct {
 }
 
 // discordSearchQuery will be extended to support new search parameters when they are not empty
-func discordSearchQuery(sp AiSearchParams, intervals ...TimeInterval) (sql_query_templates.QueryParams, []interface{}) {
+func discordSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "discordSearchQuery"
+	args := []interface{}{ou.OrgID}
 
 	baseQuery := `SELECT cm.timestamp_creation, cm.content, gi.name, ci.category, ci.name
 				  FROM public.ai_incoming_discord_messages cm
 				  JOIN public.ai_discord_channel ci ON ci.channel_id = cm.channel_id
-				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id`
+				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id
+				  JOIN public.ai_discord_search_query sq ON sq.search_id = cm.search_id
+				  WHERE sq.org_id = $1`
 
-	var args []interface{}
 	if sp.Retrieval.RetrievalKeywords != "" {
-		baseQuery += fmt.Sprintf(` WHERE content_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
+		baseQuery += fmt.Sprintf(` AND content_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
 		args = append(args, sp.Retrieval.RetrievalKeywords)
 	}
 
-	if len(intervals) > 0 && !intervals[0][0].IsZero() && !intervals[0][1].IsZero() {
-		if sp.Retrieval.RetrievalKeywords != "" {
-			baseQuery += ` AND`
-		} else {
-			baseQuery += ` WHERE`
-		}
-		tsRangeStart, tsEnd := intervals[0].GetUnixTimestamps()
-		baseQuery += fmt.Sprintf(` cm.timestamp_creation BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
+	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
+		tsRangeStart, tsEnd := sp.SearchInterval.GetUnixTimestamps()
+		baseQuery += fmt.Sprintf(` AND cm.timestamp_creation BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
 		args = append(args, tsRangeStart, tsEnd)
 	}
 
 	if sp.Retrieval.RetrievalPlatformGroups != "" {
 		groupFilters := strings.Split(sp.Retrieval.RetrievalPlatformGroups, ",")
-		if baseQuery != "" {
-			baseQuery += ` AND`
-		} else {
-			baseQuery += ` WHERE`
-		}
-
+		baseQuery += ` AND (`
 		queryParts := make([]string, 0, len(groupFilters))
 		for _, filter := range groupFilters {
 			trimmedFilter := strings.TrimSpace(filter)
@@ -82,16 +74,12 @@ func discordSearchQuery(sp AiSearchParams, intervals ...TimeInterval) (sql_query
 				args = append(args, "%"+trimmedFilter+"%")
 			}
 		}
-		baseQuery += ` (` + strings.Join(queryParts, " OR ") + `)`
+		baseQuery += strings.Join(queryParts, " OR ") + `)`
 	}
+
 	if sp.Retrieval.DiscordFilters != nil && sp.Retrieval.DiscordFilters.CategoryName != "" {
 		categoryNames := strings.Split(sp.Retrieval.DiscordFilters.CategoryName, ",")
-		if baseQuery != "" {
-			baseQuery += ` AND`
-		} else {
-			baseQuery += ` WHERE`
-		}
-
+		baseQuery += ` AND (`
 		queryParts := make([]string, 0, len(categoryNames))
 		for _, filter := range categoryNames {
 			trimmedFilter := strings.TrimSpace(filter)
@@ -102,7 +90,7 @@ func discordSearchQuery(sp AiSearchParams, intervals ...TimeInterval) (sql_query
 				args = append(args, "%"+trimmedFilter+"%")
 			}
 		}
-		baseQuery += ` (` + strings.Join(queryParts, " OR ") + `)`
+		baseQuery += strings.Join(queryParts, " OR ") + `)`
 	}
 
 	baseQuery += ` ORDER BY cm.timestamp_creation DESC;`
@@ -111,7 +99,7 @@ func discordSearchQuery(sp AiSearchParams, intervals ...TimeInterval) (sql_query
 }
 
 func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q, args := discordSearchQuery(sp, sp.SearchInterval)
+	q, args := discordSearchQuery(ou, sp)
 	var srs []SearchResult
 	var rows pgx.Rows
 	var err error

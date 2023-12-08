@@ -3,73 +3,105 @@ package hera_search
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
-//func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
-//	// Initialize context and necessary data
-//	// Setup context and necessary data
-//	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-//	ou := org_users.OrgUser{}
-//	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
-//	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-//
-//	si := TimeInterval{}
-//	si[0] = time.Now().AddDate(0, 0, -1)
-//
-//	fmt.Println(si[0].Unix())
-//	si[1] = time.Now()
-//	fmt.Println(si[1].Unix())
-//
-//	// Call the function
-//	sp := AiSearchParams{
-//		SearchContentText: "",
-//		GroupFilter:       "CryptoDevs",
-//		Platforms:         "discord",
-//		Usernames:         "",
-//		SearchInterval:    si,
-//		AnalysisInterval:  TimeInterval{},
-//		DiscordFilters: &DiscordFilters{
-//			CategoryTopic: "",
-//			CategoryName:  "solidity",
-//			Category:      "",
-//		},
-//	}
-//	results, err := SearchDiscord(ctx, ou, sp)
-//
-//	// Assert expected outcomes
-//	s.Require().NoError(err, "SelectDiscordSearchQuery should not return an error")
-//	s.Require().NotNil(results, "Results should not be nil")
-//
-//	fmt.Println(FormatSearchResultsV2(results))
-//
-//	fmt.Println("===========Second test==========================")
-//	// Call the function
-//	sp = AiSearchParams{
-//		SearchContentText: "",
-//		GroupFilter:       "CryptoDevs",
-//		Platforms:         "discord",
-//		Usernames:         "",
-//		SearchInterval:    si,
-//		AnalysisInterval:  TimeInterval{},
-//		DiscordFilters: &DiscordFilters{
-//			CategoryTopic: "",
-//			CategoryName:  "js-and",
-//			Category:      "",
-//		},
-//	}
-//	results, err = SearchDiscord(ctx, ou, sp)
-//
-//	// Assert expected outcomes
-//	s.Require().NoError(err, "SelectDiscordSearchQuery should not return an error")
-//	s.Require().NotNil(results, "Results should not be nil")
-//
-//	fmt.Println(FormatSearchResultsV2(results))
-//}
+func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
+	// Initialize context and necessary data
+	// Setup context and necessary data
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	si := TimeInterval{}
+	si[0] = time.Now().AddDate(0, 0, -1)
+
+	fmt.Println(si[0].Unix())
+	si[1] = time.Now()
+	fmt.Println(si[1].Unix())
+
+	// Call the function
+	sp := AiSearchParams{
+		Retrieval: artemis_orchestrations.RetrievalItem{
+			RetrievalID:    0,
+			RetrievalName:  "",
+			RetrievalGroup: "",
+			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
+				RetrievalPlatform:       "discord",
+				RetrievalPrompt:         "",
+				RetrievalPlatformGroups: "CryptoDevs",
+				RetrievalKeywords:       "",
+				RetrievalUsernames:      "",
+				DiscordFilters: &artemis_orchestrations.DiscordFilters{
+					CategoryTopic: "",
+					CategoryName:  "solidity",
+					Category:      "",
+				},
+			},
+			Instructions: nil,
+		},
+		TimeRange:      "",
+		SearchInterval: si,
+		Window:         artemis_orchestrations.Window{},
+	}
+
+	results, err := SearchDiscord(ctx, ou, sp)
+
+	// Assert expected outcomes
+	s.Require().NoError(err, "SelectDiscordSearchQuery should not return an error")
+	s.Require().NotNil(results, "Results should not be nil")
+
+	fmt.Println(FormatSearchResultsV2(results))
+
+	fmt.Println("===========Second test==========================")
+	// Call the function
+	// Call the function
+	sp = AiSearchParams{
+		Retrieval: artemis_orchestrations.RetrievalItem{
+			RetrievalID:    0,
+			RetrievalName:  "",
+			RetrievalGroup: "",
+			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
+				RetrievalPlatform:       "discord",
+				RetrievalPrompt:         "",
+				RetrievalPlatformGroups: "CryptoDevs",
+				RetrievalKeywords:       "",
+				RetrievalUsernames:      "",
+				DiscordFilters: &artemis_orchestrations.DiscordFilters{
+					CategoryTopic: "",
+					CategoryName:  "js-and",
+					Category:      "",
+				},
+			},
+			Instructions: nil,
+		},
+		TimeRange:      "",
+		SearchInterval: si,
+		Window:         artemis_orchestrations.Window{},
+	}
+
+	results, err = SearchDiscord(ctx, ou, sp)
+
+	// Assert expected outcomes
+	s.Require().NoError(err, "SelectDiscordSearchQuery should not return an error")
+	s.Require().NotNil(results, "Results should not be nil")
+
+	fmt.Println(FormatSearchResultsV2(results))
+
+	ou.OrgID = 0
+	results, err = SearchDiscord(ctx, ou, sp)
+
+	// Assert expected outcomes
+	s.Require().NoError(err, "SelectDiscordSearchQuery should not return an error")
+	s.Require().Nil(results, "Results should not be nil")
+}
 
 func (s *SearchAITestSuite) TestInsertDiscordSearchQuery() {
 	// Setup context and necessary data
@@ -218,5 +250,4 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchQuery() {
 	// Assert expected outcomes
 	s.Require().NoError(err, "SelectDiscordSearchQuery should not return an error")
 	s.Require().NotNil(results, "Results should not be nil")
-
 }

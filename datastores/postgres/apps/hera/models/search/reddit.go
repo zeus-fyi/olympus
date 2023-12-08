@@ -152,14 +152,14 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 					 LEFT JOIN 
 						 public.ai_reddit_incoming_posts ip ON sq.query = ip.subreddit
 					 WHERE 
-						 sq.org_id = $1 AND sq.user_id = $2 AND sq.search_group_name = $3
+						 sq.org_id = $1 AND sq.search_group_name = $2
 					 GROUP BY 
 						  sq.search_id, sq.query) AS sq_sub
 				LEFT JOIN 
 					public.ai_reddit_incoming_posts ip ON sq_sub.query = ip.subreddit AND sq_sub.last_created_at = ip.created_at;
 				`
 	var postId *string
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, ou.UserID, searchGroupName)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, searchGroupName)
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("SelectRedditSearchQuery: no rows")
 		return nil, nil
@@ -187,35 +187,34 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 	return rss, nil
 }
 
-func redditSearchQuery(sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {
+func redditSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "redditSearchQuery"
-	q.RawQuery = `SELECT created_at, subreddit, title, body
-				  FROM public.ai_reddit_incoming_posts
-				`
-	var args []interface{}
+	args := []interface{}{ou.OrgID}
 
+	baseQuery := `SELECT created_at, subreddit, title, body
+				  FROM public.ai_reddit_incoming_posts
+				  JOIN ai_reddit_search_query sq ON sq.search_id = ai_reddit_incoming_posts.search_id
+				  WHERE sq.org_id = $1
+				 `
 	if sp.Retrieval.RetrievalKeywords != "" {
 		args = append(args, sp.Retrieval.RetrievalKeywords)
-		q.RawQuery += fmt.Sprintf("WHERE body_tsvector @@ to_tsquery('english', $%d) OR title_tsvector @@ to_tsquery('english', $%d)", len(args), len(args))
+		baseQuery += fmt.Sprintf(" AND (body_tsvector @@ to_tsquery('english', $%d) OR title_tsvector @@ to_tsquery('english', $%d))", len(args), len(args))
 	}
 
 	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
-		if sp.Retrieval.RetrievalKeywords != "" {
-			q.RawQuery += ` AND`
-		} else {
-			q.RawQuery += ` WHERE`
-		}
+		baseQuery += ` AND`
 		tsRangeStart, tsEnd := sp.SearchInterval.GetUnixTimestamps()
-		q.RawQuery += fmt.Sprintf(` created_at BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
+		baseQuery += fmt.Sprintf(` created_at BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
 		args = append(args, tsRangeStart, tsEnd)
 	}
-	q.RawQuery += ` ORDER BY created_at DESC;`
+	baseQuery += ` ORDER BY created_at DESC;`
+	q.RawQuery = baseQuery
 	return q, args
 }
 
 func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q, args := redditSearchQuery(sp)
+	q, args := redditSearchQuery(ou, sp)
 	var rows pgx.Rows
 	var err error
 	rows, err = apps.Pg.Query(ctx, q.RawQuery, args...)

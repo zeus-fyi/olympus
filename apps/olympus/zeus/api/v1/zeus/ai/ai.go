@@ -1,6 +1,7 @@
 package zeus_v1_ai
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -75,6 +76,15 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	hera_search.SortSearchResults(res)
+	if len(r.Retrieval.RetrievalPrompt) > 0 {
+		aiResp, arr := ai_platform_service_orchestrations.AiAggregateTask(c.Request().Context(), ou, res, r.AiSearchParams)
+		if arr != nil {
+			log.Err(arr).Msg("error aggregating tasks")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		fullResp := fmt.Sprintf("%s\n%s\n", aiResp.Choices[0].Message.Content, hera_search.FormatSearchResultsV2(res))
+		return c.JSON(http.StatusOK, fullResp)
+	}
 	return c.JSON(http.StatusOK, hera_search.FormatSearchResultsV2(res))
 }
 

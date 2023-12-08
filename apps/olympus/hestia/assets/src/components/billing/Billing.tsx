@@ -139,7 +139,6 @@ function CheckoutPage() {
         appearance: appearance
     };
 
-    console.log(isBillingSetup, 'asdfsd')
     return (
         <div>
             <Card>

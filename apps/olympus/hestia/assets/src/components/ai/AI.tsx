@@ -171,8 +171,12 @@ function AiWorkflowsDashboardContent(props: any) {
             // Construct the retrieval object based on your existing variables
             const params: AiSearchParams = {
                 timeRange,
-                // searchInterval should be set if applicable
-                searchInterval,
+                window: {
+                    start: searchInterval[0],
+                    end: searchInterval[1],
+                    unixStartTime: searchInterval[0].getTime() / 1000, // converting milliseconds to seconds
+                    unixEndTime: searchInterval[1].getTime() / 1000   // converting milliseconds to seconds
+                },
                 retrieval
             };
             const response = await aiApiGateway.searchRequest(params);
@@ -293,7 +297,10 @@ function AiWorkflowsDashboardContent(props: any) {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    { (selectedMainTab === 0) &&
+
+
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
                             <Card sx={{ minWidth: 100, maxWidth: 600 }}>
                                 <CardContent>
@@ -451,7 +458,7 @@ function AiWorkflowsDashboardContent(props: any) {
                             </Card>
                         </Stack>
                     </Container>
-
+                    }
                     { (selectedMainTab === 1) &&
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Card sx={{ minWidth: 500, maxWidth: 1000 }}>

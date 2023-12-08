@@ -152,8 +152,15 @@ export interface DiscordFilters {
 
 export interface AiSearchParams  {
     timeRange?: string;
-    searchInterval?: [Date, Date];
+    window?: Window;
     retrieval: Retrieval;
+}
+
+export interface Window {
+    start?: Date;
+    end?: Date;
+    unixStartTime?: number;
+    unixEndTime?: number;
 }
 
 export interface Retrieval {

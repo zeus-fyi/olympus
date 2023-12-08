@@ -28,10 +28,10 @@ type WorkflowExecParams struct {
 }
 
 type Window struct {
-	Start         time.Time `json:"start"`
-	End           time.Time `json:"end"`
-	UnixStartTime int       `json:"unixStartTime"`
-	UnixEndTime   int       `json:"unixEndTime"`
+	Start         time.Time `json:"start,omitempty"`
+	End           time.Time `json:"end,omitempty"`
+	UnixStartTime int       `json:"unixStartTime,omitempty"`
+	UnixEndTime   int       `json:"unixEndTime,omitempty"`
 }
 
 // CalculateTimeWindow [0, 1] gives the time window for the first cycle

@@ -403,7 +403,6 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestStatusError('error')
                 return;
             }
-            console.log(taskMap, 'taskMap')
             const payload: PostWorkflowsRequest = {
                 workflowName: workflowName,
                 workflowGroupName: workflowGroupName,

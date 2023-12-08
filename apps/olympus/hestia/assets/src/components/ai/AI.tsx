@@ -74,10 +74,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const [customBasePeriodStepSize, setCustomBasePeriodStepSize] = useState(5);
     const [customBasePeriodStepSizeUnit, setCustomBasePeriodStepSizeUnit] = useState('minutes');
     const workflows = useSelector((state: any) => state.ai.workflows);
-
     useEffect(() => {}, [selected]);
-
-    console.log(selected, 'selected')
     const dispatch = useDispatch();
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);
@@ -164,7 +161,6 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleSearchRequest = async (timeRange: '1 hour'| '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
         try {
             setIsLoading(true)
-            console.log(searchInterval, 'sdfs')
             const response = await aiApiGateway.searchRequest({
                 'searchContentText': searchKeywordsText,
                 'groupFilter': groupFilter,

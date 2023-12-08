@@ -3,7 +3,6 @@ package artemis_orchestrations
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -416,7 +415,7 @@ func MapDependencies(res []WorkflowTemplateData) WorkflowTaskRelationships {
 			if _, ok := analysisRetrievals[v.AnalysisTaskID][v.RetrievalID]; !ok {
 				analysisRetrievals[v.AnalysisTaskID][v.RetrievalID] = true
 			} else {
-				fmt.Println("Duplicate retrieval id", v.RetrievalID)
+				//fmt.Println("Duplicate retrieval id", v.RetrievalID)
 			}
 		}
 
@@ -427,7 +426,7 @@ func MapDependencies(res []WorkflowTemplateData) WorkflowTaskRelationships {
 			if _, ok := aggregateAnalysis[*v.AggTaskID][v.AnalysisTaskID]; !ok {
 				aggregateAnalysis[*v.AggTaskID][v.AnalysisTaskID] = true
 			} else {
-				fmt.Println("Duplicate agg id", *v.AggTaskID)
+				//fmt.Println("Duplicate agg id", *v.AggTaskID)
 			}
 		}
 	}

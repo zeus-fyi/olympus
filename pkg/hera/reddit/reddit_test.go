@@ -27,14 +27,14 @@ func (s *RedditTestSuite) SetupTest() {
 }
 
 func (s *RedditTestSuite) TestReadPosts() {
-	posts, _, err := s.rc.ReadOnly.Subreddit.TopPosts(ctx, "kubernetes", &reddit.ListPostOptions{
-		ListOptions: reddit.ListOptions{
-			Limit: 1,
-		},
-		Time: "day",
-	})
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-	searchID := 1700685362343578112
+	lpo := &reddit.ListOptions{
+		Limit:  10,
+		After:  "1829cc6",
+		Before: "",
+	}
+	posts, _, err := s.rc.ReadOnly.Subreddit.NewPosts(ctx, "ethdev", lpo)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	searchID := 1700890336466260000
 
 	resp, err := hera_search.InsertIncomingRedditPosts(ctx, searchID, posts)
 	s.Require().Nil(err)

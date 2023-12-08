@@ -54,6 +54,7 @@ func InsertIncomingRedditPosts(ctx context.Context, searchID int, posts []*reddi
 	var postIDs []string
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
+		log.Err(err).Msg("InsertIncomingRedditPosts")
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
@@ -116,6 +117,7 @@ func InsertIncomingRedditPosts(ctx context.Context, searchID int, posts []*reddi
 
 	err = tx.Commit(ctx)
 	if err != nil {
+		log.Err(err).Msg("InsertIncomingRedditPosts")
 		return nil, err
 	}
 	return postIDs, nil
@@ -128,7 +130,7 @@ type RedditSearchQuery struct {
 	SearchGroupName string `json:"searchGroupName"`
 	MaxResults      int    `json:"maxResults"`
 	LastCreatedAt   int    `json:"lastCreatedAt"`
-	FullPostId      string `json:"fullPostId"`
+	PostId          string `json:"postId"`
 	Query           string `json:"query"`
 }
 
@@ -139,7 +141,7 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 				    sq_sub.search_id AS search_id,
 					sq_sub.query as subreddit, 
 					sq_sub.last_created_at,
-					COALESCE(ip.post_full_id, '') AS post_full_id
+					COALESCE(ip.post_id, '') AS post_id
 				FROM 
 					(SELECT
 					     sq.search_id,
@@ -168,13 +170,13 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 		rs := &RedditSearchQuery{
 			MaxResults: 100,
 		}
-		rowErr := rows.Scan(&rs.SearchID, &rs.Query, &rs.LastCreatedAt, &rs.FullPostId)
+		rowErr := rows.Scan(&rs.SearchID, &rs.Query, &rs.LastCreatedAt, &rs.PostId)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("Error scanning row in SelectRedditSearchQuery")
 			return nil, rowErr
 		}
 		if postId != nil {
-			rs.FullPostId = *postId
+			rs.PostId = *postId
 		}
 		rss = append(rss, rs)
 	}

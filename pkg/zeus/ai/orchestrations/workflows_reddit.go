@@ -50,7 +50,7 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 			}
 		}
 		redditCtx := workflow.WithActivityOptions(ctx, ao)
-		lpo := &reddit.ListOptions{Limit: redditSearchQuery.MaxResults, After: redditSearchQuery.FullPostId}
+		lpo := &reddit.ListOptions{Limit: redditSearchQuery.MaxResults, After: redditSearchQuery.PostId}
 		var redditPosts []*reddit.Post
 		err = workflow.ExecuteActivity(redditCtx, z.SearchRedditNewPostsUsingSubreddit, redditSearchQuery.Query, lpo).Get(redditCtx, &redditPosts)
 		if err != nil {

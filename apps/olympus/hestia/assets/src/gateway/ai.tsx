@@ -12,146 +12,87 @@ import {
 class AiApiGateway {
     async searchRequest(params: AiSearchParams): Promise<any> {
         const url = `/v1/search`;
-        try {
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-                withCredentials: true,
-            }
-            const payload = {
-                'searchParams': params
-            }
-            return await zeusApi.post(url, payload, config)
-        } catch (exc) {
-            console.error('error sending search request');
-            console.error(exc);
-            return
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
         }
-    }
-    async analyzeSearchRequest(params: any): Promise<any> {
-        const url = `/v1/search/analyze`;
-        try {
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-                withCredentials: true,
-            }
-            const payload = {
-                'searchParams': params
-            }
-            return await zeusApi.post(url, payload, config)
-        } catch (exc) {
-            console.error('error sending search request');
-            console.error(exc);
-            return
+        const payload = {
+            'searchParams': params
         }
+        return await zeusApi.post(url, payload, config)
     }
     async createAiWorkflowRequest(params: PostWorkflowsRequest): Promise<any> {
         const url = `/v1/workflows/ai`;
-        try {
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-                withCredentials: true,
-            }
-            return await zeusApi.post(url, params, config)
-        } catch (exc) {
-            console.error('error sending search request');
-            console.error(exc);
-            return
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
         }
+        return await zeusApi.post(url, params, config)
     }
+
     async createOrUpdateTaskRequest(params: TaskModelInstructions): Promise<any> {
         const url = `/v1/tasks/ai`;
-        try {
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-                withCredentials: true,
-            }
-            return await zeusApi.post(url, params, config)
-        } catch (exc) {
-            console.error('error sending task create or update request');
-            console.error(exc);
-            return
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
         }
+        return await zeusApi.post(url, params, config)
     }
+
     async createOrUpdateRetrieval(params: Retrieval): Promise<any> {
         const url = `/v1/retrievals/ai`;
-        try {
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-                withCredentials: true,
-            }
-            return await zeusApi.post(url, params, config)
-        } catch (exc) {
-            console.error('error sending task create or update request');
-            console.error(exc);
-            return
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
         }
+        return await zeusApi.post(url, params, config)
     }
     async getWorkflowsRequest(): Promise<any> {
         const url = `/v1/workflows/ai`;
-        try {
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-                withCredentials: true,
-            }
-            return await zeusApi.get(url, config)
-        } catch (exc) {
-            console.error('error sending search request');
-            console.error(exc);
-            return
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
         }
+        return await zeusApi.get(url, config)
     }
+
     async deleteWorkflowsActionRequest(params: DeleteWorkflowsActionRequest): Promise<any> {
         const url = `/v1/workflows/ai`;
-        try {
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-                withCredentials: true,
-                data: params
-            }
-            return await zeusApi.delete(url, config)
-        } catch (exc) {
-            console.error('error sending task create or update request');
-            console.error(exc);
-            return
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+            data: params
         }
+        return await zeusApi.delete(url, config)
     }
     async execWorkflowsActionRequest(params: PostWorkflowsActionRequest): Promise<any> {
         const url = `/v1/workflows/ai/start`;
-        try {
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-                withCredentials: true,
-            }
-            return await zeusApi.post(url, params, config)
-        } catch (exc) {
-            console.error('error sending task create or update request');
-            console.error(exc);
-            return
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
         }
+        return await zeusApi.post(url, params, config)
     }
 }
 

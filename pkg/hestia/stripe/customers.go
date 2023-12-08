@@ -21,7 +21,7 @@ func CreateCustomer(ctx context.Context, userID int, firstName, lastName, email 
 	}
 	c, err := customer.New(params)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("CreateCustomer")
+		log.Err(err).Msg("CreateCustomer")
 		return nil, err
 	}
 	k := create_keys.Key{}
@@ -32,10 +32,10 @@ func CreateCustomer(ctx context.Context, userID int, firstName, lastName, email 
 	k.UserID = userID
 	err = k.InsertUserKey(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("CreateCustomer")
+		log.Err(err).Msg("CreateCustomer")
 		_, derr := customer.Del(c.ID, nil)
 		if derr != nil {
-			log.Ctx(ctx).Err(derr).Msg("CreateCustomer, Delete Customer Cleanup")
+			log.Err(derr).Msg("CreateCustomer, Delete Customer Cleanup")
 		}
 		return nil, err
 	}
@@ -45,17 +45,15 @@ func CreateCustomer(ctx context.Context, userID int, firstName, lastName, email 
 func DoesUserHaveBillingMethod(ctx context.Context, userID int) (bool, error) {
 	cID, err := QueryGetCustomerStripeID(ctx, userID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("u", userID).Msg("DoesUserHaveBillingMethod error")
+		log.Err(err).Interface("u", userID).Msg("DoesUserHaveBillingMethod error")
 		return false, nil
 	}
-
 	params := &stripe.PaymentMethodListParams{
 		Customer: stripe.String(cID),
 		Type:     stripe.String("card"),
 	}
 	i := paymentmethod.List(params)
 	for i.Next() {
-		fmt.Println(i.PaymentMethod())
 		return true, nil
 	}
 	return false, nil

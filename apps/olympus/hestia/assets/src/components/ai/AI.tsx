@@ -128,13 +128,13 @@ function AiWorkflowsDashboardContent(props: any) {
                 dispatch(setSelectedWorkflows([]));
                 setRequestStatus('Workflow run start successfully')
                 setRequestStatusError('success')
-            } else if (statusCode === 412) {
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
                 setRequestStatus('Billing setup required. Please configure your billing information to continue using this service.');
                 setRequestStatusError('error')
-            } else {
-                console.log('Failed to start run', response);
             }
-        } catch (e) {
         } finally {
             setIsLoading(false);
         }
@@ -175,13 +175,13 @@ function AiWorkflowsDashboardContent(props: any) {
                 setCode(data)
                 setRequestStatus('')
                 setRequestStatusError('')
-            } else if (statusCode === 412) {
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
                 setRequestStatus('Billing setup required. Please configure your billing information to continue using this service.');
                 setRequestStatusError('error')
-            } else {
-                console.log('Failed to search', response);
             }
-        } catch (e) {
         } finally {
             setIsLoading(false);
         }

@@ -414,7 +414,7 @@ function WorkflowEngineBuilder(props: any) {
             }
             setIsLoading(true)
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
-            const statusCode = response.status;
+            const statusCode = response.status
             if (statusCode < 400) {
                 const data = response.data;
                 setSelected({});
@@ -424,13 +424,13 @@ function WorkflowEngineBuilder(props: any) {
                 setSelectedMainTab(0);
                 setRequestStatus('Workflow created successfully')
                 setRequestStatusError('success')
-            } else if (statusCode === 412) {
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
                 setRequestStatus('Billing setup required. Please configure your billing information to continue using this service.');
                 setRequestStatusError('error')
-            } else {
-                console.log('failed to createAiWorkflowRequest', response);
             }
-        } catch (e) {
         } finally {
             setIsLoading(false);
         }
@@ -470,11 +470,13 @@ function WorkflowEngineBuilder(props: any) {
                 dispatch(setRetrievals([...retrievals, data]))
                 setRequestRetrievalStatus('Retrieval created successfully')
                 setRequestRetrievalStatusError('success')
-            } else {
-                console.log('Failed to update or add retrieval', response);
             }
-        } catch (e) {
-
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
+                setRequestRetrievalStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestRetrievalStatusError('error')
+            }
         } finally {
             setIsLoading(false);
         }
@@ -519,7 +521,6 @@ function WorkflowEngineBuilder(props: any) {
                 }
                 return;
             }
-
             const task: TaskModelInstructions = {
                 taskType: taskType,
                 taskGroup:taskGn,
@@ -542,11 +543,18 @@ function WorkflowEngineBuilder(props: any) {
                     setRequestAggStatus('Task created successfully')
                     setRequestAggStatusError('success')
                 }
-            } else {
-                console.log('Failed to update or add task', response);
             }
-        } catch (e) {
-
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
+                if (taskType === 'analysis') {
+                    setRequestAnalysisStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                    setRequestAnalysisStatusError('error')
+                } else if (taskType === 'aggregation') {
+                    setRequestAggStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                    setRequestAggStatusError('error')
+                }
+            }
         } finally {
             setIsLoading(false);
         }

@@ -19,7 +19,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending cluster preview create request');
             console.error(exc);
-            return
+            return exc
         }
     }
     async createCluster(params: any): Promise<any>  {
@@ -39,7 +39,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending cluster create request');
             console.error(exc);
-            return
+            return exc
         }
     }
     async deployClusterToCloudCtxNs(cloudCtxNsID: any, clusterClassName: any, clustersDeployed: any): Promise<any>  {
@@ -62,7 +62,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending cluster deploy to ns request');
             console.error(exc);
-            return
+            return exc
         }
     }
 
@@ -82,7 +82,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending cluster deploy fleet upgrade');
             console.error(exc);
-            return
+            return exc
         }
     }
 
@@ -104,7 +104,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending cluster deploy fleet upgrade');
             console.error(exc);
-            return
+            return exc
         }
     }
 
@@ -125,7 +125,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending cluster deploy fleet upgrade');
             console.error(exc);
-            return
+            return exc
         }
     }
     async updateCluster(cluster: any, clusterPreview: any): Promise<any>  {
@@ -146,7 +146,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending cluster update request');
             console.error(exc);
-            return
+            return exc
         }
     }
     async getClusters(): Promise<any>  {
@@ -163,7 +163,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending cluster get request');
             console.error(exc);
-            return
+            return exc
         }
     }
     async getAppClustersView(): Promise<any>  {
@@ -180,7 +180,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending cluster get request');
             console.error(exc);
-            return
+            return exc
         }
     }
     async getClusterTopologies(params: any): Promise<any>  {
@@ -200,7 +200,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending get cluster topologies at cloud ctx ns request');
             console.error(exc);
-            return
+            return exc
         }
     }
     async getClusterPodsAudit(clusterID: any): Promise<any>  {
@@ -221,7 +221,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending get cluster topologies at cloud ctx ns request');
             console.error(exc);
-            return
+            return exc
         }
     }
     async deletePod(clusterID: any, podName: string): Promise<any>  {
@@ -243,7 +243,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending get cluster topologies at cloud ctx ns request');
             console.error(exc);
-            return
+            return exc
         }
     }
     async getClusterPodLogs(clusterID: any, podName: string, containerName: string): Promise<any>  {
@@ -266,7 +266,7 @@ class ClustersApiGateway {
         } catch (exc) {
             console.error('error sending get cluster topologies at cloud ctx ns request');
             console.error(exc);
-            return
+            return exc
         }
     }
 }

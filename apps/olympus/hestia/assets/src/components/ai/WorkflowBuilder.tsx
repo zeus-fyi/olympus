@@ -254,7 +254,7 @@ function WorkflowEngineBuilder(props: any) {
             setSelectedMainTab(1)
             setSelected({});
             setTaskType('analysis');
-            setTasks(allTasks.filter((task: any) => task.taskType === 'analysis'));
+            setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'analysis'));
         } else {
             setSelectedMainTab(0)
         }
@@ -267,7 +267,7 @@ function WorkflowEngineBuilder(props: any) {
         if (toggle) {
             setSelected({});
             setTaskType('aggregation');
-            setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
+            setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'aggregation'));
             setSelectedMainTab(2)
         } else {
             setSelectedMainTab(0)
@@ -569,12 +569,12 @@ function WorkflowEngineBuilder(props: any) {
             setSelected({});
             setTaskType('analysis');
             dispatch(setSelectedWorkflows([]));
-            setTasks(allTasks.filter((task: any) => task.taskType === 'analysis'));
+            setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'analysis'));
         } else if (newValue === 2) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
             setTaskType('aggregation');
-            setTasks(allTasks.filter((task: any) => task.taskType === 'aggregation'));
+            setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'aggregation'));
         } else if (newValue === 3) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});

@@ -1,7 +1,6 @@
 package hera_search
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/vartanbeno/go-reddit/v2/reddit"
@@ -80,12 +79,9 @@ func (s *SearchAITestSuite) TestSearchReddit() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	si := TimeInterval{}
-	si[0] = time.Now().AddDate(0, 0, -7)
-
-	fmt.Println(si[0].Unix())
-	si[1] = time.Now()
-	fmt.Println(si[1].Unix())
+	si := artemis_orchestrations.Window{}
+	si.Start = time.Now().AddDate(0, 0, -7)
+	si.End = time.Now()
 
 	// Call the function
 	sp := AiSearchParams{
@@ -103,7 +99,7 @@ func (s *SearchAITestSuite) TestSearchReddit() {
 			},
 			Instructions: nil,
 		},
-		SearchInterval: si,
+		Window: si,
 	}
 	results, err := SearchReddit(ctx, ou, sp)
 

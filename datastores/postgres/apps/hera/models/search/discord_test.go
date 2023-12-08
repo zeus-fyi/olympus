@@ -20,12 +20,9 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	si := TimeInterval{}
-	si[0] = time.Now().AddDate(0, 0, -1)
-
-	fmt.Println(si[0].Unix())
-	si[1] = time.Now()
-	fmt.Println(si[1].Unix())
+	si := artemis_orchestrations.Window{}
+	si.Start = time.Now().AddDate(0, 0, -1)
+	si.End = time.Now()
 
 	// Call the function
 	sp := AiSearchParams{
@@ -47,9 +44,8 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
 			},
 			Instructions: nil,
 		},
-		TimeRange:      "",
-		SearchInterval: si,
-		Window:         artemis_orchestrations.Window{},
+		TimeRange: "",
+		Window:    si,
 	}
 
 	results, err := SearchDiscord(ctx, ou, sp)
@@ -82,9 +78,7 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
 			},
 			Instructions: nil,
 		},
-		TimeRange:      "",
-		SearchInterval: si,
-		Window:         artemis_orchestrations.Window{},
+		Window: si,
 	}
 
 	results, err = SearchDiscord(ctx, ou, sp)

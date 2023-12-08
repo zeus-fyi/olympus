@@ -1,7 +1,6 @@
 package hera_search
 
 import (
-	"fmt"
 	"time"
 
 	twitter2 "github.com/cvcio/twitter"
@@ -62,12 +61,9 @@ func (s *SearchAITestSuite) TestSelectTweets() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
-	si := TimeInterval{}
-	si[0] = time.Now().AddDate(0, 0, -7)
-
-	fmt.Println(si[0].Unix())
-	si[1] = time.Now()
-	fmt.Println(si[1].Unix())
+	si := artemis_orchestrations.Window{}
+	si.Start = time.Now().AddDate(0, 0, -7)
+	si.End = time.Now()
 
 	// Call the function
 	sp := AiSearchParams{
@@ -85,7 +81,9 @@ func (s *SearchAITestSuite) TestSelectTweets() {
 			},
 			Instructions: nil,
 		},
+		Window: si,
 	}
+
 	results, err := SearchTwitter(ctx, ou, sp)
 
 	// Assert expected outcomes

@@ -53,7 +53,7 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
 	q.RawQuery = `SELECT ar.workflow_result_id, ar.orchestrations_id, ar.response_id, ar.source_task_id, ar.running_cycle_number, ar.search_window_unix_start, ar.search_window_unix_end, ar.metadata, cr.completion_choices
                   FROM ai_workflow_analysis_results ar
                   JOIN completion_responses cr ON cr.response_id = ar.response_id	
-                  WHERE ar.search_window_unix_start >= $1 AND ar.search_window_unix_end < $2 AND ar.source_task_id = ANY($3) AND ar.orchestration_id = ANY($4);`
+                  WHERE ar.search_window_unix_start >= $1 AND ar.search_window_unix_end < $2 AND ar.source_task_id = ANY($3) AND ar.orchestrations_id = ANY($4);`
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, w.UnixStartTime, w.UnixEndTime, pq.Array(sourceTaskIds), pq.Array(ojIds))
 	if err != nil {
@@ -106,7 +106,17 @@ func SelectAllAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, so
 	return results, nil
 }
 
+// todo more efficient way to do this
+
 func GenerateContentText(wrs []AIWorkflowAnalysisResult) string {
-	// TODO
-	return ""
+	var temp string
+	for _, wr := range wrs {
+		if len(wr.CompletionChoices) > 0 {
+			temp += string(wr.CompletionChoices) + "\n"
+		}
+		if len(wr.Metadata) > 0 {
+			temp += string(wr.Metadata) + "\n"
+		}
+	}
+	return temp
 }

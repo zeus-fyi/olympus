@@ -50,6 +50,7 @@ import {
     setRetrievalGroup,
     setRetrievalKeywords,
     setRetrievalName,
+    setRetrievalPlatform,
     setRetrievalPlatformGroups,
     setRetrievalPrompt,
     setRetrievals,
@@ -1436,9 +1437,9 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Select
                                                             labelId="platform-label"
                                                             id="platforms-input"
-                                                            value={retrieval.retrievalGroup}
+                                                            value={retrieval.retrievalPlatform}
                                                             label="Platform"
-                                                            onChange={(e) => dispatch(setRetrievalGroup(e.target.value))}
+                                                            onChange={(e) => dispatch(setRetrievalPlatform(e.target.value))}
                                                         >
                                                             <MenuItem value="web">Web</MenuItem>
                                                             <MenuItem value="reddit">Reddit</MenuItem>

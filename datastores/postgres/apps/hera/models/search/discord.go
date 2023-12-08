@@ -55,8 +55,8 @@ func discordSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_temp
 		args = append(args, sp.Retrieval.RetrievalKeywords)
 	}
 
-	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
-		tsRangeStart, tsEnd := sp.SearchInterval.GetUnixTimestamps()
+	if !sp.Window.IsWindowEmpty() {
+		tsRangeStart, tsEnd := sp.Window.GetUnixTimestamps()
 		baseQuery += fmt.Sprintf(` AND cm.timestamp_creation BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
 		args = append(args, tsRangeStart, tsEnd)
 	}

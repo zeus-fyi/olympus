@@ -34,6 +34,23 @@ type Window struct {
 	UnixEndTime   int       `json:"unixEndTime,omitempty"`
 }
 
+func (ti *Window) IsWindowEmpty() bool {
+	if ti == nil {
+		return true
+	}
+	return ti.Start.IsZero() && ti.End.IsZero() && ti.UnixStartTime == 0 && ti.UnixEndTime == 0
+}
+
+func (ti *Window) GetUnixTimestamps() (int, int) {
+	if ti == nil {
+		return 0, 0
+	}
+	if ti.UnixStartTime != 0 && ti.UnixEndTime != 0 {
+		return ti.UnixStartTime, ti.UnixEndTime
+	}
+	return int(ti.Start.Unix()), int(ti.End.Unix())
+}
+
 // CalculateTimeWindow [0, 1] gives the time window for the first cycle
 func CalculateTimeWindow(unixStartTime int, cycleStart, cycleEnd, timeStep time.Duration) Window {
 	start := (cycleStart) * timeStep

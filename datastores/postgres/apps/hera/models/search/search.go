@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -20,23 +19,14 @@ import (
 )
 
 type AiSearchParams struct {
-	Retrieval      artemis_orchestrations.RetrievalItem `json:"retrieval,omitempty"`
-	TimeRange      string                               `json:"timeRange,omitempty"`
-	SearchInterval TimeInterval                         `json:"searchInterval,omitempty"`
-	Window         artemis_orchestrations.Window        `json:"window,omitempty"`
+	Retrieval artemis_orchestrations.RetrievalItem `json:"retrieval,omitempty"`
+	TimeRange string                               `json:"timeRange,omitempty"`
+	Window    artemis_orchestrations.Window        `json:"window,omitempty"`
 }
 
 type AiModelParams struct {
 	Model         string `json:"model"`
 	TokenCountMax int    `json:"tokenCountMax"`
-}
-type TimeInterval [2]time.Time
-
-func (ti *TimeInterval) GetUnixTimestamps() (int, int) {
-	if ti == nil {
-		return 0, 0
-	}
-	return int(ti[0].Unix()), int(ti[1].Unix())
 }
 
 type SearchResult struct {
@@ -152,13 +142,13 @@ func telegramSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_tem
 		args = append(args, sp.Retrieval.RetrievalGroup)
 		q.RawQuery += `AND group_name ILIKE '%' || ` + fmt.Sprintf("$%d", len(args)) + ` || '%' `
 	}
-	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
+	if !sp.Window.Start.IsZero() && !sp.Window.End.IsZero() {
 		if len(args) > 0 {
 			q.RawQuery += ` AND`
 		} else {
 			q.RawQuery += ` WHERE`
 		}
-		tsRangeStart, tsEnd := sp.SearchInterval.GetUnixTimestamps()
+		tsRangeStart, tsEnd := sp.Window.GetUnixTimestamps()
 		q.RawQuery += fmt.Sprintf(` timestamp BETWEEN $%d AND $%d `, len(args)+1, len(args)+2)
 		args = append(args, tsRangeStart, tsEnd)
 	}

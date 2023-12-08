@@ -53,22 +53,22 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 	ts := time.Now()
 	switch r.TimeRange {
 	case "1 hour":
-		r.SearchInterval[0] = ts.Add(-1 * time.Hour)
-		r.SearchInterval[1] = ts
+		r.Window.Start = ts.Add(-1 * time.Hour)
+		r.Window.End = ts
 	case "24 hours":
-		r.SearchInterval[0] = ts.AddDate(0, 0, -1)
-		r.SearchInterval[1] = ts
+		r.Window.Start = ts.AddDate(0, 0, -1)
+		r.Window.End = ts
 	case "7 days":
-		r.SearchInterval[0] = ts.AddDate(0, 0, -7)
-		r.SearchInterval[1] = ts
+		r.Window.Start = ts.AddDate(0, 0, -7)
+		r.Window.End = ts
 	case "30 days":
-		r.SearchInterval[0] = ts.AddDate(0, 0, -30)
-		r.SearchInterval[1] = ts
+		r.Window.Start = ts.AddDate(0, 0, -30)
+		r.Window.End = ts
 	case "all":
-		r.SearchInterval[0] = ts.AddDate(-4, 0, 0)
-		r.SearchInterval[1] = ts
+		r.Window.Start = ts.AddDate(-4, 0, 0)
+		r.Window.End = ts
 	case "window":
-		log.Info().Interface("searchInterval", r.SearchInterval).Msg("window")
+		log.Info().Interface("searchInterval", r.Window).Msg("window")
 	}
 	res, err := hera_search.PerformPlatformSearches(c.Request().Context(), ou, r.AiSearchParams)
 	if err != nil {

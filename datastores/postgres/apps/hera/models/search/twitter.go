@@ -43,9 +43,9 @@ func twitterSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_temp
 					OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2
 				)`
 
-	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
+	if !sp.Window.IsWindowEmpty() {
 		bq += ` AND`
-		tsRangeStart, tsEnd := sp.SearchInterval.GetUnixTimestamps()
+		tsRangeStart, tsEnd := sp.Window.GetUnixTimestamps()
 		bq += fmt.Sprintf(` tweet_id BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
 		cts := chronos.Chronos{}
 		tweetStart := cts.ConvertUnixTimestampToTweetID(tsRangeStart)

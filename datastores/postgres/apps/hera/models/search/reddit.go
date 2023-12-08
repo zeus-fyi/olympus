@@ -202,9 +202,9 @@ func redditSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templ
 		baseQuery += fmt.Sprintf(" AND (body_tsvector @@ to_tsquery('english', $%d) OR title_tsvector @@ to_tsquery('english', $%d))", len(args), len(args))
 	}
 
-	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
+	if !sp.Window.IsWindowEmpty() {
 		baseQuery += ` AND`
-		tsRangeStart, tsEnd := sp.SearchInterval.GetUnixTimestamps()
+		tsRangeStart, tsEnd := sp.Window.GetUnixTimestamps()
 		baseQuery += fmt.Sprintf(` created_at BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
 		args = append(args, tsRangeStart, tsEnd)
 	}

@@ -300,11 +300,9 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 		Retrieval: artemis_orchestrations.RetrievalItem{
 			RetrievalItemInstruction: retInst,
 		},
+		Window: window,
 	}
-	sw := hera_search.TimeInterval{}
-	sw[0] = window.Start
-	sw[1] = window.End
-	sp.SearchInterval = sw
+
 	var resp []hera_search.SearchResult
 	var err error
 	switch taskInst.RetrievalPlatform {

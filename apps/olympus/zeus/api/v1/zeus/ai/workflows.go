@@ -45,8 +45,9 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get workflows")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+
 	return c.JSON(http.StatusOK, AiWorkflowWrapper{
-		Workflows:  ojs,
+		Workflows:  ojs.WorkflowTemplateSlice,
 		Tasks:      tasks,
 		Retrievals: ret,
 		Runs:       ojsRuns,
@@ -54,7 +55,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 }
 
 type AiWorkflowWrapper struct {
-	Workflows  []artemis_orchestrations.WorkflowTemplate       `json:"workflows"`
+	Workflows  []artemis_orchestrations.WorkflowTemplateValue  `json:"workflows"`
 	Runs       []artemis_orchestrations.OrchestrationsAnalysis `json:"runs"`
 	Tasks      []artemis_orchestrations.AITaskLibrary          `json:"tasks"`
 	Retrievals []artemis_orchestrations.RetrievalItem          `json:"retrievals"`

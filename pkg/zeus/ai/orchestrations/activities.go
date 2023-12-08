@@ -287,7 +287,7 @@ func (z *ZeusAiPlatformActivities) UpsertAiOrchestration(ctx context.Context, ou
 }
 
 func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) ([]hera_search.SearchResult, error) {
-	if taskInst.RetrievalPlatform == nil || taskInst.RetrievalName == nil || taskInst.RetrievalInstructions == nil {
+	if taskInst.RetrievalPlatform == "" || taskInst.RetrievalName == "" || taskInst.RetrievalInstructions == nil {
 		return nil, nil
 	}
 	retInst := artemis_orchestrations.RetrievalItemInstruction{}
@@ -310,7 +310,7 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 	sp.SearchInterval = sw
 	var resp []hera_search.SearchResult
 	var err error
-	switch *taskInst.RetrievalPlatform {
+	switch taskInst.RetrievalPlatform {
 	case "twitter":
 		resp, err = hera_search.SearchTwitter(ctx, ou, sp)
 	case "reddit":

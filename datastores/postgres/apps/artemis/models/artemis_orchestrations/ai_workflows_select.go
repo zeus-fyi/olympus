@@ -11,28 +11,69 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
+type Workflows struct {
+	WorkflowTemplatesMap  map[int]WorkflowTemplateValue `json:"templates"`
+	WorkflowTemplateSlice []WorkflowTemplateValue       `json:"templatesSlice"`
+}
+
+type WorkflowTemplateValue struct {
+	WorkflowTemplateID        int                         `json:"workflowID,omitempty"`
+	WorkflowName              string                      `json:"workflowName"`
+	WorkflowGroup             string                      `json:"workflowGroup"`
+	FundamentalPeriod         int                         `json:"fundamentalPeriod"`
+	FundamentalPeriodTimeUnit string                      `json:"fundamentalPeriodTimeUnit"`
+	AnalysisTasks             map[int]AnalysisTaskDB      `json:"-"`
+	AnalysisRetrievals        map[int]map[int]RetrievalDB `json:"-"`
+	AggTasks                  map[int]AggTaskDb           `json:"-"`
+	AggAnalysisTasks          map[int]map[int]AggTaskDb   `json:"-"`
+	AnalysisTasksSlice        []AnalysisTaskDB            `json:"-"`
+	AggAnalysisTasksSlice     []AggTaskDb                 `json:"-"`
+	Tasks                     []Task                      `json:"tasks"`
+}
+
 type WorkflowTemplateData struct {
-	AnalysisTaskID                int     `json:"analysisTaskID"`
-	AnalysisCycleCount            int     `json:"analysisCycleCount"`
-	AnalysisPrompt                string  `json:"analysisPrompt"`
-	AnalysisModel                 string  `json:"analysisModel"`
-	AnalysisTokenOverflowStrategy string  `json:"analysisTokenOverflowStrategy"`
-	AnalysisTaskName              string  `json:"analysisTaskName"`
-	AnalysisTaskType              string  `json:"analysisTaskType"`
-	AnalysisMaxTokensPerTask      int     `json:"analysisMaxTokensPerTask"`
-	AggTaskID                     *int    `json:"aggTaskID,omitempty"`
-	AggCycleCount                 *int    `json:"aggCycleCount,omitempty"`
-	AggTaskName                   *string `json:"aggTaskName,omitempty"`
-	AggTaskType                   *string `json:"aggTaskType,omitempty"`
-	AggPrompt                     *string `json:"aggPrompt,omitempty"`
-	AggModel                      *string `json:"aggModel,omitempty"`
-	AggTokenOverflowStrategy      *string `json:"aggTokenOverflowStrategy,omitempty"`
-	AggMaxTokensPerTask           *int    `json:"aggMaxTokensPerTask,omitempty"`
-	RetrievalID                   *int    `json:"retrievalID,omitempty"`
-	RetrievalName                 *string `json:"retrievalName,omitempty"`
-	RetrievalGroup                *string `json:"retrievalGroup,omitempty"`
-	RetrievalPlatform             *string `json:"retrievalPlatform,omitempty"`
-	RetrievalInstructions         []byte  `json:"retrievalInstructions,omitempty"`
+	AnalysisTaskDB
+	AnalysisMaxTokensPerTask int     `json:"analysisMaxTokensPerTask"`
+	AggTaskID                *int    `json:"aggTaskID,omitempty"`
+	AggCycleCount            *int    `json:"aggCycleCount,omitempty"`
+	AggTaskName              *string `json:"aggTaskName,omitempty"`
+	AggTaskType              *string `json:"aggTaskType,omitempty"`
+	AggPrompt                *string `json:"aggPrompt,omitempty"`
+	AggModel                 *string `json:"aggModel,omitempty"`
+	AggTokenOverflowStrategy *string `json:"aggTokenOverflowStrategy,omitempty"`
+	AggMaxTokensPerTask      *int    `json:"aggMaxTokensPerTask,omitempty"`
+}
+
+type AggTaskDb struct {
+	AggModel                 string `json:"aggModel"`
+	AggPrompt                string `json:"aggPrompt"`
+	AggTaskId                int    `json:"aggTaskId"`
+	AggTaskName              string `json:"aggTaskName"`
+	AggTaskType              string `json:"aggTaskType"`
+	AggCycleCount            int    `json:"aggCycleCount"`
+	AggAnalysisTaskId        int    `json:"aggAnalysisTaskId"`
+	AggMaxTokensPerTask      int    `json:"aggMaxTokensPerTask"`
+	AggTokenOverflowStrategy string `json:"aggTokenOverflowStrategy"`
+}
+
+type AnalysisTaskDB struct {
+	AnalysisModel                 string `json:"analysisModel"`
+	AnalysisCycleCount            int    `json:"analysisCycleCount"`
+	AnalysisPrompt                string `json:"analysisPrompt"`
+	AnalysisTaskID                int    `json:"analysisTaskID"`
+	AnalysisTaskName              string `json:"analysisTaskName"`
+	AnalysisTaskType              string `json:"analysisTaskType"`
+	AnalysisMaxTokensPerTask      int    `json:"analysisMaxTokensPerTask"`
+	AnalysisTokenOverflowStrategy string `json:"analysisTokenOverflowStrategy"`
+	RetrievalDB
+}
+
+type RetrievalDB struct {
+	RetrievalID           int    `json:"retrievalID"`
+	RetrievalName         string `json:"retrievalName"`
+	RetrievalGroup        string `json:"retrievalGroup"`
+	RetrievalPlatform     string `json:"retrievalPlatform"`
+	RetrievalInstructions []byte `json:"retrievalInstructions"`
 }
 
 func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowName string) ([]WorkflowTemplateData, error) {
@@ -156,43 +197,9 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
 	return results, nil
 }
 
-type AggTaskDb struct {
-	AggModel                 string `json:"aggModel"`
-	AggPrompt                string `json:"aggPrompt"`
-	AggTaskId                int    `json:"aggTaskId"`
-	AggTaskName              string `json:"aggTaskName"`
-	AggTaskType              string `json:"aggTaskType"`
-	AggCycleCount            int    `json:"aggCycleCount"`
-	AggAnalysisTaskId        int    `json:"aggAnalysisTaskId"`
-	AggMaxTokensPerTask      int    `json:"aggMaxTokensPerTask"`
-	AggTokenOverflowStrategy string `json:"aggTokenOverflowStrategy"`
-}
-
-type AnalysisTaskDB struct {
-	AnalysisModel                 string `json:"analysisModel"`
-	AnalysisPrompt                string `json:"analysisPrompt"`
-	AnalysisTaskId                int    `json:"analysisTaskId"`
-	AnalysisTaskName              string `json:"analysisTaskName"`
-	AnalysisTaskType              string `json:"analysisTaskType"`
-	AnalysisMaxTokensPerTask      int    `json:"analysisMaxTokensPerTask"`
-	AnalysisTokenOverflowStrategy string `json:"analysisTokenOverflowStrategy"`
-	RetrievalDB
-}
-
-type RetrievalDB struct {
-	RetrievalId           int    `json:"retrievalId"`
-	RetrievalName         string `json:"retrievalName"`
-	RetrievalGroup        string `json:"retrievalGroup"`
-	RetrievalPlatform     string `json:"retrievalPlatform"`
-	AnalysisCycleCount    int    `json:"analysisCycleCount"`
-	RetrievalInstructions struct {
-		RetrievalPlatform string `json:"retrievalPlatform"`
-	} `json:"retrievalInstructions"`
-}
-
 func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workflows, error) {
 	results := &Workflows{
-		WorkflowTemplatesMap: make(map[int]WorkflowTemplateMapValue),
+		WorkflowTemplatesMap: make(map[int]WorkflowTemplateValue),
 	}
 	q := sql_query_templates.QueryParams{}
 	params := []interface{}{ou.OrgID}
@@ -213,7 +220,7 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 						cte_0.workflow_template_id,
 						cte_0.analysis_task_id,
 						JSON_BUILD_OBJECT(
-							'analysisTaskId', cte_0.analysis_task_id,
+							'analysisTaskID', cte_0.analysis_task_id,
 							'analysisCycleCount', cte_0.analysis_cycle_count,
 							'analysisTaskName', ait.task_name,
 							'analysisTaskType', ait.task_type,
@@ -221,7 +228,7 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 							'analysisModel', ait.model,
 							'analysisTokenOverflowStrategy', ait.token_overflow_strategy,
 							'analysisMaxTokensPerTask', ait.max_tokens_per_task,
-							'retrievalId', COALESCE(art.retrieval_id, 0),
+							'retrievalID', COALESCE(art.retrieval_id, 0),
 							'retrievalName', COALESCE(art.retrieval_name, ''),
 							'retrievalGroup', COALESCE(art.retrieval_group, ''),
 							'retrievalPlatform', COALESCE(art.retrieval_platform, ''),
@@ -267,11 +274,14 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 					wate.workflow_template_id,
 					wate.workflow_name,
 					wate.workflow_group,
+					wate.fundamental_period,
+					wate.fundamental_period_time_unit,
 					cte_1a.analysis_tasks_array,
 					cte_2b.agg_tasks_array
 					FROM cte_1a 
 					LEFT JOIN cte_2b ON cte_2b.workflow_template_id = cte_1a.workflow_template_id
-					JOIN ai_workflow_template wate ON wate.workflow_template_id = cte_1a.workflow_template_id`
+					JOIN ai_workflow_template wate ON wate.workflow_template_id = cte_1a.workflow_template_id
+ 					ORDER BY wate.workflow_template_id DESC`
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
 	if err != nil {
@@ -284,7 +294,7 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 		var taskJSON string
 		var aggTasksJSON *string
 
-		wt := WorkflowTemplateMapValue{
+		wt := WorkflowTemplateValue{
 			AnalysisTasks:      make(map[int]AnalysisTaskDB),
 			AnalysisRetrievals: make(map[int]map[int]RetrievalDB),
 			AggTasks:           make(map[int]AggTaskDb),
@@ -294,6 +304,8 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 			&wt.WorkflowTemplateID,
 			&wt.WorkflowName,
 			&wt.WorkflowGroup,
+			&wt.FundamentalPeriod,
+			&wt.FundamentalPeriodTimeUnit,
 			&taskJSON,
 			&aggTasksJSON,
 		)
@@ -314,7 +326,6 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 				log.Err(err).Msg("Error unmarshalling agg tasks JSON")
 				return nil, err
 			}
-
 			for _, aggTask := range zza {
 				wt.AggAnalysisTasksSlice = append(wt.AggAnalysisTasksSlice, aggTask...)
 			}
@@ -330,13 +341,12 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 		}
 
 		for _, v := range wt.AnalysisTasksSlice {
-			if _, ok := wt.AnalysisRetrievals[v.AnalysisTaskId]; !ok {
-				wt.AnalysisRetrievals[v.AnalysisTaskId] = make(map[int]RetrievalDB)
+			if _, ok := wt.AnalysisRetrievals[v.AnalysisTaskID]; !ok {
+				wt.AnalysisRetrievals[v.AnalysisTaskID] = make(map[int]RetrievalDB)
 			}
-			wt.AnalysisTasks[v.AnalysisTaskId] = v
-
-			if v.RetrievalId > 0 {
-				wt.AnalysisRetrievals[v.AnalysisTaskId][v.RetrievalId] = v.RetrievalDB
+			wt.AnalysisTasks[v.AnalysisTaskID] = v
+			if v.RetrievalID > 0 {
+				wt.AnalysisRetrievals[v.AnalysisTaskID][v.RetrievalID] = v.RetrievalDB
 			}
 		}
 		if _, ok := results.WorkflowTemplatesMap[wt.WorkflowTemplateID]; !ok {
@@ -349,23 +359,44 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 		return nil, err
 	}
 
+	for _, v := range results.WorkflowTemplatesMap {
+		var taskVals []Task
+
+		for _, at := range v.AnalysisTasks {
+			ta := Task{
+				TaskID:            at.AnalysisTaskID,
+				TaskName:          at.AnalysisTaskName,
+				TaskType:          at.AnalysisTaskType,
+				Model:             at.AnalysisModel,
+				Prompt:            at.AnalysisPrompt,
+				CycleCount:        at.AnalysisCycleCount,
+				RetrievalName:     at.RetrievalName,
+				RetrievalPlatform: at.RetrievalPlatform,
+			}
+			taskVals = append(taskVals, ta)
+		}
+		for _, aggTask := range v.AggAnalysisTasksSlice {
+			rn := ""
+			agat := v.AnalysisTasks[aggTask.AggAnalysisTaskId]
+			if agat.AnalysisTaskName != "" {
+				rn = agat.AnalysisTaskName
+			}
+			ta := Task{
+				TaskID:            aggTask.AggTaskId,
+				TaskName:          aggTask.AggTaskName,
+				TaskType:          aggTask.AggTaskType,
+				Model:             aggTask.AggModel,
+				Prompt:            aggTask.AggPrompt,
+				CycleCount:        aggTask.AggCycleCount,
+				RetrievalName:     rn,
+				RetrievalPlatform: "aggregate-analysis",
+			}
+			taskVals = append(taskVals, ta)
+		}
+		v.Tasks = taskVals
+		results.WorkflowTemplateSlice = append(results.WorkflowTemplateSlice, v)
+	}
 	return results, nil
-}
-
-type Workflows struct {
-	WorkflowTemplatesMap map[int]WorkflowTemplateMapValue `json:"templates"`
-}
-
-type WorkflowTemplateMapValue struct {
-	WorkflowTemplateID    int                         `json:"workflow_template_id"`
-	WorkflowName          string                      `json:"workflow_name"`
-	WorkflowGroup         string                      `json:"workflow_group"`
-	AnalysisTasks         map[int]AnalysisTaskDB      `json:"analysis_tasks"`
-	AnalysisRetrievals    map[int]map[int]RetrievalDB `json:"analysis_retrievals"`
-	AggTasks              map[int]AggTaskDb           `json:"agg_tasks"`
-	AggAnalysisTasks      map[int]map[int]AggTaskDb   `json:"agg_analysis_tasks"`
-	AnalysisTasksSlice    []AnalysisTaskDB
-	AggAnalysisTasksSlice []AggTaskDb
 }
 
 type WorkflowTaskRelationships struct {
@@ -381,9 +412,9 @@ func MapDependencies(res []WorkflowTemplateData) WorkflowTaskRelationships {
 		if _, ok := analysisRetrievals[v.AnalysisTaskID]; !ok {
 			analysisRetrievals[v.AnalysisTaskID] = make(map[int]bool)
 		}
-		if v.RetrievalID != nil {
-			if _, ok := analysisRetrievals[v.AnalysisTaskID][*v.RetrievalID]; !ok {
-				analysisRetrievals[v.AnalysisTaskID][*v.RetrievalID] = true
+		if v.RetrievalID != 0 {
+			if _, ok := analysisRetrievals[v.AnalysisTaskID][v.RetrievalID]; !ok {
+				analysisRetrievals[v.AnalysisTaskID][v.RetrievalID] = true
 			} else {
 				fmt.Println("Duplicate retrieval id", v.RetrievalID)
 			}
@@ -405,17 +436,17 @@ func MapDependencies(res []WorkflowTemplateData) WorkflowTaskRelationships {
 		AggregateAnalysis:  aggregateAnalysis,
 	}
 }
-func MapDependencies1(res WorkflowTemplateMapValue) WorkflowTaskRelationships {
+func MapDependenciesGrouped(res WorkflowTemplateValue) WorkflowTaskRelationships {
 	analysisRetrievals := make(map[int]map[int]bool)
 	for _, analysisTask := range res.AnalysisTasks {
-		analysisTaskID := analysisTask.AnalysisTaskId
+		analysisTaskID := analysisTask.AnalysisTaskID
 		if _, ok := analysisRetrievals[analysisTaskID]; !ok {
 			analysisRetrievals[analysisTaskID] = make(map[int]bool)
 		}
 	}
 	for analysisTaskID, retrievalMap := range res.AnalysisRetrievals {
 		for _, retrieval := range retrievalMap {
-			analysisRetrievals[analysisTaskID][retrieval.RetrievalId] = true
+			analysisRetrievals[analysisTaskID][retrieval.RetrievalID] = true
 		}
 	}
 	aggregateAnalysis := make(map[int]map[int]bool)

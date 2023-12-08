@@ -13,7 +13,7 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplate() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	newTemplate := WorkflowTemplate{
-		WorkflowName:              "Example Workflow4",
+		WorkflowName:              "Example Workflow2",
 		FundamentalPeriod:         5,
 		WorkflowGroup:             "TestGroup2",
 		FundamentalPeriodTimeUnit: "days",
@@ -87,7 +87,7 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplates() {
 
 	for _, newTemplate := range res.WorkflowTemplatesMap {
 
-		md := MapDependencies1(newTemplate)
+		md := MapDependenciesGrouped(newTemplate)
 
 		if newTemplate.WorkflowName == "Example Workflow1" {
 			fmt.Println("newTemplate.WorkflowName", newTemplate.WorkflowName)

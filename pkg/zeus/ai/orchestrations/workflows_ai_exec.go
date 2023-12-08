@@ -120,10 +120,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 				window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.TimeStepSize)
 				var dataIn []artemis_orchestrations.AIWorkflowAnalysisResult
-				// todo, if agg processed in current cycle edge case review
-
+				depM := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
+				var analysisDep []int
+				for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
+					analysisDep = append(analysisDep, k)
+				}
 				// TODO add all dependent analysis task ids to the search
-				err = workflow.ExecuteActivity(retrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, []int{aggInst.AnalysisTaskID}).Get(retrievalCtx, &dataIn)
+				err = workflow.ExecuteActivity(retrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, analysisDep).Get(retrievalCtx, &dataIn)
 				if err != nil {
 					logger.Error("failed to run aggregate retrieval", "Error", err)
 					return err

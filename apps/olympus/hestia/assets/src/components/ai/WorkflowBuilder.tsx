@@ -95,7 +95,7 @@ function WorkflowEngineBuilder(props: any) {
     const [selectedAnalysisStageForAggregation, setSelectedAnalysisStageForAggregation] = useState('');
     const [selectedAggregationStageForAnalysis, setSelectedAggregationStageForAnalysis] = useState('');
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
-    const [tasks, setTasks] = useState(allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
+    const [tasks, setTasks] = useState(allTasks && allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
     const retrievals = useSelector((state: RootState) => state.ai.retrievals);
     const workflowBuilderTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderTaskMap);
     const taskMap = useSelector((state: RootState) => state.ai.taskMap);
@@ -653,7 +653,7 @@ function WorkflowEngineBuilder(props: any) {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            LLM Workflow Engine
+                            Mockingbird - LLM Workflow Engine
                         </Typography>
                         <Button
                             color="inherit"

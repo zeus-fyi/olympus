@@ -236,7 +236,7 @@ function AiWorkflowsDashboardContent(props: any) {
                         noWrap
                         sx={{ flexGrow: 1 }}
                     >
-                        Time Series RAG-LLM Workflow Engine
+                        Mockingbird - Time Series RAG-LLM Workflow Engine
                     </Typography>
                     <Button
                         color="inherit"
@@ -304,7 +304,9 @@ function AiWorkflowsDashboardContent(props: any) {
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
                                         This allows you to search across platforms for data. Use this
-                                        to help mock your AI workflow time series designs.
+                                        to help mock your AI workflow time series designs. You will need to either send us your data,
+                                        or use our data retrieval indexer with your relevant platform API key & indexing query to get the data you want to analyze.
+                                        Send us a message at support@zeus.fyi for indexer access.
                                     </Typography>
                                 </CardContent>
                                 <CardContent>

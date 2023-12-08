@@ -170,29 +170,6 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, nil)
 		}
 	}
-
-	aggSubTaskMap := make(map[int]artemis_orchestrations.AITaskLibrary)
-	var analysisOnlyTasks []artemis_orchestrations.AITaskLibrary
-
-	for _, v := range wft.AnalysisOnlyTasks {
-		aggId, tok := ms[v.TaskID]
-		if tok {
-			aggSubTaskMap[aggId] = v
-		} else {
-			analysisOnlyTasks = append(analysisOnlyTasks, v)
-		}
-	}
-	wft.AnalysisOnlyTasks = analysisOnlyTasks
-	for _, v := range wft.AggTasks {
-		sbt, tok := aggSubTaskMap[v.AggId]
-		if tok {
-			for ti, aa := range v.Tasks {
-				if aa.TaskID == sbt.TaskID {
-					v.Tasks[ti] = sbt
-				}
-			}
-		}
-	}
 	err := artemis_orchestrations.InsertWorkflowWithComponents(c.Request().Context(), ou, &wt, wft)
 	if err != nil {
 		log.Err(err).Msg("failed to insert workflow")

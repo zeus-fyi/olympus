@@ -69,11 +69,11 @@ type AnalysisTaskDB struct {
 }
 
 type RetrievalDB struct {
-	RetrievalID           int    `json:"retrievalID"`
-	RetrievalName         string `json:"retrievalName"`
-	RetrievalGroup        string `json:"retrievalGroup"`
-	RetrievalPlatform     string `json:"retrievalPlatform"`
-	RetrievalInstructions []byte `json:"retrievalInstructions"`
+	RetrievalID           int             `json:"retrievalID"`
+	RetrievalName         string          `json:"retrievalName"`
+	RetrievalGroup        string          `json:"retrievalGroup"`
+	RetrievalPlatform     string          `json:"retrievalPlatform"`
+	RetrievalInstructions json.RawMessage `json:"retrievalInstructions"`
 }
 
 func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowName string) ([]WorkflowTemplateData, error) {

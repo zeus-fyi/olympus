@@ -37,6 +37,7 @@ type LoginResponse struct {
 	SessionID string `json:"sessionID"`
 	TTL       int    `json:"ttl"`
 
+	IsBillingSetup   bool                                         `json:"isBillingSetup,omitempty"`
 	IsInternal       bool                                         `json:"isInternal,omitempty"`
 	PlanDetailsUsage *iris_service_plans.PlanUsageDetailsResponse `json:"planUsageDetails,omitempty"`
 }
@@ -81,10 +82,11 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		isInternal = true
 	}
 	resp := LoginResponse{
-		UserID:     key.UserID,
-		SessionID:  sessionID,
-		IsInternal: isInternal,
-		TTL:        3600,
+		UserID:         key.UserID,
+		SessionID:      sessionID,
+		IsInternal:     isInternal,
+		IsBillingSetup: hestia_billing.CheckBillingCache(ctx, key.UserID),
+		TTL:            3600,
 	}
 
 	cookie := &http.Cookie{

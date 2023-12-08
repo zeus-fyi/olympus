@@ -108,6 +108,7 @@ func (g *GoogleLoginRequest) VerifyGoogleLogin(c echo.Context) error {
 	sessionKey.PublicKeyVerified = true
 	sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
 	sessionKey.PublicKeyName = "sessionID"
+
 	oldKey, err := sessionKey.InsertUserSessionKey(ctx)
 	if err != nil {
 		log.Err(err).Interface("email", email).Msg("InsertUserSessionKey error")
@@ -139,10 +140,11 @@ func (g *GoogleLoginRequest) VerifyGoogleLogin(c echo.Context) error {
 		isInternal = true
 	}
 	li := LoginResponse{
-		UserID:     key.UserID,
-		SessionID:  sessionID,
-		IsInternal: isInternal,
-		TTL:        3600,
+		UserID:         key.UserID,
+		SessionID:      sessionID,
+		IsInternal:     isInternal,
+		IsBillingSetup: hestia_billing.CheckBillingCache(ctx, key.UserID),
+		TTL:            3600,
 	}
 	pd, err := hestia_billing.GetPlan(ctx, sessionID)
 	if err != nil {

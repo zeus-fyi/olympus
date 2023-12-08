@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -40,7 +41,6 @@ func (l *TokenRefreshRequest) RefreshToken(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	key := read_keys.NewKeyReader()
-
 	sessionID := rand.String(64)
 	sessionKey := create_keys.NewCreateKey(ou.UserID, sessionID)
 	sessionKey.PublicKeyVerified = true
@@ -63,10 +63,11 @@ func (l *TokenRefreshRequest) RefreshToken(c echo.Context) error {
 		isInternal = true
 	}
 	resp := LoginResponse{
-		UserID:     key.UserID,
-		SessionID:  sessionID,
-		IsInternal: isInternal,
-		TTL:        3600,
+		UserID:         key.UserID,
+		SessionID:      sessionID,
+		IsInternal:     isInternal,
+		IsBillingSetup: hestia_billing.CheckBillingCache(ctx, key.UserID),
+		TTL:            3600,
 	}
 
 	cookie := &http.Cookie{

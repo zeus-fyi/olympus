@@ -14,7 +14,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
 import {Appearance, loadStripe, StripeElementsOptionsMode, StripeError} from "@stripe/stripe-js";
@@ -127,6 +127,7 @@ export default function Billing() {
 const stripe = loadStripe(configService.getStripePubKey());
 
 function CheckoutPage() {
+    const isBillingSetup = useSelector((state: any) => state.sessionState.isBillingSetup);
     const appearance = {
         theme: 'stripe'
     } as Appearance;
@@ -138,15 +139,19 @@ function CheckoutPage() {
         appearance: appearance
     };
 
+    console.log(isBillingSetup, 'asdfsd')
     return (
         <div>
             <Card>
                 <CardContent>
-                    <Typography gutterBottom variant="h5" component="div">
-                        Billing Info
-                    </Typography>
+                    <Box sx={{ml: 0, mr: 4}}>
+                        <Typography gutterBottom variant="h6" component="div">
+                            {isBillingSetup ? 'Billing Setup Complete - Account Valid' : 'Billing Not Set Up - Account Invalid'}
+                        </Typography>
+                    </Box>
                     <Typography variant="body2" color="text.secondary">
-                        To use cluster deployments & other premium features, you must enter your billing information.
+                        To use cluster deployments & other premium features, you must enter your billing information. If you have
+                        a pre-existing valid billing account, use this to submit an update to your billing information.
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl">

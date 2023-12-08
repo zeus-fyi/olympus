@@ -21,20 +21,14 @@ class AccessApiGateway {
     }
     async checkAuth(): Promise<any>  {
         const url = `/v1/auth/status`;
-        try {
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-                withCredentials: true,
-            }
-            return await hestiaApi.get(url, config)
-        } catch (exc) {
-            console.error('error sending create auth status request');
-            console.error(exc);
-            return
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
         }
+        return await hestiaApi.get(url, config)
     }
 }
 export const accessApiGateway = new AccessApiGateway();

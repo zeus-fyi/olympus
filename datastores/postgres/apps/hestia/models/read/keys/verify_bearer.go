@@ -49,7 +49,7 @@ func (k *OrgUserKey) VerifyUserPassword(ctx context.Context, email string) error
 	log.Debug().Interface("VerifyUserBearerToken:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, email).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("VerifyUserPassword error")
+		log.Err(err).Msg("VerifyUserPassword error")
 		k.PublicKeyVerified = false
 	}
 	if k.PublicKeyVerified == false {
@@ -76,7 +76,7 @@ func (k *OrgUserKey) GetUserFromEmail(ctx context.Context, email string) error {
 	log.Debug().Interface("GetUserFromEmail:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, email).Scan(&k.OrgID, &k.UserID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("GetUserFromEmail error")
+		log.Err(err).Msg("GetUserFromEmail error")
 		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
@@ -142,7 +142,7 @@ func (k *OrgUserKey) VerifyUserTokenService(ctx context.Context, serviceName str
 	log.Debug().Interface("QueryVerifyUserTokenService:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceName).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("VerifyUserTokenService error")
+		log.Err(err).Msg("VerifyUserTokenService error")
 		k.PublicKeyVerified = false
 		err = k.VerifyQuickNodeToken(ctx)
 		if err != nil {
@@ -176,7 +176,7 @@ func (k *OrgUserKey) VerifyUserTokenServiceWithQuickNodePlan(ctx context.Context
 	serviceID := 11
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceID).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID, &serviceID)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("VerifyUserTokenServiceWithQuickNodePlan error")
+		log.Err(err).Msg("VerifyUserTokenServiceWithQuickNodePlan error")
 		k.PublicKeyVerified = false
 	}
 	if k.PublicKeyVerified == false {
@@ -356,12 +356,12 @@ func (k *OrgUserKey) GetOrCreateCustomerStripeID(ctx context.Context) (string, e
 		firstName, lastName, email := "", "", ""
 		err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.UserID).Scan(&firstName, &lastName, &email)
 		if err != nil {
-			log.Ctx(ctx).Err(err).Msg("CreateOrGetCustomerStripeID error")
+			log.Err(err).Msg("CreateOrGetCustomerStripeID error")
 			return "", err
 		}
 		c, cerr := hestia_stripe.CreateCustomer(ctx, k.UserID, firstName, lastName, email)
 		if cerr != nil {
-			log.Ctx(ctx).Err(cerr).Msg("CreateOrGetCustomerStripeID error")
+			log.Err(cerr).Msg("CreateOrGetCustomerStripeID error")
 			return "", cerr
 		}
 		return c.ID, nil

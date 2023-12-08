@@ -50,5 +50,6 @@ func (a *AccessRequest) AuthCheck(c echo.Context) error {
 		isInternal = true
 	}
 	resp.IsInternal = isInternal
+	resp.IsBillingSetup = hestia_billing.CheckBillingCache(c.Request().Context(), ou.UserID)
 	return c.JSON(http.StatusOK, resp)
 }

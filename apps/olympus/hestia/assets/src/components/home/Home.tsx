@@ -4,7 +4,8 @@ import React, {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {accessApiGateway} from "../../gateway/access";
-import {setSessionAuth} from "../../redux/auth/session.reducer";
+import {setInternalAuth, setIsBillingSetup, setSessionAuth} from "../../redux/auth/session.reducer";
+import {setUserPlanDetails} from "../../redux/loadbalancing/loadbalancing.reducer";
 
 export const HomeLayout = () => {
     const sessionAuthed = useSelector((state: RootState) => state.sessionState.sessionAuth);
@@ -16,6 +17,21 @@ export const HomeLayout = () => {
                 if (response.status !== 200) {
                     dispatch(setSessionAuth(false));
                     return;
+                }
+                if (response.status >= 300 || response.status < 200) {
+                    dispatch(setSessionAuth(false));
+                    return;
+                }
+                if (response.data.planUsageDetails != null){
+                    dispatch(setUserPlanDetails(response.data.planUsageDetails))
+                }
+                if (response.data.isBillingSetup === true) {
+                    dispatch(setIsBillingSetup(true));
+                }
+                if (response.data.isInternal === true) {
+                    dispatch(setInternalAuth(true));
+                } else {
+                    dispatch(setInternalAuth(false));
                 }
                 dispatch(setSessionAuth(true));
             } catch (error) {

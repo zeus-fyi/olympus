@@ -31,7 +31,10 @@ type CheckoutData struct {
 
 func (s *StripeBillingRequest) GetCustomerID(c echo.Context) error {
 	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	k := read_keys.OrgUserKey{
 		OrgID: ou.OrgID,
 		Key: keys.Key{
@@ -42,7 +45,7 @@ func (s *StripeBillingRequest) GetCustomerID(c echo.Context) error {
 	}
 	cID, err := k.GetOrCreateCustomerStripeID(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("GetOrCreateCustomerStripeID error")
+		log.Err(err).Interface("ou", ou).Msg("GetOrCreateCustomerStripeID error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	// &stripe.SetupIntentPaymentMethodDataParams{},
@@ -65,5 +68,6 @@ func (s *StripeBillingRequest) GetCustomerID(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	resp := CheckoutData{result.ClientSecret}
+	CheckBillingCache(ctx, ou.UserID)
 	return c.JSON(http.StatusOK, resp)
 }

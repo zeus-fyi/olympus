@@ -3,7 +3,7 @@ import React, {useEffect, useState} from "react";
 import {accessApiGateway} from "../gateway/access";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../redux/store";
-import {setInternalAuth, setSessionAuth} from "../redux/auth/session.reducer";
+import {setInternalAuth, setIsBillingSetup, setSessionAuth} from "../redux/auth/session.reducer";
 import {setUserPlanDetails} from "../redux/loadbalancing/loadbalancing.reducer";
 
 export const ProtectedLayout = (props: any) => {
@@ -22,6 +22,9 @@ export const ProtectedLayout = (props: any) => {
                 }
                 if (response.data.planUsageDetails != null){
                     dispatch(setUserPlanDetails(response.data.planUsageDetails))
+                }
+                if (response.data.isBillingSetup === true) {
+                    dispatch(setIsBillingSetup(true));
                 }
                 dispatch(setSessionAuth(true));
                 if (response.data.isInternal === true) {

@@ -13,10 +13,11 @@ import (
 var BillingCache = cache.New(time.Hour, cache.DefaultExpiration)
 
 func CheckBillingCache(ctx context.Context, userID int) bool {
-	exists, ok := BillingCache.Get(fmt.Sprintf("%d", userID))
+	billingExists, ok := BillingCache.Get(fmt.Sprintf("%d", userID))
 	if ok {
-		b, bok := exists.(bool)
+		b, bok := billingExists.(bool)
 		if bok && b {
+			log.Info().Interface("userID", userID).Interface("billingExists", billingExists).Msg("found in cache")
 			return b
 		}
 	}

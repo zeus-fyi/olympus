@@ -334,6 +334,10 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 				wt.AnalysisRetrievals[v.AnalysisTaskId] = make(map[int]RetrievalDB)
 			}
 			wt.AnalysisTasks[v.AnalysisTaskId] = v
+
+			if v.RetrievalId > 0 {
+				wt.AnalysisRetrievals[v.AnalysisTaskId][v.RetrievalId] = v.RetrievalDB
+			}
 		}
 		if _, ok := results.WorkflowTemplatesMap[wt.WorkflowTemplateID]; !ok {
 			results.WorkflowTemplatesMap[wt.WorkflowTemplateID] = wt
@@ -415,14 +419,12 @@ func MapDependencies1(res WorkflowTemplateMapValue) WorkflowTaskRelationships {
 		}
 	}
 	aggregateAnalysis := make(map[int]map[int]bool)
-	for _, aggTask := range res.AggTasks {
-		aggTaskID := aggTask.AggTaskId
-		if _, ok := aggregateAnalysis[aggTaskID]; !ok {
-			aggregateAnalysis[aggTaskID] = make(map[int]bool)
-		}
-	}
+
 	for aggTaskID, analysisMap := range res.AggAnalysisTasks {
 		for _, analysis := range analysisMap {
+			if _, ok := aggregateAnalysis[aggTaskID]; !ok {
+				aggregateAnalysis[aggTaskID] = make(map[int]bool)
+			}
 			aggregateAnalysis[aggTaskID][analysis.AggAnalysisTaskId] = true
 		}
 	}

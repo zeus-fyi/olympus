@@ -199,7 +199,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {
-		logger.Error("failed to update cache for qn services", "Error", err)
+		logger.Error("failed to mark inactive", "Error", err)
 		return err
 	}
 	return nil

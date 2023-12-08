@@ -81,6 +81,18 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesP() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
+	newTemplate := WorkflowTemplate{
+		WorkflowName:              "wf-test-1",
+		FundamentalPeriod:         5,
+		WorkflowGroup:             "wf-test-1",
+		FundamentalPeriodTimeUnit: "days",
+	}
+
+	res1, err := SelectWorkflowTemplate(ctx, ou, newTemplate.WorkflowName)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(res1)
+	md := MapDependencies(res1)
+	s.Require().NotEmpty(md.AnalysisRetrievals)
 	res, err := SelectWorkflowTemplates(ctx, ou)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)

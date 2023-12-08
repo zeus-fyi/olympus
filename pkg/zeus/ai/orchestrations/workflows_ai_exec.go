@@ -65,8 +65,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				return err
 			}
 		}
+
+		md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 		for _, analysisInst := range wfExecParams.WorkflowTasks {
 			if i%analysisInst.AnalysisCycleCount == 0 {
+				if md.AnalysisRetrievals[analysisInst.AnalysisTaskID] == nil {
+					continue
+				}
+				if md.AnalysisRetrievals[analysisInst.AnalysisTaskID][analysisInst.RetrievalID] == false {
+					continue
+				}
 				retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 				window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.RunWindow.UnixStartTime, i-analysisInst.AnalysisCycleCount, i, wfExecParams.TimeStepSize)
 				var sr []hera_search.SearchResult
@@ -75,6 +83,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					logger.Error("failed to run retrieval", "Error", err)
 					return err
 				}
+				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][analysisInst.RetrievalID] = false
 				if len(sr) == 0 {
 					continue
 				}
@@ -123,6 +132,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			}
 			aggCycle := wfExecParams.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 			if i%aggCycle == 0 {
+
+				if md.AnalysisRetrievals[*aggInst.AggTaskID] == nil {
+					continue
+				}
+				if md.AnalysisRetrievals[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false {
+					continue
+				}
 				retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 				window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.TimeStepSize)
 				var dataIn []artemis_orchestrations.AIWorkflowAnalysisResult
@@ -131,12 +147,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
 					analysisDep = append(analysisDep, k)
 				}
-				// TODO add all dependent analysis task ids to the search
 				err = workflow.ExecuteActivity(retrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, analysisDep).Get(retrievalCtx, &dataIn)
 				if err != nil {
 					logger.Error("failed to run aggregate retrieval", "Error", err)
 					return err
 				}
+				md.AnalysisRetrievals[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
 				if len(dataIn) == 0 {
 					continue
 				}

@@ -42,7 +42,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 	}
 	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(c.Request().Context(), ou.OrgID)
 	if err != nil {
-		log.Err(err).Msg("failed to get workflows")
+		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 

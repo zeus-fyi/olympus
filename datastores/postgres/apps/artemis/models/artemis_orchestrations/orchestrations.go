@@ -336,7 +336,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]Orchestrati
 								'searchWindowUnixEnd', search_window_unix_end, 
 								'metadata', metadata,
 								'completionChoices', cr.completion_choices, 
-								'prompt' cr.prompt,
+								'prompt', cr.prompt,
 								'promptTokens', cr.prompt_tokens, 
 								'completionTokens', cr.completion_tokens, 
 								'totalTokens', cr.total_tokens

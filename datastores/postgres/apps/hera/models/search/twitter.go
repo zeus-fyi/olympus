@@ -78,7 +78,7 @@ func twitterSearchQuery2() sql_query_templates.QueryParams {
 }
 
 func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
-	q, args := twitterSearchQuery(sp.SearchContentText, sp.SearchInterval)
+	q, args := twitterSearchQuery(sp.Retrieval.RetrievalKeywords, sp.SearchInterval)
 	var srs []SearchResult
 	var rows pgx.Rows
 	var err error

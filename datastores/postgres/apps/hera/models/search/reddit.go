@@ -193,13 +193,13 @@ func redditSearchQuery(sp AiSearchParams) (sql_query_templates.QueryParams, []in
 				`
 	var args []interface{}
 
-	if sp.SearchContentText != "" {
-		args = append(args, sp.SearchContentText)
+	if sp.Retrieval.RetrievalKeywords != "" {
+		args = append(args, sp.Retrieval.RetrievalKeywords)
 		q.RawQuery += fmt.Sprintf("WHERE body_tsvector @@ to_tsquery('english', $%d) OR title_tsvector @@ to_tsquery('english', $%d)", len(args), len(args))
 	}
 
 	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
-		if sp.SearchContentText != "" {
+		if sp.Retrieval.RetrievalKeywords != "" {
 			q.RawQuery += ` AND`
 		} else {
 			q.RawQuery += ` WHERE`

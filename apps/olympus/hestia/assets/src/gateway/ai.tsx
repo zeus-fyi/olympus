@@ -1,6 +1,7 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
 import {
+    AiSearchParams,
     DeleteWorkflowsActionRequest,
     PostWorkflowsActionRequest,
     PostWorkflowsRequest,
@@ -9,7 +10,7 @@ import {
 } from "../redux/ai/ai.types";
 
 class AiApiGateway {
-    async searchRequest(params: any): Promise<any> {
+    async searchRequest(params: AiSearchParams): Promise<any> {
         const url = `/v1/search`;
         try {
             const sessionID = inMemoryJWT.getToken();

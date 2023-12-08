@@ -1411,77 +1411,77 @@ function WorkflowEngineBuilder(props: any) {
                                                             <MenuItem value="telegram">Telegram</MenuItem>
                                                         </Select>
                                                     </FormControl>
-                                                </Box>
-                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
-                                                    <TextField
-                                                        fullWidth
-                                                        id="group-input"
-                                                        label="Platform Groups"
-                                                        variant="outlined"
-                                                        value={retrieval.retrievalPlatformGroups}
-                                                         onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
-                                                    />
-                                                </Box>
-                                                { retrieval.retrievalPlatform === 'discord' &&
+                                                    </Box>
                                                     <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                         <TextField
                                                             fullWidth
-                                                            id="category-name-input"
-                                                            label="Discord Category Name"
+                                                            id="group-input"
+                                                            label="Platform Groups"
                                                             variant="outlined"
-                                                            value={retrieval.discordFilters?.categoryName || ''}
-                                                            onChange={(e) => dispatch(setDiscordOptionsCategoryName(e.target.value))}
+                                                            value={retrieval.retrievalPlatformGroups}
+                                                             onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
                                                         />
-                                                </Box>
-                                                }
-                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
-                                                    <TextField
-                                                        fullWidth
-                                                        id="usernames-input"
-                                                        label="Usernames"
-                                                        variant="outlined"
-                                                        value={retrieval.retrievalUsernames}
-                                                        onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}
-                                                    />
-                                                </Box>
-                                                <Typography variant="h5" color="text.secondary">
-                                                    Describe what you're looking for, and the AI will generate a list of keywords to search for after it runs for the first time.
-                                                    You can preview, edit, or give the AI more information to refine the search.
-                                                </Typography>
-                                                <Box  sx={{ mb: 2, mt: 2 }}>
-                                                    <TextareaAutosize
-                                                        minRows={18}
-                                                        value={retrieval.retrievalPrompt}
-                                                        onChange={(e) => dispatch(setRetrievalPrompt(e.target.value))}
-                                                        style={{ resize: "both", width: "100%" }}
-                                                    />
-                                                </Box>
-                                                <Typography variant="h5" color="text.secondary">
-                                                    You can provide your own keywords directly with comma separated values below, and the AI will refine it over time to improve your search.
-                                                </Typography>
-                                                <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
-                                                    <TextField
-                                                        fullWidth
-                                                        id="keywords-input"
-                                                        label="Keywords"
-                                                        variant="outlined"
-                                                        value={retrieval.retrievalKeywords}
-                                                        onChange={(e) => dispatch(setRetrievalKeywords(e.target.value))}
-                                                    />
-                                                </Box>
-                                                {requestRetrievalStatus != '' && (
-                                                    <Container sx={{ mb: 2, mt: -2}}>
-                                                        <Typography variant="h6" color={requestRetrievalStatusError}>
-                                                            {requestRetrievalStatus}
-                                                        </Typography>
-                                                    </Container>
-                                                )}
-                                                <Box flexGrow={1} sx={{ mb: 0 }}>
-                                                    <Button fullWidth variant="contained" onClick={createOrUpdateRetrieval} >Save Retrieval</Button>
-                                                </Box>
-                                            </Stack>
-                                        </div>
-                                    </CardContent>
+                                                    </Box>
+                                                    { retrieval.retrievalPlatform === 'discord' &&
+                                                        <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="category-name-input"
+                                                                label="Discord Category Name"
+                                                                variant="outlined"
+                                                                value={retrieval.discordFilters?.categoryName || ''}
+                                                                onChange={(e) => dispatch(setDiscordOptionsCategoryName(e.target.value))}
+                                                            />
+                                                    </Box>
+                                                    }
+                                                    <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="usernames-input"
+                                                            label="Usernames"
+                                                            variant="outlined"
+                                                            value={retrieval.retrievalUsernames}
+                                                            onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}
+                                                        />
+                                                    </Box>
+                                                    <Typography variant="h5" color="text.secondary">
+                                                        Describe what you're looking for, and the AI will generate a list of keywords to search for after it runs for the first time.
+                                                        You can preview, edit, or give the AI more information to refine the search.
+                                                    </Typography>
+                                                    <Box  sx={{ mb: 2, mt: 2 }}>
+                                                        <TextareaAutosize
+                                                            minRows={18}
+                                                            value={retrieval.retrievalPrompt}
+                                                            onChange={(e) => dispatch(setRetrievalPrompt(e.target.value))}
+                                                            style={{ resize: "both", width: "100%" }}
+                                                        />
+                                                    </Box>
+                                                    <Typography variant="h5" color="text.secondary">
+                                                        You can provide your own keywords directly with comma separated values below, and the AI will refine it over time to improve your search.
+                                                    </Typography>
+                                                    <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="keywords-input"
+                                                            label="Keywords"
+                                                            variant="outlined"
+                                                            value={retrieval.retrievalKeywords}
+                                                            onChange={(e) => dispatch(setRetrievalKeywords(e.target.value))}
+                                                        />
+                                                    </Box>
+                                                    {requestRetrievalStatus != '' && (
+                                                        <Container sx={{ mb: 2, mt: -2}}>
+                                                            <Typography variant="h6" color={requestRetrievalStatusError}>
+                                                                {requestRetrievalStatus}
+                                                            </Typography>
+                                                        </Container>
+                                                    )}
+                                                    <Box flexGrow={1} sx={{ mb: 0 }}>
+                                                        <Button fullWidth variant="contained" onClick={createOrUpdateRetrieval} >Save Retrieval</Button>
+                                                    </Box>
+                                                    </Stack>
+                                                </div>
+                                            </CardContent>
                                     }
                                     {/*<Typography gutterBottom variant="h5" component="div">*/}
                                     {/*    Time Intervals*/}

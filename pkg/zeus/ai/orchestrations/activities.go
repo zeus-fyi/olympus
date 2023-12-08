@@ -297,13 +297,10 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 		return nil, jerr
 	}
 	sp := hera_search.AiSearchParams{
-		SearchContentText: retInst.RetrievalKeywords,
-		GroupFilter:       retInst.RetrievalPlatformGroups,
-		Platforms:         retInst.RetrievalPlatform,
-		Usernames:         retInst.RetrievalUsernames,
-		DiscordFilters:    retInst.DiscordFilters,
+		Retrieval: artemis_orchestrations.RetrievalItem{
+			RetrievalItemInstruction: retInst,
+		},
 	}
-
 	sw := hera_search.TimeInterval{}
 	sw[0] = window.Start
 	sw[1] = window.End

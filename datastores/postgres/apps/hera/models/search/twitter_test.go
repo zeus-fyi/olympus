@@ -6,6 +6,7 @@ import (
 
 	twitter2 "github.com/cvcio/twitter"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
@@ -70,13 +71,20 @@ func (s *SearchAITestSuite) TestSelectTweets() {
 
 	// Call the function
 	sp := AiSearchParams{
-		SearchContentText:    "k8s",
-		GroupFilter:          "",
-		Platforms:            "",
-		Usernames:            "",
-		WorkflowInstructions: "",
-		SearchInterval:       si,
-		AnalysisInterval:     TimeInterval{},
+		Retrieval: artemis_orchestrations.RetrievalItem{
+			RetrievalID:    0,
+			RetrievalName:  "",
+			RetrievalGroup: "",
+			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
+				RetrievalPlatform:       "",
+				RetrievalPrompt:         "",
+				RetrievalPlatformGroups: "",
+				RetrievalKeywords:       "k8s",
+				RetrievalUsernames:      "",
+				DiscordFilters:          nil,
+			},
+			Instructions: nil,
+		},
 	}
 	results, err := SearchTwitter(ctx, ou, sp)
 

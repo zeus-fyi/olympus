@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -22,12 +21,18 @@ type RetrievalItem struct {
 	Instructions []byte `json:"instructions,omitempty"` // Instructions for the retrieval
 }
 type RetrievalItemInstruction struct {
-	RetrievalPlatform       string                      `json:"retrievalPlatform"`
-	RetrievalPrompt         string                      `json:"retrievalPrompt,omitempty"`         // Prompt for the retrieval
-	RetrievalPlatformGroups string                      `json:"retrievalPlatformGroups,omitempty"` // Platform groups for the retrieval
-	RetrievalKeywords       string                      `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
-	RetrievalUsernames      string                      `json:"retrievalUsernames,omitempty"`      // Usernames for the retrieval
-	DiscordFilters          *hera_search.DiscordFilters `json:"discordFilters,omitempty"`          // Discord filters for the retrieval
+	RetrievalPlatform       string          `json:"retrievalPlatform"`
+	RetrievalPrompt         string          `json:"retrievalPrompt,omitempty"`         // Prompt for the retrieval
+	RetrievalPlatformGroups string          `json:"retrievalPlatformGroups,omitempty"` // Platform groups for the retrieval
+	RetrievalKeywords       string          `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
+	RetrievalUsernames      string          `json:"retrievalUsernames,omitempty"`      // Usernames for the retrieval
+	DiscordFilters          *DiscordFilters `json:"discordFilters,omitempty"`          // Discord filters for the retrieval
+}
+
+type DiscordFilters struct {
+	CategoryTopic string `json:"categoryTopic,omitempty"`
+	CategoryName  string `json:"categoryName,omitempty"`
+	Category      string `json:"category,omitempty"`
 }
 
 func SetInstructions(r *RetrievalItem) error {

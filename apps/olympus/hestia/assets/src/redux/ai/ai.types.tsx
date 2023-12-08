@@ -103,22 +103,6 @@ export interface OrchestrationsAnalysis {
     orchestrations: Orchestration;
 }
 
-export interface Retrieval {
-    retrievalID?: number;
-    retrievalName: string;
-    retrievalGroup: string;
-    retrievalPrompt: string;
-    retrievalKeywords: string;
-    retrievalPlatform: string;
-    retrievalUsernames: string;
-    retrievalPlatformGroups: string;
-    discordFilters?: DiscordFilters;
-}
-
-export interface DiscordFilters {
-    categoryName: string;
-}
-
 export interface DeleteWorkflowsActionRequest {
     workflows: WorkflowTemplate[];
 }
@@ -159,3 +143,29 @@ export type Orchestration = {
     instructions?: string;
     orchestrationName: string;
 };
+
+export interface DiscordFilters {
+    categoryTopic?: string;
+    categoryName?: string;
+    category?: string;
+}
+
+export interface AiSearchParams  {
+    timeRange?: string;
+    searchInterval?: [Date, Date];
+    retrieval: Retrieval;
+}
+
+export interface Retrieval {
+    retrievalID?: number;
+    retrievalName: string;
+    retrievalGroup: string;
+    retrievalPrompt: string;
+    retrievalKeywords: string;
+    retrievalPlatform: string;
+    retrievalUsernames: string;
+    retrievalPlatformGroups: string;
+    discordFilters?: DiscordFilters;
+}
+
+

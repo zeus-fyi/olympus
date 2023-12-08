@@ -25,7 +25,8 @@ import {
     Stack,
     Switch,
     Tab,
-    Tabs
+    Tabs,
+    TextareaAutosize
 } from "@mui/material";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
@@ -36,8 +37,14 @@ import TextField from "@mui/material/TextField";
 import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
+    setDiscordOptionsCategoryName,
     setGroupFilter,
     setPlatformFilter,
+    setRetrievalKeywords,
+    setRetrievalPlatform,
+    setRetrievalPlatformGroups,
+    setRetrievalPrompt,
+    setRetrievalUsernames,
     setSearchContent,
     setSearchResults,
     setSelectedWorkflows,
@@ -47,7 +54,7 @@ import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
 import {TimeRange} from '@matiaslgonzalez/react-timeline-range-slider';
 import {WorkflowAnalysisTable} from "./WorkflowAnalysisTable";
-import {PostWorkflowsActionRequest} from "../../redux/ai/ai.types";
+import {AiSearchParams, PostWorkflowsActionRequest} from "../../redux/ai/ai.types";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -66,7 +73,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const [unixStartTime, setUnixStartTime] = useState(0);
     const [stepSize, setStepSize] = useState(1);
     const [stepSizeUnit, setStepSizeUnit] = useState('hours');
-    const [analysisCycleCount, setAnalysisCycleCount] = useState(1);
+    const retrieval = useSelector((state: RootState) => state.ai.retrieval);
     const searchResults = useSelector((state: RootState) => state.ai.searchResults);
     const platformFilter = useSelector((state: RootState) => state.ai.platformFilter);
     const [analyzeNext, setAnalyzeNext] = useState(true);
@@ -161,15 +168,14 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleSearchRequest = async (timeRange: '1 hour'| '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
         try {
             setIsLoading(true)
-            const response = await aiApiGateway.searchRequest({
-                'searchContentText': searchKeywordsText,
-                'groupFilter': groupFilter,
-                'platforms': platformFilter,
-                'usernames': usernames,
-                'workflowInstructions': workflowInstructions,
-                'searchInterval': searchInterval,
-                'timeRange': timeRange,
-            });
+            // Construct the retrieval object based on your existing variables
+            const params: AiSearchParams = {
+                timeRange,
+                // searchInterval should be set if applicable
+                searchInterval,
+                retrieval
+            };
+            const response = await aiApiGateway.searchRequest(params);
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
@@ -231,7 +237,7 @@ function AiWorkflowsDashboardContent(props: any) {
                         noWrap
                         sx={{ flexGrow: 1 }}
                     >
-                        LLM Workflow Engine
+                        Time Series RAG-LLM Workflow Engine
                     </Typography>
                     <Button
                         color="inherit"
@@ -287,64 +293,118 @@ function AiWorkflowsDashboardContent(props: any) {
                     }}
                 >
                     <Toolbar />
-
-                    { (selectedMainTab === 0) &&
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
                             <Card sx={{ minWidth: 100, maxWidth: 600 }}>
                                 <CardContent>
                                     <Typography gutterBottom variant="h5" component="div">
-                                        Search Augmented LLM Workflow Engine
+                                        Search Previews
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Currently limited public functionality. This will allow you to search across many platforms including our own for data, or give the
-                                        AI enough context to build its own workflows that can map-reduce analyze, run devops tasks, or even build apps.
-                                        In the meantime you can email ai@zeus.fyi and it'll summarize your email, and suggest responses.
-                                        When adding many values to a field use comma delimited entries.
+                                        This allows you to search across platforms for data. Use this
+                                        to help mock your AI workflow time series designs.
                                     </Typography>
                                 </CardContent>
                                 <CardContent>
-                                    <Stack direction="column" >
-                                        <Box flexGrow={1} sx={{ mb: 2 }}>
-                                            <TextField
-                                                fullWidth
-                                                id="platforms-input"
-                                                label="Platforms"
-                                                variant="outlined"
-                                                value={platformFilter}
-                                                onChange={(e) => handleUpdatePlatformFilter(e.target.value)}
-                                            />
-                                        </Box><Box flexGrow={1} sx={{ mb: 2 }}>
-                                            <TextField
-                                                fullWidth
-                                                id="group-input"
-                                                label="Group"
-                                                variant="outlined"
-                                                value={groupFilter}
-                                                onChange={(e) => handleUpdateGroupFilter(e.target.value)}
-                                            />
-                                        </Box>
-                                        <Box flexGrow={1} sx={{ mb: 2 }}>
-                                            <TextField
-                                                fullWidth
-                                                id="usernames-input"
-                                                label="Usernames"
-                                                variant="outlined"
-                                                value={usernames}
-                                                onChange={(e) => handleUpdateSearchUsernames(e.target.value)}
-                                            />
-                                        </Box>
-                                        <Box flexGrow={1} sx={{ mb: 2 }}>
-                                            <TextField
-                                                fullWidth
-                                                id="keywords-input"
-                                                label="Content"
-                                                variant="outlined"
-                                                value={searchKeywordsText}
-                                                onChange={(e) => handleUpdateSearchKeywords(e.target.value)}
-                                            />
-                                        </Box>
-                                    </Stack>
+                                    <div>
+                                        <Stack direction="column" spacing={2} sx={{ mt: 0, mb: 0 }}>
+                                            {/*<Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>*/}
+                                            {/*    <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>*/}
+                                            {/*        <TextField*/}
+                                            {/*            fullWidth*/}
+                                            {/*            id="retrieval-name"*/}
+                                            {/*            label="Retrieval Name"*/}
+                                            {/*            variant="outlined"*/}
+                                            {/*            value={retrieval.retrievalName}*/}
+                                            {/*            onChange={(e) => dispatch(setRetrievalName(e.target.value))}*/}
+                                            {/*        />*/}
+                                            {/*    </Box>*/}
+                                            {/*    <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>*/}
+                                            {/*        <TextField*/}
+                                            {/*            fullWidth*/}
+                                            {/*            id="retrieval-group"*/}
+                                            {/*            label="Retrieval Group"*/}
+                                            {/*            variant="outlined"*/}
+                                            {/*            value={retrieval.retrievalGroup}*/}
+                                            {/*            onChange={(e) => dispatch(setRetrievalGroup(e.target.value))}*/}
+                                            {/*        />*/}
+                                            {/*    </Box>*/}
+                                            {/*</Stack>*/}
+                                            <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
+                                                <FormControl fullWidth>
+                                                    <InputLabel id="platform-label">Platform</InputLabel>
+                                                    <Select
+                                                        labelId="platform-label"
+                                                        id="platforms-input"
+                                                        value={retrieval.retrievalPlatform}
+                                                        label="Platform"
+                                                        onChange={(e) => dispatch(setRetrievalPlatform(e.target.value))}
+                                                    >
+                                                        <MenuItem value="reddit">Reddit</MenuItem>
+                                                        <MenuItem value="twitter">Twitter</MenuItem>
+                                                        <MenuItem value="discord">Discord</MenuItem>
+                                                        <MenuItem value="telegram">Telegram</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </Box>
+                                            <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                <TextField
+                                                    fullWidth
+                                                    id="group-input"
+                                                    label="Platform Groups"
+                                                    variant="outlined"
+                                                    value={retrieval.retrievalPlatformGroups}
+                                                    onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
+                                                />
+                                            </Box>
+                                            { retrieval.retrievalPlatform === 'discord' &&
+                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="category-name-input"
+                                                        label="Discord Category Name"
+                                                        variant="outlined"
+                                                        value={retrieval.discordFilters?.categoryName || ''}
+                                                        onChange={(e) => dispatch(setDiscordOptionsCategoryName(e.target.value))}
+                                                    />
+                                                </Box>
+                                            }
+                                            <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                <TextField
+                                                    fullWidth
+                                                    id="usernames-input"
+                                                    label="Usernames"
+                                                    variant="outlined"
+                                                    value={retrieval.retrievalUsernames}
+                                                    onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}
+                                                />
+                                            </Box>
+                                            <Typography variant="h5" color="text.secondary">
+                                                Add keywords to the search using comma separated values below.
+                                            </Typography>
+                                            <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                <TextField
+                                                    fullWidth
+                                                    id="keywords-input"
+                                                    label="Keywords"
+                                                    variant="outlined"
+                                                    value={retrieval.retrievalKeywords}
+                                                    onChange={(e) => dispatch(setRetrievalKeywords(e.target.value))}
+                                                />
+                                            </Box>
+                                            <Typography variant="h5" color="text.secondary">
+                                                Optionally describe what you're looking for, and the AI will analyze your returned search data.
+                                            </Typography>
+                                            <Box  sx={{ mb: 2, mt: 2 }}>
+                                                <TextareaAutosize
+                                                    minRows={18}
+                                                    value={retrieval.retrievalPrompt}
+                                                    onChange={(e) => dispatch(setRetrievalPrompt(e.target.value))}
+                                                    style={{ resize: "both", width: "100%" }}
+                                                />
+                                            </Box>
+                                        </Stack>
+                                    </div>
                                 </CardContent>
                             </Card>
                             <Card sx={{ minWidth: 500, maxWidth: 900 }}>
@@ -391,7 +451,7 @@ function AiWorkflowsDashboardContent(props: any) {
                             </Card>
                         </Stack>
                     </Container>
-                    }
+
                     { (selectedMainTab === 1) &&
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Card sx={{ minWidth: 500, maxWidth: 1000 }}>

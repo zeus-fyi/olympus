@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -19,21 +20,10 @@ import (
 )
 
 type AiSearchParams struct {
-	SearchContentText    string          `json:"searchContentText,omitempty"`
-	WorkflowInstructions string          `json:"workflowInstructions,omitempty"`
-	TimeRange            string          `json:"timeRange,omitempty"`
-	GroupFilter          string          `json:"groupFilter,omitempty"`
-	Platforms            string          `json:"platforms,omitempty"`
-	Usernames            string          `json:"usernames,omitempty"`
-	SearchInterval       TimeInterval    `json:"searchInterval,omitempty"`
-	AnalysisInterval     TimeInterval    `json:"analysisInterval,omitempty"`
-	DiscordFilters       *DiscordFilters `json:"discordFilters,omitempty"`
-}
-
-type DiscordFilters struct {
-	CategoryTopic string `json:"categoryTopic,omitempty"`
-	CategoryName  string `json:"categoryName,omitempty"`
-	Category      string `json:"category,omitempty"`
+	Retrieval      artemis_orchestrations.RetrievalItem `json:"retrieval,omitempty"`
+	TimeRange      string                               `json:"timeRange,omitempty"`
+	SearchInterval TimeInterval                         `json:"searchInterval,omitempty"`
+	Window         artemis_orchestrations.Window        `json:"window,omitempty"`
 }
 
 type AiModelParams struct {
@@ -66,6 +56,43 @@ func (a ByTimestamp) Less(i, j int) bool { return a[i].UnixTimestamp > a[j].Unix
 // SortSearchResults sorts the slice of SearchResult in descending order by UnixTimestamp.
 func SortSearchResults(results []SearchResult) {
 	sort.Sort(ByTimestamp(results))
+}
+
+func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
+	var res []SearchResult
+	platform := sp.Retrieval.RetrievalPlatform
+	if strings.Contains(platform, "twitter") {
+		resTwitter, err := SearchTwitter(ctx, ou, sp)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, resTwitter...)
+	}
+
+	if strings.Contains(platform, "discord") {
+		resDiscord, err := SearchDiscord(ctx, ou, sp)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, resDiscord...)
+	}
+
+	if strings.Contains(platform, "telegram") {
+		resTelegram, err := SearchTelegram(ctx, ou, sp)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, resTelegram...)
+	}
+
+	if strings.Contains(platform, "reddit") {
+		resReddit, err := SearchReddit(ctx, ou, sp)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, resReddit...)
+	}
+	return res, nil
 }
 
 type SearchResults struct {
@@ -117,12 +144,12 @@ func telegramSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_tem
 				  FROM public.ai_incoming_telegram_msgs
 				  WHERE org_id = $1 `
 
-	if sp.SearchContentText != "" {
-		args = append(args, sp.SearchContentText)
+	if sp.Retrieval.RetrievalKeywords != "" {
+		args = append(args, sp.Retrieval.RetrievalKeywords)
 		q.RawQuery += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args))
 	}
-	if sp.GroupFilter != "" {
-		args = append(args, sp.GroupFilter)
+	if sp.Retrieval.RetrievalGroup != "" {
+		args = append(args, sp.Retrieval.RetrievalGroup)
 		q.RawQuery += `AND group_name ILIKE '%' || ` + fmt.Sprintf("$%d", len(args)) + ` || '%' `
 	}
 	if !sp.SearchInterval[0].IsZero() && !sp.SearchInterval[1].IsZero() {
@@ -236,9 +263,9 @@ func SanitizeSearchParams(sp *AiSearchParams) {
 	if sp == nil {
 		return
 	}
-	sp.Usernames = sanitizeUTF8(sp.Usernames)
-	sp.SearchContentText = sanitizeUTF8(sp.SearchContentText)
-	sp.GroupFilter = sanitizeUTF8(sp.GroupFilter)
+	sp.Retrieval.RetrievalUsernames = sanitizeUTF8(sp.Retrieval.RetrievalUsernames)
+	sp.Retrieval.RetrievalKeywords = sanitizeUTF8(sp.Retrieval.RetrievalKeywords)
+	sp.Retrieval.RetrievalPlatformGroups = sanitizeUTF8(sp.Retrieval.RetrievalPlatformGroups)
 }
 
 func InsertCompletionResponseChatGptFromSearch(ctx context.Context, ou org_users.OrgUser, response openai.ChatCompletionResponse, sp AiSearchParams, sr []SearchResult) error {

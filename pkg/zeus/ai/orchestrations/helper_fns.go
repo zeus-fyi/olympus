@@ -139,10 +139,10 @@ func AiTelegramTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_searc
 			"You aren't overly formal or stiff in tone",
 		Name: fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 	}
-	if len(params.WorkflowInstructions) > 0 {
-		systemMessage.Content = params.WorkflowInstructions
+	if len(params.Retrieval.RetrievalPrompt) > 0 {
+		systemMessage.Content = params.Retrieval.RetrievalPrompt
 	}
-	output := hera_search.FormatTgMessagesForAi(msgs)
+	output := hera_search.FormatSearchMessagesForAi(msgs)
 
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
@@ -164,13 +164,10 @@ func AiTelegramTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_searc
 func AiAggregateTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_search.SearchResult, params hera_search.AiSearchParams) (openai.ChatCompletionResponse, error) {
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
-		Content: params.WorkflowInstructions,
+		Content: params.Retrieval.RetrievalPrompt,
 		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 	}
-	if len(params.WorkflowInstructions) > 0 {
-		systemMessage.Content = params.WorkflowInstructions
-	}
-	output := hera_search.FormatTgMessagesForAi(msgs)
+	output := hera_search.FormatSearchMessagesForAi(msgs)
 	tc, err := GetTokenCountEstimate(ctx, "gpt-4", output)
 	if err != nil {
 		return openai.ChatCompletionResponse{}, err

@@ -48,13 +48,13 @@ func discordSearchQuery(sp AiSearchParams, intervals ...TimeInterval) (sql_query
 				  JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id`
 
 	var args []interface{}
-	if sp.SearchContentText != "" {
+	if sp.Retrieval.RetrievalKeywords != "" {
 		baseQuery += fmt.Sprintf(` WHERE content_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
-		args = append(args, sp.SearchContentText)
+		args = append(args, sp.Retrieval.RetrievalKeywords)
 	}
 
 	if len(intervals) > 0 && !intervals[0][0].IsZero() && !intervals[0][1].IsZero() {
-		if sp.SearchContentText != "" {
+		if sp.Retrieval.RetrievalKeywords != "" {
 			baseQuery += ` AND`
 		} else {
 			baseQuery += ` WHERE`
@@ -64,8 +64,8 @@ func discordSearchQuery(sp AiSearchParams, intervals ...TimeInterval) (sql_query
 		args = append(args, tsRangeStart, tsEnd)
 	}
 
-	if sp.GroupFilter != "" {
-		groupFilters := strings.Split(sp.GroupFilter, ",")
+	if sp.Retrieval.RetrievalPlatformGroups != "" {
+		groupFilters := strings.Split(sp.Retrieval.RetrievalPlatformGroups, ",")
 		if baseQuery != "" {
 			baseQuery += ` AND`
 		} else {
@@ -84,8 +84,8 @@ func discordSearchQuery(sp AiSearchParams, intervals ...TimeInterval) (sql_query
 		}
 		baseQuery += ` (` + strings.Join(queryParts, " OR ") + `)`
 	}
-	if sp.DiscordFilters != nil && sp.DiscordFilters.CategoryName != "" {
-		categoryNames := strings.Split(sp.DiscordFilters.CategoryName, ",")
+	if sp.Retrieval.DiscordFilters != nil && sp.Retrieval.DiscordFilters.CategoryName != "" {
+		categoryNames := strings.Split(sp.Retrieval.DiscordFilters.CategoryName, ",")
 		if baseQuery != "" {
 			baseQuery += ` AND`
 		} else {

@@ -37,7 +37,7 @@ type TelegramMessage struct {
 	TelegramMetadata
 }
 
-func FormatTgMessagesForAi(results []SearchResult) string {
+func FormatSearchMessagesForAi(results []SearchResult) string {
 	var builder strings.Builder
 	for _, result := range results {
 		line := fmt.Sprintf("%s | %s \n",

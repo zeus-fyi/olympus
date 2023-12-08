@@ -7,6 +7,8 @@ import ReactGA from "react-ga4";
 const sessionIDParse = pipe(getAxiosResponse,prop('sessionID'));
 const ttlSeconds = pipe(getAxiosResponse, prop('ttl'));
 const userIDParse = pipe(getAxiosResponse, prop('userID'));
+const isBillingSetup = pipe(getAxiosResponse, prop('isBillingSetup'));
+const isInternal = pipe(getAxiosResponse, prop('isInternal'));
 
 const authProvider = {
     login: async (username: string, password: string) =>  {

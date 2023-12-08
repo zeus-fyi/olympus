@@ -16,6 +16,8 @@ export interface LoginResponse {
     userID: number
     sessionID: string
     ttl: number
+    isBillingSetup: boolean
+    isInternal: boolean
 }
 
 export interface LoginRequest {

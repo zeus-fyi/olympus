@@ -15,7 +15,7 @@ import {LOGIN_FAIL, LOGIN_SUCCESS,} from "../../redux/auth/auth.types";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import Link from "@mui/material/Link";
 import {CircularProgress} from "@mui/material";
-import {setInternalAuth, setSessionAuth} from "../../redux/auth/session.reducer";
+import {setInternalAuth, setIsBillingSetup, setSessionAuth} from "../../redux/auth/session.reducer";
 import {setUserPlanDetails} from "../../redux/loadbalancing/loadbalancing.reducer";
 import GoogleLoginPage from "./GoogleLoginPage";
 
@@ -73,6 +73,9 @@ const Login = () => {
                 if (res.data.isInternal === true) {
                     dispatch(setInternalAuth(true));
                 }
+                if (res.data.isBillingSetup === true) {
+                    dispatch(setIsBillingSetup(true));
+                }
                 dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
                 navigate('/apps');
             } else {
@@ -105,6 +108,9 @@ const Login = () => {
                 }
                 if (res.data.isInternal === true) {
                     dispatch(setInternalAuth(true));
+                }
+                if (res.data.isBillingSetup === true) {
+                    dispatch(setIsBillingSetup(true));
                 }
                 dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
                 navigate('/apps');

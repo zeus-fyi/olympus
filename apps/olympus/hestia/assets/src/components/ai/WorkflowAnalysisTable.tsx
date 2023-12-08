@@ -33,8 +33,6 @@ export function WorkflowAnalysisTable(props: any) {
     ) => {
         setPage(newPage);
     };
-    // useEffect(() => {}
-    // , [selectedRuns]);
 
     useEffect(() => {
         const fetchData = async () => {

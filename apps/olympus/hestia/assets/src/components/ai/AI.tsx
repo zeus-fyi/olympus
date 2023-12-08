@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useCallback, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -47,7 +47,7 @@ import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
 import {TimeRange} from '@matiaslgonzalez/react-timeline-range-slider';
 import {WorkflowAnalysisTable} from "./WorkflowAnalysisTable";
-import {PostWorkflowsActionRequest, WorkflowTemplate} from "../../redux/ai/ai.types";
+import {PostWorkflowsActionRequest} from "../../redux/ai/ai.types";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -73,7 +73,11 @@ function AiWorkflowsDashboardContent(props: any) {
     const [customBasePeriod, setCustomBasePeriod] = useState(true);
     const [customBasePeriodStepSize, setCustomBasePeriodStepSize] = useState(5);
     const [customBasePeriodStepSizeUnit, setCustomBasePeriodStepSizeUnit] = useState('minutes');
+    const workflows = useSelector((state: any) => state.ai.workflows);
 
+    useEffect(() => {}, [selected]);
+
+    console.log(selected, 'selected')
     const dispatch = useDispatch();
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);
@@ -120,8 +124,8 @@ function AiWorkflowsDashboardContent(props: any) {
             customBasePeriod: customBasePeriod,
             customBasePeriodStepSize: customBasePeriodStepSize,
             customBasePeriodStepSizeUnit: customBasePeriodStepSizeUnit,
-            workflows: selected.map((wf: WorkflowTemplate) => {
-                return wf
+            workflows: selected.map((index: number) => {
+                return workflows[index]
             })
         }
         if (params.workflows.length === 0) {
@@ -462,7 +466,6 @@ function AiWorkflowsDashboardContent(props: any) {
                                                         value={customBasePeriodStepSizeUnit}
                                                         label="Time Unit"
                                                         onChange={(e) => setCustomBasePeriodStepSizeUnit(e.target.value)}
-
                                                     >
                                                         <MenuItem value="minutes">Minutes</MenuItem>
                                                         <MenuItem value="hours">Hours</MenuItem>
@@ -549,7 +552,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                 { selected && selected.length > 0  &&
                                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                         <Box sx={{ mb: 2 }}>
-                                            <span>({Object.values(selected).filter(value => value).length} Selected Workflows)</span>
+                                            <span>({selected.length} Selected Workflows)</span>
                                             <Button variant="outlined" color="secondary" onClick={(event) => handleWorkflowAction(event, 'start')} style={{marginLeft: '10px'}}>
                                                 Start { selected.length === 1 ? 'Workflow' : 'Workflows' }
                                             </Button>

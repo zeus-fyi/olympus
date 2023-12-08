@@ -66,12 +66,11 @@ export function WorkflowTable(props: any) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - workflows.length) : 0;
 
-    const handleClick = (name: string) => {
-        const currentIndex = selected.indexOf(name);
+    const handleClick = (index: number) => {
+        const currentIndex = selected.indexOf(index);
         const newSelected = [...selected];
-
         if (currentIndex === -1) {
-            newSelected.push(name);
+            newSelected.push(index);
         } else {
             newSelected.splice(currentIndex, 1);
         }
@@ -79,7 +78,7 @@ export function WorkflowTable(props: any) {
     };
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
-            const newSelected = workflows.map((wf: any) => wf);
+            const newSelected = workflows.map((wf: any, index: number) => index);
             dispatch(setSelectedWorkflows(newSelected));
             return;
         }
@@ -111,7 +110,7 @@ export function WorkflowTable(props: any) {
                             key={index}
                             row={row}
                             index={index}
-                            handleClick={handleClick}
+                            handleClick={() =>handleClick(index)}
                             checked={selected.indexOf(index) >= 0 || false}
                         />
                     ))}

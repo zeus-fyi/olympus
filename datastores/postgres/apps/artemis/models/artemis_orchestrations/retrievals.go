@@ -27,8 +27,12 @@ type RetrievalItemInstruction struct {
 	RetrievalKeywords       string          `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
 	RetrievalUsernames      string          `json:"retrievalUsernames,omitempty"`      // Usernames for the retrieval
 	DiscordFilters          *DiscordFilters `json:"discordFilters,omitempty"`          // Discord filters for the retrieval
+	WebFilters              *WebFilters     `json:"webFilters,omitempty"`              // Web filters for the retrieval
 }
 
+type WebFilters struct {
+	RoutingGroup string `json:"routingGroup,omitempty"`
+}
 type DiscordFilters struct {
 	CategoryTopic string `json:"categoryTopic,omitempty"`
 	CategoryName  string `json:"categoryName,omitempty"`

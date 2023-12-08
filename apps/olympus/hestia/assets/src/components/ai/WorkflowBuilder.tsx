@@ -50,13 +50,13 @@ import {
     setRetrievalGroup,
     setRetrievalKeywords,
     setRetrievalName,
-    setRetrievalPlatform,
     setRetrievalPlatformGroups,
     setRetrievalPrompt,
     setRetrievals,
     setRetrievalUsernames,
     setSelectedWorkflows,
     setTaskMap,
+    setWebRoutingGroup,
     setWorkflowBuilderTaskMap,
     setWorkflowGroupName,
     setWorkflowName,
@@ -72,11 +72,14 @@ import {
 import {TasksTable} from "./TasksTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {RetrievalsTable} from "./RetrievalsTable";
+import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
+import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 
 const mdTheme = createTheme();
 
 function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
+    const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setIsLoading] = useState(false);
     const selectedWorkflows = useSelector((state: any) => state.ai.selectedWorkflows);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
@@ -104,6 +107,7 @@ function WorkflowEngineBuilder(props: any) {
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
     const workflowName = useSelector((state: RootState) => state.ai.workflowName);
     const workflowGroupName = useSelector((state: RootState) => state.ai.workflowGroupName);
+
     const handleAddRetrievalToAnalysis = () => {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
             return;
@@ -172,6 +176,24 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     }
     useEffect(() => {
+        const fetchData = async (params: any) => {
+            try {
+                setIsLoading(true); // Set loading to true
+                const response = await loadBalancingApiGateway.getEndpoints();
+                dispatch(setEndpoints(response.data.routes));
+                dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setIsLoading(false); // Set loading to false regardless of success or failure.
+            }
+        }
+        fetchData({});
+    }, []);
+
+
+    useEffect(() => {
+
     }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTab, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap, taskMap]);
     const dispatch = useDispatch();
     const handleTaskCycleCountChange = (val: number, task: TaskModelInstructions) => {
@@ -186,6 +208,8 @@ function WorkflowEngineBuilder(props: any) {
             dispatch(setTaskMap(payload));
         }
     };
+
+
     const handleDeleteWorkflows = async (event: any) => {
         const params: DeleteWorkflowsActionRequest = {
             workflows: selectedWorkflows.map((wf: WorkflowTemplate) => {
@@ -1412,10 +1436,11 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Select
                                                             labelId="platform-label"
                                                             id="platforms-input"
-                                                            value={retrieval.retrievalPlatform}
+                                                            value={retrieval.retrievalGroup}
                                                             label="Platform"
-                                                            onChange={(e) => dispatch(setRetrievalPlatform(e.target.value))}
+                                                            onChange={(e) => dispatch(setRetrievalGroup(e.target.value))}
                                                         >
+                                                            <MenuItem value="web">Web</MenuItem>
                                                             <MenuItem value="reddit">Reddit</MenuItem>
                                                             <MenuItem value="twitter">Twitter</MenuItem>
                                                             <MenuItem value="discord">Discord</MenuItem>
@@ -1423,16 +1448,40 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                     </Box>
+                                                { retrieval.retrievalPlatform !== 'web' &&
                                                     <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                         <TextField
                                                             fullWidth
                                                             id="group-input"
-                                                            label="Platform Groups"
+                                                            label={"Platform Groups"}
                                                             variant="outlined"
                                                             value={retrieval.retrievalPlatformGroups}
-                                                             onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
+                                                            onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
                                                         />
                                                     </Box>
+                                                }
+                                                { retrieval.retrievalPlatform === 'web' &&
+                                                    <div>
+                                                        <Typography variant="h6" color="text.secondary">
+                                                            Use a Load Balancer group for web data retrieval.
+                                                        </Typography>
+                                                        <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
+                                                            <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                                                Routing Group
+                                                            </InputLabel>
+                                                            <Select
+                                                                labelId={`groupNameLabel`}
+                                                                id={`groupName`}
+                                                                name="groupName"
+                                                                value={retrieval.webFilters?.routingGroup || ''}
+                                                                onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
+                                                                label="Routing Group"
+                                                            >
+                                                                {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                                            </Select>
+                                                        </FormControl>
+                                                    </div>
+                                                }
                                                     { retrieval.retrievalPlatform === 'discord' &&
                                                         <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                             <TextField
@@ -1445,6 +1494,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             />
                                                     </Box>
                                                     }
+                                                { retrieval.retrievalPlatform !== 'web' &&
                                                     <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                         <TextField
                                                             fullWidth
@@ -1455,6 +1505,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}
                                                         />
                                                     </Box>
+                                                }
                                                     <Typography variant="h5" color="text.secondary">
                                                         Describe what you're looking for, and the AI will generate a list of keywords to search for after it runs for the first time.
                                                         You can preview, edit, or give the AI more information to refine the search.

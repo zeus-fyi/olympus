@@ -44,13 +44,16 @@ import {
     setRetrievalPrompt,
     setRetrievalUsernames,
     setSearchResults,
-    setSelectedWorkflows
+    setSelectedWorkflows,
+    setWebRoutingGroup
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
 import {TimeRange} from '@matiaslgonzalez/react-timeline-range-slider';
 import {WorkflowAnalysisTable} from "./WorkflowAnalysisTable";
 import {AiSearchParams, PostWorkflowsActionRequest} from "../../redux/ai/ai.types";
+import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
+import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -64,6 +67,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const selected = useSelector((state: any) => state.ai.selectedWorkflows);
     const groupFilter = useSelector((state: RootState) => state.ai.groupFilter);
     const usernames = useSelector((state: RootState) => state.ai.usernames);
+    const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const workflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
     const [code, setCode] = useState('');
     const [unixStartTime, setUnixStartTime] = useState(0);
@@ -79,7 +83,21 @@ function AiWorkflowsDashboardContent(props: any) {
     const workflows = useSelector((state: any) => state.ai.workflows);
     const [requestStatus, setRequestStatus] = useState('');
     const [requestStatusError, setRequestStatusError] = useState('');
-    useEffect(() => {}, [selected]);
+    useEffect(() => {
+        const fetchData = async (params: any) => {
+            try {
+                setIsLoading(true); // Set loading to true
+                const response = await loadBalancingApiGateway.getEndpoints();
+                dispatch(setEndpoints(response.data.routes));
+                dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setIsLoading(false); // Set loading to false regardless of success or failure.
+            }
+        }
+        fetchData({});
+    }, []);
     const dispatch = useDispatch();
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);
@@ -344,6 +362,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                         label="Platform"
                                                         onChange={(e) => dispatch(setRetrievalPlatform(e.target.value))}
                                                     >
+                                                        <MenuItem value="web">Web</MenuItem>
                                                         <MenuItem value="reddit">Reddit</MenuItem>
                                                         <MenuItem value="twitter">Twitter</MenuItem>
                                                         <MenuItem value="discord">Discord</MenuItem>
@@ -351,16 +370,41 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     </Select>
                                                 </FormControl>
                                             </Box>
-                                            <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
-                                                <TextField
-                                                    fullWidth
-                                                    id="group-input"
-                                                    label="Platform Groups"
-                                                    variant="outlined"
-                                                    value={retrieval.retrievalPlatformGroups}
-                                                    onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
-                                                />
-                                            </Box>
+
+                                            { retrieval.retrievalPlatform !== 'web' &&
+                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="group-input"
+                                                        label={"Platform Groups"}
+                                                        variant="outlined"
+                                                        value={retrieval.retrievalPlatformGroups}
+                                                        onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
+                                                    />
+                                                </Box>
+                                            }
+                                            { retrieval.retrievalPlatform === 'web' &&
+                                                <div>
+                                                        <Typography variant="h6" color="text.secondary">
+                                                            Use a Load Balancer group for web data retrieval.
+                                                        </Typography>
+                                                        <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
+                                                        <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                                            Routing Group
+                                                        </InputLabel>
+                                                        <Select
+                                                            labelId={`groupNameLabel`}
+                                                            id={`groupName`}
+                                                            name="groupName"
+                                                            value={retrieval.webFilters?.routingGroup || ''}
+                                                            onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
+                                                            label="Routing Group"
+                                                        >
+                                                            {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                                        </Select>
+                                                        </FormControl>
+                                                </div>
+                                            }
                                             { retrieval.retrievalPlatform === 'discord' &&
                                                 <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                     <TextField
@@ -373,7 +417,8 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     />
                                                 </Box>
                                             }
-                                            <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                            { retrieval.retrievalPlatform !== 'web' &&
+                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                 <TextField
                                                     fullWidth
                                                     id="usernames-input"
@@ -383,8 +428,9 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}
                                                 />
                                             </Box>
-                                            <Typography variant="h5" color="text.secondary">
-                                                Add keywords to the search using comma separated values below.
+                                            }
+                                            <Typography variant="h6" color="text.secondary">
+                                                Search keywords using comma separated values below.
                                             </Typography>
                                             <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
                                                 <TextField
@@ -396,7 +442,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     onChange={(e) => dispatch(setRetrievalKeywords(e.target.value))}
                                                 />
                                             </Box>
-                                            <Typography variant="h5" color="text.secondary">
+                                            <Typography variant="h6" color="text.secondary">
                                                 Optionally describe what you're looking for, and the AI will analyze your returned search data.
                                             </Typography>
                                             <Box  sx={{ mb: 2, mt: 2 }}>

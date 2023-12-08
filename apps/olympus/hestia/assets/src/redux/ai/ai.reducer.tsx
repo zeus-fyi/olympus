@@ -52,6 +52,14 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setWebRoutingGroup: (state, action: PayloadAction<string>) => {
+            if (!state.retrieval.webFilters) {
+                state.retrieval.webFilters = {
+                    routingGroup: action.payload,
+                }
+            }
+            state.retrieval.webFilters.routingGroup = action.payload;
+        },
         setRuns: (state, action: PayloadAction<OrchestrationsAnalysis[]>) => {
             state.runs = action.payload;
         },
@@ -250,6 +258,7 @@ export const {
     setTaskMap,
     setRetrievalName,
     setRetrievalGroup,
+    setWebRoutingGroup,
     setRetrievalPlatformGroups,
     setRetrievalKeywords,
     setRetrievalPlatform,

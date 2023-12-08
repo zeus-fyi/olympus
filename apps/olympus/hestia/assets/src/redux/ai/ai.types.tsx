@@ -173,6 +173,9 @@ export interface Retrieval {
     retrievalUsernames: string;
     retrievalPlatformGroups: string;
     discordFilters?: DiscordFilters;
+    webFilters?: WebFilters;
 }
 
-
+export interface WebFilters {
+    routingGroup: string;
+}

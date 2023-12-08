@@ -653,7 +653,7 @@ function WorkflowEngineBuilder(props: any) {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Mockingbird - LLM Workflow Engine
+                            Mockingbird - Time Series RAG-LLM Workflow Engine
                         </Typography>
                         <Button
                             color="inherit"

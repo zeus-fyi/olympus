@@ -88,6 +88,7 @@ export interface AggregatedData {
     searchWindowUnixStart: number;
     searchWindowUnixEnd: number;
     model: string;
+    prompt?: string; // or a more specific type if the structure of prompt is known
     metadata?: string; // or a more specific type if the structure of metadata is known
     completionChoices?: string; // similar to metadata, define a more specific type if possible
     promptTokens: number;

@@ -62,6 +62,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableCell>Prompt Tokens</TableCell>
                                         <TableCell>Completion Tokens</TableCell>
                                         <TableCell>Total Tokens</TableCell>
+                                        <TableCell style={{ width: '25%', whiteSpace: 'pre-wrap' }}>Prompt</TableCell>
                                         <TableCell style={{ width: '50%', whiteSpace: 'pre-wrap' }}>Completion Choices</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -78,6 +79,9 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>{data.promptTokens}</TableCell>
                                             <TableCell>{data.completionTokens}</TableCell>
                                             <TableCell>{data.totalTokens}</TableCell>
+                                            <TableCell style={{ width: '25%%', whiteSpace: 'pre-wrap' }}>
+                                                {data.prompt !== undefined ? prettyPrintJSON(data.prompt) : ""}
+                                            </TableCell>
                                             <TableCell style={{ width: '50%', whiteSpace: 'pre-wrap' }}>
                                                 {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
                                             </TableCell>

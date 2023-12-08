@@ -11,6 +11,7 @@ type CompletionResponses struct {
 	TotalTokens       int    `db:"total_tokens" json:"totalTokens"`
 	Model             string `db:"model" json:"model"`
 	CompletionChoices string `db:"completion_choices" json:"completionChoices"`
+	Prompt            []byte `db:"prompt" json:"prompt,omitempty"`
 }
 type CompletionResponsesSlice []CompletionResponses
 
@@ -18,12 +19,12 @@ func (c *CompletionResponses) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{c.ResponseID, c.OrgID, c.UserID, c.PromptTokens, c.CompletionTokens, c.TotalTokens, c.Model, c.CompletionChoices}
+		pgValues = apps.RowValues{c.ResponseID, c.OrgID, c.UserID, c.PromptTokens, c.CompletionTokens, c.TotalTokens, c.Model, c.CompletionChoices, c.Prompt}
 	}
 	return pgValues
 }
 func (c *CompletionResponses) GetTableColumns() (columnValues []string) {
-	columnValues = []string{"response_id", "org_id", "user_id", "prompt_tokens", "completion_tokens", "total_tokens", "model", "completion_choices"}
+	columnValues = []string{"response_id", "org_id", "user_id", "prompt_tokens", "completion_tokens", "total_tokens", "model", "completion_choices", "prompt"}
 	return columnValues
 }
 func (c *CompletionResponses) GetTableName() (tableName string) {

@@ -31,8 +31,8 @@ func insertCompletionResp() sql_query_templates.QueryParams {
             WHERE hera_openai_usage.org_id = $1
             RETURNING tokens_remaining, tokens_consumed
 		)
-		INSERT INTO completion_responses(org_id, user_id, prompt_tokens, completion_tokens, total_tokens, model, completion_choices)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO completion_responses(org_id, user_id, prompt_tokens, completion_tokens, total_tokens, model, completion_choices, prompt)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING response_id;
 	`
 	return q
@@ -52,7 +52,7 @@ func sanitizeBytesUTF8(b []byte) []byte {
 	return bs
 }
 
-func InsertCompletionResponseChatGpt(ctx context.Context, ou org_users.OrgUser, response openai.ChatCompletionResponse) (int, error) {
+func InsertCompletionResponseChatGpt(ctx context.Context, ou org_users.OrgUser, response openai.ChatCompletionResponse, prompt []byte) (int, error) {
 	q := insertCompletionResp()
 	completionChoices, err := json.Marshal(response.Choices)
 	if err != nil {
@@ -61,7 +61,11 @@ func InsertCompletionResponseChatGpt(ctx context.Context, ou org_users.OrgUser, 
 	}
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	var rid int
-	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, response.Model, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(completionChoices), Status: IsNull(completionChoices)}).Scan(&rid)
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID,
+		response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, response.Model,
+		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(completionChoices), Status: IsNull(completionChoices)},
+		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(prompt), Status: IsNull(prompt)},
+	).Scan(&rid)
 	if err != nil {
 		log.Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
 		return rid, err

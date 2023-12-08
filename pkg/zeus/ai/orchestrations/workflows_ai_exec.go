@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/sashabaranov/go-openai"
@@ -88,8 +89,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					continue
 				}
 				var analysisRespId int
+				prompt, perr := json.Marshal(sr)
+				if perr != nil {
+					logger.Error("failed to marshal prompt", "Error", perr)
+					return perr
+				}
 				analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
+				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp, prompt).Get(analysisCompCtx, &analysisRespId)
 				if err != nil {
 					logger.Error("failed to save analysis response", "Error", err)
 					return err
@@ -146,7 +152,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				}
 				var aggRespId int
 				aggCompCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &aggRespId)
+
+				prompt, perr := json.Marshal(dataIn)
+				if perr != nil {
+					logger.Error("failed to marshal prompt", "Error", perr)
+					return perr
+				}
+				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp, prompt).Get(aggCompCtx, &aggRespId)
 				if err != nil {
 					logger.Error("failed to save agg response", "Error", err)
 					return err

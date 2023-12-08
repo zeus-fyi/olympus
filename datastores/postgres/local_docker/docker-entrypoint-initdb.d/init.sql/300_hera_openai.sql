@@ -14,8 +14,10 @@ CREATE TABLE "public"."completion_responses" (
     completion_tokens int NOT NULL,
     total_tokens int NOT NULL,
     model text NOT NULL,
-    completion_choices jsonb NOT NULL
+    completion_choices jsonb NOT NULL,
+    prompt jsonb
 );
 ALTER TABLE "public"."completion_responses" ADD CONSTRAINT "completion_responses_pk" PRIMARY KEY ("response_id");
 CREATE INDEX idx_ou_org_cr ON public.completion_responses("org_id");
 CREATE INDEX idx_ou_user_cr ON public.completion_responses("user_id");
+

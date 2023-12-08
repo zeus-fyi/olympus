@@ -129,8 +129,8 @@ func (z *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgU
 	return resp, err
 }
 
-func (z *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse) error {
-	err := hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
+func (z *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, prompt []byte) error {
+	err := hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp, prompt)
 	if err != nil {
 		log.Err(err).Msg("SaveAiTaskResponse: RecordUIChatRequestUsage failed")
 		return nil
@@ -404,8 +404,8 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	return resp, err
 }
 
-func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse) (int, error) {
-	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, resp)
+func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, prompt []byte) (int, error) {
+	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, resp, prompt)
 	if err != nil {
 		log.Err(err).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
 		return rid, err

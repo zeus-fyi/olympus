@@ -297,6 +297,7 @@ type AggregatedData struct {
 	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd"`
 	Metadata              json.RawMessage `json:"metadata,omitempty"`
 	CompletionChoices     json.RawMessage `json:"completionChoices,omitempty"`
+	Prompt                json.RawMessage `json:"prompt,omitempty"`
 	PromptTokens          int             `json:"promptTokens"`
 	CompletionTokens      int             `json:"completionTokens"`
 	TotalTokens           int             `json:"totalTokens"`
@@ -335,6 +336,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]Orchestrati
 								'searchWindowUnixEnd', search_window_unix_end, 
 								'metadata', metadata,
 								'completionChoices', cr.completion_choices, 
+								'prompt' cr.prompt,
 								'promptTokens', cr.prompt_tokens, 
 								'completionTokens', cr.completion_tokens, 
 								'totalTokens', cr.total_tokens
@@ -342,9 +344,9 @@ func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]Orchestrati
 						) AS aggregated_data
 				FROM 
 					ai_workflow_analysis_results ar
-				JOIN 
+				LEFT JOIN 
 					ai_task_library ait ON ait.task_id = ar.source_task_id
-				JOIN 
+				LEFT JOIN 
 					completion_responses cr ON cr.response_id = ar.response_id
 				JOIN 
 					orchestrations ON orchestrations.orchestration_id = ar.orchestrations_id

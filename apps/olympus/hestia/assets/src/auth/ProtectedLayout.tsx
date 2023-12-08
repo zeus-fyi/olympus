@@ -73,6 +73,9 @@ export const InternalProtectedLayout = (props: any) => {
                 if (response.data.planUsageDetails != null){
                     dispatch(setUserPlanDetails(response.data.planUsageDetails))
                 }
+                if (response.data.isBillingSetup === true) {
+                    dispatch(setIsBillingSetup(true));
+                }
                 dispatch(setSessionAuth(true));
                 if (response.data.isInternal === true) {
                     dispatch(setInternalAuth(true));

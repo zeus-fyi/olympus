@@ -55,27 +55,25 @@ export default function MainListItems() {
                 </ListSubheader>
             }
         >
-            {isInternal && (
-                <div>
-                <ListItemButton component={Link} onClick={handleClickAi} to="/ai">
-                    <ListItemIcon>
-                        <GraphicEqIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="AI" />
-                    {openAiPanel ? <ExpandLess  onClick={handleClickAi}/> : <ExpandMore onClick={handleClickAi}/>}
-                </ListItemButton>
-                    <Collapse in={openAiPanel} timeout="auto" unmountOnExit>
-                        <List component="div" disablePadding>
-                            <ListItemButton sx={{ pl: 4 }} component={Link} to="/ai/workflow/builder">
-                                <ListItemIcon>
-                                    <ConstructionIcon />
-                                </ListItemIcon>
-                                <ListItemText primary="Builder" />
-                            </ListItemButton>
-                        </List>
-                    </Collapse>
-                </div>
-                )}
+            <div>
+            <ListItemButton component={Link} onClick={handleClickAi} to="/ai">
+                <ListItemIcon>
+                    <GraphicEqIcon />
+                </ListItemIcon>
+                <ListItemText primary="AI" />
+                {openAiPanel ? <ExpandLess  onClick={handleClickAi}/> : <ExpandMore onClick={handleClickAi}/>}
+            </ListItemButton>
+                <Collapse in={openAiPanel} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
+                        <ListItemButton sx={{ pl: 4 }} component={Link} to="/ai/workflow/builder">
+                            <ListItemIcon>
+                                <ConstructionIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Builder" />
+                        </ListItemButton>
+                    </List>
+                </Collapse>
+            </div>
             <ListItemButton component={Link} onClick={handleClickApps}  to="/apps">
                 <ListItemIcon>
                     <AppsIcon />

@@ -2,6 +2,7 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
@@ -12,15 +13,15 @@ import (
 )
 
 type AIWorkflowAnalysisResult struct {
-	WorkflowResultID      int    `json:"workflowResultId"`
-	OrchestrationsID      int    `json:"orchestrationsId"`
-	ResponseID            int    `json:"responseId"`
-	SourceTaskID          int    `json:"sourceTaskId"`
-	RunningCycleNumber    int    `json:"runningCycleNumber"`
-	SearchWindowUnixStart int    `json:"searchWindowUnixStart"`
-	SearchWindowUnixEnd   int    `json:"searchWindowUnixEnd"`
-	Metadata              []byte `json:"metadata,omitempty"`
-	CompletionChoices     []byte `json:"completionChoices,omitempty"`
+	WorkflowResultID      int             `json:"workflowResultId"`
+	OrchestrationsID      int             `json:"orchestrationsId"`
+	ResponseID            int             `json:"responseId"`
+	SourceTaskID          int             `json:"sourceTaskId"`
+	RunningCycleNumber    int             `json:"runningCycleNumber"`
+	SearchWindowUnixStart int             `json:"searchWindowUnixStart"`
+	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd"`
+	Metadata              json.RawMessage `json:"metadata,omitempty"`
+	CompletionChoices     json.RawMessage `json:"completionChoices,omitempty"`
 }
 
 func InsertAiWorkflowAnalysisResult(ctx context.Context, wr AIWorkflowAnalysisResult) (int, error) {

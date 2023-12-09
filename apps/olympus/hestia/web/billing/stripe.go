@@ -64,7 +64,7 @@ func (s *StripeBillingRequest) GetCustomerID(c echo.Context) error {
 	}
 	result, err := setupintent.New(params)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("setupintent.New error")
+		log.Err(err).Interface("ou", ou).Msg("setupintent.New error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	resp := CheckoutData{result.ClientSecret}

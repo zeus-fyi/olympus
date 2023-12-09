@@ -42,7 +42,14 @@ func CreateCustomer(ctx context.Context, userID int, firstName, lastName, email 
 	return c, nil
 }
 
+const (
+	InternalUserID = 7138958574876245565
+)
+
 func DoesUserHaveBillingMethod(ctx context.Context, userID int) (bool, error) {
+	if userID == InternalUserID {
+		return true, nil
+	}
 	cID, err := QueryGetCustomerStripeID(ctx, userID)
 	if err != nil {
 		log.Err(err).Interface("u", userID).Msg("DoesUserHaveBillingMethod error")

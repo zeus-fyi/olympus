@@ -172,7 +172,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					logger.Error("failed to run aggregate retrieval", "Error", err)
 					return err
 				}
-				md.AnalysisRetrievals[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
+				md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
 				if len(dataIn) == 0 {
 					continue
 				}
@@ -188,7 +188,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				}
 				var aggRespId int
 				aggCompCtx := workflow.WithActivityOptions(ctx, ao)
-
 				prompt, perr := json.Marshal(dataIn)
 				if perr != nil {
 					logger.Error("failed to marshal prompt", "Error", perr)

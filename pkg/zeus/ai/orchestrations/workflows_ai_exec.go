@@ -206,6 +206,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					RunningCycleNumber:    i,
 					SearchWindowUnixStart: window.UnixStartTime,
 					SearchWindowUnixEnd:   window.UnixEndTime,
+					Metadata:              prompt,
 				}
 				recordAggCtx := workflow.WithActivityOptions(ctx, ao)
 				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr).Get(recordAggCtx, nil)

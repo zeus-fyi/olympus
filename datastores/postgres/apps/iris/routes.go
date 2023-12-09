@@ -390,6 +390,57 @@ func SelectAllEndpointsAndOrgGroupRoutesByOrg(ctx context.Context, orgID int) (O
 	return og, misc.ReturnIfErr(err, q.LogHeader("SelectAllEndpointsAndOrgGroupRoutesByOrg"))
 }
 
+func SelectOrgGroupRoutes(ctx context.Context, orgID int, groupName string) ([]RouteInfo, error) {
+	og := OrgRoutesGroup{
+		Map: make(map[int]map[string][]RouteInfo),
+	}
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT 
+					o.route_group_name, 
+					o.org_id, 
+					org.route_path, 
+					NULLIF(array_remove(array_agg(r.referer), NULL)::text[], ARRAY[]::text[]) as referers
+				  FROM org_route_groups o 
+				  INNER JOIN org_routes_groups orgrs ON orgrs.route_group_id = o.route_group_id
+				  LEFT JOIN org_routes org ON org.route_id = orgrs.route_id
+				  LEFT JOIN 
+					provisioned_quicknode_services pqs ON org.route_path = pqs.http_url
+				  LEFT JOIN 
+					provisioned_quicknode_services_referers r ON pqs.endpoint_id = r.endpoint_id
+				  WHERE o.org_id = $1 AND o.route_group_name = $2
+				  GROUP BY 
+						o.route_group_name,
+						o.org_id,
+						org.route_path;
+				  `
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, groupName)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var routeGroupName string
+		var routePath string
+		var referers []string
+		rowErr := rows.Scan(
+			&routeGroupName, &orgID, &routePath, pq.Array(&referers),
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SelectOrgRoutes"))
+			return nil, rowErr
+		}
+		if _, ok := og.Map[orgID]; !ok {
+			og.Map[orgID] = make(map[string][]RouteInfo)
+		}
+		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
+			RoutePath: routePath,
+			Referrers: referers,
+		})
+	}
+
+	return og.Map[orgID][groupName], misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
+}
 func SelectOrgRoutesByOrgAndGroupName(ctx context.Context, orgID int, groupName string) (OrgRoutesGroup, error) {
 	og := OrgRoutesGroup{
 		Map: make(map[int]map[string][]RouteInfo),

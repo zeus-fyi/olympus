@@ -8,6 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -82,6 +83,26 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				if err != nil {
 					logger.Error("failed to run retrieval", "Error", err)
 					return err
+				}
+				var routes []iris_models.RouteInfo
+				retrievalWebCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, ou, analysisInst).Get(retrievalWebCtx, &routes)
+				if err != nil {
+					logger.Error("failed to run retrieval", "Error", err)
+					return err
+				}
+
+				for _, route := range routes {
+					fetchedResult := &hera_search.SearchResult{}
+					retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+					err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.AiWebRetrievalTask, ou, analysisInst, route).Get(retrievalWebTaskCtx, &fetchedResult)
+					if err != nil {
+						logger.Error("failed to run retrieval", "Error", err)
+						return err
+					}
+					if fetchedResult != nil && len(fetchedResult.Value) > 0 {
+						sr = append(sr, *fetchedResult)
+					}
 				}
 				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][analysisInst.RetrievalID] = false
 				if len(sr) == 0 {

@@ -155,6 +155,14 @@ func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSea
 		}
 		res = append(res, resReddit...)
 	}
+
+	if strings.Contains(platform, "web") {
+		resWeb, err := SearchReddit(ctx, ou, sp)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, resWeb...)
+	}
 	return res, nil
 }
 

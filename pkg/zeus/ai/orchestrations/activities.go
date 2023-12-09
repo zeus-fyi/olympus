@@ -51,6 +51,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.CreateDiscordJob, z.SelectDiscordSearchQuery, z.InsertIncomingDiscordDataFromSearch,
 		z.UpsertAiOrchestration, z.AiAnalysisTask, z.AiRetrievalTask,
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
+		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -290,6 +291,72 @@ func (z *ZeusAiPlatformActivities) UpsertAiOrchestration(ctx context.Context, ou
 	return id, nil
 }
 
+func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData) ([]iris_models.RouteInfo, error) {
+	retInst := artemis_orchestrations.RetrievalItemInstruction{}
+	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &retInst)
+	if jerr != nil {
+		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
+		return nil, jerr
+	}
+	if retInst.WebFilters == nil || len(retInst.WebFilters.RoutingGroup) <= 0 {
+		return nil, jerr
+	}
+	ogr, rerr := iris_models.SelectOrgGroupRoutes(ctx, ou.OrgID, retInst.WebFilters.RoutingGroup)
+	if rerr != nil {
+		log.Err(rerr).Msg("AiRetrievalTask: failed to select org routes")
+		return nil, rerr
+	}
+	return ogr, nil
+
+}
+func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, r iris_models.RouteInfo) (*hera_search.SearchResult, error) {
+	retInst := artemis_orchestrations.RetrievalItemInstruction{}
+	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &retInst)
+	if jerr != nil {
+		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
+		return nil, jerr
+	}
+	if retInst.WebFilters == nil || len(retInst.WebFilters.RoutingGroup) <= 0 {
+		return nil, jerr
+	}
+	rw := iris_api_requests.NewIrisApiRequestsActivities()
+	req := &iris_api_requests.ApiProxyRequest{
+		Url:             r.RoutePath,
+		PayloadTypeREST: "GET",
+		Timeout:         1 * time.Minute,
+		StatusCode:      http.StatusOK,
+	}
+	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
+	if rrerr != nil {
+		log.Err(rrerr).Msg("AiRetrievalTask: failed to request")
+		return nil, rrerr
+	}
+	wr := hera_search.WebResponse{
+		Body:       rr.Response,
+		RawMessage: rr.RawResponse,
+	}
+	value := ""
+	if wr.Body != nil {
+		b, jer := json.Marshal(wr.Body)
+		if jer != nil {
+			log.Err(jer).Msg("AiRetrievalTask: failed to marshal")
+			return nil, jer
+		}
+		value = fmt.Sprintf("%s", b)
+	}
+	if wr.RawMessage != nil && wr.Body == nil {
+		value = fmt.Sprintf("%s", wr.RawMessage)
+	}
+	sres := &hera_search.SearchResult{
+		Source:      rr.Url,
+		Value:       value,
+		Group:       retInst.WebFilters.RoutingGroup,
+		WebResponse: wr,
+	}
+
+	return sres, nil
+}
+
 func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) ([]hera_search.SearchResult, error) {
 	if taskInst.RetrievalPlatform == "" || taskInst.RetrievalName == "" || taskInst.RetrievalInstructions == nil {
 		return nil, nil
@@ -317,53 +384,8 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 		resp, err = hera_search.SearchDiscord(ctx, ou, sp)
 	case "telegram":
 		resp, err = hera_search.SearchTelegram(ctx, ou, sp)
-	case "web":
-		if retInst.WebFilters != nil {
-			var respData []hera_search.SearchResult
-			ogr, rerr := iris_models.SelectOrgRoutesByOrgAndGroupName(ctx, ou.OrgID, retInst.WebFilters.RoutingGroup)
-			if rerr != nil {
-				log.Err(rerr).Msg("AiRetrievalTask: failed to select org routes")
-				return nil, rerr
-			}
-			orgMapGroupRoutes := ogr.Map[ou.OrgID][retInst.WebFilters.RoutingGroup]
-			for _, r := range orgMapGroupRoutes {
-				rw := iris_api_requests.NewIrisApiRequestsActivities()
-				req := &iris_api_requests.ApiProxyRequest{
-					Url:             r.RoutePath,
-					PayloadTypeREST: "GET",
-					Timeout:         1 * time.Minute,
-					StatusCode:      http.StatusOK,
-				}
-				rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
-				if rrerr != nil {
-					log.Err(rrerr).Msg("AiRetrievalTask: failed to request")
-					return nil, rrerr
-				}
-				wr := hera_search.WebResponse{
-					Body:       rr.Response,
-					RawMessage: rr.RawResponse,
-				}
-				value := ""
-				if wr.Body != nil {
-					b, jer := json.Marshal(wr.Body)
-					if jer != nil {
-						log.Err(jer).Msg("AiRetrievalTask: failed to marshal")
-						return nil, jer
-					}
-					value = fmt.Sprintf("%s", b)
-				}
-				if wr.RawMessage != nil && wr.Body == nil {
-					value = fmt.Sprintf("%s", wr.RawMessage)
-				}
-				sres := hera_search.SearchResult{
-					Source:      rr.Url,
-					Value:       value,
-					Group:       retInst.WebFilters.RoutingGroup,
-					WebResponse: wr,
-				}
-				respData = append(respData, sres)
-			}
-		}
+	default:
+		return nil, nil
 	}
 	if err != nil {
 		log.Err(err).Msg("AiRetrievalTask: failed")

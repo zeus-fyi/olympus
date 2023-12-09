@@ -90,7 +90,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					logger.Error("failed to run retrieval", "Error", err)
 					return err
 				}
-
 				for _, route := range routes {
 					fetchedResult := &hera_search.SearchResult{}
 					retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
@@ -187,7 +186,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					logger.Error("failed to save agg response", "Error", err)
 					return err
 				}
-
 				wr := artemis_orchestrations.AIWorkflowAnalysisResult{
 					OrchestrationsID:      oj.OrchestrationID,
 					ResponseID:            aggRespId,

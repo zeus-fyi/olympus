@@ -300,7 +300,7 @@ function AiWorkflowsDashboardContent(props: any) {
                         noWrap
                         sx={{ flexGrow: 1 }}
                     >
-                        Mockingbird — Time Series RAG-LLM Workflow Engine
+                        Mockingbird — A Time Series RAG-LLM Workflow Engine
                     </Typography>
                     <Button
                         color="inherit"

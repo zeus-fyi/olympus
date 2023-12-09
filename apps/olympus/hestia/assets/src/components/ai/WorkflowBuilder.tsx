@@ -67,8 +67,7 @@ import {
     DeleteWorkflowsActionRequest,
     PostWorkflowsRequest,
     Retrieval,
-    TaskModelInstructions,
-    WorkflowTemplate
+    TaskModelInstructions
 } from "../../redux/ai/ai.types";
 import {TasksTable} from "./TasksTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
@@ -108,6 +107,7 @@ function WorkflowEngineBuilder(props: any) {
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
     const workflowName = useSelector((state: RootState) => state.ai.workflowName);
     const workflowGroupName = useSelector((state: RootState) => state.ai.workflowGroupName);
+    const workflows = useSelector((state: any) => state.ai.workflows);
 
     const handleAddRetrievalToAnalysis = () => {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
@@ -213,8 +213,8 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleDeleteWorkflows = async (event: any) => {
         const params: DeleteWorkflowsActionRequest = {
-            workflows: selectedWorkflows.map((wf: WorkflowTemplate) => {
-                return wf
+            workflows: selectedWorkflows.map((ind: string) => {
+                return workflows[Number(ind)]
             })
         }
         if (params.workflows.length === 0) {
@@ -1703,7 +1703,7 @@ function WorkflowEngineBuilder(props: any) {
                         <div>
                                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                     <Box sx={{ mb: 2 }}>
-                                        <span>({Object.values(selectedWorkflows).filter(value => value).length} Selected Workflows)</span>
+                                        <span>({selectedWorkflows.length} Selected Workflows)</span>
                                         <Button variant="outlined" color="secondary" onClick={(event) => handleDeleteWorkflows(event)} style={{marginLeft: '10px'}}>
                                             Delete { selectedWorkflows.length === 1 ? 'Workflow' : 'Workflows' }
                                         </Button>

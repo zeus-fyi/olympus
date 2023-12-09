@@ -82,10 +82,8 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesP() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	newTemplate := WorkflowTemplate{
-		WorkflowName:              "wf-test-1",
-		FundamentalPeriod:         5,
-		WorkflowGroup:             "wf-test-1",
-		FundamentalPeriodTimeUnit: "days",
+		WorkflowName:  "test-health-wf",
+		WorkflowGroup: "test-health-wf",
 	}
 
 	res1, err := SelectWorkflowTemplate(ctx, ou, newTemplate.WorkflowName)

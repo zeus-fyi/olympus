@@ -6,7 +6,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 type WorkflowTemplate struct {
@@ -70,7 +69,6 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 
 	// Rollback in case of any error
 	defer tx.Rollback(ctx)
-
 	// Insert the workflow template and get its ID
 	query := `
         INSERT INTO public.ai_workflow_template (workflow_name, workflow_group, org_id, user_id, fundamental_period, fundamental_period_time_unit)
@@ -88,50 +86,36 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 		log.Err(err).Msg("failed to insert workflow template")
 		return err
 	}
-
-	ts := chronos.Chronos{}
-	for _, aggTask := range tasks.AggTasks {
-		// Link component to the workflow template
-		for _, at := range aggTask.Tasks {
-			for _, rd := range at.RetrievalDependencies {
-				aid := ts.UnixTimeStampNow()
-				err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(workflow_template_id, task_id, retrieval_id, cycle_count)
-											VALUES ($1, $2, $3, $4)
-											ON CONFLICT (workflow_template_id, task_id, retrieval_id)
-											DO UPDATE SET cycle_count = EXCLUDED.cycle_count
-											RETURNING task_id`, workflowTemplate.WorkflowTemplateID, at.TaskID, rd.RetrievalID, at.CycleCount).Scan(&aid)
-				if err != nil {
-					log.Err(err).Msg("failed to insert workflow component")
-					return err
-				}
-				err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks (agg_task_id, workflow_template_id, analysis_task_id, cycle_count)
-											VALUES ($1, $2, $3, $4)
-											ON CONFLICT (workflow_template_id, agg_task_id, analysis_task_id)
-											DO UPDATE SET cycle_count = EXCLUDED.cycle_count
-											RETURNING analysis_task_id`,
-					aggTask.AggId, workflowTemplate.WorkflowTemplateID, at.TaskID, aggTask.CycleCount).Scan(&aid)
-				if err != nil {
-					log.Err(err).Msg("failed to insert workflow component")
-					return err
-				}
-			}
-		}
-	}
 	for _, at := range tasks.AnalysisOnlyTasks {
 		// Link component to the workflow template
 		for _, rd := range at.RetrievalDependencies {
-			aid := ts.UnixTimeStampNow()
 			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(workflow_template_id, task_id, retrieval_id, cycle_count)
 										VALUES ($1, $2, $3, $4)
 										ON CONFLICT (workflow_template_id, task_id, retrieval_id)
 										DO UPDATE SET cycle_count = EXCLUDED.cycle_count										
-										RETURNING task_id`, workflowTemplate.WorkflowTemplateID, at.TaskID, rd.RetrievalID, at.CycleCount).Scan(&aid)
+										RETURNING task_id`, workflowTemplate.WorkflowTemplateID, at.TaskID, rd.RetrievalID, at.CycleCount).Scan(&at.TaskID)
 			if err != nil {
 				log.Err(err).Msg("failed to insert workflow component")
 				return err
 			}
 		}
 	}
+	for _, aggTask := range tasks.AggTasks {
+		// Link component to the workflow template
+		for _, at := range aggTask.Tasks {
+			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks (agg_task_id, workflow_template_id, analysis_task_id, cycle_count)
+											VALUES ($1, $2, $3, $4)
+											ON CONFLICT (workflow_template_id, agg_task_id, analysis_task_id)
+											DO UPDATE SET cycle_count = EXCLUDED.cycle_count
+											RETURNING analysis_task_id`,
+				aggTask.AggId, workflowTemplate.WorkflowTemplateID, at.TaskID, aggTask.CycleCount).Scan(&at.TaskID)
+			if err != nil {
+				log.Err(err).Msg("failed to insert workflow component")
+				return err
+			}
+		}
+	}
+
 	// Commit the transaction
 	err = tx.Commit(ctx)
 	if err != nil {

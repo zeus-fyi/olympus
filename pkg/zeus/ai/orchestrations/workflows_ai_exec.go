@@ -188,12 +188,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				}
 				var aggRespId int
 				aggCompCtx := workflow.WithActivityOptions(ctx, ao)
-				prompt, perr := json.Marshal(dataIn)
-				if perr != nil {
-					logger.Error("failed to marshal prompt", "Error", perr)
-					return perr
-				}
-				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp, prompt).Get(aggCompCtx, &aggRespId)
+				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp, dataIn).Get(aggCompCtx, &aggRespId)
 				if err != nil {
 					logger.Error("failed to save agg response", "Error", err)
 					return err
@@ -206,10 +201,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					RunningCycleNumber:    i,
 					SearchWindowUnixStart: window.UnixStartTime,
 					SearchWindowUnixEnd:   window.UnixEndTime,
-					Metadata:              prompt,
 				}
 				recordAggCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr).Get(recordAggCtx, nil)
+				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, dataIn).Get(recordAggCtx, nil)
 				if err != nil {
 					logger.Error("failed to save aggregation resp", "Error", err)
 					return err

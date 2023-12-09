@@ -42,6 +42,7 @@ func InsertAiWorkflowAnalysisResult(ctx context.Context, wr AIWorkflowAnalysisRe
 	metadataJSONB := pgtype.JSONB{Bytes: sanitizeBytesUTF8(wr.Metadata), Status: IsNull(wr.Metadata)}
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wr.OrchestrationsID, wr.ResponseID, wr.SourceTaskID, wr.RunningCycleNumber, wr.SearchWindowUnixStart, wr.SearchWindowUnixEnd, metadataJSONB).Scan(&id)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("AIWorkflowAnalysisResults")); returnErr != nil {
+		log.Err(returnErr).Interface("metadataJSONB", metadataJSONB).Msg(q.LogHeader("AIWorkflowAnalysisResults"))
 		return id, err
 	}
 	return id, nil

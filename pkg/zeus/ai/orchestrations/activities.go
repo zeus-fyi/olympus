@@ -469,7 +469,12 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	return resp, err
 }
 
-func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, prompt []byte) (int, error) {
+func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (int, error) {
+	prompt, err := json.Marshal(dataIn)
+	if err != nil {
+		log.Err(err).Interface("dataIn", dataIn).Interface("prompt", prompt).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
+		return 0, err
+	}
 	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, resp, prompt)
 	if err != nil {
 		log.Err(err).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
@@ -488,7 +493,13 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 	return results, nil
 }
 
-func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr artemis_orchestrations.AIWorkflowAnalysisResult) error {
+func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr artemis_orchestrations.AIWorkflowAnalysisResult, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) error {
+	md, err := json.Marshal(dataIn)
+	if err != nil {
+		log.Err(err).Interface("dataIn", dataIn).Interface("wr", wr).Msg("SaveTaskOutput: failed")
+		return err
+	}
+	wr.Metadata = md
 	respID, err := artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 	if err != nil {
 		log.Err(err).Interface("respID", respID).Interface("wr", wr).Msg("SaveTaskOutput: failed")

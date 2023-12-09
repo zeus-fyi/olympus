@@ -51,7 +51,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.CreateDiscordJob, z.SelectDiscordSearchQuery, z.InsertIncomingDiscordDataFromSearch,
 		z.UpsertAiOrchestration, z.AiAnalysisTask, z.AiRetrievalTask,
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
-		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask,
+		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask, z.RecordCompletionResponseFromSearchResult,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -467,6 +467,20 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 		return resp, err
 	}
 	return resp, err
+}
+
+func (z *ZeusAiPlatformActivities) RecordCompletionResponseFromSearchResult(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, dataIn []hera_search.SearchResult) (int, error) {
+	prompt, err := json.Marshal(dataIn)
+	if err != nil {
+		log.Err(err).Interface("dataIn", dataIn).Interface("prompt", prompt).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
+		return 0, err
+	}
+	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, resp, prompt)
+	if err != nil {
+		log.Err(err).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
+		return rid, err
+	}
+	return rid, nil
 }
 
 func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (int, error) {

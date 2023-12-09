@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -40,14 +39,7 @@ func InsertAiWorkflowAnalysisResult(ctx context.Context, wr AIWorkflowAnalysisRe
                   RETURNING workflow_result_id;`
 
 	var id int
-
-	var metaData []byte
-	if len(wr.Metadata) == 0 {
-	} else {
-		metaData = sanitizeBytesUTF8(wr.Metadata)
-	}
-	metadataJSONB := pgtype.JSONB{Bytes: metaData, Status: IsNull(wr.Metadata)}
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wr.OrchestrationsID, wr.ResponseID, wr.SourceTaskID, wr.RunningCycleNumber, wr.SearchWindowUnixStart, wr.SearchWindowUnixEnd, metadataJSONB).Scan(&id)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wr.OrchestrationsID, wr.ResponseID, wr.SourceTaskID, wr.RunningCycleNumber, wr.SearchWindowUnixStart, wr.SearchWindowUnixEnd, string(wr.Metadata)).Scan(&id)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("AIWorkflowAnalysisResults")); returnErr != nil {
 		log.Err(returnErr).Interface("metadataJSONB", metadataJSONB).Msg(q.LogHeader("AIWorkflowAnalysisResults"))
 		return id, err

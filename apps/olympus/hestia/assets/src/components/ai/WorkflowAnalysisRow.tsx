@@ -43,7 +43,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                 <TableCell align="left">{row.totalWorkflowTokenUsage}</TableCell>
             </TableRow>
             <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ margin: 1 }}>
                             <Typography variant="h6" gutterBottom component="div">
@@ -62,8 +62,8 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableCell>Prompt Tokens</TableCell>
                                         <TableCell>Completion Tokens</TableCell>
                                         <TableCell>Total Tokens</TableCell>
-                                        <TableCell style={{ width: '25%', whiteSpace: 'pre-wrap' }}>Prompt</TableCell>
-                                        <TableCell style={{ width: '50%', whiteSpace: 'pre-wrap' }}>Completion Choices</TableCell>
+                                        <TableCell style={{ width: '10%', whiteSpace: 'pre-wrap' }}>Prompt</TableCell>
+                                        <TableCell style={{ width: '20%', whiteSpace: 'pre-wrap' }}>Completion Choices</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -79,10 +79,10 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>{data.promptTokens}</TableCell>
                                             <TableCell>{data.completionTokens}</TableCell>
                                             <TableCell>{data.totalTokens}</TableCell>
-                                            <TableCell style={{ width: '25%%', whiteSpace: 'pre-wrap' }}>
+                                            <TableCell style={{ width: '15%', whiteSpace: 'pre-wrap' }}>
                                                 {data.prompt !== undefined ? prettyPrintJSON(data.prompt) : ""}
                                             </TableCell>
-                                            <TableCell style={{ width: '50%', whiteSpace: 'pre-wrap' }}>
+                                            <TableCell style={{ width: '15%', whiteSpace: 'pre-wrap' }}>
                                                 {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
                                             </TableCell>
                                         </TableRow>

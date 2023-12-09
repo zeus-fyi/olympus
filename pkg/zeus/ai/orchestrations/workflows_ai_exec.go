@@ -199,11 +199,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					return err
 				}
 
-				b, aerr := json.Marshal(aiAggResp)
-				if aerr != nil {
-					logger.Error("failed to marshal agg response", "Error", aerr)
-					return aerr
-				}
 				wr := artemis_orchestrations.AIWorkflowAnalysisResult{
 					OrchestrationsID:      oj.OrchestrationID,
 					ResponseID:            aggRespId,
@@ -211,7 +206,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					RunningCycleNumber:    i,
 					SearchWindowUnixStart: window.UnixStartTime,
 					SearchWindowUnixEnd:   window.UnixEndTime,
-					CompletionChoices:     b,
 				}
 				recordAggCtx := workflow.WithActivityOptions(ctx, ao)
 				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr).Get(recordAggCtx, nil)

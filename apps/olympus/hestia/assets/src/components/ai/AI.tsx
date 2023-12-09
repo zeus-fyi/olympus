@@ -75,7 +75,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const [stepSizeUnit, setStepSizeUnit] = useState('hours');
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
     const [analyzeNext, setAnalyzeNext] = useState(true);
-    const [customBasePeriod, setCustomBasePeriod] = useState(true);
+    const [customBasePeriod, setCustomBasePeriod] = useState(false);
     const [customBasePeriodStepSize, setCustomBasePeriodStepSize] = useState(5);
     const [customBasePeriodStepSizeUnit, setCustomBasePeriodStepSizeUnit] = useState('minutes');
     const workflows = useSelector((state: any) => state.ai.workflows);

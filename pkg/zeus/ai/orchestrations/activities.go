@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/cvcio/twitter"
@@ -16,11 +18,13 @@ import (
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	hera_twitter "github.com/zeus-fyi/olympus/pkg/hera/twitter"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
+	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	kronos_helix "github.com/zeus-fyi/olympus/pkg/kronos/helix"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
@@ -302,7 +306,6 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 		},
 		Window: window,
 	}
-
 	var resp []hera_search.SearchResult
 	var err error
 	switch taskInst.RetrievalPlatform {
@@ -315,7 +318,52 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 	case "telegram":
 		resp, err = hera_search.SearchTelegram(ctx, ou, sp)
 	case "web":
-		// todo
+		if retInst.WebFilters != nil {
+			var respData []hera_search.SearchResult
+			ogr, rerr := iris_models.SelectOrgRoutesByOrgAndGroupName(ctx, ou.OrgID, retInst.WebFilters.RoutingGroup)
+			if rerr != nil {
+				log.Err(rerr).Msg("AiRetrievalTask: failed to select org routes")
+				return nil, rerr
+			}
+			orgMapGroupRoutes := ogr.Map[ou.OrgID][retInst.WebFilters.RoutingGroup]
+			for _, r := range orgMapGroupRoutes {
+				rw := iris_api_requests.NewIrisApiRequestsActivities()
+				req := &iris_api_requests.ApiProxyRequest{
+					Url:             r.RoutePath,
+					PayloadTypeREST: "GET",
+					Timeout:         1 * time.Minute,
+					StatusCode:      http.StatusOK,
+				}
+				rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
+				if rrerr != nil {
+					log.Err(rrerr).Msg("AiRetrievalTask: failed to request")
+					return nil, rrerr
+				}
+				wr := hera_search.WebResponse{
+					Body:       rr.Response,
+					RawMessage: rr.RawResponse,
+				}
+				value := ""
+				if wr.Body != nil {
+					b, jer := json.Marshal(wr.Body)
+					if jer != nil {
+						log.Err(jer).Msg("AiRetrievalTask: failed to marshal")
+						return nil, jer
+					}
+					value = fmt.Sprintf("%s", b)
+				}
+				if wr.RawMessage != nil && wr.Body == nil {
+					value = fmt.Sprintf("%s", wr.RawMessage)
+				}
+				sres := hera_search.SearchResult{
+					Source:      rr.Url,
+					Value:       value,
+					Group:       retInst.WebFilters.RoutingGroup,
+					WebResponse: wr,
+				}
+				respData = append(respData, sres)
+			}
+		}
 	}
 	if err != nil {
 		log.Err(err).Msg("AiRetrievalTask: failed")

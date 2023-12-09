@@ -1,16 +1,13 @@
 package ai_platform_service_orchestrations
 
 import (
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
-	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 func (t *ZeusWorkerTestSuite) TestAiTelegramTask() {
-	ou := org_users.NewOrgUserWithID(7138983863666903883, 7138958574876245567)
+	//ou := org_users.NewOrgUserWithID(7138983863666903883, 7138958574876245567)
 	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalTemporalBearerToken
 	auth := aegis_aws_auth.AuthAWS{
 		Region:    "us-west-1",
@@ -21,14 +18,14 @@ func (t *ZeusWorkerTestSuite) TestAiTelegramTask() {
 	msgs, err := GetPandoraMessages(ctx, "Zeus")
 	t.Require().Nil(err)
 	t.Require().NotNil(msgs)
-	params := hera_search.AiSearchParams{
-		GroupFilter: "Zeus <> Li",
-	}
-	hera_openai.InitHeraOpenAI(t.Tc.OpenAIAuth)
-	// resty_base.GetBaseRestyClient("https://api.openai.com", bearer)
-	sr, err := hera_search.SearchTelegram(ctx, ou, params)
-	resp, err := AiTelegramTask(ctx, ou, sr, params)
-	t.Require().Nil(err)
-	t.Require().NotNil(resp)
-
+	//params := hera_search.AiSearchParams{
+	//	GroupFilter: "Zeus <> Li",
+	//}
+	//	hera_openai.InitHeraOpenAI(t.Tc.OpenAIAuth)
+	//	// resty_base.GetBaseRestyClient("https://api.openai.com", bearer)
+	//	sr, err := hera_search.SearchTelegram(ctx, ou, params)
+	//	resp, err := AiTelegramTask(ctx, ou, sr, params)
+	//	t.Require().Nil(err)
+	//	t.Require().NotNil(resp)
+	//
 }

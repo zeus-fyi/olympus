@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -36,7 +37,14 @@ type SearchResult struct {
 	Group           string           `json:"group"`
 	Metadata        TelegramMetadata `json:"metadata,omitempty"`
 	DiscordMetadata DiscordMetadata  `json:"discordMetadata"`
+	WebResponse     WebResponse      `json:"webResponses,omitempty"`
 }
+
+type WebResponse struct {
+	Body       echo.Map `json:"body"`
+	RawMessage []byte   `json:"rawMessage"`
+}
+
 type ByTimestamp []SearchResult
 
 func (a ByTimestamp) Len() int           { return len(a) }
@@ -183,6 +191,7 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		if result.Value != "" {
 			parts = append(parts, escapeString(result.Value))
 		}
+
 		// Join the parts with " | " and add a newline at the end
 		line := strings.Join(parts, " | ") + "\n"
 		builder.WriteString(line)

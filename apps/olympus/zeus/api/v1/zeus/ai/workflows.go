@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 )
@@ -46,20 +47,26 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
+	si, err := hera_openai_dbmodels.GetSearchIndexers(c.Request().Context(), ou)
+	if err != nil {
+		log.Err(err).Msg("failed to get search indexers")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	return c.JSON(http.StatusOK, AiWorkflowWrapper{
-		Workflows:  ojs.WorkflowTemplateSlice,
-		Tasks:      tasks,
-		Retrievals: ret,
-		Runs:       ojsRuns,
+		Workflows:      ojs.WorkflowTemplateSlice,
+		Tasks:          tasks,
+		Retrievals:     ret,
+		Runs:           ojsRuns,
+		SearchIndexers: si,
 	})
 }
 
 type AiWorkflowWrapper struct {
-	Workflows  []artemis_orchestrations.WorkflowTemplateValue  `json:"workflows"`
-	Runs       []artemis_orchestrations.OrchestrationsAnalysis `json:"runs"`
-	Tasks      []artemis_orchestrations.AITaskLibrary          `json:"tasks"`
-	Retrievals []artemis_orchestrations.RetrievalItem          `json:"retrievals"`
+	Workflows      []artemis_orchestrations.WorkflowTemplateValue  `json:"workflows"`
+	Runs           []artemis_orchestrations.OrchestrationsAnalysis `json:"runs"`
+	Tasks          []artemis_orchestrations.AITaskLibrary          `json:"tasks"`
+	Retrievals     []artemis_orchestrations.RetrievalItem          `json:"retrievals"`
+	SearchIndexers []hera_openai_dbmodels.SearchIndexerParams      `json:"searchIndexers"`
 }
 
 type PostWorkflowsRequest struct {

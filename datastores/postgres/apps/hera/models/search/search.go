@@ -48,6 +48,71 @@ func SortSearchResults(results []SearchResult) {
 	sort.Sort(ByTimestamp(results))
 }
 
+type SearchIndexerParams struct {
+	SearchID        int    `json:"searchID"`
+	SearchGroupName string `json:"searchGroupName"`
+	MaxResults      int    `json:"maxResults"`
+	Query           string `json:"query"`
+	Platform        string `json:"platform"`
+}
+
+func GetSearchIndexers(ctx context.Context, ou org_users.OrgUser) ([]SearchIndexerParams, error) {
+	query := `
+		SELECT search_id, search_group_name, max_results, query, 'reddit' AS platform
+		FROM public.ai_reddit_search_query
+		WHERE org_id = $1
+		UNION
+		SELECT search_id, search_group_name, max_results, query, 'twitter' AS platform
+		FROM public.ai_twitter_search_query
+		WHERE org_id = $1
+		UNION
+		SELECT
+		    dsq.search_id,
+		    dsq.search_group_name,
+		    dsq.max_results,
+		    gi.name || '|' || ci.category || '|' || ci.name || '|' || ci.channel_id AS query,
+		    'discord' AS platform
+		FROM
+		    (
+		        SELECT dm.search_id, dm.guild_id, dm.channel_id, MAX(dm.timestamp_creation) AS max_message_id
+		        FROM public.ai_incoming_discord_messages dm
+		        INNER JOIN public.ai_discord_search_query dsq
+		        ON dm.search_id = dsq.search_id
+		        WHERE dsq.org_id = $1
+		        GROUP BY dm.search_id, dm.guild_id, dm.channel_id
+		    ) AS latest_discord_messages
+		JOIN
+		    public.ai_discord_search_query dsq ON dsq.search_id = latest_discord_messages.search_id
+		JOIN
+		    public.ai_discord_channel ci ON ci.channel_id = latest_discord_messages.channel_id
+		JOIN
+		    public.ai_discord_guild gi ON gi.guild_id = latest_discord_messages.guild_id
+	`
+
+	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var srs []SearchIndexerParams
+	for rows.Next() {
+		var si SearchIndexerParams
+		err = rows.Scan(&si.SearchID, &si.SearchGroupName, &si.MaxResults, &si.Query, &si.Platform)
+		if err != nil {
+			log.Printf("Error scanning row: %v", err)
+			continue
+		}
+		srs = append(srs, si)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return srs, nil
+}
+
 func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
 	var res []SearchResult
 	platform := sp.Retrieval.RetrievalPlatform

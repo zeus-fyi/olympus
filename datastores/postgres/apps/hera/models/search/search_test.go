@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 )
 
@@ -12,6 +14,17 @@ var ctx = context.Background()
 
 type SearchAITestSuite struct {
 	hestia_test.BaseHestiaTestSuite
+}
+
+func (s *SearchAITestSuite) TestSelectAll() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	ts, err := GetSearchIndexers(ctx, ou)
+	s.Require().Nil(err)
+	s.Assert().NotNil(ts)
 }
 
 //func (s *SearchAITestSuite) TestSelectTelegramResults() {

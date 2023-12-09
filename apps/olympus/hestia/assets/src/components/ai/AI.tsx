@@ -43,7 +43,9 @@ import {
     setRetrievalPlatformGroups,
     setRetrievalPrompt,
     setRetrievalUsernames,
+    setSearchIndexer,
     setSearchResults,
+    setSelectedSearchIndexers,
     setSelectedWorkflows,
     setWebRoutingGroup
 } from "../../redux/ai/ai.reducer";
@@ -54,6 +56,8 @@ import {WorkflowAnalysisTable} from "./WorkflowAnalysisTable";
 import {AiSearchParams, PostWorkflowsActionRequest} from "../../redux/ai/ai.types";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
+import {SearchIndexersTable} from "./SearchIndexersTable";
+import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -63,19 +67,13 @@ function AiWorkflowsDashboardContent(props: any) {
     const [open, setOpen] = useState(true);
     const [loading, setIsLoading] = useState(false);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
-    const searchKeywordsText = useSelector((state: RootState) => state.ai.searchContentText);
     const selected = useSelector((state: any) => state.ai.selectedWorkflows);
-    const groupFilter = useSelector((state: RootState) => state.ai.groupFilter);
-    const usernames = useSelector((state: RootState) => state.ai.usernames);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
-    const workflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
     const [code, setCode] = useState('');
     const [unixStartTime, setUnixStartTime] = useState(0);
     const [stepSize, setStepSize] = useState(1);
     const [stepSizeUnit, setStepSizeUnit] = useState('hours');
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
-    const searchResults = useSelector((state: RootState) => state.ai.searchResults);
-    const platformFilter = useSelector((state: RootState) => state.ai.platformFilter);
     const [analyzeNext, setAnalyzeNext] = useState(true);
     const [customBasePeriod, setCustomBasePeriod] = useState(true);
     const [customBasePeriodStepSize, setCustomBasePeriodStepSize] = useState(5);
@@ -83,6 +81,10 @@ function AiWorkflowsDashboardContent(props: any) {
     const workflows = useSelector((state: any) => state.ai.workflows);
     const [requestStatus, setRequestStatus] = useState('');
     const [requestStatusError, setRequestStatusError] = useState('');
+    const [requestIndexerStatus, setRequestIndexerStatus] = useState('');
+    const [requestIndexerStatusError, setRequestIndexerStatusError] = useState('');
+    const searchIndexer = useSelector((state: any) => state.ai.searchIndexer);
+    const platformSecretReference = useSelector((state: any) => state.ai.platformSecretReference);
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
@@ -215,6 +217,8 @@ function AiWorkflowsDashboardContent(props: any) {
         }
         setRequestStatus('')
         setRequestStatusError('')
+        setRequestIndexerStatusError('')
+        setRequestIndexerStatus('')
         setSelectedMainTab(newValue);
     };
     const onChangeText = (textInput: string) => {
@@ -224,6 +228,48 @@ function AiWorkflowsDashboardContent(props: any) {
     const formatTick2 = (ms: number) => {
         return new Date(ms).toLocaleTimeString([], { hour: 'numeric', hour12: true });
     };
+
+    const handleSubmitIndexer = async (event: any) => {
+        if (searchIndexer.platform.length === 0) {
+            setRequestIndexerStatus('Search platform name cannot be empty.')
+            setRequestIndexerStatusError('error')
+            return
+        }
+
+        if (!isValidLabel(searchIndexer.searchGroupName)) {
+            setRequestIndexerStatus('Search group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+            setRequestIndexerStatusError('error')
+            return;
+        }
+        if (searchIndexer.query.length === 0) {
+            setRequestIndexerStatus('Search indexer query required.');
+            setRequestIndexerStatusError('error')
+            return
+        }
+        try {
+            setIsLoading(true)
+            const params =  {
+                searchIndexer,
+                platformSecretReference
+            }
+            const response = await aiApiGateway.searchIndexerCreateOrUpdateActionRequest(params);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                const data = response.data;
+                dispatch(setSelectedSearchIndexers([]));
+                setRequestIndexerStatus('Search indexer request sent successfully')
+                setRequestIndexerStatusError('success')
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
+                setRequestIndexerStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestIndexerStatusError('error')
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     const AppBarAi = (props: any) => {
         const {toggleDrawer, open, handleLogout} = props;
@@ -311,8 +357,6 @@ function AiWorkflowsDashboardContent(props: any) {
                 >
                     <Toolbar />
                     { (selectedMainTab === 0) &&
-
-
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
                             <Card sx={{ minWidth: 100, maxWidth: 600 }}>
@@ -503,6 +547,109 @@ function AiWorkflowsDashboardContent(props: any) {
                     </Container>
                     }
                     { (selectedMainTab === 1) &&
+                        <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+                            <Stack direction="row" spacing={2}>
+                                <Card sx={{ minWidth: 100, maxWidth: 600 }}>
+                                    <CardContent>
+                                        <Typography gutterBottom variant="h5" component="div">
+                                            Search Indexer
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            This allows you to use our data retrieval indexer with your relevant platform API key & indexing query to get the data you want to analyze.
+                                        </Typography>
+                                    </CardContent>
+                                    <CardContent>
+                                        <div>
+                                            <Stack direction="column" spacing={2} sx={{ mt: 0, mb: 0 }}>
+                                                <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="platform-label">Platform</InputLabel>
+                                                        <Select
+                                                            labelId="indexer-platform-label"
+                                                            id="indexer-platforms-input"
+                                                            value={searchIndexer.platform}
+                                                            label="Platform"
+                                                            onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, platform: e.target.value }))}
+                                                        >
+                                                            {/*<MenuItem value="web">Web</MenuItem>*/}
+                                                            <MenuItem value="reddit">Reddit</MenuItem>
+                                                            <MenuItem value="twitter">Twitter</MenuItem>
+                                                            <MenuItem value="discord">Discord</MenuItem>
+                                                            {/*<MenuItem value="telegram">Telegram</MenuItem>*/}
+                                                        </Select>
+                                                    </FormControl>
+                                                </Box>
+                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="search-group-input"
+                                                        label={"Search Group Name"}
+                                                        variant="outlined"
+                                                        value={searchIndexer.searchGroupName}
+                                                        onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, searchGroupName: e.target.value }))}
+                                                    />
+                                                </Box>
+                                                <Box flexGrow={1} sx={{ mb: 3, ml: 4, mr:4  }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="search-group-input"
+                                                        label={"Platform Search Query"}
+                                                        variant="outlined"
+                                                        value={searchIndexer.query}
+                                                        onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, query: e.target.value }))}
+                                                    />
+                                                </Box>
+                                                { searchIndexer.platform !== 'web' &&
+                                                    <div>
+                                                        <Typography variant="h6" color="text.secondary">
+                                                           AWS Platform Secret Reference & Key For Search Indexer
+                                                        </Typography>
+                                                        <Stack direction={"row"} >
+                                                            <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="platformSecretReference-group-input"
+                                                                    label={"Secret Group Name"}
+                                                                    variant="outlined"
+                                                                    value={platformSecretReference.secretGroupName}
+                                                                    InputProps={{
+                                                                        readOnly: true,
+                                                                    }}
+                                                                    //onChange={(e) => dispatch(setPlatformSecretReference({ ...platformSecretReference, secretGroupName: e.target.value }))}
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="platformSecretReference-key-group-input"
+                                                                    label={"Secret Key Name"}
+                                                                    variant="outlined"
+
+                                                                    value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform : platformSecretReference.secretKeyName}
+                                                                    // onChange={(e) => dispatch(setPlatformSecretReference({ ...platformSecretReference, secretKeyName: e.target.value }))}
+                                                                />
+                                                            </Box>
+                                                        </Stack>
+                                                    </div>
+                                                }
+                                                {requestIndexerStatus != '' && (
+                                                    <Container sx={{  mt: 2}}>
+                                                        <Typography variant="h6" color={requestIndexerStatusError}>
+                                                            {requestIndexerStatus}
+                                                        </Typography>
+                                                    </Container>
+                                                )}
+                                                <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
+                                                    <Button fullWidth variant="outlined"  onClick={(e) => handleSubmitIndexer(e)}>Start Indexing</Button>
+                                                </Box>
+                                            </Stack>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Stack>
+                        </Container>
+                    }
+                    { (selectedMainTab === 2) &&
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Card sx={{ minWidth: 500, maxWidth: 1000 }}>
                             <CardContent>
@@ -651,8 +798,9 @@ function AiWorkflowsDashboardContent(props: any) {
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
                                 <Tab label="Search" />
+                                <Tab className="onboarding-card-highlight-all-search-indexer" label="Indexer"/>
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"/>
-                                <Tab className="onboarding-card-highlight-all-workflows" label="Runs"/>
+                                <Tab className="onboarding-card-highlight-all-workflows-runs" label="Runs"/>
                             </Tabs>
                         </Box>
                     </Container>
@@ -661,6 +809,9 @@ function AiWorkflowsDashboardContent(props: any) {
                             <AiSearchAnalysis code={code} onChange={onChangeText} />
                         }
                         { (selectedMainTab === 1) &&
+                            <SearchIndexersTable />
+                        }
+                        { (selectedMainTab === 2) &&
                             <div>
                                 { selected && selected.length > 0  &&
                                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -676,7 +827,7 @@ function AiWorkflowsDashboardContent(props: any) {
                             </div>
                         }
 
-                        { (selectedMainTab === 2) &&
+                        { (selectedMainTab === 3) &&
                             <WorkflowAnalysisTable  />
                         }
                     </Container>

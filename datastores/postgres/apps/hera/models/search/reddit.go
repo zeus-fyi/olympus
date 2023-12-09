@@ -124,14 +124,11 @@ func InsertIncomingRedditPosts(ctx context.Context, searchID int, posts []*reddi
 }
 
 type RedditSearchQuery struct {
-	SearchID        int    `json:"searchID"`
-	OrgID           int    `json:"orgID"`
-	UserID          int    `json:"userID"`
-	SearchGroupName string `json:"searchGroupName"`
-	MaxResults      int    `json:"maxResults"`
-	LastCreatedAt   int    `json:"lastCreatedAt"`
-	PostId          string `json:"postId"`
-	Query           string `json:"query"`
+	OrgID         int    `json:"orgID"`
+	UserID        int    `json:"userID"`
+	PostId        string `json:"postId"`
+	LastCreatedAt int    `json:"lastCreatedAt"`
+	SearchIndexerParams
 }
 
 func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string) ([]*RedditSearchQuery, error) {
@@ -168,7 +165,9 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 	defer rows.Close()
 	for rows.Next() {
 		rs := &RedditSearchQuery{
-			MaxResults: 100,
+			SearchIndexerParams: SearchIndexerParams{
+				MaxResults: 100,
+			},
 		}
 		rowErr := rows.Scan(&rs.SearchID, &rs.Query, &rs.LastCreatedAt, &rs.PostId)
 		if rowErr != nil {

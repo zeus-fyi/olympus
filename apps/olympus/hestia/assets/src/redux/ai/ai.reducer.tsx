@@ -2,7 +2,9 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     AiState,
     OrchestrationsAnalysis,
+    PlatformSecretReference,
     Retrieval,
+    SearchIndexerParams,
     TaskModelInstructions,
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
@@ -46,16 +48,41 @@ const initialState: AiState = {
     selectedWorkflows: [],
     runs: [],
     selectedRuns: [],
+    searchIndexers: [],
+    selectedSearchIndexers: [],
+    searchIndexer: {
+        searchID: 0,
+        searchGroupName: '',
+        platform: '',
+        maxResults: 0,
+        query: '',
+    },
+    platformSecretReference: {
+        secretGroupName: 'mockingbird',
+        secretKeyName: '',
+    },
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setPlatformSecretReference: (state, action: PayloadAction<PlatformSecretReference>) => {
+            state.platformSecretReference = action.payload;
+        },
+        setSearchIndexer: (state, action: PayloadAction<SearchIndexerParams>) => {
+            state.searchIndexer = action.payload;
+        },
+        setSearchIndexers: (state, action: PayloadAction<SearchIndexerParams[]>) => {
+            state.searchIndexers = action.payload;
+        },
+        setSelectedSearchIndexers: (state, action: PayloadAction<string[]>) => {
+            state.selectedSearchIndexers = action.payload;
+        },
         setWebRoutingGroup: (state, action: PayloadAction<string>) => {
             if (!state.retrieval.webFilters) {
                 state.retrieval.webFilters = {
-                    routingGroup: action.payload,
+                    routingGroup: '',
                 }
             }
             state.retrieval.webFilters.routingGroup = action.payload;
@@ -258,7 +285,6 @@ export const {
     setTaskMap,
     setRetrievalName,
     setRetrievalGroup,
-    setWebRoutingGroup,
     setRetrievalPlatformGroups,
     setRetrievalKeywords,
     setRetrievalPlatform,
@@ -273,5 +299,10 @@ export const {
     setSelectedRuns,
     setRuns,
     setDiscordOptionsCategoryName,
+    setWebRoutingGroup,
+    setSelectedSearchIndexers,
+    setSearchIndexers,
+    setSearchIndexer,
+    setPlatformSecretReference,
 } = aiSlice.actions;
 export default aiSlice.reducer;

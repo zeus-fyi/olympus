@@ -23,8 +23,12 @@ export interface AiState {
     retrievals: Retrieval[];
     workflowAnalysisRetrievalsMap: AnalysisRetrievalsMap
     selectedWorkflows: string[];
+    selectedSearchIndexers: string[];
     runs: OrchestrationsAnalysis[];
     selectedRuns: string[];
+    searchIndexers: SearchIndexerParams[];
+    searchIndexer: SearchIndexerParams
+    platformSecretReference: PlatformSecretReference;
 }
 
 export interface PostWorkflowsRequest {
@@ -174,6 +178,40 @@ export interface Retrieval {
     retrievalPlatformGroups: string;
     discordFilters?: DiscordFilters;
     webFilters?: WebFilters;
+}
+
+export interface SearchIndexerParams {
+    searchID: number;
+    searchGroupName: string;
+    maxResults: number;
+    query: string;
+    platform: string;
+}
+
+export interface PlatformSecretReference {
+    secretGroupName: string;
+    secretKeyName: string;
+}
+
+export interface PostCreateOrUpdateSearchIndexerRequest {
+    searchIndexer: SearchIndexerParams;
+    platformSecretReference: PlatformSecretReference;
+}
+
+export interface DiscordIndexerOpts {
+    SearchIndexerParams: SearchIndexerParams;
+}
+
+export interface TelegramIndexerOpts {
+    SearchIndexerParams: SearchIndexerParams;
+}
+
+export interface TwitterIndexerOpts {
+    SearchIndexerParams: SearchIndexerParams;
+}
+
+export interface RedditIndexerOpts {
+    SearchIndexerParams: SearchIndexerParams;
 }
 
 export interface WebFilters {

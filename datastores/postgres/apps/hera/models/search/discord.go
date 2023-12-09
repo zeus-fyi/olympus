@@ -122,7 +122,7 @@ func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 	return srs, nil
 }
 
-func InsertDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName string, maxResults int, query string) (int, error) {
+func InsertDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGroupName, query string, maxResults int) (int, error) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "insertDiscordSearchQuery"
 	q.RawQuery = `INSERT INTO "public"."ai_discord_search_query" ("org_id", "user_id", "search_group_name", "max_results", "query")

@@ -1507,10 +1507,18 @@ function WorkflowEngineBuilder(props: any) {
                                                         />
                                                     </Box>
                                                 }
+
+                                                { retrieval.retrievalPlatform === 'web' &&
+                                                    <Typography variant="h5" color="text.secondary">
+                                                        Describe how the AI should extract data from the website address.
+                                                    </Typography>
+                                                }
+                                                { retrieval.retrievalPlatform !== 'web' &&
                                                     <Typography variant="h5" color="text.secondary">
                                                         Describe what you're looking for, and the AI will generate a list of keywords to search for after it runs for the first time.
                                                         You can preview, edit, or give the AI more information to refine the search.
                                                     </Typography>
+                                                }
                                                     <Box  sx={{ mb: 2, mt: 2 }}>
                                                         <TextareaAutosize
                                                             minRows={18}
@@ -1520,7 +1528,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         />
                                                     </Box>
                                                     <Typography variant="h5" color="text.secondary">
-                                                        You can provide your own keywords directly with comma separated values below, and the AI will refine it over time to improve your search.
+                                                        Add search keywords using comma separated values below.
                                                     </Typography>
                                                     <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
                                                         <TextField
@@ -1686,7 +1694,7 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"  />
                                 <Tab className="onboarding-card-highlight-all-analysis" label="Analysis" />
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
-                                <Tab className="onboarding-card-highlight-all-retrieval" label="Retrieval" />
+                                <Tab className="onboarding-card-highlight-all-retrieval" label="Retrievals" />
                             </Tabs>
                         </Box>
                     </Container>

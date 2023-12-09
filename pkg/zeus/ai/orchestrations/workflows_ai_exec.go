@@ -153,11 +153,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			}
 			aggCycle := wfExecParams.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 			if i%aggCycle == 0 {
-
-				if md.AnalysisRetrievals[*aggInst.AggTaskID] == nil {
+				if md.AggregateAnalysis[*aggInst.AggTaskID] == nil {
 					continue
 				}
-				if md.AnalysisRetrievals[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false {
+				if md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false {
 					continue
 				}
 				retrievalCtx := workflow.WithActivityOptions(ctx, ao)

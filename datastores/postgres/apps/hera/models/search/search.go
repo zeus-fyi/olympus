@@ -70,7 +70,7 @@ func GetSearchIndexers(ctx context.Context, ou org_users.OrgUser) ([]SearchIndex
 		    dsq.search_id,
 		    dsq.search_group_name,
 		    dsq.max_results,
-		    gi.name || '|' || ci.category || '|' || ci.name || '|' || ci.channel_id AS query,
+		    gi.name || ' | ' || ci.category || ' | ' || ci.name || ' | ' || ci.channel_id AS query,
 		    'discord' AS platform
 		FROM
 		    (
@@ -88,9 +88,9 @@ func GetSearchIndexers(ctx context.Context, ou org_users.OrgUser) ([]SearchIndex
 		JOIN
 		    public.ai_discord_guild gi ON gi.guild_id = latest_discord_messages.guild_id
 	`
-
 	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)
 	if err != nil {
+		log.Err(err).Msg("Error querying search indexers")
 		return nil, err
 	}
 	defer rows.Close()
@@ -100,8 +100,8 @@ func GetSearchIndexers(ctx context.Context, ou org_users.OrgUser) ([]SearchIndex
 		var si SearchIndexerParams
 		err = rows.Scan(&si.SearchID, &si.SearchGroupName, &si.MaxResults, &si.Query, &si.Platform)
 		if err != nil {
-			log.Printf("Error scanning row: %v", err)
-			continue
+			log.Err(err).Msg("Error querying search indexers")
+			return nil, err
 		}
 		srs = append(srs, si)
 	}

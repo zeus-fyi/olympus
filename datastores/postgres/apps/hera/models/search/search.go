@@ -57,6 +57,7 @@ func SortSearchResults(results []SearchResult) {
 }
 
 type SearchIndexerParams struct {
+	OrgID           int    `json:"orgID,omitempty"`
 	SearchID        int    `json:"searchID"`
 	SearchGroupName string `json:"searchGroupName"`
 	MaxResults      int    `json:"maxResults"`
@@ -65,7 +66,7 @@ type SearchIndexerParams struct {
 	Active          bool   `json:"active"`
 }
 
-func GetSearchIndexers(ctx context.Context, ou org_users.OrgUser) ([]SearchIndexerParams, error) {
+func GetSearchIndexersByOrg(ctx context.Context, ou org_users.OrgUser) ([]SearchIndexerParams, error) {
 	query := `
 		SELECT search_id, search_group_name, max_results, query, 'reddit' AS platform, active
 		FROM public.ai_reddit_search_query
@@ -108,6 +109,65 @@ func GetSearchIndexers(ctx context.Context, ou org_users.OrgUser) ([]SearchIndex
 	for rows.Next() {
 		var si SearchIndexerParams
 		err = rows.Scan(&si.SearchID, &si.SearchGroupName, &si.MaxResults, &si.Query, &si.Platform, &si.Active)
+		if err != nil {
+			log.Err(err).Msg("Error querying search indexers")
+			return nil, err
+		}
+		srs = append(srs, si)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return srs, nil
+}
+
+func GetAllActiveSearchIndexers(ctx context.Context) ([]SearchIndexerParams, error) {
+	query := `
+		SELECT search_id, search_group_name, max_results, query, 'reddit' AS platform, active, org_id
+		FROM public.ai_reddit_search_query
+		WHERE active = true
+		UNION
+		SELECT search_id, search_group_name, max_results, query, 'twitter' AS platform, active, org_id
+		FROM public.ai_twitter_search_query
+		WHERE active = true
+		UNION
+		SELECT
+		    dsq.search_id,
+		    dsq.search_group_name,
+		    dsq.max_results,
+		    gi.name || ' | ' || ci.category || ' | ' || ci.name || ' | ' || ci.channel_id AS query,
+		    'discord' AS platform,
+		    dsq.active,
+		    dsq.org_id
+		FROM
+		    (
+		        SELECT dm.search_id, dm.guild_id, dm.channel_id, dsq.active, MAX(dm.timestamp_creation) AS max_message_id
+		        FROM public.ai_incoming_discord_messages dm
+		        INNER JOIN public.ai_discord_search_query dsq
+		        ON dm.search_id = dsq.search_id
+		        WHERE dsq.active = true
+		        GROUP BY dm.search_id, dm.guild_id, dm.channel_id, dsq.active, dsq.org_id
+		    ) AS latest_discord_messages
+		JOIN
+		    public.ai_discord_search_query dsq ON dsq.search_id = latest_discord_messages.search_id
+		JOIN
+		    public.ai_discord_channel ci ON ci.channel_id = latest_discord_messages.channel_id
+		JOIN
+		    public.ai_discord_guild gi ON gi.guild_id = latest_discord_messages.guild_id
+	`
+	rows, err := apps.Pg.Query(ctx, query)
+	if err != nil {
+		log.Err(err).Msg("Error querying search indexers")
+		return nil, err
+	}
+	defer rows.Close()
+
+	var srs []SearchIndexerParams
+	for rows.Next() {
+		var si SearchIndexerParams
+		err = rows.Scan(&si.SearchID, &si.SearchGroupName, &si.MaxResults, &si.Query, &si.Platform, &si.Active, &si.OrgID)
 		if err != nil {
 			log.Err(err).Msg("Error querying search indexers")
 			return nil, err

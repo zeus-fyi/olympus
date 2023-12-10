@@ -36,7 +36,7 @@ func (k *KronosActivities) GetActivities() ActivitiesSlice {
 		k.GetInstructionsFromJob,
 		k.CheckEndpointHealth,
 		k.StartCronJobWorkflow,
-		k.SelectOrchestrationsByGroupNameAndType,
+		k.SelectOrchestrationsByGroupName,
 		k.RecycleMockingbird,
 	}
 }
@@ -67,7 +67,7 @@ func (k *KronosActivities) GetInternalAssignments(ctx context.Context) ([]artemi
 	return ojs, err
 }
 
-func (k *KronosActivities) SelectOrchestrationsByGroupNameAndType(ctx context.Context, groupName string) ([]artemis_orchestrations.OrchestrationJob, error) {
+func (k *KronosActivities) SelectOrchestrationsByGroupName(ctx context.Context, groupName string) ([]artemis_orchestrations.OrchestrationJob, error) {
 	ojs, err := artemis_orchestrations.SelectOrchestrationsByGroupName(ctx, groupName)
 	if err != nil {
 		log.Err(err).Msg("GetAssignments: SelectOrchestrationsByGroupName failed")

@@ -21,8 +21,7 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 			MaximumAttempts:    10,
 		},
 	}
-	// todo allow user orgs ids
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiIngestRedditWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiIngestRedditWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {

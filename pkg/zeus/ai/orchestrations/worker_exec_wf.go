@@ -113,3 +113,20 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiFetchDataToIngestDiscordWorkflow
 	}
 	return nil
 }
+
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiSearchIndexerWorkflow(ctx context.Context) error {
+	tc := z.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: z.TaskQueueName,
+		ID:        fmt.Sprintf("search-indexer-%s", uuid.New().String()),
+	}
+	txWf := NewZeusPlatformServiceWorkflows()
+	wf := txWf.AiSearchIndexerWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID)
+	if err != nil {
+		log.Err(err).Msg("ExecuteAiSearchIndexerWorkflow")
+		return err
+	}
+	return nil
+}

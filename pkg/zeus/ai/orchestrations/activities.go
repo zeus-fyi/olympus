@@ -52,6 +52,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.UpsertAiOrchestration, z.AiAnalysisTask, z.AiRetrievalTask,
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
 		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask, z.RecordCompletionResponseFromSearchResult,
+		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -59,6 +60,43 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 const (
 	internalUser = 7138958574876245567
 )
+
+func (z *ZeusAiPlatformActivities) StartIndexingJob(ctx context.Context, sp hera_search.SearchIndexerParams) error {
+	switch sp.Platform {
+	case "reddit":
+		ou := org_users.NewOrgUserWithID(sp.OrgID, 0)
+		err := ZeusAiPlatformWorker.ExecuteAiRedditWorkflow(ctx, ou, sp.SearchGroupName)
+		if err != nil {
+			log.Err(err).Msg("StartIndexingJob: failed to execute ai reddit workflow")
+			return err
+		}
+	case "twitter":
+		ou := org_users.NewOrgUserWithID(sp.OrgID, 0)
+		err := ZeusAiPlatformWorker.ExecuteAiTwitterWorkflow(ctx, ou, sp.SearchGroupName)
+		if err != nil {
+			log.Err(err).Msg("StartIndexingJob: failed to execute ai reddit workflow")
+			return err
+		}
+	case "telegram":
+
+	case "discord":
+		//err := ZeusAiPlatformWorker.Exe(ctx, ou, sp.SearchGroupName)
+		//if err != nil {
+		//	log.Err(err).Msg("StartIndexingJob: failed to execute ai reddit workflow")
+		//	return err
+		//}
+	}
+	return nil
+}
+
+func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Context) ([]hera_search.SearchIndexerParams, error) {
+	sis, err := hera_search.GetAllActiveSearchIndexers(ctx)
+	if err != nil {
+		log.Err(err).Msg("SelectActiveSearchIndexerJobs: failed to get search indexers")
+		return nil, err
+	}
+	return sis, nil
+}
 
 func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, si int, channelID, timeAfter string) error {
 	authToken, err := read_keys.GetDiscordKey(ctx, internalUser)
@@ -215,17 +253,7 @@ func (z *ZeusAiPlatformActivities) SelectDiscordSearchQuery(ctx context.Context,
 	return sq, nil
 }
 
-//func (h *ZeusAiPlatformActivities) SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, groupName string) (*hera_search.TwitterSearchQuery, error) {
-//	sq, err := hera_search.SelectRedditSearchQuery(ctx, ou, groupName)
-//	if err != nil {
-//		log.Err(err).Msg("SelectRedditSearchQuery")
-//		return nil, err
-//	}
-//	if sq == nil {
-//		return nil, fmt.Errorf("SelectRedditSearchQuery: sq is nil")
-//	}
-//	return sq, nil
-//}
+// TODO: add orgID -> lookup secret
 
 func (z *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, sp *hera_search.TwitterSearchQuery) ([]*twitter.Tweet, error) {
 	tweets, err := hera_twitter.TwitterClient.GetTweets(ctx, sp.Query, sp.MaxResults, sp.MaxTweetID)

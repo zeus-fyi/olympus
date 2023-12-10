@@ -48,7 +48,7 @@ func InitTwitterClient(ctx context.Context, consumerKey, consumerSecret, accessT
 	client := twitter_auth.NewClient(httpClient)
 	api, err := twitter.NewTwitter(consumerKey, consumerSecret)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("error creating twitter client")
+		log.Err(err).Msg("error creating twitter client")
 		return Twitter{}, err
 	}
 
@@ -106,4 +106,8 @@ func (tc *Twitter) GetTweets(ctx context.Context, query string, maxResults, maxT
 		}
 	}
 	return data, nil
+}
+
+func GetTweets(ctx context.Context, query string, maxResults, maxTweetID int) ([]*twitter2.Tweet, error) {
+	return nil, nil
 }

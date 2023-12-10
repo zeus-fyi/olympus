@@ -22,7 +22,18 @@ func (s *SearchAITestSuite) TestSelectAll() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	ts, err := GetSearchIndexers(ctx, ou)
+	ts, err := GetAllActiveSearchIndexers(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(ts)
+}
+
+func (s *SearchAITestSuite) TestSelectAllByOrd() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	ts, err := GetSearchIndexersByOrg(ctx, ou)
 	s.Require().Nil(err)
 	s.Assert().NotNil(ts)
 }

@@ -36,19 +36,3 @@ func (k *KronosWorker) ExecuteKronosWorkflow(ctx context.Context) error {
 	}
 	return nil
 }
-
-func (k *KronosWorker) ExecuteMockingbirdWorkflow(ctx context.Context) error {
-	tc := k.ConnectTemporalClient()
-	defer tc.Close()
-	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: k.TaskQueueName,
-	}
-	txWf := NewKronosWorkflow()
-	wf := txWf.Mockingbird
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf)
-	if err != nil {
-		log.Err(err).Msg("ExecuteMockingbirdWorkflow")
-		return err
-	}
-	return nil
-}

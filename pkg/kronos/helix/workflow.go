@@ -40,7 +40,7 @@ func (k *KronosWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{
 		k.Yin, k.Yang, k.SignalFlow,
 		k.OrchestrationChildProcessReset,
-		k.Monitor, k.KronosCronJob, k.Mockingbird,
+		k.Monitor, k.KronosCronJob,
 	}
 }
 

@@ -47,7 +47,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	si, err := hera_openai_dbmodels.GetSearchIndexers(c.Request().Context(), ou)
+	si, err := hera_openai_dbmodels.GetSearchIndexersByOrg(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Msg("failed to get search indexers")
 		return c.JSON(http.StatusInternalServerError, nil)

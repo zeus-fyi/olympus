@@ -12,8 +12,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
-	"golang.org/x/crypto/sha3"
 )
 
 func SecretsRequestHandler(c echo.Context) error {
@@ -46,19 +46,6 @@ func (a *SecretsRequest) Validate(isDelete bool) error {
 	return nil
 }
 
-func FormatSecret(orgID int) string {
-	hash := sha3.New256()
-	_, _ = hash.Write([]byte(fmt.Sprintf("org-%d-%s", orgID, "hestia")))
-	// Get the resulting encoded byte slice
-	sha3v := hash.Sum(nil)
-	return fmt.Sprintf("%x", hash.Sum(sha3v))
-}
-
-type SecretsKeyValue struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
 func (a *SecretsRequest) CreateOrUpdateSecret(c echo.Context, isDelete bool) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
@@ -69,16 +56,16 @@ func (a *SecretsRequest) CreateOrUpdateSecret(c echo.Context, isDelete bool) err
 		log.Warn().Interface("ou", ou).Msg("CreateOrUpdateSecret: orgID not found")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	m := make(map[string]SecretsKeyValue)
+	m := make(map[string]aws_secrets.SecretsKeyValue)
 	err := a.Validate(isDelete)
 	if err != nil {
 		log.Info().Msgf("Hestia: CreateValidatorServiceRequest: Unexpected Error: %s", err.Error())
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	ctx := context.Background()
-	exists := artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.DoesSecretExist(ctx, FormatSecret(ou.OrgID))
+	exists := artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.DoesSecretExist(ctx, aws_secrets.FormatSecret(ou.OrgID))
 	if exists {
-		sv, serr := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, FormatSecret(ou.OrgID))
+		sv, serr := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, aws_secrets.FormatSecret(ou.OrgID))
 		if serr != nil {
 			log.Err(serr).Interface("ou", ou).Msg(fmt.Sprintf("%s", serr.Error()))
 			return c.JSON(http.StatusInternalServerError, nil)
@@ -99,7 +86,7 @@ func (a *SecretsRequest) CreateOrUpdateSecret(c echo.Context, isDelete bool) err
 		}
 	}
 	log.Info().Msg("Hestia: Secret")
-	m[a.Name] = SecretsKeyValue{
+	m[a.Name] = aws_secrets.SecretsKeyValue{
 		Key:   a.Key,
 		Value: a.Value,
 	}
@@ -111,7 +98,7 @@ func (a *SecretsRequest) CreateOrUpdateSecret(c echo.Context, isDelete bool) err
 		log.Err(err).Interface("ou", ou).Msg(fmt.Sprintf("%s", err.Error()))
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	orgSecretName := FormatSecret(ou.OrgID)
+	orgSecretName := aws_secrets.FormatSecret(ou.OrgID)
 	si := secretsmanager.CreateSecretInput{
 		Name:         aws.String(orgSecretName),
 		Description:  aws.String(orgSecretName),
@@ -158,12 +145,12 @@ func RetrieveSecretValue(c echo.Context) error {
 	if len(ref) <= 0 {
 		return c.JSON(http.StatusBadRequest, "ref is required")
 	}
-	sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, FormatSecret(ou.OrgID))
+	sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, aws_secrets.FormatSecret(ou.OrgID))
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg(fmt.Sprintf("%s", err.Error()))
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	m := make(map[string]SecretsKeyValue)
+	m := make(map[string]aws_secrets.SecretsKeyValue)
 	err = json.Unmarshal(sv, &m)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg(fmt.Sprintf("%s", err.Error()))
@@ -196,12 +183,12 @@ func (a *SecretsRequest) ReadSecretReferences(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	ctx := context.Background()
-	sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, FormatSecret(ou.OrgID))
+	sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, aws_secrets.FormatSecret(ou.OrgID))
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg(fmt.Sprintf("%s", err.Error()))
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	m := make(map[string]SecretsKeyValue)
+	m := make(map[string]aws_secrets.SecretsKeyValue)
 	err = json.Unmarshal(sv, &m)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg(fmt.Sprintf("%s", err.Error()))

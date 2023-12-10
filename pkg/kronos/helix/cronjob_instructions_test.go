@@ -16,7 +16,7 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 		GroupName: olympus,
 		Type:      cronjob,
 		CronJob: CronJobInstructions{
-			Endpoint:     fmt.Sprintf("https://api.zeus.fyi/v1/webhooks/discord/ai/zeusfyi"),
+			Endpoint:     fmt.Sprintf("https://api.zeus.fyi/v1/webhooks/search/indexer"),
 			PollInterval: 5 * time.Minute,
 		},
 	}
@@ -24,7 +24,7 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 	t.Require().Nil(err)
 
 	groupName := "ZeusAiPlatformServiceWorkflows"
-	instType := "AiIngestDiscordWorkflow-Cronjob-0"
+	instType := "Mockingbird-Search-Indexer-Cronjob-0"
 
 	orchName := fmt.Sprintf("%s-%s", groupName, instType)
 	oj := artemis_orchestrations.OrchestrationJob{

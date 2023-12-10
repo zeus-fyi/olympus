@@ -154,6 +154,7 @@ func InitV1WebhooksRoutes(e *echo.Echo) {
 	eg.GET("/twitter/ai/:group", zeus_webhooks.SupportAcknowledgeTwitterAiTaskRequestHandler)
 	eg.GET("/reddit/ai/:group", zeus_webhooks.SupportAcknowledgeRedditAiTaskRequestHandler)
 	eg.GET("/discord/ai/:group", zeus_webhooks.SupportAcknowledgeDiscordAiTaskRequestHandler)
+	eg.GET("/search/indexer", zeus_webhooks.SupportAcknowledgeSearchIndexerHandler)
 }
 
 const (

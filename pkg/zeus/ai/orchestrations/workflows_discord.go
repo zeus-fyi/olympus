@@ -28,7 +28,7 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 	if len(cm.Messages) == 0 {
 		return nil
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiIngestDiscordWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiIngestDiscordWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {

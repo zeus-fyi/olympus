@@ -23,8 +23,8 @@ func (t *AegisAwsSecretsTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	auth := aegis_aws_auth.AuthAWS{
 		Region:    "us-west-1",
-		AccessKey: t.Tc.AwsAccessKey,
-		SecretKey: t.Tc.AwsSecretKey,
+		AccessKey: t.Tc.AwsAccessKeySecretManager,
+		SecretKey: t.Tc.AwsSecretKeySecretManager,
 	}
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
 }
@@ -41,7 +41,6 @@ func (t *AegisAwsSecretsTestSuite) TestSecretsRetrieval() {
 	for _, svr := range svrl {
 		fmt.Println(svr.Name, svr.Key)
 	}
-
 }
 
 func TestAegisAwsSecretsTestSuite(t *testing.T) {

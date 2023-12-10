@@ -14,9 +14,8 @@ import (
 func (t *KronosWorkerTestSuite) TestInsertAiInstructions() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	inst := Instructions{
-		GroupName:     "ai",
-		Type:          "workflows",
-		AiInstruction: AiInstructions{},
+		GroupName: "ai",
+		Type:      "workflows",
 	}
 
 	ou := org_users.OrgUser{}

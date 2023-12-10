@@ -149,6 +149,31 @@ func SelectSystemOrchestrationsWithInstructionsByGroup(ctx context.Context, orgI
 	return ojs, err
 }
 
+func SelectOrchestrationsByGroupName(ctx context.Context, groupName string) ([]OrchestrationJob, error) {
+	var ojs []OrchestrationJob
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT orchestration_id, orchestration_name, instructions, type, group_name, org_id
+				  FROM orchestrations
+				  WHERE active = true AND group_name = $1 AND type = $2
+				  `
+	log.Debug().Interface("SelectOrchestrationsByGroupName", q.LogHeader(Orchestrations))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, groupName)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
+		return ojs, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		oj := OrchestrationJob{}
+		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.Instructions, &oj.Type, &oj.GroupName, &oj.OrgID)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
+			return ojs, rowErr
+		}
+		ojs = append(ojs, oj)
+	}
+	return ojs, err
+}
+
 func (o *OrchestrationJob) UpsertOrchestrationWithInstructions(ctx context.Context) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO orchestrations(org_id, orchestration_name, instructions, type, group_name, active)

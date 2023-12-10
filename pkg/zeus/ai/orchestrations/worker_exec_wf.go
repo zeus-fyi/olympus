@@ -2,6 +2,7 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
@@ -34,7 +35,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiTelegramWorkflow(ctx context.Con
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: z.TaskQueueName,
-		ID:        uuid.New().String(),
+		ID:        fmt.Sprintf("telegram-%s", uuid.New().String()),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.AiIngestTelegramWorkflow
@@ -51,7 +52,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiTwitterWorkflow(ctx context.Cont
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: z.TaskQueueName,
-		ID:        uuid.New().String(),
+		ID:        fmt.Sprintf("twitter-%s", uuid.New().String()),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.AiIngestTwitterWorkflow
@@ -67,7 +68,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiRedditWorkflow(ctx context.Conte
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: z.TaskQueueName,
-		ID:        uuid.New().String(),
+		ID:        fmt.Sprintf("reddit-%s", uuid.New().String()),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.AiIngestRedditWorkflow
@@ -84,7 +85,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiIngestDiscordWorkflow(ctx contex
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: z.TaskQueueName,
-		ID:        uuid.New().String(),
+		ID:        fmt.Sprintf("discord-%s", uuid.New().String()),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.AiIngestDiscordWorkflow
@@ -101,7 +102,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiFetchDataToIngestDiscordWorkflow
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: z.TaskQueueName,
-		ID:        uuid.New().String(),
+		ID:        fmt.Sprintf("discord-%s", uuid.New().String()),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.AiFetchDataToIngestDiscordWorkflow

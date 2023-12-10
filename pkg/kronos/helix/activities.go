@@ -11,6 +11,7 @@ import (
 const (
 	internalOrgID = 7138983863666903883
 	olympus       = "olympus"
+	mockingbird   = "mockingbird"
 )
 
 type KronosActivities struct{}
@@ -35,6 +36,8 @@ func (k *KronosActivities) GetActivities() ActivitiesSlice {
 		k.GetInstructionsFromJob,
 		k.CheckEndpointHealth,
 		k.StartCronJobWorkflow,
+		k.SelectOrchestrationsByGroupNameAndType,
+		k.RecycleMockingbird,
 	}
 }
 
@@ -59,6 +62,15 @@ func (k *KronosActivities) GetInternalAssignments(ctx context.Context) ([]artemi
 	ojs, err := artemis_orchestrations.SelectSystemOrchestrationsWithInstructionsByGroup(ctx, internalOrgID, olympus)
 	if err != nil {
 		log.Err(err).Msg("GetInternalAssignments: SelectSystemOrchestrationsWithInstructionsByGroup failed")
+		return nil, err
+	}
+	return ojs, err
+}
+
+func (k *KronosActivities) SelectOrchestrationsByGroupNameAndType(ctx context.Context, groupName string) ([]artemis_orchestrations.OrchestrationJob, error) {
+	ojs, err := artemis_orchestrations.SelectOrchestrationsByGroupName(ctx, groupName)
+	if err != nil {
+		log.Err(err).Msg("GetAssignments: SelectOrchestrationsByGroupName failed")
 		return nil, err
 	}
 	return ojs, err
@@ -96,4 +108,12 @@ func (k *KronosActivities) UpdateAndMarkOrchestrationActive(ctx context.Context,
 		return err
 	}
 	return err
+}
+
+func (k *KronosActivities) RecycleMockingbird(ctx context.Context) error {
+	err := KronosServiceWorker.ExecuteKronosWorkflow(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }

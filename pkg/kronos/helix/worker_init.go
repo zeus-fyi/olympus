@@ -10,7 +10,7 @@ import (
 )
 
 func InitKronosHelixWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Kronos: InitKronosHelixWorker")
+	log.Info().Msg("Kronos: InitKronosHelixWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
 		log.Err(err).Msg("InitKronosHelixWorker: NewTemporalClient failed")

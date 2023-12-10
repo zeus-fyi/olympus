@@ -176,18 +176,3 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan, routeGr
 	}
 	return ri, nil
 }
-
-/*
-var LocalRateLimiterCache = cache.New(1*time.Second, 2*time.Second)
-_, found := LocalRateLimiterCache.Get(rateLimiterKey)
-
-	if found {
-		err := LocalRateLimiterCache.Increment(rateLimiterKey, 1)
-		if err != nil {
-			log.Err(err).Msg("LocalRateLimiterCache: GetNextRoute")
-		}
-	} else {
-
-		LocalRateLimiterCache.Set(rateLimiterKey, 1, 1*time.Second)
-	}
-*/

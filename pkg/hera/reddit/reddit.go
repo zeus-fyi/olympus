@@ -2,9 +2,11 @@ package hera_reddit
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 type Reddit struct {
@@ -30,6 +32,24 @@ func InitRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, er
 	}
 	RedditClient.ReadOnly = r.ReadOnly
 	RedditClient.FullClient = client
+	r.FullClient = client
+	return r, err
+}
+
+func InitOrgRedditClient(ctx context.Context, ou org_users.OrgUser, id, secret, u, pw string) (Reddit, error) {
+	r := Reddit{}
+	client, err := reddit.NewReadonlyClient(reddit.WithUserAgent(fmt.Sprintf("Zeusfyi/1.0 (by /u/%s", u)))
+	if err != nil {
+		log.Err(err).Msg("Error initializing reddit client")
+		return Reddit{}, err
+	}
+	r.ReadOnly = client
+	credentials := reddit.Credentials{ID: id, Secret: secret, Username: u, Password: pw}
+	client, err = reddit.NewClient(credentials)
+	if err != nil {
+		log.Err(err).Msg("Error initializing reddit client")
+		return Reddit{}, err
+	}
 	r.FullClient = client
 	return r, err
 }

@@ -2,9 +2,13 @@ package aws_secrets
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/patrickmn/go-cache"
 	"golang.org/x/crypto/sha3"
 )
+
+var SecretsCache = cache.New(time.Hour, cache.DefaultExpiration)
 
 type SecretsKeyValue struct {
 	Key   string `json:"key"`

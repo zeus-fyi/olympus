@@ -20,7 +20,10 @@ type RedditTestSuite struct {
 
 func (s *RedditTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	rc, err := InitRedditClient(ctx, s.Tc.RedditPublicOAuth2, s.Tc.RedditSecretOAuth2, s.Tc.RedditUsername, s.Tc.RedditPassword)
+
+	oauthPub := s.Tc.RedditPublicOAuth2
+	oauthSec := s.Tc.RedditSecretOAuth2
+	rc, err := InitRedditClient(ctx, oauthPub, oauthSec, s.Tc.RedditUsername, s.Tc.RedditPassword)
 	s.Require().Nil(err)
 	s.Assert().NotNil(rc)
 	s.rc = rc

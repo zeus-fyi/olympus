@@ -35,6 +35,46 @@ func (s *TwitterTestSuite) SetupTest() {
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tw.V1Client)
 	s.tw = tw
+
+}
+
+func (s *TwitterTestSuite) TestTweetTopicSearchOrgV2() {
+
+	tc, terr := InitOrgTwitterClient(ctx, s.Tc.TwitterConsumerPublicAPIKey, s.Tc.TwitterConsumerSecretAPIKey)
+	s.Require().NoError(terr)
+	s.Assert().NotNil(tc.V2Client)
+	id := "1520852589067194373"
+	vals := url.Values{}
+	vals.Set("max_results", "10")
+
+	resChan, errChan := tc.V2Client.GetUserTweets(id, vals, twitter2.WithAuto(false))
+
+	// Close the response body
+
+	// Handle channels and timeout
+	var response *twitter2.Data
+	timeout := 10 * time.Second
+	var data []*twitter2.Tweet
+
+	select {
+	case res := <-resChan:
+		response = res
+		b, err := json.Marshal(response.Data)
+		s.Require().NoError(err)
+		err = json.Unmarshal(b, &data)
+		s.Require().NoError(err)
+	case err := <-errChan:
+		fmt.Println("Error:", err)
+		s.Require().NoError(err)
+	case <-time.After(timeout):
+		fmt.Println("Error: Request timed out.")
+		return
+	}
+	s.Assert().NotEmpty(data)
+	for _, tweet := range data {
+		fmt.Printf("TweetID %s: AuthorID %s, Text: %s \n", tweet.ID, tweet.AuthorID, tweet.Text)
+	}
+
 }
 
 func (s *TwitterTestSuite) TestTweetTopicSearchV2() {

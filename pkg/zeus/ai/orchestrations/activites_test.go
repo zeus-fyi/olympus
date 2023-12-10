@@ -59,11 +59,12 @@ func (t *ZeusWorkerTestSuite) TestTgWorkflow() {
 		SecretKey: t.Tc.AwsSecretKeySecretManager,
 	}
 	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
-	msgs, err := GetPandoraMessages(ctx, "Zeus")
+	ou := org_users.NewOrgUserWithID(7138983863666903883, 7138958574876245567)
+
+	msgs, err := GetPandoraMessages(ctx, ou, "Zeus")
 	t.Require().Nil(err)
 	t.Require().NotNil(msgs)
 
-	ou := org_users.NewOrgUserWithID(7138983863666903883, 7138958574876245567)
 	za := NewZeusAiPlatformActivities()
 
 	for _, msg := range msgs {

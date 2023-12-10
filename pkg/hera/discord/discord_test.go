@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
@@ -20,6 +21,10 @@ type DiscordTestSuite struct {
 func (s *DiscordTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	authToken, err := read_keys.GetDiscordKey(ctx, s.Tc.ProductionLocalTemporalUserID)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(authToken)
 }
 
 func (s *DiscordTestSuite) TestFetchChatMessages() {

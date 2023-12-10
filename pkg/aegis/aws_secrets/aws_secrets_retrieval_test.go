@@ -29,6 +29,24 @@ func (t *AegisAwsSecretsTestSuite) SetupTest() {
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
 }
 
+func (t *AegisAwsSecretsTestSuite) TestGetMockingbirdPlatformSecret() {
+	ou := org_users.OrgUser{}
+	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = t.Tc.ProductionLocalTemporalUserID
+
+	svrl, err := GetMockingbirdPlatformSecrets(ctx, ou, "reddit")
+	t.Require().Nil(err)
+	t.Require().NotNil(svrl)
+
+	svrl, err = GetMockingbirdPlatformSecrets(ctx, ou, "twitter")
+	t.Require().Nil(err)
+	t.Require().NotNil(svrl)
+
+	svrl, err = GetMockingbirdPlatformSecrets(ctx, ou, "discord")
+	t.Require().Nil(err)
+	t.Require().NotNil(svrl)
+}
+
 func (t *AegisAwsSecretsTestSuite) TestSecretsRetrieval() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID

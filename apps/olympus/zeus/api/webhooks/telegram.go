@@ -27,7 +27,7 @@ func (a *AIServiceRequest) SupportAcknowledgeTelegramAiTask(c echo.Context) erro
 	}
 	internalOrgID := 7138983863666903883
 	ou := org_users.NewOrgUserWithID(internalOrgID, 7138958574876245567)
-	msgs, err := ai_platform_service_orchestrations.GetPandoraMessages(c.Request().Context(), group)
+	msgs, err := ai_platform_service_orchestrations.GetPandoraMessages(c.Request().Context(), ou, group)
 	if err != nil {
 		log.Err(err).Msg("Zeus: CreateAIServiceTaskRequestHandler")
 		return c.JSON(http.StatusInternalServerError, nil)

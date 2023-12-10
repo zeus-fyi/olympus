@@ -111,9 +111,9 @@ func (h *HestiaQuickNodeWorkflow) DeleteSessionCacheWorkflow(ctx workflow.Contex
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    5 * time.Minute,
+			InitialInterval:    1 * time.Minute,
 			BackoffCoefficient: 2,
-			MaximumInterval:    2 * time.Minute,
+			MaximumInterval:    3 * time.Minute,
 			MaximumAttempts:    10,
 		},
 	}

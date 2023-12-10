@@ -6,7 +6,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 type Reddit struct {
@@ -36,7 +35,7 @@ func InitRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, er
 	return r, err
 }
 
-func InitOrgRedditClient(ctx context.Context, ou org_users.OrgUser, id, secret, u, pw string) (Reddit, error) {
+func InitOrgRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, error) {
 	r := Reddit{}
 	client, err := reddit.NewReadonlyClient(reddit.WithUserAgent(fmt.Sprintf("Zeusfyi/1.0 (by /u/%s", u)))
 	if err != nil {

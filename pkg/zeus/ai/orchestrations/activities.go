@@ -17,8 +17,8 @@ import (
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
@@ -98,18 +98,19 @@ func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Con
 	return sis, nil
 }
 
-func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, si int, channelID, timeAfter string) error {
-	authToken, err := read_keys.GetDiscordKey(ctx, internalUser)
+func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, ou org_users.OrgUser, si int, channelID, timeAfter string) error {
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "discord")
 	if err != nil {
-		log.Err(err).Msg("CreateDiscordJob: failed to get discord key")
+		log.Err(err).Msg("GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
 		return err
 	}
-	hs, err := misc.HashParams([]interface{}{authToken})
+
+	hs, err := misc.HashParams([]interface{}{ps.ApiKey})
 	if err != nil {
 		log.Err(err).Msg("CreateDiscordJob: failed to hash params")
 		return err
 	}
-	j := DiscordJob(si, authToken, hs, channelID, timeAfter)
+	j := DiscordJob(si, ps.ApiKey, hs, channelID, timeAfter)
 	kns := zeus_common_types.CloudCtxNs{
 		CloudProvider: "ovh",
 		Region:        "us-west-or-1",
@@ -135,8 +136,18 @@ func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, si int,
 	return err
 }
 
-func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
-	resp, err := hera_reddit.RedditClient.GetNewPosts(ctx, subreddit, lpo)
+func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, ou org_users.OrgUser, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "reddit")
+	if err != nil {
+		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
+		return nil, err
+	}
+	rc, err := hera_reddit.InitOrgRedditClient(ctx, ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
+	if err != nil {
+		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to init reddit client")
+		return nil, err
+	}
+	resp, err := rc.GetNewPosts(ctx, subreddit, lpo)
 	if err != nil {
 		log.Err(err).Interface("posts", resp.Posts).Interface("resp", resp.Resp).Msg("SearchRedditNewPostsUsingSubreddit")
 		return nil, err
@@ -253,10 +264,15 @@ func (z *ZeusAiPlatformActivities) SelectDiscordSearchQuery(ctx context.Context,
 	return sq, nil
 }
 
-// TODO: add orgID -> lookup secret
+func (z *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, ou org_users.OrgUser, sp *hera_search.TwitterSearchQuery) ([]*twitter.Tweet, error) {
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "twitter")
+	if err != nil {
+		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
+		return nil, err
+	}
 
-func (z *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, sp *hera_search.TwitterSearchQuery) ([]*twitter.Tweet, error) {
-	tweets, err := hera_twitter.TwitterClient.GetTweets(ctx, sp.Query, sp.MaxResults, sp.MaxTweetID)
+	tc, err := hera_twitter.InitOrgTwitterClient(ctx, ps.OAuth2Public, ps.OAuth2Secret)
+	tweets, err := tc.GetTweets(ctx, sp.Query, sp.MaxResults, sp.MaxTweetID)
 	if err != nil {
 		log.Err(err).Msg("SearchTwitterUsingQuery")
 		return nil, err

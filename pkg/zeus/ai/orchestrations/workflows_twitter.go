@@ -38,7 +38,7 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestTwitterWorkflow(ctx workflow.Co
 	}
 	var tweets []*twitter.Tweet
 	searchCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(searchCtx, z.SearchTwitterUsingQuery, sq).Get(searchCtx, &tweets)
+	err = workflow.ExecuteActivity(searchCtx, z.SearchTwitterUsingQuery, ou, sq).Get(searchCtx, &tweets)
 	if err != nil {
 		logger.Error("failed to execute InsertEmailIfNew", "Error", err)
 		// You can decide if you want to return the error or continue monitoring.

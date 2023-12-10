@@ -74,7 +74,7 @@ func (z *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx 
 			MaximumAttempts:    10,
 		},
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(internalOrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiFetchDataToIngestDiscordWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiFetchDataToIngestDiscordWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
@@ -103,7 +103,7 @@ func (z *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx 
 		}
 		jobCtx := workflow.WithActivityOptions(ctx, ao)
 		timeAfter := time.Unix(int64(jib.MaxMessageID), 0).Add(-time.Minute * 5).Format(time.RFC3339)
-		err = workflow.ExecuteActivity(jobCtx, z.CreateDiscordJob, sq.SearchID, jib.ChannelID, timeAfter).Get(jobCtx, nil)
+		err = workflow.ExecuteActivity(jobCtx, z.CreateDiscordJob, ou, sq.SearchID, jib.ChannelID, timeAfter).Get(jobCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute CreateDiscordJob", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.

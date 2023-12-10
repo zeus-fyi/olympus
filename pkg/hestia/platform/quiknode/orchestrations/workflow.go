@@ -254,14 +254,13 @@ func (h *HestiaQuickNodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, ou o
 }
 
 // DeactivateWorkflow removes just an endpoint
-func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest) error {
+func (h *HestiaQuickNodeWorkflow) DeactivateWorkflow(ctx workflow.Context, ou org_users.OrgUser, da hestia_quicknode.DeactivateRequest, currentTime int64) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout * 10,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	currentTime := time.Now().Unix() // get current Unix timestamp
-	deactivateAt := da.DeactivateAt  // get provisionedAt Unix timestamp
+	deactivateAt := da.DeactivateAt // get provisionedAt Unix timestamp
 
 	if currentTime < deactivateAt {
 		sleepDuration := time.Duration(deactivateAt-currentTime) * time.Second

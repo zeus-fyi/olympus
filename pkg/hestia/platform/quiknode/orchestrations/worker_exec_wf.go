@@ -2,6 +2,7 @@ package quicknode_orchestrations
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
@@ -87,7 +88,9 @@ func (h *HestiaQuickNodeWorker) ExecuteQnDeactivateWorkflow(ctx context.Context,
 	}
 	txWf := NewHestiaQuickNodeWorkflow()
 	wf := txWf.DeactivateWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, pr)
+
+	now := time.Now()
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, ou, pr, now.Unix())
 	if err != nil {
 		log.Err(err).Msg("ExecuteQnDeactivateWorkflow")
 		return err

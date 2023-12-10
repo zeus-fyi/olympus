@@ -56,6 +56,7 @@ const initialState: AiState = {
         platform: '',
         maxResults: 0,
         query: '',
+        active: false,
     },
     platformSecretReference: {
         secretGroupName: 'mockingbird',

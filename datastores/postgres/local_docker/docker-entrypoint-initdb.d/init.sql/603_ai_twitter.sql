@@ -4,13 +4,15 @@ CREATE TABLE public.ai_twitter_search_query (
     "user_id" int8 NOT NULL REFERENCES users(user_id),
     search_group_name TEXT NOT NULL,
     max_results int8 NOT NULL CHECK (max_results >= 10 AND max_results <= 100),
-    query TEXT NOT NULL
+    query TEXT NOT NULL,
+    active bool NOT NULL DEFAULT true
 );
 CREATE INDEX tw_search_group_name_trgm_idx ON public.ai_twitter_search_query USING GIN (search_group_name gin_trgm_ops);
 -- Add tsvector column and index for full-text search on query
 ALTER TABLE public.ai_twitter_search_query ADD COLUMN query_tsvector tsvector GENERATED ALWAYS AS (to_tsvector('english', query)) STORED;
 CREATE INDEX tw_query_tsvector_idx ON public.ai_twitter_search_query USING GIN (query_tsvector);
 ALTER TABLE "public"."ai_twitter_search_query" ADD CONSTRAINT "ai_twitter_search_query_uniq" UNIQUE ("org_id", "user_id", "query");
+CREATE INDEX ai_twitter_search_query_active_idx ON public.ai_twitter_search_query (active);
 
 -- AI Incoming Tweets Table
 CREATE TABLE public.ai_incoming_tweets (

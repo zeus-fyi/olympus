@@ -11,6 +11,7 @@ CREATE TABLE public.ai_incoming_telegram_msgs (
           group_name TEXT NOT NULL,
           message_text TEXT NOT NULL,
           metadata JSONB,
+          active bool NOT NULL DEFAULT true,
           UNIQUE(chat_id, message_id)
 );
 
@@ -28,4 +29,5 @@ CREATE INDEX telegram_message_text_idx ON public.ai_incoming_telegram_msgs USING
 
 CREATE INDEX metadata_idx ON public.ai_incoming_telegram_msgs USING GIN (metadata);
 CREATE INDEX idx_group_name_trgm ON public.ai_incoming_telegram_msgs USING GIN (group_name gin_trgm_ops);
+CREATE INDEX ai_incoming_telegram_msgs_active_idx ON public.ai_incoming_telegram_msgs(active);
 

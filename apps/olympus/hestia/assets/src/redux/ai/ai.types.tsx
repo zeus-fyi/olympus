@@ -186,6 +186,8 @@ export interface SearchIndexerParams {
     maxResults: number;
     query: string;
     platform: string;
+    active: boolean;
+    discordOpts?: DiscordIndexerOpts;
 }
 
 export interface PlatformSecretReference {
@@ -199,7 +201,8 @@ export interface PostCreateOrUpdateSearchIndexerRequest {
 }
 
 export interface DiscordIndexerOpts {
-    SearchIndexerParams: SearchIndexerParams;
+    guildID: string;
+    channelID: string;
 }
 
 export interface TelegramIndexerOpts {

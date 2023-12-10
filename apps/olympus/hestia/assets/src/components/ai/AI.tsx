@@ -593,7 +593,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     <TextField
                                                         fullWidth
                                                         id="search-group-input"
-                                                        label={"Platform Search Query"}
+                                                        label={searchIndexer.platform === 'reddit' ? "Subreddits" : "Platform Search Query"}
                                                         variant="outlined"
                                                         value={searchIndexer.query}
                                                         onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, query: e.target.value }))}

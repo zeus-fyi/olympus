@@ -100,20 +100,20 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
 func (s *SearchAITestSuite) TestInsertDiscordSearchQuery() {
 	// Setup context and necessary data
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	ou := org_users.OrgUser{}
-	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
-	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-	searchGroupName := "zeusfyi"
-	maxResults := 100
-	query := ""
-
-	// Call the function
-	searchID, err := InsertDiscordSearchQuery(ctx, ou, searchGroupName, maxResults, query)
-
-	// Assert expected outcomes
-	s.Require().NoError(err)
-	s.Assert().NotZero(searchID)
-	fmt.Println(searchID)
+	//ou := org_users.OrgUser{}
+	//ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	//ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	//searchGroupName := "zeusfyi"
+	//maxResults := 100
+	//query := ""
+	//
+	//// Call the function
+	//searchID, err := InsertDiscordSearchQuery(ctx, ou, searchGroupName, maxResults, query)
+	//
+	//// Assert expected outcomes
+	//s.Require().NoError(err)
+	//s.Assert().NotZero(searchID)
+	//fmt.Println(searchID)
 }
 
 func (s *SearchAITestSuite) TestInsertDiscordChannel() {

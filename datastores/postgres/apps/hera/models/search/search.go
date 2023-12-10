@@ -62,15 +62,16 @@ type SearchIndexerParams struct {
 	MaxResults      int    `json:"maxResults"`
 	Query           string `json:"query"`
 	Platform        string `json:"platform"`
+	Active          bool   `json:"active"`
 }
 
 func GetSearchIndexers(ctx context.Context, ou org_users.OrgUser) ([]SearchIndexerParams, error) {
 	query := `
-		SELECT search_id, search_group_name, max_results, query, 'reddit' AS platform
+		SELECT search_id, search_group_name, max_results, query, 'reddit' AS platform, active
 		FROM public.ai_reddit_search_query
 		WHERE org_id = $1
 		UNION
-		SELECT search_id, search_group_name, max_results, query, 'twitter' AS platform
+		SELECT search_id, search_group_name, max_results, query, 'twitter' AS platform, active
 		FROM public.ai_twitter_search_query
 		WHERE org_id = $1
 		UNION
@@ -79,15 +80,15 @@ func GetSearchIndexers(ctx context.Context, ou org_users.OrgUser) ([]SearchIndex
 		    dsq.search_group_name,
 		    dsq.max_results,
 		    gi.name || ' | ' || ci.category || ' | ' || ci.name || ' | ' || ci.channel_id AS query,
-		    'discord' AS platform
+		    'discord' AS platform, dsq.active
 		FROM
 		    (
-		        SELECT dm.search_id, dm.guild_id, dm.channel_id, MAX(dm.timestamp_creation) AS max_message_id
+		        SELECT dm.search_id, dm.guild_id, dm.channel_id, dsq.active, MAX(dm.timestamp_creation) AS max_message_id
 		        FROM public.ai_incoming_discord_messages dm
 		        INNER JOIN public.ai_discord_search_query dsq
 		        ON dm.search_id = dsq.search_id
 		        WHERE dsq.org_id = $1
-		        GROUP BY dm.search_id, dm.guild_id, dm.channel_id
+		        GROUP BY dm.search_id, dm.guild_id, dm.channel_id, dsq.active
 		    ) AS latest_discord_messages
 		JOIN
 		    public.ai_discord_search_query dsq ON dsq.search_id = latest_discord_messages.search_id
@@ -106,7 +107,7 @@ func GetSearchIndexers(ctx context.Context, ou org_users.OrgUser) ([]SearchIndex
 	var srs []SearchIndexerParams
 	for rows.Next() {
 		var si SearchIndexerParams
-		err = rows.Scan(&si.SearchID, &si.SearchGroupName, &si.MaxResults, &si.Query, &si.Platform)
+		err = rows.Scan(&si.SearchID, &si.SearchGroupName, &si.MaxResults, &si.Query, &si.Platform, &si.Active)
 		if err != nil {
 			log.Err(err).Msg("Error querying search indexers")
 			return nil, err

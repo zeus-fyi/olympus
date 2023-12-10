@@ -108,7 +108,7 @@ export function SearchIndexersTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Search ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Platform</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Max Results</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Active</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Query</TableCell>
                     </TableRow>
                 </TableHead>

@@ -5,12 +5,14 @@ CREATE TABLE public.ai_discord_search_query (
     user_id BIGINT NOT NULL REFERENCES users(user_id),
     search_group_name TEXT NOT NULL,
     max_results BIGINT NOT NULL CHECK (max_results <= 100),
-    query TEXT NOT NULL
+    query TEXT NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE
 );
 CREATE INDEX discord_search_group_name_trgm_idx ON public.ai_discord_search_query USING GIN (search_group_name gin_trgm_ops);
 ALTER TABLE public.ai_discord_search_query ADD COLUMN query_tsvector tsvector GENERATED ALWAYS AS (to_tsvector('english', query)) STORED;
 CREATE INDEX discord_query_tsvector_idx ON public.ai_discord_search_query USING GIN (query_tsvector);
 ALTER TABLE "public"."ai_discord_search_query" ADD CONSTRAINT "ai_discord_search_query_uniq" UNIQUE ("org_id", "user_id", "query");
+CREATE INDEX ai_discord_search_query_active_idx ON public.ai_discord_search_query(active);
 
 -- Table for Discord guilds
 CREATE TABLE public.ai_discord_guild (

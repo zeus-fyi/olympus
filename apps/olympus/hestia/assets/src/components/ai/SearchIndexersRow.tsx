@@ -40,7 +40,7 @@ export function SearchIndexersRow(props: { row: SearchIndexerParams, index: numb
                     {row.platform}
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.maxResults}
+                    {row.active ? 'Yes' : 'No'}
                 </TableCell>
                 <TableCell component="th" scope="row">
                     {row.query}

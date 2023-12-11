@@ -151,7 +151,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteCancelWorkflowRuns(ctx context.Con
 func (z *ZeusAiPlatformServicesWorker) ExecuteCancelWorkflow(ctx context.Context, wfID string) error {
 	tc := z.ConnectTemporalClient()
 	defer tc.Close()
-	err := tc.CancelWorkflow(ctx, wfID, "")
+	err := tc.TerminateWorkflow(ctx, wfID, "", "user requested")
 	if err != nil {
 		log.Err(err).Msg("ExecuteCancelWorkflow")
 		return err

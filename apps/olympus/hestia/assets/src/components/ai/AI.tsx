@@ -790,7 +790,6 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     </Container>
                                                 )}
                                                 { searchIndexer.platform != 'openai' &&
-
                                                 <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
                                                     <Button fullWidth variant="outlined"  onClick={(e) => handleSubmitIndexer(e)}>Start Indexing</Button>
                                                 </Box>
@@ -954,6 +953,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                 <Tab className="onboarding-card-highlight-all-search-indexer" label="Indexer"/>
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"/>
                                 <Tab className="onboarding-card-highlight-all-workflows-runs" label="Runs"/>
+                                <Tab className="onboarding-card-highlight-all-workflows-runs" label="Actions"/>
                             </Tabs>
                         </Box>
                     </Container>
@@ -979,7 +979,6 @@ function AiWorkflowsDashboardContent(props: any) {
                                 <WorkflowTable />
                             </div>
                         }
-
                         { (selectedMainTab === 3) &&
                             <div>
 
@@ -1003,7 +1002,6 @@ function AiWorkflowsDashboardContent(props: any) {
                                 <WorkflowAnalysisTable  />
                             </div>
                         }
-
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

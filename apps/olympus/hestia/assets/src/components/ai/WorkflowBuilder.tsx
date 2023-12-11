@@ -1684,6 +1684,11 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
+                                    {/*{(selectedMainTab === 4) &&*/}
+                                    {/*    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>*/}
+                                    {/*        <Actions />*/}
+                                    {/*    </Container>*/}
+                                    {/*}*/}
                                 </CardContent>
                             </Card>
                         </Stack>
@@ -1695,6 +1700,7 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-analysis" label="Analysis" />
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
                                 <Tab className="onboarding-card-highlight-all-retrieval" label="Retrievals" />
+                                {/*<Tab className="onboarding-card-highlight-all-actions" label="Actions" />*/}
                             </Tabs>
                         </Box>
                     </Container>

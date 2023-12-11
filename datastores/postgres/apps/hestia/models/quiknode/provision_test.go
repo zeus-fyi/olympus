@@ -62,7 +62,7 @@ func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService2() {
 		},
 	}
 
-	err := UpdateProvisionedQuickNodeService(ctx, ps)
+	err := UpsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
 }
 
@@ -139,7 +139,7 @@ func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
 	// UPDATES now with contract addresses
 	createQnServiceReferer(&ps2, "https://zoogle.com")
 	createQnServiceContractAddr(&ps2, "0x8888")
-	err = UpdateProvisionedQuickNodeService(ctx, ps2)
+	err = UpsertProvisionedQuickNodeService(ctx, ps2)
 	s.Require().Nil(err)
 	qnsLookup, err = SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
 	s.Require().Nil(err)
@@ -178,7 +178,7 @@ func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 			ContractAddress: "0x01",
 		},
 	}
-	err = UpdateProvisionedQuickNodeService(ctx, ps)
+	err = UpsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
 	qnsLookup, err = SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
 	s.Require().Nil(err)
@@ -201,7 +201,7 @@ func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 			Referer: "https://zeus.fyi",
 		},
 	}
-	err = UpdateProvisionedQuickNodeService(ctx, ps)
+	err = UpsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
 	qnsLookup, err = SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
 	s.Require().Nil(err)

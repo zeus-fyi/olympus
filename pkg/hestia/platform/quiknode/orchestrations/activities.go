@@ -251,9 +251,9 @@ func (h *HestiaQuickNodeActivities) Provision(ctx context.Context, ou org_users.
 		ProvisionedQuickNodeServicesReferrers:         car,
 	}
 
-	err := hestia_quicknode_models.InsertProvisionedQuickNodeService(ctx, qs)
+	err := hestia_quicknode_models.UpsertProvisionedQuickNodeService(ctx, qs)
 	if err != nil {
-		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: InsertProvisionedQuickNodeService")
+		log.Warn().Interface("qs", qs).Interface("ou", ou).Err(err).Msg("Provision: InsertProvisionedQuickNodeService")
 		return err
 	}
 	return nil
@@ -306,7 +306,7 @@ func (h *HestiaQuickNodeActivities) UpdateProvision(ctx context.Context, pr hest
 		ProvisionedQuickNodeServicesReferrers:         car,
 	}
 
-	err := hestia_quicknode_models.UpdateProvisionedQuickNodeService(ctx, qs)
+	err := hestia_quicknode_models.UpsertProvisionedQuickNodeService(ctx, qs)
 	if err != nil {
 		log.Warn().Err(err).Msg("Provision: UpdateProvision")
 		return err

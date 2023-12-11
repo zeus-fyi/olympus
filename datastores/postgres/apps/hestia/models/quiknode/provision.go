@@ -131,7 +131,7 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 	return misc.ReturnIfErr(err, q.LogHeader("InsertProvisionedQuickNodeService"))
 }
 
-func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService) error {
+func UpsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_insert_org AS (
 					  INSERT INTO orgs (name, metadata)
@@ -172,7 +172,7 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery,
 		ps.QuickNodeID, ps.Plan, ps.EndpointID, ps.HttpURL, ps.WssURL, ps.IsTest, ps.Network, ps.Chain).Scan(&updated)
 	if err != nil {
-		log.Error().Err(err).Msg("UpdateProvisionedQuickNodeService: failed to execute query")
+		log.Error().Err(err).Msg("UpsertProvisionedQuickNodeService: failed to execute query")
 		return err
 	}
 
@@ -182,14 +182,14 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 
 	err = InsertContractAddresses(ctx, ps)
 	if err != nil {
-		return misc.ReturnIfErr(err, q.LogHeader("UpdateProvisionedQuickNodeService"))
+		return misc.ReturnIfErr(err, q.LogHeader("UpsertProvisionedQuickNodeService"))
 	}
 
 	err = InsertReferers(ctx, ps)
 	if err != nil {
-		return misc.ReturnIfErr(err, q.LogHeader("UpdateProvisionedQuickNodeService"))
+		return misc.ReturnIfErr(err, q.LogHeader("UpsertProvisionedQuickNodeService"))
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("UpdateProvisionedQuickNodeService"))
+	return misc.ReturnIfErr(err, q.LogHeader("UpsertProvisionedQuickNodeService"))
 }
 
 func InsertReferers(ctx context.Context, ps QuickNodeService) error {

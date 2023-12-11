@@ -62,12 +62,20 @@ const initialState: AiState = {
         secretGroupName: 'mockingbird',
         secretKeyName: '',
     },
+    selectedMainTab: 0,
+    selectedMainTabBuilder: 0,
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setSelectedMainTab: (state, action: PayloadAction<number>) => {
+            state.selectedMainTab = action.payload;
+        },
+        setSelectedMainTabBuilder: (state, action: PayloadAction<number>) => {
+            state.selectedMainTabBuilder = action.payload;
+        },
         setPlatformSecretReference: (state, action: PayloadAction<PlatformSecretReference>) => {
             state.platformSecretReference = action.payload;
         },
@@ -305,5 +313,7 @@ export const {
     setSearchIndexers,
     setSearchIndexer,
     setPlatformSecretReference,
+    setSelectedMainTab,
+    setSelectedMainTabBuilder,
 } = aiSlice.actions;
 export default aiSlice.reducer;

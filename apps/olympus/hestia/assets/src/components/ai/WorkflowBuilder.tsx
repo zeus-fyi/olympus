@@ -55,6 +55,7 @@ import {
     setRetrievalPrompt,
     setRetrievals,
     setRetrievalUsernames,
+    setSelectedMainTabBuilder,
     setSelectedWorkflows,
     setTaskMap,
     setWebRoutingGroup,
@@ -82,7 +83,8 @@ function WorkflowEngineBuilder(props: any) {
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setIsLoading] = useState(false);
     const selectedWorkflows = useSelector((state: any) => state.ai.selectedWorkflows);
-    const [selectedMainTab, setSelectedMainTab] = useState(0);
+    const selectedMainTabBuilder = useSelector((state: any) => state.ai.selectedMainTabBuilder);
+
     const [selected, setSelected] = useState<{ [key: number]: boolean }>({});
     const analysisWorkflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
     const aggregationWorkflowInstructions = useSelector((state: RootState) => state.ai.aggregationWorkflowInstructions);
@@ -195,7 +197,7 @@ function WorkflowEngineBuilder(props: any) {
 
     useEffect(() => {
 
-    }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTab, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap, taskMap]);
+    }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap, taskMap]);
     const dispatch = useDispatch();
     const handleTaskCycleCountChange = (val: number, task: TaskModelInstructions) => {
         if (val <= 0) {
@@ -263,10 +265,10 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setAddAggregationView(false));
         dispatch(setAddRetrievalView(toggle));
         if (toggle) {
-            setSelectedMainTab(3)
+            dispatch(setSelectedMainTabBuilder(3))
             setSelected({});
         } else {
-            setSelectedMainTab(0)
+            dispatch(setSelectedMainTabBuilder(0))
         }
     }
 
@@ -276,12 +278,12 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setAddAggregationView(false));
         dispatch(setAddRetrievalView(false));
         if (toggle) {
-            setSelectedMainTab(1)
+            dispatch(setSelectedMainTabBuilder(1))
             setSelected({});
             setTaskType('analysis');
             setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'analysis'));
         } else {
-            setSelectedMainTab(0)
+            dispatch(setSelectedMainTabBuilder(0))
         }
     }
     const addAggregationStageView = async () => {
@@ -293,9 +295,9 @@ function WorkflowEngineBuilder(props: any) {
             setSelected({});
             setTaskType('aggregation');
             setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'aggregation'));
-            setSelectedMainTab(2)
+            dispatch(setSelectedMainTabBuilder(2))
         } else {
-            setSelectedMainTab(0)
+            dispatch(setSelectedMainTabBuilder(0))
         }
     }
     const [stepSize, setStepSize] = useState(5);
@@ -446,7 +448,7 @@ function WorkflowEngineBuilder(props: any) {
                 dispatch(setAddAnalysisView(false));
                 dispatch(setAddAggregationView(false));
                 dispatch(setAddRetrievalView(false));
-                setSelectedMainTab(0);
+                dispatch(setSelectedMainTabBuilder(0));
                 setRequestStatus('Workflow created successfully')
                 setRequestStatusError('success')
             }
@@ -623,7 +625,7 @@ function WorkflowEngineBuilder(props: any) {
         setRequestRetrievalStatusError('');
 
         dispatch(setAddAnalysisView(false));
-        setSelectedMainTab(newValue);
+        dispatch(setSelectedMainTabBuilder(newValue));
     };
     const handleClick = (index: number) => {
         setSelected((prevSelected) => ({
@@ -634,7 +636,7 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = event.target.checked;
-        if (addRetrievalView || selectedMainTab === 3) {
+        if (addRetrievalView || selectedMainTabBuilder === 3) {
             const newSelection = retrievals.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
@@ -722,7 +724,7 @@ function WorkflowEngineBuilder(props: any) {
                     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
                             <Card sx={{ minWidth: 500, maxWidth: 900 }}>
-                                {( selectedMainTab === 0 || addAnalysisView || addAggregateView || addRetrievalView) &&
+                                {( selectedMainTabBuilder === 0 || addAnalysisView || addAggregateView || addRetrievalView) &&
                                     <div>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
@@ -1240,7 +1242,7 @@ function WorkflowEngineBuilder(props: any) {
                                 </div>
                                 }
                                 <CardContent>
-                                    {!addAnalysisView && !addAggregateView && !addRetrievalView && selectedMainTab == 1 &&
+                                    {!addAnalysisView && !addAggregateView && !addRetrievalView && selectedMainTabBuilder == 1 &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Analysis Instructions
@@ -1319,7 +1321,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    { !addAggregateView && !addAnalysisView && !addRetrievalView && selectedMainTab == 2 &&
+                                    { !addAggregateView && !addAnalysisView && !addRetrievalView && selectedMainTabBuilder == 2 &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Aggregation Instructions
@@ -1399,7 +1401,7 @@ function WorkflowEngineBuilder(props: any) {
                                         </div>
                                     }
                                     {
-                                        selectedMainTab == 3 && !addRetrievalView && !loading &&
+                                        selectedMainTabBuilder == 3 && !addRetrievalView && !loading &&
                                     <CardContent>
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
@@ -1608,7 +1610,7 @@ function WorkflowEngineBuilder(props: any) {
                                     {/*<Typography variant="body2" color="text.secondary">*/}
                                     {/*    Use this to limit how many tokens you want to use for your LLM stages. Set to 0 for unlimited.*/}
                                     {/*</Typography>*/}
-                                    { !addAnalysisView && !addAggregateView && selectedMainTab == 1 &&
+                                    { !addAnalysisView && !addAggregateView && selectedMainTabBuilder == 1 &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                 <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
@@ -1646,7 +1648,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    {  !addAnalysisView && !addAggregateView && selectedMainTab == 2 &&
+                                    {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder == 2 &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                             <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
@@ -1695,7 +1697,7 @@ function WorkflowEngineBuilder(props: any) {
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                            <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
+                            <Tabs value={selectedMainTabBuilder} onChange={handleMainTabChange} aria-label="basic tabs">
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"  />
                                 <Tab className="onboarding-card-highlight-all-analysis" label="Analysis" />
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
@@ -1705,7 +1707,7 @@ function WorkflowEngineBuilder(props: any) {
                         </Box>
                     </Container>
 
-                    { selectedMainTab === 0 && !addAnalysisView && !addAggregateView && !addRetrievalView && selectedWorkflows && selectedWorkflows.length > 0  &&
+                    { selectedMainTabBuilder === 0 && !addAnalysisView && !addAggregateView && !addRetrievalView && selectedWorkflows && selectedWorkflows.length > 0  &&
                         <div>
                                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                     <Box sx={{ mb: 2 }}>
@@ -1719,12 +1721,12 @@ function WorkflowEngineBuilder(props: any) {
                         </div>
 
                     }
-                    { selectedMainTab == 0 &&
+                    { selectedMainTabBuilder == 0 &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <WorkflowTable selected={selected} setSelected={setSelected}/>
                         </Container>
                     }
-                    { (selectedMainTab === 1 || selectedMainTab === 2) && (addAggregateView || addAnalysisView) &&
+                    { (selectedMainTabBuilder === 1 || selectedMainTabBuilder === 2) && (addAggregateView || addAnalysisView) &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Box sx={{ mb: 2 }}>
                                 <span>({Object.values(selected).filter(value => value).length} Selected Tasks)</span>
@@ -1734,14 +1736,14 @@ function WorkflowEngineBuilder(props: any) {
                             </Box>
                         </Container>
                     }
-                    { (selectedMainTab === 1 || selectedMainTab === 2) &&
+                    { (selectedMainTabBuilder === 1 || selectedMainTabBuilder === 2) &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <TasksTable tasks={tasks} selected={selected} handleClick={handleClick} handleSelectAllClick={handleSelectAllClick} />
                             </Container>
                         </div>
                     }
-                    { (selectedMainTab === 3) && addRetrievalView &&
+                    { (selectedMainTabBuilder === 3) && addRetrievalView &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Box sx={{ mb: 2 }}>
                                 <span>({Object.values(selected).filter(value => value).length} Selected Retrievals)</span>
@@ -1751,7 +1753,7 @@ function WorkflowEngineBuilder(props: any) {
                             </Box>
                         </Container>
                     }
-                    { (selectedMainTab === 3) &&
+                    { (selectedMainTabBuilder === 3) &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <RetrievalsTable retrievals={retrievals} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />

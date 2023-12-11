@@ -45,6 +45,7 @@ import {
     setRetrievalUsernames,
     setSearchIndexer,
     setSearchResults,
+    setSelectedMainTab,
     setSelectedRuns,
     setSelectedSearchIndexers,
     setSelectedWorkflows,
@@ -67,7 +68,7 @@ const analysisDone = "==========================================================
 function AiWorkflowsDashboardContent(props: any) {
     const [open, setOpen] = useState(true);
     const [loading, setIsLoading] = useState(false);
-    const [selectedMainTab, setSelectedMainTab] = useState(0);
+    const selectedMainTab = useSelector((state: any) => state.ai.selectedMainTab);
     const selected = useSelector((state: any) => state.ai.selectedWorkflows);
     const selectedRuns = useSelector((state: any) => state.ai.selectedRuns);
     const runs = useSelector((state: any) => state.ai.runs);
@@ -261,7 +262,7 @@ function AiWorkflowsDashboardContent(props: any) {
         setRequestIndexerStatus('')
         setRequestRunsStatus('')
         setRequestRunsStatusError('')
-        setSelectedMainTab(newValue);
+        dispatch(setSelectedMainTab(newValue));
     };
 
     const onChangeText = (textInput: string) => {

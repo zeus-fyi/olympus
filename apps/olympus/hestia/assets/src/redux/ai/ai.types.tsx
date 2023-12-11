@@ -29,6 +29,8 @@ export interface AiState {
     searchIndexers: SearchIndexerParams[];
     searchIndexer: SearchIndexerParams
     platformSecretReference: PlatformSecretReference;
+    selectedMainTab: number;
+    selectedMainTabBuilder: number;
 }
 
 export interface PostWorkflowsRequest {

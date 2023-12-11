@@ -45,6 +45,7 @@ import {
     setRetrievalUsernames,
     setSearchIndexer,
     setSearchResults,
+    setSelectedRuns,
     setSelectedSearchIndexers,
     setSelectedWorkflows,
     setWebRoutingGroup
@@ -129,7 +130,6 @@ function AiWorkflowsDashboardContent(props: any) {
     };
 
     const handleRunsActionRequest = async (event: any, action: string) => {
-        console.log("selectedRuns", selectedRuns)
         const params: PostRunsActionRequest = {
             action: action,
             runs: selectedRuns.map((index: number) => {
@@ -145,7 +145,7 @@ function AiWorkflowsDashboardContent(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
-                dispatch(setSelectedWorkflows([]));
+                dispatch(setSelectedRuns([]));
                 setRequestRunsStatus('Run cancellation submitted successfully')
                 setRequestRunsStatusError('success')
             }
@@ -252,12 +252,18 @@ function AiWorkflowsDashboardContent(props: any) {
         if (newValue !== 1) {
             dispatch(setSelectedWorkflows([]))
         }
+        if (newValue !== 3) {
+            dispatch(setSelectedRuns([]))
+        }
         setRequestStatus('')
         setRequestStatusError('')
         setRequestIndexerStatusError('')
         setRequestIndexerStatus('')
+        setRequestRunsStatus('')
+        setRequestRunsStatusError('')
         setSelectedMainTab(newValue);
     };
+
     const onChangeText = (textInput: string) => {
         setCode(textInput);
     };

@@ -8,6 +8,7 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
+	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
 type RunsActionsRequest struct {
@@ -37,12 +38,18 @@ func (w *RunsActionsRequest) Process(c echo.Context) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-
 	switch w.Action {
 	case "start":
 	case "stop":
-		// do y
-
+		var runIDs []string
+		for _, run := range w.Runs {
+			runIDs = append(runIDs, run.OrchestrationName)
+		}
+		err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteCancelWorkflowRuns(c.Request().Context(), ou, runIDs)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to cancel workflow runs")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
 	}
 	return c.JSON(http.StatusOK, nil)
 }

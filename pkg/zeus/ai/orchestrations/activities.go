@@ -52,14 +52,10 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.UpsertAiOrchestration, z.AiAnalysisTask, z.AiRetrievalTask,
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
 		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask,
-		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob,
+		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob, z.CancelRun,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
-
-const (
-	internalUser = 7138958574876245567
-)
 
 func (z *ZeusAiPlatformActivities) StartIndexingJob(ctx context.Context, sp hera_search.SearchIndexerParams) error {
 	switch sp.Platform {

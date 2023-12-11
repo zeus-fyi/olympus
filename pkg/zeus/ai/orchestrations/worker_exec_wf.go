@@ -130,3 +130,31 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiSearchIndexerWorkflow(ctx contex
 	}
 	return nil
 }
+
+func (z *ZeusAiPlatformServicesWorker) ExecuteCancelWorkflowRuns(ctx context.Context, ou org_users.OrgUser, wfIDs []string) error {
+	tc := z.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: z.TaskQueueName,
+		ID:        fmt.Sprintf("cancel-runs-%s", uuid.New().String()),
+	}
+	txWf := NewZeusPlatformServiceWorkflows()
+	wf := txWf.CancelWorkflowRuns
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, wfIDs)
+	if err != nil {
+		log.Err(err).Msg("ExecuteCancelWorkflowRuns")
+		return err
+	}
+	return nil
+}
+
+func (z *ZeusAiPlatformServicesWorker) ExecuteCancelWorkflow(ctx context.Context, wfID string) error {
+	tc := z.ConnectTemporalClient()
+	defer tc.Close()
+	err := tc.CancelWorkflow(ctx, wfID, "")
+	if err != nil {
+		log.Err(err).Msg("ExecuteCancelWorkflow")
+		return err
+	}
+	return nil
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
@@ -42,17 +43,36 @@ func GetTelegramToken(ctx context.Context, orgID int) (string, error) {
 	return token, err
 }
 
+var (
+	SecretCache = cache.New(time.Hour*24*3, cache.DefaultExpiration)
+)
+
+func ClearOrgSecretCache(ou org_users.OrgUser) {
+	SecretCache.Delete(FormatSecret(ou.OrgID))
+}
+
 func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, platform string) (*OAuth2PlatformSecret, error) {
-	sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, FormatSecret(ou.OrgID))
-	if err != nil {
-		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
-		return nil, err
-	}
 	m := make(map[string]SecretsKeyValue)
-	err = json.Unmarshal(sv, &m)
-	if err != nil {
-		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
-		return nil, err
+	svCached, ok := SecretCache.Get(FormatSecret(ou.OrgID))
+	if ok {
+		skv, cacheOk := svCached.(map[string]SecretsKeyValue)
+		if cacheOk {
+			m = skv
+		}
+	}
+	if len(m) == 0 {
+		sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, FormatSecret(ou.OrgID))
+		if err != nil {
+			log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+			return nil, err
+		}
+
+		err = json.Unmarshal(sv, &m)
+		if err != nil {
+			log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+			return nil, err
+		}
+		SecretCache.Set(FormatSecret(ou.OrgID), m, cache.DefaultExpiration)
 	}
 
 	mp := MockingBirdPlatformNames(platform)
@@ -61,8 +81,8 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 	}
 
 	for mkeyName, mockingbird := range mp {
-		svItem, ok := m[mkeyName]
-		if ok && svItem.Key == mockingbird {
+		svItem, sok := m[mkeyName]
+		if sok && svItem.Key == mockingbird {
 			if mkeyName == fmt.Sprintf("%s-oauth2-public", platform) {
 				op.OAuth2Public = svItem.Value
 			}
@@ -80,7 +100,7 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 			}
 		}
 	}
-	return op, err
+	return op, nil
 }
 
 func MockingBirdPlatformNames(platform string) map[string]string {

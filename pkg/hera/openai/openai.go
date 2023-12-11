@@ -30,6 +30,12 @@ func InitHeraOpenAI(bearer string) {
 	HeraOpenAI.Client = openai.NewClient(bearer)
 }
 
+func InitOrgHeraOpenAI(bearer string) OpenAI {
+	return OpenAI{
+		openai.NewClient(bearer),
+	}
+}
+
 type OpenAIParams struct {
 	Model     string
 	MaxTokens int

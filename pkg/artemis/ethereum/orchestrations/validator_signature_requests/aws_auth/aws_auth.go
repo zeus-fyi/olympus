@@ -51,6 +51,7 @@ func GetOrgSecret(ctx context.Context, name string) ([]byte, error) {
 		SecretId:     aws.String(name),
 		VersionStage: aws.String("AWSCURRENT"), // VersionStage defaults to AWSCURRENT if unspecified
 	}
+
 	result, err := HydraSecretManagerAuthAWS.GetSecretValue(ctx, input)
 	if err != nil {
 		// For a list of exceptions thrown, see

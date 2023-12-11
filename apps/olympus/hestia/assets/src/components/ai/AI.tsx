@@ -146,7 +146,7 @@ function AiWorkflowsDashboardContent(props: any) {
             if (statusCode < 400) {
                 const data = response.data;
                 dispatch(setSelectedWorkflows([]));
-                setRequestStatus('Workflow run start successfully')
+                setRequestStatus('Workflow run started successfully')
                 setRequestStatusError('success')
             }
         } catch (error: any) {

@@ -197,6 +197,11 @@ export interface SearchIndexerParams {
     discordOpts?: DiscordIndexerOpts;
 }
 
+export interface DiscordIndexerOpts {
+    guildID: string;
+    channelID: string;
+}
+
 export interface PlatformSecretReference {
     secretGroupName: string;
     secretKeyName: string;
@@ -207,20 +212,7 @@ export interface PostCreateOrUpdateSearchIndexerRequest {
     platformSecretReference: PlatformSecretReference;
 }
 
-export interface DiscordIndexerOpts {
-    guildID: string;
-    channelID: string;
-}
-
 export interface TelegramIndexerOpts {
-    SearchIndexerParams: SearchIndexerParams;
-}
-
-export interface TwitterIndexerOpts {
-    SearchIndexerParams: SearchIndexerParams;
-}
-
-export interface RedditIndexerOpts {
     SearchIndexerParams: SearchIndexerParams;
 }
 

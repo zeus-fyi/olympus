@@ -628,7 +628,6 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     </FormControl>
                                                 </Box>
                                                 { searchIndexer.platform !== 'openai' &&
-
                                                 <div>
                                                     <Box flexGrow={1} sx={{ mb: 2 }}>
                                                         <TextField
@@ -650,6 +649,44 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, query: e.target.value }))}
                                                         />
                                                     </Box>
+                                                    { searchIndexer.platform === 'discord' &&
+                                                        <div>
+                                                            <Stack direction={"row"} >
+                                                                <Box flexGrow={1} sx={{ mt: 0 }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id="guild-id-input"
+                                                                        label={"Guild ID"}
+                                                                        variant="outlined"
+                                                                        value={searchIndexer.discordOpts?.guildID || ''}
+                                                                        onChange={(e) => dispatch(setSearchIndexer({
+                                                                            ...searchIndexer,
+                                                                            discordOpts: {
+                                                                                ...searchIndexer.discordOpts,
+                                                                                guildID: e.target.value
+                                                                            }
+                                                                        }))}
+                                                                    />
+                                                                </Box>
+                                                                <Box flexGrow={1} sx={{ ml: 2, mt: 0}}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id="channel-id-input"
+                                                                        label={"Channel ID"}
+                                                                        variant="outlined"
+                                                                        value={searchIndexer.discordOpts?.channelID || ''}
+                                                                        onChange={(e) => dispatch(setSearchIndexer({
+                                                                            ...searchIndexer,
+                                                                            discordOpts: {
+                                                                                ...searchIndexer.discordOpts,
+                                                                                channelID: e.target.value
+                                                                            }
+                                                                        }))}
+                                                                    />
+                                                                </Box>
+                                                            </Stack>
+                                                        </div>
+                                                    }
                                                 </div>
                                                 }
                                                     <div>

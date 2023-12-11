@@ -51,7 +51,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.CreateDiscordJob, z.SelectDiscordSearchQuery, z.InsertIncomingDiscordDataFromSearch,
 		z.UpsertAiOrchestration, z.AiAnalysisTask, z.AiRetrievalTask,
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
-		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask, z.RecordCompletionResponseFromSearchResult,
+		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask,
 		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob,
 	}
 	return append(actSlice, ka.GetActivities()...)
@@ -442,10 +442,10 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 	return resp, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, sr []hera_search.SearchResult) (openai.ChatCompletionResponse, error) {
+func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
 	content := hera_search.FormatSearchResultsV2(sr)
 	if len(content) <= 0 {
-		return openai.ChatCompletionResponse{}, nil
+		return nil, nil
 	}
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
@@ -466,23 +466,26 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 	if taskInst.AnalysisMaxTokensPerTask > 0 {
 		cr.MaxTokens = taskInst.AnalysisMaxTokensPerTask
 	}
-
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
 	if err != nil {
 		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
-		return openai.ChatCompletionResponse{}, err
+		return nil, err
 	}
-
+	prompt := make(map[string]string)
+	prompt["prompt"] = content
 	if ps.ApiKey == "" {
 		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed, using backup and deleting secret cache for org")
 		cres, cerr := hera_openai.HeraOpenAI.CreateChatCompletion(
 			ctx, cr,
 		)
 		if cerr == nil {
-			return cres, nil
+			return &ChatCompletionQueryResponse{
+				Prompt:   prompt,
+				Response: cres,
+			}, nil
 		} else {
 			log.Err(cerr).Msg("AiAnalysisTask: CreateChatCompletion failed")
-			return openai.ChatCompletionResponse{}, cerr
+			return nil, cerr
 		}
 	}
 
@@ -491,14 +494,17 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		ctx, cr,
 	)
 	if err == nil {
-		return resp, nil
+		return &ChatCompletionQueryResponse{
+			Prompt:   prompt,
+			Response: resp,
+		}, nil
 	} else {
 		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
 		aws_secrets.ClearOrgSecretCache(ou)
 		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
 		if err != nil {
 			log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
-			return openai.ChatCompletionResponse{}, err
+			return nil, err
 		}
 	}
 	oc = hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
@@ -507,19 +513,33 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 	)
 	if err != nil {
 		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed")
-		return openai.ChatCompletionResponse{}, err
+		return nil, err
 	}
-	return resp, nil
+	return &ChatCompletionQueryResponse{
+		Prompt:   prompt,
+		Response: resp,
+	}, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (openai.ChatCompletionResponse, error) {
-	content := artemis_orchestrations.GenerateContentText(dataIn)
+type ChatCompletionQueryResponse struct {
+	Prompt   map[string]string             `json:"prompt"`
+	Response openai.ChatCompletionResponse `json:"response"`
+}
+
+func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (*ChatCompletionQueryResponse, error) {
+	content, err := artemis_orchestrations.GenerateContentText(dataIn)
+	if err != nil {
+		log.Err(err).Msg("AiAggregateTask: GenerateContentText failed")
+		return nil, err
+	}
 	if len(content) <= 0 || aggInst.AggPrompt == nil || aggInst.AggModel == nil || aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil {
-		return openai.ChatCompletionResponse{}, nil
+		return nil, nil
 	}
 	if len(*aggInst.AggPrompt) <= 0 {
-		return openai.ChatCompletionResponse{}, nil
+		return nil, nil
 	}
+	prompt := make(map[string]string)
+	prompt["prompt"] = content
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
 		Content: *aggInst.AggPrompt,
@@ -536,6 +556,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 			},
 		},
 	}
+
 	if aggInst.AggMaxTokensPerTask == nil {
 		aggInst.AggMaxTokensPerTask = aws.Int(0)
 	}
@@ -545,7 +566,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
 	if err != nil {
 		log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
-		return openai.ChatCompletionResponse{}, err
+		return nil, nil
 	}
 
 	if ps.ApiKey == "" {
@@ -553,26 +574,32 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 		cres, cerr := hera_openai.HeraOpenAI.CreateChatCompletion(
 			ctx, cr,
 		)
-		if cerr == nil {
-			return cres, nil
-		} else {
+		if cerr != nil {
 			log.Err(cerr).Msg("AiAggregateTask: CreateChatCompletion failed")
-			return openai.ChatCompletionResponse{}, cerr
+			return nil, cerr
 		}
+		return &ChatCompletionQueryResponse{
+			Prompt:   prompt,
+			Response: cres,
+		}, nil
 	}
+
 	oc := hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
 	resp, err := oc.CreateChatCompletion(
 		ctx, cr,
 	)
 	if err == nil {
-		return resp, nil
+		return &ChatCompletionQueryResponse{
+			Prompt:   prompt,
+			Response: resp,
+		}, nil
 	} else {
 		log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
 		aws_secrets.ClearOrgSecretCache(ou)
 		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
 		if err != nil {
 			log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
-			return openai.ChatCompletionResponse{}, err
+			return nil, err
 		}
 	}
 	oc = hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
@@ -581,32 +608,24 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	)
 	if err != nil {
 		log.Err(err).Msg("AiAggregateTask: CreateChatCompletion failed")
-		return openai.ChatCompletionResponse{}, err
+		return nil, err
 	}
-	return resp, err
+	return &ChatCompletionQueryResponse{
+		Prompt:   prompt,
+		Response: resp,
+	}, nil
 }
 
-func (z *ZeusAiPlatformActivities) RecordCompletionResponseFromSearchResult(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, dataIn []hera_search.SearchResult) (int, error) {
-	prompt, err := json.Marshal(dataIn)
+func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp *ChatCompletionQueryResponse) (int, error) {
+	if resp == nil {
+		return 0, nil
+	}
+	b, err := json.Marshal(resp.Prompt)
 	if err != nil {
-		log.Err(err).Interface("dataIn", dataIn).Interface("prompt", prompt).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
+		log.Err(err).Msg("RecordCompletionResponse: failed")
 		return 0, err
 	}
-	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, resp, prompt)
-	if err != nil {
-		log.Err(err).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
-		return rid, err
-	}
-	return rid, nil
-}
-
-func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (int, error) {
-	prompt, err := json.Marshal(dataIn)
-	if err != nil {
-		log.Err(err).Interface("dataIn", dataIn).Interface("prompt", prompt).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
-		return 0, err
-	}
-	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, resp, prompt)
+	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, resp.Response, b)
 	if err != nil {
 		log.Err(err).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
 		return rid, err

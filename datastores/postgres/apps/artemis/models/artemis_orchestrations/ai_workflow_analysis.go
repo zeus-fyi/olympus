@@ -6,6 +6,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -108,15 +109,23 @@ func SelectAllAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, so
 
 // todo more efficient way to do this
 
-func GenerateContentText(wrs []AIWorkflowAnalysisResult) string {
+func GenerateContentText(wrs []AIWorkflowAnalysisResult) (string, error) {
 	var temp string
 	for _, wr := range wrs {
 		if len(wr.CompletionChoices) > 0 {
-			temp += string(wr.CompletionChoices) + "\n"
+			var cc []openai.ChatCompletionChoice
+			err := json.Unmarshal(wr.CompletionChoices, &cc)
+			if err != nil {
+				log.Err(err).Msg("ChatCompletionChoice Unmarshal Error")
+				return "", err
+			}
+			for _, c := range cc {
+				temp += c.Message.Content + "\n"
+			}
 		}
 		if len(wr.Metadata) > 0 && string(wr.Metadata) != "null" {
 			temp += string(wr.Metadata) + "\n"
 		}
 	}
-	return temp
+	return temp, nil
 }

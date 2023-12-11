@@ -3,7 +3,6 @@ package ai_platform_service_orchestrations
 import (
 	"time"
 
-	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -107,18 +106,18 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					continue
 				}
 				analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				var aiResp openai.ChatCompletionResponse
+				var aiResp *ChatCompletionQueryResponse
 				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sr).Get(analysisCtx, &aiResp)
 				if err != nil {
 					logger.Error("failed to run analysis", "Error", err)
 					return err
 				}
-				if len(aiResp.Choices) == 0 {
+				if aiResp == nil || len(aiResp.Response.Choices) == 0 {
 					continue
 				}
 				var analysisRespId int
 				analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponseFromSearchResult, ou, aiResp, sr).Get(analysisCompCtx, &analysisRespId)
+				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
 				if err != nil {
 					logger.Error("failed to save analysis response", "Error", err)
 					return err
@@ -170,18 +169,18 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 					continue
 				}
 				aggCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				var aiAggResp openai.ChatCompletionResponse
+				var aiAggResp *ChatCompletionQueryResponse
 				err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, dataIn).Get(aggCtx, &aiAggResp)
 				if err != nil {
 					logger.Error("failed to run aggregation", "Error", err)
 					return err
 				}
-				if len(aiAggResp.Choices) == 0 {
+				if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 {
 					continue
 				}
 				var aggRespId int
 				aggCompCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp, dataIn).Get(aggCompCtx, &aggRespId)
+				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &aggRespId)
 				if err != nil {
 					logger.Error("failed to save agg response", "Error", err)
 					return err

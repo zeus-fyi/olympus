@@ -571,7 +571,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             label="Platform"
                                                             onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, platform: e.target.value }))}
                                                         >
-                                                            {/*<MenuItem value="web">Web</MenuItem>*/}
+                                                            <MenuItem value="openai">OpenAI</MenuItem>
                                                             <MenuItem value="reddit">Reddit</MenuItem>
                                                             <MenuItem value="twitter">Twitter</MenuItem>
                                                             <MenuItem value="discord">Discord</MenuItem>
@@ -579,59 +579,166 @@ function AiWorkflowsDashboardContent(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
-                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
-                                                    <TextField
-                                                        fullWidth
-                                                        id="search-group-input"
-                                                        label={"Search Group Name"}
-                                                        variant="outlined"
-                                                        value={searchIndexer.searchGroupName}
-                                                        onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, searchGroupName: e.target.value }))}
-                                                    />
-                                                </Box>
-                                                <Box flexGrow={1} sx={{ mb: 3, ml: 4, mr:4  }}>
-                                                    <TextField
-                                                        fullWidth
-                                                        id="search-group-input"
-                                                        label={searchIndexer.platform === 'reddit' ? "Subreddits" : "Platform Search Query"}
-                                                        variant="outlined"
-                                                        value={searchIndexer.query}
-                                                        onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, query: e.target.value }))}
-                                                    />
-                                                </Box>
-                                                { searchIndexer.platform !== 'web' &&
+                                                { searchIndexer.platform !== 'openai' &&
+
+                                                <div>
+                                                    <Box flexGrow={1} sx={{ mb: 2 }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="search-group-input"
+                                                            label={"Search Group Name"}
+                                                            variant="outlined"
+                                                            value={searchIndexer.searchGroupName}
+                                                            onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, searchGroupName: e.target.value }))}
+                                                        />
+                                                    </Box>
+                                                    <Box flexGrow={1} sx={{ mb: 2 }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="search-group-input"
+                                                            label={searchIndexer.platform === 'reddit' ? "Subreddits" : "Platform Search Query"}
+                                                            variant="outlined"
+                                                            value={searchIndexer.query}
+                                                            onChange={(e) => dispatch(setSearchIndexer({ ...searchIndexer, query: e.target.value }))}
+                                                        />
+                                                    </Box>
+                                                </div>
+                                                }
                                                     <div>
                                                         <Typography variant="h6" color="text.secondary">
                                                            AWS Platform Secret Reference & Key For Search Indexer
                                                         </Typography>
-                                                        <Stack direction={"row"} >
-                                                            <Box flexGrow={1} sx={{ mt: 2}}>
-                                                                <TextField
-                                                                    fullWidth
-                                                                    id="platformSecretReference-group-input"
-                                                                    label={"Secret Group Name"}
-                                                                    variant="outlined"
-                                                                    value={platformSecretReference.secretGroupName}
-                                                                    InputProps={{
-                                                                        readOnly: true,
-                                                                    }}
-                                                                    //onChange={(e) => dispatch(setPlatformSecretReference({ ...platformSecretReference, secretGroupName: e.target.value }))}
-                                                                />
-                                                            </Box>
-                                                            <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
-                                                                <TextField
-                                                                    fullWidth
-                                                                    id="platformSecretReference-key-group-input"
-                                                                    label={"Secret Key Name"}
-                                                                    variant="outlined"
+                                                        { (searchIndexer.platform === 'discord' || searchIndexer.platform === 'openai') &&
+                                                            <div>
+                                                                <Stack direction={"row"} >
+                                                                    <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-group-input"
+                                                                            label={"Secret Name"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-api-key' : platformSecretReference.secretKeyName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-key-group-input"
+                                                                            label={"Secret Key"}
+                                                                            variant="outlined"
 
-                                                                    value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform : platformSecretReference.secretKeyName}
-                                                                    // onChange={(e) => dispatch(setPlatformSecretReference({ ...platformSecretReference, secretKeyName: e.target.value }))}
-                                                                />
-                                                            </Box>
-                                                        </Stack>
+                                                                            value={platformSecretReference.secretGroupName}
+                                                                        />
+                                                                    </Box>
+                                                                </Stack>
+                                                            </div>
+                                                        }
+                                                        { (searchIndexer.platform === 'reddit' || searchIndexer.platform === 'twitter') &&
+                                                            <div>
+                                                                <Stack direction={"row"} >
+                                                                    <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-group-input"
+                                                                            label={"Secret Name"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-oauth2-public' : platformSecretReference.secretKeyName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-key-group-input"
+                                                                            label={"Secret Key"}
+                                                                            variant="outlined"
+
+                                                                            value={platformSecretReference.secretGroupName}
+                                                                        />
+                                                                    </Box>
+                                                                </Stack>
+                                                                <Stack direction={"row"} >
+                                                                    <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-group-input"
+                                                                            label={"Secret Name"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-oauth2-secret' : platformSecretReference.secretKeyName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-key-group-input"
+                                                                            label={"Secret Key"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretGroupName}
+                                                                        />
+                                                                    </Box>
+                                                                </Stack>
+                                                            </div>
+                                                        }
+                                                        { searchIndexer.platform === 'reddit' &&
+                                                            <div >
+                                                                <Stack direction={"row"} >
+                                                                    <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-group-input"
+                                                                            label={"Secret Name"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-username' : platformSecretReference.secretKeyName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-key-group-input"
+                                                                            label={"Secret Key"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretGroupName}
+                                                                        />
+                                                                    </Box>
+                                                                </Stack>
+                                                                <Stack direction={"row"} >
+                                                                    <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-group-input"
+                                                                            label={"Secret Name"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-password': platformSecretReference.secretKeyName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-key-group-input"
+                                                                            label={"Secret Key"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretGroupName}
+                                                                        />
+                                                                    </Box>
+                                                                </Stack>
+                                                            </div>
+                                                        }
                                                     </div>
-                                                }
+
                                                 {requestIndexerStatus != '' && (
                                                     <Container sx={{  mt: 2}}>
                                                         <Typography variant="h6" color={requestIndexerStatusError}>
@@ -639,9 +746,12 @@ function AiWorkflowsDashboardContent(props: any) {
                                                         </Typography>
                                                     </Container>
                                                 )}
+                                                { searchIndexer.platform != 'openai' &&
+
                                                 <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
                                                     <Button fullWidth variant="outlined"  onClick={(e) => handleSubmitIndexer(e)}>Start Indexing</Button>
                                                 </Box>
+                                                }
                                             </Stack>
                                         </div>
                                     </CardContent>

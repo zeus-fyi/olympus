@@ -4,6 +4,7 @@ import {
     AiSearchParams,
     DeleteWorkflowsActionRequest,
     PostCreateOrUpdateSearchIndexerRequest,
+    PostRunsActionRequest,
     PostWorkflowsActionRequest,
     PostWorkflowsRequest,
     Retrieval,
@@ -85,7 +86,19 @@ class AiApiGateway {
         return await zeusApi.delete(url, config)
     }
     async execWorkflowsActionRequest(params: PostWorkflowsActionRequest): Promise<any> {
-        const url = `/v1/workflows/ai/start`;
+        const url = `/v1/workflows/ai/actions`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        }
+        return await zeusApi.post(url, params, config)
+    }
+
+    async execRunsActionRequest(params: PostRunsActionRequest): Promise<any> {
+        const url = `/v1/runs/ai/actions`;
         const sessionID = inMemoryJWT.getToken();
         let config = {
             headers: {

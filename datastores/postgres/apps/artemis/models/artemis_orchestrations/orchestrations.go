@@ -333,7 +333,7 @@ type OrchestrationsAnalysis struct {
 	RunCycles               int              `db:"max_run_cycle" json:"runCycles"`
 	AggregatedData          []AggregatedData `db:"aggregated_data" json:"aggregatedData"`
 
-	artemis_autogen_bases.Orchestrations `json:"orchestrations,omitempty"`
+	artemis_autogen_bases.Orchestrations `json:"orchestration,omitempty"`
 }
 
 func SelectAiSystemOrchestrations(ctx context.Context, orgID int) ([]OrchestrationsAnalysis, error) {

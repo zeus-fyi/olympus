@@ -21,7 +21,7 @@ type WorkflowsActionsRequest struct {
 	CustomBasePeriod             bool                                      `json:"customBasePeriod,omitempty"`
 	CustomBasePeriodStepSize     int                                       `json:"customBasePeriodStepSize,omitempty"`
 	CustomBasePeriodStepSizeUnit string                                    `json:"customBasePeriodStepSizeUnit,omitempty"`
-	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows"`
+	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
 }
 
 func WorkflowsActionsRequestHandler(c echo.Context) error {
@@ -103,6 +103,7 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		}
 	case "stop":
 		// do y
+
 	}
 	return c.JSON(http.StatusOK, nil)
 }

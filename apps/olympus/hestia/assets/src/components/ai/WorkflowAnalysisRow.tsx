@@ -34,11 +34,11 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                         color="primary"
                     />
                 </TableCell>
-                <TableCell align="left">{row.orchestrations.orchestrationID}</TableCell>
-                <TableCell align="left">{row.orchestrations.orchestrationName}</TableCell>
-                <TableCell align="left">{row.orchestrations.groupName}</TableCell>
-                <TableCell align="left">{row.orchestrations.type}</TableCell>
-                <TableCell align="left">{row.orchestrations.active ? 'Yes' : 'No'}</TableCell>
+                <TableCell align="left">{row.orchestration.orchestrationID}</TableCell>
+                <TableCell align="left">{row.orchestration.orchestrationName}</TableCell>
+                <TableCell align="left">{row.orchestration.groupName}</TableCell>
+                <TableCell align="left">{row.orchestration.type}</TableCell>
+                <TableCell align="left">{row.orchestration.active ? 'Yes' : 'No'}</TableCell>
                 <TableCell align="left">{row.runCycles}</TableCell>
                 <TableCell align="left">{row.totalWorkflowTokenUsage}</TableCell>
             </TableRow>

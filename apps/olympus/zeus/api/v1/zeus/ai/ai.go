@@ -17,7 +17,9 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 
 	e.GET("/workflows/ai", GetWorkflowsRequestHandler)
 	e.POST("/workflows/ai", PostWorkflowsRequestHandler)
-	e.POST("/workflows/ai/start", WorkflowsActionsRequestHandler)
+	e.POST("/workflows/ai/actions", WorkflowsActionsRequestHandler)
+	e.POST("/runs/ai/actions", RunsActionsRequestHandler)
+
 	e.POST("/tasks/ai", CreateOrUpdateTaskRequestHandler)
 	e.POST("/retrievals/ai", CreateOrUpdateRetrievalRequestHandler)
 

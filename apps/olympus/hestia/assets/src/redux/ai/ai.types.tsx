@@ -104,11 +104,16 @@ export interface OrchestrationsAnalysis {
     totalWorkflowTokenUsage: number;
     runCycles: number;
     aggregatedData: AggregatedData[];
-    orchestrations: Orchestration;
+    orchestration: Orchestration;
 }
 
 export interface DeleteWorkflowsActionRequest {
     workflows: WorkflowTemplate[];
+}
+
+export interface PostRunsActionRequest {
+    action: string;
+    runs: Orchestration[];
 }
 
 export interface PostWorkflowsActionRequest {

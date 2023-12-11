@@ -73,9 +73,9 @@ export function SearchIndexersTable(props: any) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - searchIndexers.length) : 0;
 
-    const handleClick = (index: number) => {
-        const currentIndex = searchIndexers.indexOf(index);
-        const newSelected = [...searchIndexers];
+    const handleClick = (index: string) => {
+        const currentIndex = selected.indexOf(index);
+        const newSelected = [...selected];
         if (currentIndex === -1) {
             newSelected.push(index);
         } else {
@@ -99,7 +99,7 @@ export function SearchIndexersTable(props: any) {
                         <TableCell padding="checkbox">
                             <Checkbox
                                 color="primary"
-                                indeterminate={searchIndexers.length > 0 && selected.length < searchIndexers.length && selected.length > 0}
+                                indeterminate={searchIndexers.length > 0 && (selected.length < searchIndexers.length) && selected.length > 0}
                                 checked={searchIndexers.length > 0 && selected.length === searchIndexers.length}
                                 onChange={handleSelectAllClick}
                             />
@@ -118,7 +118,7 @@ export function SearchIndexersTable(props: any) {
                             key={index}
                             row={row}
                             index={index}
-                            handleClick={() =>handleClick(index)}
+                            handleClick={handleClick}
                             checked={selected.indexOf(index) >= 0 || false}
                         />
                     ))}

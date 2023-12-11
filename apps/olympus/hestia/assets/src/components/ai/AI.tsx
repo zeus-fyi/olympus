@@ -253,9 +253,13 @@ function AiWorkflowsDashboardContent(props: any) {
         if (newValue !== 1) {
             dispatch(setSelectedWorkflows([]))
         }
+        if (newValue !== 2) {
+            dispatch(setSelectedSearchIndexers([]))
+        }
         if (newValue !== 3) {
             dispatch(setSelectedRuns([]))
         }
+
         setRequestStatus('')
         setRequestStatusError('')
         setRequestIndexerStatusError('')

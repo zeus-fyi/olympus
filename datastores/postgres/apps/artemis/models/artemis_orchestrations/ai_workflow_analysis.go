@@ -114,7 +114,7 @@ func GenerateContentText(wrs []AIWorkflowAnalysisResult) string {
 		if len(wr.CompletionChoices) > 0 {
 			temp += string(wr.CompletionChoices) + "\n"
 		}
-		if len(wr.Metadata) > 0 {
+		if len(wr.Metadata) > 0 && string(wr.Metadata) != "null" {
 			temp += string(wr.Metadata) + "\n"
 		}
 	}

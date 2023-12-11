@@ -536,7 +536,6 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 			},
 		},
 	}
-
 	if aggInst.AggMaxTokensPerTask == nil {
 		aggInst.AggMaxTokensPerTask = aws.Int(0)
 	}
@@ -561,7 +560,6 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 			return openai.ChatCompletionResponse{}, cerr
 		}
 	}
-
 	oc := hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
 	resp, err := oc.CreateChatCompletion(
 		ctx, cr,

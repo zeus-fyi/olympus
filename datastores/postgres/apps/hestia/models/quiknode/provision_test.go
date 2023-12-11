@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
@@ -24,6 +25,44 @@ func (s *QuickNodeProvisioningTestSuite) TestEnterUserExternal() {
 	plan := "enterprise"
 	uid := 1701381301753642000
 	err := InsertIrisUserApiKey(ctx, uid, plan)
+	s.Require().Nil(err)
+}
+
+func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService2() {
+	// Initialize PG if necessary
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	ps := QuickNodeService{
+		IsTest: true,
+		ProvisionedQuickNodeServices: hestia_autogen_bases.ProvisionedQuickNodeServices{
+			CreatedAt:   time.Time{}, // Assuming current time is not relevant for the test
+			UpdatedAt:   time.Time{}, // Assuming current time is not relevant for the test
+			QuickNodeID: "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+			EndpointID:  "dd939a5c-5dc5-4555-8c6f-213086c2e40d",
+			HttpURL:     sql.NullString{String: "https://few-damp-season.quiknode.pro/mktp-835f38df70e74c56511cd301fc1c7454847d8e76/", Valid: true},
+			Network:     sql.NullString{String: "mainnet", Valid: true},
+			Plan:        "discover",
+			Active:      true,                // Assuming you want to set this service as active
+			OrgID:       1702329068567473000, // Assuming OrgID is set elsewhere or not relevant for the test
+			WssURL:      sql.NullString{String: "wss://few-damp-season.quiknode.pro/mktp-835f38df70e74c56511cd301fc1c7454847d8e76/", Valid: true},
+			Chain:       sql.NullString{String: "ethereum", Valid: true},
+		},
+		ProvisionedQuickNodeServicesContractAddresses: []hestia_autogen_bases.ProvisionedQuickNodeServicesContractAddresses{
+			// Populate this array if you have contract addresses to test
+		},
+		ProvisionedQuickNodeServicesReferrers: []hestia_autogen_bases.ProvisionedQuickNodeServicesReferrers{
+			{
+				QuickNodeID: "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+				Referer:     "quicknode.com",
+			},
+			{
+				QuickNodeID: "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+				Referer:     "quiknode.io",
+			},
+		},
+	}
+
+	err := UpdateProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
 }
 

@@ -144,14 +144,14 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					   RETURNING org_id, name AS quicknode_id
 					), cte_marketplace_customer AS (
 						  INSERT INTO quicknode_marketplace_customer (quicknode_id, plan, is_test)
-						  SELECT $1, $2, $8
+						  SELECT $1, $2, $6
 						  ON CONFLICT (quicknode_id) 
 						  DO UPDATE SET 
 						  plan = EXCLUDED.plan,
 						  is_test = EXCLUDED.is_test
 				  ), cte_update_service AS (
 					  INSERT INTO provisioned_quicknode_services(quicknode_id, endpoint_id, http_url, network, wss_url, chain)
-					  VALUES ($1, $3, $4, $9, $5, $10)
+					  VALUES ($1, $3, $4, $7, $5, $8)
 					  ON CONFLICT (quicknode_id, endpoint_id) 
 					  DO UPDATE SET 
 					  http_url = EXCLUDED.http_url,
@@ -163,44 +163,92 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 				  ), cte_delete_ca AS (
 					  DELETE FROM provisioned_quicknode_services_contract_addresses
 					  WHERE endpoint_id = $3
-				  ), cte_unnest_ca AS (
-					  SELECT column1 AS contract_address, $3 AS endpoint_id
- 					  FROM UNNEST($6::text[]) AS column1
-				  ), cte_insert_contract_addresses AS (
-					  INSERT INTO provisioned_quicknode_services_contract_addresses(endpoint_id, contract_address)
-					  SELECT (SELECT $3 as endpoint_id), cte_unnest_ca.contract_address
-					  FROM cte_unnest_ca
-					  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != ''
-					  ON CONFLICT (endpoint_id) DO UPDATE SET contract_address = EXCLUDED.contract_address
-				  ), cte_unnest_ref AS (
-					  SELECT column1 AS referer, $3 AS endpoint_id FROM UNNEST($7::text[]) AS column1
-				  ), cte_insert_referers AS (
-					  INSERT INTO provisioned_quicknode_services_referers(endpoint_id, referer)
-					  SELECT (SELECT $3 as endpoint_id), cte_unnest_ref.referer
-					  FROM cte_unnest_ref
-					  WHERE cte_unnest_ref.referer IS NOT NULL AND cte_unnest_ref.referer != ''
-					  ON CONFLICT (endpoint_id) DO UPDATE SET referer = EXCLUDED.referer
+				  ), cte_delete_refs AS (
+					  DELETE FROM provisioned_quicknode_services_referers
+					  WHERE endpoint_id = $3	
 				  ) SELECT true;`
-	cas := make([]string, len(ps.ProvisionedQuickNodeServicesContractAddresses))
-	for _, ca := range ps.ProvisionedQuickNodeServicesContractAddresses {
-		cas = append(cas, ca.ContractAddress)
-	}
-	refs := make([]string, len(ps.ProvisionedQuickNodeServicesReferrers))
-	for _, ref := range ps.ProvisionedQuickNodeServicesReferrers {
-		refs = append(refs, ref.Referer)
-	}
+
 	updated := false
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery,
-		ps.QuickNodeID, ps.Plan, ps.EndpointID, ps.HttpURL, ps.WssURL,
-		pq.Array(cas), pq.Array(refs), ps.IsTest, ps.Network, ps.Chain).Scan(&updated)
+		ps.QuickNodeID, ps.Plan, ps.EndpointID, ps.HttpURL, ps.WssURL, ps.IsTest, ps.Network, ps.Chain).Scan(&updated)
 	if err != nil {
 		log.Error().Err(err).Msg("UpdateProvisionedQuickNodeService: failed to execute query")
 		return err
 	}
+
 	if !updated {
 		return errors.New("failed to update provisioned quicknode service")
 	}
+
+	err = InsertContractAddresses(ctx, ps)
+	if err != nil {
+		return misc.ReturnIfErr(err, q.LogHeader("UpdateProvisionedQuickNodeService"))
+	}
+
+	err = InsertReferers(ctx, ps)
+	if err != nil {
+		return misc.ReturnIfErr(err, q.LogHeader("UpdateProvisionedQuickNodeService"))
+	}
 	return misc.ReturnIfErr(err, q.LogHeader("UpdateProvisionedQuickNodeService"))
+}
+
+func InsertReferers(ctx context.Context, ps QuickNodeService) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `INSERT INTO provisioned_quicknode_services_referers(endpoint_id, referer)
+				  VALUES($1,$2)
+				  ON CONFLICT (endpoint_id) DO UPDATE SET referer = EXCLUDED.referer;`
+
+	refs := make([]string, 0, len(ps.ProvisionedQuickNodeServicesReferrers))
+	for _, ref := range ps.ProvisionedQuickNodeServicesReferrers {
+		refs = append(refs, ref.Referer)
+	}
+
+	for _, ref := range refs {
+		result, err := apps.Pg.Exec(ctx, q.RawQuery, ps.EndpointID, ref)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to execute query for InsertReferers")
+			return misc.ReturnIfErr(err, q.LogHeader("InsertReferers"))
+		}
+		log.Info().Msg("InsertReferers executed successfully.")
+		rowsAffected := result.RowsAffected()
+		log.Info().Int("rows_affected", int(rowsAffected)).Msg("number of rows affected in InsertReferers")
+	}
+
+	return nil
+}
+
+func InsertContractAddresses(ctx context.Context, ps QuickNodeService) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `WITH cte_delete_ca AS (
+	                  DELETE FROM provisioned_quicknode_services_contract_addresses
+	                  WHERE endpoint_id = $1
+	              ), cte_unnest_ca AS (
+	                  SELECT column1 AS contract_address
+	                  FROM UNNEST($2::text[]) AS column1
+	              ), cte_insert_contract_addresses AS (
+	                  INSERT INTO provisioned_quicknode_services_contract_addresses(endpoint_id, contract_address)
+	                  SELECT $1, cte_unnest_ca.contract_address
+	                  FROM cte_unnest_ca
+	                  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != ''
+	                  ON CONFLICT (endpoint_id) DO UPDATE SET contract_address = EXCLUDED.contract_address
+	              )
+	              SELECT true;`
+
+	cas := make([]string, 0, len(ps.ProvisionedQuickNodeServicesContractAddresses))
+	for _, ca := range ps.ProvisionedQuickNodeServicesContractAddresses {
+		cas = append(cas, ca.ContractAddress)
+	}
+
+	result, err := apps.Pg.Exec(ctx, q.RawQuery, ps.EndpointID, pq.Array(cas))
+	if err != nil {
+		log.Error().Err(err).Msg("failed to execute query for InsertContractAddresses")
+		return misc.ReturnIfErr(err, q.LogHeader("InsertContractAddresses"))
+	}
+
+	log.Info().Msg("InsertContractAddresses executed successfully.")
+	rowsAffected := result.RowsAffected()
+	log.Info().Int("rows_affected", int(rowsAffected)).Msg("number of rows affected in InsertContractAddresses")
+	return nil
 }
 
 func DeactivateProvisionedQuickNodeServiceEndpoint(ctx context.Context, quickNodeID, endpointID string) (string, error) {

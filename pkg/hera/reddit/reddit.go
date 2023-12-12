@@ -56,7 +56,7 @@ func InitOrgRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit,
 }
 
 func (r *Reddit) GetTopPosts(ctx context.Context, subreddit string, lpo *reddit.ListPostOptions) ([]*reddit.Post, *reddit.Response, error) {
-	posts, resp, err := r.ReadOnly.Subreddit.TopPosts(ctx, subreddit, lpo)
+	posts, resp, err := r.FullClient.Subreddit.TopPosts(ctx, subreddit, lpo)
 	if err != nil {
 		log.Err(err).Msg("Error getting top posts")
 		return nil, nil, err
@@ -65,7 +65,7 @@ func (r *Reddit) GetTopPosts(ctx context.Context, subreddit string, lpo *reddit.
 }
 
 func (r *Reddit) GetControversialPosts(ctx context.Context, subreddit string, lpo *reddit.ListPostOptions) ([]*reddit.Post, *reddit.Response, error) {
-	posts, resp, err := r.ReadOnly.Subreddit.ControversialPosts(ctx, subreddit, lpo)
+	posts, resp, err := r.FullClient.Subreddit.ControversialPosts(ctx, subreddit, lpo)
 	if err != nil {
 		log.Err(err).Msg("Error getting top posts")
 		return nil, nil, err
@@ -79,7 +79,7 @@ type RedditPostSearchResponse struct {
 }
 
 func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) (*RedditPostSearchResponse, error) {
-	posts, resp, err := r.ReadOnly.Subreddit.NewPosts(ctx, subreddit, lpo)
+	posts, resp, err := r.FullClient.Subreddit.NewPosts(ctx, subreddit, lpo)
 	if err != nil {
 		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
 		return nil, err
@@ -92,7 +92,7 @@ func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.
 }
 
 func (r *Reddit) GetRisingPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, *reddit.Response, error) {
-	posts, resp, err := r.ReadOnly.Subreddit.RisingPosts(ctx, subreddit, lpo)
+	posts, resp, err := r.FullClient.Subreddit.RisingPosts(ctx, subreddit, lpo)
 	if err != nil {
 		log.Err(err).Msg("Error getting rising posts")
 		return nil, nil, err
@@ -101,7 +101,7 @@ func (r *Reddit) GetRisingPosts(ctx context.Context, subreddit string, lpo *redd
 }
 
 func (r *Reddit) GetSubreddit(ctx context.Context, subreddit string) (*reddit.Subreddit, *reddit.Response, error) {
-	sr, resp, err := r.ReadOnly.Subreddit.Get(ctx, subreddit)
+	sr, resp, err := r.FullClient.Subreddit.Get(ctx, subreddit)
 	if err != nil {
 		log.Err(err).Msg("Error getting top posts")
 		return nil, nil, err

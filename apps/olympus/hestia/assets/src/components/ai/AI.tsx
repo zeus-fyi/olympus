@@ -154,14 +154,14 @@ function AiWorkflowsDashboardContent(props: any) {
             if (statusCode < 400) {
                 const data = response.data;
                 dispatch(setSelectedSearchIndexers([]));
-                setRequestRunsStatus('Search indexer update submitted successfully')
-                setRequestRunsStatusError('success')
+                setRequestIndexerStatus('Search indexer update submitted successfully')
+                setRequestIndexerStatusError('success')
             }
         } catch (error: any) {
             const status: number = await error?.response?.status || 500;
             if (status === 412) {
-                setRequestRunsStatus('Billing setup required. Please configure your billing information to continue using this service.');
-                setRequestRunsStatusError('error')
+                setRequestIndexerStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestIndexerStatusError('error')
             }
         } finally {
             setIsLoading(false);

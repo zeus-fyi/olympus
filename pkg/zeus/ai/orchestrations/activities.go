@@ -202,7 +202,11 @@ func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx contex
 	}
 	resp, err := rc.GetNewPosts(ctx, subreddit, lpo)
 	if err != nil {
-		log.Err(err).Interface("posts", resp.Posts).Interface("resp", resp.Resp).Msg("SearchRedditNewPostsUsingSubreddit")
+		if resp != nil {
+			log.Err(err).Interface("posts", resp.Posts).Interface("resp", resp.Resp).Msg("SearchRedditNewPostsUsingSubreddit")
+		} else {
+			log.Err(err)
+		}
 		return nil, err
 	}
 	if resp.Resp.StatusCode >= 400 {

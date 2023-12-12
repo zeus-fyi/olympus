@@ -40,6 +40,7 @@ type ApiProxyRequest struct {
 	Url                  string
 	OrgID                int
 	UserID               int
+	Bearer               string
 	Routes               []iris_models.RouteInfo
 	AdaptiveKeyName      string
 	MetricName           string

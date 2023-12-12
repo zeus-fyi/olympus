@@ -410,6 +410,7 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Conte
 	return ogr, nil
 
 }
+
 func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, r iris_models.RouteInfo) (*hera_search.SearchResult, error) {
 	retInst := artemis_orchestrations.RetrievalItemInstruction{}
 	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &retInst)
@@ -426,6 +427,14 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 		PayloadTypeREST: "GET",
 		Timeout:         1 * time.Minute,
 		StatusCode:      http.StatusOK,
+	}
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, fmt.Sprintf("web-%s", retInst.WebFilters.RoutingGroup))
+	if err != nil {
+		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
+		return nil, err
+	}
+	if ps.ApiKey != "" {
+		req.Bearer = ps.ApiKey
 	}
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {

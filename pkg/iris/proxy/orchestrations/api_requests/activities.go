@@ -83,6 +83,10 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	if pr.MaxTries > 0 {
 		r.SetRetryCount(pr.MaxTries)
 	}
+	if len(pr.Bearer) > 0 {
+		r.SetAuthToken(pr.Bearer)
+	}
+
 	parsedURL, err := url.Parse(pr.Url)
 	if err != nil {
 		log.Err(err).Msg("ExtLoadBalancerRequest: failed to parse url")

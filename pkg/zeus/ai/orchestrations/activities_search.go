@@ -29,16 +29,12 @@ func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx contex
 		return nil, err
 	}
 	resp, err := rc.GetNewPosts(ctx, subreddit, lpo)
-	if err != nil {
-		if resp != nil {
-			log.Err(err).Interface("resp", resp).Msg("SearchRedditNewPostsUsingSubreddit")
-		} else {
-			log.Err(err)
+	if err != nil || resp == nil {
+		if err == nil {
+			err = fmt.Errorf("SearchRedditNewPostsUsingSubreddit: resp is nil")
 		}
+		log.Err(err).Interface("resp", resp).Msg("SearchRedditNewPostsUsingSubreddit")
 		return nil, err
-	}
-	if resp == nil {
-		return nil, fmt.Errorf("SearchRedditNewPostsUsingSubreddit: resp is nil")
 	}
 
 	if resp.Resp.StatusCode >= 400 {

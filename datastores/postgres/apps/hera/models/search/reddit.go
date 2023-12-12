@@ -168,7 +168,10 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 	for rows.Next() {
 		rs := &RedditSearchQuery{
 			SearchIndexerParams: SearchIndexerParams{
-				MaxResults: 100,
+				OrgID:           ou.OrgID,
+				SearchGroupName: searchGroupName,
+				MaxResults:      100,
+				Active:          false,
 			},
 		}
 		rowErr := rows.Scan(&rs.SearchID, &rs.Query, &rs.LastCreatedAt, &rs.PostId, &rs.Active)

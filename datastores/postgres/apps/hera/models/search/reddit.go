@@ -143,7 +143,8 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 				FROM 
 					(SELECT
 					     sq.search_id,
-						 sq.query, 
+						 sq.query,
+						 sq.active,
 						 COALESCE(MAX(ip.created_at), 0) AS last_created_at
 					 FROM 
 						 public.ai_reddit_search_query sq

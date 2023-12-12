@@ -52,7 +52,7 @@ func (s *RedditTestSuite) TestInitOrgRedditClient() {
 		After:  "1829cc6",
 		Before: "",
 	}
-	posts, _, err := rc.ReadOnly.Subreddit.NewPosts(ctx, "ethdev", lpo)
+	posts, _, err := rc.ReadOnly.Subreddit.NewPosts(ctx, "mlops", lpo)
 	s.Require().Nil(err)
 	s.Assert().NotZero(posts)
 }

@@ -36,6 +36,22 @@ func (t *ZeusWorkerTestSuite) TestAiLoop() {
 	t.Require().Nil(err)
 }
 
+func (t *ZeusWorkerTestSuite) TestAiSearchIndexerRedditWorkflow() {
+	apps.Pg.InitPG(context.Background(), t.Tc.ProdLocalDbPgconn)
+	//ou := org_users.NewOrgUserWithID(7138983863666903883, 7138958574876245567)
+	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalTemporalBearerToken
+	auth := aegis_aws_auth.AuthAWS{
+		Region:    "us-west-1",
+		AccessKey: t.Tc.AwsAccessKeySecretManager,
+		SecretKey: t.Tc.AwsSecretKeySecretManager,
+	}
+	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
+	act := NewZeusAiPlatformActivities()
+	resp, err := act.SearchRedditNewPostsUsingSubreddit(ctx, org_users.NewOrgUserWithID(7138983863666903883, 7138958574876245567), "mlops", nil)
+	t.Require().Nil(err)
+	t.Require().NotNil(resp)
+}
+
 func (t *ZeusWorkerTestSuite) TestAiSearchIndexerWorkflow() {
 	apps.Pg.InitPG(context.Background(), t.Tc.ProdLocalDbPgconn)
 	//ou := org_users.NewOrgUserWithID(7138983863666903883, 7138958574876245567)

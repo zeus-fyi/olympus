@@ -90,6 +90,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const [requestIndexerStatus, setRequestIndexerStatus] = useState('');
     const [requestIndexerStatusError, setRequestIndexerStatusError] = useState('');
     const searchIndexer = useSelector((state: any) => state.ai.searchIndexer);
+    const selectedSearchIndexers = useSelector((state: any) => state.ai.selectedSearchIndexers);
     const platformSecretReference = useSelector((state: any) => state.ai.platformSecretReference);
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -129,6 +130,37 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleToggleChangePeriod = (event: any) => {
         setCustomBasePeriod(event.target.checked);
     };
+
+    const handleSearchIndexerQueryActionRequest = async (event: any, action: string) => {
+        const params: PostRunsActionRequest = {
+            action: action,
+            runs: selectedRuns.map((index: number) => {
+                return runs[index].orchestration
+            })
+        }
+        if (params.runs.length === 0) {
+            return
+        }
+        try {
+            setIsLoading(true)
+            const response = await aiApiGateway.execRunsActionRequest(params);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                const data = response.data;
+                dispatch(setSelectedRuns([]));
+                setRequestRunsStatus('Run cancellation submitted successfully')
+                setRequestRunsStatusError('success')
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
+                setRequestRunsStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestRunsStatusError('error')
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     const handleRunsActionRequest = async (event: any, action: string) => {
         const params: PostRunsActionRequest = {
@@ -1003,7 +1035,29 @@ function AiWorkflowsDashboardContent(props: any) {
                         { (selectedMainTab === 0) &&
                             <AiSearchAnalysis code={code} onChange={onChangeText} />
                         }
-                        { (selectedMainTab === 1) &&
+
+                        { selectedSearchIndexers && selectedSearchIndexers.length > 0  &&
+                            <Container maxWidth="xl" sx={{mt: 0, mb: 0}}>
+                                <Stack direction={"row"} >
+                                    <Box sx={{mb: 2}}>
+                                        <span>({selectedSearchIndexers.length} Selected Indexer Queries)</span>
+                                        <Button variant="outlined" color="secondary"
+                                                onClick={(event) => handleSearchIndexerQueryActionRequest(event, 'stop')}
+                                                style={{marginLeft: '10px'}}>
+                                            Deactivate {selectedSearchIndexers.length === 1 ? 'Query' : 'Queries'}
+                                        </Button>
+                                    </Box>
+                                    <Box sx={{mb: 2}}>
+                                        <Button variant="outlined" color="secondary"
+                                                onClick={(event) => handleSearchIndexerQueryActionRequest(event, 'start')}
+                                                style={{marginLeft: '10px'}}>
+                                            Activate {selectedSearchIndexers.length === 1 ? 'Query' : 'Queries'}
+                                        </Button>
+                                    </Box>
+                                </Stack>
+                            </Container>
+                        }
+                        {(selectedMainTab === 1) &&
                             <SearchIndexersTable />
                         }
                         { (selectedMainTab === 2) &&

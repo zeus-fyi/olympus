@@ -70,17 +70,23 @@ func (z *ZeusAiPlatformActivities) StartIndexingJob(ctx context.Context, sp hera
 		ou := org_users.NewOrgUserWithID(sp.OrgID, 0)
 		err := ZeusAiPlatformWorker.ExecuteAiTwitterWorkflow(ctx, ou, sp.SearchGroupName)
 		if err != nil {
-			log.Err(err).Msg("StartIndexingJob: failed to execute ai reddit workflow")
+			log.Err(err).Msg("StartIndexingJob: failed to execute ai twitter workflow")
 			return err
 		}
 	case "telegram":
-
-	case "discord":
-		//err := ZeusAiPlatformWorker.Exe(ctx, ou, sp.SearchGroupName)
+		//ou := org_users.NewOrgUserWithID(sp.OrgID, 0)
+		//err := ZeusAiPlatformWorker.ExecuteAiTelegramWorkflow(ctx, ou, sp.SearchGroupName)
 		//if err != nil {
-		//	log.Err(err).Msg("StartIndexingJob: failed to execute ai reddit workflow")
+		//	log.Err(err).Msg("StartIndexingJob: failed to execute ai telegram workflow")
 		//	return err
 		//}
+	case "discord":
+		ou := org_users.NewOrgUserWithID(sp.OrgID, 0)
+		err := ZeusAiPlatformWorker.ExecuteAiFetchDataToIngestDiscordWorkflow(ctx, ou, sp.SearchGroupName)
+		if err != nil {
+			log.Err(err).Msg("StartIndexingJob: failed to execute ai discord workflow")
+			return err
+		}
 	}
 	return nil
 }
@@ -91,7 +97,33 @@ func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Con
 		log.Err(err).Msg("SelectActiveSearchIndexerJobs: failed to get search indexers")
 		return nil, err
 	}
-	return sis, nil
+	sgPlatformSeen := make(map[string]map[string]bool)
+	var sisProcessed []hera_search.SearchIndexerParams
+	for _, oj := range sis {
+		switch oj.Platform {
+		case "discord":
+			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+			}
+		case "reddit":
+			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+			}
+		case "twitter":
+			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+			}
+		case "telegram":
+			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+			}
+		}
+		if _, ok := sgPlatformSeen[oj.SearchGroupName][oj.Platform]; !ok {
+			sgPlatformSeen[oj.SearchGroupName][oj.Platform] = true
+			sisProcessed = append(sisProcessed, oj)
+		}
+	}
+	return sisProcessed, nil
 }
 
 func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, ou org_users.OrgUser, si int, channelID, timeAfter string) error {

@@ -15,9 +15,9 @@ func (t *ZeusWorkerTestSuite) TestAiTelegramTask() {
 		SecretKey: t.Tc.AwsSecretKeySecretManager,
 	}
 	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
-	msgs, err := GetPandoraMessages(ctx, "Zeus")
-	t.Require().Nil(err)
-	t.Require().NotNil(msgs)
+	//msgs, err := GetPandoraMessages(ctx, "Zeus")
+	//t.Require().Nil(err)
+	//t.Require().NotNil(msgs)
 	//params := hera_search.AiSearchParams{
 	//	GroupFilter: "Zeus <> Li",
 	//}

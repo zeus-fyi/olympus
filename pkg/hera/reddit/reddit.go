@@ -41,14 +41,14 @@ func InitOrgRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit,
 	log.Info().Str("userAgent", userAgent)
 	client, err := reddit.NewReadonlyClient(reddit.WithUserAgent(userAgent))
 	if err != nil {
-		log.Err(err).Msg("Error initializing reddit client")
+		log.Err(err).Interface("userAgent", userAgent).Msg("Error initializing reddit client")
 		return Reddit{}, err
 	}
 	r.ReadOnly = client
 	credentials := reddit.Credentials{ID: id, Secret: secret, Username: u, Password: pw}
 	client, err = reddit.NewClient(credentials)
 	if err != nil {
-		log.Err(err).Msg("Error initializing reddit client")
+		log.Err(err).Interface("userAgent", userAgent).Msg("Error initializing reddit client")
 		return Reddit{}, err
 	}
 	r.FullClient = client

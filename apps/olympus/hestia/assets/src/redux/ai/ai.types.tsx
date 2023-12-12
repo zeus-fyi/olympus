@@ -212,6 +212,12 @@ export interface PostCreateOrUpdateSearchIndexerRequest {
     platformSecretReference: PlatformSecretReference;
 }
 
+
+export interface PostSearchIndexerActionsRequest {
+    action: string;
+    searchIndexers: SearchIndexerParams[];
+}
+
 export interface TelegramIndexerOpts {
     SearchIndexerParams: SearchIndexerParams;
 }

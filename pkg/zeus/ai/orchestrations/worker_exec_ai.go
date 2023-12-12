@@ -82,3 +82,20 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteRunSearchIndexerWorkflowProcess(ct
 	}
 	return err
 }
+
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiSearchIndexerActionsWorkflow(ctx context.Context, ou org_users.OrgUser, params SearchIndexerActionsRequest) error {
+	tc := z.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: z.TaskQueueName,
+		ID:        fmt.Sprintf("search-indexer-actions-%s", uuid.New().String()),
+	}
+	txWf := NewZeusPlatformServiceWorkflows()
+	wf := txWf.AiSearchIndexerActionsWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, params)
+	if err != nil {
+		log.Err(err).Msg("ExecuteAiSearchIndexerActionsWorkflow")
+		return err
+	}
+	return nil
+}

@@ -55,7 +55,12 @@ import {aiApiGateway} from "../../gateway/ai";
 import {set} from 'date-fns';
 import {TimeRange} from '@matiaslgonzalez/react-timeline-range-slider';
 import {WorkflowAnalysisTable} from "./WorkflowAnalysisTable";
-import {AiSearchParams, PostRunsActionRequest, PostWorkflowsActionRequest} from "../../redux/ai/ai.types";
+import {
+    AiSearchParams,
+    PostRunsActionRequest,
+    PostSearchIndexerActionsRequest,
+    PostWorkflowsActionRequest
+} from "../../redux/ai/ai.types";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {SearchIndexersTable} from "./SearchIndexersTable";
@@ -90,6 +95,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const [requestIndexerStatus, setRequestIndexerStatus] = useState('');
     const [requestIndexerStatusError, setRequestIndexerStatusError] = useState('');
     const searchIndexer = useSelector((state: any) => state.ai.searchIndexer);
+    const searchIndexers = useSelector((state: any) => state.ai.searchIndexers);
     const selectedSearchIndexers = useSelector((state: any) => state.ai.selectedSearchIndexers);
     const platformSecretReference = useSelector((state: any) => state.ai.platformSecretReference);
     useEffect(() => {
@@ -132,23 +138,23 @@ function AiWorkflowsDashboardContent(props: any) {
     };
 
     const handleSearchIndexerQueryActionRequest = async (event: any, action: string) => {
-        const params: PostRunsActionRequest = {
+        const params: PostSearchIndexerActionsRequest = {
             action: action,
-            runs: selectedRuns.map((index: number) => {
-                return runs[index].orchestration
+            searchIndexers: selectedSearchIndexers.map((index: number) => {
+                return searchIndexers[index]
             })
         }
-        if (params.runs.length === 0) {
+        if (params.searchIndexers.length === 0) {
             return
         }
         try {
             setIsLoading(true)
-            const response = await aiApiGateway.execRunsActionRequest(params);
+            const response = await aiApiGateway.searchIndexerCreateOrUpdateActionRequest(params);
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
-                dispatch(setSelectedRuns([]));
-                setRequestRunsStatus('Run cancellation submitted successfully')
+                dispatch(setSelectedSearchIndexers([]));
+                setRequestRunsStatus('Search indexer update submitted successfully')
                 setRequestRunsStatusError('success')
             }
         } catch (error: any) {
@@ -332,7 +338,7 @@ function AiWorkflowsDashboardContent(props: any) {
                 searchIndexer,
                 platformSecretReference
             }
-            const response = await aiApiGateway.searchIndexerCreateOrUpdateActionRequest(params);
+            const response = await aiApiGateway.searchIndexerCreateOrUpdateRequest(params);
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;

@@ -52,9 +52,34 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.UpsertAiOrchestration, z.AiAnalysisTask, z.AiRetrievalTask,
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
 		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask,
-		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob, z.CancelRun,
+		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob, z.CancelRun, z.PlatformIndexerGroupStatusUpdate,
 	}
 	return append(actSlice, ka.GetActivities()...)
+}
+
+func (z *ZeusAiPlatformActivities) PlatformIndexerGroupStatusUpdate(ctx context.Context, ou org_users.OrgUser, sp hera_search.SearchIndexerParams) error {
+	switch sp.Platform {
+	case "reddit":
+		err := hera_search.UpdateRedditSearchQueryStatus(ctx, ou, sp)
+		if err != nil {
+			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update reddit search query status")
+			return err
+		}
+	case "twitter":
+		err := hera_search.UpdateTwitterSearchQueryStatus(ctx, ou, sp)
+		if err != nil {
+			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update twitter search query status")
+			return err
+		}
+	case "telegram":
+	case "discord":
+		err := hera_search.UpdateDiscordSearchQueryStatus(ctx, ou, sp)
+		if err != nil {
+			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update discord search query status")
+			return err
+		}
+	}
+	return nil
 }
 
 func (z *ZeusAiPlatformActivities) StartIndexingJob(ctx context.Context, sp hera_search.SearchIndexerParams) error {

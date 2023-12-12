@@ -48,6 +48,10 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 				return err
 			}
 		}
+		if redditSearchQuery == nil {
+			logger.Info("no Reddit search query found")
+			continue
+		}
 		redditCtx := workflow.WithActivityOptions(ctx, ao)
 		lpo := &reddit.ListOptions{Limit: redditSearchQuery.MaxResults, After: redditSearchQuery.PostId}
 		var redditPosts []*reddit.Post

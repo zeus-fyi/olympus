@@ -121,8 +121,7 @@ func Zeus() {
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 		cfg.PGConnStr = sw.PostgresAuth
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
-		awsAuthCfg = sw.SecretsManagerAuthAWS
-		awsAuthCfg.Region = awsRegion
+
 		_, err = hera_twitter.InitTwitterClient(ctx,
 			sw.TwitterConsumerPublicAPIKey, sw.TwitterConsumerSecretAPIKey,
 			sw.TwitterAccessToken, sw.TwitterAccessTokenSecret,
@@ -136,6 +135,9 @@ func Zeus() {
 			log.Fatal().Err(err).Msg("Zeus: InitRedditClient failed")
 			misc.DelayedPanic(err)
 		}
+		awsAuthCfg = sw.SecretsManagerAuthAWS
+		awsAuthCfg.Region = awsRegion
+		artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		auth_startup.Ksp.DirIn = "../configs"
@@ -159,6 +161,9 @@ func Zeus() {
 		topology_auths.K8Util = cfg.K8sUtil
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
+		awsAuthCfg.Region = awsRegion
+		artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
+
 		_, err := hera_twitter.InitTwitterClient(ctx,
 			tc.TwitterConsumerPublicAPIKey, tc.TwitterConsumerSecretAPIKey,
 			tc.TwitterAccessToken, tc.TwitterAccessTokenSecret,
@@ -187,6 +192,8 @@ func Zeus() {
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
+		awsAuthCfg.Region = awsRegion
+		artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
 		eksAuth := aegis_aws_auth.AuthAWS{
 			AccountNumber: "",
 			Region:        "us-west-1",

@@ -6,14 +6,85 @@ import (
 
 	"github.com/cvcio/twitter"
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_discord "github.com/zeus-fyi/olympus/pkg/hera/discord"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 )
+
+func (z *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, prompt []byte) error {
+	err := hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp, prompt)
+	if err != nil {
+		log.Err(err).Msg("SaveAiTaskResponse: RecordUIChatRequestUsage failed")
+		return nil
+	}
+	return nil
+}
+
+func (z *ZeusAiPlatformActivities) PlatformIndexerGroupStatusUpdate(ctx context.Context, ou org_users.OrgUser, sp hera_search.SearchIndexerParams) error {
+	switch sp.Platform {
+	case "reddit":
+		err := hera_search.UpdateRedditSearchQueryStatus(ctx, ou, sp)
+		if err != nil {
+			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update reddit search query status")
+			return err
+		}
+	case "twitter":
+		err := hera_search.UpdateTwitterSearchQueryStatus(ctx, ou, sp)
+		if err != nil {
+			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update twitter search query status")
+			return err
+		}
+	case "telegram":
+	case "discord":
+		err := hera_search.UpdateDiscordSearchQueryStatus(ctx, ou, sp)
+		if err != nil {
+			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update discord search query status")
+			return err
+		}
+	}
+	return nil
+}
+
+func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Context) ([]hera_search.SearchIndexerParams, error) {
+	sis, err := hera_search.GetAllActiveSearchIndexers(ctx)
+	if err != nil {
+		log.Err(err).Msg("SelectActiveSearchIndexerJobs: failed to get search indexers")
+		return nil, err
+	}
+	sgPlatformSeen := make(map[string]map[string]bool)
+	var sisProcessed []hera_search.SearchIndexerParams
+	for _, oj := range sis {
+		switch oj.Platform {
+		case "discord":
+			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+			}
+		case "reddit":
+			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+			}
+		case "twitter":
+			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+			}
+		case "telegram":
+			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+			}
+		}
+		if _, ok := sgPlatformSeen[oj.SearchGroupName][oj.Platform]; !ok {
+			sgPlatformSeen[oj.SearchGroupName][oj.Platform] = true
+			sisProcessed = append(sisProcessed, oj)
+		}
+	}
+	return sisProcessed, nil
+}
 
 func (z *ZeusAiPlatformActivities) InsertEmailIfNew(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
 	emailID, err := hera_openai_dbmodels.InsertNewEmails(ctx, msg)

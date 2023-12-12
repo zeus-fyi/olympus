@@ -12,7 +12,6 @@ import (
 	"github.com/cvcio/twitter"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
-	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -20,7 +19,6 @@ import (
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
-	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	hera_twitter "github.com/zeus-fyi/olympus/pkg/hera/twitter"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
@@ -56,31 +54,6 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 	return append(actSlice, ka.GetActivities()...)
 }
 
-func (z *ZeusAiPlatformActivities) PlatformIndexerGroupStatusUpdate(ctx context.Context, ou org_users.OrgUser, sp hera_search.SearchIndexerParams) error {
-	switch sp.Platform {
-	case "reddit":
-		err := hera_search.UpdateRedditSearchQueryStatus(ctx, ou, sp)
-		if err != nil {
-			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update reddit search query status")
-			return err
-		}
-	case "twitter":
-		err := hera_search.UpdateTwitterSearchQueryStatus(ctx, ou, sp)
-		if err != nil {
-			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update twitter search query status")
-			return err
-		}
-	case "telegram":
-	case "discord":
-		err := hera_search.UpdateDiscordSearchQueryStatus(ctx, ou, sp)
-		if err != nil {
-			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update discord search query status")
-			return err
-		}
-	}
-	return nil
-}
-
 func (z *ZeusAiPlatformActivities) StartIndexingJob(ctx context.Context, sp hera_search.SearchIndexerParams) error {
 	switch sp.Platform {
 	case "reddit":
@@ -113,41 +86,6 @@ func (z *ZeusAiPlatformActivities) StartIndexingJob(ctx context.Context, sp hera
 		}
 	}
 	return nil
-}
-
-func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Context) ([]hera_search.SearchIndexerParams, error) {
-	sis, err := hera_search.GetAllActiveSearchIndexers(ctx)
-	if err != nil {
-		log.Err(err).Msg("SelectActiveSearchIndexerJobs: failed to get search indexers")
-		return nil, err
-	}
-	sgPlatformSeen := make(map[string]map[string]bool)
-	var sisProcessed []hera_search.SearchIndexerParams
-	for _, oj := range sis {
-		switch oj.Platform {
-		case "discord":
-			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
-			}
-		case "reddit":
-			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
-			}
-		case "twitter":
-			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
-			}
-		case "telegram":
-			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
-			}
-		}
-		if _, ok := sgPlatformSeen[oj.SearchGroupName][oj.Platform]; !ok {
-			sgPlatformSeen[oj.SearchGroupName][oj.Platform] = true
-			sisProcessed = append(sisProcessed, oj)
-		}
-	}
-	return sisProcessed, nil
 }
 
 func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, ou org_users.OrgUser, si int, channelID, timeAfter string) error {
@@ -191,43 +129,6 @@ func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, ou org_
 	return err
 }
 
-func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, ou org_users.OrgUser, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "reddit")
-	if err != nil {
-		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
-		return nil, err
-	}
-	if ps == nil {
-		return nil, fmt.Errorf("SearchRedditNewPostsUsingSubreddit: ps is nil")
-	}
-	if ps.OAuth2Public == "" || ps.OAuth2Secret == "" || ps.Username == "" || ps.Password == "" {
-		return nil, fmt.Errorf("SearchRedditNewPostsUsingSubreddit: ps is empty")
-	}
-	rc, err := hera_reddit.InitOrgRedditClient(ctx, ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
-	if err != nil {
-		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to init reddit client")
-		return nil, err
-	}
-	resp, err := rc.GetNewPosts(ctx, subreddit, lpo)
-	if err != nil {
-		if resp != nil {
-			log.Err(err).Interface("resp", resp).Msg("SearchRedditNewPostsUsingSubreddit")
-		} else {
-			log.Err(err)
-		}
-		return nil, err
-	}
-	if resp == nil {
-		return nil, fmt.Errorf("SearchRedditNewPostsUsingSubreddit: resp is nil")
-	}
-
-	if resp.Resp.StatusCode >= 400 {
-		log.Err(err).Interface("resp", resp).Msg("SearchRedditNewPostsUsingSubreddit")
-		return nil, fmt.Errorf("SearchRedditNewPostsUsingSubreddit: resp.StatusCode >= 400")
-	}
-	return resp.Posts, nil
-}
-
 func (z *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgUser, msg hermes_email_notifications.EmailContents) (openai.ChatCompletionResponse, error) {
 	//task := "write a bullet point summary of the email contents and suggest some responses if applicable. write your reply as html formatted\n"
 	systemMessage := openai.ChatCompletionMessage{
@@ -250,15 +151,6 @@ func (z *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgU
 		},
 	)
 	return resp, err
-}
-
-func (z *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou org_users.OrgUser, resp openai.ChatCompletionResponse, prompt []byte) error {
-	err := hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp, prompt)
-	if err != nil {
-		log.Err(err).Msg("SaveAiTaskResponse: RecordUIChatRequestUsage failed")
-		return nil
-	}
-	return nil
 }
 
 func (z *ZeusAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, email string, resp openai.ChatCompletionResponse) error {

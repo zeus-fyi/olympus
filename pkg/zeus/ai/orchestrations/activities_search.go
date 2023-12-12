@@ -28,7 +28,7 @@ func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx contex
 		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to init reddit client")
 		return nil, err
 	}
-	resp, err := rc.GetNewPosts(ctx, subreddit, lpo)
+	posts, resp, err := rc.ReadOnly.Subreddit.NewPosts(ctx, subreddit, lpo)
 	if err != nil || resp == nil {
 		if err == nil {
 			err = fmt.Errorf("SearchRedditNewPostsUsingSubreddit: resp is nil")
@@ -37,9 +37,9 @@ func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx contex
 		return nil, err
 	}
 
-	if resp.Resp.StatusCode >= 400 {
+	if resp.StatusCode >= 400 {
 		log.Err(err).Interface("resp", resp).Msg("SearchRedditNewPostsUsingSubreddit")
 		return nil, fmt.Errorf("SearchRedditNewPostsUsingSubreddit: resp.StatusCode >= 400")
 	}
-	return resp.Posts, nil
+	return posts, nil
 }

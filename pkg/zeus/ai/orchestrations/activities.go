@@ -157,6 +157,9 @@ func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, ou org_
 		log.Err(err).Msg("GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
 		return err
 	}
+	if ps == nil || ps.ApiKey == "" {
+		return fmt.Errorf("GetMockingbirdPlatformSecrets: ps is nil or api key missing")
+	}
 
 	hs, err := misc.HashParams([]interface{}{ps.ApiKey})
 	if err != nil {
@@ -304,7 +307,7 @@ func (z *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Contex
 func (z *ZeusAiPlatformActivities) InsertAiResponse(ctx context.Context, msg hermes_email_notifications.EmailContents) (int, error) {
 	emailID, err := hera_openai_dbmodels.InsertNewEmails(ctx, msg)
 	if err != nil {
-		log.Err(err).Msg("SaveNewEmail: failed")
+		log.Err(err).Msg("InsertAiResponse: InsertNewEmails: failed")
 		return 0, err
 	}
 	return emailID, nil
@@ -337,7 +340,7 @@ func (z *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, 
 		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
 		return nil, err
 	}
-	if ps.OAuth2Public == "" || ps.OAuth2Secret == "" {
+	if ps == nil || ps.OAuth2Public == "" || ps.OAuth2Secret == "" {
 		log.Warn().Interface("ou", ou).Msg("SearchTwitterUsingQuery: ps is empty")
 		return nil, fmt.Errorf("SearchTwitterUsingQuery: ps is empty")
 	}
@@ -446,9 +449,12 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 		StatusCode:      http.StatusOK,
 	}
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, fmt.Sprintf("web-%s", retInst.WebFilters.RoutingGroup))
-	if err == nil {
+	if err == nil && ps != nil {
+		if err == nil {
+			err = fmt.Errorf("failed to get mockingbird secrets")
+		}
 		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
-		if ps.ApiKey != "" {
+		if ps != nil && ps.ApiKey != "" {
 			req.Bearer = ps.ApiKey
 		}
 	} else {
@@ -548,7 +554,10 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		cr.MaxTokens = taskInst.AnalysisMaxTokensPerTask
 	}
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
-	if err != nil {
+	if err != nil || ps == nil || ps.ApiKey == "" {
+		if err == nil {
+			err = fmt.Errorf("failed to get mockingbird secrets")
+		}
 		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
 		return nil, err
 	}
@@ -583,7 +592,10 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
 		aws_secrets.ClearOrgSecretCache(ou)
 		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
-		if err != nil {
+		if err != nil || ps == nil || ps.ApiKey == "" {
+			if err == nil {
+				err = fmt.Errorf("failed to get mockingbird secrets")
+			}
 			log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
 			return nil, err
 		}
@@ -645,7 +657,10 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 		cr.MaxTokens = *aggInst.AggMaxTokensPerTask
 	}
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
-	if err != nil {
+	if err != nil || ps == nil || ps.ApiKey == "" {
+		if err == nil {
+			err = fmt.Errorf("failed to get mockingbird secrets")
+		}
 		log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
 		return nil, nil
 	}
@@ -678,7 +693,10 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 		log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
 		aws_secrets.ClearOrgSecretCache(ou)
 		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
-		if err != nil {
+		if err != nil || ps == nil || ps.ApiKey == "" {
+			if err == nil {
+				err = fmt.Errorf("failed to get mockingbird secrets")
+			}
 			log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
 			return nil, err
 		}

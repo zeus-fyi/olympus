@@ -30,6 +30,12 @@ func (t *ZeusWorkerTestSuite) TestInitWorker() {
 	ZeusAiPlatformWorker.Worker.RegisterWorker(cKronos)
 	err := ZeusAiPlatformWorker.Worker.Start()
 	t.Require().Nil(err)
+	ou := org_users.OrgUser{}
+	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = 7138958574876245565
+
+	err = ZeusAiPlatformWorker.ExecuteAiRedditWorkflow(ctx, ou, "zeusfyi")
+	t.Require().Nil(err)
 }
 
 func TestZeusWorkerTestSuite(t *testing.T) {

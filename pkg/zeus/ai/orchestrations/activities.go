@@ -195,6 +195,12 @@ func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx contex
 		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
 		return nil, err
 	}
+	if ps == nil {
+		return nil, fmt.Errorf("SearchRedditNewPostsUsingSubreddit: ps is nil")
+	}
+	if ps.OAuth2Public == "" || ps.OAuth2Secret == "" || ps.Username == "" || ps.Password == "" {
+		return nil, fmt.Errorf("SearchRedditNewPostsUsingSubreddit: ps is empty")
+	}
 	rc, err := hera_reddit.InitOrgRedditClient(ctx, ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
 	if err != nil {
 		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to init reddit client")
@@ -331,7 +337,10 @@ func (z *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, 
 		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
 		return nil, err
 	}
-
+	if ps.OAuth2Public == "" || ps.OAuth2Secret == "" {
+		log.Warn().Interface("ou", ou).Msg("SearchTwitterUsingQuery: ps is empty")
+		return nil, fmt.Errorf("SearchTwitterUsingQuery: ps is empty")
+	}
 	tc, err := hera_twitter.InitOrgTwitterClient(ctx, ps.OAuth2Public, ps.OAuth2Secret)
 	if err != nil {
 		log.Err(err).Msg("SearchTwitterUsingQuery: failed to init twitter client")

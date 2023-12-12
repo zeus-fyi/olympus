@@ -8,7 +8,11 @@ import (
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
+	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 var ctx = context.Background()
@@ -27,6 +31,21 @@ func (s *RedditTestSuite) SetupTest() {
 	s.Require().Nil(err)
 	s.Assert().NotNil(rc)
 	s.rc = rc
+}
+
+func (s *RedditTestSuite) TestInitOrgRedditClient() {
+	auth := aegis_aws_auth.AuthAWS{
+		Region:    "us-west-1",
+		AccessKey: s.Tc.AwsAccessKeySecretManager,
+		SecretKey: s.Tc.AwsSecretKeySecretManager,
+	}
+	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
+	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "reddit")
+	s.Require().Nil(err)
+	rc, err := InitRedditClient(ctx, ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
+	s.Require().Nil(err)
+	s.Assert().NotNil(rc)
 }
 
 func (s *RedditTestSuite) TestReadPosts() {

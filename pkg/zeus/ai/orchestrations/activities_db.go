@@ -57,29 +57,34 @@ func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Con
 		log.Err(err).Msg("SelectActiveSearchIndexerJobs: failed to get search indexers")
 		return nil, err
 	}
-	sgPlatformSeen := make(map[string]map[string]bool)
+	sgPlatformSeen := make(map[string]map[string]map[int]bool)
 	var sisProcessed []hera_search.SearchIndexerParams
 	for _, oj := range sis {
 		switch oj.Platform {
 		case "discord":
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
+				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
 			}
 		case "reddit":
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
+				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
 			}
 		case "twitter":
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
+				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
 			}
 		case "telegram":
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
+				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
+				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
 			}
 		}
 		if _, ok := sgPlatformSeen[oj.SearchGroupName][oj.Platform]; !ok {
-			sgPlatformSeen[oj.SearchGroupName][oj.Platform] = true
+			sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
+			sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
 			sisProcessed = append(sisProcessed, oj)
 		}
 	}

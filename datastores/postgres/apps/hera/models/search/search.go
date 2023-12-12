@@ -163,7 +163,6 @@ func GetAllActiveSearchIndexers(ctx context.Context) ([]SearchIndexerParams, err
 		return nil, err
 	}
 	defer rows.Close()
-
 	var srs []SearchIndexerParams
 	for rows.Next() {
 		var si SearchIndexerParams
@@ -174,11 +173,9 @@ func GetAllActiveSearchIndexers(ctx context.Context) ([]SearchIndexerParams, err
 		}
 		srs = append(srs, si)
 	}
-
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-
 	return srs, nil
 }
 

@@ -47,7 +47,7 @@ func (t *ZeusWorkerTestSuite) TestAiSearchIndexerRedditWorkflow() {
 	}
 	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
 	act := NewZeusAiPlatformActivities()
-	resp, err := act.SearchRedditNewPostsUsingSubreddit(ctx, org_users.NewOrgUserWithID(7138983863666903883, 7138958574876245567), "mlops", nil)
+	resp, err := act.SearchRedditNewPostsUsingSubreddit(ctx, org_users.NewOrgUserWithID(t.Tc.ProductionLocalTemporalOrgID, t.Tc.ProductionLocalTemporalUserID), "mlops", nil)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 }

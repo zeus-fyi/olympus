@@ -66,7 +66,6 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 			log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
 			return nil, err
 		}
-
 		err = json.Unmarshal(sv, &m)
 		if err != nil {
 			log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))

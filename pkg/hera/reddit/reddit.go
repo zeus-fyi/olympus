@@ -37,7 +37,9 @@ func InitRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, er
 
 func InitOrgRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, error) {
 	r := Reddit{}
-	client, err := reddit.NewReadonlyClient(reddit.WithUserAgent(fmt.Sprintf("Zeusfyi/1.0 (by /u/%s", u)))
+	userAgent := fmt.Sprintf("Zeusfyi/1.0 (by /u/%s)", u)
+	log.Info().Str("userAgent", userAgent)
+	client, err := reddit.NewReadonlyClient(reddit.WithUserAgent(userAgent))
 	if err != nil {
 		log.Err(err).Msg("Error initializing reddit client")
 		return Reddit{}, err
@@ -79,7 +81,7 @@ type RedditPostSearchResponse struct {
 func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) (*RedditPostSearchResponse, error) {
 	posts, resp, err := r.ReadOnly.Subreddit.NewPosts(ctx, subreddit, lpo)
 	if err != nil {
-		log.Err(err).Msg("Error getting new posts")
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
 		return nil, err
 	}
 	re := &RedditPostSearchResponse{

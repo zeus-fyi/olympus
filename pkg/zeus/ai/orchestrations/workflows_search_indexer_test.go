@@ -8,11 +8,21 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
+	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 func (t *ZeusWorkerTestSuite) TestAiLoop() {
 	ta := t.Tc.DevTemporalAuth
+
+	temporalAuthCfg := temporal_auth.TemporalAuth{
+		ClientCertPath:   "/etc/ssl/certs/ca.pem",
+		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
+		Namespace:        "production-zeus.ngb72",
+		HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
+	}
+	ta.Namespace = temporalAuthCfg.Namespace
+	ta.HostPort = temporalAuthCfg.HostPort
 
 	InitZeusAiServicesWorker(ctx, ta)
 	cKronos := ZeusAiPlatformWorker.Worker.ConnectTemporalClient()
@@ -22,7 +32,6 @@ func (t *ZeusWorkerTestSuite) TestAiLoop() {
 	t.Require().Nil(err)
 
 	ou := org_users.NewOrgUserWithID(t.Tc.ProductionLocalTemporalOrgID, t.Tc.ProductionLocalTemporalUserID)
-
 	err = ZeusAiPlatformWorker.ExecuteAiRedditWorkflow(ctx, ou, "zeusfyi")
 	t.Require().Nil(err)
 }

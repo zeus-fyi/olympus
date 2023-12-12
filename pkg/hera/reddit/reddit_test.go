@@ -39,13 +39,22 @@ func (s *RedditTestSuite) TestInitOrgRedditClient() {
 		AccessKey: s.Tc.AwsAccessKeySecretManager,
 		SecretKey: s.Tc.AwsSecretKeySecretManager,
 	}
+
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
 	ou := org_users.NewOrgUserWithID(s.Tc.ProductionLocalTemporalOrgID, s.Tc.ProductionLocalTemporalUserID)
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "reddit")
 	s.Require().Nil(err)
-	rc, err := InitRedditClient(ctx, ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
+	rc, err := InitOrgRedditClient(ctx, ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
 	s.Require().Nil(err)
 	s.Assert().NotNil(rc)
+	lpo := &reddit.ListOptions{
+		Limit:  10,
+		After:  "1829cc6",
+		Before: "",
+	}
+	posts, _, err := rc.ReadOnly.Subreddit.NewPosts(ctx, "ethdev", lpo)
+	s.Require().Nil(err)
+	s.Assert().NotZero(posts)
 }
 
 func (s *RedditTestSuite) TestReadPosts() {

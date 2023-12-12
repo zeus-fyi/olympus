@@ -138,7 +138,8 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 				    sq_sub.search_id AS search_id,
 					sq_sub.query as subreddit, 
 					sq_sub.last_created_at,
-					COALESCE(ip.post_id, '') AS post_id
+					COALESCE(ip.post_id, '') AS post_id,
+					sq_sub.active AS active
 				FROM 
 					(SELECT
 					     sq.search_id,
@@ -149,7 +150,7 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 					 LEFT JOIN 
 						 public.ai_reddit_incoming_posts ip ON sq.query = ip.subreddit
 					 WHERE 
-						 sq.org_id = $1 AND sq.search_group_name = $2
+						 sq.org_id = $1 AND sq.search_group_name = $2 AND sq.active = true
 					 GROUP BY 
 						  sq.search_id, sq.query) AS sq_sub
 				LEFT JOIN 
@@ -169,7 +170,7 @@ func SelectRedditSearchQuery(ctx context.Context, ou org_users.OrgUser, searchGr
 				MaxResults: 100,
 			},
 		}
-		rowErr := rows.Scan(&rs.SearchID, &rs.Query, &rs.LastCreatedAt, &rs.PostId)
+		rowErr := rows.Scan(&rs.SearchID, &rs.Query, &rs.LastCreatedAt, &rs.PostId, &rs.Active)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("Error scanning row in SelectRedditSearchQuery")
 			return nil, rowErr

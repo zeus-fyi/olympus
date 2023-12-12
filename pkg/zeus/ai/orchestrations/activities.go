@@ -429,13 +429,15 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 		StatusCode:      http.StatusOK,
 	}
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, fmt.Sprintf("web-%s", retInst.WebFilters.RoutingGroup))
-	if err != nil {
+	if err == nil {
 		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
-		return nil, err
+		if ps.ApiKey != "" {
+			req.Bearer = ps.ApiKey
+		}
+	} else {
+		err = nil
 	}
-	if ps.ApiKey != "" {
-		req.Bearer = ps.ApiKey
-	}
+
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {
 		log.Err(rrerr).Msg("AiRetrievalTask: failed to request")

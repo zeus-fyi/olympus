@@ -38,7 +38,7 @@ func InitRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, er
 func InitOrgRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, error) {
 	r := Reddit{}
 	userAgent := fmt.Sprintf("Zeusfyi/%s (by /u/%s)", id, u)
-	log.Info().Str("userAgent", userAgent)
+	log.Info().Str("userAgent", userAgent).Msg("InitOrgRedditClient")
 	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent(userAgent))
 	if err != nil {
 		log.Err(err).Interface("userAgent", userAgent).Msg("Error initializing reddit client")

@@ -2,6 +2,7 @@ package hephaestus_server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -22,9 +23,12 @@ var (
 	cfg         = Config{}
 )
 
+func createFormattedString(platform, appID, versionString, redditUsername string) string {
+	return fmt.Sprintf("%s:%s:%s (by /u/%s)", platform, appID, versionString, redditUsername)
+}
 func Hephaestus() {
 	ctx := context.Background()
-	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent("Zeusfyi/1.0 (by /u/zeus-fyi)"))
+	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent(createFormattedString("web", "hephaestus", "0.0.1", "zeus-fyi")))
 	if err != nil {
 		panic(err)
 	}

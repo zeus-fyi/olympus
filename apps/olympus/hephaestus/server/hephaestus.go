@@ -46,7 +46,7 @@ func init() {
 
 	Cmd.Flags().StringVar(&dataDir.DirIn, "dataDirIn", "/data", "data directory location")
 
-	Cmd.Flags().StringVar(&Workload.WorkloadType, "workload-type", "", "workloadType") // eg validatorClient
+	Cmd.Flags().StringVar(&Workload.WorkloadType, "workload-type", "kubernetes", "workloadType") // eg validatorClient
 
 }
 

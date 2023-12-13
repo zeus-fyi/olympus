@@ -182,7 +182,7 @@ func DiscordJob(si int, authToken, hs, chID, ts string) v1.Job {
 	return j
 }
 
-func RedditJob(si int, authToken, hs, chID, ts string) v1.Job {
+func RedditJob(subreddit string) v1.Job {
 	bof := int32(0)
 	j := v1.Job{
 		TypeMeta: metav1.TypeMeta{
@@ -190,7 +190,7 @@ func RedditJob(si int, authToken, hs, chID, ts string) v1.Job {
 			APIVersion: "batch/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("d-job-%d-%s", si, chID),
+			Name: fmt.Sprintf("reddit-job-%s", subreddit),
 		},
 		Spec: v1.JobSpec{
 			BackoffLimit: &bof, // Setting backoffLimit to 0 to prevent retries
@@ -200,11 +200,11 @@ func RedditJob(si int, authToken, hs, chID, ts string) v1.Job {
 					Containers: []v1core.Container{
 						{
 							Name:            "reddit-job",
-							Image:           "zeusfyi/snapshots:latest",
+							Image:           "zeusfyi/hephaestus:latest",
 							ImagePullPolicy: "Always",
 							Command:         []string{"/bin/sh", "-c"},
 							Args: []string{
-								fmt.Sprintf("exec snapshots --bearer=\"%s\" --payload-base-path=\"https://api.zeus.fyi\" --payload-post-path=\"/vz/webhooks/discord/ai\" --workload-type=\"send-payload\" --fi %s.json", hs, chID),
+								fmt.Sprintf("exec hephaestus --workload-type=\"%s\"", subreddit),
 							},
 							VolumeMounts: []v1core.VolumeMount{
 								{

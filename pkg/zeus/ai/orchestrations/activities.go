@@ -88,22 +88,8 @@ func (z *ZeusAiPlatformActivities) StartIndexingJob(ctx context.Context, sp hera
 	return nil
 }
 
-func (z *ZeusAiPlatformActivities) CreateRedditJob(ctx context.Context, ou org_users.OrgUser, si int, channelID, timeAfter string) error {
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "reddit")
-	if err != nil {
-		log.Err(err).Msg("GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
-		return err
-	}
-	if ps == nil || ps.ApiKey == "" {
-		return fmt.Errorf("GetMockingbirdPlatformSecrets: ps is nil or api key missing")
-	}
-
-	hs, err := misc.HashParams([]interface{}{ps.ApiKey})
-	if err != nil {
-		log.Err(err).Msg("CreateDiscordJob: failed to hash params")
-		return err
-	}
-	j := DiscordJob(si, ps.ApiKey, hs, channelID, timeAfter)
+func (z *ZeusAiPlatformActivities) CreateRedditJob(ctx context.Context, ou org_users.OrgUser, subreddit string) error {
+	j := RedditJob(subreddit)
 	kns := zeus_common_types.CloudCtxNs{
 		CloudProvider: "ovh",
 		Region:        "us-west-or-1",
@@ -112,7 +98,7 @@ func (z *ZeusAiPlatformActivities) CreateRedditJob(ctx context.Context, ou org_u
 		Env:           "production",
 	}
 
-	err = zeus.K8Util.DeleteJob(ctx, kns, j.Name)
+	err := zeus.K8Util.DeleteJob(ctx, kns, j.Name)
 	if err != nil {
 		log.Err(err).Msg("CreateDiscordJob: failed to delete job")
 		return err

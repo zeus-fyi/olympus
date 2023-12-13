@@ -34,6 +34,22 @@ const (
 	internalUser = 7138958574876245567
 )
 
+func (s *JobsTestSuite) TestCreateRJob() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	var kns = zeus_common_types.CloudCtxNs{
+		CloudProvider: "ovh",
+		Region:        "us-west-or-1",
+		Context:       "kubernetes-admin@zeusfyi",
+		Namespace:     "zeus",
+		Env:           "production",
+	}
+
+	j := RedditJob("mlops")
+	jc, err := s.K.CreateJob(ctx, kns, &j)
+	s.Nil(err)
+	s.Require().NotEmpty(jc)
+
+}
 func (s *JobsTestSuite) TestCreateJob() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	var kns = zeus_common_types.CloudCtxNs{
@@ -140,4 +156,56 @@ func (s *JobsTestSuite) TestDeleteJob() {
 
 func TestJobsTestSuite(t *testing.T) {
 	suite.Run(t, new(JobsTestSuite))
+}
+
+func RedditJob(subreddit string) v1.Job {
+	bof := int32(0)
+	j := v1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "batch/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("reddit-job-%s", subreddit),
+		},
+		Spec: v1.JobSpec{
+			BackoffLimit: &bof, // Setting backoffLimit to 0 to prevent retries
+			Template: v1core.PodTemplateSpec{
+				Spec: v1core.PodSpec{
+					ImagePullSecrets: []v1core.LocalObjectReference{
+						{
+							Name: "zeus-fyi-ext",
+						},
+					},
+					RestartPolicy: "OnFailure",
+					Containers: []v1core.Container{
+						{
+							Name:            "reddit-job",
+							Image:           "registry.digitalocean.com/zeus-fyi/hephaestus:latest",
+							ImagePullPolicy: "Always",
+							Command:         []string{"/bin/sh", "-c"},
+							Args: []string{
+								fmt.Sprintf("exec hephaestus --workload-type=\"%s\"", subreddit),
+							},
+							VolumeMounts: []v1core.VolumeMount{
+								{
+									Name:      "data-volume",
+									MountPath: "/data",
+								},
+							},
+						},
+					},
+					Volumes: []v1core.Volume{
+						{
+							Name: "data-volume",
+							VolumeSource: v1core.VolumeSource{
+								EmptyDir: &v1core.EmptyDirVolumeSource{},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return j
 }

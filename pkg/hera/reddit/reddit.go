@@ -97,6 +97,13 @@ type RedditResponse struct {
 }
 
 func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
+	if lpo == nil {
+		lpo = &reddit.ListOptions{
+			Limit:  100,
+			After:  "",
+			Before: "",
+		}
+	}
 	path := fmt.Sprintf("/r/%s/new.json?limit=100&after=%s", subreddit, lpo.After)
 	ua := createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")
 	r.Resty.SetHeader("User-Agent", ua)

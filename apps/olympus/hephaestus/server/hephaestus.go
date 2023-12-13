@@ -36,7 +36,7 @@ func Hephaestus() {
 
 func init() {
 	viper.AutomaticEnv()
-	Cmd.Flags().StringVar(&cfg.Port, "port", "9003", "server port")
+	Cmd.Flags().StringVar(&cfg.Port, "port", "9000", "server port")
 	Cmd.Flags().StringVar(&dataDir.DirOut, "dataDir", "/data", "data directory location")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")

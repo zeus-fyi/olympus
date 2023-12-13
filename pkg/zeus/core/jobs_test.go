@@ -159,7 +159,7 @@ func TestJobsTestSuite(t *testing.T) {
 }
 
 func RedditJob(subreddit string) v1.Job {
-	bof := int32(0)
+	bof := int32(2)
 	j := v1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",

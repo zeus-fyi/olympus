@@ -110,6 +110,9 @@ func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.
 		}
 	}
 	path := fmt.Sprintf("/r/%s/new.json?limit=100&after=%s", subreddit, lpo.After)
+	if lpo.After == "" {
+		path = fmt.Sprintf("/r/%s/new.json?limit=100", subreddit)
+	}
 	ua := createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")
 	r.Resty.SetHeader("User-Agent", ua)
 	var s RedditResponse

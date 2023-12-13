@@ -15,7 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, searchGroupName string, cm hera_discord.ChannelMessages) error {
+func (z *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, cm hera_discord.ChannelMessages) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -28,6 +28,10 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 	if len(cm.Messages) == 0 {
 		return nil
 	}
+	if len(cm.Guild.Id) <= 0 && len(cm.Channel.Id) <= 0 {
+		logger.Info("no guild or channel id found")
+		return nil
+	}
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "ZeusAiPlatformServiceWorkflows", "AiIngestDiscordWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
@@ -38,20 +42,11 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 	var sq *hera_search.DiscordSearchResultWrapper
 
 	searchQueryCtx := workflow.WithActivityOptions(ctx, ao)
-	if len(cm.Guild.Id) > 0 && len(cm.Channel.Id) > 0 {
-		err = workflow.ExecuteActivity(searchQueryCtx, z.SelectDiscordSearchQueryByGuildChannel, ou, cm.Guild.Id, cm.Channel.Id).Get(searchQueryCtx, &sq)
-		if err != nil {
-			logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
-			// You can decide if you want to return the error or continue monitoring.
-			return err
-		}
-	} else {
-		err = workflow.ExecuteActivity(searchQueryCtx, z.SelectDiscordSearchQuery, ou, searchGroupName).Get(searchQueryCtx, &sq)
-		if err != nil {
-			logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
-			// You can decide if you want to return the error or continue monitoring.
-			return err
-		}
+	err = workflow.ExecuteActivity(searchQueryCtx, z.SelectDiscordSearchQueryByGuildChannel, ou, cm.Guild.Id, cm.Channel.Id).Get(searchQueryCtx, &sq)
+	if err != nil {
+		logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
+		// You can decide if you want to return the error or continue monitoring.
+		return err
 	}
 
 	if sq == nil && sq.SearchID == 0 {

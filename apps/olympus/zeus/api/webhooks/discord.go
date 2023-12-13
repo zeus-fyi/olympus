@@ -57,10 +57,7 @@ func (a *DiscordRequest) RequestDiscordAiTaskStart(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	searchGroupName := c.Param("group")
-	if len(searchGroupName) == 0 {
-		searchGroupName = defaultTwitterSearchGroupName
-	}
+
 	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
 	//if err != nil {
 	//	log.Error().Err(err).Msg("failed to check if user has billing method")
@@ -89,7 +86,7 @@ func (a *DiscordRequest) RequestDiscordAiTaskStart(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 
-	err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteAiIngestDiscordWorkflow(c.Request().Context(), ou, searchGroupName, cms)
+	err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteAiIngestDiscordWorkflow(c.Request().Context(), ou, cms)
 	if err != nil {
 		log.Err(err).Msg("Zeus: RequestDiscordAiTaskStart")
 		return c.JSON(http.StatusInternalServerError, nil)

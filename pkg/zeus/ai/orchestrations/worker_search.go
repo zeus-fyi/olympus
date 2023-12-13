@@ -96,7 +96,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiRedditWorkflow(ctx context.Conte
 	return nil
 }
 
-func (z *ZeusAiPlatformServicesWorker) ExecuteAiIngestDiscordWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string, cm hera_discord.ChannelMessages) error {
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiIngestDiscordWorkflow(ctx context.Context, ou org_users.OrgUser, cm hera_discord.ChannelMessages) error {
 	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -105,7 +105,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiIngestDiscordWorkflow(ctx contex
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.AiIngestDiscordWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, searchGroupName, cm)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, cm)
 	if err != nil {
 		log.Err(err).Msg("ExecuteAiIngestDiscordWorkflow")
 		return err

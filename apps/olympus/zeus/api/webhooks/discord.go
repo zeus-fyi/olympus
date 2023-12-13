@@ -52,8 +52,19 @@ type DiscordRequest struct {
 }
 
 func (a *DiscordRequest) RequestDiscordAiTaskStart(c echo.Context) error {
-	internalOrgID := 7138983863666903883
-	ou := org_users.NewOrgUserWithID(internalOrgID, 7138958574876245567)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Info().Interface("ou", ou)
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	//if err != nil {
+	//	log.Error().Err(err).Msg("failed to check if user has billing method")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//if !isBillingSetup {
+	//	return c.JSON(http.StatusPreconditionFailed, nil)
+	//}
 	b, err := json.Marshal(a.Body)
 	if err != nil {
 		log.Err(err).Msg("Zeus: RequestDiscordAiTaskStart")

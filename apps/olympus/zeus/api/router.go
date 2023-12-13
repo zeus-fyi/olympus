@@ -160,10 +160,6 @@ func InitV1WebhooksRoutes(e *echo.Echo) {
 	eg.GET("/search/indexer", zeus_webhooks.SupportAcknowledgeSearchIndexerHandler)
 }
 
-const (
-	internalUser = 7138958574876245567
-)
-
 func InitVZWebhooksRoutes(e *echo.Echo) {
 	eg := e.Group("/vz/webhooks")
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
@@ -184,6 +180,8 @@ func InitVZWebhooksRoutes(e *echo.Echo) {
 				return false, c.JSON(http.StatusInternalServerError, nil)
 			}
 			ou := org_users.NewOrgUserWithID(oi, 0)
+
+			c.Set("orgUser", ou)
 			ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "discord")
 			if err != nil {
 				log.Err(err).Msg("GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")

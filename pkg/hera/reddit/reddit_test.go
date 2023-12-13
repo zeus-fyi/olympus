@@ -2,6 +2,7 @@ package hera_reddit
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -52,9 +53,15 @@ func (s *RedditTestSuite) TestInitOrgRedditClient() {
 		After:  "1829cc6",
 		Before: "",
 	}
-	posts, _, err := rc.ReadOnly.Subreddit.NewPosts(ctx, "mlops", lpo)
+	ua := createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	fmt.Println(ua)
+
+	posts, err := rc.GetNewPosts(ctx, "mlops", lpo)
 	s.Require().Nil(err)
 	s.Assert().NotZero(posts)
+
+	_, _, err = rc.FullClient.Account.Info(ctx)
+	s.Require().Nil(err)
 }
 
 func (s *RedditTestSuite) TestReadPosts() {

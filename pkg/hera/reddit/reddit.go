@@ -2,7 +2,6 @@ package hera_reddit
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
@@ -37,18 +36,11 @@ func InitRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, er
 
 func InitOrgRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, error) {
 	r := Reddit{}
-	userAgent := fmt.Sprintf("Zeusfyi/%s (by /u/%s)", id, u)
-	log.Info().Str("userAgent", userAgent)
-	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent(userAgent))
-	if err != nil {
-		log.Err(err).Interface("userAgent", userAgent).Msg("Error initializing reddit client")
-		return Reddit{}, err
-	}
-	r.ReadOnly = ro
+	r.ReadOnly = reddit.DefaultClient()
 	credentials := reddit.Credentials{ID: id, Secret: secret, Username: u, Password: pw}
 	fc, err := reddit.NewClient(credentials)
 	if err != nil {
-		log.Err(err).Interface("userAgent", userAgent).Msg("Error initializing reddit client")
+		log.Err(err).Msg("Error initializing reddit client")
 		return Reddit{}, err
 	}
 	r.FullClient = fc

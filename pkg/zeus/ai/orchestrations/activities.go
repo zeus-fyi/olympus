@@ -125,7 +125,6 @@ func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, ou org_
 	if ps == nil || ps.ApiKey == "" {
 		return fmt.Errorf("GetMockingbirdPlatformSecrets: ps is nil or api key missing")
 	}
-
 	hs, err := misc.HashParams([]interface{}{ps.ApiKey})
 	if err != nil {
 		log.Err(err).Msg("CreateDiscordJob: failed to hash params")

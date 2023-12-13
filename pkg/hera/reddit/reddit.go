@@ -90,10 +90,15 @@ type RedditOauth2Resp struct {
 	Scope       string `json:"scope"`
 	TokenType   string `json:"token_type"`
 }
+
 type RedditResponse struct {
 	Data struct {
-		Children []*reddit.Post `json:"children"`
+		Children []*Child `json:"children"`
 	} `json:"data"`
+}
+
+type Child struct {
+	Data *reddit.Post `json:"data"`
 }
 
 func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
@@ -117,7 +122,11 @@ func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.
 		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
 		return nil, fmt.Errorf("error getting new posts")
 	}
-	return s.Data.Children, nil
+	var posts []*reddit.Post
+	for _, c := range s.Data.Children {
+		posts = append(posts, c.Data)
+	}
+	return posts, nil
 }
 
 func (r *Reddit) GetTopPosts(ctx context.Context, subreddit string, lpo *reddit.ListPostOptions) ([]*reddit.Post, *reddit.Response, error) {

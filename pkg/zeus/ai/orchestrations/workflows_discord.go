@@ -55,6 +55,7 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 	}
 
 	if sq == nil && sq.SearchID == 0 {
+		logger.Info("no search id found")
 		return nil
 	}
 	insertMessagesCtx := workflow.WithActivityOptions(ctx, ao)

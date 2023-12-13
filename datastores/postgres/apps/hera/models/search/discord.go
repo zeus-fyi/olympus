@@ -284,12 +284,12 @@ func SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchG
         FROM public.ai_incoming_discord_messages dm
         INNER JOIN public.ai_discord_search_query dsq 
         ON dm.search_id = dsq.search_id
-        WHERE dsq.org_id = $1 AND dsq.user_id = $2 AND dsq.search_group_name = $3
+        WHERE dsq.org_id = $1 AND dsq.search_group_name = $2
         GROUP BY dm.search_id, dm.guild_id, dm.channel_id;
     `
 
 	var results []*DiscordSearchResult
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, ou.UserID, searchGroupName)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, searchGroupName)
 	if err != nil {
 		log.Err(err).Msg("SelectDiscordSearchQuery")
 		return nil, err

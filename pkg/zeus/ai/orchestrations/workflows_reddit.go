@@ -59,7 +59,8 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 		err = workflow.ExecuteActivity(redditCtx, z.SearchRedditNewPostsUsingSubreddit, ou, redditSearchQuery.Query, lpo).Get(redditCtx, &redditPosts)
 		if err != nil {
 			logger.Error("failed to fetch new Reddit posts", "Error", err)
-			return err
+			err = nil
+			continue
 		}
 		// Add the InsertIncomingRedditDataFromSearch activity here
 		if redditPosts == nil || len(redditPosts) == 0 {

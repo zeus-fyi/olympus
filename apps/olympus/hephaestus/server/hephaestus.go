@@ -24,10 +24,12 @@ var (
 
 func Hephaestus() {
 	ctx := context.Background()
-	rc := reddit.DefaultClient()
-
+	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent("Zeusfyi/1.0 (by /u/zeus-fyi)"))
+	if err != nil {
+		panic(err)
+	}
 	lpo := &reddit.ListOptions{Limit: 100}
-	posts, resp, err := rc.Subreddit.NewPosts(ctx, Workload.WorkloadType, lpo)
+	posts, resp, err := ro.Subreddit.NewPosts(ctx, Workload.WorkloadType, lpo)
 	if err != nil {
 		panic(err)
 	}

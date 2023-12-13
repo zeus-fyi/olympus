@@ -37,9 +37,9 @@ const (
 func (s *JobsTestSuite) TestCreateRJob() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	var kns = zeus_common_types.CloudCtxNs{
-		CloudProvider: "ovh",
-		Region:        "us-west-or-1",
-		Context:       "kubernetes-admin@zeusfyi",
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
 		Namespace:     "zeus",
 		Env:           "production",
 	}
@@ -172,11 +172,11 @@ func RedditJob(subreddit string) v1.Job {
 			BackoffLimit: &bof, // Setting backoffLimit to 0 to prevent retries
 			Template: v1core.PodTemplateSpec{
 				Spec: v1core.PodSpec{
-					ImagePullSecrets: []v1core.LocalObjectReference{
-						{
-							Name: "zeus-fyi-ext",
-						},
-					},
+					//ImagePullSecrets: []v1core.LocalObjectReference{
+					//	{
+					//		Name: "zeus-fyi-ext",
+					//	},
+					//},
 					RestartPolicy: "OnFailure",
 					Containers: []v1core.Container{
 						{

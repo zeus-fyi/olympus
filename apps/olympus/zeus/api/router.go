@@ -172,10 +172,10 @@ func InitVZWebhooksRoutes(e *echo.Echo) {
 			}
 			routePath := pv[0]
 			vals := strings.Split(routePath, "/")
-			if len(vals) < 3 {
+			if len(vals) <= 0 {
 				return false, c.JSON(http.StatusInternalServerError, nil)
 			}
-			oi, err := strconv.Atoi(vals[2])
+			oi, err := strconv.Atoi(vals[0])
 			if err != nil {
 				return false, c.JSON(http.StatusInternalServerError, nil)
 			}
@@ -202,7 +202,7 @@ func InitVZWebhooksRoutes(e *echo.Echo) {
 			return true, err
 		},
 	}))
-	eg.POST("/discord/ai/", zeus_webhooks.RequestDiscordAiTaskStartRequestHandler)
+	eg.POST("/discord/ai/:orgID", zeus_webhooks.RequestDiscordAiTaskStartRequestHandler)
 }
 
 func Health(c echo.Context) error {

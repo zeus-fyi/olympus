@@ -96,7 +96,7 @@ type RedditResponse struct {
 	} `json:"data"`
 }
 
-func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) (*RedditPostSearchResponse, error) {
+func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
 	path := fmt.Sprintf("/r/%s/new.json?limit=100&after=%s", subreddit, lpo.After)
 	ua := createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")
 	r.Resty.SetHeader("User-Agent", ua)
@@ -106,10 +106,11 @@ func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.
 		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
 		return nil, err
 	}
-	re := &RedditPostSearchResponse{
-		Posts: s.Data.Children,
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, fmt.Errorf("error getting new posts")
 	}
-	return re, nil
+	return s.Data.Children, nil
 }
 
 func (r *Reddit) GetTopPosts(ctx context.Context, subreddit string, lpo *reddit.ListPostOptions) ([]*reddit.Post, *reddit.Response, error) {

@@ -148,6 +148,15 @@ func (z *ZeusAiPlatformActivities) SelectDiscordSearchQuery(ctx context.Context,
 	return sq, nil
 }
 
+func (z *ZeusAiPlatformActivities) SelectDiscordSearchQueryByGuildChannel(ctx context.Context, ou org_users.OrgUser, guildID, channelID string) (*hera_search.DiscordSearchResultWrapper, error) {
+	sq, err := hera_search.SelectDiscordSearchQueryByGuildChannel(ctx, ou, guildID, channelID)
+	if err != nil {
+		log.Err(err).Msg("SelectDiscordSearchQuery")
+		return nil, err
+	}
+	return sq, nil
+}
+
 func (z *ZeusAiPlatformActivities) InsertIncomingTweetsFromSearch(ctx context.Context, searchID int, tweets []*twitter.Tweet) error {
 	_, err := hera_search.InsertIncomingTweets(ctx, searchID, tweets)
 	if err != nil {

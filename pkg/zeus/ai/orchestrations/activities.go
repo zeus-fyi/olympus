@@ -50,6 +50,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
 		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask, z.CreateRedditJob,
 		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob, z.CancelRun, z.PlatformIndexerGroupStatusUpdate,
+		z.SelectDiscordSearchQueryByGuildChannel,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }

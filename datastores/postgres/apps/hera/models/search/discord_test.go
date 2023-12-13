@@ -116,6 +116,23 @@ func (s *SearchAITestSuite) TestInsertDiscordSearchQuery() {
 	//fmt.Println(searchID)
 }
 
+func (s *SearchAITestSuite) TestSelect() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+
+	// Setup context and necessary data
+	guildID := "435685690936786944"
+	chID := "564967783725793291"
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	// Call the function
+	r, err := SelectDiscordSearchQueryByGuildChannel(ctx, ou, guildID, chID)
+
+	// Assert expected outcomes
+	s.Require().NoError(err)
+	s.Require().NotNil(r)
+}
+
 func (s *SearchAITestSuite) TestInsertDiscordChannel() {
 	// Initialize context and necessary data
 	searchID := 1700781280741432832 // Replace with a valid search ID

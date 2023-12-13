@@ -35,21 +35,30 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestDiscordWorkflow(ctx workflow.Co
 		logger.Error("failed to update ai orch services", "Error", err)
 		return err
 	}
-	searchQueryCtx := workflow.WithActivityOptions(ctx, ao)
 	var sq *hera_search.DiscordSearchResultWrapper
-	err = workflow.ExecuteActivity(searchQueryCtx, z.SelectDiscordSearchQuery, ou, searchGroupName).Get(searchQueryCtx, &sq)
-	if err != nil {
-		logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
-		// You can decide if you want to return the error or continue monitoring.
-		return err
+
+	searchQueryCtx := workflow.WithActivityOptions(ctx, ao)
+	if len(cm.Guild.Id) > 0 && len(cm.Channel.Id) > 0 {
+		err = workflow.ExecuteActivity(searchQueryCtx, z.SelectDiscordSearchQueryByGuildChannel, ou, cm.Guild.Id, cm.Channel.Id).Get(searchQueryCtx, &sq)
+		if err != nil {
+			logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
+			// You can decide if you want to return the error or continue monitoring.
+			return err
+		}
+	} else {
+		err = workflow.ExecuteActivity(searchQueryCtx, z.SelectDiscordSearchQuery, ou, searchGroupName).Get(searchQueryCtx, &sq)
+		if err != nil {
+			logger.Error("failed to execute SelectDiscordSearchQuery", "Error", err)
+			// You can decide if you want to return the error or continue monitoring.
+			return err
+		}
 	}
 
-	searchID := 1700866280401889000
-	if sq != nil && sq.SearchID > 0 {
-		searchID = sq.SearchID
+	if sq == nil && sq.SearchID == 0 {
+		return nil
 	}
 	insertMessagesCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(insertMessagesCtx, z.InsertIncomingDiscordDataFromSearch, searchID, cm).Get(insertMessagesCtx, nil)
+	err = workflow.ExecuteActivity(insertMessagesCtx, z.InsertIncomingDiscordDataFromSearch, sq.SearchID, cm).Get(insertMessagesCtx, nil)
 	if err != nil {
 		logger.Error("failed to execute InsertIncomingDiscordDataFromSearch", "Error", err)
 		// You can decide if you want to return the error or continue monitoring.

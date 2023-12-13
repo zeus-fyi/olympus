@@ -264,10 +264,11 @@ func IsNull(b []byte) pgtype.Status {
 }
 
 type DiscordSearchResult struct {
-	SearchID     int    `json:"search_id"`
-	GuildID      string `json:"guild_id"`
-	ChannelID    string `json:"channel_id"`
-	MaxMessageID int    `json:"max_message_id"`
+	SearchID        int    `json:"search_id"`
+	GuildID         string `json:"guild_id"`
+	ChannelID       string `json:"channel_id"`
+	MaxMessageID    int    `json:"max_message_id"`
+	SearchGroupName string `json:"searchGroupName,omitempty"`
 }
 
 type DiscordSearchResultWrapper struct {
@@ -298,6 +299,48 @@ func SelectDiscordSearchQuery(ctx context.Context, ou org_users.OrgUser, searchG
 	for rows.Next() {
 		var r DiscordSearchResult
 		if err = rows.Scan(&r.SearchID, &r.GuildID, &r.ChannelID, &r.MaxMessageID); err != nil {
+			log.Err(err).Msg("Error scanning row in SelectDiscordSearchQuery")
+			return nil, err
+		}
+		if searchID == 0 {
+			searchID = r.SearchID
+		}
+		results = append(results, &r)
+	}
+	if err = rows.Err(); err != nil {
+		log.Err(err).Msg("Error iterating rows in SelectDiscordSearchQuery")
+		return nil, err
+	}
+
+	return &DiscordSearchResultWrapper{
+		SearchID: searchID,
+		Results:  results,
+	}, nil
+}
+
+func SelectDiscordSearchQueryByGuildChannel(ctx context.Context, ou org_users.OrgUser, guildID, channelID string) (*DiscordSearchResultWrapper, error) {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "selectDiscordSearchQuery"
+	q.RawQuery = `
+        SELECT dsq.search_group_name, dsq.search_id, gi.guild_id, cm.channel_id
+		FROM public.ai_incoming_discord_messages cm
+		JOIN public.ai_discord_channel ci ON ci.channel_id = cm.channel_id
+		JOIN public.ai_discord_guild gi ON gi.guild_id = cm.guild_id
+		JOIN public.ai_discord_search_query dsq ON dsq.search_id = cm.search_id 
+        WHERE dsq.org_id = $1 AND gi.guild_id = $2 AND ci.channel_id = $3;
+    `
+
+	var results []*DiscordSearchResult
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, guildID, channelID)
+	if err != nil {
+		log.Err(err).Msg("SelectDiscordSearchQuery")
+		return nil, err
+	}
+	defer rows.Close()
+	var searchID int
+	for rows.Next() {
+		var r DiscordSearchResult
+		if err = rows.Scan(&r.SearchGroupName, &r.SearchID, &r.GuildID, &r.ChannelID); err != nil {
 			log.Err(err).Msg("Error scanning row in SelectDiscordSearchQuery")
 			return nil, err
 		}

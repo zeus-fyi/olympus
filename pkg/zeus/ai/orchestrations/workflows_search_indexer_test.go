@@ -32,7 +32,7 @@ func (t *ZeusWorkerTestSuite) TestAiLoop() {
 	t.Require().Nil(err)
 
 	ou := org_users.NewOrgUserWithID(t.Tc.ProductionLocalTemporalOrgID, t.Tc.ProductionLocalTemporalUserID)
-	err = ZeusAiPlatformWorker.ExecuteAiRedditWorkflow(ctx, ou, "zeusfyi")
+	err = ZeusAiPlatformWorker.ExecuteAiFetchDataToIngestDiscordWorkflow(ctx, ou, "zeusfyi")
 	t.Require().Nil(err)
 }
 

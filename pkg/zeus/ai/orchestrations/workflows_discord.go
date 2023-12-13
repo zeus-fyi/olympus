@@ -181,3 +181,50 @@ func DiscordJob(si int, authToken, hs, chID, ts string) v1.Job {
 	}
 	return j
 }
+
+func RedditJob(si int, authToken, hs, chID, ts string) v1.Job {
+	bof := int32(0)
+	j := v1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "batch/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("d-job-%d-%s", si, chID),
+		},
+		Spec: v1.JobSpec{
+			BackoffLimit: &bof, // Setting backoffLimit to 0 to prevent retries
+			Template: v1core.PodTemplateSpec{
+				Spec: v1core.PodSpec{
+					RestartPolicy: "OnFailure",
+					Containers: []v1core.Container{
+						{
+							Name:            "reddit-job",
+							Image:           "zeusfyi/snapshots:latest",
+							ImagePullPolicy: "Always",
+							Command:         []string{"/bin/sh", "-c"},
+							Args: []string{
+								fmt.Sprintf("exec snapshots --bearer=\"%s\" --payload-base-path=\"https://api.zeus.fyi\" --payload-post-path=\"/vz/webhooks/discord/ai\" --workload-type=\"send-payload\" --fi %s.json", hs, chID),
+							},
+							VolumeMounts: []v1core.VolumeMount{
+								{
+									Name:      "data-volume",
+									MountPath: "/data",
+								},
+							},
+						},
+					},
+					Volumes: []v1core.Volume{
+						{
+							Name: "data-volume",
+							VolumeSource: v1core.VolumeSource{
+								EmptyDir: &v1core.EmptyDirVolumeSource{},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return j
+}

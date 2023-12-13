@@ -48,7 +48,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.CreateDiscordJob, z.SelectDiscordSearchQuery, z.InsertIncomingDiscordDataFromSearch,
 		z.UpsertAiOrchestration, z.AiAnalysisTask, z.AiRetrievalTask,
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
-		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask,
+		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask, z.CreateRedditJob,
 		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob, z.CancelRun, z.PlatformIndexerGroupStatusUpdate,
 	}
 	return append(actSlice, ka.GetActivities()...)
@@ -86,6 +86,48 @@ func (z *ZeusAiPlatformActivities) StartIndexingJob(ctx context.Context, sp hera
 		}
 	}
 	return nil
+}
+
+func (z *ZeusAiPlatformActivities) CreateRedditJob(ctx context.Context, ou org_users.OrgUser, si int, channelID, timeAfter string) error {
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "reddit")
+	if err != nil {
+		log.Err(err).Msg("GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
+		return err
+	}
+	if ps == nil || ps.ApiKey == "" {
+		return fmt.Errorf("GetMockingbirdPlatformSecrets: ps is nil or api key missing")
+	}
+
+	hs, err := misc.HashParams([]interface{}{ps.ApiKey})
+	if err != nil {
+		log.Err(err).Msg("CreateDiscordJob: failed to hash params")
+		return err
+	}
+	j := DiscordJob(si, ps.ApiKey, hs, channelID, timeAfter)
+	kns := zeus_common_types.CloudCtxNs{
+		CloudProvider: "ovh",
+		Region:        "us-west-or-1",
+		Context:       "kubernetes-admin@zeusfyi",
+		Namespace:     "zeus",
+		Env:           "production",
+	}
+
+	err = zeus.K8Util.DeleteJob(ctx, kns, j.Name)
+	if err != nil {
+		log.Err(err).Msg("CreateDiscordJob: failed to delete job")
+		return err
+	}
+	err = zeus.K8Util.DeleteAllPodsLike(ctx, kns, j.Name, nil, nil)
+	if err != nil {
+		log.Err(err).Msg("CreateDiscordJob: failed to delete pods")
+		return err
+	}
+	_, err = zeus.K8Util.CreateJob(ctx, kns, &j)
+	if err != nil {
+		log.Err(err).Msg("CreateDiscordJob: failed to create job")
+		return err
+	}
+	return err
 }
 
 func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, ou org_users.OrgUser, si int, channelID, timeAfter string) error {

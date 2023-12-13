@@ -37,8 +37,6 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestRedditWorkflow(ctx workflow.Con
 		return err
 	}
 	if redditSearchQuerySlice == nil || len(redditSearchQuerySlice) == 0 {
-		logger.Info("no Reddit search query found")
-		return nil
 	}
 	for i, redditSearchQuery := range redditSearchQuerySlice {
 		if i > 0 {

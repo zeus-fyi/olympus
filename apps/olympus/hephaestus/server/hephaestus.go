@@ -28,6 +28,8 @@ func createFormattedString(platform, appID, versionString, redditUsername string
 }
 func Hephaestus() {
 	ctx := context.Background()
+	ua := createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	log.Info().Str("ua", ua).Msg("Hephaestus")
 	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent(createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")))
 	if err != nil {
 		panic(err)

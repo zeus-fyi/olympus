@@ -78,4 +78,3 @@ jobs:
           --token ${{ secrets.DEPOT_TOKEN }} \
           --provenance=false \
           -f docker/hephaestus/Dockerfile . --push
-

@@ -182,7 +182,7 @@ func GetAllActiveSearchIndexers(ctx context.Context) ([]SearchIndexerParams, err
 func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {
 	var res []SearchResult
 	platform := sp.Retrieval.RetrievalPlatform
-	if strings.Contains(platform, "twitter") {
+	if strings.Contains(platform, "twitter") || len(platform) == 0 {
 		resTwitter, err := SearchTwitter(ctx, ou, sp)
 		if err != nil {
 			return nil, err
@@ -190,7 +190,7 @@ func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSea
 		res = append(res, resTwitter...)
 	}
 
-	if strings.Contains(platform, "discord") {
+	if strings.Contains(platform, "discord") || len(platform) == 0 {
 		resDiscord, err := SearchDiscord(ctx, ou, sp)
 		if err != nil {
 			return nil, err
@@ -198,7 +198,7 @@ func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSea
 		res = append(res, resDiscord...)
 	}
 
-	if strings.Contains(platform, "telegram") {
+	if strings.Contains(platform, "telegram") || len(platform) == 0 {
 		resTelegram, err := SearchTelegram(ctx, ou, sp)
 		if err != nil {
 			return nil, err
@@ -206,7 +206,7 @@ func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSea
 		res = append(res, resTelegram...)
 	}
 
-	if strings.Contains(platform, "reddit") {
+	if strings.Contains(platform, "reddit") || len(platform) == 0 {
 		resReddit, err := SearchReddit(ctx, ou, sp)
 		if err != nil {
 			return nil, err

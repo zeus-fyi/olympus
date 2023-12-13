@@ -130,7 +130,7 @@ func (z *ZeusAiPlatformActivities) CreateDiscordJob(ctx context.Context, ou org_
 		log.Err(err).Msg("CreateDiscordJob: failed to hash params")
 		return err
 	}
-	j := DiscordJob(si, ps.ApiKey, hs, channelID, timeAfter)
+	j := DiscordJob(ou.OrgID, si, ps.ApiKey, hs, channelID, timeAfter)
 	kns := zeus_common_types.CloudCtxNs{
 		CloudProvider: "ovh",
 		Region:        "us-west-or-1",

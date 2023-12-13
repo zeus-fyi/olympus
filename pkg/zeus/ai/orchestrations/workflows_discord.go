@@ -119,7 +119,7 @@ func (z *ZeusAiPlatformServiceWorkflows) AiFetchDataToIngestDiscordWorkflow(ctx 
 	return nil
 }
 
-func DiscordJob(si int, authToken, hs, chID, ts string) v1.Job {
+func DiscordJob(orgID, si int, authToken, hs, chID, ts string) v1.Job {
 	bof := int32(0)
 	j := v1.Job{
 		TypeMeta: metav1.TypeMeta{
@@ -157,7 +157,7 @@ func DiscordJob(si int, authToken, hs, chID, ts string) v1.Job {
 							ImagePullPolicy: "Always",
 							Command:         []string{"/bin/sh", "-c"},
 							Args: []string{
-								fmt.Sprintf("exec snapshots --bearer=\"%s\" --payload-base-path=\"https://api.zeus.fyi\" --payload-post-path=\"/vz/webhooks/discord/ai\" --workload-type=\"send-payload\" --fi %s.json", hs, chID),
+								fmt.Sprintf("exec snapshots --bearer=\"%s\" --payload-base-path=\"https://api.zeus.fyi\" --payload-post-path=\"/vz/webhooks/discord/ai/%d\" --workload-type=\"send-payload\" --fi %s.json", hs, orgID, chID),
 							},
 							VolumeMounts: []v1core.VolumeMount{
 								{

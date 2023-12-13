@@ -3,6 +3,8 @@ package zeus_router
 import (
 	"context"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -10,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
@@ -167,12 +170,29 @@ func InitVZWebhooksRoutes(e *echo.Echo) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.FetchUserAuthTokenDiscord(ctx, internalUser)
-			if err != nil {
-				log.Err(err).Msg("InitV1InternalRoutes")
+			pv := c.ParamValues()
+			if len(c.ParamValues()) <= 0 {
 				return false, c.JSON(http.StatusInternalServerError, nil)
 			}
-			hs, err := misc.HashParams([]interface{}{key})
+			routePath := pv[0]
+			vals := strings.Split(routePath, "/")
+			if len(vals) < 3 {
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			oi, err := strconv.Atoi(vals[2])
+			if err != nil {
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			ou := org_users.NewOrgUserWithID(oi, 0)
+			ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "discord")
+			if err != nil {
+				log.Err(err).Msg("GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			if ps == nil || ps.ApiKey == "" {
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			hs, err := misc.HashParams([]interface{}{ps.ApiKey})
 			if err != nil {
 				log.Err(err).Msg("CreateDiscordJob: failed to hash params")
 				return false, c.JSON(http.StatusInternalServerError, nil)
@@ -184,9 +204,13 @@ func InitVZWebhooksRoutes(e *echo.Echo) {
 			return true, err
 		},
 	}))
-	eg.POST("/discord/ai", zeus_webhooks.RequestDiscordAiTaskStartRequestHandler)
+	eg.POST("/discord/ai/", zeus_webhooks.RequestDiscordAiTaskStartRequestHandler)
 }
 
 func Health(c echo.Context) error {
 	return c.String(http.StatusOK, "Healthy")
 }
+
+/*
+
+ */

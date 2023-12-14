@@ -32,8 +32,14 @@ export interface AiState {
     selectedMainTab: number;
     selectedMainTabBuilder: number;
     action: Action;
+    actionPlatformAccount: ActionPlatformAccount
     actionMetric: ActionMetric;
     actions: Action[];
+}
+
+export interface ActionPlatformAccount {
+    actionPlatformName: string;
+    actionPlatformAccount: string;
 }
 
 export interface Action {
@@ -43,6 +49,7 @@ export interface Action {
     actionType: string;
     actionStatus: string;
     actionMetrics : ActionMetric[];
+    actionPlatformAccounts: ActionPlatformAccount[];
 }
 
 export interface ActionMetric {

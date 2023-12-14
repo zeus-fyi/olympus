@@ -39,6 +39,7 @@ import {
     removeAggregationFromWorkflowBuilderTaskMap,
     setAction,
     setActionMetric,
+    setActionPlatformAccount,
     setAddAggregateTasks,
     setAddAggregationView,
     setAddAnalysisTasks,
@@ -113,6 +114,7 @@ function WorkflowEngineBuilder(props: any) {
     const workflows = useSelector((state: any) => state.ai.workflows);
     const action = useSelector((state: any) => state.ai.action);
     const actionMetric = useSelector((state: any) => state.ai.actionMetric);
+    const actionPlatformAccount = useSelector((state: any) => state.ai.actionPlatformAccount);
 
     const handleAddRetrievalToAnalysis = () => {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
@@ -1642,25 +1644,43 @@ function WorkflowEngineBuilder(props: any) {
                                                             />
                                                         </Box>
                                                     </Stack>
-                                                    <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
-                                                        <FormControl fullWidth>
-                                                            <InputLabel id="platform-label">Platform</InputLabel>
-                                                            <Select
-                                                                labelId="platform-label"
-                                                                id="platforms-input"
-                                                                value={retrieval.retrievalPlatform}
-                                                                label="Platform"
-                                                                onChange={(e) => dispatch(setRetrievalPlatform(e.target.value))}
-                                                            >
-                                                                <MenuItem value="email">Email</MenuItem>
-                                                                <MenuItem value="text">Text</MenuItem>
-                                                                <MenuItem value="reddit">Reddit</MenuItem>
-                                                                <MenuItem value="twitter">Twitter</MenuItem>
-                                                                <MenuItem value="discord">Discord</MenuItem>
-                                                                <MenuItem value="telegram">Telegram</MenuItem>
-                                                            </Select>
-                                                        </FormControl>
-                                                    </Box>
+                                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                        <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
+                                                            <FormControl fullWidth>
+                                                                <InputLabel id="platform-label">Platform</InputLabel>
+                                                                <Select
+                                                                    labelId="platform-label"
+                                                                    id="platforms-input"
+                                                                    value={actionPlatformAccount.actionPlatformName}
+                                                                    label="Platform"
+                                                                    onChange={(e) => dispatch(setActionPlatformAccount({
+                                                                        ...actionPlatformAccount,
+                                                                        actionPlatformName: e.target.value
+                                                                    }))}
+                                                                >
+                                                                    <MenuItem value="email">Email</MenuItem>
+                                                                    <MenuItem value="text">Text</MenuItem>
+                                                                    <MenuItem value="reddit">Reddit</MenuItem>
+                                                                    <MenuItem value="twitter">Twitter</MenuItem>
+                                                                    <MenuItem value="discord">Discord</MenuItem>
+                                                                    <MenuItem value="telegram">Telegram</MenuItem>
+                                                                </Select>
+                                                            </FormControl>
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="platform-account"
+                                                                label="Platform Account"
+                                                                variant="outlined"
+                                                                value={actionMetric.metricName}
+                                                                onChange={(e) => dispatch(setActionMetric({
+                                                                    ...actionMetric, // Spread the existing action properties
+                                                                    metricName: e.target.value // Update the actionName
+                                                                }))}
+                                                            />
+                                                        </Box>
+                                                    </Stack>
                                                     <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                         <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
                                                             <TextField

@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     Action,
     ActionMetric,
+    ActionPlatformAccount,
     AiState,
     OrchestrationsAnalysis,
     PlatformSecretReference,
@@ -71,6 +72,7 @@ const initialState: AiState = {
         actionGroupName: '',
         actionType: '',
         actionStatus: '',
+        actionPlatformAccounts: [],
         actionMetrics: [],
     },
     actions: [],
@@ -79,12 +81,19 @@ const initialState: AiState = {
         metricScoreThreshold: 1,
         metricPostActionMultiplier: 1,
     },
+    actionPlatformAccount: {
+        actionPlatformName: '',
+        actionPlatformAccount: '',
+    }
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setActionPlatformAccount: (state, action: PayloadAction<ActionPlatformAccount>) => {
+            state.actionPlatformAccount = action.payload;
+        },
         setActionMetric: (state, action: PayloadAction<ActionMetric>) => {
             state.actionMetric = action.payload;
         },
@@ -342,5 +351,6 @@ export const {
     setAction,
     setActions,
     setActionMetric,
+    setActionPlatformAccount,
 } = aiSlice.actions;
 export default aiSlice.reducer;

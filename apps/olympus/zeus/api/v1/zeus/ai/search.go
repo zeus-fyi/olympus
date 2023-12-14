@@ -100,13 +100,11 @@ func (r *AiSearchRequest) SearchAnalyze(c echo.Context) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-
 	res, err := hera_search.PerformPlatformSearches(c.Request().Context(), ou, r.AiSearchParams)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("error performing platform searches")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	hera_search.SortSearchResults(res)
 	resp, err := ai_platform_service_orchestrations.AiAggregateTask(c.Request().Context(), ou, res, r.AiSearchParams)
 	if err != nil {

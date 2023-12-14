@@ -38,7 +38,6 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
-
     async createOrUpdateTaskRequest(params: TaskModelInstructions): Promise<any> {
         const url = `/v1/tasks/ai`;
         const sessionID = inMemoryJWT.getToken();
@@ -50,9 +49,19 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
-
     async createOrUpdateRetrieval(params: Retrieval): Promise<any> {
         const url = `/v1/retrievals/ai`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        }
+        return await zeusApi.post(url, params, config)
+    }
+    async createOrUpdateAction(params: Retrieval): Promise<any> {
+        const url = `/v1/actions/ai`;
         const sessionID = inMemoryJWT.getToken();
         let config = {
             headers: {
@@ -73,7 +82,6 @@ class AiApiGateway {
         }
         return await zeusApi.get(url, config)
     }
-
     async deleteWorkflowsActionRequest(params: DeleteWorkflowsActionRequest): Promise<any> {
         const url = `/v1/workflows/ai`;
         const sessionID = inMemoryJWT.getToken();
@@ -97,7 +105,6 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
-
     async execRunsActionRequest(params: PostRunsActionRequest): Promise<any> {
         const url = `/v1/runs/ai/actions`;
         const sessionID = inMemoryJWT.getToken();
@@ -109,7 +116,6 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
-
     async searchIndexerCreateOrUpdateRequest(params: PostCreateOrUpdateSearchIndexerRequest): Promise<any> {
         const url = `/v1/search/indexer`;
         const sessionID = inMemoryJWT.getToken();
@@ -121,7 +127,6 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
-
     async searchIndexerCreateOrUpdateActionRequest(params: PostSearchIndexerActionsRequest): Promise<any> {
         const url = `/v1/search/indexer/actions`;
         const sessionID = inMemoryJWT.getToken();

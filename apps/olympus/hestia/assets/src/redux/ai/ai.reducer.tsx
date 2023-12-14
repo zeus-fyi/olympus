@@ -1,5 +1,7 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
+    Action,
+    ActionMetric,
     AiState,
     OrchestrationsAnalysis,
     PlatformSecretReference,
@@ -64,12 +66,34 @@ const initialState: AiState = {
     },
     selectedMainTab: 0,
     selectedMainTabBuilder: 0,
+    action: {
+        actionName: '',
+        actionGroupName: '',
+        actionType: '',
+        actionStatus: '',
+        actionMetrics: [],
+    },
+    actions: [],
+    actionMetric: {
+        metricName: '',
+        metricScoreThreshold: 1,
+        metricPostActionMultiplier: 1,
+    },
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setActionMetric: (state, action: PayloadAction<ActionMetric>) => {
+            state.actionMetric = action.payload;
+        },
+        setAction: (state, action: PayloadAction<Action>) => {
+            state.action = action.payload;
+        },
+        setActions: (state, action: PayloadAction<Action[]>) => {
+            state.actions = action.payload;
+        },
         setSelectedMainTab: (state, action: PayloadAction<number>) => {
             state.selectedMainTab = action.payload;
         },
@@ -315,5 +339,8 @@ export const {
     setPlatformSecretReference,
     setSelectedMainTab,
     setSelectedMainTabBuilder,
+    setAction,
+    setActions,
+    setActionMetric,
 } = aiSlice.actions;
 export default aiSlice.reducer;

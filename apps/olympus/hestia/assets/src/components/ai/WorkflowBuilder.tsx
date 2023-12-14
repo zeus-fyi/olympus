@@ -37,6 +37,8 @@ import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
     removeAggregationFromWorkflowBuilderTaskMap,
+    setAction,
+    setActionMetric,
     setAddAggregateTasks,
     setAddAggregationView,
     setAddAnalysisTasks,
@@ -84,7 +86,6 @@ function WorkflowEngineBuilder(props: any) {
     const [loading, setIsLoading] = useState(false);
     const selectedWorkflows = useSelector((state: any) => state.ai.selectedWorkflows);
     const selectedMainTabBuilder = useSelector((state: any) => state.ai.selectedMainTabBuilder);
-
     const [selected, setSelected] = useState<{ [key: number]: boolean }>({});
     const analysisWorkflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
     const aggregationWorkflowInstructions = useSelector((state: RootState) => state.ai.aggregationWorkflowInstructions);
@@ -110,6 +111,8 @@ function WorkflowEngineBuilder(props: any) {
     const workflowName = useSelector((state: RootState) => state.ai.workflowName);
     const workflowGroupName = useSelector((state: RootState) => state.ai.workflowGroupName);
     const workflows = useSelector((state: any) => state.ai.workflows);
+    const action = useSelector((state: any) => state.ai.action);
+    const actionMetric = useSelector((state: any) => state.ai.actionMetric);
 
     const handleAddRetrievalToAnalysis = () => {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
@@ -373,6 +376,8 @@ function WorkflowEngineBuilder(props: any) {
     const [requestRetrievalStatusError, setRequestRetrievalStatusError] = useState('');
     const [requestStatus, setRequestStatus] = useState('');
     const [requestStatusError, setRequestStatusError] = useState('');
+    const [requestActionStatus, setRequestActionStatus] = useState('');
+    const [requestActionStatusError, setRequestActionStatusError] = useState('');
 
     const createOrUpdateWorkflow = async () => {
         try {
@@ -591,6 +596,40 @@ function WorkflowEngineBuilder(props: any) {
         return <div>Loading...</div>;
     }
 
+    const createOrUpdateAction= async () => {
+        try {
+            setIsLoading(true)
+
+            if (!isValidLabel(action.actionName)) {
+                setRequestActionStatus('Action name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                setRequestActionStatusError('error')
+                return;
+            }
+
+            if (!isValidLabel(action.actionGroupName)) {
+                setRequestActionStatus('Action group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                setRequestActionStatusError('error')
+                return;
+            }
+
+            const response = await aiApiGateway.createOrUpdateAction(retrieval);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                setRequestActionStatus('Action created or updated successfully')
+                setRequestActionStatusError('success')
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
+                setRequestActionStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestActionStatusError('error')
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         if (newValue === 1) {
             setSelected({});
@@ -603,6 +642,9 @@ function WorkflowEngineBuilder(props: any) {
             setTaskType('aggregation');
             setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'aggregation'));
         } else if (newValue === 3) {
+            dispatch(setSelectedWorkflows([]));
+            setSelected({});
+        } else if (newValue === 4) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
         }
@@ -623,7 +665,8 @@ function WorkflowEngineBuilder(props: any) {
         setRequestAggStatusError('');
         setRequestRetrievalStatus('');
         setRequestRetrievalStatusError('');
-
+        setRequestActionStatus('');
+        setRequestActionStatusError('');
         dispatch(setAddAnalysisView(false));
         dispatch(setSelectedMainTabBuilder(newValue));
     };
@@ -1556,6 +1599,125 @@ function WorkflowEngineBuilder(props: any) {
                                                 </div>
                                             </CardContent>
                                     }
+                                    {
+                                        selectedMainTabBuilder == 4 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView &&
+                                        <CardContent>
+                                            <div>
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Trigger Action Procedures
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    This allows you to setup event driven rules for AI systems. Email and text actions require a verified email and phone number.
+                                                    Contact us to use these outputs for now, as it currently requires semi-manual work from us to integrate you,
+                                                    and we require you to use a human-in-the loop to approve all AI orchestrated actions that communicate with the outside world.
+                                                    You'll need to generate metrics via the adaptive load balancer to use the metrics based actions. PromQL triggers are only available to enterprise users for now.
+                                                    You can add a trigger to any analysis or aggregation stage output.
+                                                </Typography>
+                                                <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 0 }}>
+                                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="action-name"
+                                                                label="Action Name"
+                                                                variant="outlined"
+                                                                value={action.actionName}
+                                                                onChange={(e) => dispatch(setAction({
+                                                                    ...action, // Spread the existing action properties
+                                                                    actionName: e.target.value // Update the actionName
+                                                                }))}
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="action-group"
+                                                                label="Action Group"
+                                                                variant="outlined"
+                                                                value={action.actionGroupName}
+                                                                onChange={(e) => dispatch(setAction({
+                                                                    ...action, // Spread the existing action properties
+                                                                    actionGroupName: e.target.value // Update the actionName
+                                                                }))}
+                                                            />
+                                                        </Box>
+                                                    </Stack>
+                                                    <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
+                                                        <FormControl fullWidth>
+                                                            <InputLabel id="platform-label">Platform</InputLabel>
+                                                            <Select
+                                                                labelId="platform-label"
+                                                                id="platforms-input"
+                                                                value={retrieval.retrievalPlatform}
+                                                                label="Platform"
+                                                                onChange={(e) => dispatch(setRetrievalPlatform(e.target.value))}
+                                                            >
+                                                                <MenuItem value="email">Email</MenuItem>
+                                                                <MenuItem value="text">Text</MenuItem>
+                                                                <MenuItem value="reddit">Reddit</MenuItem>
+                                                                <MenuItem value="twitter">Twitter</MenuItem>
+                                                                <MenuItem value="discord">Discord</MenuItem>
+                                                                <MenuItem value="telegram">Telegram</MenuItem>
+                                                            </Select>
+                                                        </FormControl>
+                                                    </Box>
+                                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="metric-name"
+                                                                label="Metric Name"
+                                                                variant="outlined"
+                                                                value={actionMetric.metricName}
+                                                                onChange={(e) => dispatch(setActionMetric({
+                                                                    ...actionMetric, // Spread the existing action properties
+                                                                    metricName: e.target.value // Update the actionName
+                                                                }))}
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                type={"number"}
+                                                                id="metric-score-threshold"
+                                                                label="Metric Score Threshold"
+                                                                variant="outlined"
+                                                                value={actionMetric.metricScoreThreshold}
+                                                                onChange={(e) => dispatch(setActionMetric({
+                                                                    ...actionMetric, // Spread the existing action properties
+                                                                    metricScoreThreshold: e.target.value // Update the actionName
+                                                                }))}
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                type={"number"}
+                                                                id="metric-action-multiplier"
+                                                                label="Metric Action Multiplier"
+                                                                variant="outlined"
+                                                                value={actionMetric.metricPostActionMultiplier}
+                                                                onChange={(e) => dispatch(setAction({
+                                                                    ...actionMetric, // Spread the existing action properties
+                                                                    metricPostActionMultiplier: e.target.value // Update the actionName
+                                                                }))}
+                                                            />
+                                                        </Box>
+                                                    </Stack>
+                                                    {requestActionStatus != '' && (
+                                                        <Container sx={{ mb: 2, mt: -2}}>
+                                                            <Typography variant="h6" color={requestActionStatusError}>
+                                                                {requestActionStatus}
+                                                            </Typography>
+                                                        </Container>
+                                                    )}
+                                                    <Box flexGrow={1} sx={{ mb: 0 }}>
+                                                        <Button fullWidth variant="contained" onClick={createOrUpdateAction} >Save Action</Button>
+                                                    </Box>
+                                                </Stack>
+                                            </div>
+                                        </CardContent>
+                                    }
                                     {/*<Typography gutterBottom variant="h5" component="div">*/}
                                     {/*    Time Intervals*/}
                                     {/*</Typography>*/}
@@ -1702,7 +1864,7 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-analysis" label="Analysis" />
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
                                 <Tab className="onboarding-card-highlight-all-retrieval" label="Retrievals" />
-                                {/*<Tab className="onboarding-card-highlight-all-actions" label="Actions" />*/}
+                                <Tab className="onboarding-card-highlight-all-actions" label="Actions" />
                             </Tabs>
                         </Box>
                     </Container>
@@ -1719,7 +1881,6 @@ function WorkflowEngineBuilder(props: any) {
                                 </Container>
 
                         </div>
-
                     }
                     { selectedMainTabBuilder == 0 &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

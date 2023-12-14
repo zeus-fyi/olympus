@@ -515,24 +515,24 @@ function AiWorkflowsDashboardContent(props: any) {
                                             }
                                             { retrieval.retrievalPlatform === 'web' &&
                                                 <div>
-                                                        <Typography variant="h6" color="text.secondary">
-                                                            Use a Load Balancer group for web data retrieval.
-                                                        </Typography>
-                                                        <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
-                                                        <InputLabel key={`groupNameLabel`} id={`groupName`}>
-                                                            Routing Group
-                                                        </InputLabel>
-                                                        <Select
-                                                            labelId={`groupNameLabel`}
-                                                            id={`groupName`}
-                                                            name="groupName"
-                                                            value={retrieval.webFilters?.routingGroup || ''}
-                                                            onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
-                                                            label="Routing Group"
-                                                        >
-                                                            {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
-                                                        </Select>
-                                                        </FormControl>
+                                                    <Typography variant="h6" color="text.secondary">
+                                                        Use a Load Balancer group for web data retrieval.
+                                                    </Typography>
+                                                    <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
+                                                    <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                                        Routing Group
+                                                    </InputLabel>
+                                                    <Select
+                                                        labelId={`groupNameLabel`}
+                                                        id={`groupName`}
+                                                        name="groupName"
+                                                        value={retrieval.webFilters?.routingGroup || ''}
+                                                        onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
+                                                        label="Routing Group"
+                                                    >
+                                                        {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                                    </Select>
+                                                    </FormControl>
                                                 </div>
                                             }
                                             { retrieval.retrievalPlatform === 'discord' &&
@@ -1033,7 +1033,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                 <Tab className="onboarding-card-highlight-all-search-indexer" label="Indexer"/>
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"/>
                                 <Tab className="onboarding-card-highlight-all-workflows-runs" label="Runs"/>
-                                {/*<Tab className="onboarding-card-highlight-all-workflows-actions" label="Actions"/>*/}
+                                <Tab className="onboarding-card-highlight-all-workflows-actions" label="Actions"/>
                             </Tabs>
                         </Box>
                     </Container>

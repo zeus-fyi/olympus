@@ -31,6 +31,24 @@ export interface AiState {
     platformSecretReference: PlatformSecretReference;
     selectedMainTab: number;
     selectedMainTabBuilder: number;
+    action: Action;
+    actionMetric: ActionMetric;
+    actions: Action[];
+}
+
+export interface Action {
+    actionID?: number;
+    actionName: string;
+    actionGroupName: string;
+    actionType: string;
+    actionStatus: string;
+    actionMetrics : ActionMetric[];
+}
+
+export interface ActionMetric {
+    metricName: string;
+    metricScoreThreshold: number;
+    metricPostActionMultiplier: number;
 }
 
 export interface PostWorkflowsRequest {

@@ -1679,10 +1679,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                 id="platform-account"
                                                                 label="Platform Account"
                                                                 variant="outlined"
-                                                                value={actionMetric.metricName}
-                                                                onChange={(e) => dispatch(setActionMetric({
-                                                                    ...actionMetric, // Spread the existing action properties
-                                                                    metricName: e.target.value // Update the actionName
+                                                                value={actionPlatformAccount.actionPlatformAccount}
+                                                                onChange={(e) => dispatch(setActionPlatformAccount({
+                                                                    ...actionPlatformAccount, // Spread the existing action properties
+                                                                    actionPlatformAccount: e.target.value // Update the actionName
                                                                 }))}
                                                             />
                                                         </Box>

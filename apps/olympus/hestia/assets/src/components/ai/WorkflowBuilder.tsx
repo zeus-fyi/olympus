@@ -614,6 +614,12 @@ function WorkflowEngineBuilder(props: any) {
                 return;
             }
 
+            if (action.actionName.length > 0){
+                setRequestActionStatus('Account requires elevated access to use action triggers')
+                setRequestActionStatusError('error')
+                return;
+            }
+
             const response = await aiApiGateway.createOrUpdateAction(retrieval);
             const statusCode = response.status;
             if (statusCode < 400) {

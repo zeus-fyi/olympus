@@ -120,8 +120,24 @@ function WorkflowEngineBuilder(props: any) {
     const removeMetricRow = (index: number) => {
         const updatedMetrics = action.actionMetrics.filter((_: ActionMetric, i: number) => i !== index);
         dispatch(updateActionMetrics(updatedMetrics));
+        setRequestActionStatus('')
+        setRequestActionStatusError('')
     };
     const addMetricRow = () => {
+        if (!isValidLabel(actionMetric.metricName)){
+            setRequestActionStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+            setRequestActionStatusError('error')
+            return;
+        }
+        // Check if the metric name already exists in actionMetrics
+        const existingMetric = action.actionMetrics.some((metric: { metricName: string; }) => metric.metricName === actionMetric.metricName);
+        if (existingMetric) {
+            setRequestActionStatus('Metric name already exists.');
+            setRequestActionStatusError('error');
+            return;
+        }
+        setRequestActionStatus('')
+        setRequestActionStatusError('')
         const updatedMetrics = [...action.actionMetrics,actionMetric];
         dispatch(updateActionMetrics(updatedMetrics));
     };
@@ -564,6 +580,7 @@ function WorkflowEngineBuilder(props: any) {
                 }
                 return;
             }
+
             const task: TaskModelInstructions = {
                 taskType: taskType,
                 taskGroup:taskGn,
@@ -610,25 +627,21 @@ function WorkflowEngineBuilder(props: any) {
     const createOrUpdateAction= async () => {
         try {
             setIsLoading(true)
-
             if (!isValidLabel(action.actionName)) {
                 setRequestActionStatus('Action name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
                 setRequestActionStatusError('error')
                 return;
             }
-
             if (!isValidLabel(action.actionGroupName)) {
                 setRequestActionStatus('Action group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
                 setRequestActionStatusError('error')
                 return;
             }
-
-            if (action.actionName.length > 0){
-                setRequestActionStatus('Account requires elevated access to use action triggers')
+            if (action.actionMetrics.length <= 0){
+                setRequestActionStatus('Use must add at least one metric use action triggers')
                 setRequestActionStatusError('error')
                 return;
             }
-
             const response = await aiApiGateway.createOrUpdateAction(retrieval);
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -1628,7 +1641,9 @@ function WorkflowEngineBuilder(props: any) {
                                                     Contact us to use these outputs for now, as it currently requires semi-manual work from us to integrate you,
                                                     and we require you to use a human-in-the loop to approve all AI orchestrated actions that communicate with the outside world.
                                                     You'll need to generate metrics via the adaptive load balancer to use the metrics based actions. PromQL triggers are only available to enterprise users for now.
-                                                    You can add a trigger to any analysis or aggregation stage output.
+                                                    You can add a trigger to any analysis or aggregation stage output. If you add multiple metrics to a trigger, it will only trigger if all metric thresholds are met.
+                                                    Post-trigger you can add an operator to the metric score to adjust the score before it is used in the trigger. Eg. you can multiply the score, or perform a general math
+                                                    operation on it.
                                                 </Typography>
                                                 <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 0 }}>
                                                     <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
@@ -1662,27 +1677,28 @@ function WorkflowEngineBuilder(props: any) {
                                                     <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                         <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                                             <FormControl fullWidth>
-                                                                <InputLabel id="platform-label">Platform</InputLabel>
+                                                                <InputLabel id="platform-label">Output Actions Platform</InputLabel>
                                                                 <Select
                                                                     labelId="platform-label"
-                                                                    id="platforms-input"
+                                                                    id="actions-platforms-input"
                                                                     value={actionPlatformAccount.actionPlatformName}
-                                                                    label="Platform"
+                                                                    label="Output Actions Platform"
                                                                     onChange={(e) => dispatch(setActionPlatformAccount({
                                                                         ...actionPlatformAccount,
                                                                         actionPlatformName: e.target.value
                                                                     }))}
                                                                 >
-                                                                    <MenuItem value="api">API</MenuItem>
+                                                                    <MenuItem value="metrics-only">Metrics-Only</MenuItem>
                                                                     <MenuItem value="email">Email</MenuItem>
-                                                                    <MenuItem value="text">Text</MenuItem>
-                                                                    <MenuItem value="reddit">Reddit</MenuItem>
-                                                                    <MenuItem value="twitter">Twitter</MenuItem>
-                                                                    <MenuItem value="discord">Discord</MenuItem>
-                                                                    <MenuItem value="telegram">Telegram</MenuItem>
+                                                                    {/*<MenuItem value="text">Text</MenuItem>*/}
+                                                                    {/*<MenuItem value="reddit">Reddit</MenuItem>*/}
+                                                                    {/*<MenuItem value="twitter">Twitter</MenuItem>*/}
+                                                                    {/*<MenuItem value="discord">Discord</MenuItem>*/}
+                                                                    {/*<MenuItem value="telegram">Telegram</MenuItem>*/}
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
+                                                        { actionPlatformAccount.actionPlatformName != 'metrics-only' &&
                                                         <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
                                                             <TextField
                                                                 fullWidth
@@ -1696,6 +1712,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 }))}
                                                             />
                                                         </Box>
+                                                        }
                                                     </Stack>
                                                     <Stack direction="row" >
                                                         <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
@@ -1725,22 +1742,43 @@ function WorkflowEngineBuilder(props: any) {
                                                                 }))}
                                                             />
                                                         </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
+                                                        <Box flexGrow={7} >
+                                                            <FormControl fullWidth >
+                                                                <InputLabel id="metric-action-operator">Operator</InputLabel>
+                                                                <Select
+                                                                    labelId="metric-action-operator-label"
+                                                                    id="metric-action-operator-label"
+                                                                    value={actionMetric.metricOperator}
+                                                                    label="Metric Action Operator"
+                                                                    fullWidth
+                                                                    onChange={(e) => dispatch(setActionMetric({
+                                                                        ...actionMetric, // Spread the existing action properties
+                                                                        metricOperator: e.target.value // Update the actionName
+                                                                    }))}
+                                                                >
+                                                                    <MenuItem value="add">Add</MenuItem>
+                                                                    <MenuItem value="subtract">Subtract</MenuItem>
+                                                                    <MenuItem value="multiply">Multiply</MenuItem>
+                                                                    <MenuItem value="modulus">Modulus</MenuItem>
+                                                                </Select>
+                                                            </FormControl>
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>
                                                             <TextField
                                                                 fullWidth
                                                                 type={"number"}
-                                                                id="metric-action-multiplier"
-                                                                label="Metric Action Multiplier"
+                                                                id="metric-action-number"
+                                                                label="Post-Trigger Operator Value"
                                                                 variant="outlined"
                                                                 value={actionMetric.metricPostActionMultiplier}
-                                                                onChange={(e) => dispatch(setAction({
+                                                                onChange={(e) => dispatch(setActionMetric({
                                                                     ...actionMetric, // Spread the existing action properties
                                                                     metricPostActionMultiplier: e.target.value // Update the actionName
                                                                 }))}
                                                             />
                                                         </Box>
-                                                        <Box flexGrow={1} sx={{ mt:1, mb: 0,ml: 0, mr:0  }}>
-                                                            <Button fullWidth variant={"contained"} onClick={() => addMetricRow}>Add</Button>
+                                                        <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>
+                                                            <Button fullWidth variant={"contained"} onClick={addMetricRow}>Add</Button>
                                                         </Box>
                                                         </Stack>
                                                     {

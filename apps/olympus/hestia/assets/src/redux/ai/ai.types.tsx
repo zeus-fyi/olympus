@@ -56,6 +56,7 @@ export interface ActionMetric {
     metricName: string;
     metricScoreThreshold: number;
     metricPostActionMultiplier: number;
+    metricOperator: string;
 }
 
 export interface PostWorkflowsRequest {

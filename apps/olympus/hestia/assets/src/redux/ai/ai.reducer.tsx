@@ -80,6 +80,7 @@ const initialState: AiState = {
         metricName: '',
         metricScoreThreshold: 1,
         metricPostActionMultiplier: 1,
+        metricOperator: '',
     },
     actionPlatformAccount: {
         actionPlatformName: '',

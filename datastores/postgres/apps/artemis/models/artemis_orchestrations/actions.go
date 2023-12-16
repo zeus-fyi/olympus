@@ -18,6 +18,7 @@ type Action struct {
 
 type ActionMetric struct {
 	MetricName                 string  `json:"metricName"`
+	MetricOperator             string  `json:"metricOperator"`
 	MetricScoreThreshold       float64 `json:"metricScoreThreshold"`
 	MetricPostActionMultiplier float64 `json:"metricPostActionMultiplier"`
 }

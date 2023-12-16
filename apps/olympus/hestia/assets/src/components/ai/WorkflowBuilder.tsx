@@ -19,6 +19,7 @@ import {
     Card,
     CardActions,
     CardContent,
+    Collapse,
     FormControl,
     InputLabel,
     MenuItem,
@@ -80,6 +81,7 @@ import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {RetrievalsTable} from "./RetrievalsTable";
 import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
+import {ExpandLess, ExpandMore} from "@mui/icons-material";
 
 const mdTheme = createTheme();
 
@@ -117,6 +119,11 @@ function WorkflowEngineBuilder(props: any) {
     const action = useSelector((state: any) => state.ai.action);
     const actionMetric = useSelector((state: any) => state.ai.actionMetric);
     const actionPlatformAccount = useSelector((state: any) => state.ai.actionPlatformAccount);
+    const [openRetrievals, setOpenRetrievals] = useState<boolean>(true); // Or use an object/array for multiple sections
+    const [openAnalysis, setOpenAnalysis] = useState<boolean>(true); // Or use an object/array for multiple sections
+    const [openAggregation, setOpenAggregation] = useState<boolean>(true); // Or use an object/array for multiple sections
+    const [openActions, setActions] = useState<boolean>(true); // Or use an object/array for multiple sections
+
     const removeMetricRow = (index: number) => {
         const updatedMetrics = action.actionMetrics.filter((_: ActionMetric, i: number) => i !== index);
         dispatch(updateActionMetrics(updatedMetrics));
@@ -832,10 +839,20 @@ function WorkflowEngineBuilder(props: any) {
                                                 <Divider/>
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 2}}>
-                                                <Typography gutterBottom variant="h5" component="div">
-                                                    Retrieval Stages
-                                                </Typography>
+                                                <Stack direction={"row"}>
+                                                    <IconButton
+                                                        onClick={() => setOpenRetrievals(!openRetrievals)}
+                                                        aria-expanded={openRetrievals}
+                                                        aria-label="show more"
+                                                    >
+                                                        {openRetrievals ? <ExpandLess /> : <ExpandMore />}
+                                                    </IconButton>
+                                                    <Typography gutterBottom variant="h5" component="div">
+                                                        Retrieval Stages
+                                                    </Typography>
+                                                </Stack>
                                             </Box>
+                                            <Collapse in={openRetrievals} timeout="auto" unmountOnExit>
                                             <Box flexGrow={2} sx={{mt: 4}}>
                                                 {retrievalStages && retrievalStages.map((ret, subIndex) => (
                                                     <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
@@ -887,76 +904,88 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box flexGrow={1} sx={{ mb: 0, mt: 2, ml: 2 }}>
                                                 <Button  variant="contained" onClick={() => addRetrievalStageView()} >{addRetrievalView ? 'Done Adding': 'Add Retrieval Stages'}</Button>
                                             </Box>
-                                            <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                        </Collapse>
+
+                                        <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                 <Divider/>
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 2}}>
-                                                <Typography gutterBottom variant="h5" component="div">
-                                                    Analysis Stages
-                                                </Typography>
+                                                <Stack direction={"row"} >
+                                                    <IconButton
+                                                        onClick={() => setOpenAnalysis(!openAnalysis)}
+                                                        aria-expanded={openAnalysis}
+                                                        aria-label="show more"
+                                                    >
+                                                        {openAnalysis ? <ExpandLess /> : <ExpandMore />}
+                                                    </IconButton>
+                                                    <Typography gutterBottom variant="h5" component="div">
+                                                        Analysis Stages
+                                                    </Typography>
+                                                </Stack>
                                             </Box>
-                                            <Box flexGrow={2} sx={{mt: 4}}>
-                                                {!loading && analysisStages && analysisStages.map((task, subIndex) => (
-                                                    <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
-                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
-                                                            <TextField
-                                                                key={subIndex}
-                                                                label={`Analysis Name`}
-                                                                value={task.taskName}
-                                                                InputProps={{
-                                                                    readOnly: true,
-                                                                }}
-                                                                variant="outlined"
-                                                                fullWidth
-                                                                margin="normal"
-                                                            />
-                                                        </Box>
-                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
-                                                            <TextField
-                                                                key={subIndex + task.taskGroup}
-                                                                label={`Analysis Group`}
-                                                                value={task.taskGroup}
-                                                                InputProps={{
-                                                                    readOnly: true,
-                                                                }}
-                                                                variant="outlined"
-                                                                fullWidth
-                                                                margin="normal"
-                                                            />
-                                                        </Box>
-                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
-                                                            <TextField
-                                                                key={subIndex+task.model}
-                                                                label={`Analysis Model`}
-                                                                value={task.model}
-                                                                InputProps={{
-                                                                    readOnly: true,
-                                                                }}
-                                                                variant="outlined"
-                                                                fullWidth
-                                                                margin="normal"
-                                                            />
-                                                        </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 0, mt: -1, ml:2 }}>
-                                                            <TextField
-                                                                type="number"
-                                                                label="Analysis Cycle Count"
-                                                                variant="outlined"
-                                                                value={(task?.taskID !== undefined && taskMap[task.taskID]?.cycleCount > 0) ? taskMap[task.taskID].cycleCount : 1}
-                                                                inputProps={{ min: 1 }}  // Set minimum value to 0
-                                                                onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10), task)}
-                                                                fullWidth
-                                                            />
-                                                        </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
-                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveAnalysisFromWorkflow(event, task)}>Remove</Button>
-                                                        </Box>
-                                                    </Stack>
-                                                ))}
-                                            </Box>
-                                            <Box flexGrow={1} sx={{ mb: 0, mt: 2, ml: 2 }}>
-                                                <Button  variant="contained" onClick={() => addAnalysisStageView()} >{addAnalysisView ? 'Done Adding': 'Add Analysis Stages'}</Button>
-                                            </Box>
+                                            <Collapse in={openAnalysis} timeout="auto" unmountOnExit>
+                                                <Box flexGrow={2} sx={{mt: 4}}>
+                                                    {!loading && analysisStages && analysisStages.map((task, subIndex) => (
+                                                        <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
+                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                <TextField
+                                                                    key={subIndex}
+                                                                    label={`Analysis Name`}
+                                                                    value={task.taskName}
+                                                                    InputProps={{
+                                                                        readOnly: true,
+                                                                    }}
+                                                                    variant="outlined"
+                                                                    fullWidth
+                                                                    margin="normal"
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                <TextField
+                                                                    key={subIndex + task.taskGroup}
+                                                                    label={`Analysis Group`}
+                                                                    value={task.taskGroup}
+                                                                    InputProps={{
+                                                                        readOnly: true,
+                                                                    }}
+                                                                    variant="outlined"
+                                                                    fullWidth
+                                                                    margin="normal"
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                                <TextField
+                                                                    key={subIndex+task.model}
+                                                                    label={`Analysis Model`}
+                                                                    value={task.model}
+                                                                    InputProps={{
+                                                                        readOnly: true,
+                                                                    }}
+                                                                    variant="outlined"
+                                                                    fullWidth
+                                                                    margin="normal"
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{ mb: 0, mt: -1, ml:2 }}>
+                                                                <TextField
+                                                                    type="number"
+                                                                    label="Analysis Cycle Count"
+                                                                    variant="outlined"
+                                                                    value={(task?.taskID !== undefined && taskMap[task.taskID]?.cycleCount > 0) ? taskMap[task.taskID].cycleCount : 1}
+                                                                    inputProps={{ min: 1 }}  // Set minimum value to 0
+                                                                    onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10), task)}
+                                                                    fullWidth
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
+                                                                <Button fullWidth variant="contained" onClick={(event)=>handleRemoveAnalysisFromWorkflow(event, task)}>Remove</Button>
+                                                            </Box>
+                                                        </Stack>
+                                                    ))}
+                                                </Box>
+                                                <Box flexGrow={1} sx={{ mb: 0, mt: 2, ml: 2 }}>
+                                                    <Button  variant="contained" onClick={() => addAnalysisStageView()} >{addAnalysisView ? 'Done Adding': 'Add Analysis Stages'}</Button>
+                                                </Box>
                                             <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                 <Divider/>
                                             </Box>
@@ -1059,21 +1088,32 @@ function WorkflowEngineBuilder(props: any) {
                                                     </Box>
                                                 </div>
                                             }
+                                            </Collapse>
                                             { analysisStages && analysisStages.length > 0 &&
                                                 <div>
                                                     <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                         <Divider/>
                                                     </Box>
                                                     <Box flexGrow={2} sx={{mt:2 , mb: 4}}>
-                                                        <Typography gutterBottom variant="h5" component="div">
-                                                            Aggregation Stages
-                                                        </Typography>
+                                                        <Stack direction={"row"}>
+                                                            <IconButton
+                                                                onClick={() => setOpenAggregation(!openAggregation)}
+                                                                aria-expanded={openAggregation}
+                                                                aria-label="show more"
+                                                            >
+                                                                {openAggregation ? <ExpandLess /> : <ExpandMore />}
+                                                            </IconButton>
+                                                            <Typography gutterBottom variant="h5" component="div">
+                                                                Aggregation Stages
+                                                            </Typography>
+                                                        </Stack>
                                                         <Typography gutterBottom variant="body2" component="div">
-                                                           One aggregation cycle is equal to the longest of any dependent analysis cycles.
+                                                            One aggregation cycle is equal to the longest of any dependent analysis cycles.
                                                             If you have an analysis stage that occurs every 2 time cycles, and set the aggregation cycle count to 2,
                                                             it will run on time cycle 4 after the analysis stage completes.
                                                         </Typography>
                                                     </Box>
+                                                    <Collapse in={openAggregation} timeout="auto" unmountOnExit>
                                                     <Box flexGrow={2} sx={{mt: 4}}>
                                                         <Stack direction={"column"} key={0}>
                                                         {aggregationStages && aggregationStages.map((task, subIndex) => (
@@ -1255,6 +1295,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             }
                                                             </Stack>
                                                     </Box>
+                                                    </Collapse>
                                                 </div>
                                             }
                                         </CardContent>
@@ -1760,6 +1801,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     <MenuItem value="subtract">Subtract</MenuItem>
                                                                     <MenuItem value="multiply">Multiply</MenuItem>
                                                                     <MenuItem value="modulus">Modulus</MenuItem>
+                                                                    <MenuItem value="assign">Assign</MenuItem>
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>

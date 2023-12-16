@@ -91,6 +91,9 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        updateActionMetrics: (state, action: PayloadAction<ActionMetric[]>) => {
+            state.action.actionMetrics = action.payload;
+        },
         setActionPlatformAccount: (state, action: PayloadAction<ActionPlatformAccount>) => {
             state.actionPlatformAccount = action.payload;
         },
@@ -352,5 +355,6 @@ export const {
     setActions,
     setActionMetric,
     setActionPlatformAccount,
+    updateActionMetrics,
 } = aiSlice.actions;
 export default aiSlice.reducer;

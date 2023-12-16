@@ -65,9 +65,11 @@ import {
     setWorkflowBuilderTaskMap,
     setWorkflowGroupName,
     setWorkflowName,
+    updateActionMetrics,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
 import {
+    ActionMetric,
     DeleteWorkflowsActionRequest,
     PostWorkflowsRequest,
     Retrieval,
@@ -115,7 +117,14 @@ function WorkflowEngineBuilder(props: any) {
     const action = useSelector((state: any) => state.ai.action);
     const actionMetric = useSelector((state: any) => state.ai.actionMetric);
     const actionPlatformAccount = useSelector((state: any) => state.ai.actionPlatformAccount);
-
+    const removeMetricRow = (index: number) => {
+        const updatedMetrics = action.actionMetrics.filter((_: ActionMetric, i: number) => i !== index);
+        dispatch(updateActionMetrics(updatedMetrics));
+    };
+    const addMetricRow = () => {
+        const updatedMetrics = [...action.actionMetrics,actionMetric];
+        dispatch(updateActionMetrics(updatedMetrics));
+    };
     const handleAddRetrievalToAnalysis = () => {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
             return;
@@ -1664,6 +1673,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                         actionPlatformName: e.target.value
                                                                     }))}
                                                                 >
+                                                                    <MenuItem value="api">API</MenuItem>
                                                                     <MenuItem value="email">Email</MenuItem>
                                                                     <MenuItem value="text">Text</MenuItem>
                                                                     <MenuItem value="reddit">Reddit</MenuItem>
@@ -1687,8 +1697,8 @@ function WorkflowEngineBuilder(props: any) {
                                                             />
                                                         </Box>
                                                     </Stack>
-                                                    <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                    <Stack direction="row" >
+                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
                                                             <TextField
                                                                 fullWidth
                                                                 id="metric-name"
@@ -1701,7 +1711,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 }))}
                                                             />
                                                         </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
                                                             <TextField
                                                                 fullWidth
                                                                 type={"number"}
@@ -1715,7 +1725,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 }))}
                                                             />
                                                         </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
                                                             <TextField
                                                                 fullWidth
                                                                 type={"number"}
@@ -1729,7 +1739,56 @@ function WorkflowEngineBuilder(props: any) {
                                                                 }))}
                                                             />
                                                         </Box>
-                                                    </Stack>
+                                                        <Box flexGrow={1} sx={{ mt:1, mb: 0,ml: 0, mr:0  }}>
+                                                            <Button fullWidth variant={"contained"} onClick={() => addMetricRow}>Add</Button>
+                                                        </Box>
+                                                        </Stack>
+                                                    {
+                                                        !loading && action && action.actionMetrics && action.actionMetrics.map((metric: ActionMetric, index: number) => (
+                                                            <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                                {/* Metric Name */}
+                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id={`metric-name-${index}`}
+                                                                        label="Metric Name"
+                                                                        variant="outlined"
+                                                                        value={metric.metricName}
+                                                                        inputProps={{ readOnly: true }}
+                                                                    />
+                                                                </Box>
+                                                                {/* Metric Score Threshold */}
+                                                                <Box flexGrow={1} sx={{ mr: 4 }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        type="number"
+                                                                        id={`metric-score-threshold-${index}`}
+                                                                        label="Metric Score Threshold"
+                                                                        variant="outlined"
+                                                                        value={metric.metricScoreThreshold}
+                                                                        inputProps={{ readOnly: true }}
+                                                                    />
+                                                                </Box>
+                                                                {/* Metric Action Multiplier */}
+                                                                <Box flexGrow={1} sx={{ mr: 4 }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        type="number"
+                                                                        id={`metric-action-multiplier-${index}`}
+                                                                        label="Metric Action Multiplier"
+                                                                        variant="outlined"
+                                                                        value={metric.metricPostActionMultiplier}
+                                                                        inputProps={{ readOnly: true }}
+                                                                    />
+                                                                </Box>
+                                                                {/* Remove Button */}
+                                                                <Box sx={{ mr: 4 }}>
+                                                                    <Button onClick={() => removeMetricRow(index)}>Remove</Button>
+                                                                </Box>
+                                                            </Stack>
+                                                        ))
+                                                    }
+
                                                     {requestActionStatus != '' && (
                                                         <Container sx={{ mb: 2, mt: -2}}>
                                                             <Typography variant="h6" color={requestActionStatusError}>

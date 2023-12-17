@@ -1884,7 +1884,9 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="all-pass">{'all-pass'}</MenuItem>
+                                                                    <MenuItem value="any-pass">{'any-pass'}</MenuItem>
                                                                     <MenuItem value="all-fail">{'all-fail'}</MenuItem>
+                                                                    <MenuItem value="any-fail">{'any-fail'}</MenuItem>
                                                                     <MenuItem value="mixed-status">{'mixed-status'}</MenuItem>
                                                                 </Select>
                                                             </FormControl>

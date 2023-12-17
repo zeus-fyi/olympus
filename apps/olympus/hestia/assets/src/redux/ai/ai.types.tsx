@@ -37,6 +37,12 @@ export interface AiState {
     actions: Action[];
     evalFn: EvalFn
     evalMetric: EvalMetric;
+    actionsEvalTrigger: EvalActionTrigger;
+}
+
+export interface EvalActionTrigger {
+    evalState: string;
+    evalCompletionStatus: string;
 }
 
 export interface EvalFn {
@@ -69,11 +75,14 @@ export interface Action {
     actionID?: number;
     actionName: string;
     actionGroupName: string;
+    actionTriggerOn: string;
     actionType: string;
     actionStatus: string;
+    actionEvals: EvalActionTrigger[];
     actionMetrics : ActionMetric[];
     actionPlatformAccounts: ActionPlatformAccount[];
 }
+
 
 export interface ActionMetric {
     metricName: string;

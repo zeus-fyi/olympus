@@ -4,6 +4,7 @@ import {
     ActionMetric,
     ActionPlatformAccount,
     AiState,
+    EvalActionTrigger,
     EvalFn,
     EvalMetric,
     OrchestrationsAnalysis,
@@ -74,8 +75,10 @@ const initialState: AiState = {
         actionGroupName: '',
         actionType: '',
         actionStatus: '',
+        actionTriggerOn: '',
         actionPlatformAccounts: [],
         actionMetrics: [],
+        actionEvals: [],
     },
     actions: [],
     actionMetric: {
@@ -107,6 +110,10 @@ const initialState: AiState = {
         evalModel: '',
         evalMetrics: [],
     },
+    actionsEvalTrigger: {
+        evalState: '',
+        evalCompletionStatus: '',
+    },
 }
 
 const aiSlice = createSlice({
@@ -115,6 +122,9 @@ const aiSlice = createSlice({
     reducers: {
         setEval: (state, action: PayloadAction<EvalFn>) => {
             state.evalFn = action.payload;
+        },
+        setActionsEvalTrigger: (state, action: PayloadAction<EvalActionTrigger>) => {
+            state.actionsEvalTrigger = action.payload;
         },
         updateActionMetrics: (state, action: PayloadAction<ActionMetric[]>) => {
             state.action.actionMetrics = action.payload;
@@ -390,5 +400,6 @@ export const {
     setEvalMetric,
     setEval,
     updateEvalMetrics,
+    setActionsEvalTrigger,
 } = aiSlice.actions;
 export default aiSlice.reducer;

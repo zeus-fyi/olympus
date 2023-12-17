@@ -1,8 +1,10 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
 import {
+    Action,
     AiSearchParams,
     DeleteWorkflowsActionRequest,
+    EvalFn,
     PostCreateOrUpdateSearchIndexerRequest,
     PostRunsActionRequest,
     PostSearchIndexerActionsRequest,
@@ -60,8 +62,19 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
-    async createOrUpdateAction(params: Retrieval): Promise<any> {
+    async createOrUpdateAction(params: Action): Promise<any> {
         const url = `/v1/actions/ai`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        }
+        return await zeusApi.post(url, params, config)
+    }
+    async createOrUpdateEval(params: EvalFn): Promise<any> {
+        const url = `/v1/evals/ai`;
         const sessionID = inMemoryJWT.getToken();
         let config = {
             headers: {

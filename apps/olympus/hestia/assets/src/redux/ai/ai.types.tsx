@@ -35,6 +35,29 @@ export interface AiState {
     actionPlatformAccount: ActionPlatformAccount
     actionMetric: ActionMetric;
     actions: Action[];
+    evalFn: EvalFn
+    evalMetric: EvalMetric;
+}
+
+export interface EvalFn {
+    evalID?: number;
+    evalName: string;
+    evalType: string;
+    evalGroupName: string;
+    evalModel?: string;
+    evalFormat: string
+    evalMetrics: EvalMetric[];
+}
+export interface EvalMetric {
+    evalModelPrompt: string;
+    evalMetricName: string;
+    evalMetricResult: string;
+    evalComparisonBoolean?: boolean;
+    evalComparisonNumber?: number;
+    evalComparisonString?: string;
+    evalMetricDataType: string;
+    evalOperator: string;
+    evalState: string;
 }
 
 export interface ActionPlatformAccount {
@@ -80,6 +103,7 @@ export interface TaskModelInstructions {
     tokenOverflowStrategy: string;
     prompt: string;
     cycleCount: number;
+    responseFormat: string;
     retrievals?: AnalysisRetrievalsMap;
 }
 
@@ -237,7 +261,6 @@ export interface PostCreateOrUpdateSearchIndexerRequest {
     searchIndexer: SearchIndexerParams;
     platformSecretReference: PlatformSecretReference;
 }
-
 
 export interface PostSearchIndexerActionsRequest {
     action: string;

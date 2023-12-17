@@ -4,6 +4,8 @@ import {
     ActionMetric,
     ActionPlatformAccount,
     AiState,
+    EvalFn,
+    EvalMetric,
     OrchestrationsAnalysis,
     PlatformSecretReference,
     Retrieval,
@@ -85,21 +87,49 @@ const initialState: AiState = {
     actionPlatformAccount: {
         actionPlatformName: '',
         actionPlatformAccount: '',
-    }
+    },
+    evalMetric: {
+        evalMetricName: '',
+        evalModelPrompt: '',
+        evalComparisonNumber: 1,
+        evalComparisonString: '',
+        evalComparisonBoolean: false,
+        evalMetricDataType: '',
+        evalOperator: '',
+        evalState: '',
+        evalMetricResult: '',
+    },
+    evalFn: {
+        evalName: '',
+        evalType: '',
+        evalFormat: '',
+        evalGroupName: '',
+        evalModel: '',
+        evalMetrics: [],
+    },
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setEval: (state, action: PayloadAction<EvalFn>) => {
+            state.evalFn = action.payload;
+        },
         updateActionMetrics: (state, action: PayloadAction<ActionMetric[]>) => {
             state.action.actionMetrics = action.payload;
+        },
+        updateEvalMetrics: (state, action: PayloadAction<EvalMetric[]>) => {
+            state.evalFn.evalMetrics = action.payload;
         },
         setActionPlatformAccount: (state, action: PayloadAction<ActionPlatformAccount>) => {
             state.actionPlatformAccount = action.payload;
         },
         setActionMetric: (state, action: PayloadAction<ActionMetric>) => {
             state.actionMetric = action.payload;
+        },
+        setEvalMetric: (state, action: PayloadAction<EvalMetric>) => {
+            state.evalMetric = action.payload;
         },
         setAction: (state, action: PayloadAction<Action>) => {
             state.action = action.payload;
@@ -357,5 +387,8 @@ export const {
     setActionMetric,
     setActionPlatformAccount,
     updateActionMetrics,
+    setEvalMetric,
+    setEval,
+    updateEvalMetrics,
 } = aiSlice.actions;
 export default aiSlice.reducer;

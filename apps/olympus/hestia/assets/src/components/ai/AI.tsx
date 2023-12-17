@@ -42,7 +42,6 @@ import {
     setRetrievalPlatform,
     setRetrievalPlatformGroups,
     setRetrievalPrompt,
-    setRetrievalUsernames,
     setSearchIndexer,
     setSearchResults,
     setSelectedMainTab,
@@ -547,18 +546,18 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     />
                                                 </Box>
                                             }
-                                            { retrieval.retrievalPlatform !== 'web' &&
-                                                <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
-                                                <TextField
-                                                    fullWidth
-                                                    id="usernames-input"
-                                                    label="Usernames"
-                                                    variant="outlined"
-                                                    value={retrieval.retrievalUsernames}
-                                                    onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}
-                                                />
-                                            </Box>
-                                            }
+                                            {/*{ retrieval.retrievalPlatform !== 'web' &&*/}
+                                            {/*    <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>*/}
+                                            {/*    <TextField*/}
+                                            {/*        fullWidth*/}
+                                            {/*        id="usernames-input"*/}
+                                            {/*        label="Usernames"*/}
+                                            {/*        variant="outlined"*/}
+                                            {/*        value={retrieval.retrievalUsernames}*/}
+                                            {/*        onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}*/}
+                                            {/*    />*/}
+                                            {/*</Box>*/}
+                                            {/*}*/}
                                             <Typography variant="h6" color="text.secondary">
                                                 Search keywords using comma separated values below.
                                             </Typography>

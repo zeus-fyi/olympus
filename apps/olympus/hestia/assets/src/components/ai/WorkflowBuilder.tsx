@@ -51,6 +51,8 @@ import {
     setAnalysisRetrievalsMap,
     setAnalysisWorkflowInstructions,
     setDiscordOptionsCategoryName,
+    setEval,
+    setEvalMetric,
     setRetrievalGroup,
     setRetrievalKeywords,
     setRetrievalName,
@@ -58,7 +60,6 @@ import {
     setRetrievalPlatformGroups,
     setRetrievalPrompt,
     setRetrievals,
-    setRetrievalUsernames,
     setSelectedMainTabBuilder,
     setSelectedWorkflows,
     setTaskMap,
@@ -67,11 +68,13 @@ import {
     setWorkflowGroupName,
     setWorkflowName,
     updateActionMetrics,
+    updateEvalMetrics,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
 import {
     ActionMetric,
     DeleteWorkflowsActionRequest,
+    EvalMetric,
     PostWorkflowsRequest,
     Retrieval,
     TaskModelInstructions
@@ -117,6 +120,8 @@ function WorkflowEngineBuilder(props: any) {
     const workflowGroupName = useSelector((state: RootState) => state.ai.workflowGroupName);
     const workflows = useSelector((state: any) => state.ai.workflows);
     const action = useSelector((state: any) => state.ai.action);
+    const evalMetric = useSelector((state: any) => state.ai.evalMetric);
+    const evalFn = useSelector((state: any) => state.ai.evalFn);
     const actionMetric = useSelector((state: any) => state.ai.actionMetric);
     const actionPlatformAccount = useSelector((state: any) => state.ai.actionPlatformAccount);
     const [openRetrievals, setOpenRetrievals] = useState<boolean>(true); // Or use an object/array for multiple sections
@@ -124,27 +129,53 @@ function WorkflowEngineBuilder(props: any) {
     const [openAggregation, setOpenAggregation] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openActions, setActions] = useState<boolean>(true); // Or use an object/array for multiple sections
 
-    const removeMetricRow = (index: number) => {
+    const removeEvalMetricRow = (index: number) => {
+        const updatedMetrics = evalFn.evalMetrics.filter((_: EvalMetric, i: number) => i !== index);
+        dispatch(updateEvalMetrics(updatedMetrics));
+        setRequestEvalCreateOrUpdateStatus('')
+        setRequestEvalCreateOrUpdateStatusError('')
+    };
+
+    const removeActionMetricRow = (index: number) => {
         const updatedMetrics = action.actionMetrics.filter((_: ActionMetric, i: number) => i !== index);
         dispatch(updateActionMetrics(updatedMetrics));
-        setRequestActionStatus('')
-        setRequestActionStatusError('')
+        setRequestMetricActionCreateOrUpdateStatus('')
+        setRequestMetricActionCreateOrUpdateStatusError('')
     };
-    const addMetricRow = () => {
+    const addEvalMetricRow = () => {
+        if (!isValidLabel(evalMetric.evalMetricName)){
+            setRequestEvalCreateOrUpdateStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+            setRequestEvalCreateOrUpdateStatusError('error')
+            return;
+        }
+        // Check if the metric name already exists in actionMetrics
+        const existingMetric = evalFn.evalMetrics.some((metric: { evalMetricName: string; }) => metric.evalMetricName === evalMetric.evalMetricName);
+        if (existingMetric) {
+            setRequestEvalCreateOrUpdateStatus('Metric name already exists.');
+            setRequestEvalCreateOrUpdateStatusError('error');
+            return;
+        }
+        setRequestEvalCreateOrUpdateStatus('')
+        setRequestEvalCreateOrUpdateStatusError('')
+        const updatedMetrics = [...evalFn.evalMetrics,evalMetric];
+        dispatch(updateEvalMetrics(updatedMetrics));
+    };
+
+    const addActionMetricRow = () => {
         if (!isValidLabel(actionMetric.metricName)){
-            setRequestActionStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
-            setRequestActionStatusError('error')
+            setRequestMetricActionCreateOrUpdateStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+            setRequestMetricActionCreateOrUpdateStatusError('error')
             return;
         }
         // Check if the metric name already exists in actionMetrics
         const existingMetric = action.actionMetrics.some((metric: { metricName: string; }) => metric.metricName === actionMetric.metricName);
         if (existingMetric) {
-            setRequestActionStatus('Metric name already exists.');
-            setRequestActionStatusError('error');
+            setRequestMetricActionCreateOrUpdateStatus('Metric name already exists.');
+            setRequestMetricActionCreateOrUpdateStatusError('error');
             return;
         }
-        setRequestActionStatus('')
-        setRequestActionStatusError('')
+        setRequestMetricActionCreateOrUpdateStatus('')
+        setRequestMetricActionCreateOrUpdateStatusError('')
         const updatedMetrics = [...action.actionMetrics,actionMetric];
         dispatch(updateActionMetrics(updatedMetrics));
     };
@@ -412,7 +443,10 @@ function WorkflowEngineBuilder(props: any) {
     const [requestStatusError, setRequestStatusError] = useState('');
     const [requestActionStatus, setRequestActionStatus] = useState('');
     const [requestActionStatusError, setRequestActionStatusError] = useState('');
-
+    const [requestEvalCreateOrUpdateStatus, setRequestEvalCreateOrUpdateStatus] = useState('');
+    const [requestEvalCreateOrUpdateStatusError, setRequestEvalCreateOrUpdateStatusError] = useState('');
+    const [requestMetricActionCreateOrUpdateStatus, setRequestMetricActionCreateOrUpdateStatus] = useState('');
+    const [requestMetricActionCreateOrUpdateStatusError, setRequestMetricActionCreateOrUpdateStatusError] = useState('');
     const createOrUpdateWorkflow = async () => {
         try {
             const allMappedRetrievalIDs: Set<number> = new Set();
@@ -592,6 +626,7 @@ function WorkflowEngineBuilder(props: any) {
                 taskType: taskType,
                 taskGroup:taskGn,
                 taskName: tn,
+                responseFormat: 'text',
                 model: (taskType === 'analysis' ? analysisModel : aggregationModel),
                 group: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
                 prompt: (taskType === 'analysis' ? analysisWorkflowInstructions : aggregationWorkflowInstructions),
@@ -803,7 +838,7 @@ function WorkflowEngineBuilder(props: any) {
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
-                            <Card sx={{ minWidth: 500, maxWidth: 900 }}>
+                            <Card sx={{ minWidth: 500, maxWidth: 1200 }}>
                                 {( selectedMainTabBuilder === 0 || addAnalysisView || addAggregateView || addRetrievalView) &&
                                     <div>
                                         <CardContent>
@@ -1611,18 +1646,18 @@ function WorkflowEngineBuilder(props: any) {
                                                             />
                                                     </Box>
                                                     }
-                                                { retrieval.retrievalPlatform !== 'web' &&
-                                                    <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
-                                                        <TextField
-                                                            fullWidth
-                                                            id="usernames-input"
-                                                            label="Usernames"
-                                                            variant="outlined"
-                                                            value={retrieval.retrievalUsernames}
-                                                            onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}
-                                                        />
-                                                    </Box>
-                                                }
+                                                {/*{ retrieval.retrievalPlatform !== 'web' &&*/}
+                                                {/*    <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>*/}
+                                                {/*        <TextField*/}
+                                                {/*            fullWidth*/}
+                                                {/*            id="usernames-input"*/}
+                                                {/*            label="Usernames"*/}
+                                                {/*            variant="outlined"*/}
+                                                {/*            value={retrieval.retrievalUsernames}*/}
+                                                {/*            onChange={(e) => dispatch(setRetrievalUsernames(e.target.value))}*/}
+                                                {/*        />*/}
+                                                {/*    </Box>*/}
+                                                {/*}*/}
 
                                                 { retrieval.retrievalPlatform === 'web' &&
                                                     <Typography variant="h5" color="text.secondary">
@@ -1820,7 +1855,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             />
                                                         </Box>
                                                         <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>
-                                                            <Button fullWidth variant={"contained"} onClick={addMetricRow}>Add</Button>
+                                                            <Button fullWidth variant={"contained"} onClick={addActionMetricRow}>Add</Button>
                                                         </Box>
                                                         </Stack>
                                                     {
@@ -1863,7 +1898,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Box>
                                                                 {/* Remove Button */}
                                                                 <Box sx={{ mr: 4 }}>
-                                                                    <Button onClick={() => removeMetricRow(index)}>Remove</Button>
+                                                                    <Button onClick={() => removeActionMetricRow(index)}>Remove</Button>
                                                                 </Box>
                                                             </Stack>
                                                         ))
@@ -1878,6 +1913,369 @@ function WorkflowEngineBuilder(props: any) {
                                                     )}
                                                     <Box flexGrow={1} sx={{ mb: 0 }}>
                                                         <Button fullWidth variant="contained" onClick={createOrUpdateAction} >Save Action</Button>
+                                                    </Box>
+                                                </Stack>
+                                            </div>
+                                        </CardContent>
+                                    }
+                                    {
+                                        selectedMainTabBuilder == 5 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView &&
+                                        <CardContent>
+                                            <div>
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Eval Scoring Functions
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    This allows you to setup scoring rules for AI system outputs that set metrics for the AI to use in its decision making process.
+                                                </Typography>
+                                                <Stack direction="column" spacing={2} sx={{ mt: 2, mb: 0 }}>
+                                                    <Stack direction="row" spacing={2} sx={{ mt: 0, mb: 4 }}>
+                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="eval-name"
+                                                                label="Eval Name"
+                                                                variant="outlined"
+                                                                value={evalFn.evalName}
+                                                                onChange={(e) => dispatch(setEval({
+                                                                    ...action, // Spread the existing action properties
+                                                                    evalName: e.target.value // Update the actionName
+                                                                }))}
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="eval-group"
+                                                                label="Eval Group"
+                                                                variant="outlined"
+                                                                value={evalFn.evalGroupName}
+                                                                onChange={(e) => dispatch(setEval({
+                                                                    ...action, // Spread the existing action properties
+                                                                    evalGroupName: e.target.value // Update the actionName
+                                                                }))}
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={7} >
+                                                            <FormControl fullWidth >
+                                                                <InputLabel id="eval-type-operator">Type</InputLabel>
+                                                                <Select
+                                                                    labelId="eval-type-label"
+                                                                    id="eval-type-label"
+                                                                    value={evalFn.evalType}
+                                                                    label="Eval Type"
+                                                                    fullWidth
+                                                                    onChange={(e) => dispatch(setEval({
+                                                                        ...action, // Spread the existing action properties
+                                                                        evalType: e.target.value // Update the actionName
+                                                                    }))}
+
+                                                                >
+                                                                    <MenuItem value="model">Model</MenuItem>
+                                                                    <MenuItem value="api">API</MenuItem>
+                                                                    <MenuItem value="adaptive">Adaptive</MenuItem>
+                                                                </Select>
+                                                            </FormControl>
+                                                        </Box>
+                                                    </Stack>
+                                                    { evalFn.evalType == 'model' &&
+                                                    <Stack direction={"row"} >
+                                                        <Box flexGrow={3} sx={{ mr: 2}}>
+                                                            <FormControl fullWidth>
+                                                                <InputLabel id="eval-model-label">Eval Model</InputLabel>
+                                                                <Select
+                                                                    labelId="eval-model-label"
+                                                                    id="eval-model-select"
+                                                                    value={evalFn.evalModel}
+                                                                    label="Eval Model"
+                                                                    onChange={(e) => dispatch(setEval({
+                                                                        ...evalFn, // Spread the existing action properties
+                                                                        evalModel: e.target.value // Update the actionName
+                                                                    }))}
+                                                                >
+                                                                    <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                                                                    <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                                </Select>
+                                                            </FormControl>
+                                                        </Box>
+                                                        <Box flexGrow={3} sx={{ }}>
+                                                            <FormControl fullWidth>
+                                                                <InputLabel id="eval-format-label">Eval Format</InputLabel>
+                                                                <Select
+                                                                    labelId="eval-format-label"
+                                                                    id="eval-format-select"
+                                                                    value={evalFn.evalFormat}
+                                                                    label="Eval Model"
+                                                                    onChange={(e) => dispatch(setEval({
+                                                                        ...evalFn, // Spread the existing action properties
+                                                                        evalFormat: e.target.value // Update the actionName
+                                                                    }))}
+                                                                >
+                                                                    <MenuItem value="code">code</MenuItem>
+                                                                    <MenuItem value="json">json</MenuItem>
+                                                                </Select>
+                                                            </FormControl>
+                                                        </Box>
+                                                    </Stack>
+                                                    }
+                                                    <Stack direction="column" >
+                                                        <Stack direction={"row"} >
+                                                            <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:0  }}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="metric-name"
+                                                                    label="Metric Name"
+                                                                    variant="outlined"
+                                                                    value={evalMetric.evalMetricName}
+                                                                    onChange={(e) => dispatch(setEvalMetric({
+                                                                        ...evalMetric, // Spread the existing action properties
+                                                                        evalMetricName: e.target.value // Update the actionName
+                                                                    }))}
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={7} sx={{ mb: 2,ml: 2, mr:0  }}>
+                                                                <FormControl fullWidth >
+                                                                    <InputLabel id="metric-state-operator">State</InputLabel>
+                                                                    <Select
+                                                                        labelId="metric-state-operator-label"
+                                                                        id="metric-state-operator-label"
+                                                                        value={evalMetric.metricState}
+                                                                        label="Metric State Operator"
+                                                                        fullWidth
+                                                                        onChange={(e) => dispatch(setEvalMetric({
+                                                                            ...evalMetric, // Spread the existing action properties
+                                                                            metricState: e.target.value // Update the actionName
+                                                                        }))}
+                                                                    >
+                                                                        <MenuItem value="info">{'info'}</MenuItem>
+                                                                        <MenuItem value="debug">{'debug'}</MenuItem>
+                                                                        <MenuItem value="warning">{'warning'}</MenuItem>
+                                                                        <MenuItem value="critical">{'critical'}</MenuItem>
+                                                                        <MenuItem value="error">{'error'}</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                        </Stack>
+                                                        <Stack direction="row" >
+                                                            <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:2  }}>
+                                                                <FormControl fullWidth >
+                                                                    <InputLabel id="eval-metric-type">Metric Data Type</InputLabel>
+                                                                    <Select
+                                                                        labelId="eval-metric-type-label"
+                                                                        id="eval-metric-type-label"
+                                                                        value={evalMetric.evalMetricDataType}
+                                                                        label="Eval Metric Type"
+                                                                        fullWidth
+                                                                        onChange={(e) => dispatch(setEvalMetric({
+                                                                            ...evalMetric, // Spread the existing action properties
+                                                                            evalMetricDataType: e.target.value // Update the actionName
+                                                                        }))}
+                                                                    >
+                                                                        <MenuItem value="number">{'number'}</MenuItem>
+                                                                        <MenuItem value="string">{'string'}</MenuItem>
+                                                                        <MenuItem value="boolean">{'boolean'}</MenuItem>
+                                                                        <MenuItem value="array[number]">{'array[number]'}</MenuItem>
+                                                                        <MenuItem value="array[string]">{'array[string]'}</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                            { evalMetric.evalMetricDataType === 'boolean' &&
+                                                                <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:2  }}>
+                                                                    <FormControl fullWidth >
+                                                                        <InputLabel id="metric-action-operator">Operator</InputLabel>
+                                                                        <Select
+                                                                            labelId="metric-action-operator-label"
+                                                                            id="metric-action-operator-label"
+                                                                            value={evalMetric.evalComparisonBoolean}
+                                                                            label="Metric Action Operator"
+                                                                            fullWidth
+                                                                            onChange={(e) => dispatch(setEvalMetric({
+                                                                                ...evalMetric, // Spread the existing action properties
+                                                                                evalComparisonBoolean: e.target.value === 'true'// Update the actionName
+                                                                            }))}
+                                                                        >
+                                                                            <MenuItem value="true">{'true'}</MenuItem>
+                                                                            <MenuItem value="false">{'false'}</MenuItem>
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                            }
+                                                            { evalMetric.evalMetricDataType === 'number' &&
+                                                            <Box flexGrow={7} >
+                                                                <FormControl fullWidth >
+                                                                    <InputLabel id="metric-action-operator">Operator</InputLabel>
+                                                                    <Select
+                                                                        labelId="metric-action-operator-label"
+                                                                        id="metric-action-operator-label"
+                                                                        value={evalMetric.evalOperator}
+                                                                        label="Metric Action Operator"
+                                                                        fullWidth
+                                                                        onChange={(e) => dispatch(setEvalMetric({
+                                                                            ...evalMetric, // Spread the existing action properties
+                                                                            evalOperator: e.target.value // Update the actionName
+                                                                        }))}
+                                                                    >
+                                                                        <MenuItem value="gt">{'>'}</MenuItem>
+                                                                        <MenuItem value="gte">{'>='}</MenuItem>
+                                                                        <MenuItem value="lt">{'<'}</MenuItem>
+                                                                        <MenuItem value="lte">{'<='}</MenuItem>
+                                                                        <MenuItem value="eq">{'=='}</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                            }
+                                                            { evalMetric.evalMetricDataType === 'string' &&
+                                                                <Box flexGrow={7} >
+                                                                    <FormControl fullWidth >
+                                                                        <InputLabel id="metric-action-operator">Operator</InputLabel>
+                                                                        <Select
+                                                                            labelId="metric-action-operator-label"
+                                                                            id="metric-action-operator-label"
+                                                                            value={evalMetric.evalOperator}
+                                                                            label="Metric Action Operator"
+                                                                            fullWidth
+                                                                            onChange={(e) => dispatch(setEvalMetric({
+                                                                                ...evalMetric, // Spread the existing action properties
+                                                                                evalOperator: e.target.value // Update the actionName
+                                                                            }))}
+                                                                        >
+                                                                            <MenuItem value="contains">{'contains'}</MenuItem>
+                                                                            <MenuItem value="has-prefix">{'has-prefix'}</MenuItem>
+                                                                            <MenuItem value="has-suffix">{'has-suffix'}</MenuItem>
+                                                                            <MenuItem value="does-not-start-with-any">{'does-not-start-with'}</MenuItem>
+                                                                            <MenuItem value="does-not-include">{'does-not-include'}</MenuItem>
+                                                                            <MenuItem value="equals">{'equals'}</MenuItem>
+                                                                            <MenuItem value="length-less-than">{'length-less-than'}</MenuItem>
+                                                                            <MenuItem value="length-less-than-eq">{'length-less-than-eq'}</MenuItem>
+                                                                            <MenuItem value="length-greater-than">{'length-greater-than'}</MenuItem>
+                                                                            <MenuItem value="length-greater-than-eq">{'length-greater-than-eq'}</MenuItem>
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                            }
+                                                            { evalMetric.evalMetricDataType === 'number' &&
+                                                            <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:2  }}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="eval-comparison-value"
+                                                                    label="Comparison Value"
+                                                                    variant="outlined"
+                                                                    value={evalMetric.evalComparisonNumber}
+                                                                    onChange={(e) => dispatch(setEvalMetric({
+                                                                        ...evalMetric, // Spread the existing action properties
+                                                                        evalComparisonNumber: e.target.value // Update the actionName
+                                                                    }))}
+                                                                />
+                                                            </Box>
+                                                            }
+                                                            { evalMetric.evalMetricDataType === 'string' &&
+                                                                <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:2  }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id="eval-comparison-string"
+                                                                        label="Comparison String"
+                                                                        variant="outlined"
+                                                                        value={evalMetric.evalComparisonString}
+                                                                        onChange={(e) => dispatch(setEvalMetric({
+                                                                            ...evalMetric, // Spread the existing action properties
+                                                                            evalComparisonString: e.target.value // Update the actionName
+                                                                        }))}
+                                                                    />
+                                                                </Box>
+                                                            }
+                                                            <Box flexGrow={3} sx={{ mb: 0,ml: 0, mr:2  }}>
+                                                                <FormControl fullWidth>
+                                                                    <InputLabel id="eval-result">Result</InputLabel>
+                                                                    <Select
+                                                                        labelId="eval-result-label"
+                                                                        id="eval-result-label"
+                                                                        value={evalMetric.evalMetricResult}
+                                                                        label="Result"
+                                                                        fullWidth
+                                                                        onChange={(e) => dispatch(setEvalMetric({
+                                                                            ...evalMetric, // Spread the existing action properties
+                                                                            evalMetricResult: e.target.value // Update the metricOperator
+                                                                        }))}
+                                                                    >
+                                                                        <MenuItem value="pass">Pass</MenuItem>
+                                                                        <MenuItem value="fail">Fail</MenuItem>
+                                                                        <MenuItem value="reject">Reject</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 0, mr:0  }}>
+                                                                <Button fullWidth variant={"contained"} onClick={addActionMetricRow}>Add</Button>
+                                                            </Box>
+                                                            </Stack>
+                                                        { evalMetric.evalType == 'model' &&
+                                                            <Box  sx={{ mb: 2, mt: 2 }}>
+                                                                <TextareaAutosize
+                                                                    minRows={18}
+                                                                    value={evalMetric.evalModelPrompt}
+                                                                    onChange={(e) => dispatch(setEvalMetric({
+                                                                        ...evalMetric, // Spread the existing action properties
+                                                                        evalModelPrompt: e.target.value // Update the metricOperator
+                                                                    }))}
+                                                                    style={{ resize: "both", width: "100%" }}
+                                                                />
+                                                            </Box>
+                                                        }
+                                                        </Stack>
+                                                    {
+                                                        !loading && action && evalFn.evalMetrics && evalFn.evalMetrics.map((metric: EvalMetric, index: number) => (
+                                                            <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                                {/* Metric Name */}
+                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id={`metric-name-${index}`}
+                                                                        label="Metric Name"
+                                                                        variant="outlined"
+                                                                        value={metric.evalMetricName}
+                                                                        inputProps={{ readOnly: true }}
+                                                                    />
+                                                                </Box>
+                                                                {/*/!* Metric Score Threshold *!/*/}
+                                                                {/*<Box flexGrow={1} sx={{ mr: 4 }}>*/}
+                                                                {/*    <TextField*/}
+                                                                {/*        fullWidth*/}
+                                                                {/*        type="number"*/}
+                                                                {/*        id={`metric-score-threshold-${index}`}*/}
+                                                                {/*        label="Metric Score Threshold"*/}
+                                                                {/*        variant="outlined"*/}
+                                                                {/*        value={metric.metricScoreThreshold}*/}
+                                                                {/*        inputProps={{ readOnly: true }}*/}
+                                                                {/*    />*/}
+                                                                {/*</Box>*/}
+                                                                {/*/!* Metric Action Multiplier *!/*/}
+                                                                {/*<Box flexGrow={1} sx={{ mr: 4 }}>*/}
+                                                                {/*    <TextField*/}
+                                                                {/*        fullWidth*/}
+                                                                {/*        type="number"*/}
+                                                                {/*        id={`metric-action-multiplier-${index}`}*/}
+                                                                {/*        label="Metric Action Multiplier"*/}
+                                                                {/*        variant="outlined"*/}
+                                                                {/*        value={metric.metricPostActionMultiplier}*/}
+                                                                {/*        inputProps={{ readOnly: true }}*/}
+                                                                {/*    />*/}
+                                                                {/*</Box>*/}
+                                                                {/* Remove Button */}
+                                                                <Box sx={{ mr: 4 }}>
+                                                                    <Button onClick={() => removeActionMetricRow(index)}>Remove</Button>
+                                                                </Box>
+                                                            </Stack>
+                                                        ))
+                                                    }
+
+                                                    {requestActionStatus != '' && (
+                                                        <Container sx={{ mb: 2, mt: -2}}>
+                                                            <Typography variant="h6" color={requestActionStatusError}>
+                                                                {requestActionStatus}
+                                                            </Typography>
+                                                        </Container>
+                                                    )}
+                                                    <Box flexGrow={1} sx={{ mb: 0 }}>
+                                                        <Button fullWidth variant="contained" onClick={createOrUpdateAction} >Save Eval</Button>
                                                     </Box>
                                                 </Stack>
                                             </div>
@@ -1978,18 +2376,22 @@ function WorkflowEngineBuilder(props: any) {
                                     {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder == 2 &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                            <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                                <TextField
-                                                    label={`Aggregation Model`}
-                                                    variant="outlined"
-                                                    value={aggregationModel}
-                                                    InputProps={{
-                                                        readOnly: true,
-                                                    }}
-                                                    fullWidth
-                                                />
+                                            <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
+                                                <FormControl fullWidth>
+                                                    <InputLabel id="response-format-label">Response Format</InputLabel>
+                                                    <Select
+                                                        labelId="response-format-label"
+                                                        id="response-format-label"
+                                                        //value={aggregationModelTokenOverflowStrategy}
+                                                        label="Response Format"
+                                                        //onChange={handleUpdateAggregationModelTokenOverflowStrategy}
+                                                    >
+                                                        <MenuItem value="text">text</MenuItem>
+                                                        <MenuItem value="json">json</MenuItem>
+                                                    </Select>
+                                                </FormControl>
                                             </Box>
-                                            <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                            <Box sx={{ width: '50%', mb: 4, mt: 4 }}>
                                                 <TextField
                                                     type="number"
                                                     label={`Max Aggregation Token Usage`}
@@ -2030,6 +2432,7 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
                                 <Tab className="onboarding-card-highlight-all-retrieval" label="Retrievals" />
                                 <Tab className="onboarding-card-highlight-all-actions" label="Actions" />
+                                <Tab className="onboarding-card-highlight-all-evals" label="Evals" />
                             </Tabs>
                         </Box>
                     </Container>

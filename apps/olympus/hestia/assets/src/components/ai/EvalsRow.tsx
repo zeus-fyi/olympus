@@ -40,6 +40,9 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                     {row.evalGroupName}
                 </TableCell>
                 <TableCell component="th" scope="row">
+                    {row.evalType}
+                </TableCell>
+                <TableCell component="th" scope="row">
                     {row.evalFormat}
                 </TableCell>
             </TableRow>

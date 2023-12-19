@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
@@ -92,12 +93,12 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error 
 	return tx.Commit(ctx)
 }
 
-func SelectEvalFnsByOrgID(ctx context.Context, orgID int) ([]EvalFn, error) {
+func SelectEvalFnsByOrgID(ctx context.Context, ou org_users.OrgUser) ([]EvalFn, error) {
 	const query = `
         SELECT eval_id, org_id, user_id, eval_name, eval_type, eval_group_name, eval_model, eval_format
         FROM public.eval_fns
         WHERE org_id = $1;`
-	rows, err := apps.Pg.Query(ctx, query, orgID)
+	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)
 	if err != nil {
 		log.Err(err).Msg("failed to select eval_fns")
 		return nil, err

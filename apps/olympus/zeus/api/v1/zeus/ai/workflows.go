@@ -57,6 +57,11 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get actions")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	evals, err := artemis_orchestrations.SelectEvalFnsByOrgID(c.Request().Context(), ou)
+	if err != nil {
+		log.Err(err).Msg("failed to get actions")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	return c.JSON(http.StatusOK, AiWorkflowWrapper{
 		Workflows:      ojs.WorkflowTemplateSlice,
 		Tasks:          tasks,
@@ -64,6 +69,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		Runs:           ojsRuns,
 		SearchIndexers: si,
 		Actions:        actions,
+		Evals:          evals,
 	})
 }
 
@@ -74,6 +80,7 @@ type AiWorkflowWrapper struct {
 	Tasks          []artemis_orchestrations.AITaskLibrary          `json:"tasks"`
 	Retrievals     []artemis_orchestrations.RetrievalItem          `json:"retrievals"`
 	SearchIndexers []hera_openai_dbmodels.SearchIndexerParams      `json:"searchIndexers"`
+	Evals          []artemis_orchestrations.EvalFn                 `json:"evals"`
 }
 
 type PostWorkflowsRequest struct {

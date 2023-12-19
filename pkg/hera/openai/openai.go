@@ -55,37 +55,33 @@ func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.Org
 
 func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.ChatCompletionResponse, error) {
 	systemMessage := openai.ChatCompletionMessage{
-		Role:         openai.ChatMessageRoleSystem,
-		Content:      "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary",
-		Name:         fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
-		FunctionCall: nil,
-		ToolCalls:    nil,
-		ToolCallID:   "",
+		Role:    openai.ChatMessageRoleSystem,
+		Content: "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary",
+		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 	}
 
-	/*
-		msg := json.RawMessage(`{"properties":{"count":{"type":"integer","description":"total number of words in sentence"},
-								"words":{"items":{"type":"string"},"type":"array","description":"list of words in sentence"}}
-								,"type":"object","required":["count","words"]}`)
-	*/
-	resp, err := ai.CreateChatCompletion(
-		ctx,
-		openai.ChatCompletionRequest{
-			Model: "gpt-4-1106-preview",
-			Tools: []openai.Tool{{
-				Type:     "function",
-				Function: params.FunctionDefinition,
-			}},
-			ResponseFormat: &openai.ChatCompletionResponseFormat{Type: openai.ChatCompletionResponseFormatTypeJSONObject},
-			Messages: []openai.ChatCompletionMessage{
-				systemMessage,
-				{
-					Role:    openai.ChatMessageRoleFunction,
-					Content: params.Prompt,
-					Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
-				},
+	reqBody := openai.ChatCompletionRequest{
+		Model: "gpt-4-1106-preview",
+		Tools: []openai.Tool{{
+			Type:     "function",
+			Function: params.FunctionDefinition,
+		}},
+		ResponseFormat: &openai.ChatCompletionResponseFormat{Type: openai.ChatCompletionResponseFormatTypeJSONObject},
+		Messages: []openai.ChatCompletionMessage{
+			systemMessage,
+			{
+				Role:    openai.ChatMessageRoleFunction,
+				Content: params.Prompt,
+				Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 			},
 		},
+	}
+	if params.MaxTokens > 0 {
+		reqBody.MaxTokens = params.MaxTokens
+	}
+	resp, err := ai.CreateChatCompletion(
+		ctx,
+		reqBody,
 	)
 	return resp, err
 }

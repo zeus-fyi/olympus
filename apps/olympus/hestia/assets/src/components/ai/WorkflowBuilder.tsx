@@ -86,11 +86,13 @@ import {RetrievalsTable} from "./RetrievalsTable";
 import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 import {ExpandLess, ExpandMore} from "@mui/icons-material";
+import {EvalsTable} from "./EvalsTable";
 
 const mdTheme = createTheme();
 
 function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
+    const evalFns = useSelector((state: RootState) => state.ai.evalFns);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setIsLoading] = useState(false);
     const selectedWorkflows = useSelector((state: any) => state.ai.selectedWorkflows);
@@ -2567,6 +2569,13 @@ function WorkflowEngineBuilder(props: any) {
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <RetrievalsTable retrievals={retrievals} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
+                            </Container>
+                        </div>
+                    }
+                    { (selectedMainTabBuilder === 5) &&
+                        <div>
+                            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                <EvalsTable evalFns={evalFns} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
                             </Container>
                         </div>
                     }

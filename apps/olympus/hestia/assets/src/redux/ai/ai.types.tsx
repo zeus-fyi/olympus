@@ -36,6 +36,7 @@ export interface AiState {
     actionMetric: ActionMetric;
     actions: Action[];
     evalFn: EvalFn
+    evalFns: EvalFn[];
     evalMetric: EvalMetric;
     actionsEvalTrigger: EvalActionTrigger;
 }

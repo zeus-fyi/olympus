@@ -80,7 +80,7 @@ type AiWorkflowWrapper struct {
 	Tasks          []artemis_orchestrations.AITaskLibrary          `json:"tasks"`
 	Retrievals     []artemis_orchestrations.RetrievalItem          `json:"retrievals"`
 	SearchIndexers []hera_openai_dbmodels.SearchIndexerParams      `json:"searchIndexers"`
-	Evals          []artemis_orchestrations.EvalFn                 `json:"evals"`
+	Evals          []artemis_orchestrations.EvalFn                 `json:"evalFns"`
 }
 
 type PostWorkflowsRequest struct {

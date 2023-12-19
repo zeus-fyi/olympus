@@ -114,6 +114,7 @@ const initialState: AiState = {
         evalState: '',
         evalCompletionStatus: '',
     },
+    evalFns: [],
 }
 
 const aiSlice = createSlice({
@@ -122,6 +123,9 @@ const aiSlice = createSlice({
     reducers: {
         setEval: (state, action: PayloadAction<EvalFn>) => {
             state.evalFn = action.payload;
+        },
+        setEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
+            state.evalFns = action.payload;
         },
         setActionsEvalTrigger: (state, action: PayloadAction<EvalActionTrigger>) => {
             state.actionsEvalTrigger = action.payload;
@@ -401,5 +405,6 @@ export const {
     setEval,
     updateEvalMetrics,
     setActionsEvalTrigger,
+    setEvalFns,
 } = aiSlice.actions;
 export default aiSlice.reducer;

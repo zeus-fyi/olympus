@@ -9,12 +9,12 @@ import TablePaginationActions from "@mui/material/TablePagination/TablePaginatio
 import {ActionRow} from "./ActionRow";
 
 export function EvalsTable(props: any) {
-    const {selected, actions, handleClick, handleSelectAllClick} = props;
+    const {selected, evalFns, handleClick, handleSelectAllClick} = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
     const countTaskValues = (): number => {
-        return Object.keys(actions).length;
+        return Object.keys(evalFns).length;
     };
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -29,11 +29,11 @@ export function EvalsTable(props: any) {
         setPage(newPage);
     };
 
-    if (actions === null || actions === undefined) {
+    if (evalFns === null || evalFns === undefined) {
         return (<div></div>)
     }
     const emptyRows =
-        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - actions.length) : 0;
+        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - evalFns.length) : 0;
     if (emptyRows) {
         return (<div></div>)
     }
@@ -43,6 +43,7 @@ export function EvalsTable(props: any) {
     const countTrueValues = (): number => {
         return Object.values(selected).filter(value => value).length;
     };
+    console.log('evalFns', evalFns)
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="actions pagination table">
@@ -64,7 +65,7 @@ export function EvalsTable(props: any) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rowsPerPage > 0 && actions && actions.map((row: any, index: number) => (
+                    {rowsPerPage > 0 && evalFns && evalFns.map((row: any, index: number) => (
                         <ActionRow
                             key={index}
                             row={row}
@@ -84,7 +85,7 @@ export function EvalsTable(props: any) {
                         <TablePagination
                             rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
                             colSpan={4}
-                            count={actions.length}
+                            count={evalFns.length}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             SelectProps={{

@@ -37,9 +37,10 @@ func InitOrgHeraOpenAI(bearer string) OpenAI {
 }
 
 type OpenAIParams struct {
-	Model     string
-	MaxTokens int
-	Prompt    string
+	Model              string                    `json:"model"`
+	MaxTokens          int                       `json:"maxTokens"`
+	Prompt             string                    `json:"prompt"`
+	FunctionDefinition openai.FunctionDefinition `json:"functionDefinition,omitempty"`
 }
 
 func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.OrgUser, params openai.ChatCompletionResponse, prompt []byte) error {
@@ -50,6 +51,30 @@ func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.Org
 		return err
 	}
 	return nil
+}
+
+func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.ChatCompletionResponse, error) {
+	systemMessage := openai.ChatCompletionMessage{
+		Role: openai.ChatMessageRoleSystem,
+		Content: "You are a helpful bot that analyzes the context, filepaths, and content of supplied code references and generates code from example functions, code references, and other guidance." +
+			" You respond only with code, and you are not a chatbot",
+		Name: fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+	}
+	resp, err := ai.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model: "gpt-4-1106-preview",
+			Messages: []openai.ChatCompletionMessage{
+				systemMessage,
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: params.Prompt,
+					Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+				},
+			},
+		},
+	)
+	return resp, err
 }
 
 func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.CompletionResponse, error) {

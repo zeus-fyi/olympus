@@ -10,6 +10,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	gogpt "github.com/sashabaranov/go-gpt3"
 	"github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -28,6 +29,44 @@ func (s *HeraTestSuite) TestOpenAIGetModels() {
 	s.Require().Nil(err)
 	fmt.Println(string(resp.Body()))
 
+}
+
+func (s *HeraTestSuite) TestOpenAICreateJsonOutputFormat() {
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	fdSchema := jsonschema.Definition{
+		Type:        jsonschema.Object,
+		Description: "",
+		Enum:        nil,
+		Properties: map[string]jsonschema.Definition{
+			"location": {
+				Type:        jsonschema.String,
+				Description: "The city and state, e.g. San Francisco, CA",
+			},
+			"unit": {
+				Type: jsonschema.String,
+				Enum: []string{"celcius", "fahrenheit"},
+			},
+		},
+		Required: []string{"location"},
+		Items:    nil,
+	}
+	fd := openai.FunctionDefinition{
+		Name:        "fn-json",
+		Description: "",
+		Parameters:  fdSchema,
+	}
+	params := OpenAIParams{
+		Model:              "gpt-4-1106-preview",
+		MaxTokens:          300,
+		Prompt:             "what is the meaning of life",
+		FunctionDefinition: fd,
+	}
+	resp, err := HeraOpenAI.MakeCodeGenRequestJsonFormattedOutput(context.Background(), ou, params)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(resp)
 }
 
 func (s *HeraTestSuite) TestOpenAICreateAssistant() {
@@ -93,7 +132,7 @@ func (s *HeraTestSuite) TestOpenAIChatGptInsert() {
 	)
 	s.Require().Nil(err)
 	fmt.Println(resp)
-	err = HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
+	err = HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp, nil)
 	s.Require().Nil(err)
 }
 

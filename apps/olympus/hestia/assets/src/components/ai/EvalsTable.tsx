@@ -6,7 +6,7 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
-import {ActionRow} from "./ActionRow";
+import {EvalRow} from "./EvalsRow";
 
 export function EvalsTable(props: any) {
     const {selected, evalFns, handleClick, handleSelectAllClick} = props;
@@ -43,7 +43,6 @@ export function EvalsTable(props: any) {
     const countTrueValues = (): number => {
         return Object.values(selected).filter(value => value).length;
     };
-    console.log('evalFns', evalFns)
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="actions pagination table">
@@ -66,7 +65,7 @@ export function EvalsTable(props: any) {
                 </TableHead>
                 <TableBody>
                     {rowsPerPage > 0 && evalFns && evalFns.map((row: any, index: number) => (
-                        <ActionRow
+                        <EvalRow
                             key={index}
                             row={row}
                             index={index}

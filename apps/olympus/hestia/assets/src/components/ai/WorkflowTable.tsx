@@ -8,7 +8,14 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
-import {setAiTasks, setRetrievals, setSelectedWorkflows, setWorkflows} from "../../redux/ai/ai.reducer";
+import {
+    setActions,
+    setAiTasks,
+    setEvalFns,
+    setRetrievals,
+    setSelectedWorkflows,
+    setWorkflows
+} from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
 import {WorkflowTemplate} from "../../redux/ai/ai.types";
@@ -43,6 +50,8 @@ export function WorkflowTable(props: any) {
                 if (statusCode < 400) {
                     const data = response.data;
                     dispatch(setWorkflows(data.workflows));
+                    dispatch(setEvalFns(data.evalFns));
+                    dispatch(setActions(data.actions));
                     dispatch(setAiTasks(data.tasks));
                     dispatch(setRetrievals(data.retrievals));
                 } else {

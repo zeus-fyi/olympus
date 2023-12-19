@@ -290,7 +290,6 @@ function WorkflowEngineBuilder(props: any) {
         }
     };
 
-
     const handleDeleteWorkflows = async (event: any) => {
         const params: DeleteWorkflowsActionRequest = {
             workflows: selectedWorkflows.map((ind: string) => {
@@ -402,7 +401,6 @@ function WorkflowEngineBuilder(props: any) {
     const handleUpdateAggregationModel = (event: any) => {
         setAggregationModel(event.target.value);
     };
-
     const [analysisName, setAnalysisName] = React.useState('');
     const handleUpdateAnalysisName = (event: any) => {
         setAnalysisName(event.target.value);
@@ -728,7 +726,6 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestEvalCreateOrUpdateStatusError('error')
                 return;
             }
-            console.log('evalFn', evalFn)
             const response = await aiApiGateway.createOrUpdateEval(evalFn);
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -763,6 +760,9 @@ function WorkflowEngineBuilder(props: any) {
         } else if (newValue === 4) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
+        } else if (newValue === 5) {
+            dispatch(setSelectedWorkflows([]));
+            setSelected({});
         }
         if (addAggregateView && newValue !== 2) {
             dispatch(setAddAggregationView(false));
@@ -783,6 +783,10 @@ function WorkflowEngineBuilder(props: any) {
         setRequestRetrievalStatusError('');
         setRequestActionStatus('');
         setRequestActionStatusError('');
+        setRequestEvalCreateOrUpdateStatus('');
+        setRequestEvalCreateOrUpdateStatusError('');
+        setRequestMetricActionCreateOrUpdateStatus('');
+        setRequestMetricActionCreateOrUpdateStatusError('');
         dispatch(setAddAnalysisView(false));
         dispatch(setSelectedMainTabBuilder(newValue));
     };
@@ -801,7 +805,14 @@ function WorkflowEngineBuilder(props: any) {
                 return acc;
             }, {});
             setSelected(newSelection);
-        } else {
+        } else if ( selectedMainTabBuilder === 5)  {
+            const newSelection = evalFns.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
+        }
+        else {
             const newSelection = tasks.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
@@ -2589,6 +2600,5 @@ type ValuePiece = Date | string | null;
 
 type Value = ValuePiece | [ValuePiece, ValuePiece];
 export default function AiWorkflowsEngineBuilderDashboard() {
-
     return <WorkflowEngineBuilder />;
 }

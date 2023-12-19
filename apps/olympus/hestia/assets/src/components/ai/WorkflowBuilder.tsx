@@ -1833,21 +1833,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
-                                                        {/*{ actionPlatformAccount.actionPlatformName != 'metrics-only' &&*/}
-                                                        {/*<Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>*/}
-                                                        {/*    <TextField*/}
-                                                        {/*        fullWidth*/}
-                                                        {/*        id="platform-account"*/}
-                                                        {/*        label="Platform Account"*/}
-                                                        {/*        variant="outlined"*/}
-                                                        {/*        value={actionPlatformAccount.actionPlatformAccount}*/}
-                                                        {/*        onChange={(e) => dispatch(setActionPlatformAccount({*/}
-                                                        {/*            ...actionPlatformAccount, // Spread the existing action properties*/}
-                                                        {/*            actionPlatformAccount: e.target.value // Update the actionName*/}
-                                                        {/*        }))}*/}
-                                                        {/*    />*/}
-                                                        {/*</Box>*/}
-                                                        {/*}*/}
                                                     </Stack>
                                                     { !loading && action.actionTriggerOn == 'eval' &&
                                                     <Stack direction="row" >
@@ -2331,69 +2316,74 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Stack>
                                                     {
                                                         !loading && action && evalFn.evalMetrics && evalFn.evalMetrics.map((metric: EvalMetric, index: number) => (
-                                                            <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                                                {/* Metric Name */}
-                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        id={`metric-name-${index}`}
-                                                                        label="Metric Name"
-                                                                        variant="outlined"
-                                                                        value={metric.evalMetricName}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
-                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        id={`metric-state-${index}`}
-                                                                        label="Metric State"
-                                                                        variant="outlined"
-                                                                        value={metric.evalState}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
-                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        id={`metric-state-${index}`}
-                                                                        label="Data Type"
-                                                                        variant="outlined"
-                                                                        value={metric.evalMetricDataType}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
-                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        id={`metric-op-${index}`}
-                                                                        label="Operator"
-                                                                        variant="outlined"
-                                                                        value={metric.evalOperator}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
-                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        id={`metric-comp-${index}`}
-                                                                        label="Comparison Value"
-                                                                        variant="outlined"
-                                                                        value={metric.evalComparisonNumber}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
-                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        id={`metric-result-${index}`}
-                                                                        label="Result"
-                                                                        variant="outlined"
-                                                                        value={metric.evalMetricResult}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
-                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                            <Stack key={index} direction="column" sx={{ mt: 4, mb: 4, mr: 0 }}>
+                                                                <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                                    {/* Metric Name */}
+                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id={`metric-name-${index}`}
+                                                                            label="Metric Name"
+                                                                            variant="outlined"
+                                                                            value={metric.evalMetricName}
+                                                                            inputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id={`metric-state-${index}`}
+                                                                            label="Metric State"
+                                                                            variant="outlined"
+                                                                            value={metric.evalState}
+                                                                            inputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id={`metric-state-${index}`}
+                                                                            label="Data Type"
+                                                                            variant="outlined"
+                                                                            value={metric.evalMetricDataType}
+                                                                            inputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id={`metric-op-${index}`}
+                                                                            label="Operator"
+                                                                            variant="outlined"
+                                                                            value={metric.evalOperator}
+                                                                            inputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id={`metric-comp-${index}`}
+                                                                            label="Comparison Value"
+                                                                            variant="outlined"
+                                                                            value={metric.evalComparisonNumber}
+                                                                            inputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id={`metric-result-${index}`}
+                                                                            label="Result"
+                                                                            variant="outlined"
+                                                                            value={metric.evalMetricResult}
+                                                                            inputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box sx={{ mr: 4 }}>
+                                                                        <Button onClick={() => removeEvalMetricRow(index)}>Remove</Button>
+                                                                    </Box>
+                                                                </Stack>
+                                                                <Box flexGrow={1} sx={{ ml: 0, mr: 12 }}>
                                                                     <TextField
                                                                         fullWidth
                                                                         id={`eval-model-scoring-instruction-${index}`}
@@ -2403,13 +2393,9 @@ function WorkflowEngineBuilder(props: any) {
                                                                         inputProps={{ readOnly: true }}
                                                                     />
                                                                 </Box>
-                                                                <Box sx={{ mr: 4 }}>
-                                                                    <Button onClick={() => removeEvalMetricRow(index)}>Remove</Button>
-                                                                </Box>
                                                             </Stack>
                                                         ))
                                                     }
-
                                                     {requestEvalCreateOrUpdateStatus != '' && (
                                                         <Container sx={{ mb: 2, mt: -2}}>
                                                             <Typography variant="h6" color={requestEvalCreateOrUpdateStatusError}>

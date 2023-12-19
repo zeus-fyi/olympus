@@ -2,6 +2,7 @@ package hera_openai
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -36,37 +37,60 @@ func (s *HeraTestSuite) TestOpenAICreateJsonOutputFormat() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
+	InitHeraOpenAI(s.Tc.OpenAIAuth)
+
 	fdSchema := jsonschema.Definition{
-		Type:        jsonschema.Object,
-		Description: "",
-		Enum:        nil,
+		Type: jsonschema.Object,
 		Properties: map[string]jsonschema.Definition{
-			"location": {
-				Type:        jsonschema.String,
-				Description: "The city and state, e.g. San Francisco, CA",
+			"count": {
+				Type:        jsonschema.Number,
+				Description: "total number of words in sentence",
 			},
-			"unit": {
-				Type: jsonschema.String,
-				Enum: []string{"celcius", "fahrenheit"},
+			"words": {
+				Type:        jsonschema.Array,
+				Description: "list of words in sentence",
+				Items: &jsonschema.Definition{
+					Type: jsonschema.String,
+				},
 			},
 		},
-		Required: []string{"location"},
-		Items:    nil,
+		Required: []string{"count", "words"},
 	}
+
 	fd := openai.FunctionDefinition{
-		Name:        "fn-json",
-		Description: "",
-		Parameters:  fdSchema,
+		Name:       "test",
+		Parameters: fdSchema,
 	}
 	params := OpenAIParams{
 		Model:              "gpt-4-1106-preview",
-		MaxTokens:          300,
-		Prompt:             "what is the meaning of life",
+		Prompt:             "how many words are in this sentence: what is the meaning of time dilation?",
 		FunctionDefinition: fd,
 	}
 	resp, err := HeraOpenAI.MakeCodeGenRequestJsonFormattedOutput(context.Background(), ou, params)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(resp)
+	fmt.Println(resp)
+
+	m := map[string]interface{}{}
+
+	for _, msg := range resp.Choices {
+		for _, tool := range msg.Message.ToolCalls {
+			fmt.Println(tool.Function.Name)
+			err = json.Unmarshal([]byte(tool.Function.Arguments), &m)
+			s.Require().Nil(err)
+			count, ok := m["count"].(int)
+			s.Require().True(ok)
+			s.Require().Equal(7, count)
+		}
+
+	}
+}
+
+type T struct {
+	ToolUses []struct {
+		RecipientName string `json:"recipient_name"`
+		Parameters    any    `json:"parameters"`
+	} `json:"tool_uses"`
 }
 
 func (s *HeraTestSuite) TestOpenAICreateAssistant() {

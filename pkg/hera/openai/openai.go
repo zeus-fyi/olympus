@@ -55,11 +55,19 @@ func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.Org
 
 func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.ChatCompletionResponse, error) {
 	systemMessage := openai.ChatCompletionMessage{
-		Role: openai.ChatMessageRoleSystem,
-		Content: "You are a helpful bot that analyzes the context, filepaths, and content of supplied code references and generates code from example functions, code references, and other guidance." +
-			" You respond only with code, and you are not a chatbot",
-		Name: fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+		Role:         openai.ChatMessageRoleSystem,
+		Content:      "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary",
+		Name:         fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+		FunctionCall: nil,
+		ToolCalls:    nil,
+		ToolCallID:   "",
 	}
+
+	/*
+		msg := json.RawMessage(`{"properties":{"count":{"type":"integer","description":"total number of words in sentence"},
+								"words":{"items":{"type":"string"},"type":"array","description":"list of words in sentence"}}
+								,"type":"object","required":["count","words"]}`)
+	*/
 	resp, err := ai.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
@@ -68,10 +76,11 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 				Type:     "function",
 				Function: params.FunctionDefinition,
 			}},
+			ResponseFormat: &openai.ChatCompletionResponseFormat{Type: openai.ChatCompletionResponseFormatTypeJSONObject},
 			Messages: []openai.ChatCompletionMessage{
 				systemMessage,
 				{
-					Role:    openai.ChatMessageRoleUser,
+					Role:    openai.ChatMessageRoleFunction,
 					Content: params.Prompt,
 					Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 				},

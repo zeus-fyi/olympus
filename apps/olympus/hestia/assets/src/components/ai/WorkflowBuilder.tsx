@@ -726,6 +726,7 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestEvalCreateOrUpdateStatusError('error')
                 return;
             }
+            console.log('evalFn', evalFn)
             const response = await aiApiGateway.createOrUpdateEval(evalFn);
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -2261,7 +2262,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     value={evalMetric.evalComparisonNumber}
                                                                     onChange={(e) => dispatch(setEvalMetric({
                                                                         ...evalMetric, // Spread the existing action properties
-                                                                        evalComparisonNumber: e.target.value // Update the actionName
+                                                                        evalComparisonNumber: Number(e.target.value) // Update the actionName
                                                                     }))}
                                                                 />
                                                             </Box>

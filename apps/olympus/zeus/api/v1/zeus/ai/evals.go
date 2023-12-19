@@ -29,7 +29,6 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 	if ou.OrgID <= 0 || ou.UserID <= 0 {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	t.OrgID = ou.OrgID
 	t.UserID = ou.UserID
 	err := artemis_orchestrations.InsertOrUpdateEvalFnWithMetrics(c.Request().Context(), &t.EvalFn)

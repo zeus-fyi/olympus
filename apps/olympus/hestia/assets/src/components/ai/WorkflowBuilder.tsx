@@ -1428,7 +1428,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 </div>
                                             }
                                         </CardContent>
-                                        <Box flexGrow={2} sx={{mt: 0}}>
+                                        <Box flexGrow={2} sx={{mt: 0, ml: 2}}>
                                             <Stack direction={"row"}>
                                                 <IconButton
                                                     onClick={() => setOpenEvals(!openEvals)}

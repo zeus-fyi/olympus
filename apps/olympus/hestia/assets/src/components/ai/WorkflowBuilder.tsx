@@ -1428,7 +1428,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 </div>
                                             }
                                         </CardContent>
-                                        <Box flexGrow={2} sx={{mt: 2}}>
+                                        <Box flexGrow={2} sx={{mt: 0}}>
                                             <Stack direction={"row"}>
                                                 <IconButton
                                                     onClick={() => setOpenEvals(!openEvals)}
@@ -1443,7 +1443,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Stack>
                                         </Box>
                                         <Collapse in={openEvals} timeout="auto" unmountOnExit>
-                                            <Box flexGrow={2} sx={{mt: 4}}>
+                                            <Box flexGrow={2} sx={{mt: 0}}>
                                                 {addedEvalFns && addedEvalFns.map((ef: EvalFn, subIndex) => (
                                                     <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
                                                         <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>

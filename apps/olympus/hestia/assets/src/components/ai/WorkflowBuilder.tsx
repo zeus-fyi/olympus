@@ -93,6 +93,7 @@ const mdTheme = createTheme();
 function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
     const evalFns = useSelector((state: RootState) => state.ai.evalFns);
+    const actions = useSelector((state: RootState) => state.ai.actions);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setIsLoading] = useState(false);
     const selectedWorkflows = useSelector((state: any) => state.ai.selectedWorkflows);
@@ -806,6 +807,12 @@ function WorkflowEngineBuilder(props: any) {
             }, {});
             setSelected(newSelection);
         } else if ( selectedMainTabBuilder === 5)  {
+            const newSelection = actions.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
+        } else if (selectedMainTabBuilder === 4)  {
             const newSelection = evalFns.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
@@ -1761,7 +1768,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </CardContent>
                                     }
                                     {
-                                        selectedMainTabBuilder == 4 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView &&
+                                        selectedMainTabBuilder === 5 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView &&
                                         <CardContent>
                                             <div>
                                                 <Typography gutterBottom variant="h5" component="div">
@@ -2031,7 +2038,7 @@ function WorkflowEngineBuilder(props: any) {
                                         </CardContent>
                                     }
                                     {
-                                        selectedMainTabBuilder == 5 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView &&
+                                        selectedMainTabBuilder === 4 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView &&
                                         <CardContent>
                                             <div>
                                                 <Typography gutterBottom variant="h5" component="div">
@@ -2509,11 +2516,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    {/*{(selectedMainTab === 4) &&*/}
-                                    {/*    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>*/}
-                                    {/*        <Actions />*/}
-                                    {/*    </Container>*/}
-                                    {/*}*/}
+
                                 </CardContent>
                             </Card>
                         </Stack>
@@ -2525,8 +2528,8 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-analysis" label="Analysis" />
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
                                 <Tab className="onboarding-card-highlight-all-retrieval" label="Retrievals" />
-                                <Tab className="onboarding-card-highlight-all-actions" label="Actions" />
                                 <Tab className="onboarding-card-highlight-all-evals" label="Evals" />
+                                {/*<Tab className="onboarding-card-highlight-all-actions" label="Actions" />*/}
                             </Tabs>
                         </Box>
                     </Container>
@@ -2583,7 +2586,7 @@ function WorkflowEngineBuilder(props: any) {
                             </Container>
                         </div>
                     }
-                    { (selectedMainTabBuilder === 5) &&
+                    { (selectedMainTabBuilder === 4) &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <EvalsTable evalFns={evalFns} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />

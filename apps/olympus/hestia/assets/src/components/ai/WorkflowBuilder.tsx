@@ -46,6 +46,7 @@ import {
     setAddAggregationView,
     setAddAnalysisTasks,
     setAddAnalysisView,
+    setAddEvalFnsView,
     setAddRetrievalTasks,
     setAddRetrievalView,
     setAggregationWorkflowInstructions,
@@ -75,6 +76,7 @@ import {aiApiGateway} from "../../gateway/ai";
 import {
     ActionMetric,
     DeleteWorkflowsActionRequest,
+    EvalFn,
     EvalMetric,
     PostWorkflowsRequest,
     Retrieval,
@@ -94,6 +96,7 @@ function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
     const evalFns = useSelector((state: RootState) => state.ai.evalFns);
     const actions = useSelector((state: RootState) => state.ai.actions);
+    const addedEvalFns = useSelector((state: RootState) => state.ai.addedEvalFns);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setIsLoading] = useState(false);
     const selectedWorkflows = useSelector((state: any) => state.ai.selectedWorkflows);
@@ -112,6 +115,10 @@ function WorkflowEngineBuilder(props: any) {
     const [selectedAnalysisStageForRetrieval, setSelectedAnalysisStageForRetrieval] = useState('');
     const [selectedAnalysisStageForAggregation, setSelectedAnalysisStageForAggregation] = useState('');
     const [selectedAggregationStageForAnalysis, setSelectedAggregationStageForAnalysis] = useState('');
+    const [selectedEvalStage, setSelectedEvalStage] = useState('');
+    const evalFnStages = useSelector((state: RootState) => state.ai.addedEvalFns);
+    const addEvalsView = useSelector((state: RootState) => state.ai.addEvalFnsView);
+
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
     const [tasks, setTasks] = useState(allTasks && allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
     const retrievals = useSelector((state: RootState) => state.ai.retrievals);
@@ -133,6 +140,7 @@ function WorkflowEngineBuilder(props: any) {
     const [openAnalysis, setOpenAnalysis] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openAggregation, setOpenAggregation] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openActions, setActions] = useState<boolean>(true); // Or use an object/array for multiple sections
+    const [openEvals, setOpenEvals] = useState<boolean>(true); // Or use an object/array for multiple sections
 
     const removeEvalMetricRow = (index: number) => {
         const updatedMetrics = evalFn.evalMetrics.filter((_: EvalMetric, i: number) => i !== index);
@@ -212,6 +220,10 @@ function WorkflowEngineBuilder(props: any) {
         };
         dispatch(setAnalysisRetrievalsMap(payload));
     }
+
+    const handleRemoveEvalFnRelationshipFromWorkflow = async (event: any, keystr: string, value: number) => {
+
+    }
     const handleAddSubTaskToAggregate = () => {
         if (selectedAggregationStageForAnalysis.length <= 0 || selectedAnalysisStageForAggregation.length <= 0) {
             return;
@@ -276,7 +288,7 @@ function WorkflowEngineBuilder(props: any) {
 
     useEffect(() => {
 
-    }, [addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap, taskMap]);
+    }, [addEvalsView, addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap, taskMap]);
     const dispatch = useDispatch();
     const handleTaskCycleCountChange = (val: number, task: TaskModelInstructions) => {
         if (val <= 0) {
@@ -333,8 +345,25 @@ function WorkflowEngineBuilder(props: any) {
                 .filter(key => selected[Number(key)])
                 .map(key => retrievals[Number(key)]);
             dispatch(setAddRetrievalTasks(selectedTasks));
+        } else if (addEvalsView) {
+
         }
         setIsLoading(false)
+    }
+
+    const addEvalsStageView = async () => {
+        const toggle = !addEvalsView;
+        dispatch(setAddAnalysisView(false));
+        dispatch(setAddAggregationView(false));
+        dispatch(setAddRetrievalView(false));
+        dispatch(setAddEvalFnsView(toggle));
+
+        if (toggle) {
+            dispatch(setSelectedMainTabBuilder(4))
+            setSelected({});
+        } else {
+            dispatch(setSelectedMainTabBuilder(0))
+        }
     }
 
     const addRetrievalStageView = async () => {
@@ -342,6 +371,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setAddAnalysisView(false));
         dispatch(setAddAggregationView(false));
         dispatch(setAddRetrievalView(toggle));
+        dispatch(setAddEvalFnsView(false));
         if (toggle) {
             dispatch(setSelectedMainTabBuilder(3))
             setSelected({});
@@ -355,6 +385,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setAddAnalysisView(toggle));
         dispatch(setAddAggregationView(false));
         dispatch(setAddRetrievalView(false));
+        dispatch(setAddEvalFnsView(false));
         if (toggle) {
             dispatch(setSelectedMainTabBuilder(1))
             setSelected({});
@@ -369,6 +400,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setAddAnalysisView(false));
         dispatch(setAddRetrievalView(false));
         dispatch(setAddAggregationView(toggle));
+        dispatch(setAddEvalFnsView(false));
         if (toggle) {
             setSelected({});
             setTaskType('aggregation');
@@ -901,7 +933,7 @@ function WorkflowEngineBuilder(props: any) {
                     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
                             <Card sx={{ minWidth: 500, maxWidth: 1200 }}>
-                                {( selectedMainTabBuilder === 0 || addAnalysisView || addAggregateView || addRetrievalView) &&
+                                {( selectedMainTabBuilder === 0 || addAnalysisView || addAggregateView || addRetrievalView || addEvalsView) &&
                                     <div>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
@@ -1396,6 +1428,47 @@ function WorkflowEngineBuilder(props: any) {
                                                 </div>
                                             }
                                         </CardContent>
+                                        <Box flexGrow={2} sx={{mt: 2}}>
+                                            <Stack direction={"row"}>
+                                                <IconButton
+                                                    onClick={() => setOpenEvals(!openEvals)}
+                                                    aria-expanded={openEvals}
+                                                    aria-label="show more"
+                                                >
+                                                    {openEvals ? <ExpandLess /> : <ExpandMore />}
+                                                </IconButton>
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Eval Stages
+                                                </Typography>
+                                            </Stack>
+                                        </Box>
+                                        <Collapse in={openEvals} timeout="auto" unmountOnExit>
+                                            <Box flexGrow={2} sx={{mt: 4}}>
+                                                {addedEvalFns && addedEvalFns.map((ef: EvalFn, subIndex) => (
+                                                    <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
+                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                            <TextField
+                                                                key={subIndex}
+                                                                label={`Eval Name`}
+                                                                value={ef.evalName}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                variant="outlined"
+                                                                fullWidth
+                                                                margin="normal"
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
+                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveEvalFnRelationshipFromWorkflow(event, ef.evalName, subIndex)}>Remove</Button>
+                                                        </Box>
+                                                    </Stack>
+                                                ))}
+                                            </Box>
+                                            <Box flexGrow={1} sx={{ mb: 0, mt: 2, ml: 4 }}>
+                                                <Button  variant="contained" onClick={() => addEvalsStageView()} >{addEvalsView ? 'Done Adding': 'Add Eval Stages'}</Button>
+                                            </Box>
+                                        </Collapse>
                                         <Box flexGrow={1} sx={{ mt: 4, mb: 0}}>
                                             <Divider/>
                                         </Box>
@@ -2038,7 +2111,7 @@ function WorkflowEngineBuilder(props: any) {
                                         </CardContent>
                                     }
                                     {
-                                        selectedMainTabBuilder === 4 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView &&
+                                        selectedMainTabBuilder === 4 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView &&
                                         <CardContent>
                                             <div>
                                                 <Typography gutterBottom variant="h5" component="div">
@@ -2436,7 +2509,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </div>
                                         </CardContent>
                                     }
-                                    { !addAnalysisView && !addAggregateView && selectedMainTabBuilder == 1 &&
+                                    { !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 1 &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                 <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
@@ -2474,7 +2547,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder == 2 &&
+                                    {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 2 &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                             <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>

@@ -29,9 +29,12 @@ const initialState: AiState = {
     addAnalysisView: false,
     addAggregationView: false,
     addRetrievalView: false,
+    addEvalFnsView: false,
+    addedEvalFns: [],
     addedAnalysisTasks: [],
     addedAggregateTasks: [],
     addedRetrievals: [],
+    workflowBuilderEvalsTaskMap: {},
     workflowBuilderTaskMap: {},
     taskMap: {},
     retrievalsMap: {},
@@ -126,6 +129,9 @@ const aiSlice = createSlice({
         },
         setEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
             state.evalFns = action.payload;
+        },
+        setAddedEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
+            state.addedEvalFns = action.payload;
         },
         setActionsEvalTrigger: (state, action: PayloadAction<EvalActionTrigger>) => {
             state.actionsEvalTrigger = action.payload;
@@ -226,6 +232,9 @@ const aiSlice = createSlice({
         },
         setAddAggregationView: (state, action: PayloadAction<boolean>) => {
             state.addAggregationView = action.payload;
+        },
+        setAddEvalFnsView: (state, action: PayloadAction<boolean>) => {
+            state.addEvalFnsView = action.payload;
         },
         setAddRetrievalView: (state, action: PayloadAction<boolean>) => {
             state.addRetrievalView = action.payload;
@@ -367,6 +376,7 @@ export const {
     setAiTasks,
     setAddAnalysisView,
     setAddAggregationView,
+    setAddEvalFnsView,
     setAddRetrievalView,
     setAddAnalysisTasks,
     setAddAggregateTasks,
@@ -406,5 +416,6 @@ export const {
     updateEvalMetrics,
     setActionsEvalTrigger,
     setEvalFns,
+    setAddedEvalFns
 } = aiSlice.actions;
 export default aiSlice.reducer;

@@ -13,10 +13,13 @@ export interface AiState {
     addAnalysisView: boolean;
     addAggregationView: boolean;
     addRetrievalView: boolean;
+    addEvalFnsView: boolean;
+    addedEvalFns: EvalFn[];
     addedAnalysisTasks: TaskModelInstructions[];
     addedAggregateTasks: TaskModelInstructions[];
     addedRetrievals: Retrieval[];
     workflowBuilderTaskMap: AggregateSubTasksMap
+    workflowBuilderEvalsTaskMap: EvalFnMap
     taskMap: TaskMap;
     retrievalsMap: RetrievalsMap;
     retrieval: Retrieval;
@@ -39,6 +42,10 @@ export interface AiState {
     evalFns: EvalFn[];
     evalMetric: EvalMetric;
     actionsEvalTrigger: EvalActionTrigger;
+}
+
+export interface EvalFnMap {
+    [key: number]: TaskModelInstructions;
 }
 
 export interface EvalActionTrigger {
@@ -83,7 +90,6 @@ export interface Action {
     actionMetrics : ActionMetric[];
     actionPlatformAccounts: ActionPlatformAccount[];
 }
-
 
 export interface ActionMetric {
     metricName: string;

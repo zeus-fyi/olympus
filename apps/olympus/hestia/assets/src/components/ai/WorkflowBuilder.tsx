@@ -46,6 +46,7 @@ import {
     setAddAggregationView,
     setAddAnalysisTasks,
     setAddAnalysisView,
+    setAddedEvalFns,
     setAddEvalFnsView,
     setAddRetrievalTasks,
     setAddRetrievalView,
@@ -346,7 +347,10 @@ function WorkflowEngineBuilder(props: any) {
                 .map(key => retrievals[Number(key)]);
             dispatch(setAddRetrievalTasks(selectedTasks));
         } else if (addEvalsView) {
-
+            const selectedEvals: EvalFn[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => evalFns[Number(key)]);
+            dispatch(setAddedEvalFns(selectedEvals));
         }
         setIsLoading(false)
     }
@@ -2634,6 +2638,16 @@ function WorkflowEngineBuilder(props: any) {
                                 <span>({Object.values(selected).filter(value => value).length} Selected Tasks)</span>
                                 <Button variant="outlined" color="secondary" onClick={handleAddTasksToWorkflow} style={{marginLeft: '10px'}}>
                                     Add {addAnalysisView ? 'Analysis' : 'Aggregation'} Stages
+                                </Button>
+                            </Box>
+                        </Container>
+                    }
+                    { (selectedMainTabBuilder === 4) && (addEvalsView) &&
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <Box sx={{ mb: 2 }}>
+                                <span>(Selected {Object.values(selected).filter(value => value).length} {Object.values(selected).filter(value => value).length > 1 ? 'Evals': 'Eval'})</span>
+                                <Button variant="outlined" color="secondary" onClick={handleAddTasksToWorkflow} style={{marginLeft: '10px'}}>
+                                    Add Eval Stages
                                 </Button>
                             </Box>
                         </Container>

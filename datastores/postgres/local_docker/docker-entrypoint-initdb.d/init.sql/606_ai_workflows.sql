@@ -80,5 +80,5 @@ CREATE INDEX ai_workflow_template_agg_tasks_idx2 ON public.ai_workflow_template_
 CREATE INDEX ai_workflow_template_agg_tasks_idx3 ON public.ai_workflow_template_agg_tasks (analysis_task_id);
 
 ALTER TABLE public.ai_workflow_template_agg_tasks
-    DROP CONSTRAINT ai_workflow_template_agg_tasks_link_uniq,
-    ADD PRIMARY KEY (workflow_template_id, agg_task_id, analysis_task_id);
+DROP CONSTRAINT ai_workflow_template_agg_tasks_link_uniq,
+ADD PRIMARY KEY (workflow_template_id, agg_task_id, analysis_task_id);

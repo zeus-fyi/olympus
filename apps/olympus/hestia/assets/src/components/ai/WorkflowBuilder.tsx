@@ -150,6 +150,12 @@ function WorkflowEngineBuilder(props: any) {
             setRequestEvalCreateOrUpdateStatusError('error')
             return;
         }
+
+        if (evalFn.evalType === 'model' && evalMetric.evalModelPrompt.length <= 0){
+            setRequestEvalCreateOrUpdateStatus('Prompt is empty')
+            setRequestEvalCreateOrUpdateStatusError('error')
+            return;
+        }
         // Check if the metric name already exists in actionMetrics
         const existingMetric = evalFn.evalMetrics.some((metric: { evalMetricName: string; }) => metric.evalMetricName === evalMetric.evalMetricName);
         if (existingMetric) {
@@ -1996,7 +2002,6 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Stack>
                                                         ))
                                                     }
-
                                                     {requestActionStatus != '' && (
                                                         <Container sx={{ mb: 2, mt: -2}}>
                                                             <Typography variant="h6" color={requestActionStatusError}>
@@ -2005,7 +2010,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Container>
                                                     )}
                                                     <Box flexGrow={1} sx={{ mb: 0 }}>
-                                                        <Button fullWidth variant="contained" onClick={createOrUpdateAction} >Save Action</Button>
+                                                        <Button fullWidth variant="contained" onClick={createOrUpdateAction}>Save Action</Button>
                                                     </Box>
                                                 </Stack>
                                             </div>

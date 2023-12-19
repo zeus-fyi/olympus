@@ -2,8 +2,8 @@ package artemis_orchestrations
 
 import (
 	"context"
-	"log"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
@@ -36,7 +36,7 @@ type EvalMetric struct {
 func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error {
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
-		log.Println("failed to start transaction:", err)
+		log.Err(err).Msg("failed to begin transaction")
 		return err
 	}
 	defer tx.Rollback(ctx)
@@ -60,7 +60,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error 
         RETURNING eval_id;`
 	err = tx.QueryRow(ctx, evalFnInsertOrUpdateQuery, evalFn.EvalID, evalFn.OrgID, evalFn.UserID, evalFn.EvalName, evalFn.EvalType, evalFn.EvalGroupName, evalFn.EvalModel, evalFn.EvalFormat).Scan(&evalFn.EvalID)
 	if err != nil {
-		log.Println("failed to insert or update eval fn:", err)
+		log.Err(err).Msg("failed to insert or update eval_fns")
 		return err
 	}
 	// Inserting or updating eval_metrics
@@ -85,7 +85,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error 
                 eval_state = EXCLUDED.eval_state;`
 		_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery, metric.EvalMetricID, evalFn.EvalID, metric.EvalModelPrompt, metric.EvalMetricName, metric.EvalMetricResult, metric.EvalComparisonBoolean, metric.EvalComparisonNumber, metric.EvalComparisonString, metric.EvalMetricDataType, metric.EvalOperator, metric.EvalState)
 		if err != nil {
-			log.Println("failed to insert or update eval metric:", err)
+			log.Err(err).Msg("failed to insert or update eval_fns")
 			return err
 		}
 	}
@@ -97,29 +97,25 @@ func SelectEvalFnsByOrgID(ctx context.Context, orgID int) ([]EvalFn, error) {
         SELECT eval_id, org_id, user_id, eval_name, eval_type, eval_group_name, eval_model, eval_format
         FROM public.eval_fns
         WHERE org_id = $1;`
-
 	rows, err := apps.Pg.Query(ctx, query, orgID)
 	if err != nil {
-		log.Println("Error executing query:", err)
+		log.Err(err).Msg("failed to select eval_fns")
 		return nil, err
 	}
 	defer rows.Close()
-
 	var evalFns []EvalFn
 	for rows.Next() {
 		var ef EvalFn
 		err = rows.Scan(&ef.EvalID, &ef.OrgID, &ef.UserID, &ef.EvalName, &ef.EvalType, &ef.EvalGroupName, &ef.EvalModel, &ef.EvalFormat)
 		if err != nil {
-			log.Println("Error scanning row:", err)
+			log.Err(err).Msg("failed to select eval_fns")
 			return nil, err
 		}
 		evalFns = append(evalFns, ef)
 	}
-
 	if err = rows.Err(); err != nil {
-		log.Println("Error with row iteration:", err)
+		log.Err(err).Msg("failed to select eval_fns")
 		return nil, err
 	}
-
 	return evalFns, nil
 }

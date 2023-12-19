@@ -64,6 +64,10 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 		ctx,
 		openai.ChatCompletionRequest{
 			Model: "gpt-4-1106-preview",
+			Tools: []openai.Tool{{
+				Type:     "function",
+				Function: params.FunctionDefinition,
+			}},
 			Messages: []openai.ChatCompletionMessage{
 				systemMessage,
 				{

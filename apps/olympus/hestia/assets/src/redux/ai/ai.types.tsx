@@ -45,7 +45,7 @@ export interface AiState {
 }
 
 export interface EvalFnMap {
-    [key: number]: TaskModelInstructions;
+    [key: number]: { [innerKey: number]: boolean };
 }
 
 export interface EvalActionTrigger {

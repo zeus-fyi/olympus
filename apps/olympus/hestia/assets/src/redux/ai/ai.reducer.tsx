@@ -321,6 +321,25 @@ const aiSlice = createSlice({
                 }
             }
         },
+        setTaskEvalsMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
+            const { key, subKey, value } = action.payload;
+            if (value) {
+                if (!state.workflowBuilderEvalsTaskMap[key]) {
+                    state.workflowBuilderEvalsTaskMap[key] = {};
+                }
+                state.workflowBuilderEvalsTaskMap[key][subKey] = true;
+            } else {
+                if (state.workflowBuilderEvalsTaskMap[key]) {
+                    delete state.workflowBuilderEvalsTaskMap[key][subKey];
+
+                    // Check if the main key has no inner keys left
+                    if (Object.keys(state.workflowBuilderEvalsTaskMap[key]).length === 0) {
+                        // If so, delete the main key from the map
+                        delete state.workflowBuilderEvalsTaskMap[key];
+                    }
+                }
+            }
+        },
         setTaskMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
             const { key, count } = action.payload;
             const tmp = state.taskMap[key]
@@ -416,6 +435,7 @@ export const {
     updateEvalMetrics,
     setActionsEvalTrigger,
     setEvalFns,
-    setAddedEvalFns
+    setAddedEvalFns,
+    setTaskEvalsMap,
 } = aiSlice.actions;
 export default aiSlice.reducer;

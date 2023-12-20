@@ -65,6 +65,7 @@ import {
     setRetrievals,
     setSelectedMainTabBuilder,
     setSelectedWorkflows,
+    setTaskEvalsMap,
     setTaskMap,
     setWebRoutingGroup,
     setWorkflowBuilderTaskMap,
@@ -116,17 +117,19 @@ function WorkflowEngineBuilder(props: any) {
     const [selectedAnalysisStageForRetrieval, setSelectedAnalysisStageForRetrieval] = useState('');
     const [selectedAnalysisStageForAggregation, setSelectedAnalysisStageForAggregation] = useState('');
     const [selectedAggregationStageForAnalysis, setSelectedAggregationStageForAnalysis] = useState('');
+    const [selectedAnalysisStageForEval, setSelectedAnalysisStageForEval] = useState('');
+    const [selectedAggregationStageForEval, setSelectedAggregationStageForEval] = useState('');
     const [selectedEvalStage, setSelectedEvalStage] = useState('');
     const evalFnStages = useSelector((state: RootState) => state.ai.addedEvalFns);
     const addEvalsView = useSelector((state: RootState) => state.ai.addEvalFnsView);
-
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
     const [tasks, setTasks] = useState(allTasks && allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
     const retrievals = useSelector((state: RootState) => state.ai.retrievals);
     const workflowBuilderTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderTaskMap);
+    const workflowAnalysisRetrievalsMap = useSelector((state: RootState) => state.ai.workflowAnalysisRetrievalsMap);
+    const workflowBuilderEvalsTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderEvalsTaskMap);
     const taskMap = useSelector((state: RootState) => state.ai.taskMap);
     const retrievalsMap = useSelector((state: RootState) => state.ai.retrievalsMap);
-    const workflowAnalysisRetrievalsMap = useSelector((state: RootState) => state.ai.workflowAnalysisRetrievalsMap);
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
     const workflowName = useSelector((state: RootState) => state.ai.workflowName);
     const workflowGroupName = useSelector((state: RootState) => state.ai.workflowGroupName);
@@ -142,7 +145,11 @@ function WorkflowEngineBuilder(props: any) {
     const [openAggregation, setOpenAggregation] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openActions, setActions] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openEvals, setOpenEvals] = useState<boolean>(true); // Or use an object/array for multiple sections
+    const [toggleEvalToTaskType, setToggleEvalToTaskType] = useState<boolean>(true); // Or use an object/array for multiple sections
 
+    const setToggleEvalTaskType = () => {
+        setToggleEvalToTaskType(!toggleEvalToTaskType);
+    };
     const removeEvalMetricRow = (index: number) => {
         const updatedMetrics = evalFn.evalMetrics.filter((_: EvalMetric, i: number) => i !== index);
         dispatch(updateEvalMetrics(updatedMetrics));
@@ -225,6 +232,35 @@ function WorkflowEngineBuilder(props: any) {
     const handleRemoveEvalFnRelationshipFromWorkflow = async (event: any, keystr: string, value: number) => {
 
     }
+
+    const handleAddEvalToSubTask = () => {
+        if (toggleEvalToTaskType){
+            if (selectedAnalysisStageForEval.length <= 0 && selectedEvalStage.length <= 0){
+                return;
+            }
+            const aggKey = Number(selectedAggregationStageForAnalysis);
+            const analysisKey = Number(selectedAnalysisStageForAggregation);
+            const payload = {
+                key: aggKey,
+                subKey: analysisKey,
+                value: true
+            };
+            dispatch(setTaskEvalsMap(payload));
+        } else {
+            if (selectedAggregationStageForEval.length <= 0 && selectedEvalStage.length <= 0){
+                return;
+            }
+            const aggKey = Number(selectedAggregationStageForEval);
+            const analysisKey = Number(selectedAnalysisStageForAggregation);
+            const payload = {
+                key: aggKey,
+                subKey: analysisKey,
+                value: true
+            };
+            dispatch(setTaskEvalsMap(payload));
+        }
+    };
+
     const handleAddSubTaskToAggregate = () => {
         if (selectedAggregationStageForAnalysis.length <= 0 || selectedAnalysisStageForAggregation.length <= 0) {
             return;
@@ -1122,7 +1158,6 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                 <Divider/>
                                             </Box>
-
                                             { retrievalStages && analysisStages && retrievalStages.length > 0 && analysisStages.length > 0 &&
                                                 <div>
                                                     <Box sx={{ mt: 2 }} >
@@ -1142,7 +1177,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                         const subKeyNumber = Number(subKey);
                                                                         const subTask = taskMap[(Number(subKeyNumber))]
                                                                         const subTaskName = subTask?.taskName || '';
-
                                                                         if (!subValue || subKey.length <= 0) {
                                                                             return null;
                                                                         }
@@ -1453,7 +1487,7 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box flexGrow={2} sx={{mt: 2}}>
                                                 {addedEvalFns && addedEvalFns.map((ef: EvalFn, subIndex) => (
                                                     <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
-                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 2 }}>
+                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 4 }}>
                                                             <TextField
                                                                 key={subIndex}
                                                                 label={`Eval Name`}
@@ -1466,7 +1500,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 margin="normal"
                                                             />
                                                         </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
+                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2, mr: 4 }}>
                                                             <Button fullWidth variant="contained" onClick={(event)=>handleRemoveEvalFnRelationshipFromWorkflow(event, ef.evalName, subIndex)}>Remove</Button>
                                                         </Box>
                                                     </Stack>
@@ -1475,6 +1509,151 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box flexGrow={1} sx={{ mb: 0, mt: 2, ml: 4 }}>
                                                 <Button  variant="contained" onClick={() => addEvalsStageView()} >{addEvalsView ? 'Done Adding': 'Add Eval Stages'}</Button>
                                             </Box>
+                                            { evalFnStages && ((analysisStages && analysisStages.length > 0) || (aggregationStages && aggregationStages.length > 0)) && evalFnStages.length > 0 &&
+                                                <div>
+                                                    <Box sx={{ mt:4, ml: 4 }} >
+                                                        <Typography variant="h6" color="text.secondary">
+                                                            Add Eval Stages to (Aggregation/Analysis) Tasks
+                                                        </Typography>
+                                                    </Box>
+                                                    { workflowBuilderEvalsTaskMap &&
+                                                        <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
+                                                            <Box >
+                                                                {Object.entries(workflowBuilderEvalsTaskMap).map(([key, value], index) => {
+                                                                    // these are the tasks
+                                                                    const taskNameForKey= retrievalsMap[(Number(key))]?.retrievalName || '';
+                                                                    if (!taskNameForKey || taskNameForKey.length <= 0) {
+                                                                        return null;
+                                                                    }
+                                                                    /*
+                                                                        const subKeyNumber = Number(subKey);
+                                                                        const subTask = taskMap[(Number(subKeyNumber))]
+                                                                        const subTaskName = subTask?.taskName || '';
+                                                                        if (!subValue || subKey.length <= 0) {
+                                                                            return null;
+                                                                        }
+                                                                        if (subTaskName.length <= 0) {
+                                                                            return null;
+                                                                        }
+                                                                     */
+                                                                    // these are the evals
+                                                                    return Object.entries(value).map(([subKey, subValue], subIndex) => {
+                                                                        const subKeyNumber = Number(subKey);
+                                                                        const subTask = taskMap[(Number(subKeyNumber))]
+                                                                        const subTaskName = subTask?.taskName || '';
+                                                                        if (!subValue || subKey.length <= 0) {
+                                                                            return null;
+                                                                        }
+                                                                        if (subTaskName.length <= 0) {
+                                                                            return null;
+                                                                        }
+                                                                        /*
+                                                                                const taskNameForKey= retrievalsMap[(Number(key))]?.retrievalName || '';
+                                                                                if (!taskNameForKey || taskNameForKey.length <= 0) {
+                                                                                    return null;
+                                                                                }
+                                                                         */
+                                                                        return (
+                                                                            <Stack direction={"row"} key={`${key}-${subKey}`}>
+                                                                                <React.Fragment key={subIndex}>
+                                                                                    <TextField
+                                                                                        label={`Task`}
+                                                                                        value={taskNameForKey || ''}
+                                                                                        InputProps={{ readOnly: true }}
+                                                                                        variant="outlined"
+                                                                                        fullWidth
+                                                                                        margin="normal"
+                                                                                    />
+                                                                                    <Box flexGrow={1} sx={{ mt: 4, ml: 2, mr: 2 }}>
+                                                                                        <ArrowForwardIcon />
+                                                                                    </Box>
+                                                                                    <TextField
+                                                                                        label={`Eval`}
+                                                                                        value={subTaskName || ''}
+                                                                                        InputProps={{ readOnly: true }}
+                                                                                        variant="outlined"
+                                                                                        fullWidth
+                                                                                        margin="normal"
+                                                                                    />
+                                                                                    <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
+                                                                                        <Button variant="contained" onClick={(event) => handleRemoveEvalFnRelationshipFromWorkflow(event, key, subKeyNumber)}>Remove</Button>
+                                                                                    </Box>
+                                                                                </React.Fragment>
+                                                                            </Stack>
+                                                                        );
+                                                                    });
+                                                                })}
+                                                            </Box>
+                                                        </Box>}
+
+                                                        <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={1}>
+                                                            { evalFnStages &&
+                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 4 }}>
+                                                                    <FormControl fullWidth>
+                                                                        <InputLabel id={`eval-stage-select-label-${1}`}>Evals</InputLabel>
+                                                                        <Select
+                                                                            labelId={`eval-stage-select-label-${1}`}
+                                                                            id={`eval-stage-select-${1}`}
+                                                                            value={selectedEvalStage} // Use the state for the selected value
+                                                                            label="Eval Source"
+                                                                            onChange={(event) => setSelectedEvalStage(event.target.value)} // Update the state on change
+                                                                        >
+                                                                            {evalFnStages && evalFnStages.map((stage, subIndex) => (
+                                                                                <MenuItem key={subIndex} value={stage.evalID ? stage.evalID : ''}>{stage.evalName}</MenuItem>
+                                                                            ))}
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                            }
+                                                            <Box flexGrow={1} sx={{ mt: -1.2, ml: 5, mr: -4 }}>
+                                                                <ArrowForwardIcon />
+                                                            </Box>
+                                                            { analysisStages && !toggleEvalToTaskType &&
+                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 0, mr: 2 }}>
+                                                                    <FormControl fullWidth>
+                                                                        <InputLabel id={`analysis-stage-select-label-${1}`}>Analysis</InputLabel>
+                                                                        <Select
+                                                                            labelId={`analysis-stage-select-label-${1}`}
+                                                                            id={`analysis-stage-select-${1}`}
+                                                                            value={selectedAnalysisStageForEval} // Use the state for the selected value
+                                                                            label="Analysis Source"
+                                                                            onChange={(event) => setSelectedAnalysisStageForEval(event.target.value)} // Update the state on change
+                                                                        >
+                                                                            {analysisStages && analysisStages.map((stage, subIndex) => (
+                                                                                <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                            ))}
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                            }
+                                                            { aggregationStages && toggleEvalToTaskType &&
+                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 0, mr: 2 }}>
+                                                                    <FormControl fullWidth>
+                                                                        <InputLabel id={`agg-stage-select-label-${2}`}>Aggregate</InputLabel>
+                                                                        <Select
+                                                                            labelId={`agg-stage-select-label-${2}`}
+                                                                            id={`agg-stage-select-${2}`}
+                                                                            value={selectedAggregationStageForEval} // This should correspond to the selected stage for each task
+                                                                            label="Aggregate Source"
+                                                                            onChange={(event) => setSelectedAggregationStageForEval(event.target.value)} // Update the state on change)
+                                                                        >
+                                                                            {aggregationStages && aggregationStages.map((stage: any, subIndex: number) => (
+                                                                                <MenuItem key={stage.taskID} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                            ))}
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                            }
+                                                            <Box sx={{mt: -2, ml: 2 }}>
+                                                                <Button variant="contained" onClick={setToggleEvalTaskType}>Add {toggleEvalToTaskType ? 'Analysis':'Aggregation'} Evals</Button>
+                                                            </Box>
+                                                            <Box  sx={{mt: -2, ml: 2, mr: 4 }}>
+                                                                <Button variant="contained" onClick={handleAddEvalToSubTask}>Add Source</Button>
+                                                            </Box>
+                                                        </Stack>
+                                                        </div>
+                                            }
+
                                         </Collapse>
                                         <Box flexGrow={1} sx={{ mt: 4, mb: 0}}>
                                             <Divider/>
@@ -1533,7 +1712,7 @@ function WorkflowEngineBuilder(props: any) {
                                 </div>
                                 }
                                 <CardContent>
-                                    {!addAnalysisView && !addAggregateView && !addRetrievalView && selectedMainTabBuilder == 1 &&
+                                    {!addAnalysisView && !addAggregateView && !addRetrievalView && selectedMainTabBuilder == 1 && !addEvalsView &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Analysis Instructions
@@ -1612,7 +1791,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    { !addAggregateView && !addAnalysisView && !addRetrievalView && selectedMainTabBuilder == 2 &&
+                                    { !addAggregateView && !addAnalysisView && !addRetrievalView && selectedMainTabBuilder === 2 &&  !addEvalsView &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Aggregation Instructions
@@ -1692,7 +1871,7 @@ function WorkflowEngineBuilder(props: any) {
                                         </div>
                                     }
                                     {
-                                        selectedMainTabBuilder == 3 && !addRetrievalView && !loading &&
+                                        selectedMainTabBuilder == 3 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView &&
                                     <CardContent>
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
@@ -1848,7 +2027,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </CardContent>
                                     }
                                     {
-                                        selectedMainTabBuilder === 5 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView &&
+                                        selectedMainTabBuilder === 5 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView &&
                                         <CardContent>
                                             <div>
                                                 <Typography gutterBottom variant="h5" component="div">
@@ -2516,7 +2695,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </div>
                                         </CardContent>
                                     }
-                                    { !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 1 &&
+                                    { !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 1 && !loading && !addRetrievalView && !addEvalsView &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                 <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
@@ -2554,7 +2733,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 2 &&
+                                    {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 2 && !loading && !addRetrievalView && !addEvalsView &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                             <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
@@ -2614,7 +2793,7 @@ function WorkflowEngineBuilder(props: any) {
                         </Box>
                     </Container>
 
-                    { selectedMainTabBuilder === 0 && !addAnalysisView && !addAggregateView && !addRetrievalView && selectedWorkflows && selectedWorkflows.length > 0  &&
+                    { selectedMainTabBuilder === 0 && !addAnalysisView && !addAggregateView && !addRetrievalView && selectedWorkflows && selectedWorkflows.length > 0 && !addEvalsView &&
                         <div>
                                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                     <Box sx={{ mb: 2 }}>

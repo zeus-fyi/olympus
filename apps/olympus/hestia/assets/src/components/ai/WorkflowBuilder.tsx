@@ -2806,7 +2806,7 @@ function WorkflowEngineBuilder(props: any) {
 
                         </div>
                     }
-                    { selectedMainTabBuilder == 0 &&
+                    { selectedMainTabBuilder === 0 &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <WorkflowTable selected={selected} setSelected={setSelected}/>
                         </Container>

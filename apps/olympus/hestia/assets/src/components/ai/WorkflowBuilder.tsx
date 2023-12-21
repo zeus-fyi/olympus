@@ -1587,27 +1587,6 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>}
 
                                                         <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={1}>
-                                                            { evalFnStages &&
-                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 4 }}>
-                                                                    <FormControl fullWidth>
-                                                                        <InputLabel id={`eval-stage-select-label-${1}`}>Evals</InputLabel>
-                                                                        <Select
-                                                                            labelId={`eval-stage-select-label-${1}`}
-                                                                            id={`eval-stage-select-${1}`}
-                                                                            value={selectedEvalStage} // Use the state for the selected value
-                                                                            label="Eval Source"
-                                                                            onChange={(event) => setSelectedEvalStage(event.target.value)} // Update the state on change
-                                                                        >
-                                                                            {evalFnStages && evalFnStages.map((stage, subIndex) => (
-                                                                                <MenuItem key={subIndex} value={stage.evalID ? stage.evalID : ''}>{stage.evalName}</MenuItem>
-                                                                            ))}
-                                                                        </Select>
-                                                                    </FormControl>
-                                                                </Box>
-                                                            }
-                                                            <Box flexGrow={1} sx={{ mt: -1.2, ml: 5, mr: -4 }}>
-                                                                <ArrowForwardIcon />
-                                                            </Box>
                                                             { analysisStages && !toggleEvalToTaskType &&
                                                                 <Box flexGrow={3} sx={{ mt: -3, ml: 0, mr: 2 }}>
                                                                     <FormControl fullWidth>
@@ -1639,6 +1618,27 @@ function WorkflowEngineBuilder(props: any) {
                                                                         >
                                                                             {aggregationStages && aggregationStages.map((stage: any, subIndex: number) => (
                                                                                 <MenuItem key={stage.taskID} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                            ))}
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                            }
+                                                            <Box flexGrow={1} sx={{ mt: -1.2, ml: 5, mr: -4 }}>
+                                                                <ArrowForwardIcon />
+                                                            </Box>
+                                                            { evalFnStages &&
+                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 4 }}>
+                                                                    <FormControl fullWidth>
+                                                                        <InputLabel id={`eval-stage-select-label-${1}`}>Evals</InputLabel>
+                                                                        <Select
+                                                                            labelId={`eval-stage-select-label-${1}`}
+                                                                            id={`eval-stage-select-${1}`}
+                                                                            value={selectedEvalStage} // Use the state for the selected value
+                                                                            label="Eval Source"
+                                                                            onChange={(event) => setSelectedEvalStage(event.target.value)} // Update the state on change
+                                                                        >
+                                                                            {evalFnStages && evalFnStages.map((stage, subIndex) => (
+                                                                                <MenuItem key={subIndex} value={stage.evalID ? stage.evalID : ''}>{stage.evalName}</MenuItem>
                                                                             ))}
                                                                         </Select>
                                                                     </FormControl>

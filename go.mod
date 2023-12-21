@@ -44,7 +44,7 @@ require (
 	github.com/lib/pq v1.10.6
 	github.com/nanmu42/etherscan-api v1.10.0
 	github.com/oleiade/lane/v2 v2.0.0
-	github.com/ovh/go-ovh v1.4.1
+	github.com/ovh/go-ovh v1.4.3
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/phf/go-queue v0.0.0-20170504031614-9abe38d0371d
 	github.com/pierrec/lz4 v2.6.1+incompatible

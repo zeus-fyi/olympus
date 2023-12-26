@@ -5,7 +5,6 @@ package ai_platform_service_orchestrations
 act stages
 
 objectives:
-	build the json schema from the function eval metric definitions
 	score the output of the function definition
 	save the results of the eval
 

@@ -58,7 +58,7 @@ func getDataType(value interface{}) (string, error) {
 	}
 }
 
-func TransformJSONToEvalMetrics(jsonData string) ([]artemis_orchestrations.EvalMetric, error) {
+func TransformJSONToEvalScoredMetrics(jsonData string, emMap map[string]artemis_orchestrations.EvalMetric) ([]artemis_orchestrations.EvalMetric, error) {
 	var dataMap map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonData), &dataMap); err != nil {
 		return nil, err
@@ -69,6 +69,10 @@ func TransformJSONToEvalMetrics(jsonData string) ([]artemis_orchestrations.EvalM
 		dataType, err := getDataType(value)
 		if err != nil {
 			return nil, fmt.Errorf("error determining data type for key '%s': %v", key, err)
+		}
+
+		if _, ok := emMap[key]; ok {
+			fmt.Println(value)
 		}
 
 		metrics = append(metrics, artemis_orchestrations.EvalMetric{

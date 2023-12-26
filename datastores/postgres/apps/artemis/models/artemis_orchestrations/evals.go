@@ -10,15 +10,16 @@ import (
 )
 
 type EvalFn struct {
-	EvalID        *int         `json:"evalID,omitempty"`
-	OrgID         int          `json:"orgID,omitempty"`
-	UserID        int          `json:"userID,omitempty"`
-	EvalName      string       `json:"evalName"`
-	EvalType      string       `json:"evalType"`
-	EvalGroupName string       `json:"evalGroupName"`
-	EvalModel     *string      `json:"evalModel,omitempty"`
-	EvalFormat    string       `json:"evalFormat"`
-	EvalMetrics   []EvalMetric `json:"evalMetrics"`
+	EvalID        *int                  `json:"evalID,omitempty"`
+	OrgID         int                   `json:"orgID,omitempty"`
+	UserID        int                   `json:"userID,omitempty"`
+	EvalName      string                `json:"evalName"`
+	EvalType      string                `json:"evalType"`
+	EvalGroupName string                `json:"evalGroupName"`
+	EvalModel     *string               `json:"evalModel,omitempty"`
+	EvalFormat    string                `json:"evalFormat"`
+	EvalMetrics   []EvalMetric          `json:"evalMetrics"`
+	EvalMetricMap map[string]EvalMetric `json:"evalMetricMap,omitempty"`
 }
 
 type EvalMetric struct {
@@ -154,9 +155,12 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 		}
 		if existingEvalFn, exists := evalFnsMap[evalID]; exists {
 			existingEvalFn.EvalMetrics = append(existingEvalFn.EvalMetrics, em)
+			existingEvalFn.EvalMetricMap[em.EvalMetricName] = em
 		} else {
 			ef.EvalID = &evalID
 			ef.EvalMetrics = append(ef.EvalMetrics, em)
+			ef.EvalMetricMap = make(map[string]EvalMetric)
+			ef.EvalMetricMap[em.EvalMetricName] = em
 			evalFnsMap[evalID] = &ef
 		}
 	}

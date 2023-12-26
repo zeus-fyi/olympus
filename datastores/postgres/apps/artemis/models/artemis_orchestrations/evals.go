@@ -121,30 +121,57 @@ func SelectEvalFnsByOrgID(ctx context.Context, ou org_users.OrgUser) ([]EvalFn, 
 	return evalFns, nil
 }
 
-func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalID int) ([]EvalFn, error) {
+func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFnID int) ([]EvalFn, error) {
+	// CTE query to fetch EvalFn records along with their EvalMetrics
 	const query = `
-        SELECT eval_id, org_id, user_id, eval_name, eval_type, eval_group_name, eval_model, eval_format
-        FROM public.eval_fns
-        WHERE org_id = $1 AND eval_id = $2;`
-	rows, err := apps.Pg.Query(ctx, query, ou.OrgID, evalID)
+    WITH eval_fns_with_metrics AS (
+        SELECT f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format,
+               m.eval_metric_id, m.eval_model_prompt, m.eval_metric_name, m.eval_metric_result, m.eval_comparison_boolean,
+               m.eval_comparison_number, m.eval_comparison_string, m.eval_metric_data_type, m.eval_operator, m.eval_state
+        FROM public.eval_fns f
+        LEFT JOIN public.eval_metrics m ON f.eval_id = m.eval_id
+        WHERE f.org_id = $1 AND f.eval_id = $2
+    )
+    SELECT * FROM eval_fns_with_metrics;`
+
+	rows, err := apps.Pg.Query(ctx, query, ou.OrgID, evalFnID)
 	if err != nil {
-		log.Err(err).Msg("failed to select eval_fns")
+		log.Err(err).Msg("failed to execute query")
 		return nil, err
 	}
 	defer rows.Close()
-	var evalFns []EvalFn
+
+	evalFnsMap := make(map[int]*EvalFn)
 	for rows.Next() {
 		var ef EvalFn
-		err = rows.Scan(&ef.EvalID, &ef.OrgID, &ef.UserID, &ef.EvalName, &ef.EvalType, &ef.EvalGroupName, &ef.EvalModel, &ef.EvalFormat)
+		var em EvalMetric
+		var evalID int
+		err = rows.Scan(&evalID, &ef.OrgID, &ef.UserID, &ef.EvalName, &ef.EvalType, &ef.EvalGroupName, &ef.EvalModel, &ef.EvalFormat,
+			&em.EvalMetricID, &em.EvalModelPrompt, &em.EvalMetricName, &em.EvalMetricResult, &em.EvalComparisonBoolean,
+			&em.EvalComparisonNumber, &em.EvalComparisonString, &em.EvalMetricDataType, &em.EvalOperator, &em.EvalState)
 		if err != nil {
-			log.Err(err).Msg("failed to select eval_fns")
+			log.Err(err).Msg("failed to scan row")
 			return nil, err
 		}
-		evalFns = append(evalFns, ef)
+
+		if existingEvalFn, exists := evalFnsMap[evalID]; exists {
+			existingEvalFn.EvalMetrics = append(existingEvalFn.EvalMetrics, em)
+		} else {
+			ef.EvalID = &evalID
+			ef.EvalMetrics = append(ef.EvalMetrics, em)
+			evalFnsMap[evalID] = &ef
+		}
 	}
+
+	var evalFns []EvalFn
+	for _, ef := range evalFnsMap {
+		evalFns = append(evalFns, *ef)
+	}
+
 	if err = rows.Err(); err != nil {
-		log.Err(err).Msg("failed to select eval_fns")
+		log.Err(err).Msg("error in row iteration")
 		return nil, err
 	}
+
 	return evalFns, nil
 }

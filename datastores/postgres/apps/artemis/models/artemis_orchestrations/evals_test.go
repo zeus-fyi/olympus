@@ -1,6 +1,9 @@
 package artemis_orchestrations
 
-import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+)
 
 func (s *OrchestrationsTestSuite) TestInsertEval() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
@@ -41,10 +44,13 @@ func (s *OrchestrationsTestSuite) TestInsertEval() {
 }
 
 func (s *OrchestrationsTestSuite) TestSelectEvals() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	// Example data for EvalFn and EvalMetrics
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	evs, err := SelectEvalFnsByOrgID(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	evs, err := SelectEvalFnsByOrgIDAndID(ctx, ou, 1702961311357646000)
 	s.Require().Nil(err)
 	s.Require().NotNil(evs)
 }

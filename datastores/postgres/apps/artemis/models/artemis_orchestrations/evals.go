@@ -122,7 +122,6 @@ func SelectEvalFnsByOrgID(ctx context.Context, ou org_users.OrgUser) ([]EvalFn, 
 }
 
 func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFnID int) ([]EvalFn, error) {
-	// CTE query to fetch EvalFn records along with their EvalMetrics
 	const query = `
     WITH eval_fns_with_metrics AS (
         SELECT f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format,
@@ -153,7 +152,6 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			log.Err(err).Msg("failed to scan row")
 			return nil, err
 		}
-
 		if existingEvalFn, exists := evalFnsMap[evalID]; exists {
 			existingEvalFn.EvalMetrics = append(existingEvalFn.EvalMetrics, em)
 		} else {
@@ -165,6 +163,9 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 
 	var evalFns []EvalFn
 	for _, ef := range evalFnsMap {
+		if ef == nil {
+			continue
+		}
 		evalFns = append(evalFns, *ef)
 	}
 

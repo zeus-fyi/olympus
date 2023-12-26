@@ -13,12 +13,7 @@ import (
 var HeraOpenAI OpenAI
 
 var maxTokensByModel = map[string]int{
-	openai.GPT4TurboPreview:   40000,
-	openai.GPT3TextDavinci003: 2048,
-	openai.GPT3TextDavinci002: 2048,
-	openai.GPT3TextDavinci001: 2048,
-	openai.GPT3TextAda001:     2048,
-	openai.GPT3TextBabbage001: 2048,
+	openai.GPT4TurboPreview: 40000,
 }
 
 type OpenAI struct {

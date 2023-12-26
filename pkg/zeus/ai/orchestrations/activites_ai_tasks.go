@@ -14,28 +14,6 @@ import (
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 )
 
-func (z *ZeusAiPlatformActivities) CreatJsonOutputModelResponse(ctx context.Context, ou org_users.OrgUser, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
-	var err error
-	var resp openai.ChatCompletionResponse
-	ps, err := GetMockingBirdSecrets(ctx, ou)
-	if err != nil || ps == nil || ps.ApiKey == "" {
-		log.Info().Msg("CreatJsonOutputModelResponse: GetMockingBirdSecrets failed to find user openai api key, using system key")
-		err = nil
-		resp, err = hera_openai.HeraOpenAI.MakeCodeGenRequestJsonFormattedOutput(ctx, ou, params)
-	} else {
-		oc := hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
-		resp, err = oc.MakeCodeGenRequestJsonFormattedOutput(ctx, ou, params)
-	}
-	if err != nil {
-		log.Err(err).Msg("CreatJsonOutputModelResponse: MakeCodeGenRequestJsonFormattedOutput failed")
-		return nil, err
-	}
-	return &ChatCompletionQueryResponse{
-		Prompt:   map[string]string{"prompt": params.Prompt},
-		Response: resp,
-	}, nil
-}
-
 func GetMockingBirdSecrets(ctx context.Context, ou org_users.OrgUser) (*aws_secrets.OAuth2PlatformSecret, error) {
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
 	if err != nil || ps == nil || ps.ApiKey == "" {

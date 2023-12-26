@@ -145,7 +145,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			}
 			aggCycle := wfExecParams.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 			if i%aggCycle == 0 {
-				if md.AggregateAnalysis[*aggInst.AggTaskID] == nil {
+				if aggInst.AggTaskID == nil || md.AggregateAnalysis[*aggInst.AggTaskID] == nil {
 					continue
 				}
 				if md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false {

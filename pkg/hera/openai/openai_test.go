@@ -36,9 +36,7 @@ func (s *HeraTestSuite) TestOpenAICreateJsonOutputFormat() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-
 	InitHeraOpenAI(s.Tc.OpenAIAuth)
-
 	fdSchema := jsonschema.Definition{
 		Type: jsonschema.Object,
 		Properties: map[string]jsonschema.Definition{
@@ -56,7 +54,6 @@ func (s *HeraTestSuite) TestOpenAICreateJsonOutputFormat() {
 		},
 		Required: []string{"count", "words"},
 	}
-
 	fd := openai.FunctionDefinition{
 		Name:       "test",
 		Parameters: fdSchema,
@@ -84,13 +81,6 @@ func (s *HeraTestSuite) TestOpenAICreateJsonOutputFormat() {
 		}
 
 	}
-}
-
-type T struct {
-	ToolUses []struct {
-		RecipientName string `json:"recipient_name"`
-		Parameters    any    `json:"parameters"`
-	} `json:"tool_uses"`
 }
 
 func (s *HeraTestSuite) TestOpenAICreateAssistant() {

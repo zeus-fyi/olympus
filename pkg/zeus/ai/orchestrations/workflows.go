@@ -67,7 +67,6 @@ func (z *ZeusAiPlatformServiceWorkflows) AiEmailWorkflow(ctx workflow.Context, w
 			continue
 		}
 		var resp openai.ChatCompletionResponse
-
 		tmp := ao
 		tmp.RetryPolicy.MaximumAttempts = 3
 		runAiTaskCtx := workflow.WithActivityOptions(ctx, tmp)

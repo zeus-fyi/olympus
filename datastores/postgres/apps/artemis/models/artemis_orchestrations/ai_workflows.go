@@ -18,14 +18,15 @@ type WorkflowTemplate struct {
 	Tasks                     []Task `json:"tasks"` // Array of Task to hold the JSON aggregated tasks
 }
 type Task struct {
-	TaskID            int    `json:"taskID"`
-	TaskName          string `json:"taskName"`
-	TaskType          string `json:"taskType"`
-	Model             string `json:"model"`
-	Prompt            string `json:"prompt"`
-	CycleCount        int    `json:"cycleCount"`
-	RetrievalName     string `json:"retrievalName,omitempty"`
-	RetrievalPlatform string `json:"retrievalPlatform,omitempty"`
+	TaskID            int        `json:"taskID"`
+	TaskName          string     `json:"taskName"`
+	TaskType          string     `json:"taskType"`
+	Model             string     `json:"model"`
+	Prompt            string     `json:"prompt"`
+	CycleCount        int        `json:"cycleCount"`
+	RetrievalName     string     `json:"retrievalName,omitempty"`
+	RetrievalPlatform string     `json:"retrievalPlatform,omitempty"`
+	EvalFnDBs         []EvalFnDB `json:"evalFns,omitempty"`
 }
 
 func InsertWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, template *WorkflowTemplate) error {

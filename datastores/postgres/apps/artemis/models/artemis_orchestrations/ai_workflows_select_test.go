@@ -3,6 +3,7 @@ package artemis_orchestrations
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -59,20 +60,6 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplate() {
 			fmt.Println(k, v)
 		}
 	}
-	if newTemplate.WorkflowName == "Example Workflow4" {
-		s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701667813254964224])
-
-		s.Require().Equal(1, len(md.AnalysisRetrievals))
-		for k, v := range md.AnalysisRetrievals {
-			fmt.Println(k, v)
-		}
-		fmt.Println("\nAgg")
-		s.Require().Equal(0, len(md.AggregateAnalysis))
-
-		for k, v := range md.AggregateAnalysis {
-			fmt.Println(k, v)
-		}
-	}
 }
 
 func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesP() {
@@ -95,6 +82,7 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesP() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
 }
+
 func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplates() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	ou := org_users.OrgUser{}
@@ -157,5 +145,42 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplates() {
 				fmt.Println(k, v)
 			}
 		}
+
+		if newTemplate.WorkflowName == "Example Workflow4" {
+			s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701667813254964224])
+
+			s.Require().Equal(1, len(md.AnalysisRetrievals))
+			for k, v := range md.AnalysisRetrievals {
+				fmt.Println(k, v)
+			}
+			fmt.Println("\nAgg")
+			s.Require().Equal(0, len(md.AggregateAnalysis))
+
+			for k, v := range md.AggregateAnalysis {
+				fmt.Println(k, v)
+			}
+		}
+
+		count := 0
+		if newTemplate.WorkflowName == "Example Workflow With Agg EvalFns" {
+			for _, agg := range newTemplate.AggAnalysisTasksSlice {
+				for _, ef := range agg.EvalFns {
+					s.Assert().Equal(aws.Int(1703624059411640000), ef.EvalID)
+					count += 1
+				}
+			}
+		}
+		s.Assert().Equal(1, count)
 	}
+}
+
+func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesWithEvalFns() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	res, err := SelectWorkflowTemplates(ctx, ou)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(res)
 }

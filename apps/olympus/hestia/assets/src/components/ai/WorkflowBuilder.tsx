@@ -2348,7 +2348,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                         ...evalFn, // Spread the existing action properties
                                                                         evalType: e.target.value // Update the actionName
                                                                     }))}
-
                                                                 >
                                                                     <MenuItem value="model">Model</MenuItem>
                                                                     <MenuItem value="api">API</MenuItem>
@@ -2538,6 +2537,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     id="eval-comparison-value"
                                                                     label="Comparison Value"
                                                                     variant="outlined"
+                                                                    type={"number"}
                                                                     value={evalMetric.evalComparisonNumber}
                                                                     onChange={(e) => dispatch(setEvalMetric({
                                                                         ...evalMetric, // Spread the existing action properties
@@ -2577,7 +2577,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                     >
                                                                         <MenuItem value="pass">Pass</MenuItem>
                                                                         <MenuItem value="fail">Fail</MenuItem>
-                                                                        <MenuItem value="reject">Reject</MenuItem>
                                                                     </Select>
                                                                 </FormControl>
                                                             </Box>

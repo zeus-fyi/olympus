@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -57,6 +58,22 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 	evalFnMetrics, err := act.EvalLookup(ctx, ou, 1703624059411640000)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(evalFnMetrics)
+	// Output the resulting metrics
+	for _, evalFn := range evalFnMetrics {
+
+		for _, metric := range evalFn.EvalMetrics {
+			fmt.Printf("Metric: %+v\n", metric)
+
+			//if metric.EvalMetricDataType == "number" {
+			//	metric.EvalOperator = "=="
+			//}
+
+			if metric.EvalMetricDataType == "array[string]" {
+				metric.EvalComparisonString = aws.String("word1")
+				metric.EvalOperator = "contains"
+			}
+		}
+	}
 
 	jsonData := `{"count": 10, "words": ["word1", "word2"]}`
 
@@ -65,9 +82,9 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 		fmt.Println("Error:", err)
 		return
 	}
-
-	// Output the resulting metrics
-	for _, metric := range metrics {
-		fmt.Printf("Metric: %+v\n", metric)
-	}
+	t.Require().NotEmpty(metrics)
+	//// Output the resulting metrics
+	//for _, metric := range metrics {
+	//	fmt.Printf("Metric: %+v\n", metric)
+	//}
 }

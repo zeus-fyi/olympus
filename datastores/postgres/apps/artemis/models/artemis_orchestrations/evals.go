@@ -2,7 +2,9 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 
+	"github.com/jackc/pgtype"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -23,16 +25,22 @@ type EvalFn struct {
 }
 
 type EvalMetric struct {
-	EvalMetricID          *int    `json:"evalMetricID"`
-	EvalModelPrompt       string  `json:"evalModelPrompt"`
-	EvalMetricName        string  `json:"evalMetricName"`
-	EvalMetricResult      string  `json:"evalMetricResult"`
-	EvalComparisonBoolean *bool   `json:"evalComparisonBoolean,omitempty"`
-	EvalComparisonNumber  *int    `json:"evalComparisonNumber,omitempty"`
-	EvalComparisonString  *string `json:"evalComparisonString,omitempty"`
-	EvalMetricDataType    string  `json:"evalMetricDataType"`
-	EvalOperator          string  `json:"evalOperator"`
-	EvalState             string  `json:"evalState"`
+	EvalMetricID          *int     `json:"evalMetricID"`
+	EvalModelPrompt       string   `json:"evalModelPrompt"`
+	EvalMetricName        string   `json:"evalMetricName"`
+	EvalMetricResult      string   `json:"evalMetricResult"`
+	EvalComparisonBoolean *bool    `json:"evalComparisonBoolean,omitempty"`
+	EvalComparisonNumber  *float64 `json:"evalComparisonNumber,omitempty"`
+	EvalComparisonString  *string  `json:"evalComparisonString,omitempty"`
+	EvalMetricDataType    string   `json:"evalMetricDataType"`
+	EvalOperator          string   `json:"evalOperator"`
+	EvalState             string   `json:"evalState"`
+}
+
+// this should map eval fn metric name -> to the result after evaluation
+
+type EvalFnMetricResults struct {
+	Map map[string]EvalMetricsResult `json:"map"`
 }
 
 func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error {
@@ -179,4 +187,84 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 	}
 
 	return evalFns, nil
+}
+
+type EvalContext struct {
+	OrchestrationID       int `json:"orchestrationID"`
+	SourceTaskID          int `json:"sourceTaskId"`
+	RunningCycleNumber    int `json:"runningCycleNumber"`
+	SearchWindowUnixStart int `json:"searchWindowUnixStart"`
+	SearchWindowUnixEnd   int `json:"searchWindowUnixEnd"`
+}
+
+type EvalMetricsResults struct {
+	EvalContext        EvalContext `json:"evalContext"`
+	EvalMetricsResults []EvalMetricsResult
+}
+
+// EvalMetricsResult represents the eval_metrics_results table in Go.
+type EvalMetricsResult struct {
+	EvalMetricsResultID   int             `json:"evalMetricsResultID,omitempty"`
+	EvalMetricID          int             `json:"evalMetricID"`
+	RunningCycleNumber    int             `json:"runningCycleNumber,omitempty"`
+	SearchWindowUnixStart int             `json:"searchWindowUnixStart,omitempty"`
+	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd,omitempty"`
+	EvalResultOutcome     bool            `json:"evalResultOutcome"`
+	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
+}
+
+func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []EvalMetricsResult) error {
+	tx, err := apps.Pg.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	const query = `
+        INSERT INTO public.eval_metrics_results (
+            eval_metrics_result_id,
+            orchestration_id,
+            source_task_id,
+            eval_metric_id,
+            running_cycle_number,
+            search_window_unix_start,
+            search_window_unix_end,
+            eval_result_outcome,
+            eval_metadata
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (eval_metric_id, source_task_id, orchestration_id, running_cycle_number)
+        DO UPDATE SET
+            orchestration_id = EXCLUDED.orchestration_id,
+            source_task_id = EXCLUDED.source_task_id,
+            eval_metric_id = EXCLUDED.eval_metric_id,
+            running_cycle_number = EXCLUDED.running_cycle_number,
+            search_window_unix_start = EXCLUDED.search_window_unix_start,
+            search_window_unix_end = EXCLUDED.search_window_unix_end,
+            eval_result_outcome = EXCLUDED.eval_result_outcome,
+            eval_metadata = EXCLUDED.eval_metadata;
+    `
+	for _, emr := range emrs {
+		ts := chronos.Chronos{}
+		tsNow := ts.UnixTimeStampNow()
+		_, err = tx.Exec(ctx, query,
+			tsNow,
+			evCtx.OrchestrationID,
+			evCtx.SourceTaskID,
+			emr.EvalMetricID,
+			evCtx.RunningCycleNumber,
+			evCtx.SearchWindowUnixStart,
+			evCtx.SearchWindowUnixEnd,
+			emr.EvalResultOutcome,
+			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetadata), Status: IsNull(emr.EvalMetadata)},
+		)
+		if err != nil {
+			log.Err(err).Msg("failed to execute query")
+			return err
+		}
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		log.Err(err).Msg("failed to commit transaction")
+		return err
+	}
+	return nil
 }

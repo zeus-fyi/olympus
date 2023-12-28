@@ -269,6 +269,7 @@ func GetStringEvalComparisonResult(operator string, actual, expected string) boo
 	}
 	return false
 }
+
 func EvaluateStringArray(array interface{}, operator, expected string) ([]bool, error) {
 	var results []bool
 

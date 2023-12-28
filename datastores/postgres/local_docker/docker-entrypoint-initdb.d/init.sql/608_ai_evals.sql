@@ -50,3 +50,15 @@ CREATE INDEX eval_result_source_search_end_idx ON public.eval_metrics_results("s
 
 ALTER TABLE public.eval_metrics_results
 ADD CONSTRAINT unique_eval_metrics_combination UNIQUE (eval_metric_id, source_task_id, orchestration_id, running_cycle_number);
+
+CREATE TABLE public.ai_workflow_template_eval_task_relationships(
+    task_eval_id int8 NOT NULL DEFAULT next_id() PRIMARY KEY,
+    workflow_template_id BIGINT NOT NULL REFERENCES ai_workflow_template(workflow_template_id),
+    task_id BIGINT NOT NULL REFERENCES ai_task_library(task_id),
+    cycle_count BIGINT NOT NULL DEFAULT 1 CHECK ( cycle_count > 0 ),
+    eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id)
+);
+ALTER TABLE "public"."ai_workflow_template_eval_task_relationships" ADD CONSTRAINT "ai_workflow_template_eval_task_relationships_uniq" UNIQUE ("workflow_template_id", "task_id", "eval_id");
+CREATE INDEX ai_workflow_template_eval_task_relationships_wf_id ON public.ai_workflow_template_eval_task_relationships("workflow_template_id");
+CREATE INDEX ai_workflow_template_eval_task_relationships_task_id ON public.ai_workflow_template_eval_task_relationships("task_id");
+CREATE INDEX ai_workflow_template_eval_task_relationships_eval_id ON public.ai_workflow_template_eval_task_relationships("eval_id");

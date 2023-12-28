@@ -198,8 +198,8 @@ type EvalContext struct {
 }
 
 type EvalMetricsResults struct {
-	EvalContext        EvalContext `json:"evalContext"`
-	EvalMetricsResults []EvalMetricsResult
+	EvalContext        EvalContext         `json:"evalContext"`
+	EvalMetricsResults []EvalMetricsResult `json:"evalMetricsResults"`
 }
 
 // EvalMetricsResult represents the eval_metrics_results table in Go.

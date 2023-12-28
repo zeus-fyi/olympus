@@ -1,6 +1,7 @@
 package artemis_orchestrations
 
 import (
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -29,51 +30,66 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	newTemplate := WorkflowTemplate{
-		WorkflowName:              "Example Workflow4",
-		FundamentalPeriod:         5,
-		WorkflowGroup:             "TestGroup4",
-		FundamentalPeriodTimeUnit: "days",
+		WorkflowName:              "Example Workflow With Agg EvalFns",
+		FundamentalPeriod:         151,
+		WorkflowGroup:             "TestEvalAggFns",
+		FundamentalPeriodTimeUnit: "minutes",
 	}
 
-	//wt := WorkflowTasks{
-	//	AggTasks: []AggTask{
-	//		{
-	//			AggId:      1701657830780669952,
-	//			CycleCount: 1,
-	//			Tasks: []AITaskLibrary{
-	//				{
-	//					TaskID:     1701657822027992064,
-	//					CycleCount: 1,
-	//					RetrievalDependencies: []RetrievalItem{
-	//						{
-	//							RetrievalID: 1701653245709972992,
-	//						},
-	//					},
-	//				},
-	//				{
-	//					TaskID:     1701657795016150016,
-	//					CycleCount: 2,
-	//					RetrievalDependencies: []RetrievalItem{
-	//						{
-	//							RetrievalID: 1701667784112279040,
-	//						},
-	//					},
-	//				},
-	//			},
-	//		},
-	//	},
-	//	AnalysisOnlyTasks: []AITaskLibrary{
-	//		{
-	//			TaskID:     1701657822027992064,
-	//			CycleCount: 1,
-	//			RetrievalDependencies: []RetrievalItem{
-	//				{
-	//					RetrievalID: 1701667813254964224,
-	//				},
-	//			},
-	//		},
-	//	},
-	//}
+	wt := WorkflowTasks{
+		AggTasks: []AggTask{
+			{
+				AggId:      1701657830780669952,
+				CycleCount: 1,
+				EvalFns: []EvalFn{
+					{
+						EvalID: aws.Int(1703624059411640000),
+					},
+				},
+				Tasks: []AITaskLibrary{
+					{
+						TaskID:     1701657822027992064,
+						CycleCount: 1,
+						RetrievalDependencies: []RetrievalItem{
+							{
+								RetrievalID: 1701653245709972992,
+							},
+						},
+						EvalFns: []EvalFn{
+							{
+								EvalID: aws.Int(1703624059411640000),
+							},
+						},
+					},
+					{
+						TaskID:     1701657795016150016,
+						CycleCount: 2,
+						RetrievalDependencies: []RetrievalItem{
+							{
+								RetrievalID: 1701667784112279040,
+							},
+						},
+						EvalFns: []EvalFn{
+							{
+								EvalID: aws.Int(1703624059422669000),
+							},
+						},
+					},
+				},
+			},
+		},
+		AnalysisOnlyTasks: []AITaskLibrary{
+			{
+				TaskID:     1701657822027992064,
+				CycleCount: 1,
+				RetrievalDependencies: []RetrievalItem{
+					{
+						RetrievalID: 1701667813254964224,
+					},
+				},
+			},
+		},
+	}
 
 	//wt := WorkflowTasks{
 	//	AggTasks: []AggTask{
@@ -138,19 +154,25 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 	//		},
 	//	},
 	//}
-	wt := WorkflowTasks{
-		AnalysisOnlyTasks: []AITaskLibrary{
-			{
-				TaskID:     1701657822027992064,
-				CycleCount: 3,
-				RetrievalDependencies: []RetrievalItem{
-					{
-						RetrievalID: 1701667813254964224,
-					},
-				},
-			},
-		},
-	}
+
+	//wt := WorkflowTasks{
+	//	AnalysisOnlyTasks: []AITaskLibrary{
+	//		{
+	//			TaskID:     1701657822027992064,
+	//			CycleCount: 10,
+	//			RetrievalDependencies: []RetrievalItem{
+	//				{
+	//					RetrievalID: 1701667813254964224,
+	//				},
+	//			},
+	//			EvalFns: []EvalFn{
+	//				{
+	//					EvalID: aws.Int(1703624059411640000),
+	//				},
+	//			},
+	//		},
+	//	},
+	//}
 
 	err := InsertWorkflowWithComponents(ctx, ou, &newTemplate, wt)
 	s.Require().Nil(err)

@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 type WorkflowTemplate struct {
@@ -50,14 +51,15 @@ func InsertWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, template 
 }
 
 type AggTask struct {
-	AggId      int
-	CycleCount int
-	Tasks      []AITaskLibrary
+	AggId      int             `json:"aggID"`
+	CycleCount int             `json:"cycleCount"`
+	EvalFns    []EvalFn        `json:"evalFns,omitempty"`
+	Tasks      []AITaskLibrary `json:"tasks"`
 }
 
 type WorkflowTasks struct {
-	AggTasks          []AggTask
-	AnalysisOnlyTasks []AITaskLibrary
+	AggTasks          []AggTask       `json:"aggTasks,omitempty"`
+	AnalysisOnlyTasks []AITaskLibrary `json:"analysisOnlyTasks"`
 }
 
 func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, workflowTemplate *WorkflowTemplate, tasks WorkflowTasks) error {
@@ -99,11 +101,28 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 				return err
 			}
 		}
+
+		// Link analysis tasks to eval functions
+		for _, ef := range at.EvalFns {
+			var taskEvalID int
+			ts := chronos.Chronos{}
+			err = tx.QueryRow(ctx, `INSERT INTO public.ai_workflow_template_eval_task_relationships(task_eval_id, workflow_template_id, task_id, cycle_count, eval_id)
+                                    VALUES ($1, $2, $3, $4, $5)
+                                    ON CONFLICT (workflow_template_id, task_id, eval_id)
+                                    DO UPDATE SET 
+                                        cycle_count = EXCLUDED.cycle_count
+                                    RETURNING task_eval_id`,
+				ts.UnixTimeStampNow(), workflowTemplate.WorkflowTemplateID, at.TaskID, at.CycleCount, ef.EvalID).Scan(&taskEvalID)
+			if err != nil {
+				log.Err(err).Msg("failed to insert eval task relationship for analysis task")
+				return err
+			}
+		}
 	}
 	for _, aggTask := range tasks.AggTasks {
 		// Link component to the workflow template
 		for _, at := range aggTask.Tasks {
-			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks (agg_task_id, workflow_template_id, analysis_task_id, cycle_count)
+			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks(agg_task_id, workflow_template_id, analysis_task_id, cycle_count)
 											VALUES ($1, $2, $3, $4)
 											ON CONFLICT (workflow_template_id, agg_task_id, analysis_task_id)
 											DO UPDATE SET cycle_count = EXCLUDED.cycle_count
@@ -112,6 +131,22 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 			if err != nil {
 				log.Err(err).Msg("failed to insert workflow component")
 				return err
+			}
+			// Link aggregation tasks to eval functions
+			for _, ef := range aggTask.EvalFns {
+				var taskEvalID int
+				ts := chronos.Chronos{}
+				err = tx.QueryRow(ctx, `INSERT INTO public.ai_workflow_template_eval_task_relationships(task_eval_id, workflow_template_id, task_id, cycle_count, eval_id)
+                                    VALUES ($1, $2, $3, $4, $5)
+                                    ON CONFLICT (workflow_template_id, task_id, eval_id)
+                                    DO UPDATE SET 
+                                        cycle_count = EXCLUDED.cycle_count
+                                    RETURNING task_eval_id`,
+					ts.UnixTimeStampNow(), workflowTemplate.WorkflowTemplateID, at.TaskID, aggTask.CycleCount, ef.EvalID).Scan(&taskEvalID)
+				if err != nil {
+					log.Err(err).Msg("failed to insert or update eval task relationship for aggregation task")
+					return err
+				}
 			}
 		}
 	}

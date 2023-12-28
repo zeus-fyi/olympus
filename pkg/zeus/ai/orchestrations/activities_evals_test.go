@@ -54,7 +54,6 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = t.Tc.ProductionLocalTemporalUserID
 	act := NewZeusAiPlatformActivities()
-
 	evalFnMetrics, err := act.EvalLookup(ctx, ou, 1703624059411640000)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(evalFnMetrics)
@@ -74,9 +73,7 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 			}
 		}
 	}
-
 	jsonData := `{"count": 10, "words": ["word1", "word2"]}`
-
 	metrics, err := TransformJSONToEvalScoredMetrics(jsonData, evalFnMetrics[0].EvalMetricMap)
 	if err != nil {
 		fmt.Println("Error:", err)

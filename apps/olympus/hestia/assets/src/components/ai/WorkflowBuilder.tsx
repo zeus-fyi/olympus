@@ -1588,7 +1588,7 @@ function WorkflowEngineBuilder(props: any) {
 
                                                         <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={1}>
                                                             { analysisStages && !toggleEvalToTaskType &&
-                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 0, mr: 2 }}>
+                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 4, mr: 2 }}>
                                                                     <FormControl fullWidth>
                                                                         <InputLabel id={`analysis-stage-select-label-${1}`}>Analysis</InputLabel>
                                                                         <Select
@@ -1606,7 +1606,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Box>
                                                             }
                                                             { aggregationStages && toggleEvalToTaskType &&
-                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 0, mr: 2 }}>
+                                                                <Box flexGrow={3} sx={{ mt: -3, ml: 4, mr: 2 }}>
                                                                     <FormControl fullWidth>
                                                                         <InputLabel id={`agg-stage-select-label-${2}`}>Aggregate</InputLabel>
                                                                         <Select

@@ -214,12 +214,23 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
 }
 
 func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workflows, error) {
+	return SelectWorkflowTemplateByName(ctx, ou, "")
+}
+
+func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, name string) (*Workflows, error) {
 	results := &Workflows{
 		WorkflowTemplatesMap: make(map[int]WorkflowTemplateValue),
 	}
+
 	q := sql_query_templates.QueryParams{}
 	params := []interface{}{ou.OrgID}
-	q.RawQuery = `	WITH cte_0 AS (
+	additionalCondition := ""
+
+	if len(name) > 0 {
+		additionalCondition = " AND wate.workflow_name = $2"
+		params = append(params, name)
+	}
+	q.RawQuery = `WITH cte_0 AS (
 						SELECT
 								wate.workflow_template_id,
 								wate.workflow_name,
@@ -229,7 +240,7 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 								awtat.cycle_count AS analysis_cycle_count
 						FROM ai_workflow_template wate
 						JOIN public.ai_workflow_template_analysis_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
-						WHERE wate.org_id = $1 
+						WHERE wate.org_id = $1 ` + additionalCondition + `
 						GROUP BY wate.workflow_template_id, awtat.task_id, awtat.retrieval_id, awtat.cycle_count
 					), cte_wf_evals AS (
 							SELECT
@@ -323,7 +334,7 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 					JOIN public.ai_workflow_template_agg_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
 					JOIN public.ai_task_library ait ON ait.task_id = awtat.agg_task_id
 					JOIN public.ai_task_library ait1 ON ait1.task_id = awtat.analysis_task_id
-			   	    WHERE wate.org_id = $1 
+					WHERE wate.org_id = $1 ` + additionalCondition + `
 				), cte_2a AS (
 						SELECT 
 							workflow_template_id, 
@@ -349,6 +360,7 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 					FROM ai_workflow_template wate
 					LEFT JOIN cte_1a ON wate.workflow_template_id = cte_1a.workflow_template_id
 					LEFT JOIN cte_2b ON cte_2b.workflow_template_id = wate.workflow_template_id
+					WHERE wate.org_id = $1 ` + additionalCondition + `
 					ORDER BY wate.workflow_template_id DESC`
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)

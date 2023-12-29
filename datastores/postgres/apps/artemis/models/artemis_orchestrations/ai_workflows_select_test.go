@@ -178,6 +178,37 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplates() {
 	}
 }
 
+func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplateSingle() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	name := "Test Workflow With Agg EvalFns 6"
+	res, err := SelectWorkflowTemplateByName(ctx, ou, name)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(res)
+
+	for _, newTemplate := range res.WorkflowTemplatesMap {
+
+		aggEvalFns := newTemplate.AggEvalFns[1701657830780669952]
+		s.Assert().NotEmpty(aggEvalFns)
+		count := 0
+		for _, ef := range aggEvalFns {
+			s.Require().Equal(1703624059411640000, ef.EvalID)
+			count += 1
+		}
+
+		evalFn := newTemplate.AggAnalysisEvalFns[1701657830780669952][1701657822027992064]
+		s.Assert().Equal(1703624059411640000, evalFn.EvalID)
+
+		evalFn2 := newTemplate.AggAnalysisEvalFns[1701657830780669952][1701657795016150016]
+		s.Assert().Equal(1702959527789976000, evalFn2.EvalID)
+
+		s.Require().Equal(1, count)
+	}
+}
+
 func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesWithEvalFns() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	ou := org_users.OrgUser{}

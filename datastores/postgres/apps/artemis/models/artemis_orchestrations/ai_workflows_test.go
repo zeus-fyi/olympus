@@ -30,8 +30,8 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	newTemplate := WorkflowTemplate{
-		WorkflowName:              "Example Workflow With Agg EvalFns",
-		FundamentalPeriod:         151,
+		WorkflowName:              "Test Workflow With Agg EvalFns 6",
+		FundamentalPeriod:         33,
 		WorkflowGroup:             "TestEvalAggFns",
 		FundamentalPeriodTimeUnit: "minutes",
 	}
@@ -40,7 +40,7 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 		AggTasks: []AggTask{
 			{
 				AggId:      1701657830780669952,
-				CycleCount: 1,
+				CycleCount: 8,
 				EvalFns: []EvalFn{
 					{
 						EvalID: aws.Int(1703624059411640000),
@@ -49,7 +49,7 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 				Tasks: []AITaskLibrary{
 					{
 						TaskID:     1701657822027992064,
-						CycleCount: 1,
+						CycleCount: 4,
 						RetrievalDependencies: []RetrievalItem{
 							{
 								RetrievalID: 1701653245709972992,
@@ -71,7 +71,7 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 						},
 						EvalFns: []EvalFn{
 							{
-								EvalID: aws.Int(1703624059422669000),
+								EvalID: aws.Int(1702959527789976000),
 							},
 						},
 					},
@@ -81,7 +81,7 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 		AnalysisOnlyTasks: []AITaskLibrary{
 			{
 				TaskID:     1701657822027992064,
-				CycleCount: 1,
+				CycleCount: 11,
 				RetrievalDependencies: []RetrievalItem{
 					{
 						RetrievalID: 1701667813254964224,

@@ -121,7 +121,8 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 		}
 	}
 	for _, aggTask := range tasks.AggTasks {
-		// Link component to the workflow template
+		// Link aggregation tasks to eval functions
+
 		for _, at := range aggTask.Tasks {
 			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks(agg_task_id, workflow_template_id, analysis_task_id, cycle_count)
 											VALUES ($1, $2, $3, $4)
@@ -133,7 +134,7 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 				log.Err(err).Msg("failed to insert workflow component")
 				return err
 			}
-			// Link aggregation tasks to eval functions
+
 			for _, ef := range aggTask.EvalFns {
 				var taskEvalID int
 				ts := chronos.Chronos{}
@@ -143,9 +144,25 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
                                     DO UPDATE SET 
                                         cycle_count = EXCLUDED.cycle_count
                                     RETURNING task_eval_id`,
-					ts.UnixTimeStampNow(), workflowTemplate.WorkflowTemplateID, at.TaskID, aggTask.CycleCount, ef.EvalID).Scan(&taskEvalID)
+					ts.UnixTimeStampNow(), workflowTemplate.WorkflowTemplateID, aggTask.AggId, aggTask.CycleCount, ef.EvalID).Scan(&taskEvalID)
 				if err != nil {
 					log.Err(err).Msg("failed to insert or update eval task relationship for aggregation task")
+					return err
+				}
+			}
+			// Link aggregation tasks to eval functions
+			for _, ef := range at.EvalFns {
+				var taskEvalID int
+				ts := chronos.Chronos{}
+				err = tx.QueryRow(ctx, `INSERT INTO public.ai_workflow_template_eval_task_relationships(task_eval_id, workflow_template_id, task_id, cycle_count, eval_id)
+                                    VALUES ($1, $2, $3, $4, $5)
+                                    ON CONFLICT (workflow_template_id, task_id, eval_id)
+                                    DO UPDATE SET 
+                                        cycle_count = EXCLUDED.cycle_count
+                                    RETURNING task_eval_id`,
+					ts.UnixTimeStampNow(), workflowTemplate.WorkflowTemplateID, at.TaskID, at.CycleCount, ef.EvalID).Scan(&taskEvalID)
+				if err != nil {
+					log.Err(err).Msg("failed to insert or update eval task relationship for analysis-aggregation task")
 					return err
 				}
 			}

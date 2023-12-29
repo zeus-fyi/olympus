@@ -3,7 +3,6 @@ package artemis_orchestrations
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -146,31 +145,36 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplates() {
 			}
 		}
 
-		if newTemplate.WorkflowName == "Example Workflow4" {
-			s.Require().Equal(true, md.AnalysisRetrievals[1701657822027992064][1701667813254964224])
-
-			s.Require().Equal(1, len(md.AnalysisRetrievals))
-			for k, v := range md.AnalysisRetrievals {
-				fmt.Println(k, v)
+		if newTemplate.WorkflowName == "Example Workflow With EvalFns" {
+			count := 0
+			evalFns := newTemplate.AnalysisEvalFns[1701657822027992064]
+			s.Assert().NotEmpty(evalFns)
+			for _, ef := range evalFns {
+				s.Require().Equal(1703624059411640000, ef.EvalID)
+				count += 1
 			}
-			fmt.Println("\nAgg")
-			s.Require().Equal(0, len(md.AggregateAnalysis))
 
-			for k, v := range md.AggregateAnalysis {
-				fmt.Println(k, v)
-			}
+			s.Assert().Equal(1, count)
 		}
 
-		count := 0
-		if newTemplate.WorkflowName == "Example Workflow With Agg EvalFns" {
-			for _, agg := range newTemplate.AggAnalysisTasksSlice {
-				for _, ef := range agg.EvalFns {
-					s.Assert().Equal(aws.Int(1703624059411640000), ef.EvalID)
-					count += 1
-				}
+		if newTemplate.WorkflowName == "Test Workflow With Agg EvalFns 6" {
+			count := 0
+			aggEvalFns := newTemplate.AggEvalFns[1701657830780669952]
+			s.Assert().NotEmpty(aggEvalFns)
+
+			for _, ef := range aggEvalFns {
+				s.Require().Equal(1703624059411640000, ef.EvalID)
+				count += 1
 			}
+
+			evalFn := newTemplate.AggAnalysisEvalFns[1701657830780669952][1701657822027992064]
+			s.Assert().Equal(1703624059411640000, evalFn.EvalID)
+
+			evalFn2 := newTemplate.AggAnalysisEvalFns[1701657830780669952][1701657795016150016]
+			s.Assert().Equal(1702959527789976000, evalFn2.EvalID)
+
+			s.Require().Equal(1, count)
 		}
-		s.Assert().Equal(1, count)
 	}
 }
 

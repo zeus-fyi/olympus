@@ -272,7 +272,8 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 										(SELECT eval_fns_data
 										 FROM cte_wf_evals 
 										 WHERE cte_wf_evals.workflow_template_id = cte_0.workflow_template_id 
-										 AND cte_wf_evals.task_id = cte_0.analysis_task_id), 
+										 AND cte_wf_evals.task_id = cte_0.analysis_task_id
+									     LIMIT 1), 
 										'[]'::json
 								)
 						) AS analysis_tasks
@@ -307,13 +308,15 @@ func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workfl
 								(SELECT eval_fns_data
 								 FROM cte_wf_evals 
 								 WHERE cte_wf_evals.workflow_template_id = wate.workflow_template_id 
-								 AND cte_wf_evals.task_id = ait.task_id), 
+								 AND cte_wf_evals.task_id = ait.task_id
+								 LIMIT 1), 
 								'[]'::json),
 							'analysisAggEvalFns', COALESCE(
 								(SELECT eval_fns_data
 								 FROM cte_wf_evals 
 								 WHERE cte_wf_evals.workflow_template_id = wate.workflow_template_id 
-								 AND cte_wf_evals.task_id = ait1.task_id), 
+								 AND cte_wf_evals.task_id = ait1.task_id
+								 LIMIT 1),
 								'[]'::json)
 						) AS agg_tasks
 					FROM ai_workflow_template wate

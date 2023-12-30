@@ -961,7 +961,7 @@ function WorkflowEngineBuilder(props: any) {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Mockingbird — A Time Series RAG-LLM Workflow Engine
+                            Mockingbird — An Intelligently Designed AI Systems Coordinator
                         </Typography>
                         <Button
                             color="inherit"
@@ -1008,16 +1008,19 @@ function WorkflowEngineBuilder(props: any) {
                                 {( selectedMainTabBuilder === 0 || addAnalysisView || addAggregateView || addRetrievalView || addEvalsView) &&
                                     <div>
                                         <CardContent>
-                                            <Typography gutterBottom variant="h5" component="div">
-                                                Workflow Generation
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                            This allows you to write natural language instructions to chain to your search queries. Add a name
-                                            for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.
-                                            </Typography>
-
+                                            <Box sx={{ml: 2, mr: 2, mb: 2}}>
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Workflow Generation
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ml: 2, mr: 2, mb: 2}}>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    This allows you to write natural language instructions to chain to your search queries. Add a name
+                                                    for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.
+                                                </Typography>
+                                            </Box>
                                             <Stack direction={"row"} >
-                                                <Box sx={{ width: '50%', mb: 0, mt: 2 }}>
+                                                <Box sx={{ width: '50%',ml:2, mb: 0, mt: 2 }}>
                                                     <TextField
                                                         label={`Workflow Name`}
                                                         variant="outlined"
@@ -1026,7 +1029,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         fullWidth
                                                     />
                                                 </Box>
-                                                <Box sx={{ width: '50%', mb: 0, mt: 2, ml: 2 }}>
+                                                <Box sx={{ width: '50%', mb: 0, mt: 2, ml: 2, mr:2 }}>
                                                     <TextField
                                                         label={`Workflow Group Name`}
                                                         variant="outlined"
@@ -1293,7 +1296,7 @@ function WorkflowEngineBuilder(props: any) {
                                                     <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                         <Divider/>
                                                     </Box>
-                                                    <Box flexGrow={2} sx={{mt:2 , mb: 4}}>
+                                                    <Box flexGrow={2} sx={{mt:2 , mb: 2}}>
                                                         <Stack direction={"row"}>
                                                             <IconButton
                                                                 onClick={() => setOpenAggregation(!openAggregation)}
@@ -1306,13 +1309,15 @@ function WorkflowEngineBuilder(props: any) {
                                                                 Aggregation
                                                             </Typography>
                                                         </Stack>
-                                                        <Typography gutterBottom variant="body2" component="div">
-                                                            One aggregation cycle is equal to the longest of any dependent analysis cycles.
-                                                            If you have an analysis stage that occurs every 2 time cycles, and set the aggregation cycle count to 2,
-                                                            it will run on time cycle 4 after the analysis stage completes.
-                                                        </Typography>
                                                     </Box>
                                                     <Collapse in={openAggregation} timeout="auto" unmountOnExit>
+                                                        <Box flexGrow={2} sx={{ml: 2 , mb: 0}}>
+                                                            <Typography gutterBottom variant="body2" component="div">
+                                                                One aggregation cycle is equal to the longest of any dependent analysis cycles.
+                                                                If you have an analysis stage that occurs every 2 time cycles, and set the aggregation cycle count to 2,
+                                                                it will run on time cycle 4 after the analysis stage completes.
+                                                            </Typography>
+                                                        </Box>
                                                     <Box flexGrow={2} sx={{mt: 4}}>
                                                         <Stack direction={"column"} key={0}>
                                                         {aggregationStages && aggregationStages.map((task, subIndex) => (
@@ -1498,7 +1503,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 </div>
                                             }
                                         </CardContent>
-                                        <Box flexGrow={1} sx={{ mt: 4, mb: 0}}>
+                                        <Box flexGrow={1} sx={{ mt: 0, mb: 0}}>
                                             <Divider/>
                                         </Box>
                                         <Box flexGrow={2} sx={{mt: 2, ml: 2}}>
@@ -1516,6 +1521,13 @@ function WorkflowEngineBuilder(props: any) {
                                             </Stack>
                                         </Box>
                                         <Collapse in={openEvals} timeout="auto" unmountOnExit>
+                                            <Box flexGrow={2} sx={{ml: 4 , mr:2, mb: 0}}>
+                                                <Typography gutterBottom variant="body2" component="div">
+                                                    One eval cycle is equal N * the attached task cycle.
+                                                    If you have an analysis stage that occurs every 2 time cycles, and set the eval cycle count to 2,
+                                                    it will run on time cycle 4 after the analysis stage completes for the second time.
+                                                </Typography>
+                                            </Box>
                                             <Box flexGrow={2} sx={{mt: 2}}>
                                                 {addedEvalFns && addedEvalFns.map((ef: EvalFn, subIndex) => (
                                                     <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
@@ -1557,7 +1569,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                             { evalFnStages && ((analysisStages && analysisStages.length > 0) || (aggregationStages && aggregationStages.length > 0)) && evalFnStages.length > 0 &&
                                                 <div>
-                                                    <Box sx={{ mt:4, ml: 4 }} >
+                                                    <Box sx={{ mt:2, ml: 4 }} >
                                                         <Typography variant="h6" color="text.secondary">
                                                             Analysis/Aggregation {'->'} Eval Dependencies
                                                         </Typography>
@@ -1709,10 +1721,12 @@ function WorkflowEngineBuilder(props: any) {
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Fundamental Time Period
                                             </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                This is the time period that each cycle is referenced against for determining its next execution time. The workflow will run every time period, and will run all analysis and aggregation stages that are due to run if
-                                                any during that discrete time step. If an analysis cycle is set to 1 and the fundamental time period is 5 minutes, it will run every 5 minutes.
-                                            </Typography>
+                                            <Box sx={{ ml: 2, mr: 2 }} >
+                                                <Typography variant="body2" color="text.secondary">
+                                                    This is the time period that each cycle is referenced against for determining its next execution time. The workflow will run every time period, and will run all analysis and aggregation stages that are due to run if
+                                                    any during that discrete time step. If an analysis cycle is set to 1 and the fundamental time period is 5 minutes, it will run every 5 minutes.
+                                                </Typography>
+                                            </Box>
                                             <Stack direction="row" spacing={2} sx={{ ml: 2, mr: 2, mt: 4, mb: 2 }}>
                                                 <Box sx={{ width: '33%' }}> {/* Adjusted Box for TextField */}
                                                     <TextField

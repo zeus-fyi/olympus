@@ -13,7 +13,6 @@ import TableHead from "@mui/material/TableHead";
 export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
-    console.log(row.tasks)
 
     return (
         <React.Fragment>

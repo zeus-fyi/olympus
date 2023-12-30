@@ -310,7 +310,7 @@ function WorkflowEngineBuilder(props: any) {
             value: false
         }
         dispatch(removeEvalFnFromWorkflowBuilderEvalMap(payload));
-        dispatch(setAddEvalFns(evalFns.filter((efn: EvalFn) => (efn.evalID ? efn.evalID : 0) !== evalFn.evalID)));
+        dispatch(setAddEvalFns(addedEvalFns.filter(efn => efn.evalID !== evalFn.evalID)));
     }
     const handleRemoveTaskRelationshipFromWorkflow = async (event: any, keystr: string, value: number) => {
         const key = Number(keystr);
@@ -1386,17 +1386,17 @@ function WorkflowEngineBuilder(props: any) {
                                                                         <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
                                                                             <Box >
                                                                                 {Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
-                                                                                    const taskNameForKey = taskMap[(Number(key))]?.taskName || '';
-                                                                                    if (!taskNameForKey || taskNameForKey.length <= 0) {
+                                                                                    const taskNameForKey = taskMap[Number(key)]?.taskName || '';
+                                                                                    if (!taskNameForKey) {
                                                                                         return null;
                                                                                     }
                                                                                     return Object.entries(value).map(([subKey, subValue], subIndex) => {
-                                                                                        if (!subValue || subKey.length <= 0) {
+                                                                                        if (!subValue) {
                                                                                             return null;
                                                                                         }
                                                                                         const subKeyNumber = Number(subKey);
-                                                                                        const subTaskName = taskMap[(subKeyNumber)]?.taskName || '';
-                                                                                        if (subTaskName.length <= 0) {
+                                                                                        const subTaskName = taskMap[subKeyNumber]?.taskName || '';
+                                                                                        if (!subTaskName) {
                                                                                             return null;
                                                                                         }
                                                                                         return (

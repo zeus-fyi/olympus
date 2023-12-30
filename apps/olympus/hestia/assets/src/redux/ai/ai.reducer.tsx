@@ -270,6 +270,7 @@ const aiSlice = createSlice({
         },
         setAddEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
             state.addedEvalFns = action.payload;
+            state.evalMap = {};
             for (let i = 0; i < state.addedEvalFns.length; i++) {
                 const evalFn  = state.addedEvalFns[i]
                 if (evalFn && evalFn.evalID) {

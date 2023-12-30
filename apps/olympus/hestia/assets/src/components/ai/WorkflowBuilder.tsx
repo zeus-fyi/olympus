@@ -1013,12 +1013,6 @@ function WorkflowEngineBuilder(props: any) {
                                                     Workflow Generation
                                                 </Typography>
                                             </Box>
-                                            <Box sx={{ml: 2, mr: 2, mb: 2}}>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    This allows you to write natural language instructions to chain to your search queries. Add a name
-                                                    for your workflow, and then write instructions for the AI to follow, and it will save the workflow for you.
-                                                </Typography>
-                                            </Box>
                                             <Stack direction={"row"} >
                                                 <Box sx={{ width: '50%',ml:2, mb: 0, mt: 2 }}>
                                                     <TextField
@@ -1721,9 +1715,11 @@ function WorkflowEngineBuilder(props: any) {
                                             <Divider/>
                                         </Box>
                                         <CardContent>
-                                            <Typography gutterBottom variant="h5" component="div">
-                                                Fundamental Time Period
-                                            </Typography>
+                                            <Box sx={{ ml: 2, mr: 2 }} >
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Fundamental Time Period
+                                                </Typography>
+                                            </Box>
                                             <Box sx={{ ml: 2, mr: 2 }} >
                                                 <Typography variant="body2" color="text.secondary">
                                                     This is the time period that each cycle is referenced against for determining its next execution time. The workflow will run every time period, and will run all analysis and aggregation stages that are due to run if

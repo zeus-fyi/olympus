@@ -132,9 +132,6 @@ const aiSlice = createSlice({
         setEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
             state.evalFns = action.payload;
         },
-        setAddedEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
-            state.addedEvalFns = action.payload;
-        },
         setActionsEvalTrigger: (state, action: PayloadAction<EvalActionTrigger>) => {
             state.actionsEvalTrigger = action.payload;
         },
@@ -271,6 +268,15 @@ const aiSlice = createSlice({
         setRetrievals: (state, action: PayloadAction<Retrieval[]>) => {
             state.retrievals = action.payload;
         },
+        setAddEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
+            state.addedEvalFns = action.payload;
+            for (let i = 0; i < state.addedEvalFns.length; i++) {
+                const evalFn  = state.addedEvalFns[i]
+                if (evalFn && evalFn.evalID) {
+                    state.evalMap[evalFn.evalID] = evalFn;
+                }
+            }
+        },
         setAddAnalysisTasks: (state, action: PayloadAction<TaskModelInstructions[]>) => {
             state.addedAnalysisTasks = action.payload;
             for (let i = 0; i < state.addedAnalysisTasks.length; i++) {
@@ -329,9 +335,7 @@ const aiSlice = createSlice({
                 if (!state.workflowBuilderEvalsTaskMap[evalTaskID]) {
                     state.workflowBuilderEvalsTaskMap[evalTaskID] = {};
                 }
-                state.workflowBuilderEvalsTaskMap[evalTaskID][evalID] = {
-                    cycleCount: value,
-                };
+                state.workflowBuilderEvalsTaskMap[evalTaskID][evalID] = true;
             } else {
                 if (state.workflowBuilderEvalsTaskMap[evalTaskID]) {
                     delete state.workflowBuilderEvalsTaskMap[evalTaskID][evalID];
@@ -344,13 +348,6 @@ const aiSlice = createSlice({
                 }
             }
         },
-        setEvalMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
-            const { key, count } = action.payload;
-                state.evalMap[key] = {
-                    cycleCount: count,
-                };
-                return
-        },
         setTaskMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
             const { key, count } = action.payload;
             const tmp = state.taskMap[key]
@@ -360,6 +357,16 @@ const aiSlice = createSlice({
                 tmp.cycleCount = count;
             }
             state.taskMap[key] = tmp;
+        },
+        setEvalMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
+            const { key, count } = action.payload;
+            const tmp = state.evalMap[key]
+            if (count <= 0) {
+                tmp.cycleCount = 1;
+            } else {
+                tmp.cycleCount = count;
+            }
+            state.evalMap[key] = tmp;
         },
         setWorkflowBuilderTaskMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
             const { key, subKey, value } = action.payload;
@@ -446,7 +453,7 @@ export const {
     updateEvalMetrics,
     setActionsEvalTrigger,
     setEvalFns,
-    setAddedEvalFns,
+    setAddEvalFns,
     setEvalsTaskMap,
     setEvalMap,
 } = aiSlice.actions;

@@ -46,7 +46,7 @@ import {
     setAddAggregationView,
     setAddAnalysisTasks,
     setAddAnalysisView,
-    setAddedEvalFns,
+    setAddEvalFns,
     setAddEvalFnsView,
     setAddRetrievalTasks,
     setAddRetrievalView,
@@ -230,11 +230,16 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setAnalysisRetrievalsMap(payload));
     }
 
-    const handleRemoveEvalFnRelationshipFromWorkflow = async (event: any, keystr: string, value: number) => {
-
+    const handleRemoveEvalFnRelationshipFromWorkflow = async (event: any, evalID: number, value: number) => {
+        const payload = {
+            evalID: evalID,
+            evalTaskID: value,
+            value: false
+        };
+        dispatch(setEvalsTaskMap(payload));
     }
 
-    const handleAddEvalToSubTask = () => {
+    const handleAddEvalToSubTask = async (e: any) => {
         if (!toggleEvalToTaskType){
             if (selectedAnalysisStageForEval.length <= 0 && selectedEvalStage.length <= 0){
                 return;
@@ -244,7 +249,7 @@ function WorkflowEngineBuilder(props: any) {
             const payload = {
                 evalID: evalID,
                 evalTaskID: analysisKey,
-                value: evalMap[evalID]?.cycleCount || 1
+                value: true
             }
             dispatch(setEvalsTaskMap(payload));
         } else {
@@ -256,7 +261,7 @@ function WorkflowEngineBuilder(props: any) {
             const payload = {
                 evalID: evalID,
                 evalTaskID: aggKey,
-                value: evalMap[evalID]?.cycleCount || 1
+                value: true
             }
             dispatch(setEvalsTaskMap(payload));
         }
@@ -325,7 +330,9 @@ function WorkflowEngineBuilder(props: any) {
 
 
     useEffect(() => {
-    }, [addEvalsView, addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap, taskMap, evalMap]);
+    }, [addEvalsView, addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder,
+        analysisStages, aggregationStages,retrievals, retrievalStages,workflowBuilderEvalsTaskMap, workflowBuilderTaskMap,
+        workflowAnalysisRetrievalsMap, evalMap, taskMap]);
     const dispatch = useDispatch();
     const handleTaskCycleCountChange = (val: number, task: TaskModelInstructions) => {
         if (val <= 0) {
@@ -399,7 +406,7 @@ function WorkflowEngineBuilder(props: any) {
             const selectedEvals: EvalFn[] = Object.keys(selected)
                 .filter(key => selected[Number(key)])
                 .map(key => evalFns[Number(key)]);
-            dispatch(setAddedEvalFns(selectedEvals));
+            dispatch(setAddEvalFns(selectedEvals));
         }
         setIsLoading(false)
     }
@@ -1518,14 +1525,17 @@ function WorkflowEngineBuilder(props: any) {
                                                                 type="number"
                                                                 label="Eval Cycle Count"
                                                                 variant="outlined"
-                                                                value={ef?.evalID !== undefined && evalMap[ef.evalID] !== undefined && evalMap[ef.evalID].cycleCount > 0 ? evalMap[ef.evalID].cycleCount : 1}
+                                                                value={
+                                                                    ef.evalID !== undefined && evalMap[ef.evalID] !== undefined &&
+                                                                    evalMap[ef.evalID].cycleCount? evalMap[ef.evalID].cycleCount : 1
+                                                                }
                                                                 inputProps={{ min: 1 }}  // Set minimum value to 0
                                                                 onChange={(event) => handleEvalCycleCountChange(parseInt(event.target.value, 10), ef)}
                                                                 fullWidth
                                                             />
                                                         </Box>
                                                         <Box flexGrow={1} sx={{ mt: 2, mb: 0, ml: 2, mr: 4 }}>
-                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveEvalFnRelationshipFromWorkflow(event, ef.evalName, subIndex)}>Remove</Button>
+                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveEvalFnRelationshipFromWorkflow(event, ef.evalID? ef.evalID : 0, subIndex)}>Remove</Button>
                                                         </Box>
                                                     </Stack>
                                                 ))}
@@ -1537,7 +1547,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 <div>
                                                     <Box sx={{ mt:4, ml: 4 }} >
                                                         <Typography variant="h6" color="text.secondary">
-                                                            Connect (Aggregation/Analysis) Task Outputs  {'->'} Eval Stages
+                                                            Analysis/Aggregation {'->'} Eval Dependencies
                                                         </Typography>
                                                     </Box>
                                                     { workflowBuilderEvalsTaskMap &&
@@ -1545,62 +1555,56 @@ function WorkflowEngineBuilder(props: any) {
                                                             <Box >
                                                                 {Object.entries(workflowBuilderEvalsTaskMap).map(([key, value], index) => {
                                                                     // these are the tasks
-                                                                    const taskNameForKey= retrievalsMap[(Number(key))]?.retrievalName || '';
+                                                                    if (key === undefined){
+                                                                        return null;
+                                                                    }
+                                                                    const taskNameForKey= taskMap[(Number(key))]?.taskName || '';
                                                                     if (!taskNameForKey || taskNameForKey.length <= 0) {
                                                                         return null;
                                                                     }
-                                                                    /*
-                                                                        const subKeyNumber = Number(subKey);
-                                                                        const subTask = taskMap[(Number(subKeyNumber))]
-                                                                        const subTaskName = subTask?.taskName || '';
-                                                                        if (!subValue || subKey.length <= 0) {
-                                                                            return null;
-                                                                        }
-                                                                        if (subTaskName.length <= 0) {
-                                                                            return null;
-                                                                        }
-                                                                     */
-                                                                    // these are the evals
                                                                     return Object.entries(value).map(([subKey, subValue], subIndex) => {
-                                                                        const subKeyNumber = Number(subKey);
-                                                                        const subTask = taskMap[(Number(subKeyNumber))]
-                                                                        const subTaskName = subTask?.taskName || '';
+                                                                        // these are evals
+                                                                        if (subKey === undefined){
+                                                                            return null;
+                                                                        }
+                                                                        const evalID = Number(subKey);
+                                                                        const evalFn = evalMap[(Number(evalID))]
+                                                                        const subTaskName = evalFn?.evalName || '';
+
                                                                         if (!subValue || subKey.length <= 0) {
                                                                             return null;
                                                                         }
                                                                         if (subTaskName.length <= 0) {
                                                                             return null;
                                                                         }
-                                                                        /*
-                                                                                const taskNameForKey= retrievalsMap[(Number(key))]?.retrievalName || '';
-                                                                                if (!taskNameForKey || taskNameForKey.length <= 0) {
-                                                                                    return null;
-                                                                                }
-                                                                         */
                                                                         return (
                                                                             <Stack direction={"row"} key={`${key}-${subKey}`}>
                                                                                 <React.Fragment key={subIndex}>
-                                                                                    <TextField
-                                                                                        label={`Task`}
-                                                                                        value={taskNameForKey || ''}
-                                                                                        InputProps={{ readOnly: true }}
-                                                                                        variant="outlined"
-                                                                                        fullWidth
-                                                                                        margin="normal"
-                                                                                    />
-                                                                                    <Box flexGrow={1} sx={{ mt: 4, ml: 2, mr: 2 }}>
+                                                                                    <Box flexGrow={2} sx={{ mt: 0, ml: 2, mr: 2 }}>
+                                                                                        <TextField
+                                                                                            label={`Task`}
+                                                                                            value={taskNameForKey || ''}
+                                                                                            InputProps={{ readOnly: true }}
+                                                                                            variant="outlined"
+                                                                                            fullWidth
+                                                                                            margin="normal"
+                                                                                        />
+                                                                                    </Box>
+                                                                                    <Box flexGrow={1} sx={{ mt: 4, ml: 4, mr: -2 }}>
                                                                                         <ArrowForwardIcon />
                                                                                     </Box>
-                                                                                    <TextField
-                                                                                        label={`Eval`}
-                                                                                        value={subTaskName || ''}
-                                                                                        InputProps={{ readOnly: true }}
-                                                                                        variant="outlined"
-                                                                                        fullWidth
-                                                                                        margin="normal"
-                                                                                    />
+                                                                                    <Box flexGrow={2} sx={{ mt: 0, ml: 0, mr: 2 }}>
+                                                                                        <TextField
+                                                                                            label={`Eval`}
+                                                                                            value={subTaskName || ''}
+                                                                                            InputProps={{ readOnly: true }}
+                                                                                            variant="outlined"
+                                                                                            fullWidth
+                                                                                            margin="normal"
+                                                                                        />
+                                                                                    </Box>
                                                                                     <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
-                                                                                        <Button variant="contained" onClick={(event) => handleRemoveEvalFnRelationshipFromWorkflow(event, key, subKeyNumber)}>Remove</Button>
+                                                                                        <Button variant="contained" onClick={(event) => handleRemoveEvalFnRelationshipFromWorkflow(event, evalID, Number(key))}>Remove</Button>
                                                                                     </Box>
                                                                                 </React.Fragment>
                                                                             </Stack>
@@ -1609,7 +1613,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                 })}
                                                             </Box>
                                                         </Box>}
-
+                                                    <Box flexGrow={1} sx={{ mt: 4, mb: 0}}>
+                                                        <Divider/>
+                                                    </Box>
+                                                    <Box sx={{ mt:4, ml: 4 }} >
+                                                        <Typography variant="h6" color="text.secondary">
+                                                            Connect (Aggregation/Analysis) Task Outputs  {'->'} Eval Stages
+                                                        </Typography>
+                                                    </Box>
                                                         <Stack sx={{ mt: 6, ml: 0 }} direction={"row"} key={1}>
                                                             { analysisStages && !toggleEvalToTaskType &&
                                                                 <Box flexGrow={3} sx={{ mt: -3, ml: 4, mr: 2 }}>
@@ -1669,7 +1680,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Box>
                                                             }
                                                             <Box  sx={{mt: -2, ml: 2, mr: 0 }}>
-                                                                <Button variant="contained" onClick={handleAddEvalToSubTask}>Add Source</Button>
+                                                                <Button variant="contained" onClick={(e) => handleAddEvalToSubTask(e)}>Attach Eval</Button>
                                                             </Box>
                                                             <Box sx={{mt: -2, ml: 2, mr: 2 }}>
                                                                 <Button variant="contained" onClick={setToggleEvalTaskType}>Toggle {toggleEvalToTaskType ? 'Analysis':'Aggregation'} Evals</Button>

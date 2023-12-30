@@ -46,15 +46,11 @@ export interface AiState {
 }
 
 export interface EvalFnMap {
-    [key: number]: { [innerKey: number]: EvalFnMapPayload };
-}
-
-export interface EvalFnMapPayload {
-    cycleCount: number;
+    [key: number]: { [innerKey: number]: boolean };
 }
 
 export interface EvalMap {
-    [key: number]: EvalFnMapPayload;
+    [key: number]: EvalFn;
 }
 
 export interface EvalActionTrigger {
@@ -65,7 +61,7 @@ export interface EvalActionTrigger {
 export type UpdateEvalMapPayload = {
     evalID: number;
     evalTaskID: number;
-    value: number;
+    value: boolean;
 };
 
 export interface EvalFn {
@@ -75,6 +71,7 @@ export interface EvalFn {
     evalGroupName: string;
     evalModel?: string;
     evalFormat: string
+    cycleCount?: number;
     evalMetrics: EvalMetric[];
 }
 export interface EvalMetric {
@@ -121,6 +118,7 @@ export interface PostWorkflowsRequest {
     models: TaskMap;
     aggregateSubTasksMap?: AggregateSubTasksMap;
     analysisRetrievalsMap: AnalysisRetrievalsMap
+    evalTasksMap?: EvalFnMap;
 }
 
 export interface TaskModelInstructions {

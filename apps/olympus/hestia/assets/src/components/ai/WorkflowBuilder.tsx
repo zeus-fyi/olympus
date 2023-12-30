@@ -593,7 +593,8 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestStatusError('error')
                 return;
             }
-            if (Object.keys(workflowAnalysisRetrievalsMap) && retrievalStages.length <= 0) {
+            console.log('workflowAnalysisRetrievalsMap', workflowAnalysisRetrievalsMap)
+            if (Object.keys(workflowAnalysisRetrievalsMap).length > 0 && retrievalStages.length <= 0) {
                 setRequestStatus('Workflows with retrieval stages must have at least one connected analysis stage')
                 setRequestStatusError('error')
                 return;
@@ -632,6 +633,7 @@ function WorkflowEngineBuilder(props: any) {
                 setSelected({});
                 dispatch(setAddAnalysisView(false));
                 dispatch(setAddAggregationView(false));
+                dispatch(setAddEvalFnsView(false));
                 dispatch(setAddRetrievalView(false));
                 dispatch(setSelectedMainTabBuilder(0));
                 setRequestStatus('Workflow created successfully')

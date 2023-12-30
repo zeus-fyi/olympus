@@ -84,26 +84,16 @@ type AiWorkflowWrapper struct {
 }
 
 type PostWorkflowsRequest struct {
-	WorkflowName          string  `json:"workflowName"`
-	WorkflowGroupName     string  `json:"workflowGroupName"`
-	StepSize              int     `json:"stepSize"`
-	StepSizeUnit          string  `json:"stepSizeUnit"`
-	Models                TaskMap `json:"models"`
-	EvalsMap              map[int]artemis_orchestrations.EvalFn
-	TaskEvalsMap          TaskEvalsMap          `json:"taskEvalsMap,omitempty"`
-	AggregateSubTasksMap  AggregateSubTasksMap  `json:"aggregateSubTasksMap,omitempty"`
-	AnalysisRetrievalsMap AnalysisRetrievalsMap `json:"analysisRetrievalsMap"`
+	WorkflowName          string                                `json:"workflowName"`
+	WorkflowGroupName     string                                `json:"workflowGroupName"`
+	StepSize              int                                   `json:"stepSize"`
+	StepSizeUnit          string                                `json:"stepSizeUnit"`
+	Models                TaskMap                               `json:"models"`
+	EvalsMap              map[int]artemis_orchestrations.EvalFn `json:"evalsMap"`
+	EvalTasksMap          TaskEvalsMap                          `json:"evalTasksMap,omitempty"`
+	AggregateSubTasksMap  AggregateSubTasksMap                  `json:"aggregateSubTasksMap,omitempty"`
+	AnalysisRetrievalsMap AnalysisRetrievalsMap                 `json:"analysisRetrievalsMap"`
 }
-
-/*
-	export interface EvalFnMap {
-	    [key: number]: { [innerKey: number]: boolean };
-	}
-
-	export interface EvalMap {
-	    [key: number]: EvalFn;
-	}
-*/
 
 type TaskEvalsMap map[int]map[int]bool
 type AnalysisRetrievalsMap map[int]map[int]bool

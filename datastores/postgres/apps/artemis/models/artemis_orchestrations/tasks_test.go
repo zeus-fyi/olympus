@@ -5,7 +5,7 @@ import (
 )
 
 func (s *OrchestrationsTestSuite) TestInsertTask() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	// Test data for insertion
 	testTask := AITaskLibrary{
 		OrgID:                 s.Tc.ProductionLocalTemporalOrgID,

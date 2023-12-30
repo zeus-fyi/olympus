@@ -40,14 +40,12 @@ func InsertWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, template 
             fundamental_period = EXCLUDED.fundamental_period,
             fundamental_period_time_unit = EXCLUDED.fundamental_period_time_unit
         RETURNING workflow_template_id;`
-
 	// Executing the query
 	err := apps.Pg.QueryRowWArgs(ctx, query, template.WorkflowName, template.WorkflowGroup, ou.OrgID, ou.UserID, template.FundamentalPeriod, template.FundamentalPeriodTimeUnit).Scan(&template.WorkflowTemplateID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert workflow template")
 		return err
 	}
-
 	return nil
 }
 

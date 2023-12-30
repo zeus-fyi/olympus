@@ -49,15 +49,26 @@ type WorkflowTemplateData struct {
 type AggTaskDb struct {
 	AggModel                 string     `json:"aggModel"`
 	AggPrompt                string     `json:"aggPrompt"`
-	AggTaskId                int        `json:"aggTaskId"`
+	AggTaskId                int        `json:"aggTaskId"` // Assuming IDs are large numbers
 	AggTaskName              string     `json:"aggTaskName"`
 	AggTaskType              string     `json:"aggTaskType"`
 	AggCycleCount            int        `json:"aggCycleCount"`
-	AggAnalysisTaskId        int        `json:"aggAnalysisTaskId"`
+	AggAnalysisTaskId        int        `json:"aggAnalysisTaskId"` // Assuming IDs are large numbers
 	AggMaxTokensPerTask      int        `json:"aggMaxTokensPerTask"`
 	AggTokenOverflowStrategy string     `json:"aggTokenOverflowStrategy"`
-	EvalFns                  []EvalFnDB `json:"evalFns,omitempty"`
-	AnalysisAggEvalFns       []EvalFnDB `json:"analysisAggEvalFns,omitempty"`
+	EvalFns                  []EvalFnDB `json:"evalFns"`            // Single object, not a slice
+	AnalysisAggEvalFns       []EvalFnDB `json:"analysisAggEvalFns"` // Single object, not a slice
+}
+
+type EvalFnDB struct {
+	EvalID         int    `json:"evalID"`
+	EvalName       string `json:"evalName"`
+	EvalType       string `json:"evalType"`
+	EvalModel      string `json:"evalModel"`
+	EvalFormat     string `json:"evalFormat"`
+	EvalTaskID     int    `json:"evalTaskID"`
+	EvalGroupName  string `json:"evalGroupName"`
+	EvalCycleCount int    `json:"evalCycleCount"`
 }
 
 type AnalysisTaskDB struct {
@@ -79,17 +90,6 @@ type RetrievalDB struct {
 	RetrievalGroup        string          `json:"retrievalGroup"`
 	RetrievalPlatform     string          `json:"retrievalPlatform"`
 	RetrievalInstructions json.RawMessage `json:"retrievalInstructions"`
-}
-
-type EvalFnDB struct {
-	EvalID         int    `json:"evalID"`
-	EvalTaskID     int    `json:"evalTaskID"`
-	EvalName       string `json:"evalName"`
-	EvalType       string `json:"evalType"`
-	EvalCycleCount int    `json:"evalCycleCount"`
-	EvalGroupName  string `json:"evalGroupName"`
-	EvalModel      string `json:"evalModel,omitempty"`
-	EvalFormat     string `json:"evalFormat"`
 }
 
 func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowName string) ([]WorkflowTemplateData, error) {
@@ -231,8 +231,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 		params = append(params, name)
 	}
 	q.RawQuery = `WITH cte_0 AS (
-						SELECT
-								wate.workflow_template_id,
+						SELECT	wate.workflow_template_id,
 								wate.workflow_name,
 								wate.workflow_group,
 								awtat.task_id AS analysis_task_id,
@@ -243,55 +242,48 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 						WHERE wate.org_id = $1 ` + additionalCondition + `
 						GROUP BY wate.workflow_template_id, awtat.task_id, awtat.retrieval_id, awtat.cycle_count
 					), cte_wf_evals AS (
-							SELECT
-									c0.workflow_template_id,
-									evtr.task_id,
-									JSON_AGG(JSON_BUILD_OBJECT(
-											'evalID', ef.eval_id,
-											'evalTaskID', evtr.task_id,
-											'evalCycleCount', evtr.cycle_count,
-											'evalName', ef.eval_name,
-											'evalType', ef.eval_type,
-											'evalGroupName', ef.eval_group_name,
-											'evalModel', ef.eval_model,
-											'evalFormat', ef.eval_format
-									)) AS eval_fns_data
-							FROM cte_0 c0 
-							JOIN ai_workflow_template_eval_task_relationships evtr ON evtr.workflow_template_id = c0.workflow_template_id
-							JOIN eval_fns ef ON ef.eval_id = evtr.eval_id
-							WHERE ef.org_id = $1 
-							GROUP BY c0.workflow_template_id, evtr.task_id
+						SELECT
+							c0.workflow_template_id,
+							evtr.task_id,
+							JSON_BUILD_OBJECT(
+								'evalID', ef.eval_id,
+								'evalTaskID', evtr.task_id,
+								'evalCycleCount', evtr.cycle_count,
+								'evalName', ef.eval_name,
+								'evalType', ef.eval_type,
+								'evalGroupName', ef.eval_group_name,
+								'evalModel', ef.eval_model,
+								'evalFormat', ef.eval_format
+							) AS eval_fns_data
+						FROM cte_0 c0 
+						JOIN ai_workflow_template_eval_task_relationships evtr ON evtr.workflow_template_id = c0.workflow_template_id
+						LEFT JOIN eval_fns ef ON ef.eval_id = evtr.eval_id
 					), cte_1 AS (
-							SELECT
-								cte_0.workflow_template_id,
-								cte_0.analysis_task_id,
-								JSON_BUILD_OBJECT(
-								'analysisTaskID', cte_0.analysis_task_id,
-								'analysisCycleCount', cte_0.analysis_cycle_count,
-								'analysisTaskName', ait.task_name,
-								'analysisTaskType', ait.task_type,
-								'analysisPrompt', ait.prompt,
-								'analysisModel', ait.model,
-								'analysisTokenOverflowStrategy', ait.token_overflow_strategy,
-								'analysisMaxTokensPerTask', ait.max_tokens_per_task,
-								'retrievalID', COALESCE(art.retrieval_id, 0),
-								'retrievalName', COALESCE(art.retrieval_name, ''),
-								'retrievalGroup', COALESCE(art.retrieval_group, ''),
-								'retrievalPlatform', COALESCE(art.retrieval_platform, ''),
-								'retrievalInstructions', COALESCE(art.instructions, '{}'::jsonb),
-								'evalFns', COALESCE(
-										(SELECT eval_fns_data
-										 FROM cte_wf_evals 
-										 WHERE cte_wf_evals.workflow_template_id = cte_0.workflow_template_id 
-										 AND cte_wf_evals.task_id = cte_0.analysis_task_id
-									     LIMIT 1), 
-										'[]'::json
-								)
+					SELECT
+						cte_0.workflow_template_id,
+						cte_0.analysis_task_id,
+						JSON_BUILD_OBJECT(
+							'analysisTaskID', cte_0.analysis_task_id,
+							'analysisCycleCount', cte_0.analysis_cycle_count,
+							'analysisTaskName', ait.task_name,
+							'analysisTaskType', ait.task_type,
+							'analysisPrompt', ait.prompt,
+							'analysisModel', ait.model,
+							'analysisTokenOverflowStrategy', ait.token_overflow_strategy,
+							'analysisMaxTokensPerTask', ait.max_tokens_per_task,
+							'retrievalID', COALESCE(art.retrieval_id, 0),
+							'retrievalName', COALESCE(art.retrieval_name, ''),
+							'retrievalGroup', COALESCE(art.retrieval_group, ''),
+							'retrievalPlatform', COALESCE(art.retrieval_platform, ''),
+							'retrievalInstructions', COALESCE(art.instructions, '{}'::jsonb),
+							'evalFns', COALESCE(JSON_AGG(cte_wf_evals.eval_fns_data), '[]'::json)
 						) AS analysis_tasks
-				FROM cte_0 
-				JOIN public.ai_task_library ait ON ait.task_id = cte_0.analysis_task_id
-				LEFT JOIN ai_retrieval_library art ON art.retrieval_id = cte_0.retrieval_id
-				LEFT JOIN cte_wf_evals ON cte_wf_evals.workflow_template_id = cte_0.workflow_template_id AND cte_wf_evals.task_id = cte_0.analysis_task_id
+					FROM cte_0 
+					JOIN public.ai_task_library ait ON ait.task_id = cte_0.analysis_task_id
+					LEFT JOIN ai_retrieval_library art ON art.retrieval_id = cte_0.retrieval_id
+					LEFT JOIN cte_wf_evals ON cte_wf_evals.workflow_template_id = cte_0.workflow_template_id AND cte_wf_evals.task_id = cte_0.analysis_task_id
+					GROUP BY cte_0.workflow_template_id, cte_0.analysis_task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, ait.token_overflow_strategy,
+						ait.max_tokens_per_task, art.retrieval_id, art.retrieval_name, art.retrieval_group, art.retrieval_platform, art.instructions, cte_0.analysis_cycle_count
 				),
 				cte_1a AS (
 					SELECT 
@@ -299,50 +291,40 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 						jsonb_agg(analysis_tasks) as analysis_tasks_array
 					FROM cte_1
 					GROUP BY workflow_template_id
-				),
-				cte_2 AS (
-					SELECT
-						wate.workflow_template_id,
-						ait.task_id as agg_task_id,
-						ait1.task_id as analysis_task_id,
-						JSON_BUILD_OBJECT(
-							'aggTaskId', ait.task_id,
-							'aggAnalysisTaskId', ait1.task_id,
-							'aggTaskName', ait.task_name,
-							'aggTaskType', ait.task_type,
-							'aggPrompt', ait.prompt,
-							'aggModel', ait.model,
-							'aggTokenOverflowStrategy', ait.token_overflow_strategy,
-							'aggMaxTokensPerTask', ait.max_tokens_per_task,
-							'aggCycleCount', awtat.cycle_count,
-							'evalFns', COALESCE(
-								(SELECT eval_fns_data
-								 FROM cte_wf_evals 
-								 WHERE cte_wf_evals.workflow_template_id = wate.workflow_template_id 
-								 AND cte_wf_evals.task_id = ait.task_id
-								 LIMIT 1), 
-								'[]'::json),
-							'analysisAggEvalFns', COALESCE(
-								(SELECT eval_fns_data
-								 FROM cte_wf_evals 
-								 WHERE cte_wf_evals.workflow_template_id = wate.workflow_template_id 
-								 AND cte_wf_evals.task_id = ait1.task_id
-								 LIMIT 1),
-								'[]'::json)
-						) AS agg_tasks
-					FROM ai_workflow_template wate
-					JOIN public.ai_workflow_template_agg_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
-					JOIN public.ai_task_library ait ON ait.task_id = awtat.agg_task_id
-					JOIN public.ai_task_library ait1 ON ait1.task_id = awtat.analysis_task_id
-					WHERE wate.org_id = $1 ` + additionalCondition + `
+				), cte_2 AS (
+					    SELECT
+							wate.workflow_template_id,
+							ait.task_id as agg_task_id,
+							ait1.task_id as analysis_task_id,
+							JSON_BUILD_OBJECT(
+								'aggTaskId', ait.task_id,
+								'aggAnalysisTaskId', ait1.task_id,
+								'aggTaskName', ait.task_name,
+								'aggTaskType', ait.task_type,
+								'aggPrompt', ait.prompt,
+								'aggModel', ait.model,
+								'aggTokenOverflowStrategy', ait.token_overflow_strategy,
+								'aggMaxTokensPerTask', ait.max_tokens_per_task,
+								'aggCycleCount', awtat.cycle_count,
+								'evalFns', COALESCE(JSON_AGG(wf_evals_agg.eval_fns_data) FILTER (WHERE wf_evals_agg.eval_fns_data IS NOT NULL), '[]'::json),
+								'analysisAggEvalFns', COALESCE(JSON_AGG(wf_evals_analysis.eval_fns_data) FILTER (WHERE wf_evals_analysis.eval_fns_data IS NOT NULL), '[]'::json)
+							) AS agg_tasks
+						FROM ai_workflow_template wate
+						JOIN public.ai_workflow_template_agg_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
+						JOIN public.ai_task_library ait ON ait.task_id = awtat.agg_task_id
+						JOIN public.ai_task_library ait1 ON ait1.task_id = awtat.analysis_task_id
+						LEFT JOIN cte_wf_evals wf_evals_agg ON wf_evals_agg.workflow_template_id = wate.workflow_template_id AND wf_evals_agg.task_id = ait.task_id
+						LEFT JOIN cte_wf_evals wf_evals_analysis ON wf_evals_analysis.workflow_template_id = wate.workflow_template_id AND wf_evals_analysis.task_id = ait1.task_id
+						WHERE wate.org_id = $1 ` + additionalCondition + `
+						GROUP BY wate.workflow_template_id, ait.task_id, ait1.task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, ait.token_overflow_strategy, 
+								 ait.max_tokens_per_task, awtat.cycle_count
 				), cte_2a AS (
 						SELECT 
 							workflow_template_id, 
 							jsonb_agg(agg_tasks) as agg_tasks_array
 						FROM cte_2
 						GROUP BY workflow_template_id
-					),
-					cte_2b AS (
+					), cte_2b AS (
 						SELECT 
 							workflow_template_id, 
 							jsonb_agg(agg_tasks_array) as agg_tasks_array
@@ -355,8 +337,8 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 						wate.workflow_group,
 						wate.fundamental_period,
 						wate.fundamental_period_time_unit,
-						cte_1a.analysis_tasks_array,
-						cte_2b.agg_tasks_array
+						COALESCE(cte_1a.analysis_tasks_array, '[]') as analysis_tasks_array,
+						COALESCE(cte_2b.agg_tasks_array, '[]') as agg_tasks_array
 					FROM ai_workflow_template wate
 					LEFT JOIN cte_1a ON wate.workflow_template_id = cte_1a.workflow_template_id
 					LEFT JOIN cte_2b ON cte_2b.workflow_template_id = wate.workflow_template_id
@@ -368,12 +350,9 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 		return nil, err
 	}
 	defer rows.Close()
-
 	for rows.Next() {
-
 		var taskJSON string
 		var aggTasksJSON *string
-
 		wt := WorkflowTemplateValue{
 			AnalysisTasks:      make(map[int]AnalysisTaskDB),
 			AnalysisRetrievals: make(map[int]map[int]RetrievalDB),
@@ -411,7 +390,6 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 				return nil, err
 			}
 			for _, aggTask := range aggTasksPreFlatten {
-
 				wt.AggAnalysisTasksSlice = append(wt.AggAnalysisTasksSlice, aggTask...)
 			}
 		}

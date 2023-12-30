@@ -89,7 +89,7 @@ type PostWorkflowsRequest struct {
 	StepSize              int                                   `json:"stepSize"`
 	StepSizeUnit          string                                `json:"stepSizeUnit"`
 	Models                TaskMap                               `json:"models"`
-	EvalsMap              map[int]artemis_orchestrations.EvalFn `json:"evalsMap"`
+	EvalsMap              map[int]artemis_orchestrations.EvalFn `json:"evalsMap,omitempty"`
 	EvalTasksMap          TaskEvalsMap                          `json:"evalTasksMap,omitempty"`
 	AggregateSubTasksMap  AggregateSubTasksMap                  `json:"aggregateSubTasksMap,omitempty"`
 	AnalysisRetrievalsMap AnalysisRetrievalsMap                 `json:"analysisRetrievalsMap"`
@@ -102,15 +102,16 @@ type TaskMap map[int]TaskModelInstructions
 
 // TaskModelInstructions represents the equivalent of the TypeScript interface TaskModelInstructions
 type TaskModelInstructions struct {
-	TaskID                int    `json:"taskID"`
-	Model                 string `json:"model"`
-	TaskType              string `json:"taskType"`
-	TaskGroup             string `json:"taskGroup"`
-	TaskName              string `json:"taskName"`
-	MaxTokens             int    `json:"maxTokens"`
-	TokenOverflowStrategy string `json:"tokenOverflowStrategy"`
-	Prompt                string `json:"prompt"`
-	CycleCount            int    `json:"cycleCount"`
+	TaskID                int                             `json:"taskID"`
+	Model                 string                          `json:"model"`
+	TaskType              string                          `json:"taskType"`
+	TaskGroup             string                          `json:"taskGroup"`
+	TaskName              string                          `json:"taskName"`
+	MaxTokens             int                             `json:"maxTokens"`
+	TokenOverflowStrategy string                          `json:"tokenOverflowStrategy"`
+	Prompt                string                          `json:"prompt"`
+	CycleCount            int                             `json:"cycleCount"`
+	EvalFns               []artemis_orchestrations.EvalFn `json:"evalFns,omitempty"`
 }
 
 func PostWorkflowsRequestHandler(c echo.Context) error {
@@ -159,6 +160,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				AggId:      m.TaskID,
 				CycleCount: m.CycleCount,
 				Tasks:      []artemis_orchestrations.AITaskLibrary{},
+				EvalFns:    m.EvalFns,
 			}
 			for k, v := range w.AggregateSubTasksMap {
 				if k == m.TaskID {
@@ -187,6 +189,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				Model:                 m.Model,
 				Prompt:                m.Prompt,
 				CycleCount:            m.CycleCount,
+				EvalFns:               m.EvalFns,
 				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
 			}
 			for k, v := range w.AnalysisRetrievalsMap {

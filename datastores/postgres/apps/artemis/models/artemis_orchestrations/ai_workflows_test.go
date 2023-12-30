@@ -25,7 +25,7 @@ func (s *OrchestrationsTestSuite) TestInsertAiWorkflow() {
 }
 
 func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
@@ -39,39 +39,30 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 	wt := WorkflowTasks{
 		AggTasks: []AggTask{
 			{
-				AggId:      1701657830780669952,
+				AggId:      1701313112337875000,
 				CycleCount: 8,
 				EvalFns: []EvalFn{
 					{
-						EvalID: aws.Int(1703624059411640000),
+						EvalID: aws.Int(1702961311357646000),
+					},
+					{
+						EvalID: aws.Int(1703922045959259000),
 					},
 				},
 				Tasks: []AITaskLibrary{
 					{
-						TaskID:     1701657822027992064,
+						TaskID:     1701478480693801000,
 						CycleCount: 4,
-						RetrievalDependencies: []RetrievalItem{
-							{
-								RetrievalID: 1701653245709972992,
-							},
-						},
-						EvalFns: []EvalFn{
-							{
-								EvalID: aws.Int(1703624059411640000),
-							},
-						},
 					},
 					{
-						TaskID:     1701657795016150016,
+						TaskID:     1701313525731432000,
 						CycleCount: 2,
-						RetrievalDependencies: []RetrievalItem{
-							{
-								RetrievalID: 1701667784112279040,
-							},
-						},
 						EvalFns: []EvalFn{
 							{
-								EvalID: aws.Int(1702959527789976000),
+								EvalID: aws.Int(1702961311357646000),
+							},
+							{
+								EvalID: aws.Int(1703922045959259000),
 							},
 						},
 					},
@@ -80,11 +71,14 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 		},
 		AnalysisOnlyTasks: []AITaskLibrary{
 			{
-				TaskID:     1701657822027992064,
+				TaskID:     1701313525731432000,
 				CycleCount: 11,
-				RetrievalDependencies: []RetrievalItem{
+				EvalFns: []EvalFn{
 					{
-						RetrievalID: 1701667813254964224,
+						EvalID: aws.Int(1702961311357646000),
+					},
+					{
+						EvalID: aws.Int(1703922045959259000),
 					},
 				},
 			},

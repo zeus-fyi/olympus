@@ -11,6 +11,7 @@ import {aiApiGateway} from "../../gateway/ai";
 import {
     setActions,
     setAiTasks,
+    setEvalFns,
     setRetrievals,
     setSearchIndexers,
     setSelectedSearchIndexers,
@@ -51,6 +52,7 @@ export function SearchIndexersTable(props: any) {
                     const data = response.data;
                     dispatch(setWorkflows(data.workflows));
                     dispatch(setAiTasks(data.tasks));
+                    dispatch(setEvalFns(data.evalFns));
                     dispatch(setRetrievals(data.retrievals));
                     dispatch(setSearchIndexers(data.searchIndexers));
                     dispatch(setActions(data.actions));

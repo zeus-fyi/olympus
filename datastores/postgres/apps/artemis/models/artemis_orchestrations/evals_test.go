@@ -8,7 +8,7 @@ import (
 )
 
 func (s *OrchestrationsTestSuite) TestInsertEval() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	// Example data for EvalFn and EvalMetrics
 	evalModel := "gpt-4"
 	evalFn := EvalFn{

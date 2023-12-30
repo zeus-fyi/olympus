@@ -81,6 +81,27 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                     ))}
                                 </TableBody>
                             </Table>
+                            <Box sx={{ margin: 1 }}>
+                                <Typography variant="h6" gutterBottom component="div">
+                                    Eval Details
+                                </Typography>
+                            </Box>
+                            <Table>
+                                <TableBody>
+                                    {row.tasks && row.tasks.map((task, taskIndex) => (
+                                        task.evalFns && task.evalFns.map((evalFn, evalFnIndex) => (
+                                            <TableRow key={evalFnIndex}>
+                                                <TableCell>{evalFn.evalName}</TableCell>
+                                                <TableCell>{evalFn.evalGroupName}</TableCell>
+                                                <TableCell>{evalFn.evalType}</TableCell>
+                                                <TableCell>{evalFn.evalModel}</TableCell>
+                                                <TableCell>{evalFn.cycleCount}</TableCell>
+                                                <TableCell>{evalFn.evalFormat}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </Box>
                     </Collapse>
                 </TableCell>

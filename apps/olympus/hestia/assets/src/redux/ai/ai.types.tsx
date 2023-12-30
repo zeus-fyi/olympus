@@ -210,6 +210,7 @@ export interface PostWorkflowsActionRequest {
     customBasePeriodStepSizeUnit: string,
     workflows: WorkflowTemplate[];
 }
+
 export interface WorkflowTemplate {
     workflowID: number;
     workflowName: string;
@@ -218,6 +219,7 @@ export interface WorkflowTemplate {
     fundamentalPeriodTimeUnit: string;
     tasks: Task[]; // Array of Task
 }
+
 export type Task = {
     taskName: string;
     taskType: string;
@@ -226,6 +228,7 @@ export type Task = {
     cycleCount: number;
     retrievalName?: string;
     retrievalPlatform?: string;
+    evalFns: EvalFn[]; // Array of Task
 };
 
 export type Orchestration = {
@@ -306,3 +309,23 @@ export interface TelegramIndexerOpts {
 export interface WebFilters {
     routingGroup: string;
 }
+// TypeScript equivalent of the EvalFnMetricResults Go struct
+interface EvalFnMetricResults {
+    map: { [key: string]: EvalMetricsResult };
+}
+interface EvalMetricsResult {
+    // Define the properties of EvalMetricsResult here
+}
+/*
+export interface EvalFn {
+    evalID?: number;
+    evalTaskID?: number;
+    evalName: string;
+    evalType: string;
+    evalGroupName: string;
+    evalModel?: string;
+    evalFormat: string
+    cycleCount?: number;
+    evalMetrics: EvalMetric[];
+}
+ */

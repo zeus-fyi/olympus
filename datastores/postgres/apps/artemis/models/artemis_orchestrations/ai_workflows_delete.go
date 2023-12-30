@@ -28,6 +28,9 @@ func DeleteWorkflowTemplates(ctx context.Context, ou org_users.OrgUser, wfs []Wo
 				  ), cte_delete_analysis_tasks AS (
 						DELETE FROM ai_workflow_template_analysis_tasks
 						WHERE workflow_template_id IN (SELECT workflow_template_id FROM verified_ids)
+				  ), cte_delete_eval_tasks AS (
+						DELETE FROM ai_workflow_template_eval_task_relationships
+						WHERE workflow_template_id IN (SELECT workflow_template_id FROM verified_ids)
 				  ) DELETE FROM ai_workflow_template
 					WHERE workflow_template_id IN (SELECT workflow_template_id FROM verified_ids)
 				  `

@@ -81,24 +81,40 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                     ))}
                                 </TableBody>
                             </Table>
-                            <Box sx={{ margin: 1 }}>
-                                <Typography variant="h6" gutterBottom component="div">
-                                    Eval Details
-                                </Typography>
-                            </Box>
+                            {
+                                row.tasks && hasEvalFns(row.tasks) && (
+                                    <Box sx={{ margin: 1 }}>
+                                        <Typography variant="h6" gutterBottom component="div">
+                                            Eval Details
+                                        </Typography>
+                                    </Box>
+                                )
+                            }
                             <Table>
                                 <TableBody>
                                     {row.tasks && row.tasks.map((task, taskIndex) => (
-                                        task.evalFns && task.evalFns.map((evalFn, evalFnIndex) => (
-                                            <TableRow key={evalFnIndex}>
-                                                <TableCell>{evalFn.evalName}</TableCell>
-                                                <TableCell>{evalFn.evalGroupName}</TableCell>
-                                                <TableCell>{evalFn.evalType}</TableCell>
-                                                <TableCell>{evalFn.evalModel}</TableCell>
-                                                <TableCell>{evalFn.cycleCount}</TableCell>
-                                                <TableCell>{evalFn.evalFormat}</TableCell>
-                                            </TableRow>
-                                        ))
+                                        task.evalFns && task.evalFns
+                                            .filter(evalFn =>
+                                                    evalFn != null &&
+                                                    // Check that each field is not empty or default
+                                                    evalFn.evalName !== '' &&
+                                                    evalFn.evalGroupName !== '' &&
+                                                    evalFn.evalType !== '' &&
+                                                    evalFn.evalModel !== '' &&
+                                                    evalFn.cycleCount !== 0 && // Assuming 0 is a default value for cycleCount
+                                                    evalFn.evalFormat !== ''
+                                                // Add more conditions for other fields if necessary
+                                            )
+                                            .map((evalFn, evalFnIndex) => (
+                                                <TableRow key={evalFnIndex}>
+                                                    <TableCell>{evalFn.evalName}</TableCell>
+                                                    <TableCell>{evalFn.evalGroupName}</TableCell>
+                                                    <TableCell>{evalFn.evalType}</TableCell>
+                                                    <TableCell>{evalFn.evalModel}</TableCell>
+                                                    <TableCell>{evalFn.cycleCount}</TableCell>
+                                                    <TableCell>{evalFn.evalFormat}</TableCell>
+                                                </TableRow>
+                                            ))
                                     ))}
                                 </TableBody>
                             </Table>
@@ -110,3 +126,19 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
     );
 }
 
+function hasEvalFns(tasks: any[]): boolean {
+    return tasks.some(task =>
+        task.evalFns &&
+        Array.isArray(task.evalFns) &&
+        task.evalFns.length > 0 &&
+        task.evalFns.some((evalFn: { evalName: string | null; evalGroupName: string | null; } | null) =>
+                evalFn != null &&
+                // Add any other conditions to check for non-default struct assignments
+                // For example, checking for non-empty string if it's a string field
+                (evalFn.evalName != null && evalFn.evalName !== '') &&
+                (evalFn.evalGroupName != null && evalFn.evalGroupName !== '') &&
+            // ... add checks for other fields if necessary
+            true
+        )
+    );
+}

@@ -291,33 +291,41 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 						jsonb_agg(analysis_tasks) as analysis_tasks_array
 					FROM cte_1
 					GROUP BY workflow_template_id
-				), cte_2 AS (
-					    SELECT
-							wate.workflow_template_id,
-							ait.task_id as agg_task_id,
-							ait1.task_id as analysis_task_id,
-							JSON_BUILD_OBJECT(
-								'aggTaskId', ait.task_id,
-								'aggAnalysisTaskId', ait1.task_id,
-								'aggTaskName', ait.task_name,
-								'aggTaskType', ait.task_type,
-								'aggPrompt', ait.prompt,
-								'aggModel', ait.model,
-								'aggTokenOverflowStrategy', ait.token_overflow_strategy,
-								'aggMaxTokensPerTask', ait.max_tokens_per_task,
-								'aggCycleCount', awtat.cycle_count,
-								'evalFns', COALESCE(JSON_AGG(wf_evals_agg.eval_fns_data) FILTER (WHERE wf_evals_agg.eval_fns_data IS NOT NULL), '[]'::json),
-								'analysisAggEvalFns', COALESCE(JSON_AGG(wf_evals_analysis.eval_fns_data) FILTER (WHERE wf_evals_analysis.eval_fns_data IS NOT NULL), '[]'::json)
-							) AS agg_tasks
-						FROM ai_workflow_template wate
-						JOIN public.ai_workflow_template_agg_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
-						JOIN public.ai_task_library ait ON ait.task_id = awtat.agg_task_id
-						JOIN public.ai_task_library ait1 ON ait1.task_id = awtat.analysis_task_id
-						LEFT JOIN cte_wf_evals wf_evals_agg ON wf_evals_agg.workflow_template_id = wate.workflow_template_id AND wf_evals_agg.task_id = ait.task_id
-						LEFT JOIN cte_wf_evals wf_evals_analysis ON wf_evals_analysis.workflow_template_id = wate.workflow_template_id AND wf_evals_analysis.task_id = ait1.task_id
-						WHERE wate.org_id = $1 ` + additionalCondition + `
-						GROUP BY wate.workflow_template_id, ait.task_id, ait1.task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, ait.token_overflow_strategy, 
-								 ait.max_tokens_per_task, awtat.cycle_count
+), unique_evals AS (
+    SELECT 
+        workflow_template_id, 
+        task_id, 
+        JSONB_AGG(eval_fns_data) AS eval_fns_data_agg
+    FROM cte_wf_evals
+    GROUP BY workflow_template_id, task_id
+),
+cte_2 AS (
+    SELECT
+        wate.workflow_template_id,
+        ait.task_id as agg_task_id,
+        ait1.task_id as analysis_task_id,
+        JSON_BUILD_OBJECT(
+            'aggTaskId', ait.task_id,
+            'aggAnalysisTaskId', ait1.task_id,
+            'aggTaskName', ait.task_name,
+            'aggTaskType', ait.task_type,
+            'aggPrompt', ait.prompt,
+            'aggModel', ait.model,
+            'aggTokenOverflowStrategy', ait.token_overflow_strategy,
+            'aggMaxTokensPerTask', ait.max_tokens_per_task,
+            'aggCycleCount', awtat.cycle_count,
+            'evalFns', COALESCE(ue.eval_fns_data_agg, '[]'::jsonb),
+            'analysisAggEvalFns', COALESCE(ue1.eval_fns_data_agg, '[]'::jsonb)
+        ) AS agg_tasks
+    FROM ai_workflow_template wate
+    JOIN public.ai_workflow_template_agg_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
+    JOIN public.ai_task_library ait ON ait.task_id = awtat.agg_task_id
+    JOIN public.ai_task_library ait1 ON ait1.task_id = awtat.analysis_task_id
+    LEFT JOIN unique_evals ue ON ue.workflow_template_id = wate.workflow_template_id AND ue.task_id = ait.task_id
+    LEFT JOIN unique_evals ue1 ON ue1.workflow_template_id = wate.workflow_template_id AND ue1.task_id = ait1.task_id
+    WHERE wate.org_id = $1 ` + additionalCondition + `
+    GROUP BY wate.workflow_template_id, ait.task_id, ait1.task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, 
+             ait.token_overflow_strategy, ait.max_tokens_per_task, awtat.cycle_count, ue.eval_fns_data_agg, ue1.eval_fns_data_agg
 				), cte_2a AS (
 						SELECT 
 							workflow_template_id, 

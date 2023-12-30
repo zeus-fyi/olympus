@@ -1107,7 +1107,7 @@ function WorkflowEngineBuilder(props: any) {
                                         <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                 <Divider/>
                                             </Box>
-                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                            <Box flexGrow={2} sx={{mt: 2, mb:2}}>
                                                 <Stack direction={"row"} >
                                                     <IconButton
                                                         onClick={() => setOpenAnalysis(!openAnalysis)}

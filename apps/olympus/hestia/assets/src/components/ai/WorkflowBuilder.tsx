@@ -57,6 +57,7 @@ import {
     setEval,
     setEvalMap,
     setEvalMetric,
+    setEvalsTaskMap,
     setRetrievalGroup,
     setRetrievalKeywords,
     setRetrievalName,
@@ -170,7 +171,6 @@ function WorkflowEngineBuilder(props: any) {
             setRequestEvalCreateOrUpdateStatusError('error')
             return;
         }
-
         if (evalFn.evalType === 'model' && evalMetric.evalModelPrompt.length <= 0){
             setRequestEvalCreateOrUpdateStatus('Prompt is empty')
             setRequestEvalCreateOrUpdateStatusError('error')
@@ -235,30 +235,30 @@ function WorkflowEngineBuilder(props: any) {
     }
 
     const handleAddEvalToSubTask = () => {
-        if (toggleEvalToTaskType){
+        if (!toggleEvalToTaskType){
             if (selectedAnalysisStageForEval.length <= 0 && selectedEvalStage.length <= 0){
                 return;
             }
-            const aggKey = Number(selectedAggregationStageForAnalysis);
-            const analysisKey = Number(selectedAnalysisStageForAggregation);
+            const evalID = Number(selectedEvalStage);
+            const analysisKey = Number(selectedAnalysisStageForEval);
             const payload = {
-                key: aggKey,
-                subKey: analysisKey,
-                value: true
-            };
-            // dispatch(setTaskEvalsMap(payload));
+                evalID: evalID,
+                evalTaskID: analysisKey,
+                value: evalMap[evalID]?.cycleCount || 1
+            }
+            dispatch(setEvalsTaskMap(payload));
         } else {
             if (selectedAggregationStageForEval.length <= 0 && selectedEvalStage.length <= 0){
                 return;
             }
+            const evalID = Number(selectedEvalStage);
             const aggKey = Number(selectedAggregationStageForEval);
-            const analysisKey = Number(selectedAnalysisStageForAggregation);
             const payload = {
-                key: aggKey,
-                subKey: analysisKey,
-                value: true
-            };
-            // dispatch(setTaskEvalsMap(payload));
+                evalID: evalID,
+                evalTaskID: aggKey,
+                value: evalMap[evalID]?.cycleCount || 1
+            }
+            dispatch(setEvalsTaskMap(payload));
         }
     };
 
@@ -1668,11 +1668,11 @@ function WorkflowEngineBuilder(props: any) {
                                                                     </FormControl>
                                                                 </Box>
                                                             }
-                                                            <Box sx={{mt: -2, ml: 2 }}>
-                                                                <Button variant="contained" onClick={setToggleEvalTaskType}>Add {toggleEvalToTaskType ? 'Analysis':'Aggregation'} Evals</Button>
-                                                            </Box>
-                                                            <Box  sx={{mt: -2, ml: 2, mr: 4 }}>
+                                                            <Box  sx={{mt: -2, ml: 2, mr: 0 }}>
                                                                 <Button variant="contained" onClick={handleAddEvalToSubTask}>Add Source</Button>
+                                                            </Box>
+                                                            <Box sx={{mt: -2, ml: 2, mr: 2 }}>
+                                                                <Button variant="contained" onClick={setToggleEvalTaskType}>Toggle {toggleEvalToTaskType ? 'Analysis':'Aggregation'} Evals</Button>
                                                             </Box>
                                                         </Stack>
                                                         </div>

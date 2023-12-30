@@ -323,7 +323,7 @@ const aiSlice = createSlice({
                 }
             }
         },
-        setTaskEvalsMap: (state, action: PayloadAction<UpdateEvalMapPayload>) => {
+        setEvalsTaskMap: (state, action: PayloadAction<UpdateEvalMapPayload>) => {
             const { evalID, evalTaskID, value } = action.payload;
             if (value) {
                 if (!state.workflowBuilderEvalsTaskMap[evalTaskID]) {
@@ -447,7 +447,7 @@ export const {
     setActionsEvalTrigger,
     setEvalFns,
     setAddedEvalFns,
-    setTaskEvalsMap,
+    setEvalsTaskMap,
     setEvalMap,
 } = aiSlice.actions;
 export default aiSlice.reducer;

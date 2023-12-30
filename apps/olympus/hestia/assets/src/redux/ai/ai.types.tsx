@@ -75,6 +75,7 @@ export interface EvalFn {
     cycleCount?: number;
     evalMetrics: EvalMetric[];
 }
+
 export interface EvalMetric {
     evalModelPrompt: string;
     evalMetricName: string;

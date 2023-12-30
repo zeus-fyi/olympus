@@ -1047,7 +1047,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         {openRetrievals ? <ExpandLess /> : <ExpandMore />}
                                                     </IconButton>
                                                     <Typography gutterBottom variant="h5" component="div">
-                                                        Retrieval Stages
+                                                        Retrievals
                                                     </Typography>
                                                 </Stack>
                                             </Box>
@@ -1118,7 +1118,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         {openAnalysis ? <ExpandLess /> : <ExpandMore />}
                                                     </IconButton>
                                                     <Typography gutterBottom variant="h5" component="div">
-                                                        Analysis Stages
+                                                        Analysis
                                                     </Typography>
                                                 </Stack>
                                             </Box>
@@ -1301,7 +1301,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 {openAggregation ? <ExpandLess /> : <ExpandMore />}
                                                             </IconButton>
                                                             <Typography gutterBottom variant="h5" component="div">
-                                                                Aggregation Stages
+                                                                Aggregation
                                                             </Typography>
                                                         </Stack>
                                                         <Typography gutterBottom variant="body2" component="div">
@@ -1509,7 +1509,7 @@ function WorkflowEngineBuilder(props: any) {
                                                     {openEvals ? <ExpandLess /> : <ExpandMore />}
                                                 </IconButton>
                                                 <Typography gutterBottom variant="h5" component="div">
-                                                    Eval Stages
+                                                    Automated Evals
                                                 </Typography>
                                             </Stack>
                                         </Box>
@@ -2887,7 +2887,7 @@ function WorkflowEngineBuilder(props: any) {
                             <Box sx={{ mb: 2 }}>
                                 <span>({Object.values(selected).filter(value => value).length} Selected Retrievals)</span>
                                 <Button variant="outlined" color="secondary" onClick={handleAddTasksToWorkflow} style={{marginLeft: '10px'}}>
-                                    Add Retrieval Stages
+                                    Add Retrievals
                                 </Button>
                             </Box>
                         </Container>

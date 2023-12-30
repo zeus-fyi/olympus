@@ -12,6 +12,7 @@ import {
     Retrieval,
     SearchIndexerParams,
     TaskModelInstructions,
+    UpdateEvalMapPayload,
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
 } from "./ai.types";
@@ -37,6 +38,7 @@ const initialState: AiState = {
     workflowBuilderEvalsTaskMap: {},
     workflowBuilderTaskMap: {},
     taskMap: {},
+    evalMap: {},
     retrievalsMap: {},
     retrieval: {
         retrievalName: '',
@@ -321,24 +323,33 @@ const aiSlice = createSlice({
                 }
             }
         },
-        setTaskEvalsMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
-            const { key, subKey, value } = action.payload;
+        setTaskEvalsMap: (state, action: PayloadAction<UpdateEvalMapPayload>) => {
+            const { evalID, evalTaskID, value } = action.payload;
             if (value) {
-                if (!state.workflowBuilderEvalsTaskMap[key]) {
-                    state.workflowBuilderEvalsTaskMap[key] = {};
+                if (!state.workflowBuilderEvalsTaskMap[evalTaskID]) {
+                    state.workflowBuilderEvalsTaskMap[evalTaskID] = {};
                 }
-                state.workflowBuilderEvalsTaskMap[key][subKey] = true;
+                state.workflowBuilderEvalsTaskMap[evalTaskID][evalID] = {
+                    cycleCount: value,
+                };
             } else {
-                if (state.workflowBuilderEvalsTaskMap[key]) {
-                    delete state.workflowBuilderEvalsTaskMap[key][subKey];
+                if (state.workflowBuilderEvalsTaskMap[evalTaskID]) {
+                    delete state.workflowBuilderEvalsTaskMap[evalTaskID][evalID];
 
                     // Check if the main key has no inner keys left
-                    if (Object.keys(state.workflowBuilderEvalsTaskMap[key]).length === 0) {
+                    if (Object.keys(state.workflowBuilderEvalsTaskMap[evalTaskID]).length === 0) {
                         // If so, delete the main key from the map
-                        delete state.workflowBuilderEvalsTaskMap[key];
+                        delete state.workflowBuilderEvalsTaskMap[evalTaskID];
                     }
                 }
             }
+        },
+        setEvalMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
+            const { key, count } = action.payload;
+                state.evalMap[key] = {
+                    cycleCount: count,
+                };
+                return
         },
         setTaskMap: (state, action: PayloadAction<UpdateTaskCycleCountPayload>) => {
             const { key, count } = action.payload;
@@ -437,5 +448,6 @@ export const {
     setEvalFns,
     setAddedEvalFns,
     setTaskEvalsMap,
+    setEvalMap,
 } = aiSlice.actions;
 export default aiSlice.reducer;

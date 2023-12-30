@@ -21,6 +21,7 @@ export interface AiState {
     workflowBuilderTaskMap: AggregateSubTasksMap
     workflowBuilderEvalsTaskMap: EvalFnMap
     taskMap: TaskMap;
+    evalMap: EvalMap;
     retrievalsMap: RetrievalsMap;
     retrieval: Retrieval;
     retrievals: Retrieval[];
@@ -45,13 +46,27 @@ export interface AiState {
 }
 
 export interface EvalFnMap {
-    [key: number]: { [innerKey: number]: boolean };
+    [key: number]: { [innerKey: number]: EvalFnMapPayload };
+}
+
+export interface EvalFnMapPayload {
+    cycleCount: number;
+}
+
+export interface EvalMap {
+    [key: number]: EvalFnMapPayload;
 }
 
 export interface EvalActionTrigger {
     evalState: string;
     evalCompletionStatus: string;
 }
+
+export type UpdateEvalMapPayload = {
+    evalID: number;
+    evalTaskID: number;
+    value: number;
+};
 
 export interface EvalFn {
     evalID?: number;

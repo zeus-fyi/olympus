@@ -55,6 +55,7 @@ import {
     setAnalysisWorkflowInstructions,
     setDiscordOptionsCategoryName,
     setEval,
+    setEvalMap,
     setEvalMetric,
     setRetrievalGroup,
     setRetrievalKeywords,
@@ -65,7 +66,6 @@ import {
     setRetrievals,
     setSelectedMainTabBuilder,
     setSelectedWorkflows,
-    setTaskEvalsMap,
     setTaskMap,
     setWebRoutingGroup,
     setWorkflowBuilderTaskMap,
@@ -96,6 +96,7 @@ const mdTheme = createTheme();
 
 function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
+    const evalMap = useSelector((state: RootState) => state.ai.evalMap);
     const evalFns = useSelector((state: RootState) => state.ai.evalFns);
     const actions = useSelector((state: RootState) => state.ai.actions);
     const addedEvalFns = useSelector((state: RootState) => state.ai.addedEvalFns);
@@ -145,7 +146,7 @@ function WorkflowEngineBuilder(props: any) {
     const [openAggregation, setOpenAggregation] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openActions, setActions] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openEvals, setOpenEvals] = useState<boolean>(true); // Or use an object/array for multiple sections
-    const [toggleEvalToTaskType, setToggleEvalToTaskType] = useState<boolean>(true); // Or use an object/array for multiple sections
+    const [toggleEvalToTaskType, setToggleEvalToTaskType] = useState<boolean>(false); // Or use an object/array for multiple sections
 
     const setToggleEvalTaskType = () => {
         setToggleEvalToTaskType(!toggleEvalToTaskType);
@@ -245,7 +246,7 @@ function WorkflowEngineBuilder(props: any) {
                 subKey: analysisKey,
                 value: true
             };
-            dispatch(setTaskEvalsMap(payload));
+            // dispatch(setTaskEvalsMap(payload));
         } else {
             if (selectedAggregationStageForEval.length <= 0 && selectedEvalStage.length <= 0){
                 return;
@@ -257,7 +258,7 @@ function WorkflowEngineBuilder(props: any) {
                 subKey: analysisKey,
                 value: true
             };
-            dispatch(setTaskEvalsMap(payload));
+            // dispatch(setTaskEvalsMap(payload));
         }
     };
 
@@ -324,8 +325,7 @@ function WorkflowEngineBuilder(props: any) {
 
 
     useEffect(() => {
-
-    }, [addEvalsView, addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap, taskMap]);
+    }, [addEvalsView, addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder, analysisStages, aggregationStages,retrievals, retrievalStages, workflowBuilderTaskMap, workflowAnalysisRetrievalsMap, taskMap, evalMap]);
     const dispatch = useDispatch();
     const handleTaskCycleCountChange = (val: number, task: TaskModelInstructions) => {
         if (val <= 0) {
@@ -337,6 +337,19 @@ function WorkflowEngineBuilder(props: any) {
                 count: val
             };
             dispatch(setTaskMap(payload));
+        }
+    };
+
+    const handleEvalCycleCountChange = (val: number, ef: EvalFn) => {
+        if (val <= 0) {
+            val = 1
+        }
+        if (ef && ef.evalID) {
+            const payload = {
+                key: ef.evalID,
+                count: val
+            };
+            dispatch(setEvalMap(payload));
         }
     };
 
@@ -1487,7 +1500,7 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box flexGrow={2} sx={{mt: 2}}>
                                                 {addedEvalFns && addedEvalFns.map((ef: EvalFn, subIndex) => (
                                                     <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
-                                                        <Box flexGrow={2} sx={{ mt: -3, ml: 4 }}>
+                                                        <Box flexGrow={2} sx={{ mt: -1, ml: 4 }}>
                                                             <TextField
                                                                 key={subIndex}
                                                                 label={`Eval Name`}
@@ -1500,7 +1513,18 @@ function WorkflowEngineBuilder(props: any) {
                                                                 margin="normal"
                                                             />
                                                         </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2, mr: 4 }}>
+                                                        <Box flexGrow={2} sx={{ mt: 1, ml: 2 }}>
+                                                            <TextField
+                                                                type="number"
+                                                                label="Eval Cycle Count"
+                                                                variant="outlined"
+                                                                value={ef?.evalID !== undefined && evalMap[ef.evalID] !== undefined && evalMap[ef.evalID].cycleCount > 0 ? evalMap[ef.evalID].cycleCount : 1}
+                                                                inputProps={{ min: 1 }}  // Set minimum value to 0
+                                                                onChange={(event) => handleEvalCycleCountChange(parseInt(event.target.value, 10), ef)}
+                                                                fullWidth
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mt: 2, mb: 0, ml: 2, mr: 4 }}>
                                                             <Button fullWidth variant="contained" onClick={(event)=>handleRemoveEvalFnRelationshipFromWorkflow(event, ef.evalName, subIndex)}>Remove</Button>
                                                         </Box>
                                                     </Stack>
@@ -1513,7 +1537,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 <div>
                                                     <Box sx={{ mt:4, ml: 4 }} >
                                                         <Typography variant="h6" color="text.secondary">
-                                                            Add Eval Stages to (Aggregation/Analysis) Tasks
+                                                            Connect (Aggregation/Analysis) Task Outputs  {'->'} Eval Stages
                                                         </Typography>
                                                     </Box>
                                                     { workflowBuilderEvalsTaskMap &&

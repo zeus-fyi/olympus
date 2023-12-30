@@ -104,7 +104,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error 
 
 func SelectEvalFnsByOrgID(ctx context.Context, ou org_users.OrgUser) ([]EvalFn, error) {
 	const query = `
-        SELECT eval_id, org_id, user_id, eval_name, eval_type, eval_group_name, eval_model, eval_format
+        SELECT eval_id, eval_name, eval_type, eval_group_name, eval_model, eval_format
         FROM public.eval_fns
         WHERE org_id = $1;`
 	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)
@@ -116,7 +116,7 @@ func SelectEvalFnsByOrgID(ctx context.Context, ou org_users.OrgUser) ([]EvalFn, 
 	var evalFns []EvalFn
 	for rows.Next() {
 		var ef EvalFn
-		err = rows.Scan(&ef.EvalID, &ef.OrgID, &ef.UserID, &ef.EvalName, &ef.EvalType, &ef.EvalGroupName, &ef.EvalModel, &ef.EvalFormat)
+		err = rows.Scan(&ef.EvalID, &ef.EvalName, &ef.EvalType, &ef.EvalGroupName, &ef.EvalModel, &ef.EvalFormat)
 		if err != nil {
 			log.Err(err).Msg("failed to select eval_fns")
 			return nil, err

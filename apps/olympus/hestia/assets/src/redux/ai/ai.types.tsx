@@ -120,6 +120,7 @@ export interface PostWorkflowsRequest {
     models: TaskMap;
     aggregateSubTasksMap?: AggregateSubTasksMap;
     analysisRetrievalsMap: AnalysisRetrievalsMap
+    evalsMap: EvalMap;
     evalTasksMap?: EvalFnMap;
 }
 

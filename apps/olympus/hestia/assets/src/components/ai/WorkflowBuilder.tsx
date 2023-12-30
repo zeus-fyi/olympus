@@ -621,6 +621,7 @@ function WorkflowEngineBuilder(props: any) {
                 models: taskMap,
                 aggregateSubTasksMap: workflowBuilderTaskMap,
                 analysisRetrievalsMap: workflowAnalysisRetrievalsMap,
+                evalsMap: evalMap,
                 evalTasksMap: workflowBuilderEvalsTaskMap
             }
             setIsLoading(true)

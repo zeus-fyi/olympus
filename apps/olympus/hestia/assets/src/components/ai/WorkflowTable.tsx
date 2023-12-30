@@ -49,7 +49,6 @@ export function WorkflowTable(props: any) {
                 const statusCode = response.status;
                 if (statusCode < 400) {
                     const data = response.data;
-                    console.log('Got workflows', data)
                     dispatch(setWorkflows(data.workflows));
                     dispatch(setEvalFns(data.evalFns));
                     dispatch(setActions(data.actions));

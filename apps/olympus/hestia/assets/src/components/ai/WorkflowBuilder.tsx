@@ -1545,7 +1545,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 variant="outlined"
                                                                 value={
                                                                     ef.evalID !== undefined && evalMap[ef.evalID] !== undefined &&
-                                                                    evalMap[ef.evalID].cycleCount? evalMap[ef.evalID].cycleCount : 1
+                                                                    evalMap[ef.evalID].evalCycleCount? evalMap[ef.evalID].evalCycleCount : 1
                                                                 }
                                                                 inputProps={{ min: 1 }}  // Set minimum value to 0
                                                                 onChange={(event) => handleEvalCycleCountChange(parseInt(event.target.value, 10), ef)}

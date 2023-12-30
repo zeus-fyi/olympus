@@ -72,7 +72,7 @@ export interface EvalFn {
     evalGroupName: string;
     evalModel?: string;
     evalFormat: string
-    cycleCount?: number;
+    evalCycleCount?: number;
     evalMetrics: EvalMetric[];
 }
 

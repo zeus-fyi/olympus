@@ -13,6 +13,7 @@ import TableHead from "@mui/material/TableHead";
 export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
+    console.log(row.tasks)
 
     return (
         <React.Fragment>
@@ -56,13 +57,41 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                             <Table size="small" aria-label="sub-analysis">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Task Name</TableCell>
-                                        <TableCell>Task Type</TableCell>
-                                        <TableCell>Cycle Count</TableCell>
-                                        <TableCell style={{ width: '15%'}}>Model</TableCell>
-                                        <TableCell style={{ width: '50%', whiteSpace: 'pre-wrap' }}>Prompt</TableCell>
-                                        <TableCell>Retrieval Name</TableCell>
-                                        <TableCell>Retrieval Platform</TableCell>
+                                        <TableCell>
+                                            <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                Task Name
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                Task Type
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                Cycle Count
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell style={{ width: '15%' }}>
+                                            <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                Model
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell style={{ width: '50%', whiteSpace: 'pre-wrap' }}>
+                                            <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                Prompt
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                Retrieval Name
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                Retrieval Platform
+                                            </Typography>
+                                        </TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -83,41 +112,66 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                             </Table>
                             {
                                 row.tasks && hasEvalFns(row.tasks) && (
-                                    <Box sx={{ margin: 1 }}>
-                                        <Typography variant="h6" gutterBottom component="div">
-                                            Eval Details
-                                        </Typography>
+                                    <Box>
+                                            <Box sx={{ margin: 1 }}>
+                                                <Typography variant="h6" gutterBottom component="div" >
+                                                    Eval Details
+                                                </Typography>
+                                            </Box>
+                                        <Table size="small" aria-label="sub-analysis2">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>
+                                                    <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                        Eval Name
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                        Group
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                        Cycle Count
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                        Type
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                        Model
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                        Format
+                                                    </Typography>
+                                                </TableCell>
+                                            </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {row.tasks.map((task, taskIndex) => (
+                                                    task.evalFns && task.evalFns
+                                                        .map((evalFn, evalFnIndex) => (
+                                                            <TableRow key={evalFnIndex}>
+                                                                <TableCell>{evalFn.evalName}</TableCell>
+                                                                <TableCell>{evalFn.evalGroupName}</TableCell>
+                                                                <TableCell>{evalFn.evalCycleCount? evalFn.evalCycleCount : 1}</TableCell>
+                                                                <TableCell>{evalFn.evalType}</TableCell>
+                                                                <TableCell>{evalFn.evalModel}</TableCell>
+                                                                <TableCell>{evalFn.evalFormat}</TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                ))}
+                                            </TableBody>
+                                        </Table>
                                     </Box>
                                 )
                             }
-                            <Table>
-                                <TableBody>
-                                    {row.tasks && row.tasks.map((task, taskIndex) => (
-                                        task.evalFns && task.evalFns
-                                            .filter(evalFn =>
-                                                    evalFn != null &&
-                                                    // Check that each field is not empty or default
-                                                    evalFn.evalName !== '' &&
-                                                    evalFn.evalGroupName !== '' &&
-                                                    evalFn.evalType !== '' &&
-                                                    evalFn.evalModel !== '' &&
-                                                    evalFn.cycleCount !== 0 && // Assuming 0 is a default value for cycleCount
-                                                    evalFn.evalFormat !== ''
-                                                // Add more conditions for other fields if necessary
-                                            )
-                                            .map((evalFn, evalFnIndex) => (
-                                                <TableRow key={evalFnIndex}>
-                                                    <TableCell>{evalFn.evalName}</TableCell>
-                                                    <TableCell>{evalFn.evalGroupName}</TableCell>
-                                                    <TableCell>{evalFn.evalType}</TableCell>
-                                                    <TableCell>{evalFn.evalModel}</TableCell>
-                                                    <TableCell>{evalFn.cycleCount}</TableCell>
-                                                    <TableCell>{evalFn.evalFormat}</TableCell>
-                                                </TableRow>
-                                            ))
-                                    ))}
-                                </TableBody>
-                            </Table>
                         </Box>
                     </Collapse>
                 </TableCell>

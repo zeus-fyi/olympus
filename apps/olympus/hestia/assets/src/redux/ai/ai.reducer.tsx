@@ -363,9 +363,9 @@ const aiSlice = createSlice({
             const { key, count } = action.payload;
             const tmp = state.evalMap[key]
             if (count <= 0) {
-                tmp.cycleCount = 1;
+                tmp.evalCycleCount = 1;
             } else {
-                tmp.cycleCount = count;
+                tmp.evalCycleCount = count;
             }
             state.evalMap[key] = tmp;
         },

@@ -1195,7 +1195,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                             { retrievalStages && analysisStages && retrievalStages.length > 0 && analysisStages.length > 0 &&
                                                 <div>
-                                                    <Box sx={{ mt: 2 }} >
+                                                    <Box sx={{ mt: 2, ml: 2 }} >
                                                         <Typography variant="h6" color="text.secondary">
                                                             Add Retrieval Stages to Analysis
                                                         </Typography>
@@ -1383,7 +1383,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Divider />
                                                             {aggregationStages.length > 0 && analysisStages.length > 0 &&
                                                                 <div>
-                                                                    <Box sx={{ mt: 2 }} >
+                                                                    <Box sx={{ mt: 2, ml: 2 }} >
                                                                         <Typography variant="h6" color="text.secondary">
                                                                             Analysis {'->'} Aggregation Dependencies
                                                                         </Typography>
@@ -1444,7 +1444,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             <Box sx={{ mt: 4 }} >
                                                                                 <Divider />
                                                                             </Box>
-                                                                            <Box sx={{ mt: 2 }} >
+                                                                            <Box sx={{ mt: 2, ml: 2 }} >
                                                                                 <Typography variant="h6" color="text.secondary">
                                                                                     Add Analysis Stages to Aggregates
                                                                                 </Typography>
@@ -1470,7 +1470,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             </FormControl>
                                                                         </Box>
                                                                         }
-                                                                        <Box flexGrow={1} sx={{ mt: -1.2, ml: 4, mr: -1 }}>
+                                                                        <Box flexGrow={1} sx={{ mt: -1.2, ml: 6, mr: -1 }}>
                                                                             <ArrowForwardIcon />
                                                                         </Box>
                                                                         { aggregationStages &&
@@ -1569,6 +1569,9 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                             { evalFnStages && ((analysisStages && analysisStages.length > 0) || (aggregationStages && aggregationStages.length > 0)) && evalFnStages.length > 0 &&
                                                 <div>
+                                                    <Box flexGrow={1} sx={{ mt: 4, mb: 0}}>
+                                                        <Divider/>
+                                                    </Box>
                                                     <Box sx={{ mt:2, ml: 4 }} >
                                                         <Typography variant="h6" color="text.secondary">
                                                             Analysis/Aggregation {'->'} Eval Dependencies
@@ -1640,7 +1643,7 @@ function WorkflowEngineBuilder(props: any) {
                                                     <Box flexGrow={1} sx={{ mt: 4, mb: 0}}>
                                                         <Divider/>
                                                     </Box>
-                                                    <Box sx={{ mt:4, ml: 4 }} >
+                                                    <Box sx={{ mt:2, ml: 4 }} >
                                                         <Typography variant="h6" color="text.secondary">
                                                             Connect (Aggregation/Analysis) Task Outputs  {'->'} Eval Stages
                                                         </Typography>
@@ -2899,7 +2902,7 @@ function WorkflowEngineBuilder(props: any) {
                         </div>
                     }
                     { (selectedMainTabBuilder === 3) && addRetrievalView &&
-                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4,  ml: 2 }}>
                             <Box sx={{ mb: 2 }}>
                                 <span>({Object.values(selected).filter(value => value).length} Selected Retrievals)</span>
                                 <Button variant="outlined" color="secondary" onClick={handleAddTasksToWorkflow} style={{marginLeft: '10px'}}>

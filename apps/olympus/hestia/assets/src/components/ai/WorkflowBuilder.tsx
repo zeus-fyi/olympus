@@ -38,6 +38,7 @@ import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
     removeAggregationFromWorkflowBuilderTaskMap,
+    removeEvalFnFromWorkflowBuilderEvalMap,
     setAction,
     setActionMetric,
     setActionPlatformAccount,
@@ -266,7 +267,6 @@ function WorkflowEngineBuilder(props: any) {
             dispatch(setEvalsTaskMap(payload));
         }
     };
-
     const handleAddSubTaskToAggregate = () => {
         if (selectedAggregationStageForAnalysis.length <= 0 || selectedAnalysisStageForAggregation.length <= 0) {
             return;
@@ -303,6 +303,15 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(removeAggregationFromWorkflowBuilderTaskMap(payload));
         dispatch(setAddAggregateTasks(aggregationStages.filter((task: TaskModelInstructions) => task.taskID !== taskRemove.taskID)));
     }
+    const handleRemoveEvalFnFromWorkflow = async (event: any, evalFn: EvalFn) => {
+        const payload = {
+            key: evalFn.evalID? evalFn.evalID : 0,
+            subKey: 0,
+            value: false
+        }
+        dispatch(removeEvalFnFromWorkflowBuilderEvalMap(payload));
+        dispatch(setAddEvalFns(evalFns.filter((efn: EvalFn) => (efn.evalID ? efn.evalID : 0) !== evalFn.evalID)));
+    }
     const handleRemoveTaskRelationshipFromWorkflow = async (event: any, keystr: string, value: number) => {
         const key = Number(keystr);
         const payload = {
@@ -331,7 +340,7 @@ function WorkflowEngineBuilder(props: any) {
 
     useEffect(() => {
     }, [addEvalsView, addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder,
-        analysisStages, aggregationStages,retrievals, retrievalStages,workflowBuilderEvalsTaskMap, workflowBuilderTaskMap,
+        analysisStages, aggregationStages, evalFnStages, retrievals, retrievalStages,workflowBuilderEvalsTaskMap, workflowBuilderTaskMap,
         workflowAnalysisRetrievalsMap, evalMap, taskMap]);
     const dispatch = useDispatch();
     const handleTaskCycleCountChange = (val: number, task: TaskModelInstructions) => {
@@ -611,7 +620,8 @@ function WorkflowEngineBuilder(props: any) {
                 stepSizeUnit: stepSizeUnit,
                 models: taskMap,
                 aggregateSubTasksMap: workflowBuilderTaskMap,
-                analysisRetrievalsMap: workflowAnalysisRetrievalsMap
+                analysisRetrievalsMap: workflowAnalysisRetrievalsMap,
+                evalTasksMap: workflowBuilderEvalsTaskMap
             }
             setIsLoading(true)
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
@@ -1535,7 +1545,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             />
                                                         </Box>
                                                         <Box flexGrow={1} sx={{ mt: 2, mb: 0, ml: 2, mr: 4 }}>
-                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveEvalFnRelationshipFromWorkflow(event, ef.evalID? ef.evalID : 0, subIndex)}>Remove</Button>
+                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveEvalFnFromWorkflow(event, ef)}>Remove Eval</Button>
                                                         </Box>
                                                     </Stack>
                                                 ))}

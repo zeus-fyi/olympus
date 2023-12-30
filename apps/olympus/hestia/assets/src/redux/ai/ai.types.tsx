@@ -66,6 +66,7 @@ export type UpdateEvalMapPayload = {
 
 export interface EvalFn {
     evalID?: number;
+    evalTaskID?: number;
     evalName: string;
     evalType: string;
     evalGroupName: string;

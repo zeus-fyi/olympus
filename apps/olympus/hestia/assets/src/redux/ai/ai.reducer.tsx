@@ -398,6 +398,16 @@ const aiSlice = createSlice({
                     delete state.workflowBuilderTaskMap[key];
                 }
         },
+        removeEvalFnFromWorkflowBuilderEvalMap: (state, action: PayloadAction<UpdateTaskMapPayload>) => {
+            const { key, subKey, value } = action.payload;
+                Object.keys(state.workflowBuilderEvalsTaskMap).forEach(taskID => {
+                    // Check if the taskID matches the provided key
+                    if (state.workflowBuilderEvalsTaskMap[Number(taskID)]) {
+                        // Delete the evalID (subKey) from the nested map if it matches the key
+                        delete state.workflowBuilderEvalsTaskMap[Number(taskID)][key];
+                    }
+                });
+        },
     }
 });
 
@@ -456,5 +466,6 @@ export const {
     setAddEvalFns,
     setEvalsTaskMap,
     setEvalMap,
+    removeEvalFnFromWorkflowBuilderEvalMap,
 } = aiSlice.actions;
 export default aiSlice.reducer;

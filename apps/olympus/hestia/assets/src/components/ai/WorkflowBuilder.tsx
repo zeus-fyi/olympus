@@ -2576,6 +2576,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 evalOperator: e.target.value // Update the actionName
                                                                             }))}
                                                                         >
+
+                                                                            {evalMetric.evalMetricDataType === 'array[string]' &&
+                                                                                <MenuItem value="all-unique-words">{'all-unique-words'}</MenuItem>
+                                                                            }
                                                                             <MenuItem value="contains">{'contains'}</MenuItem>
                                                                             <MenuItem value="has-prefix">{'has-prefix'}</MenuItem>
                                                                             <MenuItem value="has-suffix">{'has-suffix'}</MenuItem>
@@ -2586,11 +2590,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                             <MenuItem value="length-less-than-eq">{'length-less-than-eq'}</MenuItem>
                                                                             <MenuItem value="length-greater-than">{'length-greater-than'}</MenuItem>
                                                                             <MenuItem value="length-greater-than-eq">{'length-greater-than-eq'}</MenuItem>
+                                                                            <MenuItem value="length-eq">{'length-eq'}</MenuItem>
                                                                         </Select>
                                                                     </FormControl>
                                                                 </Box>
                                                             }
-                                                            { (evalMetric.evalMetricDataType === 'number' || evalMetric.evalMetricDataType === 'array[number]') &&
+                                                            { (evalMetric.evalMetricDataType === 'number' || evalMetric.evalMetricDataType === 'array[number]'
+                                                                || (evalMetric.evalOperator == 'unique-words') || (evalMetric.evalOperator == 'length-eq')
+                                                                ) &&
                                                             <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:2  }}>
                                                                 <TextField
                                                                     fullWidth
@@ -2607,6 +2614,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Box>
                                                             }
                                                             { (evalMetric.evalMetricDataType === 'string'|| evalMetric.evalMetricDataType === 'array[string]') &&
+                                                                (evalMetric.evalOperator != 'unique-words') &&  (evalMetric.evalOperator != 'length-eq') &&
                                                                 <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
                                                                     <TextField
                                                                         fullWidth

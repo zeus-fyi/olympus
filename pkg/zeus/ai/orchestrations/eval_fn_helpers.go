@@ -204,23 +204,18 @@ func ContainsFalse(results []bool) bool {
 
 func EvaluateBooleanArray(array interface{}, expected bool) ([]bool, error) {
 	var results []bool
-
 	rv := reflect.ValueOf(array)
 	if rv.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("expected a slice, got %s", rv.Kind())
 	}
-
 	for i := 0; i < rv.Len(); i++ {
 		value := rv.Index(i)
-
 		if value.Kind() != reflect.Bool {
 			return nil, fmt.Errorf("expected a boolean slice, got slice of %s", value.Kind())
 		}
-
 		result := GetBooleanEvalComparisonResult(value.Bool(), expected)
 		results = append(results, result)
 	}
-
 	return results, nil
 }
 
@@ -267,28 +262,34 @@ func GetStringEvalComparisonResult(operator string, actual, expected string) boo
 			return true
 		}
 	}
+
 	return false
 }
 
 func EvaluateStringArray(array interface{}, operator, expected string) ([]bool, error) {
 	var results []bool
-
 	rv := reflect.ValueOf(array)
 	if rv.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("expected a slice, got %s", rv.Kind())
 	}
-
+	seen := make(map[string]bool)
 	for i := 0; i < rv.Len(); i++ {
 		value := rv.Index(i)
-
 		if value.Kind() != reflect.String {
 			return nil, fmt.Errorf("expected a string slice, got slice of %s", value.Kind())
 		}
-
 		actual := value.String()
-		result := GetStringEvalComparisonResult(operator, actual, expected)
-		results = append(results, result)
+		if operator == "all-unique-words" {
+			_, ok := seen[actual]
+			if ok {
+				results = append(results, false)
+				continue
+			}
+		} else {
+			result := GetStringEvalComparisonResult(operator, actual, expected)
+			results = append(results, result)
+		}
+		seen[value.String()] = true
 	}
-
 	return results, nil
 }

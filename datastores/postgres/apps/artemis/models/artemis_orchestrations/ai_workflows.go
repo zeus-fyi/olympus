@@ -100,6 +100,17 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 				return err
 			}
 		}
+		if at.RetrievalDependencies == nil || len(at.RetrievalDependencies) <= 0 {
+			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(workflow_template_id, task_id, retrieval_id, cycle_count)
+										VALUES ($1, $2, $3, $4)
+										ON CONFLICT (workflow_template_id, task_id, retrieval_id)
+										DO UPDATE SET cycle_count = EXCLUDED.cycle_count										
+										RETURNING task_id`, workflowTemplate.WorkflowTemplateID, at.TaskID, nil, at.CycleCount).Scan(&at.TaskID)
+			if err != nil {
+				log.Err(err).Msg("failed to insert workflow component")
+				return err
+			}
+		}
 
 		// Link analysis tasks to eval functions
 		for _, ef := range at.EvalFns {

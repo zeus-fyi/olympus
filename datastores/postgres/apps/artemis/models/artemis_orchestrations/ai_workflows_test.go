@@ -30,7 +30,7 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowWithComponents() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	newTemplate := WorkflowTemplate{
-		WorkflowName:              "Test Workflow With Agg EvalFns 6",
+		WorkflowName:              "Test Workflow With Agg EvalFns Nulls 7",
 		FundamentalPeriod:         33,
 		WorkflowGroup:             "TestEvalAggFns",
 		FundamentalPeriodTimeUnit: "minutes",

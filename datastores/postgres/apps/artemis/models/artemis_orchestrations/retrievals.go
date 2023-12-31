@@ -14,7 +14,7 @@ import (
 )
 
 type RetrievalItem struct {
-	RetrievalID    int    `json:"retrievalID,omitempty"` // ID of the retrieval
+	RetrievalID    *int   `json:"retrievalID,omitempty"` // ID of the retrieval
 	RetrievalName  string `json:"retrievalName"`         // Name of the retrieval
 	RetrievalGroup string `json:"retrievalGroup"`        // Group of the retrieval
 	RetrievalItemInstruction
@@ -70,7 +70,8 @@ func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalI
             instructions = EXCLUDED.instructions
         RETURNING retrieval_id;`
 	// Executing the query
-	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, item.RetrievalName, item.RetrievalGroup, item.RetrievalPlatform, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(item.Instructions), Status: IsNull(item.Instructions)}).Scan(&item.RetrievalID)
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, item.RetrievalName, item.RetrievalGroup, item.RetrievalPlatform,
+		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(item.Instructions), Status: IsNull(item.Instructions)}).Scan(&item.RetrievalID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert retrieval")
 		return err

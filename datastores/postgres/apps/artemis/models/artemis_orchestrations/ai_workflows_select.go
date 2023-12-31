@@ -35,15 +35,16 @@ type WorkflowTemplateValue struct {
 
 type WorkflowTemplateData struct {
 	AnalysisTaskDB
-	AnalysisMaxTokensPerTask int     `json:"analysisMaxTokensPerTask"`
-	AggTaskID                *int    `json:"aggTaskID,omitempty"`
-	AggCycleCount            *int    `json:"aggCycleCount,omitempty"`
-	AggTaskName              *string `json:"aggTaskName,omitempty"`
-	AggTaskType              *string `json:"aggTaskType,omitempty"`
-	AggPrompt                *string `json:"aggPrompt,omitempty"`
-	AggModel                 *string `json:"aggModel,omitempty"`
-	AggTokenOverflowStrategy *string `json:"aggTokenOverflowStrategy,omitempty"`
-	AggMaxTokensPerTask      *int    `json:"aggMaxTokensPerTask,omitempty"`
+	AnalysisMaxTokensPerTask int        `json:"analysisMaxTokensPerTask"`
+	AggTaskID                *int       `json:"aggTaskID,omitempty"`
+	AggCycleCount            *int       `json:"aggCycleCount,omitempty"`
+	AggTaskName              *string    `json:"aggTaskName,omitempty"`
+	AggTaskType              *string    `json:"aggTaskType,omitempty"`
+	AggPrompt                *string    `json:"aggPrompt,omitempty"`
+	AggModel                 *string    `json:"aggModel,omitempty"`
+	AggTokenOverflowStrategy *string    `json:"aggTokenOverflowStrategy,omitempty"`
+	AggMaxTokensPerTask      *int       `json:"aggMaxTokensPerTask,omitempty"`
+	AggEvalFns               []EvalFnDB `json:"aggEvalFns,omitempty"`
 }
 
 type AggTaskDb struct {
@@ -56,6 +57,7 @@ type AggTaskDb struct {
 	AggAnalysisTaskId        int        `json:"aggAnalysisTaskId"` // Assuming IDs are large numbers
 	AggMaxTokensPerTask      int        `json:"aggMaxTokensPerTask"`
 	AggTokenOverflowStrategy string     `json:"aggTokenOverflowStrategy"`
+	AnalysisAggCycleCount    int        `json:"analysisAggCycleCount"`
 	EvalFns                  []EvalFnDB `json:"evalFns"`            // Single object, not a slice
 	AnalysisAggEvalFns       []EvalFnDB `json:"analysisAggEvalFns"` // Single object, not a slice
 }
@@ -81,11 +83,11 @@ type AnalysisTaskDB struct {
 	AnalysisMaxTokensPerTask      int    `json:"analysisMaxTokensPerTask"`
 	AnalysisTokenOverflowStrategy string `json:"analysisTokenOverflowStrategy"`
 	RetrievalDB
-	EvalFns []EvalFnDB `json:"evalFns,omitempty"`
+	EvalFns []EvalFnDB `json:"analysisAggEvalFns,omitempty"`
 }
 
 type RetrievalDB struct {
-	RetrievalID           int             `json:"retrievalID"`
+	RetrievalID           *int            `json:"retrievalID"`
 	RetrievalName         string          `json:"retrievalName"`
 	RetrievalGroup        string          `json:"retrievalGroup"`
 	RetrievalPlatform     string          `json:"retrievalPlatform"`
@@ -155,9 +157,9 @@ func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowN
 							cte_2.agg_max_tokens_per_task,
 							cte_2.agg_cycle_count,
 							cte_3.retrieval_id,
-							cte_3.retrieval_name,
-							cte_3.retrieval_group,
-							cte_3.retrieval_platform,
+							COALESCE(cte_3.retrieval_name, '') AS retrieval_name,
+							COALESCE(cte_3.retrieval_group, '') AS retrieval_group,
+							COALESCE(cte_3.retrieval_platform, '') AS retrieval_platform,
 							cte_3.retrieval_instructions
 						FROM cte_1 
 						LEFT JOIN cte_2 ON cte_1.analysis_task_id = cte_2.analysis_task_id
@@ -291,41 +293,43 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 						jsonb_agg(analysis_tasks) as analysis_tasks_array
 					FROM cte_1
 					GROUP BY workflow_template_id
-), unique_evals AS (
-    SELECT 
-        workflow_template_id, 
-        task_id, 
-        JSONB_AGG(eval_fns_data) AS eval_fns_data_agg
-    FROM cte_wf_evals
-    GROUP BY workflow_template_id, task_id
-),
-cte_2 AS (
-    SELECT
-        wate.workflow_template_id,
-        ait.task_id as agg_task_id,
-        ait1.task_id as analysis_task_id,
-        JSON_BUILD_OBJECT(
-            'aggTaskId', ait.task_id,
-            'aggAnalysisTaskId', ait1.task_id,
-            'aggTaskName', ait.task_name,
-            'aggTaskType', ait.task_type,
-            'aggPrompt', ait.prompt,
-            'aggModel', ait.model,
-            'aggTokenOverflowStrategy', ait.token_overflow_strategy,
-            'aggMaxTokensPerTask', ait.max_tokens_per_task,
-            'aggCycleCount', awtat.cycle_count,
-            'evalFns', COALESCE(ue.eval_fns_data_agg, '[]'::jsonb),
-            'analysisAggEvalFns', COALESCE(ue1.eval_fns_data_agg, '[]'::jsonb)
-        ) AS agg_tasks
-    FROM ai_workflow_template wate
-    JOIN public.ai_workflow_template_agg_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
-    JOIN public.ai_task_library ait ON ait.task_id = awtat.agg_task_id
-    JOIN public.ai_task_library ait1 ON ait1.task_id = awtat.analysis_task_id
-    LEFT JOIN unique_evals ue ON ue.workflow_template_id = wate.workflow_template_id AND ue.task_id = ait.task_id
-    LEFT JOIN unique_evals ue1 ON ue1.workflow_template_id = wate.workflow_template_id AND ue1.task_id = ait1.task_id
-    WHERE wate.org_id = $1 ` + additionalCondition + `
-    GROUP BY wate.workflow_template_id, ait.task_id, ait1.task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, 
-             ait.token_overflow_strategy, ait.max_tokens_per_task, awtat.cycle_count, ue.eval_fns_data_agg, ue1.eval_fns_data_agg
+		), unique_evals AS (
+			SELECT 
+				workflow_template_id, 
+				task_id, 
+				JSONB_AGG(eval_fns_data) AS eval_fns_data_agg
+			FROM cte_wf_evals
+			GROUP BY workflow_template_id, task_id
+		),
+		cte_2 AS (
+		SELECT
+			wate.workflow_template_id,
+			ait.task_id as agg_task_id,
+			ait1.task_id as analysis_task_id,
+			JSON_BUILD_OBJECT(
+				'aggTaskId', ait.task_id,
+				'aggAnalysisTaskId', ait1.task_id,
+				'aggTaskName', ait.task_name,
+				'aggTaskType', ait.task_type,
+				'aggPrompt', ait.prompt,
+				'aggModel', ait.model,
+				'aggTokenOverflowStrategy', ait.token_overflow_strategy,
+				'aggMaxTokensPerTask', ait.max_tokens_per_task,
+				'aggCycleCount', awtat.cycle_count,
+				'evalFns', COALESCE(ue.eval_fns_data_agg, '[]'::jsonb),
+				'analysisAggEvalFns', COALESCE(ue1.eval_fns_data_agg, '[]'::jsonb),
+				'analysisAggCycleCount', awtat1.cycle_count
+			) AS agg_tasks
+		FROM ai_workflow_template wate
+		JOIN public.ai_workflow_template_agg_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
+		JOIN public.ai_task_library ait ON ait.task_id = awtat.agg_task_id
+		JOIN public.ai_task_library ait1 ON ait1.task_id = awtat.analysis_task_id
+		JOIN public.ai_workflow_template_analysis_tasks awtat1 ON awtat1.workflow_template_id = wate.workflow_template_id AND awtat1.task_id = awtat.analysis_task_id
+		LEFT JOIN unique_evals ue ON ue.workflow_template_id = wate.workflow_template_id AND ue.task_id = ait.task_id
+		LEFT JOIN unique_evals ue1 ON ue1.workflow_template_id = wate.workflow_template_id AND ue1.task_id = ait1.task_id
+   	 	WHERE wate.org_id = $1 ` + additionalCondition + `
+    	GROUP BY wate.workflow_template_id, ait.task_id, ait1.task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, 
+             ait.token_overflow_strategy, ait.max_tokens_per_task, awtat.cycle_count, ue.eval_fns_data_agg, ue1.eval_fns_data_agg, awtat1.cycle_count
 				), cte_2a AS (
 						SELECT 
 							workflow_template_id, 
@@ -434,8 +438,8 @@ cte_2 AS (
 				wt.AnalysisRetrievals[v.AnalysisTaskID] = make(map[int]RetrievalDB)
 			}
 			wt.AnalysisTasks[v.AnalysisTaskID] = v
-			if v.RetrievalID > 0 {
-				wt.AnalysisRetrievals[v.AnalysisTaskID][v.RetrievalID] = v.RetrievalDB
+			if v.RetrievalID != nil && *v.RetrievalID > 0 {
+				wt.AnalysisRetrievals[v.AnalysisTaskID][*v.RetrievalID] = v.RetrievalDB
 			}
 
 			var tmp []EvalFnDB
@@ -476,6 +480,13 @@ cte_2 AS (
 				RetrievalPlatform: at.RetrievalPlatform,
 				EvalFnDBs:         at.EvalFns,
 			}
+			tmp := results.WorkflowTemplatesMap[i]
+			if _, ok := results.WorkflowTemplatesMap[i].AnalysisTasks[at.AnalysisTaskID]; !ok {
+				tmp.AnalysisTasks[at.AnalysisTaskID] = at
+			}
+			v.AnalysisTasks[at.AnalysisTaskID] = at
+			tmp.AnalysisTasks = v.AnalysisTasks
+			results.WorkflowTemplatesMap[i] = tmp
 			taskVals = append(taskVals, ta)
 		}
 		for _, aggTask := range results.WorkflowTemplatesMap[i].AggAnalysisTasksSlice {
@@ -503,11 +514,6 @@ cte_2 AS (
 	return results, nil
 }
 
-type WorkflowTaskRelationships struct {
-	AnalysisRetrievals map[int]map[int]bool `json:"analysisRetrievals"`
-	AggregateAnalysis  map[int]map[int]bool `json:"aggregateAnalysis"`
-}
-
 func MapDependencies(res []WorkflowTemplateData) WorkflowTaskRelationships {
 	analysisRetrievals := make(map[int]map[int]bool)
 	aggregateAnalysis := make(map[int]map[int]bool)
@@ -516,9 +522,9 @@ func MapDependencies(res []WorkflowTemplateData) WorkflowTaskRelationships {
 		if _, ok := analysisRetrievals[v.AnalysisTaskID]; !ok {
 			analysisRetrievals[v.AnalysisTaskID] = make(map[int]bool)
 		}
-		if v.RetrievalID != 0 {
-			if _, ok := analysisRetrievals[v.AnalysisTaskID][v.RetrievalID]; !ok {
-				analysisRetrievals[v.AnalysisTaskID][v.RetrievalID] = true
+		if v.RetrievalID != nil && *v.RetrievalID != 0 {
+			if _, ok := analysisRetrievals[v.AnalysisTaskID][*v.RetrievalID]; !ok {
+				analysisRetrievals[v.AnalysisTaskID][*v.RetrievalID] = true
 			} else {
 				//fmt.Println("Duplicate retrieval id", v.RetrievalID)
 			}
@@ -550,7 +556,12 @@ func MapDependenciesGrouped(res WorkflowTemplateValue) WorkflowTaskRelationships
 	}
 	for analysisTaskID, retrievalMap := range res.AnalysisRetrievals {
 		for _, retrieval := range retrievalMap {
-			analysisRetrievals[analysisTaskID][retrieval.RetrievalID] = true
+			if _, ok := analysisRetrievals[analysisTaskID]; !ok {
+				analysisRetrievals[analysisTaskID] = make(map[int]bool)
+			}
+			if retrieval.RetrievalID != nil && *retrieval.RetrievalID != 0 {
+				analysisRetrievals[analysisTaskID][*retrieval.RetrievalID] = true
+			}
 		}
 	}
 	aggregateAnalysis := make(map[int]map[int]bool)

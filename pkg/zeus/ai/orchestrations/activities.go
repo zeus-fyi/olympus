@@ -49,8 +49,8 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
 		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask, z.CreateRedditJob,
 		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob, z.CancelRun, z.PlatformIndexerGroupStatusUpdate,
-		z.SelectDiscordSearchQueryByGuildChannel, z.CreatJsonOutputModelResponse, z.EvalLookup,
-		z.EvalScoredViaApi, z.EvalModelScoredJsonOutput,
+		z.SelectDiscordSearchQueryByGuildChannel, z.CreateJsonOutputModelResponse, z.EvalLookup,
+		z.SendResponseToApiForScoresInJson, z.EvalModelScoredJsonOutput, z.SaveEvalMetricResults,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }

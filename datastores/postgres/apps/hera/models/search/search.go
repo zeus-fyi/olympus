@@ -230,6 +230,9 @@ type SearchResults struct {
 }
 
 func FormatSearchResultsV2(results []SearchResult) string {
+	if len(results) == 0 {
+		return ""
+	}
 	var builder strings.Builder
 
 	for _, result := range results {

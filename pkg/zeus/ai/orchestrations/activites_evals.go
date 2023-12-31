@@ -20,7 +20,20 @@ func (z *ZeusAiPlatformActivities) EvalLookup(ctx context.Context, ou org_users.
 	return evalFn, nil
 }
 
-func (z *ZeusAiPlatformActivities) CreatJsonOutputModelResponse(ctx context.Context, ou org_users.OrgUser, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformActivities) SaveEvalMetricResults(ctx context.Context, emr *artemis_orchestrations.EvalMetricsResults) error {
+	if emr == nil || emr.EvalMetricsResults == nil {
+		log.Info().Msg("SaveEvalMetricResults: emr is nil")
+		return nil
+	}
+	err := artemis_orchestrations.UpsertEvalMetricsResults(ctx, emr.EvalContext, emr.EvalMetricsResults)
+	if err != nil {
+		log.Err(err).Msg("EvalLookup: failed to get eval fn")
+		return err
+	}
+	return nil
+}
+
+func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Context, ou org_users.OrgUser, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
 	var err error
 	var resp openai.ChatCompletionResponse
 	ps, err := GetMockingBirdSecrets(ctx, ou)
@@ -42,16 +55,21 @@ func (z *ZeusAiPlatformActivities) CreatJsonOutputModelResponse(ctx context.Cont
 	}, nil
 }
 
-func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, evalFn *artemis_orchestrations.EvalFn, modelInputFromSource *ChatCompletionQueryResponse) (*artemis_orchestrations.EvalFn, error) {
-	if modelInputFromSource == nil || evalFn == nil {
-		log.Info().Msg("EvalModelScoredJsonOutput: at leas one input is nil")
-		return evalFn, nil
-	}
-	return evalFn, nil
+func (z *ZeusAiPlatformActivities) SendResponseToApiForScoresInJson(ctx context.Context, cr *ChatCompletionQueryResponse) (string, error) {
+	return "", nil
 }
 
-func (z *ZeusAiPlatformActivities) EvalScoredViaApi(ctx context.Context, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalFn, error) {
-	return evalFn, nil
+func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, jsonStr string, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
+	if len(jsonStr) == 0 || evalFn == nil {
+		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
+		return nil, nil
+	}
+	scoredResults, err := TransformJSONToEvalScoredMetrics(jsonStr, evalFn.EvalMetricMap)
+	if err != nil {
+		log.Err(err).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
+		return nil, err
+	}
+	return scoredResults, nil
 }
 
 // TransformEvalMetricsToJSONSchema transforms a slice of EvalMetric into jsonschema.Definition.
@@ -80,26 +98,3 @@ func TransformEvalMetricsToJSONSchema(metrics []artemis_orchestrations.EvalMetri
 		Required:   required,
 	}, nil
 }
-
-//func TransformJSONSchemaToEvalMetrics(metrics []artemis_orchestrations.EvalMetric) (jsonschema.Definition, error) {
-//	properties := make(map[string]jsonschema.Definition)
-//	var required []string
-//	for _, metric := range metrics {
-//		dataType, err := mapDataType(metric.EvalMetricDataType)
-//		if err != nil {
-//			log.Err(err).Msg("TransformEvalMetricsToJSONSchema: failed to map data type")
-//			return jsonschema.Definition{}, err
-//		}
-//		properties[metric.EvalMetricName] = jsonschema.Definition{
-//			Type:        dataType,
-//			Description: metric.EvalModelPrompt,
-//		}
-//		required = append(required, metric.EvalMetricName)
-//	}
-//
-//	return jsonschema.Definition{
-//		Type:       jsonschema.Object,
-//		Properties: properties,
-//		Required:   required,
-//	}, nil
-//}

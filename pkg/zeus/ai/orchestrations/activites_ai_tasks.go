@@ -27,26 +27,35 @@ func GetMockingBirdSecrets(ctx context.Context, ou org_users.OrgUser) (*aws_secr
 }
 
 func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
-	content := hera_search.FormatSearchResultsV2(sr)
-	if len(content) <= 0 {
-		return nil, nil
-	}
-	systemMessage := openai.ChatCompletionMessage{
-		Role:    openai.ChatMessageRoleSystem,
-		Content: taskInst.AnalysisPrompt,
-		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
-	}
 	cr := openai.ChatCompletionRequest{
-		Model: taskInst.AnalysisModel,
-		Messages: []openai.ChatCompletionMessage{
-			systemMessage,
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: content,
-				Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
-			},
-		},
+		Model:    taskInst.AnalysisModel,
+		Messages: []openai.ChatCompletionMessage{},
 	}
+	content := hera_search.FormatSearchResultsV2(sr)
+	if len(content) > 0 {
+		systemMessage := openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: taskInst.AnalysisPrompt,
+			Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+		}
+		cr.Messages = append(cr.Messages, systemMessage)
+		// coming from ext
+		chatMessage := openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: content,
+			Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+		}
+		cr.Messages = append(cr.Messages, chatMessage)
+	} else {
+		// else model generated from scratch
+		chatMessage := openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: taskInst.AnalysisPrompt,
+			Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+		}
+		cr.Messages = append(cr.Messages, chatMessage)
+	}
+
 	if taskInst.AnalysisMaxTokensPerTask > 0 {
 		cr.MaxTokens = taskInst.AnalysisMaxTokensPerTask
 	}
@@ -59,7 +68,8 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		return nil, err
 	}
 	prompt := make(map[string]string)
-	prompt["prompt"] = content
+	prompt["prompt"] = taskInst.AnalysisPrompt
+	prompt["content"] = content
 	if ps.ApiKey == "" {
 		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed, using backup and deleting secret cache for org")
 		cres, cerr := hera_openai.HeraOpenAI.CreateChatCompletion(
@@ -67,8 +77,9 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		)
 		if cerr == nil {
 			return &ChatCompletionQueryResponse{
-				Prompt:   prompt,
-				Response: cres,
+				Prompt:         prompt,
+				ResponseTaskID: taskInst.AnalysisTaskID,
+				Response:       cres,
 			}, nil
 		} else {
 			log.Err(cerr).Msg("AiAnalysisTask: CreateChatCompletion failed")
@@ -82,8 +93,9 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 	)
 	if err == nil {
 		return &ChatCompletionQueryResponse{
-			Prompt:   prompt,
-			Response: resp,
+			Prompt:         prompt,
+			ResponseTaskID: taskInst.AnalysisTaskID,
+			Response:       resp,
 		}, nil
 	} else {
 		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
@@ -106,14 +118,16 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		return nil, err
 	}
 	return &ChatCompletionQueryResponse{
-		Prompt:   prompt,
-		Response: resp,
+		Prompt:         prompt,
+		ResponseTaskID: taskInst.AnalysisTaskID,
+		Response:       resp,
 	}, nil
 }
 
 type ChatCompletionQueryResponse struct {
-	Prompt   map[string]string             `json:"prompt"`
-	Response openai.ChatCompletionResponse `json:"response"`
+	Prompt         map[string]string             `json:"prompt"`
+	Response       openai.ChatCompletionResponse `json:"response"`
+	ResponseTaskID int                           `json:"responseTaskID,omitempty"`
 }
 
 func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (*ChatCompletionQueryResponse, error) {
@@ -129,7 +143,8 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 		return nil, nil
 	}
 	prompt := make(map[string]string)
-	prompt["prompt"] = content
+	prompt["prompt"] = *aggInst.AggPrompt
+	prompt["content"] = content
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
 		Content: *aggInst.AggPrompt,
@@ -172,8 +187,9 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 			return nil, cerr
 		}
 		return &ChatCompletionQueryResponse{
-			Prompt:   prompt,
-			Response: cres,
+			Prompt:         prompt,
+			ResponseTaskID: *aggInst.AggTaskID,
+			Response:       cres,
 		}, nil
 	}
 
@@ -183,8 +199,9 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	)
 	if err == nil {
 		return &ChatCompletionQueryResponse{
-			Prompt:   prompt,
-			Response: resp,
+			Prompt:         prompt,
+			ResponseTaskID: *aggInst.AggTaskID,
+			Response:       resp,
 		}, nil
 	} else {
 		log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
@@ -207,7 +224,8 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 		return nil, err
 	}
 	return &ChatCompletionQueryResponse{
-		Prompt:   prompt,
-		Response: resp,
+		Prompt:         prompt,
+		ResponseTaskID: *aggInst.AggTaskID,
+		Response:       resp,
 	}, nil
 }

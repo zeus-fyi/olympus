@@ -1,13 +1,12 @@
 package ai_platform_service_orchestrations
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
-	"go.temporal.io/sdk/temporal"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -35,7 +34,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		logger.Error("failed to UpsertAiOrchestration", "Error", err)
 		return err
 	}
-	err = timer.SleepUntil(ctx, wfExecParams.RunWindow.Start, workflow.GetSignalChannel(ctx, SignalType))
+	err = timer.SleepUntil(ctx, wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start, workflow.GetSignalChannel(ctx, SignalType))
 	if err != nil {
 		logger.Error("failed to sleep until", "Error", err)
 		return err
@@ -46,17 +45,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		logger.Error("failed to UpdateAndMarkOrchestrationActive", "Error", err)
 		return err
 	}
-	aoAiAct := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
-		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    time.Second * 5,
-			BackoffCoefficient: 2.0,
-			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    5,
-		},
-	}
-	for i := 1; i < wfExecParams.RunCycles+1; i++ {
-		startTime := wfExecParams.RunWindow.Start.Add(time.Duration(i) * wfExecParams.TimeStepSize)
+
+	for i := 1; i < wfExecParams.WorkflowExecTimekeepingParams.RunCycles+1; i++ {
+		startTime := wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start.Add(time.Duration(i) * wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 		if time.Now().Before(startTime) {
 			err = workflow.Sleep(ctx, startTime.Sub(time.Now()))
 			if err != nil {
@@ -64,142 +55,35 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				return err
 			}
 		}
-
-		md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
-		for _, analysisInst := range wfExecParams.WorkflowTasks {
-			if i%analysisInst.AnalysisCycleCount == 0 {
-				if md.AnalysisRetrievals[analysisInst.AnalysisTaskID] == nil {
-					continue
-				}
-				if md.AnalysisRetrievals[analysisInst.AnalysisTaskID][analysisInst.RetrievalID] == false {
-					continue
-				}
-				retrievalCtx := workflow.WithActivityOptions(ctx, ao)
-				window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.RunWindow.UnixStartTime, i-analysisInst.AnalysisCycleCount, i, wfExecParams.TimeStepSize)
-				var sr []hera_search.SearchResult
-				err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, ou, analysisInst, window).Get(retrievalCtx, &sr)
-				if err != nil {
-					logger.Error("failed to run retrieval", "Error", err)
-					return err
-				}
-				var routes []iris_models.RouteInfo
-				retrievalWebCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, ou, analysisInst).Get(retrievalWebCtx, &routes)
-				if err != nil {
-					logger.Error("failed to run retrieval", "Error", err)
-					return err
-				}
-				for _, route := range routes {
-					fetchedResult := &hera_search.SearchResult{}
-					retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-					err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.AiWebRetrievalTask, ou, analysisInst, route).Get(retrievalWebTaskCtx, &fetchedResult)
-					if err != nil {
-						logger.Error("failed to run retrieval", "Error", err)
-						return err
-					}
-					if fetchedResult != nil && len(fetchedResult.Value) > 0 {
-						sr = append(sr, *fetchedResult)
-					}
-				}
-				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][analysisInst.RetrievalID] = false
-				if len(sr) == 0 {
-					continue
-				}
-				analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				var aiResp *ChatCompletionQueryResponse
-				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sr).Get(analysisCtx, &aiResp)
-				if err != nil {
-					logger.Error("failed to run analysis", "Error", err)
-					return err
-				}
-				if aiResp == nil || len(aiResp.Response.Choices) == 0 {
-					continue
-				}
-				var analysisRespId int
-				analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
-				if err != nil {
-					logger.Error("failed to save analysis response", "Error", err)
-					return err
-				}
-				wr := artemis_orchestrations.AIWorkflowAnalysisResult{
-					OrchestrationsID:      oj.OrchestrationID,
-					ResponseID:            analysisRespId,
-					SourceTaskID:          analysisInst.AnalysisTaskID,
-					RunningCycleNumber:    i,
-					SearchWindowUnixStart: window.UnixStartTime,
-					SearchWindowUnixEnd:   window.UnixEndTime,
-				}
-				recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr).Get(recordAnalysisCtx, nil)
-				if err != nil {
-					logger.Error("failed to save analysis", "Error", err)
-					return err
-				}
-			}
+		childParams := &MbChildSubProcessParams{
+			WfID:         wfID,
+			Ou:           ou,
+			WfExecParams: wfExecParams,
+			Oj:           oj,
+			RunCycle:     i,
 		}
-
-		for _, aggInst := range wfExecParams.WorkflowTasks {
-			if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggPrompt == nil || aggInst.AggModel == nil || wfExecParams.AggNormalizedCycleCounts == nil {
-				continue
-			}
-			aggCycle := wfExecParams.AggNormalizedCycleCounts[*aggInst.AggTaskID]
-			if i%aggCycle == 0 {
-				if aggInst.AggTaskID == nil || md.AggregateAnalysis[*aggInst.AggTaskID] == nil {
-					continue
-				}
-				if md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false {
-					continue
-				}
-				retrievalCtx := workflow.WithActivityOptions(ctx, ao)
-				window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.TimeStepSize)
-				var dataIn []artemis_orchestrations.AIWorkflowAnalysisResult
-				depM := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
-				var analysisDep []int
-				for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
-					analysisDep = append(analysisDep, k)
-				}
-				err = workflow.ExecuteActivity(retrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, analysisDep).Get(retrievalCtx, &dataIn)
-				if err != nil {
-					logger.Error("failed to run aggregate retrieval", "Error", err)
-					return err
-				}
-				md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
-				if len(dataIn) == 0 {
-					continue
-				}
-				aggCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				var aiAggResp *ChatCompletionQueryResponse
-				err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, dataIn).Get(aggCtx, &aiAggResp)
-				if err != nil {
-					logger.Error("failed to run aggregation", "Error", err)
-					return err
-				}
-				if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 {
-					continue
-				}
-				var aggRespId int
-				aggCompCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &aggRespId)
-				if err != nil {
-					logger.Error("failed to save agg response", "Error", err)
-					return err
-				}
-				wr := artemis_orchestrations.AIWorkflowAnalysisResult{
-					OrchestrationsID:      oj.OrchestrationID,
-					ResponseID:            aggRespId,
-					SourceTaskID:          *aggInst.AggTaskID,
-					RunningCycleNumber:    i,
-					SearchWindowUnixStart: window.UnixStartTime,
-					SearchWindowUnixEnd:   window.UnixEndTime,
-				}
-				recordAggCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, dataIn).Get(recordAggCtx, nil)
-				if err != nil {
-					logger.Error("failed to save aggregation resp", "Error", err)
-					return err
-				}
-			}
+		// Execute child workflow for analysis
+		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+			WorkflowID:               oj.OrchestrationName + "-analysis-" + strconv.Itoa(i),
+			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+		}
+		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowChildAnalysisProcess, childParams).Get(childAnalysisCtx, nil)
+		if err != nil {
+			logger.Error("failed to execute child analysis workflow", "Error", err)
+			return err
+		}
+		// Execute child workflow for aggregation
+		childAggAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+			WorkflowID:               oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i),
+			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+			ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
+		}
+		childAggAnalysisCtx := workflow.WithChildOptions(ctx, childAggAnalysisWorkflowOptions)
+		err = workflow.ExecuteChildWorkflow(childAggAnalysisCtx, z.RunAiWorkflowChildAggAnalysisProcess, childParams).Get(childAggAnalysisCtx, nil)
+		if err != nil {
+			logger.Error("failed to execute child aggregation workflow", "Error", err)
+			return err
 		}
 	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)

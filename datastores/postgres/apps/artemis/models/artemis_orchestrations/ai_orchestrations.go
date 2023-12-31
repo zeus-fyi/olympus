@@ -42,7 +42,7 @@ type WorkflowTaskRelationships struct {
 
 type CycleCountTaskRelative struct {
 	AggNormalizedCycleCounts             map[int]int                 `json:"aggNormalizedCycleCounts"`
-	AnalysisEvalNormalizedCycleCounts    map[int]int                 `json:"analysisEvalNormalizedCycleCounts,omitempty"`
+	AnalysisEvalNormalizedCycleCounts    map[int]map[int]int         `json:"analysisEvalNormalizedCycleCounts,omitempty"`
 	AggEvalNormalizedCycleCounts         map[int]map[int]int         `json:"aggEvalNormalizedCycleCounts,omitempty"`
 	AggAnalysisEvalNormalizedCycleCounts map[int]map[int]map[int]int `json:"aggAnalysisEvalNormalizedCycleCounts,omitempty"`
 }
@@ -185,7 +185,6 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 			if aggAnalysisTask.AggCycleCount > aggCycleLength {
 				aggCycleLength = aggAnalysisTask.AggCycleCount
 			}
-
 			normalizedCount := CalculateAggCycleCount(aggAnalysisTask.AggCycleCount, analysisTask.AnalysisCycleCount)
 			if normalizedCount >= maxCycleLength {
 				maxCycleLength = normalizedCount
@@ -224,7 +223,7 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 		}
 	}
 
-	analysisEvalNormalizedCycles := make(map[int]int)
+	analysisEvalNormalizedCycles := make(map[int]map[int]int)
 	for _, analysisTask := range wfValue.AnalysisTasksSlice {
 		for _, evalFn := range analysisTask.EvalFns {
 			if evalFn.EvalCycleCount == 0 {
@@ -233,7 +232,10 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 			if analysisTask.AnalysisCycleCount == 0 {
 				analysisTask.AnalysisCycleCount = 1
 			}
-			analysisEvalNormalizedCycles[analysisTask.AnalysisTaskID] = evalFn.EvalCycleCount * analysisTask.AnalysisCycleCount
+			if _, ok := analysisEvalNormalizedCycles[analysisTask.AnalysisTaskID]; !ok {
+				analysisEvalNormalizedCycles[analysisTask.AnalysisTaskID] = make(map[int]int)
+			}
+			analysisEvalNormalizedCycles[analysisTask.AnalysisTaskID][evalFn.EvalID] = evalFn.EvalCycleCount * analysisTask.AnalysisCycleCount
 		}
 	}
 	wte := WorkflowExecParams{

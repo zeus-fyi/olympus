@@ -219,3 +219,14 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesWithEvalFns() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
 }
+
+func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesWithEvalFnsByName() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	name := "analysis-scoring-test"
+	res, err := SelectWorkflowTemplateByName(ctx, ou, name)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(res)
+}

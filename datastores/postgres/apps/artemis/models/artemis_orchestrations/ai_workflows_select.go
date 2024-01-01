@@ -83,7 +83,8 @@ type AnalysisTaskDB struct {
 	AnalysisMaxTokensPerTask      int    `json:"analysisMaxTokensPerTask"`
 	AnalysisTokenOverflowStrategy string `json:"analysisTokenOverflowStrategy"`
 	RetrievalDB
-	EvalFns []EvalFnDB `json:"analysisAggEvalFns,omitempty"`
+	AnalysisEvalFns []EvalFnDB `json:"analysisEvalFns,omitempty"`
+	EvalFns         []EvalFnDB `json:"analysisAggEvalFns,omitempty"`
 }
 
 type RetrievalDB struct {
@@ -278,7 +279,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 							'retrievalGroup', COALESCE(art.retrieval_group, ''),
 							'retrievalPlatform', COALESCE(art.retrieval_platform, ''),
 							'retrievalInstructions', COALESCE(art.instructions, '{}'::jsonb),
-							'evalFns', COALESCE(JSON_AGG(cte_wf_evals.eval_fns_data), '[]'::json)
+							'analysisEvalFns', COALESCE(JSON_AGG(cte_wf_evals.eval_fns_data), '[]'::json)
 						) AS analysis_tasks
 					FROM cte_0 
 					JOIN public.ai_task_library ait ON ait.task_id = cte_0.analysis_task_id

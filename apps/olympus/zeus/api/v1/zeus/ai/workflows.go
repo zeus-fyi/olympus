@@ -160,17 +160,36 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				AggId:      m.TaskID,
 				CycleCount: m.CycleCount,
 				Tasks:      []artemis_orchestrations.AITaskLibrary{},
-				EvalFns:    m.EvalFns,
+			}
+			if w.EvalTasksMap != nil {
+				if evm, tok := w.EvalTasksMap[m.TaskID]; tok {
+					for k, v := range evm {
+						if v {
+							agt.EvalFns = append(agt.EvalFns, w.EvalsMap[k])
+						}
+					}
+				}
 			}
 			for k, v := range w.AggregateSubTasksMap {
 				if k == m.TaskID {
 					for at, isTrue := range v {
 						if isTrue {
 							ms[at] = m.TaskID
-							agt.Tasks = append(agt.Tasks, artemis_orchestrations.AITaskLibrary{
+
+							ta := artemis_orchestrations.AITaskLibrary{
 								TaskID:     at,
 								CycleCount: m.CycleCount,
-							})
+							}
+							if w.EvalTasksMap != nil {
+								if evm, tok := w.EvalTasksMap[at]; tok {
+									for ke, ve := range evm {
+										if ve {
+											agt.EvalFns = append(agt.EvalFns, w.EvalsMap[ke])
+										}
+									}
+								}
+							}
+							agt.Tasks = append(agt.Tasks, ta)
 						}
 					}
 				}
@@ -189,8 +208,17 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				Model:                 m.Model,
 				Prompt:                m.Prompt,
 				CycleCount:            m.CycleCount,
-				EvalFns:               m.EvalFns,
 				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
+			}
+
+			if w.EvalTasksMap != nil {
+				if evm, tok := w.EvalTasksMap[m.TaskID]; tok {
+					for ke, ve := range evm {
+						if ve {
+							at.EvalFns = append(at.EvalFns, w.EvalsMap[ke])
+						}
+					}
+				}
 			}
 			for k, v := range w.AnalysisRetrievalsMap {
 				for rt, isTrue := range v {

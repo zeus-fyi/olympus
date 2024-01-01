@@ -207,7 +207,6 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 			aggNormalizedEvalsCycleCount[aggID][evalFn.EvalID] = evalFn.EvalCycleCount * aggNormalizedCycleCount[aggID]
 		}
 	}
-
 	aggAnalysisEvalNormalizedCycleCounts := make(map[int]map[int]map[int]int)
 	for _, aggAnalysisTaskMap := range wfValue.AggAnalysisTasks {
 		for analysisID, aggAnalysisTask := range aggAnalysisTaskMap {
@@ -226,6 +225,10 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 
 	analysisEvalNormalizedCycles := make(map[int]map[int]int)
 	for _, analysisTask := range wfValue.AnalysisTasksSlice {
+		wtd := WorkflowTemplateData{
+			AnalysisTaskDB: analysisTask,
+		}
+		wd = append(wd, wtd)
 		for _, evalFn := range analysisTask.AnalysisEvalFns {
 			if evalFn.EvalCycleCount == 0 {
 				evalFn.EvalCycleCount = 1

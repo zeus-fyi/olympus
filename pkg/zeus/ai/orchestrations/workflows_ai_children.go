@@ -102,7 +102,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 						}
 					}
 				}
-
+				if len(m) == 0 {
+					logger.Warn("failed to get eval info", "Response", m)
+					continue
+				}
 				evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, m, &evalFnWithMetrics).Get(evalModelScoredJsonCtx, &emr)
 				if err != nil {

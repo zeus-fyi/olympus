@@ -26,7 +26,9 @@ func (s *OrchestrationsTestSuite) TestSelectAiSystemOrchestrationsWithInstructio
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	// get internal assignments
-	ojs, err := SelectAiSystemOrchestrations(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ojs, err := SelectAiSystemOrchestrations(ctx, ou)
 	s.Require().Nil(err)
 	fmt.Println(ojs)
 }

@@ -260,46 +260,6 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 	return wte
 }
 
-func AggregateTasks(wf WorkflowTemplate, wd []WorkflowTemplateData) WorkflowExecParams {
-	aggMap := make(map[int]int)
-	aggNormalizedCycleCount := make(map[int]int)
-
-	maxCycleLength := 1
-	for _, w := range wd {
-		if w.AnalysisCycleCount > maxCycleLength {
-			maxCycleLength = w.AnalysisCycleCount
-		}
-		if w.AggTaskID != nil && w.AggCycleCount != nil {
-			aggVal := aggMap[*w.AggTaskID]
-			aggNormalizedCycleCount[*w.AggTaskID] = *w.AggCycleCount
-			aggMap[*w.AggTaskID] = CalculateAggCycleCount(aggVal, w.AnalysisCycleCount)
-		}
-	}
-
-	for k, v := range aggMap {
-		aggNormalizedCycleCount[k] = v * aggNormalizedCycleCount[k]
-		if aggNormalizedCycleCount[k] > maxCycleLength {
-			maxCycleLength = aggNormalizedCycleCount[k]
-		}
-	}
-	stepSizeNormalized := time.Duration(CalculateStepSizeUnix(wf.FundamentalPeriod, wf.FundamentalPeriodTimeUnit)) * time.Second
-	return WorkflowExecParams{
-		WorkflowTemplate: WorkflowTemplate{},
-		WorkflowExecTimekeepingParams: WorkflowExecTimekeepingParams{
-			TimeStepSize:                                stepSizeNormalized,
-			TotalCyclesPerOneCompleteWorkflow:           maxCycleLength,
-			TotalCyclesPerOneCompleteWorkflowAsDuration: time.Duration(CalculateStepSizeUnix(wf.FundamentalPeriod, wf.FundamentalPeriodTimeUnit)*maxCycleLength) * time.Second,
-		},
-		CycleCountTaskRelative: CycleCountTaskRelative{
-			AggNormalizedCycleCounts:             aggNormalizedCycleCount,
-			AnalysisEvalNormalizedCycleCounts:    nil,
-			AggAnalysisEvalNormalizedCycleCounts: nil,
-		},
-		WorkflowTaskRelationships: WorkflowTaskRelationships{},
-		WorkflowTasks:             nil,
-	}
-}
-
 func UpsertAiOrchestration(ctx context.Context, ou org_users.OrgUser, wfParentID string, wfExec WorkflowExecParams) (int, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO orchestrations(org_id, orchestration_name, group_name, type, active, instructions)

@@ -202,11 +202,19 @@ type EvalMetricsResults struct {
 	EvalMetricsResults []EvalMetricsResult `json:"evalMetricsResults"`
 }
 
-// EvalMetricsResult represents the eval_metrics_results table in Go.
 type EvalMetricsResult struct {
-	EvalMetricsResultID   int             `json:"evalMetricsResultID,omitempty"`
-	EvalMetricID          int             `json:"evalMetricID"`
-	RunningCycleNumber    int             `json:"runningCycleNumber,omitempty"`
+	EvalName              string          `json:"evalName,omitempty"`
+	EvalMetricName        string          `json:"evalMetricName"`
+	EvalMetricID          int             `json:"evalMetricID,omitempty"`
+	EvalMetricsResultID   int             `json:"evalMetricsResultId"`
+	EvalMetricResult      string          `json:"evalMetricResult"`
+	EvalComparisonBoolean *bool           `json:"evalComparisonBoolean,omitempty"`
+	EvalComparisonNumber  *float64        `json:"evalComparisonNumber,omitempty"`
+	EvalComparisonString  *string         `json:"evalComparisonString,omitempty"`
+	EvalMetricDataType    string          `json:"evalMetricDataType"`
+	EvalOperator          string          `json:"evalOperator"`
+	EvalState             string          `json:"evalState"`
+	RunningCycleNumber    int             `json:"runningCycleNumber"`
 	SearchWindowUnixStart int             `json:"searchWindowUnixStart,omitempty"`
 	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd,omitempty"`
 	EvalResultOutcome     bool            `json:"evalResultOutcome"`

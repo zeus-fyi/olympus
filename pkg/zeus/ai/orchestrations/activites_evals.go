@@ -55,8 +55,8 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	}, nil
 }
 
-func (z *ZeusAiPlatformActivities) SendResponseToApiForScoresInJson(ctx context.Context, cr *ChatCompletionQueryResponse) (string, error) {
-	return "", nil
+func (z *ZeusAiPlatformActivities) SendResponseToApiForScoresInJson(ctx context.Context, cr *ChatCompletionQueryResponse) (map[string]interface{}, error) {
+	return nil, nil
 }
 
 func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, jsonInterface map[string]interface{}, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {

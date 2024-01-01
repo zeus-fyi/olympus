@@ -180,6 +180,7 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 				AggTokenOverflowStrategy: &aggAnalysisTask.AggTokenOverflowStrategy,
 				AggMaxTokensPerTask:      &aggAnalysisTask.AggMaxTokensPerTask,
 				AggEvalFns:               aggAnalysisTask.EvalFns,
+				AggAnalysisEvalFns:       aggAnalysisTask.AnalysisAggEvalFns,
 			}
 			ev = append(ev, aggAnalysisTask.EvalFns...)
 			if aggAnalysisTask.AggCycleCount > aggCycleLength {
@@ -225,7 +226,7 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 
 	analysisEvalNormalizedCycles := make(map[int]map[int]int)
 	for _, analysisTask := range wfValue.AnalysisTasksSlice {
-		for _, evalFn := range analysisTask.EvalFns {
+		for _, evalFn := range analysisTask.AnalysisEvalFns {
 			if evalFn.EvalCycleCount == 0 {
 				evalFn.EvalCycleCount = 1
 			}

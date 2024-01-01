@@ -44,6 +44,7 @@ type WorkflowTemplateData struct {
 	AggModel                 *string    `json:"aggModel,omitempty"`
 	AggTokenOverflowStrategy *string    `json:"aggTokenOverflowStrategy,omitempty"`
 	AggMaxTokensPerTask      *int       `json:"aggMaxTokensPerTask,omitempty"`
+	AggAnalysisEvalFns       []EvalFnDB `json:"aggAnalysisEvalFns,omitempty"`
 	AggEvalFns               []EvalFnDB `json:"aggEvalFns,omitempty"`
 }
 
@@ -84,7 +85,6 @@ type AnalysisTaskDB struct {
 	AnalysisTokenOverflowStrategy string `json:"analysisTokenOverflowStrategy"`
 	RetrievalDB
 	AnalysisEvalFns []EvalFnDB `json:"analysisEvalFns,omitempty"`
-	EvalFns         []EvalFnDB `json:"analysisAggEvalFns,omitempty"`
 }
 
 type RetrievalDB struct {
@@ -445,14 +445,14 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 
 			var tmp []EvalFnDB
 			seen := make(map[int]bool)
-			for _, ef := range wt.AnalysisTasksSlice[i].EvalFns {
+			for _, ef := range wt.AnalysisTasksSlice[i].AnalysisEvalFns {
 				if _, ok := seen[ef.EvalID]; ok {
 					continue
 				}
 				tmp = append(tmp, ef)
 				seen[ef.EvalID] = true
 			}
-			wt.AnalysisTasksSlice[i].EvalFns = tmp
+			wt.AnalysisTasksSlice[i].AnalysisEvalFns = tmp
 			wt.AnalysisTasks[v.AnalysisTaskID] = wt.AnalysisTasksSlice[i]
 			wt.AnalysisEvalFns[v.AnalysisTaskID] = tmp
 		}

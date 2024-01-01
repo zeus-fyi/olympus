@@ -271,6 +271,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				ParentOutputToEval:   aiResp,
 				EvalFns:              analysisInst.AnalysisTaskDB.AnalysisEvalFns,
 			}
+			if analysisInst.AggTaskID != nil {
+				ea.EvalFns = analysisInst.AggAnalysisEvalFns
+			}
 
 			for _, evalFn := range ea.EvalFns {
 				var evalAnalysisOnlyCycle int

@@ -2,6 +2,7 @@ package ai_platform_service_orchestrations
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
-	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -266,7 +266,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 				WorkflowID:               oj.OrchestrationName + "-analysis-eval=" + strconv.Itoa(i),
 				WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-				ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
 			}
 			cp.Window = window
 			cp.WfID = evalWfID
@@ -275,11 +274,22 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				ParentOutputToEval:   aiResp,
 				EvalFns:              analysisInst.AnalysisTaskDB.EvalFns,
 			}
-			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
-			if err != nil {
-				logger.Error("failed to execute child analysis workflow", "Error", err)
-				return err
+
+			for _, evalFn := range ea.EvalFns {
+				var evalAnalysisOnlyCycle int
+				if analysisInst.AggTaskID != nil {
+					evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[*analysisInst.AggTaskID][analysisInst.AnalysisTaskID][evalFn.EvalID]
+				} else {
+					evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AnalysisEvalNormalizedCycleCounts[analysisInst.AnalysisTaskID][evalFn.EvalID]
+				}
+				if i%evalAnalysisOnlyCycle == 0 {
+					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
+					if err != nil {
+						logger.Error("failed to execute child analysis workflow", "Error", err)
+						return err
+					}
+				}
 			}
 		}
 	}
@@ -375,7 +385,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 				WorkflowID:               oj.OrchestrationName + "-agg-eval=" + strconv.Itoa(i),
 				WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-				ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
 			}
 			cp.Window = window
 			cp.WfID = evalWfID
@@ -384,11 +393,17 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 				ParentOutputToEval:   aiAggResp,
 				EvalFns:              aggInst.AggEvalFns,
 			}
-			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
-			if err != nil {
-				logger.Error("failed to execute child analysis workflow", "Error", err)
-				return err
+			for _, evalFn := range ea.EvalFns {
+				evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]
+				fmt.Println("evalAggCycle", evalAggCycle)
+				if i%evalAggCycle == 0 {
+					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
+					if err != nil {
+						logger.Error("failed to execute child analysis workflow", "Error", err)
+						return err
+					}
+				}
 			}
 		}
 	}

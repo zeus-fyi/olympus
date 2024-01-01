@@ -53,43 +53,38 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                 <Table size="small" aria-label="eval-results">
                                     <TableHead>
                                         <TableRow>
+                                            <TableCell>Result ID</TableCell>
                                             <TableCell>Eval Name</TableCell>
                                             <TableCell>Metric Name</TableCell>
-                                            <TableCell>Metric ID</TableCell>
-                                            <TableCell>Result ID</TableCell>
-                                            <TableCell>Metric Result</TableCell>
-                                            <TableCell>Comparison Boolean</TableCell>
-                                            <TableCell>Comparison Number</TableCell>
-                                            <TableCell>Comparison String</TableCell>
-                                            <TableCell>Metric Data Type</TableCell>
-                                            <TableCell>Operator</TableCell>
                                             <TableCell>State</TableCell>
                                             <TableCell>Running Cycle Number</TableCell>
                                             <TableCell>Start Unix Time</TableCell>
                                             <TableCell>End Unix Time</TableCell>
-                                            <TableCell>Result Outcome</TableCell>
-                                            <TableCell>Metadata</TableCell>
+                                            <TableCell>Result Expected</TableCell>
+                                            <TableCell>Result Actual</TableCell>
+                                            <TableCell>Metric Data Type</TableCell>
+                                            <TableCell>Operator</TableCell>
+                                            {/*<TableCell>Metadata</TableCell>*/}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {row.aggregatedEvalResults.map((evalResult, evalIndex) => (
                                             <TableRow key={evalIndex}>
+                                                <TableCell>{evalResult.evalMetricsResultId}</TableCell>
                                                 <TableCell>{evalResult.evalName}</TableCell>
                                                 <TableCell>{evalResult.evalMetricName}</TableCell>
-                                                <TableCell>{evalResult.evalMetricID}</TableCell>
-                                                <TableCell>{evalResult.evalMetricsResultId}</TableCell>
-                                                <TableCell>{evalResult.evalMetricResult}</TableCell>
-                                                <TableCell>{evalResult.evalComparisonBoolean ? 'True' : 'False'}</TableCell>
-                                                <TableCell>{evalResult.evalComparisonNumber}</TableCell>
-                                                <TableCell>{evalResult.evalComparisonString}</TableCell>
-                                                <TableCell>{evalResult.evalMetricDataType}</TableCell>
-                                                <TableCell>{evalResult.evalOperator}</TableCell>
                                                 <TableCell>{evalResult.evalState}</TableCell>
                                                 <TableCell>{evalResult.runningCycleNumber}</TableCell>
                                                 <TableCell>{evalResult.searchWindowUnixStart}</TableCell>
                                                 <TableCell>{evalResult.searchWindowUnixEnd}</TableCell>
-                                                <TableCell>{evalResult.evalResultOutcome ? 'Pass' : 'Fail'}</TableCell>
-                                                <TableCell>{evalResult.evalMetadata}</TableCell>
+                                                <TableCell>{evalResult.evalMetricResult}</TableCell>
+                                                <TableCell>{evalResult.evalResultOutcome ? 'pass' : 'fail'}</TableCell>
+                                                {/*<TableCell>{evalResult.evalComparisonBoolean ? 'True' : 'False'}</TableCell>*/}
+                                                {/*<TableCell>{evalResult.evalComparisonNumber}</TableCell>*/}
+                                                {/*<TableCell>{evalResult.evalComparisonString}</TableCell>*/}
+                                                <TableCell>{evalResult.evalMetricDataType}</TableCell>
+                                                <TableCell>{evalResult.evalOperator}</TableCell>
+                                                {/*<TableCell>{evalResult.evalMetadata}</TableCell>*/}
                                             </TableRow>
                                         ))}
                                     </TableBody>

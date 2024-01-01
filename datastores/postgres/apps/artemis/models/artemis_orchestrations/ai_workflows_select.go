@@ -479,7 +479,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 				CycleCount:        at.AnalysisCycleCount,
 				RetrievalName:     at.RetrievalName,
 				RetrievalPlatform: at.RetrievalPlatform,
-				EvalFnDBs:         at.EvalFns,
+				EvalFnDBs:         at.AnalysisEvalFns,
 			}
 			tmp := results.WorkflowTemplatesMap[i]
 			if _, ok := results.WorkflowTemplatesMap[i].AnalysisTasks[at.AnalysisTaskID]; !ok {

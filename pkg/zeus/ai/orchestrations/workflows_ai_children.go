@@ -258,9 +258,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				logger.Error("failed to save analysis", "Error", err)
 				return err
 			}
-			if analysisInst.EvalFns == nil || len(analysisInst.EvalFns) == 0 {
-				continue
-			}
 			evalWfID := oj.OrchestrationName + "-analysis-eval=" + strconv.Itoa(i)
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 				WorkflowID:               oj.OrchestrationName + "-analysis-eval=" + strconv.Itoa(i),
@@ -268,10 +265,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			}
 			cp.Window = window
 			cp.WfID = evalWfID
+
 			ea := &EvalActionParams{
 				WorkflowTemplateData: analysisInst,
 				ParentOutputToEval:   aiResp,
-				EvalFns:              analysisInst.AnalysisTaskDB.EvalFns,
+				EvalFns:              analysisInst.AnalysisTaskDB.AnalysisEvalFns,
 			}
 
 			for _, evalFn := range ea.EvalFns {

@@ -68,25 +68,30 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {row.aggregatedEvalResults.map((evalResult, evalIndex) => (
-                                            <TableRow key={evalIndex}>
-                                                <TableCell>{evalResult.evalMetricsResultId}</TableCell>
-                                                <TableCell>{evalResult.evalName}</TableCell>
-                                                <TableCell>{evalResult.evalMetricName}</TableCell>
-                                                <TableCell>{evalResult.evalState}</TableCell>
-                                                <TableCell>{evalResult.runningCycleNumber}</TableCell>
-                                                <TableCell>{evalResult.searchWindowUnixStart}</TableCell>
-                                                <TableCell>{evalResult.searchWindowUnixEnd}</TableCell>
-                                                <TableCell>{evalResult.evalMetricResult}</TableCell>
-                                                <TableCell>{evalResult.evalResultOutcome ? 'pass' : 'fail'}</TableCell>
-                                                {/*<TableCell>{evalResult.evalComparisonBoolean ? 'True' : 'False'}</TableCell>*/}
-                                                {/*<TableCell>{evalResult.evalComparisonNumber}</TableCell>*/}
-                                                {/*<TableCell>{evalResult.evalComparisonString}</TableCell>*/}
-                                                <TableCell>{evalResult.evalMetricDataType}</TableCell>
-                                                <TableCell>{evalResult.evalOperator}</TableCell>
-                                                {/*<TableCell>{evalResult.evalMetadata}</TableCell>*/}
-                                            </TableRow>
-                                        ))}
+                                        {row.aggregatedEvalResults.map((evalResult, evalIndex) => {
+                                            if (evalResult.evalMetricsResultId <= 0) {
+                                                return null;
+                                            }
+                                            return (
+                                                <TableRow key={evalIndex}>
+                                                    <TableCell>{evalResult.evalMetricsResultId}</TableCell>
+                                                    <TableCell>{evalResult.evalName}</TableCell>
+                                                    <TableCell>{evalResult.evalMetricName}</TableCell>
+                                                    <TableCell>{evalResult.evalState}</TableCell>
+                                                    <TableCell>{evalResult.runningCycleNumber}</TableCell>
+                                                    <TableCell>{evalResult.searchWindowUnixStart}</TableCell>
+                                                    <TableCell>{evalResult.searchWindowUnixEnd}</TableCell>
+                                                    <TableCell>{evalResult.evalMetricResult}</TableCell>
+                                                    <TableCell>{evalResult.evalResultOutcome ? 'pass' : 'fail'}</TableCell>
+                                                    {/*<TableCell>{evalResult.evalComparisonBoolean ? 'True' : 'False'}</TableCell>*/}
+                                                    {/*<TableCell>{evalResult.evalComparisonNumber}</TableCell>*/}
+                                                    {/*<TableCell>{evalResult.evalComparisonString}</TableCell>*/}
+                                                    <TableCell>{evalResult.evalMetricDataType}</TableCell>
+                                                    <TableCell>{evalResult.evalOperator}</TableCell>
+                                                    {/*<TableCell>{evalResult.evalMetadata}</TableCell>*/}
+                                                </TableRow>
+                                            );
+                                        })}
                                     </TableBody>
                                 </Table>
                             </Box>

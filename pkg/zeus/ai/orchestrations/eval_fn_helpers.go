@@ -120,7 +120,7 @@ func TransformJSONToEvalScoredMetrics(dataMap map[string]interface{}, emMap map[
 				if rerr != nil {
 					return nil, rerr
 				}
-				result = ContainsFalse(results)
+				result = Pass(results)
 			case "array[string]":
 				if v.EvalComparisonString == nil && !strings.Contains(v.EvalOperator, "all-unique-words") {
 					return nil, fmt.Errorf("no comparison string for key '%s'", key)
@@ -139,7 +139,7 @@ func TransformJSONToEvalScoredMetrics(dataMap map[string]interface{}, emMap map[
 				if rerr != nil {
 					return nil, rerr
 				}
-				result = ContainsFalse(results)
+				result = Pass(results)
 			case "array[boolean]":
 				ifs, rok := value.([]interface{})
 				if !rok {
@@ -156,7 +156,7 @@ func TransformJSONToEvalScoredMetrics(dataMap map[string]interface{}, emMap map[
 				if rerr != nil {
 					return nil, rerr
 				}
-				result = ContainsFalse(results)
+				result = Pass(results)
 			}
 			if v.EvalMetricID != nil {
 				evmID = *v.EvalMetricID
@@ -203,13 +203,13 @@ func EvaluateNumericArray(operator string, array []float64, expected float64) ([
 	return results, nil
 }
 
-func ContainsFalse(results []bool) bool {
+func Pass(results []bool) bool {
 	for _, result := range results {
 		if !result {
-			return true
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func EvaluateBooleanArray(array []bool, expected bool) ([]bool, error) {

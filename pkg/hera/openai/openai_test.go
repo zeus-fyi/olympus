@@ -79,7 +79,6 @@ func (s *HeraTestSuite) TestOpenAICreateJsonOutputFormat() {
 			s.Require().True(ok)
 			s.Require().Equal(7, count)
 		}
-
 	}
 }
 

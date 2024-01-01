@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -31,7 +32,10 @@ type EvalActionParams struct {
 	EvalFns              []artemis_orchestrations.EvalFnDB           `json:"evalFns"`
 }
 
-func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe EvalActionParams) error {
+func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe *EvalActionParams) error {
+	if cpe == nil || mb == nil {
+		return nil
+	}
 	logger := workflow.GetLogger(ctx)
 	aoAiAct := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
@@ -85,16 +89,22 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				if cr == nil || len(cr.Response.Choices) == 0 {
 					continue
 				}
+
+				m := make(map[string]interface{})
+				for _, cho := range cr.Response.Choices {
+					for _, tvr := range cho.Message.ToolCalls {
+						if tvr.Function.Name == evalFnWithMetrics.EvalName {
+							err = json.Unmarshal([]byte(tvr.Function.Arguments), &m)
+							if err != nil {
+								logger.Error("failed to unmarshal json", "Error", err)
+								return err
+							}
+						}
+					}
+				}
+
 				evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				jsonStr := ""
-				for _, v := range cr.Response.Choices {
-					jsonStr += v.Message.Content
-				}
-				// TODO, return err
-				if len(jsonStr) == 0 {
-					continue
-				}
-				err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, cr, &evalFnWithMetrics).Get(evalModelScoredJsonCtx, &emr)
+				err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, m, &evalFnWithMetrics).Get(evalModelScoredJsonCtx, &emr)
 				if err != nil {
 					logger.Error("failed to get score eval", "Error", err)
 					return err
@@ -246,6 +256,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				logger.Error("failed to save analysis", "Error", err)
 				return err
 			}
+			if analysisInst.EvalFns == nil || len(analysisInst.EvalFns) == 0 {
+				continue
+			}
 			evalWfID := oj.OrchestrationName + "-analysis-eval=" + strconv.Itoa(i)
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 				WorkflowID:               oj.OrchestrationName + "-analysis-eval=" + strconv.Itoa(i),
@@ -254,13 +267,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			}
 			cp.Window = window
 			cp.WfID = evalWfID
-			ea := EvalActionParams{
+			ea := &EvalActionParams{
 				WorkflowTemplateData: analysisInst,
 				ParentOutputToEval:   aiResp,
 				EvalFns:              analysisInst.AnalysisTaskDB.EvalFns,
 			}
 			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowChildAnalysisProcess, cp, ea).Get(childAnalysisCtx, nil)
+			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
 			if err != nil {
 				logger.Error("failed to execute child analysis workflow", "Error", err)
 				return err
@@ -352,6 +365,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 				logger.Error("failed to save aggregation resp", "Error", err)
 				return err
 			}
+			if aggInst.AggEvalFns == nil || len(aggInst.AggEvalFns) == 0 {
+				continue
+			}
 			evalWfID := oj.OrchestrationName + "-agg-eval=" + strconv.Itoa(i)
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 				WorkflowID:               oj.OrchestrationName + "-agg-eval=" + strconv.Itoa(i),
@@ -360,13 +376,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 			}
 			cp.Window = window
 			cp.WfID = evalWfID
-			ea := EvalActionParams{
+			ea := &EvalActionParams{
 				WorkflowTemplateData: aggInst,
 				ParentOutputToEval:   aiAggResp,
 				EvalFns:              aggInst.AggEvalFns,
 			}
 			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowChildAnalysisProcess, cp, ea).Get(childAnalysisCtx, nil)
+			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
 			if err != nil {
 				logger.Error("failed to execute child analysis workflow", "Error", err)
 				return err

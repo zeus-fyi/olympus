@@ -59,12 +59,12 @@ func (z *ZeusAiPlatformActivities) SendResponseToApiForScoresInJson(ctx context.
 	return "", nil
 }
 
-func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, jsonStr string, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
-	if len(jsonStr) == 0 || evalFn == nil {
+func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, jsonInterface map[string]interface{}, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
+	if len(jsonInterface) == 0 || evalFn == nil {
 		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
 		return nil, nil
 	}
-	scoredResults, err := TransformJSONToEvalScoredMetrics(jsonStr, evalFn.EvalMetricMap)
+	scoredResults, err := TransformJSONToEvalScoredMetrics(jsonInterface, evalFn.EvalMetricMap)
 	if err != nil {
 		log.Err(err).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
 		return nil, err

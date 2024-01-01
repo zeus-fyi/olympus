@@ -152,6 +152,10 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 		var filteredResults []EvalMetricsResult
 		seen := make(map[int]bool)
 		for _, evalMetricsResult := range evalMetricsResults {
+			if evalMetricsResult.EvalMetricsResultID == 0 {
+				continue
+			}
+
 			if _, ok := seen[evalMetricsResult.EvalMetricsResultID]; !ok {
 				filteredResults = append(filteredResults, evalMetricsResult)
 				seen[evalMetricsResult.EvalMetricsResultID] = true

@@ -42,6 +42,63 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                 <TableCell align="left">{row.runCycles}</TableCell>
                 <TableCell align="left">{row.totalWorkflowTokenUsage}</TableCell>
             </TableRow>
+            {row.aggregatedEvalResults && row.aggregatedEvalResults.length > 0 && (
+                <TableRow>
+                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
+                        <Collapse in={open} timeout="auto" unmountOnExit>
+                            <Box sx={{ margin: 1 }}>
+                                <Typography variant="h6" gutterBottom component="div">
+                                    Eval Results
+                                </Typography>
+                                <Table size="small" aria-label="eval-results">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Eval Name</TableCell>
+                                            <TableCell>Metric Name</TableCell>
+                                            <TableCell>Metric ID</TableCell>
+                                            <TableCell>Result ID</TableCell>
+                                            <TableCell>Metric Result</TableCell>
+                                            <TableCell>Comparison Boolean</TableCell>
+                                            <TableCell>Comparison Number</TableCell>
+                                            <TableCell>Comparison String</TableCell>
+                                            <TableCell>Metric Data Type</TableCell>
+                                            <TableCell>Operator</TableCell>
+                                            <TableCell>State</TableCell>
+                                            <TableCell>Running Cycle Number</TableCell>
+                                            <TableCell>Start Unix Time</TableCell>
+                                            <TableCell>End Unix Time</TableCell>
+                                            <TableCell>Result Outcome</TableCell>
+                                            <TableCell>Metadata</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {row.aggregatedEvalResults.map((evalResult, evalIndex) => (
+                                            <TableRow key={evalIndex}>
+                                                <TableCell>{evalResult.evalName}</TableCell>
+                                                <TableCell>{evalResult.evalMetricName}</TableCell>
+                                                <TableCell>{evalResult.evalMetricID}</TableCell>
+                                                <TableCell>{evalResult.evalMetricsResultId}</TableCell>
+                                                <TableCell>{evalResult.evalMetricResult}</TableCell>
+                                                <TableCell>{evalResult.evalComparisonBoolean ? 'True' : 'False'}</TableCell>
+                                                <TableCell>{evalResult.evalComparisonNumber}</TableCell>
+                                                <TableCell>{evalResult.evalComparisonString}</TableCell>
+                                                <TableCell>{evalResult.evalMetricDataType}</TableCell>
+                                                <TableCell>{evalResult.evalOperator}</TableCell>
+                                                <TableCell>{evalResult.evalState}</TableCell>
+                                                <TableCell>{evalResult.runningCycleNumber}</TableCell>
+                                                <TableCell>{evalResult.searchWindowUnixStart}</TableCell>
+                                                <TableCell>{evalResult.searchWindowUnixEnd}</TableCell>
+                                                <TableCell>{evalResult.evalResultOutcome ? 'Pass' : 'Fail'}</TableCell>
+                                                <TableCell>{evalResult.evalMetadata}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </Box>
+                        </Collapse>
+                    </TableCell>
+                </TableRow>
+            )}
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
                     <Collapse in={open} timeout="auto" unmountOnExit>

@@ -34,7 +34,7 @@ type OrchestrationsAnalysis struct {
 	TotalWorkflowTokenUsage int                 `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
 	RunCycles               int                 `db:"max_run_cycle" json:"runCycles"`
 	AggregatedData          []AggregatedData    `db:"aggregated_data" json:"aggregatedData"`
-	AggregatedEvalResults   []EvalMetricsResult `db:"eval_fn_metric_results" json:"evalFnMetricResults"`
+	AggregatedEvalResults   []EvalMetricsResult `db:"eval_fn_metric_results" json:"aggregatedEvalResults"`
 
 	artemis_autogen_bases.Orchestrations `json:"orchestration,omitempty"`
 }
@@ -121,7 +121,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 											)
 										)
 					GROUP BY 
-						o.orchestration_id, o.orchestration_name, o.group_name, o.type, o.active, eval_res.orchestration_id
+						o.orchestration_id, o.orchestration_name, o.group_name, o.type, o.active, eval_res.orchestration_id, eval_res.eval_metrics_result_id 
 					ORDER BY 
 						o.orchestration_id DESC;`
 
@@ -148,7 +148,17 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 			log.Err(err).Msg("Error unmarshaling aggregated evaluation results")
 			return nil, err
 		}
-		oj.AggregatedEvalResults = evalMetricsResults // Assign to the struct field
+
+		var filteredResults []EvalMetricsResult
+		seen := make(map[int]bool)
+		for _, evalMetricsResult := range evalMetricsResults {
+			if _, ok := seen[evalMetricsResult.EvalMetricsResultID]; !ok {
+				filteredResults = append(filteredResults, evalMetricsResult)
+				seen[evalMetricsResult.EvalMetricsResultID] = true
+			}
+		}
+
+		oj.AggregatedEvalResults = filteredResults
 		ojs = append(ojs, oj)
 	}
 	return ojs, err

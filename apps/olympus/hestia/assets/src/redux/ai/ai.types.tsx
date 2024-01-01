@@ -189,8 +189,28 @@ export interface OrchestrationsAnalysis {
     runCycles: number;
     aggregatedData: AggregatedData[];
     orchestration: Orchestration;
+    aggregatedEvalResults: EvalMetricsResult[]; // Added array of EvalMetricsResult
 }
 
+// TypeScript interface for EvalMetricsResult
+export interface EvalMetricsResult {
+    evalName?: string;
+    evalMetricName: string;
+    evalMetricID?: number;
+    evalMetricsResultId: number;
+    evalMetricResult: string;
+    evalComparisonBoolean?: boolean;
+    evalComparisonNumber?: number;
+    evalComparisonString?: string;
+    evalMetricDataType: string;
+    evalOperator: string;
+    evalState: string;
+    runningCycleNumber: number;
+    searchWindowUnixStart?: number;
+    searchWindowUnixEnd?: number;
+    evalResultOutcome: boolean;
+    evalMetadata?: string; // Assuming json.RawMessage is defined elsewhere
+}
 export interface DeleteWorkflowsActionRequest {
     workflows: WorkflowTemplate[];
 }
@@ -313,9 +333,7 @@ export interface WebFilters {
 interface EvalFnMetricResults {
     map: { [key: string]: EvalMetricsResult };
 }
-interface EvalMetricsResult {
-    // Define the properties of EvalMetricsResult here
-}
+
 /*
 export interface EvalFn {
     evalID?: number;

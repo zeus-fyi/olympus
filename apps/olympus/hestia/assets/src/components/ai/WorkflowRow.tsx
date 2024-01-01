@@ -155,11 +155,12 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                             <TableBody>
                                                 {row.tasks.map((task, taskIndex) => (
                                                     task.evalFns && task.evalFns
+                                                        .filter(evalFn => evalFn.evalName) // Filter out objects where evalName is empty
                                                         .map((evalFn, evalFnIndex) => (
                                                             <TableRow key={evalFnIndex}>
                                                                 <TableCell>{evalFn.evalName}</TableCell>
                                                                 <TableCell>{evalFn.evalGroupName}</TableCell>
-                                                                <TableCell>{evalFn.evalCycleCount? evalFn.evalCycleCount : 1}</TableCell>
+                                                                <TableCell>{evalFn.evalCycleCount ? evalFn.evalCycleCount : 1}</TableCell>
                                                                 <TableCell>{evalFn.evalType}</TableCell>
                                                                 <TableCell>{evalFn.evalModel}</TableCell>
                                                                 <TableCell>{evalFn.evalFormat}</TableCell>

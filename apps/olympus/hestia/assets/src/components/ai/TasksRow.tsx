@@ -8,10 +8,21 @@ import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import Checkbox from "@mui/material/Checkbox";
 import Button from "@mui/material/Button";
+import {TaskModelInstructions} from "../../redux/ai/ai.types";
+import {setEditAggregateTask, setEditAnalysisTask} from "../../redux/ai/ai.reducer";
+import {useDispatch} from "react-redux";
 
-export function TasksRow(props: { row: ReturnType<typeof createTaskDetailsData>, index: number, handleClick: any, checked: boolean}) {
+export function TasksRow(props: { row: TaskModelInstructions, index: number, handleClick: any,checked: boolean}) {
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
+    const dispatch = useDispatch();
+    const handleEditClick = () => {
+        if (row.taskType === 'analysis') {
+            dispatch(setEditAnalysisTask(row));
+        } else if (row.taskType === 'aggregation') {
+            dispatch(setEditAggregateTask(row));
+        }
+    };
 
     return (
         <React.Fragment>
@@ -36,7 +47,7 @@ export function TasksRow(props: { row: ReturnType<typeof createTaskDetailsData>,
                 <TableCell align="left">{row.taskGroup}</TableCell>
                 <TableCell align="left">{row.taskName}</TableCell>
                 <TableCell align="left">{row.model}</TableCell>
-                <TableCell align="left"><Button  fullWidth variant="contained" onClick={handleClick}>Edit</Button></TableCell>
+                <TableCell align="left"><Button  fullWidth variant="contained" onClick={handleEditClick}>Edit</Button></TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>

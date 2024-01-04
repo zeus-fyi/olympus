@@ -2581,7 +2581,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 evalOperator: e.target.value // Update the actionName
                                                                             }))}
                                                                         >
-
                                                                             {evalMetric.evalMetricDataType === 'array[string]' &&
                                                                                 <MenuItem value="all-unique-words">{'all-unique-words'}</MenuItem>
                                                                             }
@@ -2873,7 +2872,6 @@ function WorkflowEngineBuilder(props: any) {
                             </Tabs>
                         </Box>
                     </Container>
-
                     { selectedMainTabBuilder === 0 && !addAnalysisView && !addAggregateView && !addRetrievalView && selectedWorkflows && selectedWorkflows.length > 0 && !addEvalsView &&
                         <div>
                                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

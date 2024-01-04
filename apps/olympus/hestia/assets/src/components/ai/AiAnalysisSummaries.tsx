@@ -23,7 +23,6 @@ export function AiSearchAnalysis(props: any) {
         setLanguage(event.target.value);
     };
 
-
     let navigate = useNavigate();
     const dispatch = useDispatch();
 

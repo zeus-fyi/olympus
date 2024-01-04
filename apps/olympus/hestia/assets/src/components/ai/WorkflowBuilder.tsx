@@ -493,46 +493,6 @@ function WorkflowEngineBuilder(props: any) {
     const handleUpdateStepSizeUnit = (event: any) => {
         setStepSizeUnit(event.target.value);
     };
-    const [analysisModel, setAnalysisModel] = React.useState('gpt-3.5-turbo-1106');
-    const handleUpdateAnalysisModel = (event: any) => {
-        setAnalysisModel(event.target.value);
-    };
-    const [analysisModelMaxTokens, setAnalysisModelMaxTokens] = React.useState(0);
-    const handleUpdateAnalysisModelMaxTokens = (val: number) => {
-        setAnalysisModelMaxTokens(val);
-    };
-    const [analysisModelTokenOverflowStrategy, setAnalysisModelTokenOverflowStrategy] = React.useState('deduce');
-    const handleUpdateAnalysisModelTokenOverflowStrategy = (event: any) => {
-        setAnalysisModelTokenOverflowStrategy(event.target.value);
-    };
-    const [aggregationModel, setAggregationModel] = React.useState('gpt-4');
-    const handleUpdateAggregationModel = (event: any) => {
-        setAggregationModel(event.target.value);
-    };
-    const [analysisName, setAnalysisName] = React.useState('');
-    const handleUpdateAnalysisName = (event: any) => {
-        setAnalysisName(event.target.value);
-    };
-    const [analysisGroupName, setAnalysisGroupName] = React.useState('default');
-    const handleUpdateAnalysisGroupName = (event: any) => {
-        setAnalysisGroupName(event.target.value);
-    };
-    const [aggregationName, setAggregationName] = React.useState('');
-    const handleUpdateAggregationName = (event: any) => {
-        setAggregationName(event.target.value);
-    };
-    const [aggregationGroupName, setAggregationGroupName] = React.useState('default');
-    const handleUpdateAggregationGroupName = (event: any) => {
-        setAggregationGroupName(event.target.value);
-    };
-    const [aggregationModelTokenOverflowStrategy, setAggregationModelTokenOverflowStrategy] = React.useState('deduce');
-    const handleUpdateAggregationModelTokenOverflowStrategy = (event: any) => {
-        setAggregationModelTokenOverflowStrategy(event.target.value);
-    };
-    const [aggregationModelMaxTokens, setAggregationModelMaxTokens] = React.useState(0);
-    const handleUpdateAggregationModelMaxTokens = (val: number) => {
-        setAggregationModelMaxTokens(val);
-    };
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -704,7 +664,7 @@ function WorkflowEngineBuilder(props: any) {
     const createOrUpdateTask = async (taskType: string) => {
         try {
             setIsLoading(true)
-            const tn = (taskType === 'analysis' ? analysisName : aggregationName);
+            const tn = (taskType === 'analysis' ? editAnalysisTask.taskName : editAggregateTask.taskName);
 
             if (!isValidLabel(tn)) {
                 if (taskType === 'analysis') {
@@ -717,7 +677,7 @@ function WorkflowEngineBuilder(props: any) {
                 return;
             }
 
-            const taskGn = (taskType === 'analysis' ? analysisGroupName : aggregationGroupName);
+            const taskGn = (taskType === 'analysis' ? editAnalysisTask.taskGroup : editAggregateTask.taskGroup);
             if (!isValidLabel(taskGn)) {
                 if (taskType === 'analysis') {
                     setRequestAnalysisStatus('Analysis task group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
@@ -729,7 +689,7 @@ function WorkflowEngineBuilder(props: any) {
                 return;
             }
 
-            const prompt = (taskType === 'analysis' ? analysisWorkflowInstructions : aggregationWorkflowInstructions);
+            const prompt = (taskType === 'analysis' ? editAnalysisTask.prompt : editAggregateTask.prompt);
             if (prompt.length <= 0) {
                 if (taskType === 'analysis') {
                     setRequestAnalysisStatus('Analysis task prompt is empty')
@@ -746,11 +706,11 @@ function WorkflowEngineBuilder(props: any) {
                 taskGroup:taskGn,
                 taskName: tn,
                 responseFormat: 'text',
-                model: (taskType === 'analysis' ? analysisModel : aggregationModel),
-                prompt: (taskType === 'analysis' ? analysisWorkflowInstructions : aggregationWorkflowInstructions),
-                maxTokens:  (taskType === 'analysis' ? analysisModelMaxTokens : aggregationModelMaxTokens),
+                model: (taskType === 'analysis' ? editAnalysisTask.model : editAggregateTask.model),
+                prompt: (taskType === 'analysis' ? editAnalysisTask.prompt : editAggregateTask.prompt),
+                maxTokens:  (taskType === 'analysis' ? editAnalysisTask.maxTokens : editAggregateTask.maxTokens),
                 cycleCount: (taskType === 'analysis' ? 1 : 1),
-                tokenOverflowStrategy: (taskType === 'analysis' ? analysisModelTokenOverflowStrategy : aggregationModelTokenOverflowStrategy),
+                tokenOverflowStrategy: (taskType === 'analysis' ? editAnalysisTask.tokenOverflowStrategy : editAggregateTask.tokenOverflowStrategy),
             };
             const response = await aiApiGateway.createOrUpdateTaskRequest(task);
             const statusCode = response.status;
@@ -1899,6 +1859,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         >
                                                             <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
                                                             <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                                                            <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
                                                             <MenuItem value="gpt-4">gpt-4</MenuItem>
                                                             <MenuItem value="gpt-4-32k">gpt-4-32k</MenuItem>
                                                             <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>

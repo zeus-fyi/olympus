@@ -120,12 +120,49 @@ const initialState: AiState = {
         evalCompletionStatus: '',
     },
     evalFns: [],
+    editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '',
+        tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text',
+    },
+    editAggregateTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '',
+        tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text'},
+    editRetrieval: {
+        retrievalName: '',
+        retrievalGroup: '',
+        retrievalKeywords: '',
+        retrievalPlatform: '',
+        retrievalUsernames: '',
+        retrievalPrompt: '',
+        retrievalPlatformGroups: '',
+        discordFilters: {
+            categoryName: '',
+        }
+    },
+    editEvalFn: {
+        evalName: '',
+        evalType: '',
+        evalFormat: '',
+        evalGroupName: '',
+        evalModel: '',
+        evalMetrics: [],
+    },
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setEditAnalysisTask: (state, action: PayloadAction<TaskModelInstructions>) => {
+            state.editAnalysisTask = action.payload;
+        },
+        setEditAggregateTask: (state, action: PayloadAction<TaskModelInstructions>) => {
+            state.editAggregateTask = action.payload;
+        },
+        setEditRetrieval: (state, action: PayloadAction<Retrieval>) => {
+            state.editRetrieval = action.payload;
+        },
+        setEditEvalFn: (state, action: PayloadAction<EvalFn>) => {
+            state.editEvalFn = action.payload;
+        },
         setEval: (state, action: PayloadAction<EvalFn>) => {
             state.evalFn = action.payload;
         },
@@ -468,5 +505,9 @@ export const {
     setEvalsTaskMap,
     setEvalMap,
     removeEvalFnFromWorkflowBuilderEvalMap,
+    setEditAnalysisTask,
+    setEditAggregateTask,
+    setEditRetrieval,
+    setEditEvalFn,
 } = aiSlice.actions;
 export default aiSlice.reducer;

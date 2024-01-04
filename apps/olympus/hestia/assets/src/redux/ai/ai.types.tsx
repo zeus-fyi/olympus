@@ -43,6 +43,10 @@ export interface AiState {
     evalFns: EvalFn[];
     evalMetric: EvalMetric;
     actionsEvalTrigger: EvalActionTrigger;
+    editAnalysisTask: TaskModelInstructions;
+    editAggregateTask: TaskModelInstructions;
+    editRetrieval: Retrieval;
+    editEvalFn: EvalFn;
 }
 
 export interface EvalFnMap {
@@ -126,7 +130,6 @@ export interface PostWorkflowsRequest {
 
 export interface TaskModelInstructions {
     taskID?: number;
-    group: string;
     model: string;
     taskType: string;
     taskGroup: string;

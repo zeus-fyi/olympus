@@ -55,6 +55,8 @@ import {
     setAnalysisRetrievalsMap,
     setAnalysisWorkflowInstructions,
     setDiscordOptionsCategoryName,
+    setEditAggregateTask,
+    setEditAnalysisTask,
     setEval,
     setEvalMap,
     setEvalMetric,
@@ -149,7 +151,11 @@ function WorkflowEngineBuilder(props: any) {
     const [openActions, setActions] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openEvals, setOpenEvals] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [toggleEvalToTaskType, setToggleEvalToTaskType] = useState<boolean>(false); // Or use an object/array for multiple sections
-
+    const editAnalysisTask = useSelector((state: any) => state.ai.editAnalysisTask);
+    const editAggregateTask = useSelector((state: any) => state.ai.editAggregateTask);
+    const editRetrieval = useSelector((state: any) => state.ai.editRetrieval);
+    const editEvalFn = useSelector((state: any) => state.ai.editEvalFn);
+    const editAction = useSelector((state: any) => state.ai.editAction);
     const setToggleEvalTaskType = () => {
         setToggleEvalToTaskType(!toggleEvalToTaskType);
     };
@@ -741,7 +747,6 @@ function WorkflowEngineBuilder(props: any) {
                 taskName: tn,
                 responseFormat: 'text',
                 model: (taskType === 'analysis' ? analysisModel : aggregationModel),
-                group: (taskType === 'analysis' ? analysisGroupName : aggregationGroupName),
                 prompt: (taskType === 'analysis' ? analysisWorkflowInstructions : aggregationWorkflowInstructions),
                 maxTokens:  (taskType === 'analysis' ? analysisModelMaxTokens : aggregationModelMaxTokens),
                 cycleCount: (taskType === 'analysis' ? 1 : 1),
@@ -1787,8 +1792,8 @@ function WorkflowEngineBuilder(props: any) {
                                                     <TextField
                                                         label={`Analysis Name`}
                                                         variant="outlined"
-                                                        value={analysisName}
-                                                        onChange={handleUpdateAnalysisName}
+                                                        value={editAnalysisTask.taskName}
+                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, taskName: event.target.value }))}
                                                         fullWidth
                                                     />
                                                 </Box>
@@ -1796,8 +1801,8 @@ function WorkflowEngineBuilder(props: any) {
                                                     <TextField
                                                         label={`Analysis Group`}
                                                         variant="outlined"
-                                                        value={analysisGroupName}
-                                                        onChange={handleUpdateAnalysisGroupName}
+                                                        value={editAnalysisTask.taskGroup}
+                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, taskGroup: event.target.value }))}
                                                         fullWidth
                                                     />
                                                 </Box>
@@ -1809,9 +1814,9 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Select
                                                             labelId="analysis-model-label"
                                                             id="analysis-model-select"
-                                                            value={analysisModel}
+                                                            value={editAnalysisTask.model}
                                                             label="Analysis Model"
-                                                            onChange={handleUpdateAnalysisModel}
+                                                            onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, model: event.target.value }))} // Dispatch action directly
                                                         >
                                                             <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
                                                             <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
@@ -1831,9 +1836,9 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Select
                                                             labelId="token-overflow-analysis-label"
                                                             id="analysis-overflow-analysis-select"
-                                                            value={analysisModelTokenOverflowStrategy}
+                                                            value={editAnalysisTask.tokenOverflowStrategy}
                                                             label="Token Overflow Strategy"
-                                                            onChange={handleUpdateAnalysisModelTokenOverflowStrategy}
+                                                            onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, tokenOverflowStrategy: event.target.value }))} // Dispatch action directly
                                                         >
                                                             <MenuItem value="deduce">deduce</MenuItem>
                                                             <MenuItem value="truncate">truncate</MenuItem>
@@ -1844,14 +1849,14 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box  sx={{ mb: 2, mt: -2 }}>
                                                 <TextareaAutosize
                                                     minRows={18}
-                                                    value={analysisWorkflowInstructions}
-                                                    onChange={(e) => handleUpdateAnalysisWorkflowInstructions(e.target.value)}
+                                                    value={editAnalysisTask.prompt}
+                                                    onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, prompt: event.target.value }))} // Dispatch action directly
                                                     style={{ resize: "both", width: "100%" }}
                                                 />
                                             </Box>
                                         </div>
                                     }
-                                    { !addAggregateView && !addAnalysisView && !addRetrievalView && selectedMainTabBuilder === 2 &&  !addEvalsView &&
+                                    { !addAggregateView && !addAnalysisView && !addRetrievalView && selectedMainTabBuilder === 2 && !addEvalsView &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Aggregation Instructions
@@ -1865,8 +1870,8 @@ function WorkflowEngineBuilder(props: any) {
                                                     <TextField
                                                         label={`Aggregation Name`}
                                                         variant="outlined"
-                                                        value={aggregationName}
-                                                        onChange={handleUpdateAggregationName}
+                                                        value={editAggregateTask.taskName}
+                                                        onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, taskName: event.target.value }))}
                                                         fullWidth
                                                     />
                                                 </Box>
@@ -1874,8 +1879,8 @@ function WorkflowEngineBuilder(props: any) {
                                                     <TextField
                                                         label={`Aggregation Group`}
                                                         variant="outlined"
-                                                        value={aggregationGroupName}
-                                                        onChange={handleUpdateAggregationGroupName}
+                                                        value={editAggregateTask.taskGroup}
+                                                        onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, taskGroup: event.target.value }))}
                                                         fullWidth
                                                     />
                                                 </Box>
@@ -1883,13 +1888,13 @@ function WorkflowEngineBuilder(props: any) {
                                             <Stack direction="row" >
                                                 <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                                     <FormControl fullWidth>
-                                                        <InputLabel id="platform-label">Aggregation Model</InputLabel>
+                                                        <InputLabel id="model-label">Aggregation Model</InputLabel>
                                                         <Select
-                                                            labelId="platform-label"
-                                                            id="platform-select"
-                                                            value={aggregationModel}
+                                                            labelId="model-label"
+                                                            id="model-select"
+                                                            value={editAggregateTask.model}
                                                             label="Aggregation Model"
-                                                            onChange={handleUpdateAggregationModel}
+                                                            onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, model: event.target.value }))}
                                                         >
                                                             <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
                                                             <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
@@ -1909,9 +1914,9 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Select
                                                             labelId="aggregation-token-overflow-analysis-label"
                                                             id="aggregation-token-overflow-analysis-select"
-                                                            value={aggregationModelTokenOverflowStrategy}
+                                                            value={editAggregateTask.tokenOverflowStrategy}
                                                             label="Token Overflow Strategy"
-                                                            onChange={handleUpdateAggregationModelTokenOverflowStrategy}
+                                                            onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, tokenOverflowStrategy: event.target.value }))}
                                                         >
                                                             <MenuItem value="deduce">deduce</MenuItem>
                                                             <MenuItem value="truncate">truncate</MenuItem>
@@ -1923,8 +1928,8 @@ function WorkflowEngineBuilder(props: any) {
                                             <Box  sx={{ mb: 2, mt: 2 }}>
                                                 <TextareaAutosize
                                                     minRows={18}
-                                                    value={aggregationWorkflowInstructions}
-                                                    onChange={(e) => handleUpdateAggregationWorkflowInstructions(e.target.value)}
+                                                    value={editAggregateTask.prompt}
+                                                    onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, prompt: event.target.value }))}
                                                     style={{ resize: "both", width: "100%" }}
                                                 />
                                             </Box>
@@ -2769,7 +2774,7 @@ function WorkflowEngineBuilder(props: any) {
                                                     <TextField
                                                         label={`Analysis Model`}
                                                         variant="outlined"
-                                                        value={analysisModel}
+                                                        value={editAnalysisTask.responseFormat}
                                                         InputProps={{
                                                             readOnly: true,
                                                         }}
@@ -2809,12 +2814,12 @@ function WorkflowEngineBuilder(props: any) {
                                                     <Select
                                                         labelId="response-format-label"
                                                         id="response-format-label"
-                                                        //value={aggregationModelTokenOverflowStrategy}
+                                                        value={editAggregateTask.responseFormat}
                                                         label="Response Format"
                                                         //onChange={handleUpdateAggregationModelTokenOverflowStrategy}
                                                     >
                                                         <MenuItem value="text">text</MenuItem>
-                                                        <MenuItem value="json">json</MenuItem>
+                                                        {/*<MenuItem value="json">json</MenuItem>*/}
                                                     </Select>
                                                 </FormControl>
                                             </Box>

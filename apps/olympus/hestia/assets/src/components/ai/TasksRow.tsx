@@ -7,6 +7,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import Checkbox from "@mui/material/Checkbox";
+import Button from "@mui/material/Button";
 
 export function TasksRow(props: { row: ReturnType<typeof createTaskDetailsData>, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
@@ -35,6 +36,7 @@ export function TasksRow(props: { row: ReturnType<typeof createTaskDetailsData>,
                 <TableCell align="left">{row.taskGroup}</TableCell>
                 <TableCell align="left">{row.taskName}</TableCell>
                 <TableCell align="left">{row.model}</TableCell>
+                <TableCell align="left"><Button  fullWidth variant="contained" onClick={handleClick}>Edit</Button></TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>

@@ -2786,9 +2786,12 @@ function WorkflowEngineBuilder(props: any) {
                                                         type="number"
                                                         label={`Max Tokens Analysis Model`}
                                                         variant="outlined"
-                                                        value={analysisModelMaxTokens}
+                                                        value={editAnalysisTask.maxTokens}
                                                         inputProps={{ min: 0 }}
-                                                        onChange={(event) => handleUpdateAnalysisModelMaxTokens(parseInt(event.target.value, 10))}
+                                                        onChange={(e) => dispatch(setEditAnalysisTask({
+                                                            ...editAnalysisTask, // Spread the existing action properties
+                                                            maxTokens: Number(e.target.value) // Update the actionName
+                                                        }))}
                                                         fullWidth
                                                     />
                                                 </Box>
@@ -2816,6 +2819,10 @@ function WorkflowEngineBuilder(props: any) {
                                                         id="response-format-label"
                                                         value={editAggregateTask.responseFormat}
                                                         label="Response Format"
+                                                        onChange={(e) => dispatch(setEditAggregateTask({
+                                                            ...editAggregateTask, // Spread the existing action properties
+                                                            responseFormat: e.target.value // Update the actionName
+                                                        }))}
                                                         //onChange={handleUpdateAggregationModelTokenOverflowStrategy}
                                                     >
                                                         <MenuItem value="text">text</MenuItem>
@@ -2828,8 +2835,11 @@ function WorkflowEngineBuilder(props: any) {
                                                     type="number"
                                                     label={`Max Aggregation Token Usage`}
                                                     variant="outlined"
-                                                    value={aggregationModelMaxTokens}
-                                                    onChange={(event) => handleUpdateAggregationModelMaxTokens(parseInt(event.target.value, 10))}
+                                                    value={editAggregateTask.maxTokens}
+                                                    onChange={(e) => dispatch(setEditAggregateTask({
+                                                        ...editAggregateTask, // Spread the existing action properties
+                                                        maxTokens: Number(e.target.value)
+                                                    }))}
                                                     inputProps={{ min: 0 }}
                                                     fullWidth
                                                 />
@@ -2847,7 +2857,6 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-
                                 </CardContent>
                             </Card>
                         </Stack>

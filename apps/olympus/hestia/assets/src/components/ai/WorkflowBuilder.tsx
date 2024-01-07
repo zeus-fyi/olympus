@@ -2113,7 +2113,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="eval">Eval</MenuItem>
-                                                                    <MenuItem value="metrics">Metrics</MenuItem>
+                                                                    {/*<MenuItem value="metrics">Metrics</MenuItem>*/}
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
                                                                     {/*<MenuItem value="reddit">Reddit</MenuItem>*/}
@@ -2125,7 +2125,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                         <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                                             <FormControl fullWidth>
-                                                                <InputLabel id="actions-platform-label">Output Platform</InputLabel>
+                                                                <InputLabel id="actions-platform-label">Trigger Output</InputLabel>
                                                                 <Select
                                                                     labelId="actions-platform-label"
                                                                     id="actions-platforms-input"
@@ -2136,8 +2136,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                         actionPlatformName: e.target.value
                                                                     }))}
                                                                 >
-                                                                    <MenuItem value="metrics">Metrics</MenuItem>
-                                                                    <MenuItem value="email">Email</MenuItem>
+                                                                    <MenuItem value="social-media-io">Social Media Platform I/O</MenuItem>
+                                                                    {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
                                                                     {/*<MenuItem value="reddit">Reddit</MenuItem>*/}
                                                                     {/*<MenuItem value="twitter">Twitter</MenuItem>*/}
@@ -2162,9 +2162,9 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="info">{'info'}</MenuItem>
-                                                                    <MenuItem value="debug">{'debug'}</MenuItem>
-                                                                    <MenuItem value="warning">{'warning'}</MenuItem>
-                                                                    <MenuItem value="critical">{'critical'}</MenuItem>
+                                                                    {/*<MenuItem value="debug">{'debug'}</MenuItem>*/}
+                                                                    {/*<MenuItem value="warning">{'warning'}</MenuItem>*/}
+                                                                    {/*<MenuItem value="critical">{'critical'}</MenuItem>*/}
                                                                     <MenuItem value="error">{'error'}</MenuItem>
                                                                 </Select>
                                                             </FormControl>
@@ -2189,9 +2189,9 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
-                                                        <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>
-                                                            <Button fullWidth variant={"contained"} onClick={addActionMetricRow}>Add</Button>
-                                                        </Box>
+                                                        {/*<Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>*/}
+                                                        {/*    <Button fullWidth variant={"contained"} onClick={addActionMetricRow}>Add</Button>*/}
+                                                        {/*</Box>*/}
                                                         </Stack>
                                                     }
                                                     { !loading && action.actionTriggerOn == 'metrics' &&
@@ -2453,9 +2453,9 @@ function WorkflowEngineBuilder(props: any) {
                                                                         }))}
                                                                     >
                                                                         <MenuItem value="info">{'info'}</MenuItem>
-                                                                        <MenuItem value="debug">{'debug'}</MenuItem>
-                                                                        <MenuItem value="warning">{'warning'}</MenuItem>
-                                                                        <MenuItem value="critical">{'critical'}</MenuItem>
+                                                                        {/*<MenuItem value="debug">{'debug'}</MenuItem>*/}
+                                                                        {/*<MenuItem value="warning">{'warning'}</MenuItem>*/}
+                                                                        {/*<MenuItem value="critical">{'critical'}</MenuItem>*/}
                                                                         <MenuItem value="error">{'error'}</MenuItem>
                                                                     </Select>
                                                                 </FormControl>
@@ -2830,7 +2830,7 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
                                 <Tab className="onboarding-card-highlight-all-retrieval" label="Retrievals" />
                                 <Tab className="onboarding-card-highlight-all-evals" label="Evals" />
-                                {/*<Tab className="onboarding-card-highlight-all-actions" label="Actions" />*/}
+                                <Tab className="onboarding-card-highlight-all-actions" label="Actions" />
                             </Tabs>
                         </Box>
                     </Container>

@@ -28,10 +28,6 @@ type ActionPlatformAccount struct {
 	ActionPlatformAccount string `json:"actionPlatformAccount"`
 }
 
-func CreateOrUpdateAction(ctx context.Context, act Action) error {
-	return nil
-}
-
 func SelectActions(ctx context.Context, ou org_users.OrgUser) ([]Action, error) {
 	return nil, nil
 }

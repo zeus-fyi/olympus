@@ -14,6 +14,9 @@ CREATE INDEX eval_fns_uid_ind ON public.eval_fns("user_id");
 CREATE INDEX eval_fns_name_ind ON public.eval_fns("eval_name");
 CREATE INDEX eval_fns_type_ind ON public.eval_fns("eval_type");
 
+ALTER TABLE "public"."eval_fns" ADD CONSTRAINT "ai_eval_fns_name_uniq" UNIQUE ("org_id", "eval_name");
+ALTER TABLE "public"."eval_fns" ADD CONSTRAINT "ai_eval_fns_group_name_uniq" UNIQUE ("org_id", "eval_group_name", "eval_name");
+
 CREATE TABLE public.eval_metrics(
     eval_metric_id BIGINT PRIMARY KEY,
     eval_id BIGINT NOT NULL REFERENCES public.eval_fns(eval_id),

@@ -28,8 +28,8 @@ func (s *OrchestrationsTestSuite) TestInsertAiOrchestrations() {
 	//	}
 	//
 	//}
-
 }
+
 func (s *OrchestrationsTestSuite) TestCalculateTimeWindow() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}

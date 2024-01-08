@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -159,9 +160,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				logger.Error("failed to get score eval", "Error", err)
 				return err
 			}
-
+			suffix := strings.Split(uuid.New().String(), "-")[0]
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-				WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger=" + strconv.Itoa(mb.RunCycle),
+				WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + suffix,
 				WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			}
 			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
@@ -169,9 +170,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				Emr: emr,
 				Mb:  mb,
 			}
-			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, tar).Get(childAnalysisCtx, nil)
+			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunTriggerActions, tar).Get(childAnalysisCtx, nil)
 			if err != nil {
-				logger.Error("failed to execute child analysis workflow", "Error", err)
+				logger.Error("failed to execute child run trigger actions workflow", "Error", err)
 				return err
 			}
 		}

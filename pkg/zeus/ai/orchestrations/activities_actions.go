@@ -36,6 +36,8 @@ func (z *ZeusAiPlatformActivities) CreateOrUpdateTriggerActionToExec(ctx context
 	return nil
 }
 
+// TODO, add platform/trigger action summary to the approval request
+
 func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context, act *artemis_orchestrations.TriggerAction, emr *artemis_orchestrations.EvalMetricsResults) (*artemis_orchestrations.TriggerAction, error) {
 	if act == nil || emr == nil || emr.EvalMetricsResults == nil {
 		return act, nil

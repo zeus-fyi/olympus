@@ -27,7 +27,7 @@ func (s *OrchestrationsTestSuite) TestTriggerInserts() {
 	}
 
 	// Call the function to test
-	err := CreateOrUpdateAction(ctx, ou, &triggerAction)
+	err := CreateOrUpdateTriggerAction(ctx, ou, &triggerAction)
 	s.Require().Nil(err)
 }
 

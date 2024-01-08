@@ -11,7 +11,7 @@ import (
 )
 
 func AiActionsHandler(c echo.Context) error {
-	request := new(artemis_orchestrations.Action)
+	request := new(artemis_orchestrations.TriggerAction)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
@@ -21,7 +21,7 @@ func AiActionsHandler(c echo.Context) error {
 	return CreateOrUpdateAction(c, *request)
 }
 
-func CreateOrUpdateAction(c echo.Context, act artemis_orchestrations.Action) error {
+func CreateOrUpdateAction(c echo.Context, act artemis_orchestrations.TriggerAction) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -34,7 +34,7 @@ func CreateOrUpdateAction(c echo.Context, act artemis_orchestrations.Action) err
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-	err := artemis_orchestrations.CreateOrUpdateAction(c.Request().Context(), act)
+	err := artemis_orchestrations.CreateOrUpdateTriggerAction(c.Request().Context(), ou, &act)
 	if err != nil {
 		log.Err(err).Msg("failed to insert action")
 		return c.JSON(http.StatusInternalServerError, nil)

@@ -172,7 +172,7 @@ func CreateOrUpdateTriggerActionApproval(ctx context.Context, approval TriggerAc
 	return nil
 }
 
-func CreateOrUpdateAction(ctx context.Context, ou org_users.OrgUser, trigger *TriggerAction) error {
+func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trigger *TriggerAction) error {
 	if trigger == nil {
 		return errors.New("trigger cannot be nil")
 	}

@@ -136,7 +136,7 @@ function WorkflowEngineBuilder(props: any) {
     const workflowName = useSelector((state: RootState) => state.ai.workflowName);
     const workflowGroupName = useSelector((state: RootState) => state.ai.workflowGroupName);
     const workflows = useSelector((state: any) => state.ai.workflows);
-    const action = useSelector((state: any) => state.ai.action);
+    const action = useSelector((state: any) => state.ai.triggerAction);
     const evalMetric = useSelector((state: any) => state.ai.evalMetric);
     const evalFn = useSelector((state: any) => state.ai.evalFn);
     const actionMetric = useSelector((state: any) => state.ai.actionMetric);

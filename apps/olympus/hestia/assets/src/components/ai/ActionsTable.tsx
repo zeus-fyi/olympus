@@ -29,7 +29,7 @@ export function ActionsTable(props: any) {
         setPage(newPage);
     };
 
-    if (actions === null || actions === undefined) {
+    if (actions === null || actions === undefined || actions.length === 0) {
         return (<div></div>)
     }
     const emptyRows =

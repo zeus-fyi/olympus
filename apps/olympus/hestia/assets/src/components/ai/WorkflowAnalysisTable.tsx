@@ -9,12 +9,12 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
 import {
-    setActions,
     setAiTasks,
     setEvalFns,
     setRetrievals,
     setRuns,
     setSelectedRuns,
+    setTriggerActions,
     setWorkflows
 } from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
@@ -54,7 +54,7 @@ export function WorkflowAnalysisTable(props: any) {
                     dispatch(setAiTasks(data.tasks));
                     dispatch(setRetrievals(data.retrievals));
                     dispatch(setRuns(data.runs))
-                    dispatch(setActions(data.actions))
+                    dispatch(setTriggerActions(data.actions))
                     dispatch(setEvalFns(data.evalFns))
                 } else {
                     console.log('Failed to get workflows', response);

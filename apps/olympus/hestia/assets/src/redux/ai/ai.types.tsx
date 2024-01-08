@@ -56,8 +56,6 @@ export interface EvalMap {
     [key: number]: EvalFn;
 }
 
-
-
 export type UpdateEvalMapPayload = {
     evalID: number;
     evalTaskID: number;
@@ -102,6 +100,7 @@ export interface TriggerAction {
     triggerID?: number;
     triggerName: string;
     triggerGroup: string;
+    triggerOn: string;
     evalTriggerActions: EvalActionTrigger[];
     // actionMetrics : ActionMetric[];
     // actionPlatformAccounts: ActionPlatformAccount[];

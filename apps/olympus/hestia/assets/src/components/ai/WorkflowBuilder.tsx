@@ -39,7 +39,6 @@ import {RootState} from "../../redux/store";
 import {
     removeAggregationFromWorkflowBuilderTaskMap,
     removeEvalFnFromWorkflowBuilderEvalMap,
-    setAction,
     setActionPlatformAccount,
     setActionsEvalTrigger,
     setAddAggregateTasks,
@@ -70,6 +69,7 @@ import {
     setSelectedMainTabBuilder,
     setSelectedWorkflows,
     setTaskMap,
+    setTriggerAction,
     setWebRoutingGroup,
     setWorkflowBuilderTaskMap,
     setWorkflowGroupName,
@@ -99,7 +99,7 @@ function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
     const evalMap = useSelector((state: RootState) => state.ai.evalMap);
     const evalFns = useSelector((state: RootState) => state.ai.evalFns);
-    const actions = useSelector((state: RootState) => state.ai.actions);
+    const actions = useSelector((state: RootState) => state.ai.triggerActions);
     const addedEvalFns = useSelector((state: RootState) => state.ai.addedEvalFns);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setIsLoading] = useState(false);
@@ -2077,7 +2077,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Action Name"
                                                                 variant="outlined"
                                                                 value={action.actionName}
-                                                                onChange={(e) => dispatch(setAction({
+                                                                onChange={(e) => dispatch(setTriggerAction({
                                                                     ...action, // Spread the existing action properties
                                                                     actionName: e.target.value // Update the actionName
                                                                 }))}
@@ -2090,7 +2090,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Action Group"
                                                                 variant="outlined"
                                                                 value={action.actionGroupName}
-                                                                onChange={(e) => dispatch(setAction({
+                                                                onChange={(e) => dispatch(setTriggerAction({
                                                                     ...action, // Spread the existing action properties
                                                                     actionGroupName: e.target.value // Update the actionName
                                                                 }))}
@@ -2104,11 +2104,11 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     labelId="trigger-source--label"
                                                                     id="trigger-source-input"
-                                                                    value={action.actionTriggerOn}
+                                                                    value={action.triggerOn}
                                                                     label="Trigger Source"
-                                                                    onChange={(e) => dispatch(setAction({
+                                                                    onChange={(e) => dispatch(setTriggerAction({
                                                                         ...action,
-                                                                        actionTriggerOn: e.target.value
+                                                                        triggerOn: e.target.value
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="eval">Eval</MenuItem>

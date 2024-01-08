@@ -76,6 +76,7 @@ const initialState: AiState = {
     selectedMainTabBuilder: 0,
     triggerAction: {
         triggerID: 0,
+        triggerOn: '',
         triggerName: '',
         triggerGroup: '',
         evalTriggerActions: [],

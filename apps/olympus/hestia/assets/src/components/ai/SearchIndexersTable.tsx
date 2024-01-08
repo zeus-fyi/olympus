@@ -9,12 +9,12 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
 import {
-    setActions,
     setAiTasks,
     setEvalFns,
     setRetrievals,
     setSearchIndexers,
     setSelectedSearchIndexers,
+    setTriggerActions,
     setWorkflows
 } from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
@@ -55,7 +55,7 @@ export function SearchIndexersTable(props: any) {
                     dispatch(setEvalFns(data.evalFns));
                     dispatch(setRetrievals(data.retrievals));
                     dispatch(setSearchIndexers(data.searchIndexers));
-                    dispatch(setActions(data.actions));
+                    dispatch(setTriggerActions(data.triggerActions));
                 } else {
                     console.log('Failed to get workflows', response);
                 }

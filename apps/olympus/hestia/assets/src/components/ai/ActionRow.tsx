@@ -31,13 +31,13 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
                     />
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.actionID}
+                    {row.triggerID ? row.triggerID : 0}
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.actionGroupName}
+                    {row.triggerName}
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.actionName}
+                    {row.triggerGroup}
                 </TableCell>
                 {/*<TableCell component="th" scope="row">*/}
                 {/*    {row.actionType}*/}

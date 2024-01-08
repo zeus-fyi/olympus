@@ -9,11 +9,11 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
 import {
-    setActions,
     setAiTasks,
     setEvalFns,
     setRetrievals,
     setSelectedWorkflows,
+    setTriggerActions,
     setWorkflows
 } from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
@@ -51,7 +51,7 @@ export function WorkflowTable(props: any) {
                     const data = response.data;
                     dispatch(setWorkflows(data.workflows));
                     dispatch(setEvalFns(data.evalFns));
-                    dispatch(setActions(data.actions));
+                    dispatch(setTriggerActions(data.triggerActions));
                     dispatch(setAiTasks(data.tasks));
                     dispatch(setRetrievals(data.retrievals));
                 } else {

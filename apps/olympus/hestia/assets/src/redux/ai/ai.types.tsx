@@ -37,7 +37,6 @@ export interface AiState {
     selectedMainTabBuilder: number;
     action: Action;
     actionPlatformAccount: ActionPlatformAccount
-    actionMetric: ActionMetric;
     actions: Action[];
     evalFn: EvalFn
     evalFns: EvalFn[];
@@ -101,20 +100,17 @@ export interface Action {
     actionID?: number;
     actionName: string;
     actionGroupName: string;
-    actionTriggerOn: string;
-    actionType: string;
-    actionStatus: string;
     actionEvals: EvalActionTrigger[];
-    actionMetrics : ActionMetric[];
-    actionPlatformAccounts: ActionPlatformAccount[];
+    // actionMetrics : ActionMetric[];
+    // actionPlatformAccounts: ActionPlatformAccount[];
 }
 
-export interface ActionMetric {
-    metricName: string;
-    metricScoreThreshold: number;
-    metricPostActionMultiplier: number;
-    metricOperator: string;
-}
+// export interface ActionMetric {
+//     metricName: string;
+//     metricScoreThreshold: number;
+//     metricPostActionMultiplier: number;
+//     metricOperator: string;
+// }
 
 export interface PostWorkflowsRequest {
     workflowName: string;

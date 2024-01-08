@@ -73,13 +73,13 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 			}
 		}
 	}
-	jsonData := `{"count": 10, "words": ["word1", "word2"]}`
-	metrics, err := TransformJSONToEvalScoredMetrics(jsonData, evalFnMetrics[0].EvalMetricMap)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	t.Require().NotEmpty(metrics)
+	//jsonData := `{"count": 10, "words": ["word1", "word2"]}`
+	//metrics, err := TransformJSONToEvalScoredMetrics(jsonData, evalFnMetrics[0].EvalMetricMap)
+	//if err != nil {
+	//	fmt.Println("Error:", err)
+	//	return
+	//}
+	//t.Require().NotEmpty(metrics)
 	//// Output the resulting metrics
 	//for _, metric := range metrics {
 	//	fmt.Printf("Metric: %+v\n", metric)

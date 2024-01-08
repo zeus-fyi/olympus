@@ -39,9 +39,9 @@ export function ActionRow(props: { row: Action, index: number, handleClick: any,
                 <TableCell component="th" scope="row">
                     {row.actionName}
                 </TableCell>
-                <TableCell component="th" scope="row">
-                    {row.actionType}
-                </TableCell>
+                {/*<TableCell component="th" scope="row">*/}
+                {/*    {row.actionType}*/}
+                {/*</TableCell>*/}
             </TableRow>
             {/*<TableRow>*/}
             {/*    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>*/}

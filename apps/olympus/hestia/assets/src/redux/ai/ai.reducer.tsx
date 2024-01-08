@@ -1,7 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     Action,
-    ActionMetric,
     ActionPlatformAccount,
     AiState,
     EvalActionTrigger,
@@ -78,20 +77,9 @@ const initialState: AiState = {
     action: {
         actionName: '',
         actionGroupName: '',
-        actionType: '',
-        actionStatus: '',
-        actionTriggerOn: '',
-        actionPlatformAccounts: [],
-        actionMetrics: [],
         actionEvals: [],
     },
     actions: [],
-    actionMetric: {
-        metricName: '',
-        metricScoreThreshold: 1,
-        metricPostActionMultiplier: 1,
-        metricOperator: '',
-    },
     actionPlatformAccount: {
         actionPlatformName: '',
         actionPlatformAccount: '',
@@ -172,18 +160,19 @@ const aiSlice = createSlice({
         setActionsEvalTrigger: (state, action: PayloadAction<EvalActionTrigger>) => {
             state.actionsEvalTrigger = action.payload;
         },
-        updateActionMetrics: (state, action: PayloadAction<ActionMetric[]>) => {
-            state.action.actionMetrics = action.payload;
-        },
+        // updateActionMetrics: (state, action: PayloadAction<ActionMetric[]>) => {
+        //     state.action.actionMetrics = action.payload;
+        // },
+        // setActionMetric: (state, action: PayloadAction<ActionMetric>) => {
+        //     state.actionMetric = action.payload;
+        // },
         updateEvalMetrics: (state, action: PayloadAction<EvalMetric[]>) => {
             state.evalFn.evalMetrics = action.payload;
         },
         setActionPlatformAccount: (state, action: PayloadAction<ActionPlatformAccount>) => {
             state.actionPlatformAccount = action.payload;
         },
-        setActionMetric: (state, action: PayloadAction<ActionMetric>) => {
-            state.actionMetric = action.payload;
-        },
+
         setEvalMetric: (state, action: PayloadAction<EvalMetric>) => {
             state.evalMetric = action.payload;
         },
@@ -493,9 +482,9 @@ export const {
     setSelectedMainTabBuilder,
     setAction,
     setActions,
-    setActionMetric,
     setActionPlatformAccount,
-    updateActionMetrics,
+    // updateActionMetrics,
+    // setActionMetric,
     setEvalMetric,
     setEval,
     updateEvalMetrics,

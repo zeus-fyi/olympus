@@ -17,12 +17,13 @@ import (
 )
 
 type MbChildSubProcessParams struct {
-	WfID         string                                    `json:"wfID"`
-	Ou           org_users.OrgUser                         `json:"ou"`
-	WfExecParams artemis_orchestrations.WorkflowExecParams `json:"wfExecParams"`
-	Oj           artemis_orchestrations.OrchestrationJob   `json:"oj"`
-	RunCycle     int                                       `json:"runCycle"`
-	Window       artemis_orchestrations.Window             `json:"window"`
+	WfID           string                                          `json:"wfID"`
+	Ou             org_users.OrgUser                               `json:"ou"`
+	WfExecParams   artemis_orchestrations.WorkflowExecParams       `json:"wfExecParams"`
+	Oj             artemis_orchestrations.OrchestrationJob         `json:"oj"`
+	RunCycle       int                                             `json:"runCycle"`
+	Window         artemis_orchestrations.Window                   `json:"window"`
+	WorkflowResult artemis_orchestrations.AIWorkflowAnalysisResult `json:"workflowResult"`
 }
 
 type EvalActionParams struct {
@@ -265,6 +266,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			}
 			cp.Window = window
 			cp.WfID = evalWfID
+			cp.WorkflowResult = wr
 
 			ea := &EvalActionParams{
 				WorkflowTemplateData: analysisInst,
@@ -388,6 +390,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 			}
 			cp.Window = window
 			cp.WfID = evalWfID
+			cp.WorkflowResult = wr
 			ea := &EvalActionParams{
 				WorkflowTemplateData: aggInst,
 				ParentOutputToEval:   aiAggResp,

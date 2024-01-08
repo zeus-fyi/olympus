@@ -40,7 +40,6 @@ import {
     removeAggregationFromWorkflowBuilderTaskMap,
     removeEvalFnFromWorkflowBuilderEvalMap,
     setAction,
-    setActionMetric,
     setActionPlatformAccount,
     setActionsEvalTrigger,
     setAddAggregateTasks,
@@ -75,12 +74,10 @@ import {
     setWorkflowBuilderTaskMap,
     setWorkflowGroupName,
     setWorkflowName,
-    updateActionMetrics,
     updateEvalMetrics,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
 import {
-    ActionMetric,
     DeleteWorkflowsActionRequest,
     EvalFn,
     EvalMetric,
@@ -166,12 +163,12 @@ function WorkflowEngineBuilder(props: any) {
         setRequestEvalCreateOrUpdateStatusError('')
     };
 
-    const removeActionMetricRow = (index: number) => {
-        const updatedMetrics = action.actionMetrics.filter((_: ActionMetric, i: number) => i !== index);
-        dispatch(updateActionMetrics(updatedMetrics));
-        setRequestMetricActionCreateOrUpdateStatus('')
-        setRequestMetricActionCreateOrUpdateStatusError('')
-    };
+    // const removeActionMetricRow = (index: number) => {
+    //     const updatedMetrics = action.actionMetrics.filter((_: ActionMetric, i: number) => i !== index);
+    //     dispatch(updateActionMetrics(updatedMetrics));
+    //     setRequestMetricActionCreateOrUpdateStatus('')
+    //     setRequestMetricActionCreateOrUpdateStatusError('')
+    // };
     const addEvalMetricRow = () => {
         if (!isValidLabel(evalMetric.evalMetricName)){
             setRequestEvalCreateOrUpdateStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
@@ -212,7 +209,7 @@ function WorkflowEngineBuilder(props: any) {
         setRequestMetricActionCreateOrUpdateStatus('')
         setRequestMetricActionCreateOrUpdateStatusError('')
         const updatedMetrics = [...action.actionMetrics,actionMetric];
-        dispatch(updateActionMetrics(updatedMetrics));
+        // dispatch(updateActionMetrics(updatedMetrics));
     };
     const handleAddRetrievalToAnalysis = () => {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
@@ -762,6 +759,8 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestActionStatusError('error')
                 return;
             }
+            console.log('action', action)
+            return;
             const response = await aiApiGateway.createOrUpdateAction(action);
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -2196,119 +2195,119 @@ function WorkflowEngineBuilder(props: any) {
                                                     }
                                                     { !loading && action.actionTriggerOn == 'metrics' &&
                                                         <Stack direction="row" >
-                                                            <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
-                                                                <TextField
-                                                                    fullWidth
-                                                                    id="metric-name"
-                                                                    label="Metric Name"
-                                                                    variant="outlined"
-                                                                    value={actionMetric.metricName}
-                                                                    onChange={(e) => dispatch(setActionMetric({
-                                                                        ...actionMetric, // Spread the existing action properties
-                                                                        metricName: e.target.value // Update the actionName
-                                                                    }))}
-                                                                />
-                                                            </Box>
-                                                            <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
-                                                                <TextField
-                                                                    fullWidth
-                                                                    type={"number"}
-                                                                    id="metric-score-threshold"
-                                                                    label="Metric Score Threshold"
-                                                                    variant="outlined"
-                                                                    value={actionMetric.metricScoreThreshold}
-                                                                    onChange={(e) => dispatch(setActionMetric({
-                                                                        ...actionMetric, // Spread the existing action properties
-                                                                        metricScoreThreshold: e.target.value // Update the actionName
-                                                                    }))}
-                                                                />
-                                                            </Box>
-                                                            <Box flexGrow={7} >
-                                                                <FormControl fullWidth >
-                                                                    <InputLabel id="metric-action-operator">Operator</InputLabel>
-                                                                    <Select
-                                                                        labelId="metric-action-operator-label"
-                                                                        id="metric-action-operator-label"
-                                                                        value={actionMetric.metricOperator}
-                                                                        label="Metric Action Operator"
-                                                                        fullWidth
-                                                                        onChange={(e) => dispatch(setActionMetric({
-                                                                            ...actionMetric, // Spread the existing action properties
-                                                                            metricOperator: e.target.value // Update the actionName
-                                                                        }))}
-                                                                    >
-                                                                        <MenuItem value="add">Add</MenuItem>
-                                                                        <MenuItem value="subtract">Subtract</MenuItem>
-                                                                        <MenuItem value="multiply">Multiply</MenuItem>
-                                                                        <MenuItem value="modulus">Modulus</MenuItem>
-                                                                        <MenuItem value="assign">Assign</MenuItem>
-                                                                    </Select>
-                                                                </FormControl>
-                                                            </Box>
-                                                            <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>
-                                                                <TextField
-                                                                    fullWidth
-                                                                    type={"number"}
-                                                                    id="metric-action-number"
-                                                                    label="Post-Trigger Operator Value"
-                                                                    variant="outlined"
-                                                                    value={actionMetric.metricPostActionMultiplier}
-                                                                    onChange={(e) => dispatch(setActionMetric({
-                                                                        ...actionMetric, // Spread the existing action properties
-                                                                        metricPostActionMultiplier: e.target.value // Update the actionName
-                                                                    }))}
-                                                                />
-                                                            </Box>
+                                                            {/*<Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>*/}
+                                                            {/*    <TextField*/}
+                                                            {/*        fullWidth*/}
+                                                            {/*        id="metric-name"*/}
+                                                            {/*        label="Metric Name"*/}
+                                                            {/*        variant="outlined"*/}
+                                                            {/*        value={actionMetric.metricName}*/}
+                                                            {/*        onChange={(e) => dispatch(setActionMetric({*/}
+                                                            {/*            ...actionMetric, // Spread the existing action properties*/}
+                                                            {/*            metricName: e.target.value // Update the actionName*/}
+                                                            {/*        }))}*/}
+                                                            {/*    />*/}
+                                                            {/*</Box>*/}
+                                                            {/*<Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>*/}
+                                                            {/*    <TextField*/}
+                                                            {/*        fullWidth*/}
+                                                            {/*        type={"number"}*/}
+                                                            {/*        id="metric-score-threshold"*/}
+                                                            {/*        label="Metric Score Threshold"*/}
+                                                            {/*        variant="outlined"*/}
+                                                            {/*        value={actionMetric.metricScoreThreshold}*/}
+                                                            {/*        onChange={(e) => dispatch(setActionMetric({*/}
+                                                            {/*            ...actionMetric, // Spread the existing action properties*/}
+                                                            {/*            metricScoreThreshold: e.target.value // Update the actionName*/}
+                                                            {/*        }))}*/}
+                                                            {/*    />*/}
+                                                            {/*</Box>*/}
+                                                            {/*<Box flexGrow={7} >*/}
+                                                            {/*    <FormControl fullWidth >*/}
+                                                            {/*        <InputLabel id="metric-action-operator">Operator</InputLabel>*/}
+                                                            {/*        <Select*/}
+                                                            {/*            labelId="metric-action-operator-label"*/}
+                                                            {/*            id="metric-action-operator-label"*/}
+                                                            {/*            value={actionMetric.metricOperator}*/}
+                                                            {/*            label="Metric Action Operator"*/}
+                                                            {/*            fullWidth*/}
+                                                            {/*            onChange={(e) => dispatch(setActionMetric({*/}
+                                                            {/*                ...actionMetric, // Spread the existing action properties*/}
+                                                            {/*                metricOperator: e.target.value // Update the actionName*/}
+                                                            {/*            }))}*/}
+                                                            {/*        >*/}
+                                                            {/*            <MenuItem value="add">Add</MenuItem>*/}
+                                                            {/*            <MenuItem value="subtract">Subtract</MenuItem>*/}
+                                                            {/*            <MenuItem value="multiply">Multiply</MenuItem>*/}
+                                                            {/*            <MenuItem value="modulus">Modulus</MenuItem>*/}
+                                                            {/*            <MenuItem value="assign">Assign</MenuItem>*/}
+                                                            {/*        </Select>*/}
+                                                            {/*    </FormControl>*/}
+                                                            {/*</Box>*/}
+                                                            {/*<Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>*/}
+                                                            {/*    <TextField*/}
+                                                            {/*        fullWidth*/}
+                                                            {/*        type={"number"}*/}
+                                                            {/*        id="metric-action-number"*/}
+                                                            {/*        label="Post-Trigger Operator Value"*/}
+                                                            {/*        variant="outlined"*/}
+                                                            {/*        value={actionMetric.metricPostActionMultiplier}*/}
+                                                            {/*        onChange={(e) => dispatch(setActionMetric({*/}
+                                                            {/*            ...actionMetric, // Spread the existing action properties*/}
+                                                            {/*            metricPostActionMultiplier: e.target.value // Update the actionName*/}
+                                                            {/*        }))}*/}
+                                                            {/*    />*/}
+                                                            {/*</Box>*/}
                                                             <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>
                                                                 <Button fullWidth variant={"contained"} onClick={addActionMetricRow}>Add</Button>
                                                             </Box>
                                                         </Stack>
                                                     }
-                                                    {
-                                                        !loading && action && action.actionMetrics && action.actionMetrics.map((metric: ActionMetric, index: number) => (
-                                                            <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                                                {/* Metric Name */}
-                                                                <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        id={`metric-name-${index}`}
-                                                                        label="Metric Name"
-                                                                        variant="outlined"
-                                                                        value={metric.metricName}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
-                                                                {/* Metric Score Threshold */}
-                                                                <Box flexGrow={1} sx={{ mr: 4 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        type="number"
-                                                                        id={`metric-score-threshold-${index}`}
-                                                                        label="Metric Score Threshold"
-                                                                        variant="outlined"
-                                                                        value={metric.metricScoreThreshold}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
-                                                                {/* Metric Action Multiplier */}
-                                                                <Box flexGrow={1} sx={{ mr: 4 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        type="number"
-                                                                        id={`metric-action-multiplier-${index}`}
-                                                                        label="Metric Action Multiplier"
-                                                                        variant="outlined"
-                                                                        value={metric.metricPostActionMultiplier}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
-                                                                {/* Remove Button */}
-                                                                <Box sx={{ mr: 4 }}>
-                                                                    <Button onClick={() => removeActionMetricRow(index)}>Remove</Button>
-                                                                </Box>
-                                                            </Stack>
-                                                        ))
-                                                    }
+                                                    {/*{*/}
+                                                    {/*    !loading && action && action.actionMetrics && action.actionMetrics.map((metric: ActionMetric, index: number) => (*/}
+                                                    {/*        <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>*/}
+                                                    {/*            /!* Metric Name *!/*/}
+                                                    {/*            <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>*/}
+                                                    {/*                <TextField*/}
+                                                    {/*                    fullWidth*/}
+                                                    {/*                    id={`metric-name-${index}`}*/}
+                                                    {/*                    label="Metric Name"*/}
+                                                    {/*                    variant="outlined"*/}
+                                                    {/*                    value={metric.metricName}*/}
+                                                    {/*                    inputProps={{ readOnly: true }}*/}
+                                                    {/*                />*/}
+                                                    {/*            </Box>*/}
+                                                    {/*            /!* Metric Score Threshold *!/*/}
+                                                    {/*            <Box flexGrow={1} sx={{ mr: 4 }}>*/}
+                                                    {/*                <TextField*/}
+                                                    {/*                    fullWidth*/}
+                                                    {/*                    type="number"*/}
+                                                    {/*                    id={`metric-score-threshold-${index}`}*/}
+                                                    {/*                    label="Metric Score Threshold"*/}
+                                                    {/*                    variant="outlined"*/}
+                                                    {/*                    value={metric.metricScoreThreshold}*/}
+                                                    {/*                    inputProps={{ readOnly: true }}*/}
+                                                    {/*                />*/}
+                                                    {/*            </Box>*/}
+                                                    {/*            /!* Metric Action Multiplier *!/*/}
+                                                    {/*            <Box flexGrow={1} sx={{ mr: 4 }}>*/}
+                                                    {/*                <TextField*/}
+                                                    {/*                    fullWidth*/}
+                                                    {/*                    type="number"*/}
+                                                    {/*                    id={`metric-action-multiplier-${index}`}*/}
+                                                    {/*                    label="Metric Action Multiplier"*/}
+                                                    {/*                    variant="outlined"*/}
+                                                    {/*                    value={metric.metricPostActionMultiplier}*/}
+                                                    {/*                    inputProps={{ readOnly: true }}*/}
+                                                    {/*                />*/}
+                                                    {/*            </Box>*/}
+                                                    {/*            /!* Remove Button *!/*/}
+                                                    {/*            <Box sx={{ mr: 4 }}>*/}
+                                                    {/*                <Button onClick={() => removeActionMetricRow(index)}>Remove</Button>*/}
+                                                    {/*            </Box>*/}
+                                                    {/*        </Stack>*/}
+                                                    {/*    ))*/}
+                                                    {/*}*/}
                                                     {requestActionStatus != '' && (
                                                         <Container sx={{ mb: 2, mt: -2}}>
                                                             <Typography variant="h6" color={requestActionStatusError}>

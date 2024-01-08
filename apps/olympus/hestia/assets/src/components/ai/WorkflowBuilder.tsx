@@ -2076,10 +2076,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                 id="action-name"
                                                                 label="Action Name"
                                                                 variant="outlined"
-                                                                value={action.actionName}
+                                                                value={action.triggerName}
                                                                 onChange={(e) => dispatch(setTriggerAction({
                                                                     ...action, // Spread the existing action properties
-                                                                    actionName: e.target.value // Update the actionName
+                                                                    triggerName: e.target.value // Update the actionName
                                                                 }))}
                                                             />
                                                         </Box>
@@ -2089,10 +2089,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                 id="action-group"
                                                                 label="Action Group"
                                                                 variant="outlined"
-                                                                value={action.actionGroupName}
+                                                                value={action.triggerGroup}
                                                                 onChange={(e) => dispatch(setTriggerAction({
                                                                     ...action, // Spread the existing action properties
-                                                                    actionGroupName: e.target.value // Update the actionName
+                                                                    triggerGroup: e.target.value // Update the actionName
                                                                 }))}
                                                             />
                                                         </Box>

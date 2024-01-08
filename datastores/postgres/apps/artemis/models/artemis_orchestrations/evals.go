@@ -191,6 +191,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 }
 
 type EvalContext struct {
+	EvalID                int `json:"evalID,omitempty"`
 	WorkflowResultID      int `json:"workflowResultID,omitempty"`
 	OrchestrationID       int `json:"orchestrationID"`
 	SourceTaskID          int `json:"sourceTaskId"`

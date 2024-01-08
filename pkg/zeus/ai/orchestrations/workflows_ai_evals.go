@@ -1,98 +1,180 @@
 package ai_platform_service_orchestrations
 
-/*
+import (
+	"encoding/json"
+	"strconv"
+	"strings"
+	"time"
 
-act stages
+	"github.com/sashabaranov/go-openai"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	"go.temporal.io/sdk/temporal"
+	"go.temporal.io/sdk/workflow"
+)
 
-objectives:
-	score the output of the function definition
-	save the results of the eval
-
-	figure out how/where to inject eval stage in analysis-aggregation chains
-
-
-needed, but not yet implemented:
-	saving mod
-
-activities flow:
-	1. get eval fns if any
-	CreatJsonOutputModelResponse
-
-type EvalMetric struct {
-    EvalMetricID          *int    `json:"evalMetricID"`
-    EvalModelPrompt       string  `json:"evalModelPrompt"`
-    EvalMetricName        string  `json:"evalMetricName"`
-    EvalMetricResult      string  `json:"evalMetricResult"`
-    EvalComparisonBoolean *bool   `json:"evalComparisonBoolean,omitempty"`
-    EvalComparisonNumber  *int    `json:"evalComparisonNumber,omitempty"`
-    EvalComparisonString  *string `json:"evalComparisonString,omitempty"`
-    EvalMetricDataType    string  `json:"evalMetricDataType"`
-    EvalOperator          string  `json:"evalOperator"`
-    EvalState             string  `json:"evalState"`
+type MbChildSubProcessParams struct {
+	WfID           string                                          `json:"wfID"`
+	Ou             org_users.OrgUser                               `json:"ou"`
+	WfExecParams   artemis_orchestrations.WorkflowExecParams       `json:"wfExecParams"`
+	Oj             artemis_orchestrations.OrchestrationJob         `json:"oj"`
+	RunCycle       int                                             `json:"runCycle"`
+	Window         artemis_orchestrations.Window                   `json:"window"`
+	WorkflowResult artemis_orchestrations.AIWorkflowAnalysisResult `json:"workflowResult"`
 }
 
-type OpenAIParams struct {
-	Model              string                    `json:"model"`
-	MaxTokens          int                       `json:"maxTokens"`
-	Prompt             string                    `json:"prompt"`
-	FunctionDefinition openai.FunctionDefinition `json:"functionDefinition,omitempty"`
+type EvalActionParams struct {
+	WorkflowTemplateData artemis_orchestrations.WorkflowTemplateData `json:"parentProcess"`
+	ParentOutputToEval   *ChatCompletionQueryResponse                `json:"parentOutputToEval"`
+	EvalFns              []artemis_orchestrations.EvalFnDB           `json:"evalFns"`
 }
 
-
-	fdSchema := jsonschema.Definition{
-		Type: jsonschema.Object,
-		Properties: map[string]jsonschema.Definition{
-			"count": {
-				Type:        jsonschema.Number,
-				Description: "total number of words in sentence",
-			},
-			"words": {
-				Type:        jsonschema.Array,
-				Description: "list of words in sentence",
-				Items: &jsonschema.Definition{
-					Type: jsonschema.String,
-				},
-			},
+func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe *EvalActionParams) error {
+	if cpe == nil || mb == nil {
+		return nil
+	}
+	logger := workflow.GetLogger(ctx)
+	aoAiAct := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Second * 5,
+			BackoffCoefficient: 2.0,
+			MaximumInterval:    time.Minute * 5,
+			MaximumAttempts:    5,
 		},
-		Required: []string{"count", "words"},
 	}
 
-	fd := openai.FunctionDefinition{
-		Name:       "test",
-		Parameters: fdSchema,
-	}
-	params := OpenAIParams{
-		Model:              "gpt-4-1106-preview",
-		Prompt:             "how many words are in this sentence: what is the meaning of time dilation?",
-		FunctionDefinition: fd,
-	}
-	resp, err := HeraOpenAI.MakeCodeGenRequestJsonFormattedOutput(context.Background(), ou, params)
-	s.Require().Nil(err)
-	s.Require().NotEmpty(resp)
-	fmt.Println(resp)
-
-	m := map[string]interface{}{}
-
-	for _, msg := range resp.Choices {
-		for _, tool := range msg.Message.ToolCalls {
-			fmt.Println(tool.Function.Name)
-			err = json.Unmarshal([]byte(tool.Function.Arguments), &m)
-			s.Require().Nil(err)
-			count, ok := m["count"].(int)
-			s.Require().True(ok)
-			s.Require().Equal(7, count)
+	for _, evalFn := range cpe.EvalFns {
+		evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		var evalFnMetrics []artemis_orchestrations.EvalFn
+		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, evalFn.EvalID).Get(evalFnMetricsLookupCtx, &evalFnMetrics)
+		if err != nil {
+			logger.Error("failed to get eval info", "Error", err)
+			return err
 		}
+		for _, evalFnWithMetrics := range evalFnMetrics {
+			fd, ferr := TransformEvalMetricsToJSONSchema(evalFnWithMetrics.EvalMetrics)
+			if ferr != nil {
+				logger.Error("failed to transform eval metrics to json schema", "Error", ferr)
+				return ferr
+			}
+			evalParams := hera_openai.OpenAIParams{
+				Model: evalFn.EvalModel,
+				FunctionDefinition: openai.FunctionDefinition{
+					Name:        evalFnWithMetrics.EvalName,
+					Description: evalFnWithMetrics.EvalName,
+					Parameters:  fd,
+				},
+			}
+			var emr *artemis_orchestrations.EvalMetricsResults
 
+			evCtx := artemis_orchestrations.EvalContext{
+				EvalID:                evalFn.EvalID,
+				OrchestrationID:       mb.Oj.OrchestrationID,
+				SourceTaskID:          cpe.ParentOutputToEval.ResponseTaskID,
+				RunningCycleNumber:    mb.RunCycle,
+				SearchWindowUnixStart: mb.Window.UnixStartTime,
+				SearchWindowUnixEnd:   mb.Window.UnixEndTime,
+				WorkflowResultID:      mb.WorkflowResult.WorkflowResultID,
+			}
+
+			switch strings.ToLower(evalFnWithMetrics.EvalType) {
+			case "model":
+				cr := &ChatCompletionQueryResponse{}
+				modelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				err = workflow.ExecuteActivity(modelScoredJsonCtx, z.CreateJsonOutputModelResponse, mb.Ou, evalParams).Get(modelScoredJsonCtx, &cr)
+				if err != nil {
+					logger.Error("failed to get eval info", "Error", err)
+					return err
+				}
+				if cr == nil || len(cr.Response.Choices) == 0 {
+					continue
+				}
+
+				m := make(map[string]interface{})
+				for _, cho := range cr.Response.Choices {
+					for _, tvr := range cho.Message.ToolCalls {
+						if tvr.Function.Name == evalFnWithMetrics.EvalName {
+							err = json.Unmarshal([]byte(tvr.Function.Arguments), &m)
+							if err != nil {
+								logger.Error("failed to unmarshal json", "Error", err)
+								return err
+							}
+						}
+					}
+				}
+				if len(m) == 0 {
+					logger.Warn("failed to get eval info", "Response", m)
+					continue
+				}
+				evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, m, &evalFnWithMetrics).Get(evalModelScoredJsonCtx, &emr)
+				if err != nil {
+					logger.Error("failed to get score eval", "Error", err)
+					return err
+				}
+			case "api":
+				// TODO, complete this, should attach a retrieval option? use that for the scoring?
+				//retrievalCtx := workflow.WithActivityOptions(ctx, ao)
+				//err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, ou, analysisInst, window).Get(retrievalCtx, &sr)
+				//if err != nil {
+				//	logger.Error("failed to run retrieval", "Error", err)
+				//	return err
+				//}
+				//var routes []iris_models.RouteInfo
+				//retrievalWebCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				//err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, ou, analysisInst).Get(retrievalWebCtx, &routes)
+				//if err != nil {
+				//	logger.Error("failed to run retrieval", "Error", err)
+				//	return err
+				//}
+				//for _, route := range routes {
+				//	fetchedResult := &hera_search.SearchResult{}
+				//	retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				//	err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.AiWebRetrievalTask, ou, analysisInst, route).Get(retrievalWebTaskCtx, &fetchedResult)
+				//	if err != nil {
+				//		logger.Error("failed to run retrieval", "Error", err)
+				//		return err
+				//	}
+				//	if fetchedResult != nil && len(fetchedResult.Value) > 0 {
+				//		sr = append(sr, *fetchedResult)
+				//	}
+				//}
+				//cr := &ChatCompletionQueryResponse{}
+				//apiScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				//err = workflow.ExecuteActivity(apiScoredJsonCtx, z.SendResponseToApiForScoresInJson, mb.Ou, evalParams).Get(apiScoredJsonCtx, &cr)
+				//if err != nil {
+				//	logger.Error("failed to get eval info", "Error", err)
+				//	return err
+				//}
+			}
+			if emr == nil {
+				continue
+			}
+			saveEvalResultsCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			emr.EvalContext = evCtx
+			err = workflow.ExecuteActivity(saveEvalResultsCtx, z.SaveEvalMetricResults, emr).Get(saveEvalResultsCtx, nil)
+			if err != nil {
+				logger.Error("failed to get score eval", "Error", err)
+				return err
+			}
+
+			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+				WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger=" + strconv.Itoa(mb.RunCycle),
+				WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+			}
+			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+			tar := TriggerActionsWorkflowParams{
+				Emr: emr,
+				Mb:  mb,
+			}
+			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, tar).Get(childAnalysisCtx, nil)
+			if err != nil {
+				logger.Error("failed to execute child analysis workflow", "Error", err)
+				return err
+			}
+		}
 	}
+	return nil
 }
-<MenuItem value="contains">{'contains'}</MenuItem>
-<MenuItem value="has-prefix">{'has-prefix'}</MenuItem>
-<MenuItem value="has-suffix">{'has-suffix'}</MenuItem>
-<MenuItem value="does-not-start-with-any">{'does-not-start-with'}</MenuItem>
-<MenuItem value="does-not-include">{'does-not-include'}</MenuItem>
-<MenuItem value="equals">{'equals'}</MenuItem>
-<MenuItem value="length-less-than">{'length-less-than'}</MenuItem>
-<MenuItem value="length-less-than-eq">{'length-less-than-eq'}</MenuItem>
-<MenuItem value="length-greater-than">{'length-greater-than'}</MenuItem>
-<MenuItem value="length-greater-than-eq">{'length-greater-than-eq'}</MenuItem>
-*/

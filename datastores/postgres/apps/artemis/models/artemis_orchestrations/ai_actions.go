@@ -38,6 +38,73 @@ type EvalTriggerActions struct {
 	EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"`
 }
 
+func SelectTriggerActionsByOrgAndEvalID(ctx context.Context, ou org_users.OrgUser, evalID int) ([]TriggerAction, error) {
+	var triggerActions []TriggerAction
+	var currentTriggerID int
+	triggerActionMap := make(map[int]*TriggerAction)
+
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+        SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, 
+               tae.eval_id, tae.eval_trigger_state, tae.eval_results_trigger_on
+        FROM public.ai_trigger_actions ta
+        JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
+        WHERE ta.org_id = $1 AND tae.eval_id = $2;`
+
+	// Executing the query
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, evalID)
+	if err != nil {
+		log.Err(err).Msg("failed to execute query for trigger actions")
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterating through the query results
+	for rows.Next() {
+		var triggerName, triggerGroup string
+		var currentEvalTriggerActions EvalTriggerActions
+
+		err = rows.Scan(
+			&currentTriggerID,
+			&triggerName,
+			&triggerGroup,
+			&currentEvalTriggerActions.EvalID,
+			&currentEvalTriggerActions.EvalTriggerState,
+			&currentEvalTriggerActions.EvalResultsTriggerOn,
+		)
+		if err != nil {
+			log.Err(err).Msg("failed to scan trigger action")
+			return nil, err
+		}
+
+		currentEvalTriggerActions.TriggerID = currentTriggerID
+		if ta, exists := triggerActionMap[currentTriggerID]; exists {
+			ta.EvalTriggerActions = append(ta.EvalTriggerActions, currentEvalTriggerActions)
+		} else {
+			triggerActionMap[currentTriggerID] = &TriggerAction{
+				TriggerID:          currentTriggerID,
+				TriggerName:        triggerName,
+				TriggerGroup:       triggerGroup,
+				EvalTriggerActions: []EvalTriggerActions{currentEvalTriggerActions},
+			}
+		}
+	}
+
+	// Check for any error encountered during iteration
+	if err = rows.Err(); err != nil {
+		log.Err(err).Msg("error encountered during rows iteration")
+		return nil, err
+	}
+
+	// Convert the map to a slice
+	for tid, ta := range triggerActionMap {
+		ta.TriggerID = tid
+		triggerActions = append(triggerActions, *ta)
+	}
+
+	return triggerActions, nil
+}
+
 func SelectTriggerActionApprovals(ctx context.Context, ou org_users.OrgUser, state string) ([]TriggerActionsApproval, error) {
 	var approvals []TriggerActionsApproval
 
@@ -109,16 +176,13 @@ func CreateOrUpdateAction(ctx context.Context, ou org_users.OrgUser, trigger *Tr
 	if trigger == nil {
 		return errors.New("trigger cannot be nil")
 	}
-
 	// Start a transaction
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		return err
 	}
-
 	// Defer a rollback in case of failure
 	defer tx.Rollback(ctx)
-
 	// Insert or update the ai_trigger_actions
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `

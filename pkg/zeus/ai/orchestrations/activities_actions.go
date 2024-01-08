@@ -14,7 +14,7 @@ func (z *ZeusAiPlatformActivities) SendTriggerActionRequestForApproval(ctx conte
 }
 
 func (z *ZeusAiPlatformActivities) LookupEvalTriggerConditions(ctx context.Context, ou org_users.OrgUser, evalID int) ([]artemis_orchestrations.TriggerAction, error) {
-	ta, err := artemis_orchestrations.SelectTriggerActionsByOrgAndEvalID(ctx, ou, evalID)
+	ta, err := artemis_orchestrations.SelectTriggerActionsByOrgAndOptParams(ctx, ou, evalID)
 	if err != nil {
 		log.Err(err).Msg("LookupEvalTriggerConditions: failed to lookup trigger actions")
 		return nil, err

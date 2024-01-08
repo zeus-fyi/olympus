@@ -34,6 +34,10 @@ func CreateOrUpdateAction(c echo.Context, act artemis_orchestrations.TriggerActi
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
+
+	if len(act.EvalTriggerActions) == 0 {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	err := artemis_orchestrations.CreateOrUpdateTriggerAction(c.Request().Context(), ou, &act)
 	if err != nil {
 		log.Err(err).Msg("failed to insert action")

@@ -56,9 +56,13 @@ func (s *OrchestrationsTestSuite) TestSelectTriggerActions() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	res, err := SelectTriggerActionsByOrgAndEvalID(ctx, ou, 1702959482164376000)
+	res, err := SelectTriggerActionsByOrgAndOptParams(ctx, ou, 1702959482164376000)
 	s.Require().Nil(err)
 	s.Require().NotNil(res)
+
+	res2, err := SelectTriggerActionsByOrgAndOptParams(ctx, ou, 0)
+	s.Require().Nil(err)
+	s.Require().NotNil(res2)
 }
 
 func (s *OrchestrationsTestSuite) TestSelectActionApprovals() {

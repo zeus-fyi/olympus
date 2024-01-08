@@ -1,6 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
-    Action,
     ActionPlatformAccount,
     AiState,
     EvalActionTrigger,
@@ -11,6 +10,7 @@ import {
     Retrieval,
     SearchIndexerParams,
     TaskModelInstructions,
+    TriggerAction,
     UpdateEvalMapPayload,
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
@@ -74,12 +74,13 @@ const initialState: AiState = {
     },
     selectedMainTab: 0,
     selectedMainTabBuilder: 0,
-    action: {
-        actionName: '',
-        actionGroupName: '',
-        actionEvals: [],
+    triggerAction: {
+        triggerID: 0,
+        triggerName: '',
+        triggerGroup: '',
+        evalTriggerActions: [],
     },
-    actions: [],
+    triggerActions: [],
     actionPlatformAccount: {
         actionPlatformName: '',
         actionPlatformAccount: '',
@@ -176,11 +177,11 @@ const aiSlice = createSlice({
         setEvalMetric: (state, action: PayloadAction<EvalMetric>) => {
             state.evalMetric = action.payload;
         },
-        setAction: (state, action: PayloadAction<Action>) => {
-            state.action = action.payload;
+        setTriggerAction: (state, action: PayloadAction<TriggerAction>) => {
+            state.triggerAction = action.payload;
         },
-        setActions: (state, action: PayloadAction<Action[]>) => {
-            state.actions = action.payload;
+        setTriggerActions: (state, action: PayloadAction<TriggerAction[]>) => {
+            state.triggerActions = action.payload;
         },
         setSelectedMainTab: (state, action: PayloadAction<number>) => {
             state.selectedMainTab = action.payload;
@@ -480,8 +481,8 @@ export const {
     setPlatformSecretReference,
     setSelectedMainTab,
     setSelectedMainTabBuilder,
-    setAction,
-    setActions,
+    setTriggerActions,
+    setTriggerAction,
     setActionPlatformAccount,
     // updateActionMetrics,
     // setActionMetric,

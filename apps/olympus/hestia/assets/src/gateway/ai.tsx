@@ -1,7 +1,6 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
 import {
-    Action,
     AiSearchParams,
     DeleteWorkflowsActionRequest,
     EvalFn,
@@ -11,7 +10,8 @@ import {
     PostWorkflowsActionRequest,
     PostWorkflowsRequest,
     Retrieval,
-    TaskModelInstructions
+    TaskModelInstructions,
+    TriggerAction
 } from "../redux/ai/ai.types";
 
 class AiApiGateway {
@@ -62,7 +62,7 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
-    async createOrUpdateAction(params: Action): Promise<any> {
+    async createOrUpdateAction(params: TriggerAction): Promise<any> {
         const url = `/v1/actions/ai`;
         const sessionID = inMemoryJWT.getToken();
         let config = {

@@ -52,7 +52,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get search indexers")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	actions, err := artemis_orchestrations.SelectActions(c.Request().Context(), ou)
+	actions, err := artemis_orchestrations.SelectTriggerActionsByOrgAndOptParams(c.Request().Context(), ou, 0)
 	if err != nil {
 		log.Err(err).Msg("failed to get actions")
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -68,7 +68,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		Retrievals:     ret,
 		Runs:           ojsRuns,
 		SearchIndexers: si,
-		Actions:        actions,
+		TriggerActions: actions,
 		Evals:          evals,
 	})
 }
@@ -81,6 +81,7 @@ type AiWorkflowWrapper struct {
 	Retrievals     []artemis_orchestrations.RetrievalItem          `json:"retrievals"`
 	SearchIndexers []hera_openai_dbmodels.SearchIndexerParams      `json:"searchIndexers"`
 	Evals          []artemis_orchestrations.EvalFn                 `json:"evalFns"`
+	TriggerActions []artemis_orchestrations.TriggerAction          `json:"triggerActions"`
 }
 
 type PostWorkflowsRequest struct {

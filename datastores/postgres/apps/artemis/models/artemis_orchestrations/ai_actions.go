@@ -12,12 +12,12 @@ import (
 )
 
 type TriggerAction struct {
-	TriggerID               int                      `db:"trigger_id" json:"triggerID"`
-	OrgID                   int                      `db:"org_id" json:"orgID"`
-	UserID                  int                      `db:"user_id" json:"userID"`
+	TriggerID               int                      `db:"trigger_id" json:"triggerID,omitempty"`
+	OrgID                   int                      `db:"org_id" json:"orgID,omitempty"`
+	UserID                  int                      `db:"user_id" json:"userID,omitempty"`
 	TriggerName             string                   `db:"trigger_name" json:"triggerName"`
 	TriggerGroup            string                   `db:"trigger_group" json:"triggerGroup"`
-	EvalTriggerActions      []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions"`
+	EvalTriggerActions      []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions,omitempty"`
 	TriggerActionsApprovals []TriggerActionsApproval `json:"aiTriggerActionsApproval,omitempty"`
 }
 
@@ -32,27 +32,34 @@ type TriggerActionsApproval struct {
 }
 
 type EvalTriggerActions struct {
-	EvalID               int    `db:"eval_id" json:"evalID"`
-	TriggerID            int    `db:"trigger_id" json:"triggerID"`
+	EvalID               int    `db:"eval_id" json:"evalID,omitempty"`
+	TriggerID            int    `db:"trigger_id" json:"triggerID,omitempty"`
 	EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"`
 	EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"`
 }
 
-func SelectTriggerActionsByOrgAndEvalID(ctx context.Context, ou org_users.OrgUser, evalID int) ([]TriggerAction, error) {
+func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.OrgUser, evalID int) ([]TriggerAction, error) {
 	var triggerActions []TriggerAction
 	var currentTriggerID int
 	triggerActionMap := make(map[int]*TriggerAction)
 
 	q := sql_query_templates.QueryParams{}
+	params := []interface{}{ou.OrgID}
+
+	additionalQuery := ""
+	if evalID != 0 {
+		additionalQuery = "AND eval_id = $2"
+		params = append(params, evalID)
+	}
 	q.RawQuery = `
         SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, 
                tae.eval_id, tae.eval_trigger_state, tae.eval_results_trigger_on
         FROM public.ai_trigger_actions ta
         JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
-        WHERE ta.org_id = $1 AND tae.eval_id = $2;`
+        WHERE ta.org_id = $1` + additionalQuery + `;`
 
 	// Executing the query
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, evalID)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
 	if err != nil {
 		log.Err(err).Msg("failed to execute query for trigger actions")
 		return nil, err

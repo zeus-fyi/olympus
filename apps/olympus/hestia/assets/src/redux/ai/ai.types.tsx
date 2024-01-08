@@ -35,9 +35,9 @@ export interface AiState {
     platformSecretReference: PlatformSecretReference;
     selectedMainTab: number;
     selectedMainTabBuilder: number;
-    action: Action;
+    triggerAction: TriggerAction;
+    triggerActions: TriggerAction[];
     actionPlatformAccount: ActionPlatformAccount
-    actions: Action[];
     evalFn: EvalFn
     evalFns: EvalFn[];
     evalMetric: EvalMetric;
@@ -56,10 +56,7 @@ export interface EvalMap {
     [key: number]: EvalFn;
 }
 
-export interface EvalActionTrigger {
-    evalState: string;
-    evalCompletionStatus: string;
-}
+
 
 export type UpdateEvalMapPayload = {
     evalID: number;
@@ -96,11 +93,16 @@ export interface ActionPlatformAccount {
     actionPlatformAccount: string;
 }
 
-export interface Action {
-    actionID?: number;
-    actionName: string;
-    actionGroupName: string;
-    actionEvals: EvalActionTrigger[];
+export interface EvalActionTrigger {
+    evalState: string;
+    evalCompletionStatus: string;
+}
+
+export interface TriggerAction {
+    triggerID?: number;
+    triggerName: string;
+    triggerGroup: string;
+    evalTriggerActions: EvalActionTrigger[];
     // actionMetrics : ActionMetric[];
     // actionPlatformAccounts: ActionPlatformAccount[];
 }

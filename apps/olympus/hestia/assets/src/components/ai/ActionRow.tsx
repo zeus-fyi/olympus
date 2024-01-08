@@ -5,9 +5,9 @@ import IconButton from "@mui/material/IconButton";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Checkbox from "@mui/material/Checkbox";
-import {Action} from "../../redux/ai/ai.types";
+import {TriggerAction} from "../../redux/ai/ai.types";
 
-export function ActionRow(props: { row: Action, index: number, handleClick: any, checked: boolean}) {
+export function ActionRow(props: { row: TriggerAction, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
 

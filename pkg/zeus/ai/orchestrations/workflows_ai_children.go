@@ -76,6 +76,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				RunningCycleNumber:    mb.RunCycle,
 				SearchWindowUnixStart: mb.Window.UnixStartTime,
 				SearchWindowUnixEnd:   mb.Window.UnixEndTime,
+				WorkflowResultID:      mb.WorkflowResult.WorkflowResultID,
 			}
 			switch strings.ToLower(evalFnWithMetrics.EvalType) {
 			case "model":

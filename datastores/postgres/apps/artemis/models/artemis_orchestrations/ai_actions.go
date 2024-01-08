@@ -12,13 +12,13 @@ import (
 )
 
 type TriggerAction struct {
-	TriggerID                int                      `db:"trigger_id" json:"triggerID"`
-	OrgID                    int                      `db:"org_id" json:"orgID"`
-	UserID                   int                      `db:"user_id" json:"userID"`
-	TriggerName              string                   `db:"trigger_name" json:"triggerName"`
-	TriggerGroup             string                   `db:"trigger_group" json:"triggerGroup"`
-	EvalTriggerActions       []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions"`
-	AiTriggerActionsApproval []TriggerActionsApproval `json:"aiTriggerActionsApproval,omitempty"`
+	TriggerID               int                      `db:"trigger_id" json:"triggerID"`
+	OrgID                   int                      `db:"org_id" json:"orgID"`
+	UserID                  int                      `db:"user_id" json:"userID"`
+	TriggerName             string                   `db:"trigger_name" json:"triggerName"`
+	TriggerGroup            string                   `db:"trigger_group" json:"triggerGroup"`
+	EvalTriggerActions      []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions"`
+	TriggerActionsApprovals []TriggerActionsApproval `json:"aiTriggerActionsApproval,omitempty"`
 }
 
 type TriggerActionsApproval struct {

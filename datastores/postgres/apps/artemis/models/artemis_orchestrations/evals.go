@@ -133,18 +133,28 @@ func SelectEvalFnsByOrgID(ctx context.Context, ou org_users.OrgUser) ([]EvalFn, 
 }
 
 func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFnID int) ([]EvalFn, error) {
-	const query = `
+
+	params := []interface{}{
+		ou.OrgID,
+	}
+	addOnQuery := ""
+	if evalFnID != 0 {
+		params = append(params, evalFnID)
+		addOnQuery = "AND f.eval_id = $2"
+	}
+
+	query := `
     WITH eval_fns_with_metrics AS (
         SELECT f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format,
                m.eval_metric_id, m.eval_model_prompt, m.eval_metric_name, m.eval_metric_result, m.eval_comparison_boolean,
                m.eval_comparison_number, m.eval_comparison_string, m.eval_metric_data_type, m.eval_operator, m.eval_state
         FROM public.eval_fns f
         LEFT JOIN public.eval_metrics m ON f.eval_id = m.eval_id
-        WHERE f.org_id = $1 AND f.eval_id = $2
+        WHERE f.org_id = $1 ` + addOnQuery + `
     )
     SELECT * FROM eval_fns_with_metrics;`
 
-	rows, err := apps.Pg.Query(ctx, query, ou.OrgID, evalFnID)
+	rows, err := apps.Pg.Query(ctx, query, params...)
 	if err != nil {
 		log.Err(err).Msg("failed to execute query")
 		return nil, err

@@ -6,7 +6,7 @@ import (
 )
 
 func (s *OrchestrationsTestSuite) TestTriggerInserts() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
@@ -19,9 +19,9 @@ func (s *OrchestrationsTestSuite) TestTriggerInserts() {
 		TriggerGroup: "TestGroup",
 		EvalTriggerActions: []EvalTriggerActions{
 			{
-				EvalID:               1702959482164376000, // Use an appropriate EvalID
-				EvalTriggerState:     "active",
-				EvalResultsTriggerOn: "conditionMet",
+				EvalID:               1703922045959259000, // Use an appropriate EvalID
+				EvalTriggerState:     "info",
+				EvalResultsTriggerOn: "all-pass",
 			},
 		},
 	}
@@ -29,6 +29,10 @@ func (s *OrchestrationsTestSuite) TestTriggerInserts() {
 	// Call the function to test
 	err := CreateOrUpdateTriggerAction(ctx, ou, &triggerAction)
 	s.Require().Nil(err)
+
+	res2, err := SelectTriggerActionsByOrgAndOptParams(ctx, ou, 0)
+	s.Require().Nil(err)
+	s.Require().NotNil(res2)
 }
 
 func (s *OrchestrationsTestSuite) TestTriggerActions() {

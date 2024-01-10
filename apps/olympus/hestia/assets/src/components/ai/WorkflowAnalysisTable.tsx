@@ -10,6 +10,7 @@ import TablePaginationActions from "@mui/material/TablePagination/TablePaginatio
 import {aiApiGateway} from "../../gateway/ai";
 import {
     setAiTasks,
+    setAssistants,
     setEvalFns,
     setRetrievals,
     setRuns,
@@ -56,6 +57,7 @@ export function WorkflowAnalysisTable(props: any) {
                     dispatch(setRuns(data.runs))
                     dispatch(setTriggerActions(data.actions))
                     dispatch(setEvalFns(data.evalFns))
+                    dispatch(setAssistants(data.assistants))
                 } else {
                     console.log('Failed to get workflows', response);
                 }

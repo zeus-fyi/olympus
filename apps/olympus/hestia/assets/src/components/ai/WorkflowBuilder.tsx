@@ -39,19 +39,19 @@ import {RootState} from "../../redux/store";
 import {
     removeAggregationFromWorkflowBuilderTaskMap,
     removeEvalFnFromWorkflowBuilderEvalMap,
-    setActionPlatformAccount,
     setActionsEvalTrigger,
     setAddAggregateTasks,
     setAddAggregationView,
     setAddAnalysisTasks,
     setAddAnalysisView,
+    setAddAssistantsView,
     setAddEvalFns,
     setAddEvalFnsView,
     setAddRetrievalTasks,
     setAddRetrievalView,
-    setAggregationWorkflowInstructions,
+    setAddTriggerActionsView,
+    setAddTriggersToEvalFnView,
     setAnalysisRetrievalsMap,
-    setAnalysisWorkflowInstructions,
     setDiscordOptionsCategoryName,
     setEditAggregateTask,
     setEditAnalysisTask,
@@ -92,11 +92,16 @@ import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 import {ExpandLess, ExpandMore} from "@mui/icons-material";
 import {EvalsTable} from "./EvalsTable";
+import {Assistants} from "./Assistants";
+import {AssistantsTable} from "./AssistantsTable";
+import {ActionsTable} from "./ActionsTable";
+import {TriggerAction} from "../../redux/ai/ai.types2";
 
 const mdTheme = createTheme();
 
 function WorkflowEngineBuilder(props: any) {
     const [open, setOpen] = useState(true);
+    const assistants = useSelector((state: RootState) => state.ai.assistants);
     const evalMap = useSelector((state: RootState) => state.ai.evalMap);
     const evalFns = useSelector((state: RootState) => state.ai.evalFns);
     const actions = useSelector((state: RootState) => state.ai.triggerActions);
@@ -122,8 +127,11 @@ function WorkflowEngineBuilder(props: any) {
     const [selectedAnalysisStageForEval, setSelectedAnalysisStageForEval] = useState('');
     const [selectedAggregationStageForEval, setSelectedAggregationStageForEval] = useState('');
     const [selectedEvalStage, setSelectedEvalStage] = useState('');
+    const addTriggersToEvalFnView = useSelector((state: RootState) => state.ai.addTriggersToEvalFnView);
     const evalFnStages = useSelector((state: RootState) => state.ai.addedEvalFns);
     const addEvalsView = useSelector((state: RootState) => state.ai.addEvalFnsView);
+    const addAssistantsView = useSelector((state: RootState) => state.ai.addAssistantsView);
+    const addTriggerActionsView = useSelector((state: RootState) => state.ai.addTriggerActionsView);
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
     const [tasks, setTasks] = useState(allTasks && allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
     const retrievals = useSelector((state: RootState) => state.ai.retrievals);
@@ -142,6 +150,7 @@ function WorkflowEngineBuilder(props: any) {
     const actionMetric = useSelector((state: any) => state.ai.actionMetric);
     const actionsEvalTrigger = useSelector((state: any) => state.ai.actionsEvalTrigger);
     const actionPlatformAccount = useSelector((state: any) => state.ai.actionPlatformAccount);
+    const assistant = useSelector((state: RootState) => state.ai.assistant);
     const [openRetrievals, setOpenRetrievals] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openAnalysis, setOpenAnalysis] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openAggregation, setOpenAggregation] = useState<boolean>(true); // Or use an object/array for multiple sections
@@ -286,6 +295,37 @@ function WorkflowEngineBuilder(props: any) {
     const handleRemoveRetrievalFromWorkflow = async (event: any, retrievalRemove: Retrieval) => {
         dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalID !== retrievalRemove.retrievalID)));
     }
+    const handleRemoveTriggerFromEvalFn = async (event: any, triggerRemove: TriggerAction) => {
+        const newTriggerFunctions = evalFn.triggerFunctions.filter((trigger: TriggerAction) => trigger.triggerID !== triggerRemove.triggerID);
+        dispatch(setEval({
+            ...evalFn, // Spread the existing action properties
+            triggerFunctions: newTriggerFunctions// Update the actionName
+        }))
+    }
+    const handleAddTriggersToEvalFn = async (event: any) => {
+        setIsLoading(true);
+        if (addTriggersToEvalFnView) {
+            // Get the currently selected triggers
+            const selectedTriggers: TriggerAction[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => actions[Number(key)]);
+
+            // Filter out triggers that already exist in evalFn.triggerFunctions
+            const newTriggersToAdd: TriggerAction[] = selectedTriggers.filter((st: TriggerAction) =>
+                !evalFn.triggerFunctions.some((tf: TriggerAction) => tf.triggerID === st.triggerID));
+
+            // Combine the existing triggers with the new, non-duplicate triggers
+            const updatedTriggerFunctions: TriggerAction[] = [...evalFn.triggerFunctions, ...newTriggersToAdd];
+
+            // Dispatch the updated evalFn
+            dispatch(setEval({
+                ...evalFn, // Spread the existing action properties
+                triggerFunctions: updatedTriggerFunctions // Update with combined triggers
+            }));
+        }
+        setIsLoading(false);
+    };
+
     const handleRemoveAnalysisFromWorkflow = async (event: any, taskRemove: TaskModelInstructions) => {
         Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
             const payloadRemove = {
@@ -494,12 +534,7 @@ function WorkflowEngineBuilder(props: any) {
         setOpen(!open);
     };
     let navigate = useNavigate();
-    const handleUpdateAnalysisWorkflowInstructions =(value: string) => {
-        dispatch(setAnalysisWorkflowInstructions(value));
-    };
-    const handleUpdateAggregationWorkflowInstructions =(value: string) => {
-        dispatch(setAggregationWorkflowInstructions(value));
-    };
+
     const handleLogout = async (event: any) => {
         event.preventDefault();
         await authProvider.logout()
@@ -520,6 +555,9 @@ function WorkflowEngineBuilder(props: any) {
     const [requestEvalCreateOrUpdateStatusError, setRequestEvalCreateOrUpdateStatusError] = useState('');
     const [requestMetricActionCreateOrUpdateStatus, setRequestMetricActionCreateOrUpdateStatus] = useState('');
     const [requestMetricActionCreateOrUpdateStatusError, setRequestMetricActionCreateOrUpdateStatusError] = useState('');
+    const [requestStatusAssistant, setRequestStatusAssistant] = useState('');
+    const [requestStatusAssistantError, setRequestStatusAssistantError] = useState('');
+
     const createOrUpdateWorkflow = async () => {
         try {
             const allMappedRetrievalIDs: Set<number> = new Set();
@@ -612,28 +650,51 @@ function WorkflowEngineBuilder(props: any) {
         }
     }
 
+    const createOrUpdateAssistant= async () => {
+        try {
+            setIsLoading(true)
+            if (assistant.model.length <= 0) {
+                setRequestStatusAssistant('Assistant model must be set')
+                setRequestStatusAssistantError('error')
+                return;
+            }
+            const response = await aiApiGateway.createOrUpdateAssistant(assistant);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                // const data = response.data as Retrieval;
+                // dispatch(setRetrievals([...retrievals, data]))
+                setRequestStatusAssistant('Assistant created or updated successfully')
+                setRequestStatusAssistantError('success')
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
+                setRequestStatusAssistant('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestStatusAssistantError('error')
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     const createOrUpdateRetrieval= async () => {
         try {
             setIsLoading(true)
-
             if (!isValidLabel(retrieval.retrievalName)) {
                 setRequestRetrievalStatus('Retrieval name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
                 setRequestRetrievalStatusError('error')
                 return;
             }
-
             if (!isValidLabel(retrieval.retrievalGroup)) {
                 setRequestRetrievalStatus('Retrieval group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
                 setRequestRetrievalStatusError('error')
                 return;
             }
-
             if ((retrieval.retrievalKeywords.length <= 0 && retrieval.retrievalPrompt.length <= 0 && retrieval.retrievalGroup.length <= 0 ))  {
                 setRequestRetrievalStatus('At least one of retrieval keywords or prompt or group must be set')
                 setRequestRetrievalStatusError('error')
                 return;
             }
-
             if (retrieval.retrievalPlatform.length <= 0) {
                 setRequestRetrievalStatus('Retrieval platform must be set')
                 setRequestRetrievalStatusError('error')
@@ -673,7 +734,6 @@ function WorkflowEngineBuilder(props: any) {
                 }
                 return;
             }
-
             const taskGn = (taskType === 'analysis' ? editAnalysisTask.taskGroup : editAggregateTask.taskGroup);
             if (!isValidLabel(taskGn)) {
                 if (taskType === 'analysis') {
@@ -685,7 +745,6 @@ function WorkflowEngineBuilder(props: any) {
                 }
                 return;
             }
-
             const prompt = (taskType === 'analysis' ? editAnalysisTask.prompt : editAggregateTask.prompt);
             if (prompt.length <= 0) {
                 if (taskType === 'analysis') {
@@ -697,7 +756,6 @@ function WorkflowEngineBuilder(props: any) {
                 }
                 return;
             }
-
             const task: TaskModelInstructions = {
                 taskType: taskType,
                 taskGroup:taskGn,
@@ -736,31 +794,23 @@ function WorkflowEngineBuilder(props: any) {
             setIsLoading(false);
         }
     }
-
     if (loading) {
         return <div>Loading...</div>;
     }
 
-    const createOrUpdateAction= async () => {
+    const createOrUpdateAction = async () => {
         try {
             setIsLoading(true)
-            if (!isValidLabel(action.actionName)) {
+            if (!isValidLabel(action.triggerName)) {
                 setRequestActionStatus('Action name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
                 setRequestActionStatusError('error')
                 return;
             }
-            if (!isValidLabel(action.actionGroupName)) {
+            if (!isValidLabel(action.triggerGroup)) {
                 setRequestActionStatus('Action group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
                 setRequestActionStatusError('error')
                 return;
             }
-            if (action.actionMetrics.length <= 0){
-                setRequestActionStatus('Use must add at least one metric use action triggers')
-                setRequestActionStatusError('error')
-                return;
-            }
-            console.log('action', action)
-            return;
             const response = await aiApiGateway.createOrUpdateAction(action);
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -777,6 +827,32 @@ function WorkflowEngineBuilder(props: any) {
             setIsLoading(false);
         }
     }
+    // const addRetrievalStageView = async () => {
+    //     const toggle = !addRetrievalView;
+    //     dispatch(setAddAnalysisView(false));
+    //     dispatch(setAddAggregationView(false));
+    //     dispatch(setAddRetrievalView(toggle));
+    //     dispatch(setAddEvalFnsView(false));
+    //     if (toggle) {
+    //         dispatch(setSelectedMainTabBuilder(3))
+    //         setSelected({});
+    //     } else {
+    //         dispatch(setSelectedMainTabBuilder(0))
+    //     }
+    // }
+    const addTriggersToEvalFn = async () => {
+        const toggle = !addTriggersToEvalFnView;
+        dispatch(setAddTriggersToEvalFnView(toggle));
+        if (toggle) {
+            dispatch(setSelectedMainTabBuilder(5))
+            setSelected({});
+        } else {
+            dispatch(setSelectedMainTabBuilder(4))
+            setSelected({});
+        }
+        return
+    }
+
     const createOrUpdateEval= async () => {
         try {
             setIsLoading(true)
@@ -791,7 +867,7 @@ function WorkflowEngineBuilder(props: any) {
                 return;
             }
             if (evalFn.evalMetrics.length <= 0){
-                setRequestEvalCreateOrUpdateStatus('Use must add at least one metric create an eval')
+                setRequestEvalCreateOrUpdateStatus('You must add at least one metric create an eval')
                 setRequestEvalCreateOrUpdateStatusError('error')
                 return;
             }
@@ -832,6 +908,21 @@ function WorkflowEngineBuilder(props: any) {
         } else if (newValue === 5) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
+        } else if (newValue === 6) {
+            dispatch(setSelectedWorkflows([]));
+            setSelected({});
+        }
+        if (addAssistantsView && newValue !== 6) {
+            dispatch(setAddAssistantsView(false));
+        }
+        if (addTriggersToEvalFnView && newValue !== 4) {
+            dispatch(setAddTriggersToEvalFnView(false));
+        }
+        if (addEvalsView && newValue !== 4) {
+            dispatch(setAddEvalFnsView(false));
+        }
+        if (addTriggerActionsView && newValue !== 5) {
+            dispatch(setAddTriggerActionsView(false));
         }
         if (addAggregateView && newValue !== 2) {
             dispatch(setAddAggregationView(false));
@@ -856,6 +947,8 @@ function WorkflowEngineBuilder(props: any) {
         setRequestEvalCreateOrUpdateStatusError('');
         setRequestMetricActionCreateOrUpdateStatus('');
         setRequestMetricActionCreateOrUpdateStatusError('');
+        setRequestStatusAssistant('');
+        setRequestStatusAssistantError('');
         dispatch(setAddAnalysisView(false));
         dispatch(setSelectedMainTabBuilder(newValue));
     };
@@ -886,8 +979,19 @@ function WorkflowEngineBuilder(props: any) {
                 return acc;
             }, {});
             setSelected(newSelection);
-        }
-        else {
+        } else if (selectedMainTabBuilder === 5)  {
+            const newSelection = actions.reduce((acc: { [key: number]: boolean }, action: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
+        } else if (selectedMainTabBuilder === 6)  {
+            const newSelection = assistants.reduce((acc: { [key: number]: boolean }, assistant: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
+        } else {
             const newSelection = tasks.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
@@ -968,7 +1072,7 @@ function WorkflowEngineBuilder(props: any) {
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
-                            <Card sx={{ minWidth: 500, maxWidth: 1200 }}>
+                            <Card sx={{ minWidth: 700, maxWidth: 1200 }}>
                                 {( selectedMainTabBuilder === 0 || addAnalysisView || addAggregateView || addRetrievalView || addEvalsView) &&
                                     <div>
                                         <CardContent>
@@ -2053,7 +2157,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </CardContent>
                                     }
                                     {
-                                        selectedMainTabBuilder === 5 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView &&
+                                        selectedMainTabBuilder === 5 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView && !addAssistantsView && !addTriggersToEvalFnView &&
                                         <CardContent>
                                             <div>
                                                 <Typography gutterBottom variant="h5" component="div">
@@ -2073,8 +2177,8 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
                                                             <TextField
                                                                 fullWidth
-                                                                id="action-name"
-                                                                label="Action Name"
+                                                                id="trigger-name"
+                                                                label="Trigger Name"
                                                                 variant="outlined"
                                                                 value={action.triggerName}
                                                                 onChange={(e) => dispatch(setTriggerAction({
@@ -2086,8 +2190,8 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
                                                             <TextField
                                                                 fullWidth
-                                                                id="action-group"
-                                                                label="Action Group"
+                                                                id="trigger-group"
+                                                                label="Trigger Group"
                                                                 variant="outlined"
                                                                 value={action.triggerGroup}
                                                                 onChange={(e) => dispatch(setTriggerAction({
@@ -2104,11 +2208,11 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     labelId="trigger-source--label"
                                                                     id="trigger-source-input"
-                                                                    value={action.triggerOn}
+                                                                    value={action.evalResultsTriggerOn ? action.evalResultsTriggerOn : ''}
                                                                     label="Trigger Source"
                                                                     onChange={(e) => dispatch(setTriggerAction({
                                                                         ...action,
-                                                                        triggerOn: e.target.value
+                                                                        evalResultsTriggerOn: e.target.value
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="eval">Eval</MenuItem>
@@ -2124,15 +2228,15 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                         <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                                             <FormControl fullWidth>
-                                                                <InputLabel id="actions-platform-label">Trigger Output</InputLabel>
+                                                                <InputLabel id="trigger-env-label">Trigger Env</InputLabel>
                                                                 <Select
-                                                                    labelId="actions-platform-label"
-                                                                    id="actions-platforms-input"
-                                                                    value={actionPlatformAccount.actionPlatformName}
-                                                                    label="Output Actions Platform"
-                                                                    onChange={(e) => dispatch(setActionPlatformAccount({
-                                                                        ...actionPlatformAccount,
-                                                                        actionPlatformName: e.target.value
+                                                                    labelId="trigger-env-label"
+                                                                    id="trigger-env-input"
+                                                                    value={action.triggerEnv}
+                                                                    label="Trigger Env"
+                                                                    onChange={(e) => dispatch(setTriggerAction({
+                                                                        ...action,
+                                                                        triggerEnv: e.target.value
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="social-media-io">Social Media Platform I/O</MenuItem>
@@ -2146,7 +2250,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             </FormControl>
                                                         </Box>
                                                     </Stack>
-                                                    { !loading && action.actionTriggerOn == 'eval' &&
+                                                    { !loading && action.evalResultsTriggerOn == 'eval' &&
                                                     <Stack direction="row" >
                                                         <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
                                                             <FormControl fullWidth>
@@ -2154,10 +2258,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     id="eval-state-trigger"
                                                                     label="Eval State Trigger"
-                                                                    value={actionsEvalTrigger.evalState}
+                                                                    value={actionsEvalTrigger.evalTriggerState}
                                                                     onChange={(e) => dispatch(setActionsEvalTrigger({
                                                                         ...actionsEvalTrigger, // Spread the existing action properties
-                                                                        evalState: e.target.value // Update the actionName
+                                                                        evalTriggerState: e.target.value // Update the actionName
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="info">{'info'}</MenuItem>
@@ -2174,10 +2278,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     id="eval-completion-trigger"
                                                                     label="Eval Completion Trigger"
-                                                                    value={actionsEvalTrigger.evalCompletionStatus}
+                                                                    value={actionsEvalTrigger.evalResultsTriggerOn}
                                                                     onChange={(e) => dispatch(setActionsEvalTrigger({
                                                                         ...actionsEvalTrigger, // Spread the existing action properties
-                                                                        evalCompletionStatus: e.target.value // Update the actionName
+                                                                        evalResultsTriggerOn: e.target.value // Update the actionName
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="all-pass">{'all-pass'}</MenuItem>
@@ -2193,7 +2297,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         {/*</Box>*/}
                                                         </Stack>
                                                     }
-                                                    { !loading && action.actionTriggerOn == 'metrics' &&
+                                                    { !loading && action.evalResultsTriggerOn == 'metrics' &&
                                                         <Stack direction="row" >
                                                             {/*<Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>*/}
                                                             {/*    <TextField*/}
@@ -2323,14 +2427,14 @@ function WorkflowEngineBuilder(props: any) {
                                         </CardContent>
                                     }
                                     {
-                                        selectedMainTabBuilder === 4 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView &&
+                                        (selectedMainTabBuilder === 4 || addTriggersToEvalFnView) && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView && !addAssistantsView &&
                                         <CardContent>
                                             <div>
                                                 <Typography gutterBottom variant="h5" component="div">
-                                                    Eval Scoring Functions
+                                                    Eval Functions
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    This allows you to setup scoring rules for AI system outputs that set metrics for the AI to use in its decision making process. For metric
+                                                    This allows you to setup scoring rules and triggers for AI system outputs that set metrics for the AI to use in its decision making process. For metric
                                                     array types, the comparison value returns the true/false if every array element item passes the comparison eval test.
                                                 </Typography>
                                                 <Stack direction="column" spacing={2} sx={{ mt: 2, mb: 0 }}>
@@ -2713,6 +2817,54 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Stack>
                                                         ))
                                                     }
+                                                    <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                                        <Divider/>
+                                                    </Box>
+                                                    <Typography variant="h6" color="text.secondary">
+                                                       Eval Triggers
+                                                    </Typography>
+                                                    {/*<Collapse in={openRetrievals} timeout="auto" unmountOnExit>*/}
+                                                        <Box flexGrow={2} sx={{mt: 2}}>
+                                                            {evalFn && evalFn.triggerFunctions.map((trigger: TriggerAction, subIndex: React.Key | null | undefined) => (
+                                                                <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
+                                                                    <Box flexGrow={2} sx={{ mt: 0, ml: 0 }}>
+                                                                        <TextField
+                                                                            key={subIndex}
+                                                                            label={`Trigger Name`}
+                                                                            value={trigger?.triggerName || ''}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                            variant="outlined"
+                                                                            fullWidth
+                                                                            margin="normal"
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={2} sx={{ mt: 0, ml: 2 }}>
+                                                                        <TextField
+                                                                            key={subIndex}
+                                                                            label={`Trigger Group`}
+                                                                            value={trigger?.triggerGroup || ''}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                            variant="outlined"
+                                                                            fullWidth
+                                                                            margin="normal"
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mb: 0, ml: 2, mt: 3 }}>
+                                                                        <Button fullWidth variant="contained" onClick={(event)=>handleRemoveTriggerFromEvalFn(event, trigger)}>Remove</Button>
+                                                                    </Box>
+                                                                </Stack>
+                                                            ))}
+                                                        </Box>
+                                                    <Box flexGrow={1} sx={{ mb: 0 }}>
+                                                        <Button variant="contained" onClick={addTriggersToEvalFn} >{addTriggersToEvalFnView ? 'Done Adding' : 'Add Triggers'}</Button>
+                                                    </Box>
+                                                    <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                                        <Divider/>
+                                                    </Box>
                                                     {requestEvalCreateOrUpdateStatus != '' && (
                                                         <Container sx={{ mb: 2, mt: -2}}>
                                                             <Typography variant="h6" color={requestEvalCreateOrUpdateStatusError}>
@@ -2720,6 +2872,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Typography>
                                                         </Container>
                                                     )}
+
                                                     <Box flexGrow={1} sx={{ mb: 0 }}>
                                                         <Button fullWidth variant="contained" onClick={createOrUpdateEval} >Save Eval</Button>
                                                     </Box>
@@ -2727,7 +2880,13 @@ function WorkflowEngineBuilder(props: any) {
                                             </div>
                                         </CardContent>
                                     }
-                                    { !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 1 && !loading && !addRetrievalView && !addEvalsView &&
+                                    {
+                                        (selectedMainTabBuilder === 6) && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView && !addTriggerActionsView &&
+                                        <Assistants assistant={assistant}
+                                                    createOrUpdateAssistant={createOrUpdateAssistant}
+                                                    requestStatusAssistant={requestStatusAssistant} requestStatusAssistantError={requestStatusAssistantError}/>
+                                    }
+                                    { !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 1 && !loading && !addRetrievalView && !addEvalsView && !addAssistantsView && !addTriggerActionsView &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                 <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
@@ -2768,7 +2927,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 2 && !loading && !addRetrievalView && !addEvalsView &&
+                                    {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 2 && !loading && !addRetrievalView && !addEvalsView && !addTriggerActionsView && !addAssistantsView &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                             <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
@@ -2830,10 +2989,12 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-retrieval" label="Retrievals" />
                                 <Tab className="onboarding-card-highlight-all-evals" label="Evals" />
                                 <Tab className="onboarding-card-highlight-all-actions" label="Actions" />
+                                <Tab className="onboarding-card-highlight-all-assistants" label="Assistants" />
                             </Tabs>
                         </Box>
                     </Container>
-                    { selectedMainTabBuilder === 0 && !addAnalysisView && !addAggregateView && !addRetrievalView && selectedWorkflows && selectedWorkflows.length > 0 && !addEvalsView &&
+                    { selectedMainTabBuilder === 0 && !addAnalysisView && !addAggregateView && !addRetrievalView && selectedWorkflows && selectedWorkflows.length > 0 && !addEvalsView && !addAssistantsView &&
+                        !addTriggerActionsView &&
                         <div>
                                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                     <Box sx={{ mb: 2 }}>
@@ -2895,10 +3056,37 @@ function WorkflowEngineBuilder(props: any) {
                             </Container>
                         </div>
                     }
-                    { (selectedMainTabBuilder === 4) &&
+                    { addTriggersToEvalFnView &&
+                        <div>
+                            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                <Box sx={{ mb: 2 }}>
+                                    <span>({Object.values(selected).filter(value => value).length} Selected Triggers)</span>
+                                    <Button variant="outlined" color="secondary" onClick={(event) => handleAddTriggersToEvalFn(event)} style={{marginLeft: '10px'}}>
+                                        Add {Object.values(selected).filter(value => value).length === 1 ? 'Trigger' : 'Triggers'}
+                                    </Button>
+                                </Box>
+                            </Container>
+
+                        </div>
+                    }
+                    { (selectedMainTabBuilder === 4) && !addTriggersToEvalFnView &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <EvalsTable evalFns={evalFns} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
+                            </Container>
+                        </div>
+                    }
+                    { (selectedMainTabBuilder === 5 || addTriggersToEvalFnView) &&
+                        <div>
+                            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                <ActionsTable actions={actions} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
+                            </Container>
+                        </div>
+                    }
+                    { (selectedMainTabBuilder === 6) &&
+                        <div>
+                            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                <AssistantsTable assistants={assistants} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
                             </Container>
                         </div>
                     }

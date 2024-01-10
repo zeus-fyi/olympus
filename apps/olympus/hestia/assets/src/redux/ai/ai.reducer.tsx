@@ -1,8 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
-    ActionPlatformAccount,
     AiState,
-    EvalActionTrigger,
     EvalFn,
     EvalMetric,
     OrchestrationsAnalysis,
@@ -10,13 +8,22 @@ import {
     Retrieval,
     SearchIndexerParams,
     TaskModelInstructions,
-    TriggerAction,
     UpdateEvalMapPayload,
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
 } from "./ai.types";
+import {Assistant, EvalActionTrigger, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
 
 const initialState: AiState = {
+    assistant: {
+        id: '',
+        object: 'assistant',
+        created_at: null,
+        name: '',
+        description: '',
+        model: '',
+    },
+    assistants: [],
     searchContentText: '',
     usernames: '',
     groupFilter: '',
@@ -30,6 +37,9 @@ const initialState: AiState = {
     addAggregationView: false,
     addRetrievalView: false,
     addEvalFnsView: false,
+    addAssistantsView: false,
+    addTriggerActionsView: false,
+    addTriggersToEvalFnView: false,
     addedEvalFns: [],
     addedAnalysisTasks: [],
     addedAggregateTasks: [],
@@ -76,15 +86,15 @@ const initialState: AiState = {
     selectedMainTabBuilder: 0,
     triggerAction: {
         triggerID: 0,
-        triggerOn: '',
+        triggerEnv: '',
         triggerName: '',
         triggerGroup: '',
         evalTriggerActions: [],
     },
     triggerActions: [],
-    actionPlatformAccount: {
-        actionPlatformName: '',
-        actionPlatformAccount: '',
+    triggerPlatformAccount: {
+        triggerPlatformName: '',
+        triggerPlatformAccount: '',
     },
     evalMetric: {
         evalMetricName: '',
@@ -94,7 +104,7 @@ const initialState: AiState = {
         evalComparisonBoolean: false,
         evalMetricDataType: '',
         evalOperator: '',
-        evalState: '',
+        evalState: 'info',
         evalMetricResult: '',
     },
     evalFn: {
@@ -104,10 +114,11 @@ const initialState: AiState = {
         evalGroupName: '',
         evalModel: '',
         evalMetrics: [],
+        triggerFunctions: [],
     },
     actionsEvalTrigger: {
-        evalState: '',
-        evalCompletionStatus: '',
+        evalTriggerState: 'info',
+        evalResultsTriggerOn: 'eval',
     },
     evalFns: [],
     editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '',
@@ -134,6 +145,7 @@ const initialState: AiState = {
         evalGroupName: '',
         evalModel: '',
         evalMetrics: [],
+        triggerFunctions: [],
     },
 }
 
@@ -141,6 +153,18 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setAddAssistantsView: (state, action: PayloadAction<boolean>) => {
+            state.addAssistantsView = action.payload;
+        },
+        setAddTriggerActionsView: (state, action: PayloadAction<boolean>) => {
+            state.addTriggerActionsView = action.payload;
+        },
+        setAssistant: (state, action: PayloadAction<Assistant>) => {
+            state.assistant = action.payload;
+        },
+        setAssistants: (state, action: PayloadAction<Assistant[]>) => {
+            state.assistants = action.payload;
+        },
         setEditAnalysisTask: (state, action: PayloadAction<TaskModelInstructions>) => {
             state.editAnalysisTask = action.payload;
         },
@@ -162,6 +186,9 @@ const aiSlice = createSlice({
         setActionsEvalTrigger: (state, action: PayloadAction<EvalActionTrigger>) => {
             state.actionsEvalTrigger = action.payload;
         },
+        setAddTriggersToEvalFnView: (state, action: PayloadAction<boolean>) => {
+            state.addTriggersToEvalFnView = action.payload;
+        },
         // updateActionMetrics: (state, action: PayloadAction<ActionMetric[]>) => {
         //     state.action.actionMetrics = action.payload;
         // },
@@ -171,10 +198,9 @@ const aiSlice = createSlice({
         updateEvalMetrics: (state, action: PayloadAction<EvalMetric[]>) => {
             state.evalFn.evalMetrics = action.payload;
         },
-        setActionPlatformAccount: (state, action: PayloadAction<ActionPlatformAccount>) => {
-            state.actionPlatformAccount = action.payload;
+        setActionPlatformAccount: (state, action: PayloadAction<TriggerPlatformAccount>) => {
+            state.triggerPlatformAccount = action.payload;
         },
-
         setEvalMetric: (state, action: PayloadAction<EvalMetric>) => {
             state.evalMetric = action.payload;
         },
@@ -500,5 +526,10 @@ export const {
     setEditAggregateTask,
     setEditRetrieval,
     setEditEvalFn,
+    setAssistants,
+    setAssistant,
+    setAddAssistantsView,
+    setAddTriggerActionsView,
+    setAddTriggersToEvalFnView,
 } = aiSlice.actions;
 export default aiSlice.reducer;

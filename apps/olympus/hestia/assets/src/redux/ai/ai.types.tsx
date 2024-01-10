@@ -1,4 +1,8 @@
+import {Assistant, EvalActionTrigger, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
+
 export interface AiState {
+    assistants: Assistant[];
+    assistant: Assistant;
     usernames: string;
     groupFilter: string;
     searchContentText: string;
@@ -14,6 +18,9 @@ export interface AiState {
     addAggregationView: boolean;
     addRetrievalView: boolean;
     addEvalFnsView: boolean;
+    addAssistantsView: boolean;
+    addTriggersToEvalFnView: boolean;
+    addTriggerActionsView: boolean;
     addedEvalFns: EvalFn[];
     addedAnalysisTasks: TaskModelInstructions[];
     addedAggregateTasks: TaskModelInstructions[];
@@ -37,7 +44,7 @@ export interface AiState {
     selectedMainTabBuilder: number;
     triggerAction: TriggerAction;
     triggerActions: TriggerAction[];
-    actionPlatformAccount: ActionPlatformAccount
+    triggerPlatformAccount: TriggerPlatformAccount
     evalFn: EvalFn
     evalFns: EvalFn[];
     evalMetric: EvalMetric;
@@ -72,6 +79,7 @@ export interface EvalFn {
     evalFormat: string
     evalCycleCount?: number;
     evalMetrics: EvalMetric[];
+    triggerFunctions?: TriggerAction[];
 }
 
 export interface EvalMetric {
@@ -86,26 +94,18 @@ export interface EvalMetric {
     evalState: string;
 }
 
-export interface ActionPlatformAccount {
-    actionPlatformName: string;
-    actionPlatformAccount: string;
+export interface Retrieval {
+    retrievalID?: number;
+    retrievalName: string;
+    retrievalGroup: string;
+    retrievalPrompt: string;
+    retrievalKeywords: string;
+    retrievalPlatform: string;
+    retrievalUsernames: string;
+    retrievalPlatformGroups: string;
+    discordFilters?: DiscordFilters;
+    webFilters?: WebFilters;
 }
-
-export interface EvalActionTrigger {
-    evalState: string;
-    evalCompletionStatus: string;
-}
-
-export interface TriggerAction {
-    triggerID?: number;
-    triggerName: string;
-    triggerGroup: string;
-    triggerOn: string;
-    evalTriggerActions: EvalActionTrigger[];
-    // actionMetrics : ActionMetric[];
-    // actionPlatformAccounts: ActionPlatformAccount[];
-}
-
 // export interface ActionMetric {
 //     metricName: string;
 //     metricScoreThreshold: number;
@@ -277,19 +277,6 @@ export interface Window {
     end?: Date;
     unixStartTime?: number;
     unixEndTime?: number;
-}
-
-export interface Retrieval {
-    retrievalID?: number;
-    retrievalName: string;
-    retrievalGroup: string;
-    retrievalPrompt: string;
-    retrievalKeywords: string;
-    retrievalPlatform: string;
-    retrievalUsernames: string;
-    retrievalPlatformGroups: string;
-    discordFilters?: DiscordFilters;
-    webFilters?: WebFilters;
 }
 
 export interface SearchIndexerParams {

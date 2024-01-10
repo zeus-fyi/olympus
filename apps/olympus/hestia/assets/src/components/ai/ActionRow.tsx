@@ -5,7 +5,7 @@ import IconButton from "@mui/material/IconButton";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Checkbox from "@mui/material/Checkbox";
-import {TriggerAction} from "../../redux/ai/ai.types";
+import {TriggerAction} from "../../redux/ai/ai.types2";
 
 export function ActionRow(props: { row: TriggerAction, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;

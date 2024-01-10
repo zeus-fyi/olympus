@@ -12,7 +12,7 @@ import ChatGPTPageText from "../chatgpt/ChatGPT";
 const mdTheme = createTheme();
 
 export function AiSearchAnalysis(props: any) {
-    const {onClickSubmit, code, onChange} = props;
+    const { code, onChange} = props;
     const [tokenEstimate, setTokenEstimate] = useState(0);
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {

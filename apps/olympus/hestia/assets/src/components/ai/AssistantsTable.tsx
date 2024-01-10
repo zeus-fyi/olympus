@@ -6,15 +6,16 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
-import {ActionRow} from "./ActionRow";
+import {AssistantsRow} from "./AssistantsRow";
+import {Assistant} from "../../redux/ai/ai.types2";
 
-export function ActionsTable(props: any) {
-    const {selected, actions, handleClick, handleSelectAllClick} = props;
+export function AssistantsTable(props: any) {
+    const {selected, assistants, handleClick, handleSelectAllClick} = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
     const countTaskValues = (): number => {
-        return Object.keys(actions).length;
+        return Object.keys(assistants).length;
     };
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -29,11 +30,11 @@ export function ActionsTable(props: any) {
         setPage(newPage);
     };
 
-    if (actions === null || actions === undefined || actions.length === 0) {
+    if (assistants === null || assistants === undefined) {
         return (<div></div>)
     }
     const emptyRows =
-        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - actions.length) : 0;
+        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - assistants.length) : 0;
     if (emptyRows) {
         return (<div></div>)
     }
@@ -45,7 +46,7 @@ export function ActionsTable(props: any) {
     };
     return (
         <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 1000 }} aria-label="actions pagination table">
+            <Table sx={{ minWidth: 1000 }} aria-label="assistants pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#333'}} >
                         <TableCell padding="checkbox">
@@ -57,14 +58,14 @@ export function ActionsTable(props: any) {
                             />
                         </TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Action ID</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Assistant ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Model</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rowsPerPage > 0 && actions && actions.map((row: any, index: number) => (
-                        <ActionRow
+                    {rowsPerPage > 0 && assistants && assistants.map((row: Assistant, index: number) => (
+                        <AssistantsRow
                             key={index}
                             row={row}
                             index={index}
@@ -83,7 +84,7 @@ export function ActionsTable(props: any) {
                         <TablePagination
                             rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
                             colSpan={4}
-                            count={actions.length}
+                            count={assistants.length}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             SelectProps={{

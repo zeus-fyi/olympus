@@ -11,8 +11,8 @@ import {
     PostWorkflowsRequest,
     Retrieval,
     TaskModelInstructions,
-    TriggerAction
 } from "../redux/ai/ai.types";
+import {Assistant, TriggerAction} from "../redux/ai/ai.types2";
 
 class AiApiGateway {
     async searchRequest(params: AiSearchParams): Promise<any> {
@@ -53,6 +53,17 @@ class AiApiGateway {
     }
     async createOrUpdateRetrieval(params: Retrieval): Promise<any> {
         const url = `/v1/retrievals/ai`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        }
+        return await zeusApi.post(url, params, config)
+    }
+    async createOrUpdateAssistant(params: Assistant): Promise<any> {
+        const url = `/v1/assistants/ai`;
         const sessionID = inMemoryJWT.getToken();
         let config = {
             headers: {

@@ -62,6 +62,11 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get actions")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	assistants, err := artemis_orchestrations.SelectAssistants(c.Request().Context(), ou)
+	if err != nil {
+		log.Err(err).Msg("failed to get assistants")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	return c.JSON(http.StatusOK, AiWorkflowWrapper{
 		Workflows:      ojs.WorkflowTemplateSlice,
 		Tasks:          tasks,
@@ -70,11 +75,11 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		SearchIndexers: si,
 		TriggerActions: actions,
 		Evals:          evals,
+		Assistants:     assistants,
 	})
 }
 
 type AiWorkflowWrapper struct {
-	Actions        []artemis_orchestrations.Action                 `json:"actions"`
 	Workflows      []artemis_orchestrations.WorkflowTemplateValue  `json:"workflows"`
 	Runs           []artemis_orchestrations.OrchestrationsAnalysis `json:"runs"`
 	Tasks          []artemis_orchestrations.AITaskLibrary          `json:"tasks"`
@@ -82,6 +87,7 @@ type AiWorkflowWrapper struct {
 	SearchIndexers []hera_openai_dbmodels.SearchIndexerParams      `json:"searchIndexers"`
 	Evals          []artemis_orchestrations.EvalFn                 `json:"evalFns"`
 	TriggerActions []artemis_orchestrations.TriggerAction          `json:"triggerActions"`
+	Assistants     []artemis_orchestrations.AiAssistant            `json:"assistants"`
 }
 
 type PostWorkflowsRequest struct {

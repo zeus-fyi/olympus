@@ -12,13 +12,14 @@ import (
 )
 
 type TriggerAction struct {
-	TriggerID               int                      `db:"trigger_id" json:"triggerID,omitempty"`
-	OrgID                   int                      `db:"org_id" json:"orgID,omitempty"`
-	UserID                  int                      `db:"user_id" json:"userID,omitempty"`
-	TriggerName             string                   `db:"trigger_name" json:"triggerName"`
-	TriggerGroup            string                   `db:"trigger_group" json:"triggerGroup"`
-	EvalTriggerActions      []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions,omitempty"`
-	TriggerActionsApprovals []TriggerActionsApproval `json:"aiTriggerActionsApproval,omitempty"`
+	TriggerID                int                      `db:"trigger_id" json:"triggerID,omitempty"`
+	OrgID                    int                      `db:"org_id" json:"orgID,omitempty"`
+	UserID                   int                      `db:"user_id" json:"userID,omitempty"`
+	TriggerName              string                   `db:"trigger_name" json:"triggerName"`
+	TriggerGroup             string                   `db:"trigger_group" json:"triggerGroup"`
+	TriggerPlatformReference TriggerPlatformReference `db:"platforms_reference" json:"platformReference,omitempty"`
+	EvalTriggerActions       []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions,omitempty"`
+	TriggerActionsApprovals  []TriggerActionsApproval `json:"aiTriggerActionsApproval,omitempty"`
 }
 
 type TriggerActionsApproval struct {
@@ -29,6 +30,11 @@ type TriggerActionsApproval struct {
 	ApprovalState    string    `db:"approval_state" json:"approvalState"`
 	RequestSummary   string    `db:"request_summary" json:"requestSummary"`
 	UpdatedAt        time.Time `db:"updated_at" json:"updatedAt"`
+}
+
+type TriggerPlatformReference struct {
+	PlatformReferenceID   int    `db:"platforms_reference_id" json:"platformReferenceID"`
+	PlatformReferenceName string `db:"platforms_reference_name" json:"platformReferenceName"`
 }
 
 type EvalTriggerActions struct {

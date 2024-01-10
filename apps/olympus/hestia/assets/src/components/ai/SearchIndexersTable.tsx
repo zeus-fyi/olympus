@@ -10,6 +10,7 @@ import TablePaginationActions from "@mui/material/TablePagination/TablePaginatio
 import {aiApiGateway} from "../../gateway/ai";
 import {
     setAiTasks,
+    setAssistants,
     setEvalFns,
     setRetrievals,
     setSearchIndexers,
@@ -56,6 +57,7 @@ export function SearchIndexersTable(props: any) {
                     dispatch(setRetrievals(data.retrievals));
                     dispatch(setSearchIndexers(data.searchIndexers));
                     dispatch(setTriggerActions(data.triggerActions));
+                    dispatch(setAssistants(data.assistants));
                 } else {
                     console.log('Failed to get workflows', response);
                 }

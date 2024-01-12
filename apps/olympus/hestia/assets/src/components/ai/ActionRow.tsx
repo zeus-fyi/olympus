@@ -39,10 +39,10 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
                     {row.triggerID ? row.triggerID : 0}
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.triggerName}
+                    {row.triggerGroup}
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.triggerGroup}
+                    {row.triggerName}
                 </TableCell>
                 <TableCell component="th" scope="row">
                     {row.triggerEnv}

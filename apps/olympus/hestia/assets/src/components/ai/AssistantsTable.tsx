@@ -60,7 +60,9 @@ export function AssistantsTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Assistant ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Description</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Model</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>

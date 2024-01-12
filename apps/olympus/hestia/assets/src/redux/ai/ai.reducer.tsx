@@ -89,6 +89,7 @@ const initialState: AiState = {
         triggerName: '',
         triggerGroup: '',
         triggerEnv: '',
+        triggerActionsApprovals: [],
         evalTriggerActions: [],
     },
     triggerActions: [],

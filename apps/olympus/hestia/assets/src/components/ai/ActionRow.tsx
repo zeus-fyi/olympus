@@ -1,11 +1,16 @@
 import * as React from "react";
-import {TableRow} from "@mui/material";
+import {Collapse, TableRow} from "@mui/material";
 import TableCell from "@mui/material/TableCell";
 import IconButton from "@mui/material/IconButton";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Checkbox from "@mui/material/Checkbox";
 import {TriggerAction} from "../../redux/ai/ai.types2";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Table from "@mui/material/Table";
+import TableHead from "@mui/material/TableHead";
+import TableBody from "@mui/material/TableBody";
 
 export function ActionRow(props: { row: TriggerAction, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
@@ -43,45 +48,35 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
                     {row.triggerEnv}
                 </TableCell>
             </TableRow>
-            {/*<TableRow>*/}
-            {/*    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>*/}
-            {/*        <Collapse in={open} timeout="auto" unmountOnExit>*/}
-            {/*            <Box sx={{ margin: 1 }}>*/}
-            {/*                <Typography variant="h6" gutterBottom component="div">*/}
-            {/*                    Workflow Details*/}
-            {/*                </Typography>*/}
-            {/*                <Table size="small" aria-label="sub-analysis">*/}
-            {/*                    <TableHead>*/}
-            {/*                        <TableRow>*/}
-            {/*                            <TableCell>Task Name</TableCell>*/}
-            {/*                            <TableCell>Task Type</TableCell>*/}
-            {/*                            <TableCell>Cycle Count</TableCell>*/}
-            {/*                            <TableCell style={{ width: '15%'}}>Model</TableCell>*/}
-            {/*                            <TableCell style={{ width: '50%', whiteSpace: 'pre-wrap' }}>Prompt</TableCell>*/}
-            {/*                            <TableCell>Retrieval Name</TableCell>*/}
-            {/*                            <TableCell>Retrieval Platform</TableCell>*/}
-            {/*                        </TableRow>*/}
-            {/*                    </TableHead>*/}
-            {/*                    <TableBody>*/}
-            {/*                        {row.tasks && row.tasks.map((data, dataIndex) => (*/}
-            {/*                            <TableRow key={dataIndex}>*/}
-            {/*                                <TableCell>{data.taskName}</TableCell>*/}
-            {/*                                <TableCell>{data.taskType}</TableCell>*/}
-            {/*                                <TableCell>{data.cycleCount}</TableCell>*/}
-            {/*                                <TableCell style={{ width: '15%'}}>{data.model}</TableCell>*/}
-            {/*                                <TableCell style={{ width: '50%', whiteSpace: 'pre-wrap' }}>*/}
-            {/*                                    {data.prompt}*/}
-            {/*                                </TableCell>*/}
-            {/*                                <TableCell>{data.retrievalName ? data.retrievalName : 'analysis-aggregation'}</TableCell>*/}
-            {/*                                <TableCell>{data.retrievalPlatform ? data.retrievalPlatform : 'analysis-aggregation'}</TableCell>*/}
-            {/*                            </TableRow>*/}
-            {/*                        ))}*/}
-            {/*                    </TableBody>*/}
-            {/*                </Table>*/}
-            {/*            </Box>*/}
-            {/*        </Collapse>*/}
-            {/*    </TableCell>*/}
-            {/*</TableRow>*/}
+            <TableRow>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
+                    <Collapse in={open} timeout="auto" unmountOnExit>
+                        {row.evalTriggerActions && row.evalTriggerActions.length > 0 && (
+                            <Box sx={{ margin: 1 }}>
+                                <Typography variant="h6" gutterBottom component="div">
+                                    Eval Triggers Details
+                                </Typography>
+                                <Table size="small" aria-label="sub-analysis">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Eval State</TableCell>
+                                            <TableCell>Trigger On</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {row.evalTriggerActions && row.evalTriggerActions.map((data, dataIndex) => (
+                                                <TableRow key={dataIndex}>
+                                                    <TableCell>{data.evalTriggerState}</TableCell>
+                                                    <TableCell>{data.evalResultsTriggerOn}</TableCell>
+                                                </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </Box>
+                        )}
+                    </Collapse>
+                </TableCell>
+            </TableRow>
         </React.Fragment>
     );
 }

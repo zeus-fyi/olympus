@@ -33,7 +33,18 @@ export interface TriggerAction {
     triggerGroup: string;
     triggerEnv: string;
     // triggerPlatforms: TriggerPlatform[];
+    triggerActionsApprovals: TriggerActionsApproval[];
     evalTriggerActions: EvalActionTrigger[];
     // actionMetrics : ActionMetric[];
     // actionPlatformAccounts: ActionPlatformAccount[];
 }
+
+type TriggerActionsApproval = {
+    approvalID: number;
+    evalID: number;
+    triggerID: number;
+    workflowResultID: number;
+    approvalState: string;
+    requestSummary: string;
+    updatedAt: Date;
+};

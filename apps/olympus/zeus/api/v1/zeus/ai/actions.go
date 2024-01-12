@@ -18,10 +18,10 @@ func AiActionsHandler(c echo.Context) error {
 	if request == nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	return CreateOrUpdateAction(c, *request)
+	return CreateOrUpdateAction(c, request)
 }
 
-func CreateOrUpdateAction(c echo.Context, act artemis_orchestrations.TriggerAction) error {
+func CreateOrUpdateAction(c echo.Context, act *artemis_orchestrations.TriggerAction) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -34,7 +34,39 @@ func CreateOrUpdateAction(c echo.Context, act artemis_orchestrations.TriggerActi
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-	err := artemis_orchestrations.CreateOrUpdateTriggerAction(c.Request().Context(), ou, &act)
+	err := artemis_orchestrations.CreateOrUpdateTriggerAction(c.Request().Context(), ou, act)
+	if err != nil {
+		log.Err(err).Msg("failed to insert action")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, nil)
+}
+
+func AiActionsApprovalHandler(c echo.Context) error {
+	request := new(artemis_orchestrations.TriggerActionsApproval)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	if request == nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return UpdateActionApproval(c, request)
+}
+
+func UpdateActionApproval(c echo.Context, act *artemis_orchestrations.TriggerActionsApproval) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	if berr != nil {
+		log.Error().Err(berr).Msg("failed to check if user has billing method")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if !isBillingSetup {
+		return c.JSON(http.StatusPreconditionFailed, nil)
+	}
+	err := artemis_orchestrations.CreateOrUpdateTriggerActionApproval(c.Request().Context(), act)
 	if err != nil {
 		log.Err(err).Msg("failed to insert action")
 		return c.JSON(http.StatusInternalServerError, nil)

@@ -27,7 +27,7 @@ func (z *ZeusAiPlatformActivities) CreateOrUpdateTriggerActionToExec(ctx context
 		return nil
 	}
 	for _, tra := range act.TriggerActionsApprovals {
-		err := artemis_orchestrations.CreateOrUpdateTriggerActionApproval(ctx, tra)
+		err := artemis_orchestrations.CreateOrUpdateTriggerActionApproval(ctx, &tra)
 		if err != nil {
 			log.Err(err).Msg("CreateOrUpdateTriggerActionToExec: failed to create or update trigger action approval")
 			return err

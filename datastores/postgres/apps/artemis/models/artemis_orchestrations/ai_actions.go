@@ -2,6 +2,7 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -20,7 +21,7 @@ type TriggerAction struct {
 	TriggerEnv               string                   `db:"trigger_env" json:"triggerEnv"`
 	TriggerPlatformReference TriggerPlatformReference `db:"platforms_reference" json:"platformReference,omitempty"`
 	EvalTriggerActions       []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions,omitempty"`
-	TriggerActionsApprovals  []TriggerActionsApproval `json:"aiTriggerActionsApproval,omitempty"`
+	TriggerActionsApprovals  []TriggerActionsApproval `json:"triggerActionsApprovals,omitempty"`
 }
 
 type TriggerActionsApproval struct {
@@ -58,12 +59,29 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 		additionalQuery = "AND eval_id = $2"
 		params = append(params, evalID)
 	}
+	// Updated query to include TriggerActionsApproval
 	q.RawQuery = `
-        SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_env,
-               tae.eval_id, tae.eval_trigger_state, tae.eval_results_trigger_on
-        FROM public.ai_trigger_actions ta
-        JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
-        WHERE ta.org_id = $1` + additionalQuery + `;`
+			WITH TriggerActions AS (
+				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_env,
+					   tae.eval_id, tae.eval_trigger_state, tae.eval_results_trigger_on
+				FROM public.ai_trigger_actions ta
+				JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
+				WHERE ta.org_id = $1` + additionalQuery + `
+			)
+			SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_env,
+				   ta.eval_id, ta.eval_trigger_state, ta.eval_results_trigger_on,
+				   COALESCE(JSON_AGG(
+					   JSON_BUILD_OBJECT(
+						   'approval_id', ataa.approval_id,
+						   'approval_state', ataa.approval_state,
+						   'request_summary', ataa.request_summary,
+						   'updated_at', ataa.updated_at
+					   ) ORDER BY CASE WHEN ataa.approval_state = 'pending' THEN 0 ELSE 1 END, ataa.approval_id DESC
+				   ) FILTER (WHERE ataa.approval_id IS NOT NULL), '[]') AS approvals
+			FROM TriggerActions ta
+			LEFT JOIN public.ai_trigger_actions_approval ataa ON ta.trigger_id = ataa.trigger_id
+			GROUP BY ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_env,
+					 ta.eval_id, ta.eval_trigger_state, ta.eval_results_trigger_on;`
 
 	// Executing the query
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
@@ -76,7 +94,9 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 	// Iterating through the query results
 	for rows.Next() {
 		var triggerName, triggerGroup, triggerEnv string
+		var approvalsJSON string
 		var currentEvalTriggerActions EvalTriggerActions
+		var currentTriggerActionsApprovals []TriggerActionsApproval
 
 		err = rows.Scan(
 			&currentTriggerID,
@@ -86,22 +106,32 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 			&currentEvalTriggerActions.EvalID,
 			&currentEvalTriggerActions.EvalTriggerState,
 			&currentEvalTriggerActions.EvalResultsTriggerOn,
+			&approvalsJSON,
 		)
 		if err != nil {
 			log.Err(err).Msg("failed to scan trigger action")
 			return nil, err
 		}
 
+		// Parse the JSON string into TriggerActionsApproval slice
+		err = json.Unmarshal([]byte(approvalsJSON), &currentTriggerActionsApprovals)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal trigger actions approvals")
+			return nil, err
+		}
+
 		currentEvalTriggerActions.TriggerID = currentTriggerID
 		if ta, exists := triggerActionMap[currentTriggerID]; exists {
 			ta.EvalTriggerActions = append(ta.EvalTriggerActions, currentEvalTriggerActions)
+			ta.TriggerActionsApprovals = append(ta.TriggerActionsApprovals, currentTriggerActionsApprovals...)
 		} else {
 			triggerActionMap[currentTriggerID] = &TriggerAction{
-				TriggerID:          currentTriggerID,
-				TriggerName:        triggerName,
-				TriggerGroup:       triggerGroup,
-				TriggerEnv:         triggerEnv,
-				EvalTriggerActions: []EvalTriggerActions{currentEvalTriggerActions},
+				TriggerID:               currentTriggerID,
+				TriggerName:             triggerName,
+				TriggerGroup:            triggerGroup,
+				TriggerEnv:              triggerEnv,
+				EvalTriggerActions:      []EvalTriggerActions{currentEvalTriggerActions},
+				TriggerActionsApprovals: currentTriggerActionsApprovals,
 			}
 		}
 	}
@@ -160,7 +190,10 @@ func SelectTriggerActionApprovals(ctx context.Context, ou org_users.OrgUser, sta
 	return approvals, nil
 }
 
-func CreateOrUpdateTriggerActionApproval(ctx context.Context, approval TriggerActionsApproval) error {
+func CreateOrUpdateTriggerActionApproval(ctx context.Context, approval *TriggerActionsApproval) error {
+	if approval == nil {
+		return errors.New("approval cannot be nil")
+	}
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
         INSERT INTO public.ai_trigger_actions_approval (eval_id, trigger_id, workflow_result_id, approval_state, request_summary)

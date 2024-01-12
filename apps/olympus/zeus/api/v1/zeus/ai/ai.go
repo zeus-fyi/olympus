@@ -16,12 +16,17 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 	e.POST("/runs/ai/actions", RunsActionsRequestHandler)
 
 	e.POST("/assistants/ai", CreateOrUpdateAssistantRequestHandler)
-	e.POST("/actions/ai", AiActionsHandler)
+
 	e.POST("/tasks/ai", CreateOrUpdateTaskRequestHandler)
 	e.POST("/evals/ai", CreateOrUpdateEvalsRequestHandler)
 
 	e.POST("/retrievals/ai", CreateOrUpdateRetrievalRequestHandler)
+
+	e.POST("/actions/ai", AiActionsHandler)
+	e.PUT("/actions/ai", AiActionsApprovalHandler)
+
 	// destructive
 	e.DELETE("/workflows/ai", WorkflowsDeletionRequestHandler)
+
 	return e
 }

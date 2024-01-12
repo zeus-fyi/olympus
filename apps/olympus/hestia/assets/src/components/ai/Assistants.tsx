@@ -28,7 +28,8 @@ export function Assistants(props: any) {
                         Assistants
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Manage your OpenAI Assistants
+                        Manage OpenAI Assistants. You must have an OpenAI API key to use this feature. Store your API key
+                        in the Secrets Manager, setting secret name to "openai-api-key" and key="mockingbird", then value="API_SECRET_KEY".
                     </Typography>
                 </CardContent>
             </Box>

@@ -12,18 +12,18 @@ import (
 )
 
 type EvalFn struct {
-	EvalID             *int                  `json:"evalID,omitempty"`
-	OrgID              int                   `json:"orgID,omitempty"`
-	UserID             int                   `json:"userID,omitempty"`
-	EvalName           string                `json:"evalName"`
-	EvalType           string                `json:"evalType"`
-	EvalGroupName      string                `json:"evalGroupName"`
-	EvalModel          *string               `json:"evalModel,omitempty"`
-	EvalFormat         string                `json:"evalFormat"`
-	EvalMetrics        []EvalMetric          `json:"evalMetrics"`
-	EvalMetricMap      map[string]EvalMetric `json:"evalMetricMap,omitempty"`
-	EvalCycleCount     int                   `json:"evalCycleCount,omitempty"`
-	EvalTriggerActions []TriggerAction       `json:"triggerFunctions,omitempty"`
+	EvalID         *int                  `json:"evalID,omitempty"`
+	OrgID          int                   `json:"orgID,omitempty"`
+	UserID         int                   `json:"userID,omitempty"`
+	EvalName       string                `json:"evalName"`
+	EvalType       string                `json:"evalType"`
+	EvalGroupName  string                `json:"evalGroupName"`
+	EvalModel      *string               `json:"evalModel,omitempty"`
+	EvalFormat     string                `json:"evalFormat"`
+	EvalMetrics    []EvalMetric          `json:"evalMetrics"`
+	EvalMetricMap  map[string]EvalMetric `json:"evalMetricMap,omitempty"`
+	EvalCycleCount int                   `json:"evalCycleCount,omitempty"`
+	TriggerActions []TriggerAction       `json:"triggerFunctions,omitempty"`
 }
 
 type EvalMetric struct {
@@ -101,39 +101,31 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error 
 			return err
 		}
 	}
-	return tx.Commit(ctx)
-}
-
-func SelectEvalFnsByOrgID(ctx context.Context, ou org_users.OrgUser) ([]EvalFn, error) {
-	const query = `
-        SELECT eval_id, eval_name, eval_type, eval_group_name, eval_model, eval_format
-        FROM public.eval_fns
-        WHERE org_id = $1;`
-	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)
-	if err != nil {
-		log.Err(err).Msg("failed to select eval_fns")
-		return nil, err
-	}
-	defer rows.Close()
-	var evalFns []EvalFn
-	for rows.Next() {
-		var ef EvalFn
-		err = rows.Scan(&ef.EvalID, &ef.EvalName, &ef.EvalType, &ef.EvalGroupName, &ef.EvalModel, &ef.EvalFormat)
-		if err != nil {
-			log.Err(err).Msg("failed to select eval_fns")
-			return nil, err
+	for _, eta := range evalFn.TriggerActions {
+		for _, evTrig := range eta.EvalTriggerActions {
+			query := `
+            INSERT INTO public.ai_trigger_actions_evals(eval_id, trigger_id, eval_trigger_state, eval_results_trigger_on)
+            VALUES ($1, $2, $3, $4, $5)
+         	ON CONFLICT (eval_id, trigger_id)
+    		DO UPDATE SET
+				eval_trigger_state = EXCLUDED.eval_trigger_state,
+				eval_results_trigger_on = EXCLUDED.eval_results_trigger_on;` // Adjust as needed
+			_, err = tx.Exec(ctx, query, evalFn.EvalID, eta.TriggerID, eta, evTrig.EvalTriggerState, evTrig.EvalResultsTriggerOn)
+			if err != nil {
+				log.Err(err).Msg("failed to insert eval trigger action")
+				return err
+			}
 		}
-		evalFns = append(evalFns, ef)
 	}
-	if err = rows.Err(); err != nil {
-		log.Err(err).Msg("failed to select eval_fns")
-		return nil, err
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		log.Err(err).Msg("failed to commit transaction")
+		return err
 	}
-	return evalFns, nil
+	return nil
 }
-
 func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFnID int) ([]EvalFn, error) {
-
 	params := []interface{}{
 		ou.OrgID,
 	}
@@ -147,9 +139,13 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
     WITH eval_fns_with_metrics AS (
         SELECT f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format,
                m.eval_metric_id, m.eval_model_prompt, m.eval_metric_name, m.eval_metric_result, m.eval_comparison_boolean,
-               m.eval_comparison_number, m.eval_comparison_string, m.eval_metric_data_type, m.eval_operator, m.eval_state
+               m.eval_comparison_number, m.eval_comparison_string, m.eval_metric_data_type, m.eval_operator, m.eval_state,
+			   COALESCE(tab.trigger_id, 0), COALESCE(tab.trigger_name, ''), COALESCE(tab.trigger_group, ''),
+ 			   COALESCE(tab.trigger_env, ''), COALESCE(ta.eval_trigger_state, ''), COALESCE(ta.eval_results_trigger_on, '')
         FROM public.eval_fns f
         LEFT JOIN public.eval_metrics m ON f.eval_id = m.eval_id
+        LEFT JOIN public.ai_trigger_actions_evals ta ON f.eval_id = ta.eval_id
+		LEFT JOIN public.ai_trigger_actions tab ON ta.trigger_id = tab.trigger_id
         WHERE f.org_id = $1 ` + addOnQuery + `
     )
     SELECT * FROM eval_fns_with_metrics;`
@@ -161,17 +157,36 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 	}
 	defer rows.Close()
 
+	tm := make(map[int]map[int]*TriggerAction)
 	evalFnsMap := make(map[int]*EvalFn)
 	for rows.Next() {
 		var ef EvalFn
 		var em EvalMetric
+		var ta TriggerAction
+		var eta EvalTriggerActions
 		var evalID int
 		err = rows.Scan(&evalID, &ef.OrgID, &ef.UserID, &ef.EvalName, &ef.EvalType, &ef.EvalGroupName, &ef.EvalModel, &ef.EvalFormat,
 			&em.EvalMetricID, &em.EvalModelPrompt, &em.EvalMetricName, &em.EvalMetricResult, &em.EvalComparisonBoolean,
-			&em.EvalComparisonNumber, &em.EvalComparisonString, &em.EvalMetricDataType, &em.EvalOperator, &em.EvalState)
+			&em.EvalComparisonNumber, &em.EvalComparisonString, &em.EvalMetricDataType, &em.EvalOperator, &em.EvalState,
+			&ta.TriggerID, &ta.TriggerName, &ta.TriggerGroup,
+			&ta.TriggerEnv, &eta.EvalTriggerState, &eta.EvalResultsTriggerOn) // Scan for TriggerActions
 		if err != nil {
 			log.Err(err).Msg("failed to scan row")
 			return nil, err
+		}
+		eta.EvalID = evalID
+		eta.TriggerID = ta.TriggerID
+		if _, ok := tm[evalID]; !ok {
+			tm[evalID] = make(map[int]*TriggerAction)
+		}
+
+		if ta.TriggerID != 0 {
+			if _, tok := tm[evalID][ta.TriggerID]; !tok {
+				if eta.EvalTriggerState != "" && eta.EvalResultsTriggerOn != "" {
+					ta.EvalTriggerActions = append(ta.EvalTriggerActions, eta)
+				}
+				tm[evalID][ta.TriggerID] = &ta
+			}
 		}
 		if existingEvalFn, exists := evalFnsMap[evalID]; exists {
 			existingEvalFn.EvalMetrics = append(existingEvalFn.EvalMetrics, em)
@@ -184,15 +199,19 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			evalFnsMap[evalID] = &ef
 		}
 	}
-
 	var evalFns []EvalFn
 	for _, ef := range evalFnsMap {
 		if ef == nil {
 			continue
 		}
+		for _, efts := range tm[*ef.EvalID] {
+			if efts == nil {
+				continue
+			}
+			ef.TriggerActions = append(ef.TriggerActions, *efts)
+		}
 		evalFns = append(evalFns, *ef)
 	}
-
 	if err = rows.Err(); err != nil {
 		log.Err(err).Msg("error in row iteration")
 		return nil, err

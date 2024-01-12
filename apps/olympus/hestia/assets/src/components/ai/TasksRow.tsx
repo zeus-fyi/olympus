@@ -47,6 +47,7 @@ export function TasksRow(props: { row: TaskModelInstructions, index: number, han
                 <TableCell align="left">{row.taskGroup}</TableCell>
                 <TableCell align="left">{row.taskName}</TableCell>
                 <TableCell align="left">{row.model}</TableCell>
+                <TableCell align="left">{row.responseFormat}</TableCell>
                 <TableCell align="left"><Button  fullWidth variant="contained" onClick={handleEditClick}>Edit</Button></TableCell>
             </TableRow>
             <TableRow>

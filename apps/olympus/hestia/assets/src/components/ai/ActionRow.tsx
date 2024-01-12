@@ -39,9 +39,9 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
                 <TableCell component="th" scope="row">
                     {row.triggerGroup}
                 </TableCell>
-                {/*<TableCell component="th" scope="row">*/}
-                {/*    {row.actionType}*/}
-                {/*</TableCell>*/}
+                <TableCell component="th" scope="row">
+                    {row.triggerEnv}
+                </TableCell>
             </TableRow>
             {/*<TableRow>*/}
             {/*    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>*/}

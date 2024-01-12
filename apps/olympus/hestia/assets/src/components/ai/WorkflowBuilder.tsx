@@ -811,6 +811,12 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestActionStatusError('error')
                 return;
             }
+
+            if (action.triggerEnv.length <= 0) {
+                setRequestActionStatus('Trigger action environment must be set')
+                setRequestActionStatusError('error')
+                return;
+            }
             const response = await aiApiGateway.createOrUpdateAction(action);
             const statusCode = response.status;
             if (statusCode < 400) {
@@ -2239,13 +2245,9 @@ function WorkflowEngineBuilder(props: any) {
                                                                         triggerEnv: e.target.value
                                                                     }))}
                                                                 >
-                                                                    <MenuItem value="social-media-io">Social Media Platform I/O</MenuItem>
+                                                                    <MenuItem value="social-media-io-text">Social Media Platform I/O Text</MenuItem>
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
-                                                                    {/*<MenuItem value="reddit">Reddit</MenuItem>*/}
-                                                                    {/*<MenuItem value="twitter">Twitter</MenuItem>*/}
-                                                                    {/*<MenuItem value="discord">Discord</MenuItem>*/}
-                                                                    {/*<MenuItem value="telegram">Telegram</MenuItem>*/}
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
@@ -2292,10 +2294,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
-                                                        {/*<Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>*/}
-                                                        {/*    <Button fullWidth variant={"contained"} onClick={addActionMetricRow}>Add</Button>*/}
-                                                        {/*</Box>*/}
-                                                        </Stack>
+                                                    </Stack>
                                                     }
                                                     { !loading && action.evalResultsTriggerOn == 'metrics' &&
                                                         <Stack direction="row" >
@@ -2889,18 +2888,26 @@ function WorkflowEngineBuilder(props: any) {
                                     { !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 1 && !loading && !addRetrievalView && !addEvalsView && !addAssistantsView && !addTriggerActionsView &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                                <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
-                                                    <TextField
-                                                        label={`Analysis Model`}
-                                                        variant="outlined"
-                                                        value={editAnalysisTask.responseFormat}
-                                                        InputProps={{
-                                                            readOnly: true,
-                                                        }}
-                                                        fullWidth
-                                                    />
+                                                <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="response-format-label">Response Format</InputLabel>
+                                                        <Select
+                                                            labelId="response-format-label"
+                                                            id="response-format-label"
+                                                            value={editAnalysisTask.responseFormat}
+                                                            label="Response Format"
+                                                            onChange={(e) => dispatch(setEditAnalysisTask({
+                                                                ...editAnalysisTask,
+                                                                responseFormat: e.target.value
+                                                            }))}
+                                                        >
+                                                            <MenuItem value="text">text</MenuItem>
+                                                            <MenuItem value="social-media-io-text">social-media-io-text</MenuItem>
+                                                            {/*<MenuItem value="json">json</MenuItem>*/}
+                                                        </Select>
+                                                    </FormControl>
                                                 </Box>
-                                                <Box sx={{ width: '100%', mb: 4, mt: 4 }}>
+                                                <Box sx={{ width: '50%', mb: 4, mt: 4 }}>
                                                     <TextField
                                                         type="number"
                                                         label={`Max Tokens Analysis Model`}
@@ -2942,9 +2949,9 @@ function WorkflowEngineBuilder(props: any) {
                                                             ...editAggregateTask, // Spread the existing action properties
                                                             responseFormat: e.target.value // Update the actionName
                                                         }))}
-                                                        //onChange={handleUpdateAggregationModelTokenOverflowStrategy}
                                                     >
                                                         <MenuItem value="text">text</MenuItem>
+                                                        <MenuItem value="social-media-io-text">social-media-io-text</MenuItem>
                                                         {/*<MenuItem value="json">json</MenuItem>*/}
                                                     </Select>
                                                 </FormControl>

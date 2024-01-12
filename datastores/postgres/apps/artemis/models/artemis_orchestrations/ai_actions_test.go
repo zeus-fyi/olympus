@@ -11,7 +11,7 @@ func (s *OrchestrationsTestSuite) TestTriggerInserts() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	// Create a TriggerAction instance
+	// Create a TriggerActions instance
 	triggerAction := TriggerAction{
 		OrgID:        ou.OrgID,
 		UserID:       ou.UserID,
@@ -41,7 +41,7 @@ func (s *OrchestrationsTestSuite) TestTriggerActions() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	// Create a TriggerAction instance
+	// Create a TriggerActions instance
 	tap := TriggerActionsApproval{
 		EvalID:           1702959482164376000,
 		TriggerID:        1704670458596054016,

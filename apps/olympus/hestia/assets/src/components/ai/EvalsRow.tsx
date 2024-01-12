@@ -69,7 +69,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                 </TableHead>
                                 <TableBody>
                                     {row.evalMetrics && row.evalMetrics.map((data, dataIndex) => (
-                                        <TableRow key={dataIndex}>
+                                        <TableRow key={data.evalMetricName}>
                                             <TableCell>{data.evalMetricName}</TableCell>
                                             {/*<TableCell>{data.evalOperator}</TableCell>*/}
                                             {/*<TableCell>{data.evalState}</TableCell>*/}
@@ -79,6 +79,39 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                 </TableBody>
                             </Table>
                         </Box>
+                    </Collapse>
+                    <Collapse in={open} timeout="auto" unmountOnExit>
+                        {row.triggerFunctions && row.triggerFunctions.length > 0 && (
+                            <Box sx={{ margin: 1 }}>
+                            <Typography variant="h6" gutterBottom component="div">
+                                Eval Triggers Details
+                            </Typography>
+                            <Table size="small" aria-label="sub-analysis">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Trigger Name</TableCell>
+                                        <TableCell>Trigger Group</TableCell>
+                                        <TableCell>Eval State</TableCell>
+                                        <TableCell>Trigger On</TableCell>
+                                        <TableCell>Output Env</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {row.triggerFunctions && row.triggerFunctions.map((data, dataIndex) => (
+                                        data.evalTriggerActions && data.evalTriggerActions.map((evalTrigger, triggerIndex) => (
+                                            <TableRow key={'0' + '-' + dataIndex + '-' + triggerIndex}>
+                                                <TableCell>{data.triggerName}</TableCell>
+                                                <TableCell>{data.triggerGroup}</TableCell>
+                                                <TableCell>{evalTrigger.evalTriggerState}</TableCell>
+                                                <TableCell>{evalTrigger.evalResultsTriggerOn}</TableCell>
+                                                <TableCell>{data.triggerEnv}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Box>
+                            )}
                     </Collapse>
                 </TableCell>
             </TableRow>

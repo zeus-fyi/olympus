@@ -2,13 +2,16 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
+	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
 type GetWorkflowsRequest struct {
@@ -62,11 +65,29 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get actions")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	assistants, err := artemis_orchestrations.SelectAssistants(c.Request().Context(), ou)
-	if err != nil {
-		log.Err(err).Msg("failed to get assistants")
-		return c.JSON(http.StatusInternalServerError, nil)
+
+	var assistants []artemis_orchestrations.AiAssistant
+	sv, err := ai_platform_service_orchestrations.GetMockingBirdSecrets(c.Request().Context(), ou)
+	if err == nil && sv != nil && sv.ApiKey != "" {
+		oc := hera_openai.InitOrgHeraOpenAI(sv.ApiKey)
+		al, lerr := oc.ListAssistants(c.Request().Context(), nil, nil, nil, nil)
+		if lerr != nil {
+			log.Err(lerr).Msg("failed to get assistants")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		for _, a := range al.Assistants {
+			assistants = append(assistants, artemis_orchestrations.AiAssistant{
+				Assistant: a,
+			})
+		}
 	}
+	//
+	//assistants, err = artemis_orchestrations.SelectAssistants(c.Request().Context(), ou)
+	//if err != nil {
+	//	log.Err(err).Msg("failed to get assistants")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	sortWorkflowsByTemplateID(ojs.WorkflowTemplateSlice)
 	return c.JSON(http.StatusOK, AiWorkflowWrapper{
 		Workflows:      ojs.WorkflowTemplateSlice,
 		Tasks:          tasks,
@@ -76,6 +97,12 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		TriggerActions: actions,
 		Evals:          evals,
 		Assistants:     assistants,
+	})
+}
+
+func sortWorkflowsByTemplateID(workflows []artemis_orchestrations.WorkflowTemplateValue) {
+	sort.Slice(workflows, func(i, j int) bool {
+		return workflows[i].WorkflowTemplateID > workflows[j].WorkflowTemplateID
 	})
 }
 

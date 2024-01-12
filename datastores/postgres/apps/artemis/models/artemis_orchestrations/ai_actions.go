@@ -17,6 +17,7 @@ type TriggerAction struct {
 	UserID                   int                      `db:"user_id" json:"userID,omitempty"`
 	TriggerName              string                   `db:"trigger_name" json:"triggerName"`
 	TriggerGroup             string                   `db:"trigger_group" json:"triggerGroup"`
+	TriggerEnv               string                   `db:"trigger_env" json:"triggerEnv"`
 	TriggerPlatformReference TriggerPlatformReference `db:"platforms_reference" json:"platformReference,omitempty"`
 	EvalTriggerActions       []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions,omitempty"`
 	TriggerActionsApprovals  []TriggerActionsApproval `json:"aiTriggerActionsApproval,omitempty"`
@@ -58,7 +59,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 		params = append(params, evalID)
 	}
 	q.RawQuery = `
-        SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, 
+        SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_env,
                tae.eval_id, tae.eval_trigger_state, tae.eval_results_trigger_on
         FROM public.ai_trigger_actions ta
         JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
@@ -74,13 +75,14 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 
 	// Iterating through the query results
 	for rows.Next() {
-		var triggerName, triggerGroup string
+		var triggerName, triggerGroup, triggerEnv string
 		var currentEvalTriggerActions EvalTriggerActions
 
 		err = rows.Scan(
 			&currentTriggerID,
 			&triggerName,
 			&triggerGroup,
+			&triggerEnv,
 			&currentEvalTriggerActions.EvalID,
 			&currentEvalTriggerActions.EvalTriggerState,
 			&currentEvalTriggerActions.EvalResultsTriggerOn,
@@ -98,6 +100,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 				TriggerID:          currentTriggerID,
 				TriggerName:        triggerName,
 				TriggerGroup:       triggerGroup,
+				TriggerEnv:         triggerEnv,
 				EvalTriggerActions: []EvalTriggerActions{currentEvalTriggerActions},
 			}
 		}
@@ -199,15 +202,15 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 	// Insert or update the ai_trigger_actions
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
-        INSERT INTO public.ai_trigger_actions (org_id, user_id, trigger_name, trigger_group)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO public.ai_trigger_actions (org_id, user_id, trigger_name, trigger_group, trigger_env)
+        VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (org_id, trigger_name) 
         DO UPDATE SET 
             user_id = EXCLUDED.user_id,
             trigger_group = EXCLUDED.trigger_group
         RETURNING trigger_id;`
 
-	err = tx.QueryRow(ctx, q.RawQuery, ou.OrgID, ou.UserID, trigger.TriggerName, trigger.TriggerGroup).Scan(&trigger.TriggerID)
+	err = tx.QueryRow(ctx, q.RawQuery, ou.OrgID, ou.UserID, trigger.TriggerName, trigger.TriggerGroup, trigger.TriggerEnv).Scan(&trigger.TriggerID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert ai trigger action")
 		return err

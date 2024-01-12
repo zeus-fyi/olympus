@@ -21,6 +21,7 @@ func InsertAssistant(ctx context.Context, ou org_users.OrgUser, assistant openai
 // TODO, lookup users assistants via API key, then update the database if needed
 
 func SelectAssistants(ctx context.Context, ou org_users.OrgUser) ([]AiAssistant, error) {
+
 	tmp := []AiAssistant{
 		{
 			Assistant: openai.Assistant{

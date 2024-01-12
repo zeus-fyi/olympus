@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/cvcio/twitter"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
@@ -237,10 +238,10 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Conte
 		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
 		return nil, jerr
 	}
-	if retInst.WebFilters == nil || len(retInst.WebFilters.RoutingGroup) <= 0 {
+	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
 		return nil, jerr
 	}
-	ogr, rerr := iris_models.SelectOrgGroupRoutes(ctx, ou.OrgID, retInst.WebFilters.RoutingGroup)
+	ogr, rerr := iris_models.SelectOrgGroupRoutes(ctx, ou.OrgID, *retInst.WebFilters.RoutingGroup)
 	if rerr != nil {
 		log.Err(rerr).Msg("AiRetrievalTask: failed to select org routes")
 		return nil, rerr
@@ -256,7 +257,7 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
 		return nil, jerr
 	}
-	if retInst.WebFilters == nil || len(retInst.WebFilters.RoutingGroup) <= 0 {
+	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
 		return nil, jerr
 	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
@@ -266,7 +267,7 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 		Timeout:         1 * time.Minute,
 		StatusCode:      http.StatusOK,
 	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, fmt.Sprintf("web-%s", retInst.WebFilters.RoutingGroup))
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, fmt.Sprintf("web-%s", *retInst.WebFilters.RoutingGroup))
 	if err == nil && ps != nil {
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")
@@ -300,10 +301,11 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 	if wr.RawMessage != nil && wr.Body == nil {
 		value = fmt.Sprintf("%s", wr.RawMessage)
 	}
+
 	sres := &hera_search.SearchResult{
 		Source:      rr.Url,
 		Value:       value,
-		Group:       retInst.WebFilters.RoutingGroup,
+		Group:       aws.StringValue(retInst.WebFilters.RoutingGroup),
 		WebResponse: wr,
 	}
 

@@ -15,10 +15,7 @@ func (s *OrchestrationsTestSuite) TestInsertRetrieval() {
 		RetrievalName:  "r-2",
 		RetrievalGroup: "r-2",
 		RetrievalItemInstruction: RetrievalItemInstruction{
-			RetrievalPlatform:       "reddit",
-			RetrievalPrompt:         "",
-			RetrievalPlatformGroups: "",
-			RetrievalKeywords:       "",
+			RetrievalPlatform: "reddit",
 		},
 		Instructions: []byte(`{"key": "value"}`),
 	}

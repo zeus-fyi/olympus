@@ -77,8 +77,8 @@ func discordSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_temp
 		baseQuery += strings.Join(queryParts, " OR ") + `)`
 	}
 
-	if sp.Retrieval.DiscordFilters != nil && sp.Retrieval.DiscordFilters.CategoryName != "" {
-		categoryNames := strings.Split(sp.Retrieval.DiscordFilters.CategoryName, ",")
+	if sp.Retrieval.DiscordFilters != nil && *sp.Retrieval.DiscordFilters.CategoryName != "" {
+		categoryNames := strings.Split(*sp.Retrieval.DiscordFilters.CategoryName, ",")
 		baseQuery += ` AND (`
 		queryParts := make([]string, 0, len(categoryNames))
 		for _, filter := range categoryNames {

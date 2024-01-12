@@ -18,7 +18,6 @@ type RetrievalItem struct {
 	RetrievalName            string                            `json:"retrievalName"`         // Name of the retrieval
 	RetrievalGroup           string                            `json:"retrievalGroup"`        // Group of the retrieval
 	RetrievalItemInstruction `json:"retrievalItemInstruction"` // Instructions for the retrieval
-	Instructions             []byte                            `json:"instructions,omitempty"` // Instructions for the retrieval
 }
 type RetrievalItemInstruction struct {
 	RetrievalPlatform       string          `json:"retrievalPlatform"`
@@ -29,17 +28,17 @@ type RetrievalItemInstruction struct {
 	DiscordFilters          *DiscordFilters `json:"discordFilters,omitempty"`          // Discord filters for the retrieval
 	WebFilters              *WebFilters     `json:"webFilters,omitempty"`              // Web filters for the retrieval
 
-	Instructions string `json:"instructions,omitempty"` // Instructions for the retrieval
+	Instructions []byte `json:"instructions,omitempty"` // Instructions for the retrieval
 }
 
 type WebFilters struct {
-	RoutingGroup string `json:"routingGroup,omitempty"`
-	LbStrategy   string `json:"lbStrategy,omitempty"`
+	RoutingGroup *string `json:"routingGroup,omitempty"`
+	LbStrategy   *string `json:"lbStrategy,omitempty"`
 }
 type DiscordFilters struct {
-	CategoryTopic string `json:"categoryTopic,omitempty"`
-	CategoryName  string `json:"categoryName,omitempty"`
-	Category      string `json:"category,omitempty"`
+	CategoryTopic *string `json:"categoryTopic,omitempty"`
+	CategoryName  *string `json:"categoryName,omitempty"`
+	Category      *string `json:"category,omitempty"`
 }
 
 func SetInstructions(r *RetrievalItem) error {
@@ -105,17 +104,26 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalIte
 	for rows.Next() {
 		var retrieval RetrievalItem
 		var instructions pgtype.JSONB
-		err = rows.Scan(&retrieval.RetrievalID, &retrieval.RetrievalName, &retrieval.RetrievalGroup, &retrieval.RetrievalPlatform, &retrieval.Instructions)
+		err = rows.Scan(&retrieval.RetrievalID, &retrieval.RetrievalName, &retrieval.RetrievalGroup, &retrieval.RetrievalPlatform, &instructions)
 		if err != nil {
 			log.Err(err).Msg("failed to scan retrieval")
 			return nil, err
 		}
-		retrieval.Instructions = instructions.Bytes // Assuming Instructions field in RetrievalItem is of type []byte
-		err = json.Unmarshal(retrieval.Instructions, &retrieval.RetrievalItemInstruction)
-		if err != nil {
-			log.Err(err).Msg("failed to unmarshal retrieval instructions")
-			return nil, err
+
+		if instructions.Bytes != nil {
+			//copy(retrieval.Instructions, instructions.Bytes)
+			err = json.Unmarshal(instructions.Bytes, &retrieval.RetrievalItemInstruction)
+			if err != nil {
+				log.Err(err).Msg("failed to unmarshal retrieval instructions")
+				return nil, err
+			}
 		}
+		inst, rerr := json.Marshal(retrieval.RetrievalItemInstruction)
+		if rerr != nil {
+			log.Err(rerr).Msg("failed to marshal retrieval instructions")
+			return nil, rerr
+		}
+		retrieval.Instructions = inst
 		retrievals = append(retrievals, retrieval)
 	}
 	// Check for errors from iterating over rows

@@ -10,7 +10,6 @@ import {ActionApprovalsRow} from "./ActionApprovalsRow";
 
 export function ActionsApprovalsTable(props: any) {
     const {selected, actions, handleClick, handleSelectAllClick, handleActionApprovalRequest} = props;
-    console.log('actions', actions)
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);

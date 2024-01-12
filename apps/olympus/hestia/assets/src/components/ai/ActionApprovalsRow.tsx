@@ -59,9 +59,11 @@ export function ActionApprovalsRow(props: any) {
                                 <Table size="small" aria-label="sub-analysis">
                                     <TableHead>
                                         <TableRow>
+                                            <TableCell>Workflow Result ID</TableCell>
                                             <TableCell>Approval ID</TableCell>
                                             <TableCell>Approval State</TableCell>
                                             <TableCell>Request Summary</TableCell>
+                                            <TableCell>Updated At</TableCell>
                                             <TableCell></TableCell>
                                             <TableCell></TableCell>
                                             <TableCell></TableCell>
@@ -72,11 +74,13 @@ export function ActionApprovalsRow(props: any) {
                                             .filter((data: TriggerActionsApproval) => data.approvalState === 'pending')
                                             .map((data: TriggerActionsApproval, dataIndex: number) => (
                                                 <TableRow key={dataIndex}>
+                                                    <TableCell>{data.workflowResultID}</TableCell>
                                                     <TableCell>{data.approvalID}</TableCell>
-                                                    <TableCell>{data.approvalState === 'pending' ? 'Pending' : data.approvalState}</TableCell>
+                                                    <TableCell>{capitalizeFirstLetter(data.approvalState)}</TableCell>
                                                     <TableCell>{data.requestSummary}</TableCell>
-                                                    <TableCell align="left"><Button onClick={event => handleActionApprovalRequest(event,'approve', data)} fullWidth variant="contained" >{'Approve'}</Button></TableCell>
-                                                    <TableCell align="left"><Button onClick={event => handleActionApprovalRequest(event,'reject', data)} fullWidth variant="contained" >{'Reject'}</Button></TableCell>
+                                                    <TableCell>{new Date(data.updatedAt).toLocaleString()}</TableCell>
+                                                    <TableCell align="left"><Button onClick={event => handleActionApprovalRequest(event,'approved', data)} fullWidth variant="contained" >{'Approve'}</Button></TableCell>
+                                                    <TableCell align="left"><Button onClick={event => handleActionApprovalRequest(event,'rejected', data)} fullWidth variant="contained" >{'Reject'}</Button></TableCell>
                                                 </TableRow>
                                         ))}
                                     </TableBody>
@@ -97,12 +101,11 @@ export function ActionApprovalsRow(props: any) {
                                 <Table size="small" aria-label="sub-analysis">
                                     <TableHead>
                                         <TableRow>
+                                            <TableCell>Workflow Result ID</TableCell>
                                             <TableCell>Approval ID</TableCell>
                                             <TableCell>Final State</TableCell>
                                             <TableCell>Request Summary</TableCell>
-                                            <TableCell></TableCell>
-                                            <TableCell></TableCell>
-                                            <TableCell></TableCell>
+                                            <TableCell>Updated At</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -110,9 +113,11 @@ export function ActionApprovalsRow(props: any) {
                                             .filter((data: TriggerActionsApproval) => data.approvalState !== 'pending')
                                             .map((data: TriggerActionsApproval, dataIndex: number) => (
                                                 <TableRow key={dataIndex}>
+                                                    <TableCell>{data.workflowResultID}</TableCell>
                                                     <TableCell>{data.approvalID}</TableCell>
-                                                    <TableCell>{data.approvalState}</TableCell>
+                                                    <TableCell>{capitalizeFirstLetter(data.approvalState)}</TableCell>
                                                     <TableCell>{data.requestSummary}</TableCell>
+                                                    <TableCell>{new Date(data.updatedAt).toLocaleString()}</TableCell>
                                                 </TableRow>
                                             ))}
                                     </TableBody>
@@ -125,4 +130,9 @@ export function ActionApprovalsRow(props: any) {
         </React.Fragment>
     );
 }
-
+function capitalizeFirstLetter(v: string) {
+    if (v === null || v === undefined || v.length === 0) {
+        return v;
+    }
+    return v.charAt(0).toUpperCase() + v.slice(1);
+}

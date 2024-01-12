@@ -55,7 +55,7 @@ export function WorkflowAnalysisTable(props: any) {
                     dispatch(setAiTasks(data.tasks));
                     dispatch(setRetrievals(data.retrievals));
                     dispatch(setRuns(data.runs))
-                    dispatch(setTriggerActions(data.actions))
+                    dispatch(setTriggerActions(data.triggerActions))
                     dispatch(setEvalFns(data.evalFns))
                     dispatch(setAssistants(data.assistants))
                 } else {

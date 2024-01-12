@@ -20,7 +20,6 @@ export function RetrievalsRow(props: { row: Retrieval, index: number, handleClic
     const handleEditRetrieval = async (e: any, ret: Retrieval) => {
         dispatch(setRetrieval(ret))
     }
-    console.log('row', row)
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>

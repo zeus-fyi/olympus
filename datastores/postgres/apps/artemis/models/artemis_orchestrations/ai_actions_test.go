@@ -36,21 +36,21 @@ func (s *OrchestrationsTestSuite) TestTriggerInserts() {
 }
 
 func (s *OrchestrationsTestSuite) TestTriggerActions() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	// Create a TriggerActions instance
 	tap := TriggerActionsApproval{
-		EvalID:           1702959482164376000,
-		TriggerID:        1704670458596054016,
-		WorkflowResultID: 1701894366010212001,
+		EvalID:           1703922045959259000,
+		TriggerID:        1704854895051966000,
+		WorkflowResultID: 1702105254543321000,
 		ApprovalState:    "pending",
 	}
 
 	// Call the function to test
-	err := CreateOrUpdateTriggerActionApproval(ctx, tap)
+	err := CreateOrUpdateTriggerActionApproval(ctx, &tap)
 	s.Require().Nil(err)
 }
 

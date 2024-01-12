@@ -12,7 +12,7 @@ import {
     Retrieval,
     TaskModelInstructions,
 } from "../redux/ai/ai.types";
-import {Assistant, TriggerAction, TriggerActionsApproval} from "../redux/ai/ai.types2";
+import {Assistant, TriggerAction, TriggerActionApprovalPutRequest} from "../redux/ai/ai.types2";
 
 class AiApiGateway {
     async searchRequest(params: AiSearchParams): Promise<any> {
@@ -84,7 +84,7 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
-    async updateActionApproval(params: TriggerActionsApproval): Promise<any> {
+    async updateActionApproval(params: TriggerActionApprovalPutRequest): Promise<any> {
         const url = `/v1/actions/ai`;
         const sessionID = inMemoryJWT.getToken();
         let config = {

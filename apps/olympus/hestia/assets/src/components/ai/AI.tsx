@@ -65,7 +65,7 @@ import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {SearchIndexersTable} from "./SearchIndexersTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {ActionsApprovalsTable} from "./ActionsApprovalsTable";
-import {TriggerActionsApproval} from "../../redux/ai/ai.types2";
+import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../redux/ai/ai.types2";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -203,29 +203,28 @@ function AiWorkflowsDashboardContent(props: any) {
         }
     }
 
-    const handleActionApprovalRequest = async (event: any, actionApproval: string, approvalID: number) => {
-        if (approvalID === 0) {
+    const handleActionApprovalRequest = async (event: any, actionApproval: string, tap: TriggerActionsApproval) => {
+
+        if (tap.approvalID === 0) {
             return
         }
+
         if (actionApproval === '') {
+            setRequestActionApprovalStatus('Action approval status update request required.')
+            setRequestActionApprovalStatusError('success')
             return
         }
+
         try {
-            const params: TriggerActionsApproval = {
-                evalID: 0,
-                requestSummary: "",
-                triggerID: 0,
-                workflowResultID: 0,
-                approvalID: approvalID,
-                approvalState: actionApproval
-            }
             setIsLoading(true)
+            const params: TriggerActionApprovalPutRequest ={
+                RequestedState: actionApproval,
+                TriggerActionsApproval: tap
+            }
             const response = await aiApiGateway.updateActionApproval(params);
             const statusCode = response.status;
             if (statusCode < 400) {
-                const data = response.data;
-                dispatch(setSelectedRuns([]));
-                setRequestActionApprovalStatus('Action update submitted successfully')
+                setRequestActionApprovalStatus('Action approval update submitted successfully')
                 setRequestActionApprovalStatusError('success')
             }
         } catch (error: any) {

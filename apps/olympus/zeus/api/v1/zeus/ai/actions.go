@@ -42,8 +42,13 @@ func CreateOrUpdateAction(c echo.Context, act *artemis_orchestrations.TriggerAct
 	return c.JSON(http.StatusOK, nil)
 }
 
+type ActionApprovalRequest struct {
+	RequestedState         string                                        `json:"requestedState"`
+	TriggerActionsApproval artemis_orchestrations.TriggerActionsApproval `json:"triggerApproval"`
+}
+
 func AiActionsApprovalHandler(c echo.Context) error {
-	request := new(artemis_orchestrations.TriggerActionsApproval)
+	request := new(ActionApprovalRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
@@ -53,7 +58,7 @@ func AiActionsApprovalHandler(c echo.Context) error {
 	return UpdateActionApproval(c, request)
 }
 
-func UpdateActionApproval(c echo.Context, act *artemis_orchestrations.TriggerActionsApproval) error {
+func UpdateActionApproval(c echo.Context, act *ActionApprovalRequest) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -66,7 +71,10 @@ func UpdateActionApproval(c echo.Context, act *artemis_orchestrations.TriggerAct
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-	err := artemis_orchestrations.CreateOrUpdateTriggerActionApproval(c.Request().Context(), act)
+
+	aptr := &act.TriggerActionsApproval
+	aptr.ApprovalState = act.RequestedState
+	err := artemis_orchestrations.CreateOrUpdateTriggerActionApproval(c.Request().Context(), ou, aptr)
 	if err != nil {
 		log.Err(err).Msg("failed to insert action")
 		return c.JSON(http.StatusInternalServerError, nil)

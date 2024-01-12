@@ -39,6 +39,10 @@ export interface TriggerAction {
     // actionPlatformAccounts: ActionPlatformAccount[];
 }
 
+export interface TriggerActionApprovalPutRequest {
+    requestedState: string;
+    triggerApproval: TriggerActionsApproval;
+}
 export type TriggerActionsApproval = {
     approvalID: number;
     evalID: number;
@@ -46,5 +50,5 @@ export type TriggerActionsApproval = {
     workflowResultID: number;
     approvalState: string;
     requestSummary: string;
-    updatedAt?: Date;
+    updatedAt: Date;
 };

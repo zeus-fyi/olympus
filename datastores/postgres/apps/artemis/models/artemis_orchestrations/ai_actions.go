@@ -72,10 +72,13 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 				   ta.eval_id, ta.eval_trigger_state, ta.eval_results_trigger_on,
 				   COALESCE(JSON_AGG(
 					   JSON_BUILD_OBJECT(
-						   'approval_id', ataa.approval_id,
-						   'approval_state', ataa.approval_state,
-						   'request_summary', ataa.request_summary,
-						   'updated_at', ataa.updated_at
+						   'workflowResultID', ataa.workflow_result_id,
+ 					       'evalID', ataa.eval_id,
+						   'triggerID', ataa.trigger_id,
+						   'approvalID', ataa.approval_id,
+						   'approvalState', ataa.approval_state,
+						   'requestSummary', ataa.request_summary,
+						   'updatedAt', ataa.updated_at
 					   ) ORDER BY CASE WHEN ataa.approval_state = 'pending' THEN 0 ELSE 1 END, ataa.approval_id DESC
 				   ) FILTER (WHERE ataa.approval_id IS NOT NULL), '[]') AS approvals
 			FROM TriggerActions ta
@@ -190,13 +193,15 @@ func SelectTriggerActionApprovals(ctx context.Context, ou org_users.OrgUser, sta
 	return approvals, nil
 }
 
-func CreateOrUpdateTriggerActionApproval(ctx context.Context, approval *TriggerActionsApproval) error {
+// TODO, need to add orgID to the query
+
+func CreateOrUpdateTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, approval *TriggerActionsApproval) error {
 	if approval == nil {
 		return errors.New("approval cannot be nil")
 	}
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
-        INSERT INTO public.ai_trigger_actions_approval (eval_id, trigger_id, workflow_result_id, approval_state, request_summary)
+        INSERT INTO public.ai_trigger_actions_approval(eval_id, trigger_id, workflow_result_id, approval_state, request_summary)
         VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (eval_id, trigger_id, workflow_result_id)
         DO UPDATE SET 

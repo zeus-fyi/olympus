@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Checkbox, TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
+import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -10,6 +10,7 @@ import {ActionApprovalsRow} from "./ActionApprovalsRow";
 
 export function ActionsApprovalsTable(props: any) {
     const {selected, actions, handleClick, handleSelectAllClick, handleActionApprovalRequest} = props;
+    console.log('actions', actions)
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
@@ -48,19 +49,17 @@ export function ActionsApprovalsTable(props: any) {
             <Table sx={{ minWidth: 1000 }} aria-label="actions pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#333'}} >
-                        <TableCell padding="checkbox">
-                            <Checkbox
-                                color="primary"
-                                indeterminate={countTrueValues() > 0 && countTrueValues() < countTaskValues()}
-                                checked={(countTrueValues() === countTaskValues()) && (countTaskValues()> 0)}
-                                onChange={handleSelectAllClick}
-                            />
-                        </TableCell>
+                        {/*<TableCell padding="checkbox">*/}
+                        {/*    <Checkbox*/}
+                        {/*        color="primary"*/}
+                        {/*        indeterminate={countTrueValues() > 0 && countTrueValues() < countTaskValues()}*/}
+                        {/*        checked={(countTrueValues() === countTaskValues()) && (countTaskValues()> 0)}*/}
+                        {/*        onChange={handleSelectAllClick}*/}
+                        {/*    />*/}
+                        {/*</TableCell>*/}
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >ApprovalID</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >TriggerID</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Approval State</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Summary</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Trigger Name</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Trigger Group</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Trigger Env</TableCell>
                     </TableRow>
                 </TableHead>
@@ -71,8 +70,8 @@ export function ActionsApprovalsTable(props: any) {
                             key={index}
                             row={row}
                             index={index}
-                            handleClick={handleClick}
-                            checked={selected[index] || false}
+                            // handleClick={handleClick}
+                            // checked={selected[index] || false}
                         />
                     ))}
                     {emptyRows > 0 && (

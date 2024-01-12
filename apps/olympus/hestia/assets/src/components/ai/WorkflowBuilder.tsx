@@ -2058,7 +2058,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                     </Box>
-                                                { retrieval.retrievalItemInstruction !== undefined && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
+                                                { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
                                                     <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                         <TextField
                                                             fullWidth

@@ -9,10 +9,9 @@ import {
     PostSearchIndexerActionsRequest,
     PostWorkflowsActionRequest,
     PostWorkflowsRequest,
-    Retrieval,
     TaskModelInstructions,
 } from "../redux/ai/ai.types";
-import {Assistant, TriggerAction, TriggerActionApprovalPutRequest} from "../redux/ai/ai.types2";
+import {Assistant, Retrieval, TriggerAction, TriggerActionApprovalPutRequest} from "../redux/ai/ai.types2";
 
 class AiApiGateway {
     async searchRequest(params: AiSearchParams): Promise<any> {

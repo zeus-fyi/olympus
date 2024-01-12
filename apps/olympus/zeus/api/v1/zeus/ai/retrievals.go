@@ -3,6 +3,7 @@ package zeus_v1_ai
 import (
 	"net/http"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -29,7 +30,7 @@ func (t *CreateOrUpdateRetrievalRequest) CreateOrUpdateRetrieval(c echo.Context)
 	if ou.OrgID <= 0 || ou.UserID <= 0 {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	if t.RetrievalName == "" || t.RetrievalPlatform == "" || (t.RetrievalKeywords == "" && t.RetrievalPrompt == "" && t.RetrievalGroup == "") {
+	if t.RetrievalName == "" || t.RetrievalPlatform == "" || (aws.StringValue(t.RetrievalKeywords) == "" && aws.StringValue(t.RetrievalPrompt) == "" && t.RetrievalGroup == "") {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	err := artemis_orchestrations.InsertRetrieval(c.Request().Context(), ou, &t.RetrievalItem)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
@@ -102,8 +103,8 @@ func AiTelegramTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_searc
 			"You aren't overly formal or stiff in tone",
 		Name: fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 	}
-	if len(params.Retrieval.RetrievalPrompt) > 0 {
-		systemMessage.Content = params.Retrieval.RetrievalPrompt
+	if params.Retrieval.RetrievalPrompt != nil && len(*params.Retrieval.RetrievalPrompt) > 0 {
+		systemMessage.Content = *params.Retrieval.RetrievalPrompt
 	}
 	output := hera_search.FormatSearchMessagesForAi(msgs)
 
@@ -127,7 +128,7 @@ func AiTelegramTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_searc
 func AiAggregateTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_search.SearchResult, params hera_search.AiSearchParams) (openai.ChatCompletionResponse, error) {
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
-		Content: params.Retrieval.RetrievalPrompt,
+		Content: aws.StringValue(params.Retrieval.RetrievalPrompt),
 		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 	}
 	output := hera_search.FormatSearchMessagesForAi(msgs)

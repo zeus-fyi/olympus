@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -59,7 +60,7 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	hera_search.SortSearchResults(res)
-	if len(r.Retrieval.RetrievalPrompt) > 0 {
+	if len(aws.StringValue(r.Retrieval.RetrievalPrompt)) > 0 {
 		isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
 		if berr != nil {
 			log.Error().Err(berr).Msg("failed to check if user has billing method")

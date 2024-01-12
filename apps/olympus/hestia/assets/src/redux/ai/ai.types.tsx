@@ -1,4 +1,4 @@
-import {Assistant, EvalActionTrigger, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
+import {Assistant, EvalActionTrigger, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
 
 export interface AiState {
     assistants: Assistant[];
@@ -94,18 +94,6 @@ export interface EvalMetric {
     evalState: string;
 }
 
-export interface Retrieval {
-    retrievalID?: number;
-    retrievalName: string;
-    retrievalGroup: string;
-    retrievalPrompt: string;
-    retrievalKeywords: string;
-    retrievalPlatform: string;
-    retrievalUsernames: string;
-    retrievalPlatformGroups: string;
-    discordFilters?: DiscordFilters;
-    webFilters?: WebFilters;
-}
 // export interface ActionMetric {
 //     metricName: string;
 //     metricScoreThreshold: number;
@@ -320,17 +308,3 @@ export interface WebFilters {
 interface EvalFnMetricResults {
     map: { [key: string]: EvalMetricsResult };
 }
-
-/*
-export interface EvalFn {
-    evalID?: number;
-    evalTaskID?: number;
-    evalName: string;
-    evalType: string;
-    evalGroupName: string;
-    evalModel?: string;
-    evalFormat: string
-    cycleCount?: number;
-    evalMetrics: EvalMetric[];
-}
- */

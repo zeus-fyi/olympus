@@ -50,7 +50,7 @@ func discordSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_temp
 				  JOIN public.ai_discord_search_query sq ON sq.search_id = cm.search_id
 				  WHERE sq.org_id = $1`
 
-	if sp.Retrieval.RetrievalKeywords != "" {
+	if sp.Retrieval.RetrievalKeywords != nil && *sp.Retrieval.RetrievalKeywords != "" {
 		baseQuery += fmt.Sprintf(` AND content_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
 		args = append(args, sp.Retrieval.RetrievalKeywords)
 	}
@@ -61,8 +61,8 @@ func discordSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_temp
 		args = append(args, tsRangeStart, tsEnd)
 	}
 
-	if sp.Retrieval.RetrievalPlatformGroups != "" {
-		groupFilters := strings.Split(sp.Retrieval.RetrievalPlatformGroups, ",")
+	if sp.Retrieval.RetrievalPlatformGroups != nil && *sp.Retrieval.RetrievalPlatformGroups != "" {
+		groupFilters := strings.Split(*sp.Retrieval.RetrievalPlatformGroups, ",")
 		baseQuery += ` AND (`
 		queryParts := make([]string, 0, len(groupFilters))
 		for _, filter := range groupFilters {

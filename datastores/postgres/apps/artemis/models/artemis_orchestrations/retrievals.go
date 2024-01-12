@@ -14,24 +14,27 @@ import (
 )
 
 type RetrievalItem struct {
-	RetrievalID    *int   `json:"retrievalID,omitempty"` // ID of the retrieval
-	RetrievalName  string `json:"retrievalName"`         // Name of the retrieval
-	RetrievalGroup string `json:"retrievalGroup"`        // Group of the retrieval
-	RetrievalItemInstruction
-	Instructions []byte `json:"instructions,omitempty"` // Instructions for the retrieval
+	RetrievalID              *int                              `json:"retrievalID,omitempty"` // ID of the retrieval
+	RetrievalName            string                            `json:"retrievalName"`         // Name of the retrieval
+	RetrievalGroup           string                            `json:"retrievalGroup"`        // Group of the retrieval
+	RetrievalItemInstruction `json:"retrievalItemInstruction"` // Instructions for the retrieval
+	Instructions             []byte                            `json:"instructions,omitempty"` // Instructions for the retrieval
 }
 type RetrievalItemInstruction struct {
 	RetrievalPlatform       string          `json:"retrievalPlatform"`
-	RetrievalPrompt         string          `json:"retrievalPrompt,omitempty"`         // Prompt for the retrieval
-	RetrievalPlatformGroups string          `json:"retrievalPlatformGroups,omitempty"` // Platform groups for the retrieval
-	RetrievalKeywords       string          `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
-	RetrievalUsernames      string          `json:"retrievalUsernames,omitempty"`      // Usernames for the retrieval
+	RetrievalPrompt         *string         `json:"retrievalPrompt,omitempty"`         // Prompt for the retrieval
+	RetrievalPlatformGroups *string         `json:"retrievalPlatformGroups,omitempty"` // Platform groups for the retrieval
+	RetrievalKeywords       *string         `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
+	RetrievalUsernames      *string         `json:"retrievalUsernames,omitempty"`      // Usernames for the retrieval
 	DiscordFilters          *DiscordFilters `json:"discordFilters,omitempty"`          // Discord filters for the retrieval
 	WebFilters              *WebFilters     `json:"webFilters,omitempty"`              // Web filters for the retrieval
+
+	Instructions string `json:"instructions,omitempty"` // Instructions for the retrieval
 }
 
 type WebFilters struct {
 	RoutingGroup string `json:"routingGroup,omitempty"`
+	LbStrategy   string `json:"lbStrategy,omitempty"`
 }
 type DiscordFilters struct {
 	CategoryTopic string `json:"categoryTopic,omitempty"`
@@ -102,12 +105,17 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalIte
 	for rows.Next() {
 		var retrieval RetrievalItem
 		var instructions pgtype.JSONB
-		err = rows.Scan(&retrieval.RetrievalID, &retrieval.RetrievalName, &retrieval.RetrievalGroup, &retrieval.RetrievalPlatform, &instructions)
+		err = rows.Scan(&retrieval.RetrievalID, &retrieval.RetrievalName, &retrieval.RetrievalGroup, &retrieval.RetrievalPlatform, &retrieval.Instructions)
 		if err != nil {
 			log.Err(err).Msg("failed to scan retrieval")
 			return nil, err
 		}
 		retrieval.Instructions = instructions.Bytes // Assuming Instructions field in RetrievalItem is of type []byte
+		err = json.Unmarshal(retrieval.Instructions, &retrieval.RetrievalItemInstruction)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal retrieval instructions")
+			return nil, err
+		}
 		retrievals = append(retrievals, retrieval)
 	}
 	// Check for errors from iterating over rows

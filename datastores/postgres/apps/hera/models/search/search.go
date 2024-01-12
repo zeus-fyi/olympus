@@ -277,7 +277,7 @@ func telegramSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_tem
 				  FROM public.ai_incoming_telegram_msgs
 				  WHERE org_id = $1 `
 
-	if sp.Retrieval.RetrievalKeywords != "" {
+	if sp.Retrieval.RetrievalKeywords != nil && *sp.Retrieval.RetrievalKeywords != "" {
 		args = append(args, sp.Retrieval.RetrievalKeywords)
 		q.RawQuery += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args))
 	}
@@ -396,9 +396,27 @@ func SanitizeSearchParams(sp *AiSearchParams) {
 	if sp == nil {
 		return
 	}
-	sp.Retrieval.RetrievalUsernames = sanitizeUTF8(sp.Retrieval.RetrievalUsernames)
-	sp.Retrieval.RetrievalKeywords = sanitizeUTF8(sp.Retrieval.RetrievalKeywords)
-	sp.Retrieval.RetrievalPlatformGroups = sanitizeUTF8(sp.Retrieval.RetrievalPlatformGroups)
+
+	if sp.Retrieval.RetrievalUsernames != nil {
+		sp.Retrieval.RetrievalUsernames = new(string)
+		tmp := sanitizeUTF8(*sp.Retrieval.RetrievalUsernames)
+		sp.Retrieval.RetrievalUsernames = &tmp
+	}
+	if sp.Retrieval.RetrievalKeywords != nil {
+		sp.Retrieval.RetrievalKeywords = new(string)
+		tmp := sanitizeUTF8(*sp.Retrieval.RetrievalKeywords)
+		sp.Retrieval.RetrievalKeywords = &tmp
+	}
+	if sp.Retrieval.RetrievalPrompt != nil {
+		sp.Retrieval.RetrievalPrompt = new(string)
+		tmp := sanitizeUTF8(*sp.Retrieval.RetrievalPrompt)
+		sp.Retrieval.RetrievalPrompt = &tmp
+	}
+	if sp.Retrieval.RetrievalPlatformGroups != nil {
+		sp.Retrieval.RetrievalPlatformGroups = new(string)
+		tmp := sanitizeUTF8(*sp.Retrieval.RetrievalPlatformGroups)
+		sp.Retrieval.RetrievalPlatformGroups = &tmp
+	}
 }
 
 func InsertCompletionResponseChatGptFromSearch(ctx context.Context, ou org_users.OrgUser, response openai.ChatCompletionResponse, sp AiSearchParams, sr []SearchResult) error {

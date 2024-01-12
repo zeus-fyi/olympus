@@ -52,25 +52,18 @@ import {
     setAddTriggerActionsView,
     setAddTriggersToEvalFnView,
     setAnalysisRetrievalsMap,
-    setDiscordOptionsCategoryName,
     setEditAggregateTask,
     setEditAnalysisTask,
     setEval,
     setEvalMap,
     setEvalMetric,
     setEvalsTaskMap,
-    setRetrievalGroup,
-    setRetrievalKeywords,
-    setRetrievalName,
-    setRetrievalPlatform,
-    setRetrievalPlatformGroups,
-    setRetrievalPrompt,
+    setRetrieval,
     setRetrievals,
     setSelectedMainTabBuilder,
     setSelectedWorkflows,
     setTaskMap,
     setTriggerAction,
-    setWebRoutingGroup,
     setWorkflowBuilderTaskMap,
     setWorkflowGroupName,
     setWorkflowName,
@@ -82,7 +75,6 @@ import {
     EvalFn,
     EvalMetric,
     PostWorkflowsRequest,
-    Retrieval,
     TaskModelInstructions
 } from "../../redux/ai/ai.types";
 import {TasksTable} from "./TasksTable";
@@ -95,7 +87,7 @@ import {EvalsTable} from "./EvalsTable";
 import {Assistants} from "./Assistants";
 import {AssistantsTable} from "./AssistantsTable";
 import {ActionsTable} from "./ActionsTable";
-import {TriggerAction} from "../../redux/ai/ai.types2";
+import {Retrieval, TriggerAction} from "../../redux/ai/ai.types2";
 
 const mdTheme = createTheme();
 
@@ -690,12 +682,12 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestRetrievalStatusError('error')
                 return;
             }
-            if ((retrieval.retrievalKeywords.length <= 0 && retrieval.retrievalPrompt.length <= 0 && retrieval.retrievalGroup.length <= 0 ))  {
+            if ((retrieval.retrievalItemInstruction.retrievalKeywords && retrieval.retrievalItemInstruction.retrievalKeywords.length <= 0 && retrieval.retrievalItemInstruction.retrievalPrompt && retrieval.retrievalItemInstruction.retrievalPrompt.length <= 0 && retrieval.retrievalGroup.length <= 0 ))  {
                 setRequestRetrievalStatus('At least one of retrieval keywords or prompt or group must be set')
                 setRequestRetrievalStatusError('error')
                 return;
             }
-            if (retrieval.retrievalPlatform.length <= 0) {
+            if (retrieval.retrievalItemInstruction.retrievalPlatform.length <= 0) {
                 setRequestRetrievalStatus('Retrieval platform must be set')
                 setRequestRetrievalStatusError('error')
                 return;
@@ -1158,7 +1150,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             <TextField
                                                                 key={subIndex}
                                                                 label={`Platform`}
-                                                                value={ret?.retrievalPlatform || ''}
+                                                                value={ret?.retrievalItemInstruction.retrievalPlatform || ''}
                                                                 InputProps={{
                                                                     readOnly: true,
                                                                 }}
@@ -2025,7 +2017,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Retrieval Name"
                                                                 variant="outlined"
                                                                 value={retrieval.retrievalName}
-                                                                onChange={(e) => dispatch(setRetrievalName(e.target.value))}
+                                                                onChange={(event) => dispatch(setRetrieval({ ...retrieval, retrievalName: event.target.value }))}
                                                             />
                                                         </Box>
                                                     <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
@@ -2035,7 +2027,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             label="Retrieval Group"
                                                             variant="outlined"
                                                             value={retrieval.retrievalGroup}
-                                                            onChange={(e) => dispatch(setRetrievalGroup(e.target.value))}
+                                                            onChange={(event) => dispatch(setRetrieval({ ...retrieval, retrievalGroup: event.target.value }))}
                                                         />
                                                     </Box>
                                                     </Stack>
@@ -2045,9 +2037,18 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Select
                                                             labelId="platform-label"
                                                             id="platforms-input"
-                                                            value={retrieval.retrievalPlatform}
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform ? retrieval.retrievalItemInstruction.retrievalPlatform : ''}
                                                             label="Platform"
-                                                            onChange={(e) => dispatch(setRetrievalPlatform(e.target.value))}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        retrievalPlatform: e.target.value
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
                                                         >
                                                             <MenuItem value="web">Web</MenuItem>
                                                             <MenuItem value="reddit">Reddit</MenuItem>
@@ -2057,19 +2058,28 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                     </Box>
-                                                { retrieval.retrievalPlatform !== 'web' &&
+                                                { retrieval.retrievalItemInstruction !== undefined && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
                                                     <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                         <TextField
                                                             fullWidth
                                                             id="group-input"
                                                             label={"Platform Groups"}
                                                             variant="outlined"
-                                                            value={retrieval.retrievalPlatformGroups}
-                                                            onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
+                                                            value={retrieval.retrievalItemInstruction ? retrieval.retrievalItemInstruction.retrievalPlatformGroups : ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        retrievalPlatformGroups: e.target.value
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
                                                         />
                                                     </Box>
                                                 }
-                                                { retrieval.retrievalPlatform === 'web' &&
+                                                { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'web' &&
                                                     <div>
                                                         <Typography variant="h6" color="text.secondary">
                                                             Use a Load Balancer group for web data retrieval.
@@ -2082,24 +2092,78 @@ function WorkflowEngineBuilder(props: any) {
                                                                 labelId={`groupNameLabel`}
                                                                 id={`groupName`}
                                                                 name="groupName"
-                                                                value={retrieval.webFilters?.routingGroup || ''}
-                                                                onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
+                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.routingGroup ? retrieval.retrievalItemInstruction.webFilters.routingGroup : ''}
+                                                                onChange={(e) => {
+                                                                    const updatedRetrieval = {
+                                                                        ...retrieval,
+                                                                        retrievalItemInstruction: {
+                                                                            ...retrieval.retrievalItemInstruction,
+                                                                            webFilters: {
+                                                                                ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                routingGroup: e.target.value, // Correctly update the routingGroup field
+                                                                            }
+                                                                        }
+                                                                    };
+                                                                    dispatch(setRetrieval(updatedRetrieval));
+                                                                }}
                                                                 label="Routing Group"
                                                             >
                                                                 {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
                                                             </Select>
                                                         </FormControl>
+
+                                                        <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
+                                                            <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                                                Load Balancing
+                                                            </InputLabel>
+                                                            <Select
+                                                                labelId={`lbStrategy`}
+                                                                id={`lbStrategy`}
+                                                                name="lbStrategy"
+                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.lbStrategy ? retrieval.retrievalItemInstruction.webFilters.lbStrategy : 'round-robin'}
+                                                                onChange={(e) => {
+                                                                    const updatedRetrieval = {
+                                                                        ...retrieval,
+                                                                        retrievalItemInstruction: {
+                                                                            ...retrieval.retrievalItemInstruction,
+                                                                            webFilters: {
+                                                                                ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                lbStrategy: e.target.value, // Correctly update the routingGroup field
+                                                                            }
+                                                                        }
+                                                                    };
+                                                                    dispatch(setRetrieval(updatedRetrieval));
+                                                                }}
+                                                                label="Load Balancing"
+                                                            >
+                                                                <MenuItem value="round-robin">Round Robin</MenuItem>
+                                                                <MenuItem value="poll-table">Poll Table</MenuItem>
+                                                            </Select>
+                                                        </FormControl>
+
                                                     </div>
                                                 }
-                                                    { retrieval.retrievalPlatform === 'discord' &&
+                                                    { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'discord' &&
                                                         <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                             <TextField
                                                                 fullWidth
                                                                 id="category-name-input"
                                                                 label="Discord Category Name"
                                                                 variant="outlined"
-                                                                value={retrieval.discordFilters?.categoryName || ''}
-                                                                onChange={(e) => dispatch(setDiscordOptionsCategoryName(e.target.value))}
+                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.discordFilters ? retrieval.retrievalItemInstruction.discordFilters?.categoryName : ''}
+                                                                onChange={(e) => {
+                                                                    const updatedRetrieval = {
+                                                                        ...retrieval,
+                                                                        retrievalItemInstruction: {
+                                                                            ...retrieval.retrievalItemInstruction,
+                                                                            discordFilters: {
+                                                                                ...retrieval.retrievalItemInstruction.discordFilters,
+                                                                                categoryName: e.target.value, // Correctly update the routingGroup field
+                                                                            }
+                                                                        }
+                                                                    };
+                                                                    dispatch(setRetrieval(updatedRetrieval));
+                                                                }}
                                                             />
                                                     </Box>
                                                     }
@@ -2116,12 +2180,12 @@ function WorkflowEngineBuilder(props: any) {
                                                 {/*    </Box>*/}
                                                 {/*}*/}
 
-                                                { retrieval.retrievalPlatform === 'web' &&
+                                                {  retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'web' &&
                                                     <Typography variant="h5" color="text.secondary">
                                                         Describe how the AI should extract data from the website address.
                                                     </Typography>
                                                 }
-                                                { retrieval.retrievalPlatform !== 'web' &&
+                                                { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
                                                     <Typography variant="h5" color="text.secondary">
                                                         Describe what you're looking for, and the AI will generate a list of keywords to search for after it runs for the first time.
                                                         You can preview, edit, or give the AI more information to refine the search.
@@ -2130,8 +2194,17 @@ function WorkflowEngineBuilder(props: any) {
                                                     <Box  sx={{ mb: 2, mt: 2 }}>
                                                         <TextareaAutosize
                                                             minRows={18}
-                                                            value={retrieval.retrievalPrompt}
-                                                            onChange={(e) => dispatch(setRetrievalPrompt(e.target.value))}
+                                                            value={retrieval.retrievalItemInstruction?.retrievalPrompt || ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        retrievalPrompt: e.target.value
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
                                                             style={{ resize: "both", width: "100%" }}
                                                         />
                                                     </Box>
@@ -2144,8 +2217,17 @@ function WorkflowEngineBuilder(props: any) {
                                                             id="keywords-input"
                                                             label="Keywords"
                                                             variant="outlined"
-                                                            value={retrieval.retrievalKeywords}
-                                                            onChange={(e) => dispatch(setRetrievalKeywords(e.target.value))}
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        retrievalKeywords: e.target.value
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
                                                         />
                                                     </Box>
                                                     {requestRetrievalStatus != '' && (

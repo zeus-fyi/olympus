@@ -38,9 +38,8 @@ import {AppBar, Drawer} from "../dashboard/Dashboard";
 import {RootState} from "../../redux/store";
 import {
     setDiscordOptionsCategoryName,
+    setRetrieval,
     setRetrievalKeywords,
-    setRetrievalPlatform,
-    setRetrievalPlatformGroups,
     setRetrievalPrompt,
     setSearchIndexer,
     setSearchResults,
@@ -526,9 +525,18 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     <Select
                                                         labelId="platform-label"
                                                         id="platforms-input"
-                                                        value={retrieval.retrievalPlatform}
+                                                        value={retrieval.retrievalItemInstruction?.retrievalPlatform}
                                                         label="Platform"
-                                                        onChange={(e) => dispatch(setRetrievalPlatform(e.target.value))}
+                                                        onChange={(e) => {
+                                                            const updatedRetrieval = {
+                                                                ...retrieval,
+                                                                retrievalItemInstruction: {
+                                                                    ...retrieval.retrievalItemInstruction,
+                                                                    retrievalPlatform: e.target.value
+                                                                }
+                                                            };
+                                                            dispatch(setRetrieval(updatedRetrieval));
+                                                        }}
                                                     >
                                                         <MenuItem value="web">Web</MenuItem>
                                                         <MenuItem value="reddit">Reddit</MenuItem>
@@ -539,19 +547,28 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 </FormControl>
                                             </Box>
 
-                                            { retrieval.retrievalPlatform !== 'web' &&
+                                            { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
                                                 <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                     <TextField
                                                         fullWidth
                                                         id="group-input"
                                                         label={"Platform Groups"}
                                                         variant="outlined"
-                                                        value={retrieval.retrievalPlatformGroups}
-                                                        onChange={(e) => dispatch(setRetrievalPlatformGroups(e.target.value))}
+                                                        value={retrieval.retrievalItemInstruction.retrievalPlatformGroups}
+                                                        onChange={(e) => {
+                                                            const updatedRetrieval = {
+                                                                ...retrieval,
+                                                                retrievalItemInstruction: {
+                                                                    ...retrieval.retrievalItemInstruction,
+                                                                    retrievalPlatformGroups: e.target.value
+                                                                }
+                                                            };
+                                                            dispatch(setRetrieval(updatedRetrieval));
+                                                        }}
                                                     />
                                                 </Box>
                                             }
-                                            { retrieval.retrievalPlatform === 'web' &&
+                                            { retrieval.retrievalItemInstruction.retrievalPlatform === 'web' &&
                                                 <div>
                                                     <Typography variant="h6" color="text.secondary">
                                                         Use a Load Balancer group for web data retrieval.
@@ -564,23 +581,50 @@ function AiWorkflowsDashboardContent(props: any) {
                                                         labelId={`groupNameLabel`}
                                                         id={`groupName`}
                                                         name="groupName"
-                                                        value={retrieval.webFilters?.routingGroup || ''}
+                                                        value={retrieval.retrievalItemInstruction.webFilters?.routingGroup || ''}
                                                         onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
                                                         label="Routing Group"
                                                     >
                                                         {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
                                                     </Select>
                                                     </FormControl>
+                                                    <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
+                                                        <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                                            Lb
+                                                        </InputLabel>
+                                                        <Select
+                                                            labelId="groupNameLabel"
+                                                            id="groupName"
+                                                            name="groupName"
+                                                            value={retrieval.retrievalItemInstruction.webFilters?.lbStrategy || ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        webFilters: {
+                                                                            ...retrieval.retrievalItemInstruction.webFilters,
+                                                                            lbStrategy: e.target.value // Correctly update the lbStrategy field
+                                                                        }
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                            label="Routing Group"
+                                                        >
+                                                            {/* Options here */}
+                                                        </Select>
+                                                    </FormControl>
                                                 </div>
                                             }
-                                            { retrieval.retrievalPlatform === 'discord' &&
+                                            { retrieval.retrievalItemInstruction.retrievalPlatform === 'discord' &&
                                                 <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                     <TextField
                                                         fullWidth
                                                         id="category-name-input"
                                                         label="Discord Category Name"
                                                         variant="outlined"
-                                                        value={retrieval.discordFilters?.categoryName || ''}
+                                                        value={retrieval.retrievalItemInstruction.discordFilters?.categoryName || ''}
                                                         onChange={(e) => dispatch(setDiscordOptionsCategoryName(e.target.value))}
                                                     />
                                                 </Box>
@@ -606,7 +650,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     id="keywords-input"
                                                     label="Keywords"
                                                     variant="outlined"
-                                                    value={retrieval.retrievalKeywords}
+                                                    value={retrieval.retrievalItemInstruction.retrievalKeywords}
                                                     onChange={(e) => dispatch(setRetrievalKeywords(e.target.value))}
                                                 />
                                             </Box>
@@ -616,7 +660,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                             <Box  sx={{ mb: 2, mt: 2 }}>
                                                 <TextareaAutosize
                                                     minRows={18}
-                                                    value={retrieval.retrievalPrompt}
+                                                    value={retrieval.retrievalItemInstruction.retrievalPrompt}
                                                     onChange={(e) => dispatch(setRetrievalPrompt(e.target.value))}
                                                     style={{ resize: "both", width: "100%" }}
                                                 />

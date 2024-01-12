@@ -8,11 +8,19 @@ import Checkbox from "@mui/material/Checkbox";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
+import Button from "@mui/material/Button";
+import {setRetrieval} from "../../redux/ai/ai.reducer";
+import {Retrieval} from "../../redux/ai/ai.types2";
+import {useDispatch} from "react-redux";
 
-export function RetrievalsRow(props: { row: ReturnType<typeof createRetrievalDetailsData>, index: number, handleClick: any, checked: boolean}) {
+export function RetrievalsRow(props: { row: Retrieval, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
-
+    const dispatch = useDispatch();
+    const handleEditRetrieval = async (e: any, ret: Retrieval) => {
+        dispatch(setRetrieval(ret))
+    }
+    console.log('row', row)
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -32,10 +40,19 @@ export function RetrievalsRow(props: { row: ReturnType<typeof createRetrievalDet
                         color="primary"
                     />
                 </TableCell>
-                <TableCell align="left">{row.retrievalID}</TableCell>
+                <TableCell align="left">{row.retrievalID? row.retrievalID : 0}</TableCell>
                 <TableCell align="left">{row.retrievalGroup}</TableCell>
                 <TableCell align="left">{row.retrievalName}</TableCell>
-                <TableCell align="left">{row.retrievalPlatform}</TableCell>
+                <TableCell align="left">{row.retrievalItemInstruction && row.retrievalItemInstruction.retrievalPlatform ? row.retrievalItemInstruction.retrievalPlatform  :''}</TableCell>
+                <TableCell align="left">
+                    <Button
+                        fullWidth
+                        onClick={e => handleEditRetrieval(e, row)}
+                        variant="contained"
+                    >
+                        {'Edit'}
+                    </Button>
+                </TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
@@ -48,7 +65,9 @@ export function RetrievalsRow(props: { row: ReturnType<typeof createRetrievalDet
                                 <TableBody>
                                     <TableRow >
                                         <TableCell component="th" scope="row" style={{ width: '50%', whiteSpace: 'pre-wrap' }}>
-                                                {prettyPrintJSONFromBytes(row.instructions)}
+                                                {
+                                                    row.retrievalItemInstruction && row.retrievalItemInstruction.instructions && prettyPrintJSONFromBytes(row.retrievalItemInstruction.instructions)
+                                                }
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>
@@ -75,7 +94,10 @@ export const prettyPrintJSON = (json: any): string => {
     }
 };
 
-export const prettyPrintJSONFromBytes = (byteArrayString: string): string => {
+export const prettyPrintJSONFromBytes = (byteArrayString: string | undefined): string => {
+    if (byteArrayString === undefined || byteArrayString === '') {
+        return '';
+    }
     try {
         // Assuming byteArrayString is a base64 encoded string of the byte array
         const decodedString = atob(byteArrayString);
@@ -86,19 +108,3 @@ export const prettyPrintJSONFromBytes = (byteArrayString: string): string => {
         return byteArrayString; // Fallback to original string in case of error
     }
 };
-export function createRetrievalDetailsData(
-    retrievalID: number,
-    retrievalName: string,
-    retrievalGroup: string = 'default',
-    retrievalPlatform: string,
-    instructions: string = '',
-
-) {
-    return {
-        retrievalID,
-        retrievalName,
-        retrievalGroup,
-        retrievalPlatform,
-        instructions,
-    };
-}

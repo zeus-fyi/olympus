@@ -7,8 +7,9 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {RetrievalsRow} from "./RetrievalsRow";
+import {Retrieval} from "../../redux/ai/ai.types2";
 
-export function RetrievalsTable(props: any) {
+export function RetrievalsTable(props: { retrievals: Retrieval[], handleSelectAllClick: any, handleClick: any, selected: any}) {
     const {selected, retrievals, handleClick, handleSelectAllClick} = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
@@ -61,10 +62,11 @@ export function RetrievalsTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Platform</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rowsPerPage > 0 && retrievals && retrievals.map((row: any, index: number) => (
+                    {rowsPerPage > 0 && retrievals && retrievals.map((row: Retrieval, index: number) => (
                         <RetrievalsRow
                             key={index}
                             row={row}

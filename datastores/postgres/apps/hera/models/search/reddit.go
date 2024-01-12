@@ -201,8 +201,8 @@ func redditSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templ
 				  JOIN ai_reddit_search_query sq ON sq.search_id = ai_reddit_incoming_posts.search_id
 				  WHERE sq.org_id = $1
 				 `
-	if sp.Retrieval.RetrievalKeywords != "" {
-		args = append(args, sp.Retrieval.RetrievalKeywords)
+	if sp.Retrieval.RetrievalKeywords != nil && *sp.Retrieval.RetrievalKeywords != "" {
+		args = append(args, *sp.Retrieval.RetrievalKeywords)
 		baseQuery += fmt.Sprintf(" AND (body_tsvector @@ to_tsquery('english', $%d) OR title_tsvector @@ to_tsquery('english', $%d))", len(args), len(args))
 	}
 

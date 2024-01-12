@@ -30,7 +30,7 @@ func twitterSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_temp
 		   JOIN ai_twitter_search_query sq ON sq.search_id = ai_incoming_tweets.search_id
 		   WHERE sq.org_id = $1
 		   `
-	if sp.Retrieval.RetrievalKeywords != "" {
+	if sp.Retrieval.RetrievalKeywords != nil && *sp.Retrieval.RetrievalKeywords != "" {
 		bq += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
 		args = append(args, sp.Retrieval.RetrievalKeywords)
 	}

@@ -5,14 +5,13 @@ import {
     EvalMetric,
     OrchestrationsAnalysis,
     PlatformSecretReference,
-    Retrieval,
     SearchIndexerParams,
     TaskModelInstructions,
     UpdateEvalMapPayload,
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
 } from "./ai.types";
-import {Assistant, EvalActionTrigger, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
+import {Assistant, EvalActionTrigger, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
 
 const initialState: AiState = {
     assistant: {
@@ -52,13 +51,22 @@ const initialState: AiState = {
     retrieval: {
         retrievalName: '',
         retrievalGroup: '',
-        retrievalKeywords: '',
-        retrievalPlatform: '',
-        retrievalUsernames: '',
-        retrievalPrompt: '',
-        retrievalPlatformGroups: '',
-        discordFilters: {
-            categoryName: '',
+        retrievalItemInstruction: {
+            retrievalPlatform: '',
+            retrievalPrompt: '',
+            retrievalPlatformGroups: '',
+            retrievalKeywords: '',
+            retrievalUsernames: '',
+            discordFilters: {
+                categoryTopic: '',
+                categoryName: '',
+                category: '',
+            },
+            webFilters: {
+                routingGroup: '',
+                lbStrategy: '',
+            },
+            instructions: '',
         }
     },
     retrievals: [],
@@ -127,17 +135,27 @@ const initialState: AiState = {
     },
     editAggregateTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '',
         tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text'},
-    editRetrieval: {
+    editRetrieval:  {
+        retrievalID: undefined, // Optional field set to undefined
         retrievalName: '',
         retrievalGroup: '',
-        retrievalKeywords: '',
-        retrievalPlatform: '',
-        retrievalUsernames: '',
-        retrievalPrompt: '',
-        retrievalPlatformGroups: '',
-        discordFilters: {
-            categoryName: '',
-        }
+        retrievalItemInstruction: {
+            retrievalPlatform: '',
+            retrievalPrompt: '', // Optional field set to empty string
+            retrievalPlatformGroups: '', // Optional field set to empty string
+            retrievalKeywords: '', // Optional field set to empty string
+            retrievalUsernames: '',
+            discordFilters: {
+                categoryTopic: '', // Optional field set to empty string
+                categoryName: '',
+                category: '', // Optional field set to empty string
+            },
+            webFilters: {
+                routingGroup: '', // Optional field set to empty string
+                lbStrategy: '', // Optional field set to empty string
+            },
+            instructions: '', // Optional field set to empty string
+        },
     },
     editEvalFn: {
         evalName: '',
@@ -172,8 +190,8 @@ const aiSlice = createSlice({
         setEditAggregateTask: (state, action: PayloadAction<TaskModelInstructions>) => {
             state.editAggregateTask = action.payload;
         },
-        setEditRetrieval: (state, action: PayloadAction<Retrieval>) => {
-            state.editRetrieval = action.payload;
+        setRetrieval: (state, action: PayloadAction<Retrieval>) => {
+            state.retrieval = action.payload;
         },
         setEditEvalFn: (state, action: PayloadAction<EvalFn>) => {
             state.editEvalFn = action.payload;
@@ -230,12 +248,13 @@ const aiSlice = createSlice({
             state.selectedSearchIndexers = action.payload;
         },
         setWebRoutingGroup: (state, action: PayloadAction<string>) => {
-            if (!state.retrieval.webFilters) {
-                state.retrieval.webFilters = {
+            if (!state.retrieval.retrievalItemInstruction.webFilters) {
+                state.retrieval.retrievalItemInstruction.webFilters = {
                     routingGroup: '',
+                    lbStrategy: '',
                 }
             }
-            state.retrieval.webFilters.routingGroup = action.payload;
+            state.retrieval.retrievalItemInstruction.webFilters.routingGroup = action.payload;
         },
         setRuns: (state, action: PayloadAction<OrchestrationsAnalysis[]>) => {
             state.runs = action.payload;
@@ -256,30 +275,27 @@ const aiSlice = createSlice({
             state.retrieval.retrievalName = action.payload;
         },
         setRetrievalPlatformGroups: (state, action: PayloadAction<string>) => {
-            state.retrieval.retrievalPlatformGroups = action.payload;
+            state.retrieval.retrievalItemInstruction.retrievalPlatformGroups = action.payload;
         },
         setDiscordOptionsCategoryName: (state, action: PayloadAction<string>) => {
-            if (!state.retrieval.discordFilters) {
-                state.retrieval.discordFilters = {
+            if (!state.retrieval.retrievalItemInstruction.discordFilters) {
+                state.retrieval.retrievalItemInstruction.discordFilters = {
                     categoryName: '',
                 }
             }
-            state.retrieval.discordFilters.categoryName = action.payload;
+            state.retrieval.retrievalItemInstruction.discordFilters.categoryName = action.payload;
         },
         setRetrievalGroup: (state, action: PayloadAction<string>) => {
             state.retrieval.retrievalGroup = action.payload;
         },
         setRetrievalKeywords: (state, action: PayloadAction<string>) => {
-            state.retrieval.retrievalKeywords = action.payload;
+            state.retrieval.retrievalItemInstruction.retrievalKeywords = action.payload;
         },
         setRetrievalUsernames: (state, action: PayloadAction<string>) => {
-            state.retrieval.retrievalUsernames = action.payload;
-        },
-        setRetrievalPlatform: (state, action: PayloadAction<string>) => {
-            state.retrieval.retrievalPlatform = action.payload;
+            state.retrieval.retrievalItemInstruction.retrievalUsernames = action.payload;
         },
         setRetrievalPrompt: (state, action: PayloadAction<string>) => {
-            state.retrieval.retrievalPrompt = action.payload;
+            state.retrieval.retrievalItemInstruction.retrievalPrompt = action.payload;
         },
         setAddAnalysisView: (state, action: PayloadAction<boolean>) => {
             state.addAnalysisView = action.payload;
@@ -490,8 +506,6 @@ export const {
     setRetrievalGroup,
     setRetrievalPlatformGroups,
     setRetrievalKeywords,
-    setRetrievalPlatform,
-    setRetrievalUsernames,
     setRetrievalPrompt,
     setAddRetrievalTasks,
     setRetrievals,
@@ -525,7 +539,7 @@ export const {
     removeEvalFnFromWorkflowBuilderEvalMap,
     setEditAnalysisTask,
     setEditAggregateTask,
-    setEditRetrieval,
+    setRetrieval,
     setEditEvalFn,
     setAssistants,
     setAssistant,

@@ -100,7 +100,8 @@ export const prettyPrintJSONFromBytes = (byteArrayString: string | undefined): s
     try {
         // Assuming byteArrayString is a base64 encoded string of the byte array
         const decodedString = atob(byteArrayString);
-        const jsonObject = JSON.parse(decodedString);
+        let jsonObject = JSON.parse(decodedString);
+        delete(jsonObject['instructions'])
         return JSON.stringify(jsonObject, null, 2); // Pretty print with 2 spaces indentation
     } catch (error) {
         console.error('Error parsing JSON:', error);

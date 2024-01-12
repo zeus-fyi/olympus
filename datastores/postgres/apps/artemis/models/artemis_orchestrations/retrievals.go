@@ -111,19 +111,20 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalIte
 		}
 
 		if instructions.Bytes != nil {
-			//copy(retrieval.Instructions, instructions.Bytes)
+			copy(retrieval.Instructions, instructions.Bytes)
 			err = json.Unmarshal(instructions.Bytes, &retrieval.RetrievalItemInstruction)
 			if err != nil {
 				log.Err(err).Msg("failed to unmarshal retrieval instructions")
 				return nil, err
 			}
+			retrieval.RetrievalItemInstruction.Instructions = instructions.Bytes
 		}
-		inst, rerr := json.Marshal(retrieval.RetrievalItemInstruction)
-		if rerr != nil {
-			log.Err(rerr).Msg("failed to marshal retrieval instructions")
-			return nil, rerr
-		}
-		retrieval.Instructions = inst
+		//inst, rerr := json.Marshal(retrieval.RetrievalItemInstruction)
+		//if rerr != nil {
+		//	log.Err(rerr).Msg("failed to marshal retrieval instructions")
+		//	return nil, rerr
+		//}
+		//retrieval.Instructions = inst
 		retrievals = append(retrievals, retrieval)
 	}
 	// Check for errors from iterating over rows

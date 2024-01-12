@@ -50,7 +50,7 @@ func (s *OrchestrationsTestSuite) TestTriggerActions() {
 	}
 
 	// Call the function to test
-	err := CreateOrUpdateTriggerActionApproval(ctx, &tap)
+	err := CreateOrUpdateTriggerActionApproval(ctx, ou, &tap)
 	s.Require().Nil(err)
 }
 

@@ -3,8 +3,11 @@ package artemis_orchestrations
 import (
 	"context"
 	"encoding/json"
+	"sort"
 
 	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
+	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -45,13 +48,71 @@ type EvalFnMetricResults struct {
 	Map map[string]EvalMetricsResult `json:"map"`
 }
 
-func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error {
+func DeleteEvalMetricsAndTriggers(ctx context.Context, ou org_users.OrgUser, tx pgx.Tx, evalFn *EvalFn) (pgx.Tx, error) {
+	if evalFn == nil || tx == nil || evalFn.EvalID == nil || *evalFn.EvalID == 0 {
+		return nil, nil
+	}
+	var keepMetricIDs []int
+	for _, metric := range evalFn.EvalMetrics {
+		if metric.EvalMetricID == nil {
+			continue
+		}
+		keepMetricIDs = append(keepMetricIDs, *metric.EvalMetricID)
+	}
+	metricIDsArray := pq.Array(keepMetricIDs)
+
+	var keepTriggerIDs []int
+	for _, tgr := range evalFn.TriggerActions {
+		keepTriggerIDs = append(keepTriggerIDs, tgr.TriggerID)
+	}
+	keepTriggerIDsArray := pq.Array(keepTriggerIDs)
+	// Using keepTriggerIDsArray in the delete query
+	deleteDanglingMetricAndTriggerActionsQuery := `
+	WITH cte_trigger_actions AS (
+		SELECT te.trigger_id
+		FROM ai_trigger_actions_evals te
+		JOIN eval_fns ef ON ef.eval_id = te.eval_id 
+		WHERE te.eval_id = $1 AND ef.org_id = $2 AND te.trigger_id != ANY($4) 
+	), cte_delete_trigger_actions AS (
+		DELETE FROM ai_trigger_actions_evals
+		WHERE eval_id = $1 AND trigger_id IN (SELECT trigger_id FROM cte_trigger_actions)
+	), cte_get_metrics_to_delete AS (
+		SELECT em.eval_metric_id, ef.eval_id
+		FROM eval_metrics em
+		JOIN eval_fns ef ON em.eval_id = ef.eval_id
+		WHERE ef.eval_id = $1 AND ef.org_id = $2 AND em.eval_metric_id != ANY($3)
+	) DELETE FROM eval_metrics
+	  WHERE eval_id = $1 AND eval_metric_id IN (SELECT eval_metric_id FROM cte_get_metrics_to_delete)`
+
+	_, err := tx.Exec(ctx, deleteDanglingMetricAndTriggerActionsQuery, evalFn.EvalID, ou.OrgID, metricIDsArray, keepTriggerIDsArray)
+	if err == pgx.ErrNoRows {
+		err = nil
+	}
+	if err != nil {
+		log.Err(err).Msg("failed to delete eval fn trigger eval actions")
+		return tx, err
+	}
+
+	return tx, nil
+}
+
+func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, evalFn *EvalFn) error {
+	if evalFn == nil {
+		return nil
+	}
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to begin transaction")
 		return err
 	}
 	defer tx.Rollback(ctx)
+	if evalFn.EvalID != nil && *evalFn.EvalID > 0 {
+		tx, err = DeleteEvalMetricsAndTriggers(ctx, ou, tx, evalFn)
+		if err != nil {
+			log.Err(err).Msg("failed to delete eval metrics and triggers")
+			return err
+		}
+	}
 	ts := chronos.Chronos{}
 	if evalFn.EvalID == nil {
 		tv := ts.UnixTimeStampNow()
@@ -59,11 +120,9 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error 
 	}
 	// Inserting or updating eval_fns
 	evalFnInsertOrUpdateQuery := `
-        INSERT INTO public.eval_fns (eval_id, org_id, user_id, eval_name, eval_type, eval_group_name, eval_model, eval_format)
+        INSERT INTO eval_fns (eval_id, org_id, user_id, eval_name, eval_type, eval_group_name, eval_model, eval_format)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         ON CONFLICT (eval_id) DO UPDATE SET
-            org_id = EXCLUDED.org_id,
-            user_id = EXCLUDED.user_id,
             eval_name = EXCLUDED.eval_name,
             eval_type = EXCLUDED.eval_type,
             eval_group_name = EXCLUDED.eval_group_name,
@@ -82,7 +141,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error 
 			metric.EvalMetricID = &tv
 		}
 		evalMetricInsertOrUpdateQuery := `
-            INSERT INTO public.eval_metrics (eval_metric_id, eval_id, eval_model_prompt, eval_metric_name, eval_metric_result, eval_comparison_boolean, eval_comparison_number, eval_comparison_string, eval_metric_data_type, eval_operator, eval_state)
+            INSERT INTO eval_metrics (eval_metric_id, eval_id, eval_model_prompt, eval_metric_name, eval_metric_result, eval_comparison_boolean, eval_comparison_number, eval_comparison_string, eval_metric_data_type, eval_operator, eval_state)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             ON CONFLICT (eval_metric_id, eval_id) DO UPDATE SET
                 eval_id = EXCLUDED.eval_id,
@@ -104,13 +163,13 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, evalFn *EvalFn) error 
 	for _, eta := range evalFn.TriggerActions {
 		for _, evTrig := range eta.EvalTriggerActions {
 			query := `
-            INSERT INTO public.ai_trigger_actions_evals(eval_id, trigger_id, eval_trigger_state, eval_results_trigger_on)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO ai_trigger_actions_evals(eval_id, trigger_id, eval_trigger_state, eval_results_trigger_on)
+            VALUES ($1, $2, $3, $4)
          	ON CONFLICT (eval_id, trigger_id)
     		DO UPDATE SET
 				eval_trigger_state = EXCLUDED.eval_trigger_state,
 				eval_results_trigger_on = EXCLUDED.eval_results_trigger_on;` // Adjust as needed
-			_, err = tx.Exec(ctx, query, evalFn.EvalID, eta.TriggerID, eta, evTrig.EvalTriggerState, evTrig.EvalResultsTriggerOn)
+			_, err = tx.Exec(ctx, query, evalFn.EvalID, eta.TriggerID, evTrig.EvalTriggerState, evTrig.EvalResultsTriggerOn)
 			if err != nil {
 				log.Err(err).Msg("failed to insert eval trigger action")
 				return err
@@ -137,11 +196,19 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 
 	query := `
     WITH eval_fns_with_metrics AS (
-        SELECT f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format,
-               m.eval_metric_id, m.eval_model_prompt, m.eval_metric_name, m.eval_metric_result, m.eval_comparison_boolean,
-               m.eval_comparison_number, m.eval_comparison_string, m.eval_metric_data_type, m.eval_operator, m.eval_state,
-			   COALESCE(tab.trigger_id, 0), COALESCE(tab.trigger_name, ''), COALESCE(tab.trigger_group, ''),
- 			   COALESCE(tab.trigger_env, ''), COALESCE(ta.eval_trigger_state, ''), COALESCE(ta.eval_results_trigger_on, '')
+         SELECT	f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format,
+                COALESCE(m.eval_metric_id, 0) AS eval_metric_id,
+				COALESCE(m.eval_model_prompt, '') AS eval_model_prompt,
+				COALESCE(m.eval_metric_name, '') AS eval_metric_name,
+				COALESCE(m.eval_metric_result, '') AS eval_metric_result,
+				COALESCE(m.eval_comparison_boolean, FALSE) AS eval_comparison_boolean,
+				COALESCE(m.eval_comparison_number, 0.0) AS eval_comparison_number,
+				COALESCE(m.eval_comparison_string, '') AS eval_comparison_string,
+				COALESCE(m.eval_metric_data_type, '') AS eval_metric_data_type,
+				COALESCE(m.eval_operator, '') AS eval_operator,
+				COALESCE(m.eval_state, '') AS eval_state,
+			   	COALESCE(tab.trigger_id, 0), COALESCE(tab.trigger_name, ''), COALESCE(tab.trigger_group, ''),
+ 			   	COALESCE(tab.trigger_env, ''), COALESCE(ta.eval_trigger_state, ''), COALESCE(ta.eval_results_trigger_on, '')
         FROM public.eval_fns f
         LEFT JOIN public.eval_metrics m ON f.eval_id = m.eval_id
         LEFT JOIN public.ai_trigger_actions_evals ta ON f.eval_id = ta.eval_id
@@ -188,20 +255,26 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				tm[evalID][ta.TriggerID] = &ta
 			}
 		}
+
 		if existingEvalFn, exists := evalFnsMap[evalID]; exists {
-			existingEvalFn.EvalMetrics = append(existingEvalFn.EvalMetrics, em)
-			existingEvalFn.EvalMetricMap[em.EvalMetricName] = em
+			if em.EvalMetricID != nil && *em.EvalMetricID > 0 {
+				existingEvalFn.EvalMetrics = append(existingEvalFn.EvalMetrics, em)
+				existingEvalFn.EvalMetricMap[em.EvalMetricName] = em
+			}
+
 		} else {
 			ef.EvalID = &evalID
-			ef.EvalMetrics = append(ef.EvalMetrics, em)
-			ef.EvalMetricMap = make(map[string]EvalMetric)
-			ef.EvalMetricMap[em.EvalMetricName] = em
+			if em.EvalMetricID != nil && *em.EvalMetricID > 0 {
+				ef.EvalMetrics = append(ef.EvalMetrics, em)
+				ef.EvalMetricMap = make(map[string]EvalMetric)
+				ef.EvalMetricMap[em.EvalMetricName] = em
+			}
 			evalFnsMap[evalID] = &ef
 		}
 	}
 	var evalFns []EvalFn
 	for _, ef := range evalFnsMap {
-		if ef == nil {
+		if ef == nil || ef.EvalID == nil || *ef.EvalID == 0 {
 			continue
 		}
 		for _, efts := range tm[*ef.EvalID] {
@@ -216,8 +289,13 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 		log.Err(err).Msg("error in row iteration")
 		return nil, err
 	}
-
+	sortEvalFnsByID(evalFns)
 	return evalFns, nil
+}
+func sortEvalFnsByID(efs []EvalFn) {
+	sort.Slice(efs, func(i, j int) bool {
+		return *efs[i].EvalID > *efs[j].EvalID
+	})
 }
 
 type EvalContext struct {

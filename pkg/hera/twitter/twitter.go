@@ -63,8 +63,17 @@ func InitTwitterClient(ctx context.Context, consumerKey, consumerSecret, accessT
 		Client: httpClient,
 		Host:   "https://api.twitter.com",
 	}
-	TwitterClient = Twitter{V1Client: client, V2Client: api, V2alt: v2C}
 	return Twitter{V1Client: client, V2Client: api, V2alt: v2C}, err
+}
+
+func InitPkgTwitterClient(ctx context.Context, consumerKey, consumerSecret, accessToken, accessSecret string) (Twitter, error) {
+	tc, err := InitTwitterClient(ctx, consumerKey, consumerSecret, accessToken, accessSecret)
+	if err != nil {
+		log.Err(err).Msg("error creating twitter client")
+		return Twitter{}, err
+	}
+	TwitterClient = tc
+	return tc, err
 }
 
 func InitOrgTwitterClient(ctx context.Context, consumerKey, consumerSecret string) (Twitter, error) {
@@ -115,8 +124,4 @@ func (tc *Twitter) GetTweets(ctx context.Context, query string, maxResults, maxT
 		}
 	}
 	return data, nil
-}
-
-func GetTweets(ctx context.Context, query string, maxResults, maxTweetID int) ([]*twitter2.Tweet, error) {
-	return nil, nil
 }

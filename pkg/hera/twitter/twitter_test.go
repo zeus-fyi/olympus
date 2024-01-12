@@ -11,7 +11,6 @@ import (
 	"time"
 
 	twitter2 "github.com/cvcio/twitter"
-	"github.com/g8rswimmer/go-twitter/v2"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -28,7 +27,7 @@ type TwitterTestSuite struct {
 func (s *TwitterTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	tw, err := InitTwitterClient(ctx,
+	tw, err := InitPkgTwitterClient(ctx,
 		s.Tc.TwitterConsumerPublicAPIKey, s.Tc.TwitterConsumerSecretAPIKey,
 		s.Tc.TwitterAccessToken, s.Tc.TwitterAccessTokenSecret,
 	)
@@ -39,7 +38,6 @@ func (s *TwitterTestSuite) SetupTest() {
 }
 
 func (s *TwitterTestSuite) TestTweetTopicSearchOrgV2() {
-
 	tc, terr := InitOrgTwitterClient(ctx, s.Tc.TwitterConsumerPublicAPIKey, s.Tc.TwitterConsumerSecretAPIKey)
 	s.Require().NoError(terr)
 	s.Assert().NotNil(tc.V2Client)
@@ -129,22 +127,6 @@ func (s *TwitterTestSuite) TestTweetTopicSearchV2() {
 	resp, err := hera_search.InsertIncomingTweets(ctx, 1700514815519783000, data)
 	s.Require().NoError(err)
 	s.Assert().NotEmpty(resp)
-}
-
-func (s *TwitterTestSuite) TestTweetResponse() {
-	//tweetID := int64(1647499438762467328) // ID of tweet to reply to
-	tweetID := int64(0)
-	replyText := "Hey there! If you're finding k8s too complex, I'd recommend trying out zeus.fyi. It simplifies k8s and makes it more manageable. Plus, it's a great alternative to Nomad. Give it a shot! #zeusfyi #kubernetes #nomad"
-	tweet, err := s.tw.V2alt.CreateTweet(ctx, twitter.CreateTweetRequest{
-		Text: replyText,
-		Reply: &twitter.CreateTweetReply{
-			InReplyToTweetID: fmt.Sprintf("%d", tweetID),
-		},
-	})
-
-	s.Require().NoError(err)
-	s.Assert().NotEmpty(tweet)
-	fmt.Println(tweet)
 }
 
 func (s *TwitterTestSuite) TestReadUserMe() {

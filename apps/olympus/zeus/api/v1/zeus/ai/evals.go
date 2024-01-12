@@ -1,8 +1,11 @@
 package zeus_v1_ai
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -31,10 +34,53 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 	}
 	t.OrgID = ou.OrgID
 	t.UserID = ou.UserID
-	err := artemis_orchestrations.InsertOrUpdateEvalFnWithMetrics(c.Request().Context(), &t.EvalFn)
+
+	for _, em := range t.EvalFn.EvalMetrics {
+		switch em.EvalMetricDataType + "-" + em.EvalOperator {
+		case "array[string]" + "-" + "length-less-than":
+			err := ValidateStrArrayPayload(&em)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+		case "array[string]" + "-" + "length-less-than-eq":
+			err := ValidateStrArrayPayload(&em)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+		case "array[string]" + "-" + "length-greater-than":
+			err := ValidateStrArrayPayload(&em)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+		case "array[string]" + "-" + "length-greater-than-eq":
+			err := ValidateStrArrayPayload(&em)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+		}
+	}
+	err := artemis_orchestrations.InsertOrUpdateEvalFnWithMetrics(c.Request().Context(), ou, &t.EvalFn)
 	if err != nil {
 		log.Err(err).Msg("failed to insert evals")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, nil)
+}
+
+func ValidateStrArrayPayload(em *artemis_orchestrations.EvalMetric) error {
+	if em == nil {
+		return nil
+	}
+	fv, err := strconv.ParseFloat(aws.StringValue(em.EvalComparisonString), 64)
+	if err != nil {
+		log.Err(err).Msg("failed to parse float")
+		return err
+	}
+
+	if fv < 0 {
+		return errors.New("invalid value")
+	}
+	em.EvalComparisonNumber = &fv
+	em.EvalComparisonString = nil
+	return nil
 }

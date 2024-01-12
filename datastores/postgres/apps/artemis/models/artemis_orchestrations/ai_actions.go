@@ -97,7 +97,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 	// Iterating through the query results
 	for rows.Next() {
 		var triggerName, triggerGroup, triggerEnv string
-		var approvalsJSON string
+		var approvalsJSON *string
 		var currentEvalTriggerActions EvalTriggerActions
 		var currentTriggerActionsApprovals []TriggerActionsApproval
 
@@ -116,13 +116,14 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 			return nil, err
 		}
 
-		// Parse the JSON string into TriggerActionsApproval slice
-		err = json.Unmarshal([]byte(approvalsJSON), &currentTriggerActionsApprovals)
-		if err != nil {
-			log.Err(err).Msg("failed to unmarshal trigger actions approvals")
-			return nil, err
+		if approvalsJSON != nil {
+			// Parse the JSON string into TriggerActionsApproval slice
+			err = json.Unmarshal([]byte(*approvalsJSON), &currentTriggerActionsApprovals)
+			if err != nil {
+				log.Err(err).Msg("failed to unmarshal trigger actions approvals")
+				return nil, err
+			}
 		}
-
 		currentEvalTriggerActions.TriggerID = currentTriggerID
 		if ta, exists := triggerActionMap[currentTriggerID]; exists {
 			ta.EvalTriggerActions = append(ta.EvalTriggerActions, currentEvalTriggerActions)

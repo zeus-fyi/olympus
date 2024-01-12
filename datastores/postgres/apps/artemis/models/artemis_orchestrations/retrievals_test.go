@@ -17,7 +17,7 @@ func (s *OrchestrationsTestSuite) TestInsertRetrieval() {
 		RetrievalItemInstruction: RetrievalItemInstruction{
 			RetrievalPlatform: "reddit",
 		},
-		Instructions: []byte(`{"key": "value"}`),
+		//Instructions: []byte(`{"key": "value"}`),
 	}
 
 	// Step 2: Call InsertRetrieval

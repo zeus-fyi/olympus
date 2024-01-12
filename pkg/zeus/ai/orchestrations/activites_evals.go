@@ -11,6 +11,10 @@ import (
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 )
 
+func (z *ZeusAiPlatformActivities) SendResponseToApiForScoresInJson(ctx context.Context, cr *ChatCompletionQueryResponse) (map[string]interface{}, error) {
+	return nil, nil
+}
+
 func (z *ZeusAiPlatformActivities) EvalLookup(ctx context.Context, ou org_users.OrgUser, evalID int) ([]artemis_orchestrations.EvalFn, error) {
 	evalFn, err := artemis_orchestrations.SelectEvalFnsByOrgIDAndID(ctx, ou, evalID)
 	if err != nil {
@@ -53,10 +57,6 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		Prompt:   map[string]string{"prompt": params.Prompt},
 		Response: resp,
 	}, nil
-}
-
-func (z *ZeusAiPlatformActivities) SendResponseToApiForScoresInJson(ctx context.Context, cr *ChatCompletionQueryResponse) (map[string]interface{}, error) {
-	return nil, nil
 }
 
 func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, jsonInterface map[string]interface{}, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {

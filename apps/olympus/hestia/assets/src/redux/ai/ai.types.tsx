@@ -83,6 +83,7 @@ export interface EvalFn {
 }
 
 export interface EvalMetric {
+    evalMetricID?: number;
     evalModelPrompt: string;
     evalMetricName: string;
     evalMetricResult: string;

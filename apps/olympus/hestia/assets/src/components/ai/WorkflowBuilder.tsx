@@ -141,7 +141,7 @@ function WorkflowEngineBuilder(props: any) {
     const evalFn = useSelector((state: any) => state.ai.evalFn);
     const actionMetric = useSelector((state: any) => state.ai.actionMetric);
     const actionsEvalTrigger = useSelector((state: any) => state.ai.actionsEvalTrigger);
-    const actionPlatformAccount = useSelector((state: any) => state.ai.actionPlatformAccount);
+    // const actionPlatformAccount = useSelector((state: any) => state.ai.actionPlatformAccount);
     const assistant = useSelector((state: RootState) => state.ai.assistant);
     const [openRetrievals, setOpenRetrievals] = useState<boolean>(true); // Or use an object/array for multiple sections
     const [openAnalysis, setOpenAnalysis] = useState<boolean>(true); // Or use an object/array for multiple sections
@@ -151,12 +151,17 @@ function WorkflowEngineBuilder(props: any) {
     const [toggleEvalToTaskType, setToggleEvalToTaskType] = useState<boolean>(false); // Or use an object/array for multiple sections
     const editAnalysisTask = useSelector((state: any) => state.ai.editAnalysisTask);
     const editAggregateTask = useSelector((state: any) => state.ai.editAggregateTask);
-    const editRetrieval = useSelector((state: any) => state.ai.editRetrieval);
-    const editEvalFn = useSelector((state: any) => state.ai.editEvalFn);
-    const editAction = useSelector((state: any) => state.ai.editAction);
     const setToggleEvalTaskType = () => {
         setToggleEvalToTaskType(!toggleEvalToTaskType);
     };
+
+    const editEvalMetricRow = (index: number) => {
+        const updatedMetrics = evalFn.evalMetrics.filter((_: EvalMetric, i: number) => i === index);
+        if (updatedMetrics.length > 0) {
+            dispatch(setEvalMetric(updatedMetrics[0]));
+        }
+    };
+
     const removeEvalMetricRow = (index: number) => {
         const updatedMetrics = evalFn.evalMetrics.filter((_: EvalMetric, i: number) => i !== index);
         dispatch(updateEvalMetrics(updatedMetrics));
@@ -182,16 +187,20 @@ function WorkflowEngineBuilder(props: any) {
             return;
         }
         // Check if the metric name already exists in actionMetrics
-        const existingMetric = evalFn.evalMetrics.some((metric: { evalMetricName: string; }) => metric.evalMetricName === evalMetric.evalMetricName);
-        if (existingMetric) {
+        if (evalFn.evalMetrics && evalFn.evalMetrics.length > 0 && evalFn.evalMetrics.some((metric: { evalMetricName: string; }) => metric.evalMetricName === evalMetric.evalMetricName)) {
             setRequestEvalCreateOrUpdateStatus('Metric name already exists.');
             setRequestEvalCreateOrUpdateStatusError('error');
             return;
         }
         setRequestEvalCreateOrUpdateStatus('')
         setRequestEvalCreateOrUpdateStatusError('')
-        const updatedMetrics = [...evalFn.evalMetrics,evalMetric];
-        dispatch(updateEvalMetrics(updatedMetrics));
+
+        if (evalFn.evalMetrics && evalFn.evalMetrics.length > 0){
+            const updatedMetrics = [...evalFn.evalMetrics,evalMetric];
+            dispatch(updateEvalMetrics(updatedMetrics));
+        } else {
+            dispatch(updateEvalMetrics([evalMetric]));
+        }
     };
 
     const addActionMetricRow = () => {
@@ -302,18 +311,29 @@ function WorkflowEngineBuilder(props: any) {
                 .filter(key => selected[Number(key)])
                 .map(key => actions[Number(key)]);
 
-            // Filter out triggers that already exist in evalFn.triggerFunctions
-            const newTriggersToAdd: TriggerAction[] = selectedTriggers.filter((st: TriggerAction) =>
-                !evalFn.triggerFunctions.some((tf: TriggerAction) => tf.triggerID === st.triggerID));
 
-            // Combine the existing triggers with the new, non-duplicate triggers
-            const updatedTriggerFunctions: TriggerAction[] = [...evalFn.triggerFunctions, ...newTriggersToAdd];
+            if (evalFn && evalFn.triggerFunctions && selectedTriggers.length > 0) {
+                // Filter out triggers that already exist in evalFn.triggerFunctions
+                const newTriggersToAdd: TriggerAction[] = selectedTriggers.filter((st: TriggerAction) =>
+                    !evalFn.triggerFunctions.some((tf: TriggerAction) => tf.triggerID === st.triggerID));
 
-            // Dispatch the updated evalFn
-            dispatch(setEval({
-                ...evalFn, // Spread the existing action properties
-                triggerFunctions: updatedTriggerFunctions // Update with combined triggers
-            }));
+                // Combine the existing triggers with the new, non-duplicate triggers
+                const updatedTriggerFunctions: TriggerAction[] = [...evalFn.triggerFunctions, ...newTriggersToAdd];
+
+                // Dispatch the updated evalFn
+                dispatch(setEval({
+                    ...evalFn, // Spread the existing action properties
+                    triggerFunctions: updatedTriggerFunctions // Update with combined triggers
+                }));
+            } else {
+                // Dispatch the updated evalFn
+                dispatch(setEval({
+                    ...evalFn, // Spread the existing action properties
+                    triggerFunctions: selectedTriggers // Update with combined triggers
+                }));
+            }
+
+
         }
         setIsLoading(false);
     };
@@ -2526,7 +2546,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 id="eval-name"
                                                                 label="Eval Name"
                                                                 variant="outlined"
-                                                                value={evalFn.evalName}
+                                                                value={evalFn &&  evalFn.evalName}
                                                                 onChange={(e) => dispatch(setEval({
                                                                     ...evalFn, // Spread the existing action properties
                                                                     evalName: e.target.value // Update the actionName
@@ -2539,7 +2559,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 id="eval-group"
                                                                 label="Eval Group"
                                                                 variant="outlined"
-                                                                value={evalFn.evalGroupName}
+                                                                value={evalFn && evalFn.evalGroupName}
                                                                 onChange={(e) => dispatch(setEval({
                                                                     ...evalFn, // Spread the existing action properties
                                                                     evalGroupName: e.target.value // Update the actionName
@@ -2552,7 +2572,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     labelId="eval-type-label"
                                                                     id="eval-type-label"
-                                                                    value={evalFn.evalType}
+                                                                    value={evalFn && evalFn.evalType}
                                                                     label="Eval Type"
                                                                     fullWidth
                                                                     onChange={(e) => dispatch(setEval({
@@ -2567,7 +2587,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             </FormControl>
                                                         </Box>
                                                     </Stack>
-                                                    { evalFn.evalType == 'model' &&
+                                                    { evalFn && evalFn.evalType == 'model' &&
                                                     <Stack direction={"row"} >
                                                         <Box flexGrow={3} sx={{ mr: 2}}>
                                                             <FormControl fullWidth>
@@ -2764,7 +2784,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Box>
                                                             }
                                                             { (evalMetric.evalMetricDataType === 'string'|| evalMetric.evalMetricDataType === 'array[string]') &&
-                                                                (evalMetric.evalOperator != 'unique-words') &&  (evalMetric.evalOperator != 'length-eq') &&
+                                                                (evalMetric.evalOperator !== 'all-unique-words') &&  (evalMetric.evalOperator != 'length-eq') &&
                                                                 <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
                                                                     <TextField
                                                                         fullWidth
@@ -2867,7 +2887,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             id={`metric-comp-${index}`}
                                                                             label="Comparison Value"
                                                                             variant="outlined"
-                                                                            value={metric.evalComparisonNumber}
+                                                                            value={metric.evalComparisonNumber || metric.evalComparisonString || metric.evalComparisonBoolean}
                                                                             inputProps={{ readOnly: true }}
                                                                         />
                                                                     </Box>
@@ -2881,9 +2901,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                             inputProps={{ readOnly: true }}
                                                                         />
                                                                     </Box>
-                                                                    <Box sx={{ mr: 4 }}>
-                                                                        <Button onClick={() => removeEvalMetricRow(index)}>Remove</Button>
-                                                                    </Box>
+                                                                    <Stack direction="row" spacing={2} sx={{ ml: 4, mr: 4 }}>
+                                                                        <Box sx={{ mr: 4 }}>
+                                                                            <Button variant={"contained"} onClick={() => editEvalMetricRow(index)}>Edit</Button>
+                                                                        </Box>
+                                                                        <Box sx={{ mr: 4 }}>
+                                                                            <Button variant={"contained"} onClick={() => removeEvalMetricRow(index)}>Remove</Button>
+                                                                        </Box>
+                                                                    </Stack>
                                                                 </Stack>
                                                                 <Box flexGrow={1} sx={{ ml: 0, mr: 12 }}>
                                                                     <TextField
@@ -2906,13 +2931,13 @@ function WorkflowEngineBuilder(props: any) {
                                                     </Typography>
                                                     {/*<Collapse in={openRetrievals} timeout="auto" unmountOnExit>*/}
                                                         <Box flexGrow={2} sx={{mt: 2}}>
-                                                            {evalFn && evalFn.triggerFunctions.map((trigger: TriggerAction, subIndex: React.Key | null | undefined) => (
+                                                            {evalFn && evalFn.triggerFunctions && evalFn.triggerFunctions.map((trigger: TriggerAction, subIndex: React.Key | null | undefined) => (
                                                                 <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
                                                                     <Box flexGrow={2} sx={{ mt: 0, ml: 0 }}>
                                                                         <TextField
                                                                             key={subIndex}
                                                                             label={`Trigger Name`}
-                                                                            value={trigger?.triggerName || ''}
+                                                                            value={trigger && trigger.triggerName || ''}
                                                                             InputProps={{
                                                                                 readOnly: true,
                                                                             }}
@@ -2925,7 +2950,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                         <TextField
                                                                             key={subIndex}
                                                                             label={`Trigger Group`}
-                                                                            value={trigger?.triggerGroup || ''}
+                                                                            value={trigger && trigger.triggerGroup || ''}
                                                                             InputProps={{
                                                                                 readOnly: true,
                                                                             }}

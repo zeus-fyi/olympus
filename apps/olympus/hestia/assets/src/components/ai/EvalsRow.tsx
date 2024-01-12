@@ -11,11 +11,18 @@ import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
+import Button from "@mui/material/Button";
+import {useDispatch} from "react-redux";
+import {setEval} from "../../redux/ai/ai.reducer";
 
 export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
-
+    const dispatch = useDispatch();
+    const handleEditEvalFunction = async (e: any, ef: EvalFn) => {
+        e.preventDefault();
+        dispatch(setEval(ef))
+    }
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -50,6 +57,15 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                 <TableCell component="th" scope="row">
                     {row.evalFormat}
                 </TableCell>
+                <TableCell align="left">
+                    <Button
+                        fullWidth
+                        onClick={e => handleEditEvalFunction(e, row)}
+                        variant="contained"
+                    >
+                        {'Edit'}
+                    </Button>
+                </TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
@@ -61,19 +77,21 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                             <Table size="small" aria-label="sub-analysis">
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>Metric ID</TableCell>
                                         <TableCell>Metric Name</TableCell>
-                                        {/*<TableCell>Operator</TableCell>*/}
-                                        {/*<TableCell>Eval State</TableCell>*/}
                                         <TableCell>Description</TableCell>
+                                        <TableCell>Operator</TableCell>
+                                        <TableCell>Eval State</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {row.evalMetrics && row.evalMetrics.map((data, dataIndex) => (
                                         <TableRow key={data.evalMetricName}>
+                                            <TableCell>{data.evalMetricID ? data.evalMetricID : 'N/A'}</TableCell>
                                             <TableCell>{data.evalMetricName}</TableCell>
-                                            {/*<TableCell>{data.evalOperator}</TableCell>*/}
-                                            {/*<TableCell>{data.evalState}</TableCell>*/}
                                             <TableCell>{data.evalModelPrompt}</TableCell>
+                                            <TableCell>{data.evalOperator}</TableCell>
+                                            <TableCell>{data.evalState}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

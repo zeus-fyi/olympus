@@ -62,6 +62,7 @@ export function EvalsTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Type</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Eval Format</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>

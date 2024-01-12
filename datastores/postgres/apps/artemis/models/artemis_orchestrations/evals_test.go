@@ -3,13 +3,72 @@ package artemis_orchestrations
 import (
 	"encoding/json"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
-func (s *OrchestrationsTestSuite) TestInsertEval() {
+func (s *OrchestrationsTestSuite) TestEvalMetricsDeleteEvalMetricsAndTriggers() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	// Example data for EvalFn and EvalMetrics
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	evalModel := "gpt-4"
+
+	evalFn := EvalFn{
+		EvalID:        aws.Int(1704860505860438000),
+		OrgID:         s.Tc.ProductionLocalTemporalOrgID,
+		UserID:        s.Tc.ProductionLocalTemporalUserID,
+		EvalName:      "TestCountWords",
+		EvalType:      "json",
+		EvalGroupName: "GroupX",
+		EvalModel:     &evalModel, // Assume evalModel is defined elsewhere
+		EvalFormat:    "model",
+		EvalMetrics: []EvalMetric{
+			{
+				// Assuming we are creating a metric to track the 'count' property
+				EvalMetricID:          aws.Int(1704860505915566000),
+				EvalMetricName:        "count",
+				EvalMetricDataType:    "number",                            // As 'count' is a number in fdSchema
+				EvalModelPrompt:       "total number of words in sentence", // Description from fdSchema
+				EvalComparisonBoolean: nil,
+				EvalComparisonNumber:  nil,
+				EvalComparisonString:  nil,
+				EvalOperator:          "", // Specific to your application logic
+				EvalState:             "", // Specific to your application logic
+			},
+			{
+				// Assuming we are creating a metric to track the 'words' property
+				EvalMetricID:          aws.Int(1704860505860438001),
+				EvalMetricName:        "words",
+				EvalMetricResult:      "",                          // This would be set based on actual evaluation results
+				EvalMetricDataType:    "array[string]",             // As 'words' is an array of strings in fdSchema
+				EvalModelPrompt:       "list of words in sentence", // Description from fdSchema
+				EvalComparisonBoolean: nil,
+				EvalComparisonNumber:  nil,
+				EvalComparisonString:  nil,
+				EvalOperator:          "", // Specific to your application logic
+				EvalState:             "", // Specific to your application logic
+			},
+		},
+	}
+	tx, err := apps.Pg.Begin(ctx)
+	s.Require().Nil(err)
+	defer tx.Rollback(ctx)
+	evs, err := DeleteEvalMetricsAndTriggers(ctx, ou, tx, &evalFn)
+	s.Require().Nil(err)
+	s.Require().NotNil(evs)
+	err = tx.Commit(ctx)
+	s.Require().Nil(err)
+}
+
+func (s *OrchestrationsTestSuite) TestInsertEval() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	// Example data for EvalFn and
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	evalModel := "gpt-4"
 	evalFn := EvalFn{
 		EvalID:        nil, // nil implies a new entry
@@ -46,7 +105,7 @@ func (s *OrchestrationsTestSuite) TestInsertEval() {
 			},
 		},
 	}
-	err := InsertOrUpdateEvalFnWithMetrics(ctx, &evalFn)
+	err := InsertOrUpdateEvalFnWithMetrics(ctx, ou, &evalFn)
 	s.Require().Nil(err)
 	s.Require().NotNil(evalFn.EvalID)
 }

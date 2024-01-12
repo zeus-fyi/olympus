@@ -123,7 +123,7 @@ func Zeus() {
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
-		_, err = hera_twitter.InitTwitterClient(ctx,
+		_, err = hera_twitter.InitPkgTwitterClient(ctx,
 			sw.TwitterConsumerPublicAPIKey, sw.TwitterConsumerSecretAPIKey,
 			sw.TwitterAccessToken, sw.TwitterAccessTokenSecret,
 		)
@@ -159,7 +159,7 @@ func Zeus() {
 		topology_auths.K8Util = cfg.K8sUtil
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
-		_, err := hera_twitter.InitTwitterClient(ctx,
+		_, err := hera_twitter.InitPkgTwitterClient(ctx,
 			tc.TwitterConsumerPublicAPIKey, tc.TwitterConsumerSecretAPIKey,
 			tc.TwitterAccessToken, tc.TwitterAccessTokenSecret,
 		)
@@ -199,7 +199,7 @@ func Zeus() {
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 		topology_auths.K8Util = cfg.K8sUtil
-		_, err := hera_twitter.InitTwitterClient(ctx,
+		_, err := hera_twitter.InitPkgTwitterClient(ctx,
 			tc.TwitterConsumerPublicAPIKey, tc.TwitterConsumerSecretAPIKey,
 			tc.TwitterAccessToken, tc.TwitterAccessTokenSecret,
 		)

@@ -2217,7 +2217,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             id="keywords-input"
                                                             label="Keywords"
                                                             variant="outlined"
-                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
                                                             onChange={(e) => {
                                                                 const updatedRetrieval = {
                                                                     ...retrieval,

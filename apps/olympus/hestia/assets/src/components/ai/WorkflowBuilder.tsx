@@ -2058,14 +2058,14 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                     </Box>
-                                                { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
+                                                { retrieval.retrievalItemInstruction !== undefined && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
                                                     <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                         <TextField
                                                             fullWidth
                                                             id="group-input"
                                                             label={"Platform Groups"}
                                                             variant="outlined"
-                                                            value={retrieval.retrievalItemInstruction ? retrieval.retrievalItemInstruction.retrievalPlatformGroups : ''}
+                                                            value={retrieval.retrievalItemInstruction.retrievalPlatformGroups || ''}
                                                             onChange={(e) => {
                                                                 const updatedRetrieval = {
                                                                     ...retrieval,

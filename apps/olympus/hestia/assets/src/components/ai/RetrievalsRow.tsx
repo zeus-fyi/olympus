@@ -18,6 +18,7 @@ export function RetrievalsRow(props: { row: Retrieval, index: number, handleClic
     const [open, setOpen] = React.useState(false);
     const dispatch = useDispatch();
     const handleEditRetrieval = async (e: any, ret: Retrieval) => {
+        e.preventDefault();
         dispatch(setRetrieval(ret))
     }
     return (

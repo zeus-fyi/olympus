@@ -218,8 +218,8 @@ function AiWorkflowsDashboardContent(props: any) {
         try {
             setIsLoading(true)
             const params: TriggerActionApprovalPutRequest ={
-                RequestedState: actionApproval,
-                TriggerActionsApproval: tap
+                requestedState: actionApproval,
+                triggerApproval: tap
             }
             const response = await aiApiGateway.updateActionApproval(params);
             const statusCode = response.status;

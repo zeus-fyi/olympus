@@ -39,12 +39,12 @@ export interface TriggerAction {
     // actionPlatformAccounts: ActionPlatformAccount[];
 }
 
-type TriggerActionsApproval = {
+export type TriggerActionsApproval = {
     approvalID: number;
     evalID: number;
     triggerID: number;
     workflowResultID: number;
     approvalState: string;
     requestSummary: string;
-    updatedAt: Date;
+    updatedAt?: Date;
 };

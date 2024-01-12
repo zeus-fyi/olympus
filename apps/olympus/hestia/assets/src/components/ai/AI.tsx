@@ -64,6 +64,8 @@ import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbal
 import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {SearchIndexersTable} from "./SearchIndexersTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
+import {ActionsApprovalsTable} from "./ActionsApprovalsTable";
+import {TriggerActionsApproval} from "../../redux/ai/ai.types2";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -76,6 +78,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const selected = useSelector((state: any) => state.ai.selectedWorkflows);
     const selectedRuns = useSelector((state: any) => state.ai.selectedRuns);
     const runs = useSelector((state: any) => state.ai.runs);
+    const actions = useSelector((state: RootState) => state.ai.triggerActions);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [code, setCode] = useState('');
     const [unixStartTime, setUnixStartTime] = useState(0);
@@ -93,6 +96,8 @@ function AiWorkflowsDashboardContent(props: any) {
     const [requestStatusError, setRequestStatusError] = useState('');
     const [requestIndexerStatus, setRequestIndexerStatus] = useState('');
     const [requestIndexerStatusError, setRequestIndexerStatusError] = useState('');
+    const [requestActionApprovalStatus, setRequestActionApprovalStatus] = useState('');
+    const [requestActionApprovalStatusError, setRequestActionApprovalStatusError] = useState('');
     const searchIndexer = useSelector((state: any) => state.ai.searchIndexer);
     const searchIndexers = useSelector((state: any) => state.ai.searchIndexers);
     const selectedSearchIndexers = useSelector((state: any) => state.ai.selectedSearchIndexers);
@@ -198,6 +203,41 @@ function AiWorkflowsDashboardContent(props: any) {
         }
     }
 
+    const handleActionApprovalRequest = async (event: any, actionApproval: string, approvalID: number) => {
+        if (approvalID === 0) {
+            return
+        }
+        if (actionApproval === '') {
+            return
+        }
+        try {
+            const params: TriggerActionsApproval = {
+                evalID: 0,
+                requestSummary: "",
+                triggerID: 0,
+                workflowResultID: 0,
+                approvalID: approvalID,
+                approvalState: actionApproval
+            }
+            setIsLoading(true)
+            const response = await aiApiGateway.updateActionApproval(params);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                const data = response.data;
+                dispatch(setSelectedRuns([]));
+                setRequestActionApprovalStatus('Action update submitted successfully')
+                setRequestActionApprovalStatusError('success')
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
+                setRequestActionApprovalStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestActionApprovalStatusError('error')
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }
     const handleWorkflowAction = async (event: any, action: string) => {
         const params: PostWorkflowsActionRequest = {
             action: action,
@@ -1101,6 +1141,18 @@ function AiWorkflowsDashboardContent(props: any) {
                                     </Container>
                                 }
                                 <WorkflowAnalysisTable  />
+                            </div>
+                        }
+                        { (selectedMainTab === 4) &&
+                            <div>
+                                {requestActionApprovalStatus != '' && (
+                                    <Container sx={{  mt: 2}}>
+                                        <Typography variant="h6" color={requestActionApprovalStatusError}>
+                                            {requestActionApprovalStatus}
+                                        </Typography>
+                                    </Container>
+                                )}
+                                <ActionsApprovalsTable actions={actions} handleActionApprovalRequest={handleActionApprovalRequest}/>
                             </div>
                         }
                     </Container>

@@ -54,6 +54,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SendResponseToApiForScoresInJson, z.EvalModelScoredJsonOutput, z.SaveEvalMetricResults,
 		z.SendTriggerActionRequestForApproval, z.CreateOrUpdateTriggerActionToExec,
 		z.CheckEvalTriggerCondition, z.LookupEvalTriggerConditions,
+		z.SocialTweetTask, z.SocialRedditTask, z.SocialDiscordTask,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }

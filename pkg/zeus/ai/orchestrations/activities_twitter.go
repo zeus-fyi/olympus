@@ -12,12 +12,7 @@ import (
 	hera_twitter "github.com/zeus-fyi/olympus/pkg/hera/twitter"
 )
 
-type SocialMediaPlatformResponses struct {
-	ModelResponse *ChatCompletionQueryResponse
-	Twitter       *twitter.CreateTweetRequest `json:"twitter,omitempty"`
-}
-
-func (z *ZeusAiPlatformActivities) TweetTask(ctx context.Context, ou org_users.OrgUser, reply *ChatCompletionQueryResponse, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformActivities) SocialTweetTask(ctx context.Context, ou org_users.OrgUser, reply *ChatCompletionQueryResponse, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "twitter")
 	if err != nil || ps == nil || ps.ApiKey == "" {
 		if err == nil {

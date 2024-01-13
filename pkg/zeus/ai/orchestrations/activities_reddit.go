@@ -4,14 +4,21 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/g8rswimmer/go-twitter/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/vartanbeno/go-reddit/v2/reddit"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 )
 
-func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx context.Context, ou org_users.OrgUser, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
+type SocialMediaPlatformResponses struct {
+	ModelResponse *ChatCompletionQueryResponse
+	Twitter       *twitter.CreateTweetRequest `json:"twitter,omitempty"`
+	Reddit        hera_reddit.SocialReddit    `json:"reddit,omitempty"`
+}
+
+func (z *ZeusAiPlatformActivities) SocialRedditTask(ctx context.Context, ou org_users.OrgUser, reply *SocialMediaPlatformResponses, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "reddit")
 	if err != nil {
 		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
@@ -28,10 +35,11 @@ func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx contex
 		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to init reddit client")
 		return nil, err
 	}
-	posts, err := rc.GetNewPosts(ctx, subreddit, lpo)
+	cm, rr, err := rc.ReplyToPost(ctx, reply.Reddit.RedditReplyToPost.ParentID, reply.Reddit.RedditReplyToPost.Reply)
 	if err != nil {
-		log.Err(err).Interface("resp", posts).Msg("SearchRedditNewPostsUsingSubreddit")
+		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to init reddit client")
 		return nil, err
 	}
-	return posts, nil
+	log.Info().Msgf("SearchRedditNewPostsUsingSubreddit: cm: %v, rr: %v", cm, rr)
+	return nil, err
 }

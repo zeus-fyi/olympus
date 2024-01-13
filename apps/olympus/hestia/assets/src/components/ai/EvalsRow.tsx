@@ -82,6 +82,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                         <TableCell>Description</TableCell>
                                         <TableCell>Operator</TableCell>
                                         <TableCell>Eval State</TableCell>
+                                        <TableCell>Expected Result</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -92,6 +93,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                             <TableCell>{data.evalModelPrompt}</TableCell>
                                             <TableCell>{data.evalOperator}</TableCell>
                                             <TableCell>{data.evalState}</TableCell>
+                                            <TableCell>{data.evalMetricResult}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

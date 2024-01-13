@@ -39,7 +39,7 @@ func (t *CreateOrUpdateTaskRequest) CreateOrUpdateTask(c echo.Context) error {
 		log.Err(err).Msg("failed to insert task")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, t)
 }
 
 type TaskRequest struct {

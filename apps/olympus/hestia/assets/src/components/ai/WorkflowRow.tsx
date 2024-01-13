@@ -9,11 +9,16 @@ import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import {WorkflowTemplate} from "../../redux/ai/ai.types";
 import TableHead from "@mui/material/TableHead";
+import {useDispatch} from "react-redux";
 
 export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
-
+    const dispatch = useDispatch();
+    const handleEditWorkflow = async (e: any, wf: WorkflowTemplate) => {
+        e.preventDefault();
+        // dispatch(setWorkflow(wf))
+    }
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -45,6 +50,15 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                 <TableCell component="th" scope="row">
                     {row.fundamentalPeriod + ' ' + row.fundamentalPeriodTimeUnit}
                 </TableCell>
+                {/*<TableCell align="left">*/}
+                {/*    <Button*/}
+                {/*        fullWidth*/}
+                {/*        onClick={e => handleEditWorkflow(e, row)}*/}
+                {/*        variant="contained"*/}
+                {/*    >*/}
+                {/*        {'Edit'}*/}
+                {/*    </Button>*/}
+                {/*</TableCell>*/}
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>

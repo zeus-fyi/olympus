@@ -64,6 +64,7 @@ export interface TriggerAction {
     // triggerPlatforms: TriggerPlatform[];
     triggerActionsApprovals: TriggerActionsApproval[];
     evalTriggerActions: EvalActionTrigger[];
+    evalTriggerAction: EvalActionTrigger;
     // actionMetrics : ActionMetric[];
     // actionPlatformAccounts: ActionPlatformAccount[];
 }

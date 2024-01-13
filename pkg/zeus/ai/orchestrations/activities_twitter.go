@@ -28,9 +28,8 @@ func (z *ZeusAiPlatformActivities) SocialTweetTask(ctx context.Context, ou org_u
 		return nil, err
 	}
 	tweet, err := tc.V2alt.CreateTweet(ctx, twitter.CreateTweetRequest{
-		QuoteTweetID: "",
-		Text:         "",
-		Reply:        &twitter.CreateTweetReply{InReplyToTweetID: ""},
+		Text:  "",
+		Reply: &twitter.CreateTweetReply{InReplyToTweetID: ""},
 	})
 	if err != nil {
 		log.Err(err).Msg("TweetTask: CreateTweet failed")

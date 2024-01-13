@@ -46,10 +46,10 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                     {row.evalID? row.evalID : 0}
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.evalName}
+                    {row.evalGroupName}
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.evalGroupName}
+                    {row.evalName}
                 </TableCell>
                 <TableCell component="th" scope="row">
                     {row.evalType}

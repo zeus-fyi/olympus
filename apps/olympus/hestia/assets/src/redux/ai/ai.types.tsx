@@ -1,4 +1,4 @@
-import {Assistant, EvalActionTrigger, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
+import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
 
 export interface AiState {
     assistants: Assistant[];
@@ -48,7 +48,6 @@ export interface AiState {
     evalFn: EvalFn
     evalFns: EvalFn[];
     evalMetric: EvalMetric;
-    actionsEvalTrigger: EvalActionTrigger;
     editAnalysisTask: TaskModelInstructions;
     editAggregateTask: TaskModelInstructions;
     editRetrieval: Retrieval;

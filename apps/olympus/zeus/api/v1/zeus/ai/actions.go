@@ -34,12 +34,14 @@ func CreateOrUpdateAction(c echo.Context, act *artemis_orchestrations.TriggerAct
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
+
+	act.EvalTriggerActions = append(act.EvalTriggerActions, act.EvalTriggerAction)
 	err := artemis_orchestrations.CreateOrUpdateTriggerAction(c.Request().Context(), ou, act)
 	if err != nil {
 		log.Err(err).Msg("failed to insert action")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, act)
 }
 
 type ActionApprovalRequest struct {
@@ -79,5 +81,5 @@ func UpdateActionApproval(c echo.Context, act *ActionApprovalRequest) error {
 		log.Err(err).Msg("failed to insert action")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, aptr)
 }

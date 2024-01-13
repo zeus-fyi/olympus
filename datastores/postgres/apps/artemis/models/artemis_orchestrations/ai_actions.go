@@ -20,6 +20,7 @@ type TriggerAction struct {
 	TriggerGroup             string                   `db:"trigger_group" json:"triggerGroup"`
 	TriggerEnv               string                   `db:"trigger_env" json:"triggerEnv"`
 	TriggerPlatformReference TriggerPlatformReference `db:"platforms_reference" json:"platformReference,omitempty"`
+	EvalTriggerAction        EvalTriggerActions       `db:"eval_trigger_actions" json:"evalTriggerAction,omitempty"`
 	EvalTriggerActions       []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions,omitempty"`
 	TriggerActionsApprovals  []TriggerActionsApproval `json:"triggerActionsApprovals,omitempty"`
 }
@@ -125,15 +126,16 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 			}
 		}
 		currentEvalTriggerActions.TriggerID = currentTriggerID
-		if ta, exists := triggerActionMap[currentTriggerID]; exists {
-			ta.EvalTriggerActions = append(ta.EvalTriggerActions, currentEvalTriggerActions)
-			ta.TriggerActionsApprovals = append(ta.TriggerActionsApprovals, currentTriggerActionsApprovals...)
+		if _, exists := triggerActionMap[currentTriggerID]; exists {
+			triggerActionMap[currentTriggerID].TriggerActionsApprovals = append(triggerActionMap[currentTriggerID].TriggerActionsApprovals, currentTriggerActionsApprovals...)
 		} else {
+			// TODO fix the slice conversion hack
 			triggerActionMap[currentTriggerID] = &TriggerAction{
 				TriggerID:               currentTriggerID,
 				TriggerName:             triggerName,
 				TriggerGroup:            triggerGroup,
 				TriggerEnv:              triggerEnv,
+				EvalTriggerAction:       currentEvalTriggerActions,
 				EvalTriggerActions:      []EvalTriggerActions{currentEvalTriggerActions},
 				TriggerActionsApprovals: currentTriggerActionsApprovals,
 			}

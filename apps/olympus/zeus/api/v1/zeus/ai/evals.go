@@ -64,7 +64,7 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 		log.Err(err).Msg("failed to insert evals")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, t.EvalFn)
 }
 
 func ValidateStrArrayPayload(em *artemis_orchestrations.EvalMetric) error {

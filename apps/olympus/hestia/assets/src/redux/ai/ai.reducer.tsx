@@ -11,7 +11,7 @@ import {
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
 } from "./ai.types";
-import {Assistant, EvalActionTrigger, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
+import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
 
 const initialState: AiState = {
     assistant: {
@@ -96,9 +96,13 @@ const initialState: AiState = {
         triggerID: 0,
         triggerName: '',
         triggerGroup: '',
-        triggerEnv: '',
+        triggerEnv: 'social-media-engagement',
         triggerActionsApprovals: [],
         evalTriggerActions: [],
+        evalTriggerAction: {
+            evalTriggerState: '',
+            evalResultsTriggerOn: '',
+        },
     },
     triggerActions: [],
     triggerPlatformAccount: {
@@ -108,7 +112,7 @@ const initialState: AiState = {
     evalMetric: {
         evalMetricName: '',
         evalModelPrompt: '',
-        evalComparisonNumber: 1,
+        evalComparisonNumber: 0,
         evalComparisonString: '',
         evalComparisonBoolean: false,
         evalMetricDataType: '',
@@ -125,10 +129,7 @@ const initialState: AiState = {
         evalMetrics: [],
         triggerFunctions: [],
     },
-    actionsEvalTrigger: {
-        evalTriggerState: 'info',
-        evalResultsTriggerOn: 'eval',
-    },
+
     evalFns: [],
     editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '',
         tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text',
@@ -201,9 +202,6 @@ const aiSlice = createSlice({
         },
         setEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
             state.evalFns = action.payload;
-        },
-        setActionsEvalTrigger: (state, action: PayloadAction<EvalActionTrigger>) => {
-            state.actionsEvalTrigger = action.payload;
         },
         setAddTriggersToEvalFnView: (state, action: PayloadAction<boolean>) => {
             state.addTriggersToEvalFnView = action.payload;
@@ -528,7 +526,6 @@ export const {
     setEvalMetric,
     setEval,
     updateEvalMetrics,
-    setActionsEvalTrigger,
     setEvalFns,
     setAddEvalFns,
     setEvalsTaskMap,

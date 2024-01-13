@@ -39,7 +39,6 @@ import {RootState} from "../../redux/store";
 import {
     removeAggregationFromWorkflowBuilderTaskMap,
     removeEvalFnFromWorkflowBuilderEvalMap,
-    setActionsEvalTrigger,
     setAddAggregateTasks,
     setAddAggregationView,
     setAddAnalysisTasks,
@@ -169,12 +168,20 @@ function WorkflowEngineBuilder(props: any) {
         setRequestEvalCreateOrUpdateStatusError('')
     };
 
-    // const removeActionMetricRow = (index: number) => {
-    //     const updatedMetrics = action.actionMetrics.filter((_: ActionMetric, i: number) => i !== index);
-    //     dispatch(updateActionMetrics(updatedMetrics));
-    //     setRequestMetricActionCreateOrUpdateStatus('')
-    //     setRequestMetricActionCreateOrUpdateStatusError('')
-    // };
+    const clearEvalMetricRow = () => {
+        dispatch(setEvalMetric({
+                evalMetricName: '',
+                evalModelPrompt: '',
+                evalComparisonNumber: 1,
+                evalComparisonString: '',
+                evalComparisonBoolean: false,
+                evalMetricDataType: '',
+                evalOperator: '',
+                evalState: 'info',
+                evalMetricResult: '',
+        }));
+    }
+
     const addEvalMetricRow = () => {
         if (!isValidLabel(evalMetric.evalMetricName)){
             setRequestEvalCreateOrUpdateStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
@@ -662,7 +669,7 @@ function WorkflowEngineBuilder(props: any) {
         }
     }
 
-    const createOrUpdateAssistant= async () => {
+    const createOrUpdateAssistant = async () => {
         try {
             setIsLoading(true)
             if (assistant.model.length <= 0) {
@@ -769,10 +776,11 @@ function WorkflowEngineBuilder(props: any) {
                 return;
             }
             const task: TaskModelInstructions = {
+                taskID: (taskType === 'analysis' ? editAnalysisTask.taskID : editAggregateTask.taskID),
                 taskType: taskType,
                 taskGroup:taskGn,
                 taskName: tn,
-                responseFormat: 'text',
+                responseFormat: (taskType === 'analysis' ? editAnalysisTask.responseFormat : editAggregateTask.responseFormat),
                 model: (taskType === 'analysis' ? editAnalysisTask.model : editAggregateTask.model),
                 prompt: (taskType === 'analysis' ? editAnalysisTask.prompt : editAggregateTask.prompt),
                 maxTokens:  (taskType === 'analysis' ? editAnalysisTask.maxTokens : editAggregateTask.maxTokens),
@@ -782,7 +790,8 @@ function WorkflowEngineBuilder(props: any) {
             const response = await aiApiGateway.createOrUpdateTaskRequest(task);
             const statusCode = response.status;
             if (statusCode < 400) {
-                const data = response.data;
+                const data = response.data as TaskModelInstructions;
+                // setTasks([...tasks, data])
                 if (taskType === 'analysis') {
                     setRequestAnalysisStatus('Task created successfully')
                     setRequestAnalysisStatusError('success')
@@ -832,6 +841,8 @@ function WorkflowEngineBuilder(props: any) {
             const response = await aiApiGateway.createOrUpdateAction(action);
             const statusCode = response.status;
             if (statusCode < 400) {
+                const data = response.data as TriggerAction;
+                // dispatch(setTriggerActions([...actions, data]))
                 setRequestActionStatus('Action created or updated successfully')
                 setRequestActionStatusError('success')
             }
@@ -892,6 +903,8 @@ function WorkflowEngineBuilder(props: any) {
             const response = await aiApiGateway.createOrUpdateEval(evalFn);
             const statusCode = response.status;
             if (statusCode < 400) {
+                const data = response.data as EvalFn;
+                // dispatch(setEvalFns([...evalFns, data]))
                 setRequestEvalCreateOrUpdateStatus('Eval created or updated successfully')
                 setRequestEvalCreateOrUpdateStatusError('success')
             }
@@ -2316,12 +2329,11 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     labelId="trigger-source--label"
                                                                     id="trigger-source-input"
-                                                                    value={action && action.evalResultsTriggerOn ? action.evalResultsTriggerOn : ''}
+                                                                    value={'eval'}
                                                                     label="Trigger Source"
-                                                                    onChange={(e) => dispatch(setTriggerAction({
-                                                                        ...action,
-                                                                        evalResultsTriggerOn: e.target.value
-                                                                    }))}
+                                                                    // onChange={(e) => dispatch(setTriggerAction({
+                                                                    //     ...action,
+                                                                    // }))}
                                                                 >
                                                                     <MenuItem value="eval">Eval</MenuItem>
                                                                     {/*<MenuItem value="metrics">Metrics</MenuItem>*/}
@@ -2347,14 +2359,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                         triggerEnv: e.target.value
                                                                     }))}
                                                                 >
-                                                                    <MenuItem value="social-media-io-text">Social Media Platform I/O Text</MenuItem>
+                                                                    <MenuItem value="social-media-engagement">Social Media Engagement</MenuItem>
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
                                                     </Stack>
-                                                    { !loading && action.evalResultsTriggerOn == 'eval' &&
+                                                    { !loading &&
                                                     <Stack direction="row" >
                                                         <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
                                                             <FormControl fullWidth>
@@ -2362,14 +2374,15 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     id="eval-state-trigger"
                                                                     label="Eval State Trigger"
-                                                                    value={actionsEvalTrigger && actionsEvalTrigger.evalTriggerState ? actionsEvalTrigger.evalTriggerState : 'info'}
-                                                                    onChange={(e) => dispatch(setActionsEvalTrigger({
-                                                                        ...actionsEvalTrigger, // Spread the existing action properties
-                                                                        evalTriggerState: e.target.value // Update the actionName
+                                                                    value={action && action.evalTriggerAction.evalTriggerState}
+                                                                    onChange={(e) => dispatch(setTriggerAction({
+                                                                        ...action, // Spread the existing action properties
+                                                                        evalTriggerAction: { ...action.evalTriggerAction, evalTriggerState: e.target.value }
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="info">{'info'}</MenuItem>
-                                                                    {/*<MenuItem value="debug">{'debug'}</MenuItem>*/}
+                                                                    <MenuItem value="optional">{'optional'}</MenuItem>
+                                                                    <MenuItem value="filter">{'filter'}</MenuItem>
                                                                     {/*<MenuItem value="warning">{'warning'}</MenuItem>*/}
                                                                     {/*<MenuItem value="critical">{'critical'}</MenuItem>*/}
                                                                     <MenuItem value="error">{'error'}</MenuItem>
@@ -2382,10 +2395,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     id="eval-completion-trigger"
                                                                     label="Eval Completion Trigger"
-                                                                    value={actionsEvalTrigger && actionsEvalTrigger.evalResultsTriggerOn ? actionsEvalTrigger.evalResultsTriggerOn : 'all-pass'}
-                                                                    onChange={(e) => dispatch(setActionsEvalTrigger({
-                                                                        ...actionsEvalTrigger, // Spread the existing action properties
-                                                                        evalResultsTriggerOn: e.target.value // Update the actionName
+                                                                    value={action && action.evalTriggerAction.evalResultsTriggerOn || ''}
+                                                                    onChange={(e) => dispatch(setTriggerAction({
+                                                                        ...action,
+                                                                        evalTriggerAction: { ...action.evalTriggerAction, evalResultsTriggerOn: e.target.value }
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="all-pass">{'all-pass'}</MenuItem>
@@ -2657,7 +2670,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                         }))}
                                                                     >
                                                                         <MenuItem value="info">{'info'}</MenuItem>
-                                                                        {/*<MenuItem value="debug">{'debug'}</MenuItem>*/}
+                                                                        <MenuItem value="filter">{'filter'}</MenuItem>
+                                                                        <MenuItem value="optional">{'optional'}</MenuItem>
                                                                         {/*<MenuItem value="warning">{'warning'}</MenuItem>*/}
                                                                         {/*<MenuItem value="critical">{'critical'}</MenuItem>*/}
                                                                         <MenuItem value="error">{'error'}</MenuItem>
@@ -2732,7 +2746,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </FormControl>
                                                             </Box>
                                                             }
-                                                            { evalMetric.evalMetricDataType === 'string' || evalMetric.evalMetricDataType === 'array[string]' &&
+                                                            { evalMetric && (evalMetric.evalMetricDataType === 'string' || evalMetric.evalMetricDataType === 'array[string]') &&
                                                                 <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:2  }}>
                                                                     <FormControl fullWidth >
                                                                         <InputLabel id="metric-action-operator">Operator</InputLabel>
@@ -2775,7 +2789,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     label="Comparison Value"
                                                                     variant="outlined"
                                                                     type={"number"}
-                                                                    value={evalMetric.evalComparisonNumber}
+                                                                    value={evalMetric && evalMetric.evalComparisonNumber || 0}
                                                                     onChange={(e) => dispatch(setEvalMetric({
                                                                         ...evalMetric, // Spread the existing action properties
                                                                         evalComparisonNumber: Number(e.target.value) // Update the actionName
@@ -2791,7 +2805,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                         id="eval-comparison-string"
                                                                         label="Comparison String"
                                                                         variant="outlined"
-                                                                        value={evalMetric.evalComparisonString}
+                                                                        value={evalMetric && evalMetric.evalComparisonString || ''}
                                                                         onChange={(e) => dispatch(setEvalMetric({
                                                                             ...evalMetric, // Spread the existing action properties
                                                                             evalComparisonString: e.target.value // Update the actionName
@@ -2820,6 +2834,9 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Box>
                                                             <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 0, mr:0  }}>
                                                                 <Button fullWidth variant={"contained"} onClick={addEvalMetricRow}>Add</Button>
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>
+                                                                <Button fullWidth variant={"contained"} onClick={clearEvalMetricRow}>Clear</Button>
                                                             </Box>
                                                             </Stack>
                                                         { evalFn.evalType == 'model' &&
@@ -2887,7 +2904,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             id={`metric-comp-${index}`}
                                                                             label="Comparison Value"
                                                                             variant="outlined"
-                                                                            value={metric.evalComparisonNumber || metric.evalComparisonString || metric.evalComparisonBoolean}
+                                                                            value={GetValue(metric)}
                                                                             inputProps={{ readOnly: true }}
                                                                         />
                                                                     </Box>
@@ -3009,7 +3026,8 @@ function WorkflowEngineBuilder(props: any) {
                                                             }))}
                                                         >
                                                             <MenuItem value="text">text</MenuItem>
-                                                            <MenuItem value="social-media-io-text">social-media-io-text</MenuItem>
+                                                            <MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>
+                                                            <MenuItem value="social-media-engagement">social-media-engagement</MenuItem>
                                                             {/*<MenuItem value="json">json</MenuItem>*/}
                                                         </Select>
                                                     </FormControl>
@@ -3019,7 +3037,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         type="number"
                                                         label={`Max Tokens Analysis Model`}
                                                         variant="outlined"
-                                                        value={editAnalysisTask.maxTokens}
+                                                        value={editAnalysisTask && editAnalysisTask.maxTokens || 0}
                                                         inputProps={{ min: 0 }}
                                                         onChange={(e) => dispatch(setEditAnalysisTask({
                                                             ...editAnalysisTask, // Spread the existing action properties
@@ -3058,7 +3076,8 @@ function WorkflowEngineBuilder(props: any) {
                                                         }))}
                                                     >
                                                         <MenuItem value="text">text</MenuItem>
-                                                        <MenuItem value="social-media-io-text">social-media-io-text</MenuItem>
+                                                        <MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>
+                                                        <MenuItem value="social-media-engagement">social-media-engagement</MenuItem>
                                                         {/*<MenuItem value="json">json</MenuItem>*/}
                                                     </Select>
                                                 </FormControl>
@@ -3068,7 +3087,7 @@ function WorkflowEngineBuilder(props: any) {
                                                     type="number"
                                                     label={`Max Aggregation Token Usage`}
                                                     variant="outlined"
-                                                    value={editAggregateTask.maxTokens}
+                                                    value={editAggregateTask && editAggregateTask.maxTokens || 0}
                                                     onChange={(e) => dispatch(setEditAggregateTask({
                                                         ...editAggregateTask, // Spread the existing action properties
                                                         maxTokens: Number(e.target.value)
@@ -3215,4 +3234,26 @@ type ValuePiece = Date | string | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
 export default function AiWorkflowsEngineBuilderDashboard() {
     return <WorkflowEngineBuilder />;
+}
+
+function GetValue(evm: EvalMetric) {
+    if (evm.evalMetricDataType === 'string') {
+        return evm.evalComparisonString
+    }
+    if (evm.evalMetricDataType === 'number') {
+        return evm.evalComparisonNumber
+    }
+    if (evm.evalMetricDataType === 'boolean') {
+        return evm.evalComparisonBoolean
+    }
+    if (evm.evalMetricDataType === 'array[string]') {
+        return evm.evalComparisonString
+    }
+    if (evm.evalMetricDataType === 'array[number]') {
+        return evm.evalComparisonNumber
+    }
+    if (evm.evalMetricDataType === 'array[boolean]') {
+        return evm.evalComparisonBoolean
+    }
+    return ''
 }

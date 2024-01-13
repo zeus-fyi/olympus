@@ -11,11 +11,19 @@ import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
+import Button from "@mui/material/Button";
+import {setTriggerAction} from "../../redux/ai/ai.reducer";
+import {useDispatch} from "react-redux";
 
 export function ActionRow(props: { row: TriggerAction, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
+    const dispatch = useDispatch();
 
+    const handleEditTriggerAction = async (e: any, ta: TriggerAction) => {
+        e.preventDefault();
+        dispatch(setTriggerAction(ta))
+    }
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -46,6 +54,9 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
                 </TableCell>
                 <TableCell component="th" scope="row">
                     {row.triggerEnv}
+                </TableCell>
+                <TableCell align="left">
+                    <Button onClick={event => handleEditTriggerAction(event, row)} fullWidth variant="contained" >{'Edit'}</Button>
                 </TableCell>
             </TableRow>
             <TableRow>

@@ -61,6 +61,7 @@ export function ActionsTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Trigger Env</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>

@@ -69,13 +69,13 @@ func DeleteEvalMetricsAndTriggers(ctx context.Context, ou org_users.OrgUser, tx 
 	// Using keepTriggerIDsArray in the delete query
 	deleteDanglingMetricAndTriggerActionsQuery := `
 	WITH cte_trigger_actions AS (
-		SELECT te.trigger_id
+		SELECT ef.eval_id, te.trigger_id
 		FROM ai_trigger_actions_evals te
 		JOIN eval_fns ef ON ef.eval_id = te.eval_id 
-		WHERE te.eval_id = $1 AND ef.org_id = $2 AND te.trigger_id != ANY($4) 
+		WHERE te.eval_id = $1 AND ef.org_id = $2 AND te.trigger_id = ANY($4) 
 	), cte_delete_trigger_actions AS (
-		DELETE FROM ai_trigger_actions_evals
-		WHERE eval_id = $1 AND trigger_id IN (SELECT trigger_id FROM cte_trigger_actions)
+		DELETE FROM ai_trigger_actions_evals te
+		WHERE te.eval_id = $1 AND te.trigger_id NOT IN (SELECT trigger_id FROM cte_trigger_actions)
 	), cte_get_metrics_to_delete AS (
 		SELECT em.eval_metric_id, ef.eval_id
 		FROM eval_metrics em

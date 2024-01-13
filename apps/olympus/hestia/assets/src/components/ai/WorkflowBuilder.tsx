@@ -2316,7 +2316,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     labelId="trigger-source--label"
                                                                     id="trigger-source-input"
-                                                                    value={action.evalResultsTriggerOn ? action.evalResultsTriggerOn : ''}
+                                                                    value={action && action.evalResultsTriggerOn ? action.evalResultsTriggerOn : ''}
                                                                     label="Trigger Source"
                                                                     onChange={(e) => dispatch(setTriggerAction({
                                                                         ...action,
@@ -2362,7 +2362,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     id="eval-state-trigger"
                                                                     label="Eval State Trigger"
-                                                                    value={actionsEvalTrigger.evalTriggerState}
+                                                                    value={actionsEvalTrigger && actionsEvalTrigger.evalTriggerState ? actionsEvalTrigger.evalTriggerState : 'info'}
                                                                     onChange={(e) => dispatch(setActionsEvalTrigger({
                                                                         ...actionsEvalTrigger, // Spread the existing action properties
                                                                         evalTriggerState: e.target.value // Update the actionName
@@ -2382,7 +2382,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <Select
                                                                     id="eval-completion-trigger"
                                                                     label="Eval Completion Trigger"
-                                                                    value={actionsEvalTrigger.evalResultsTriggerOn}
+                                                                    value={actionsEvalTrigger && actionsEvalTrigger.evalResultsTriggerOn ? actionsEvalTrigger.evalResultsTriggerOn : 'all-pass'}
                                                                     onChange={(e) => dispatch(setActionsEvalTrigger({
                                                                         ...actionsEvalTrigger, // Spread the existing action properties
                                                                         evalResultsTriggerOn: e.target.value // Update the actionName

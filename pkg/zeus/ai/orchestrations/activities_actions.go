@@ -66,6 +66,15 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 	return act, nil
 }
 
+func (z *ZeusAiPlatformActivities) SaveTriggerResponseOutput(ctx context.Context, trrr artemis_orchestrations.AIWorkflowTriggerResultResponse) error {
+	respID, err := artemis_orchestrations.InsertOrUpdateAIWorkflowTriggerResultResponse(ctx, trrr)
+	if err != nil {
+		log.Err(err).Interface("respID", respID).Interface("trrr", trrr).Msg("SaveTriggerResponseOutput: failed")
+		return err
+	}
+	return nil
+}
+
 func checkTriggerOnEvalResults(value string, results []bool) bool {
 	switch value {
 	case "all-pass":

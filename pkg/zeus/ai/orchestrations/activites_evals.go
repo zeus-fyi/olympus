@@ -37,6 +37,15 @@ func (z *ZeusAiPlatformActivities) SaveEvalMetricResults(ctx context.Context, em
 	return nil
 }
 
+func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, errr artemis_orchestrations.AIWorkflowEvalResultResponse) error {
+	respID, err := artemis_orchestrations.InsertOrUpdateAiWorkflowEvalResultResponse(ctx, errr)
+	if err != nil {
+		log.Err(err).Interface("respID", respID).Interface("errr", errr).Msg("SaveTaskOutput: failed")
+		return err
+	}
+	return nil
+}
+
 func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Context, ou org_users.OrgUser, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
 	var err error
 	var resp openai.ChatCompletionResponse

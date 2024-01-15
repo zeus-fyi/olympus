@@ -46,7 +46,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunApprovedTriggerActions(ctx workflow.
 			//WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunApprovedSocialMediaTriggerActions, tar).Get(childAnalysisCtx, nil)
+		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunApprovedSocialMediaTriggerActionsWorkflow, tar).Get(childAnalysisCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute child run trigger actions workflow", "Error", err)
 			return err

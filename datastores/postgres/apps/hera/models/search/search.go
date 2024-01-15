@@ -30,6 +30,11 @@ type AiModelParams struct {
 	TokenCountMax int    `json:"tokenCountMax"`
 }
 
+type SearchResultGroup struct {
+	PlatformName  string         `json:"platformName"`
+	SearchResults []SearchResult `json:"searchResults"`
+}
+
 type SearchResult struct {
 	UnixTimestamp   int              `json:"unixTimestamp"`
 	Source          string           `json:"source"`
@@ -266,6 +271,30 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		builder.WriteString(line)
 	}
 	return builder.String()
+}
+
+type SimplifiedSearchResultJSON struct {
+	MessageID   string `json:"messageID"`
+	MessageBody string `json:"messageBody"`
+}
+
+func FormatSearchResultsV3(results []SearchResult) string {
+	if len(results) == 0 {
+		return ""
+	}
+	var newResults []SimplifiedSearchResultJSON
+	for _, r := range results {
+		nr := SimplifiedSearchResultJSON{
+			MessageID:   fmt.Sprintf("%d", r.UnixTimestamp),
+			MessageBody: r.Value,
+		}
+		newResults = append(newResults, nr)
+	}
+	b, err := json.Marshal(newResults)
+	if err != nil {
+		return ""
+	}
+	return string(b)
 }
 
 func telegramSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {

@@ -8,6 +8,7 @@ import (
 	"github.com/g8rswimmer/go-twitter/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
@@ -54,22 +55,19 @@ const (
 	redditPlatform                      = "reddit"
 	discordPlatform                     = "discord"
 	telegramPlatform                    = "telegram"
+	webPlatform                         = "web"
 )
 
-type EvalFormatForApiRequest struct {
-	Platform      string                     `json:"platform"`
-	FormatType    string                     `json:"formatType"`
-	SearchResults []hera_search.SearchResult `json:"searchResults,omitempty"`
-}
-
-func (z *ZeusAiPlatformActivities) EvalFormatForApi(ctx context.Context, ou org_users.OrgUser, evp EvalFormatForApiRequest) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformActivities) EvalFormatForApi(ctx context.Context, ou org_users.OrgUser, ta *artemis_orchestrations.TriggerAction) (*ChatCompletionQueryResponse, error) {
 	var fnApiFormat openai.FunctionDefinition
-	switch evp.Platform {
+
+	platformName := ta.TriggerPlatformReference.PlatformReferenceName
+	switch platformName {
 	case twitterPlatform:
-		fnApiFormat = EvalFormatTweetForApiJsonSchema(evp.FormatType)
+		fnApiFormat = EvalFormatTweetForApiJsonSchema(ta.TriggerEnv)
 		log.Info().Msgf("EvalFormatTweetForApi: body: %v", fnApiFormat)
 	default:
-		return nil, fmt.Errorf("EvalFormatForApi: platform %s not supported", evp.Platform)
+		return nil, fmt.Errorf("EvalFormatForApi: platform %s not supported", platformName)
 	}
 	za := NewZeusAiPlatformActivities()
 	resp, err := za.CreateJsonOutputModelResponse(ctx, ou, hera_openai.OpenAIParams{
@@ -80,7 +78,7 @@ func (z *ZeusAiPlatformActivities) EvalFormatForApi(ctx context.Context, ou org_
 		log.Err(err).Msg("EvalFormatTweetForApi: CreateJsonOutputModelResponse failed")
 		return nil, err
 	}
-	switch evp.Platform {
+	switch platformName {
 	case twitterPlatform:
 		tr, terr := UnmarshallTwitterFromAiJson(fnApiFormat.Name, resp)
 		if terr != nil {
@@ -92,7 +90,7 @@ func (z *ZeusAiPlatformActivities) EvalFormatForApi(ctx context.Context, ou org_
 	case discordPlatform:
 	case telegramPlatform:
 	default:
-		return nil, fmt.Errorf("EvalFormatForApi: platform %s not supported", evp.Platform)
+		return nil, fmt.Errorf("EvalFormatForApi: platform %s not supported", platformName)
 	}
 	return resp, nil
 }

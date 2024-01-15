@@ -40,46 +40,59 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			if md.AnalysisRetrievals[analysisInst.AnalysisTaskID] == nil {
 				continue
 			}
-			var sr []hera_search.SearchResult
+			sg := &hera_search.SearchResultGroup{
+				SearchResults: []hera_search.SearchResult{},
+			}
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime,
 				i-analysisInst.AnalysisCycleCount, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			if analysisInst.RetrievalID != nil && *analysisInst.RetrievalID > 0 {
 				if md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] == false {
 					continue
 				}
-				retrievalCtx := workflow.WithActivityOptions(ctx, ao)
-				err := workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, ou, analysisInst, window).Get(retrievalCtx, &sr)
-				if err != nil {
-					logger.Error("failed to run retrieval", "Error", err)
-					return nil, err
+
+				sg = &hera_search.SearchResultGroup{
+					PlatformName:  analysisInst.RetrievalPlatform,
+					SearchResults: []hera_search.SearchResult{},
 				}
-				var routes []iris_models.RouteInfo
-				retrievalWebCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, ou, analysisInst).Get(retrievalWebCtx, &routes)
-				if err != nil {
-					logger.Error("failed to run retrieval", "Error", err)
-					return nil, err
-				}
-				for _, route := range routes {
-					fetchedResult := &hera_search.SearchResult{}
-					retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-					err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.AiWebRetrievalTask, ou, analysisInst, route).Get(retrievalWebTaskCtx, &fetchedResult)
+				switch analysisInst.RetrievalPlatform {
+				case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
+					retrievalCtx := workflow.WithActivityOptions(ctx, ao)
+					var sr []hera_search.SearchResult
+					err := workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, ou, analysisInst, window).Get(retrievalCtx, &sr)
 					if err != nil {
 						logger.Error("failed to run retrieval", "Error", err)
 						return nil, err
 					}
-					if fetchedResult != nil && len(fetchedResult.Value) > 0 {
-						sr = append(sr, *fetchedResult)
+					sg.SearchResults = append(sg.SearchResults, sr...)
+				case webPlatform:
+					var routes []iris_models.RouteInfo
+					retrievalWebCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+					err := workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, ou, analysisInst).Get(retrievalWebCtx, &routes)
+					if err != nil {
+						logger.Error("failed to run retrieval", "Error", err)
+						return nil, err
+					}
+					for _, route := range routes {
+						fetchedResult := &hera_search.SearchResult{}
+						retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+						err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.AiWebRetrievalTask, ou, analysisInst, route).Get(retrievalWebTaskCtx, &fetchedResult)
+						if err != nil {
+							logger.Error("failed to run retrieval", "Error", err)
+							return nil, err
+						}
+						if fetchedResult != nil && len(fetchedResult.Value) > 0 {
+							sg.SearchResults = append(sg.SearchResults, *fetchedResult)
+						}
 					}
 				}
 				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] = false
-				if len(sr) == 0 {
+				if len(sg.SearchResults) == 0 {
 					continue
 				}
 			}
 			analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			var aiResp *ChatCompletionQueryResponse
-			err := workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sr).Get(analysisCtx, &aiResp)
+			err := workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
 			if err != nil {
 				logger.Error("failed to run analysis", "Error", err)
 				return nil, err
@@ -121,7 +134,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				WorkflowTemplateData: analysisInst,
 				ParentOutputToEval:   aiResp,
 				EvalFns:              analysisInst.AnalysisTaskDB.AnalysisEvalFns,
-				SearchResults:        sr,
+				SearchResultGroup:    sg,
 			}
 			if analysisInst.AggTaskID != nil {
 				ea.EvalFns = analysisInst.AggAnalysisEvalFns

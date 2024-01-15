@@ -197,6 +197,8 @@ func SelectTriggerActionApprovals(ctx context.Context, ou org_users.OrgUser, sta
 
 // TODO, need to add orgID to the query
 
+// request summary?
+
 func CreateOrUpdateTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, approval *TriggerActionsApproval) error {
 	if approval == nil {
 		return errors.New("approval cannot be nil")

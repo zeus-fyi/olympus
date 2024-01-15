@@ -4,7 +4,7 @@ CREATE TABLE public.ai_trigger_actions(
     user_id BIGINT NOT NULL REFERENCES users(user_id),
     trigger_name text NOT NULL,
     trigger_group text NOT NULL,
-    trigger_env text NOT NULL DEFAULT 'social-media-io-text'
+    trigger_env text NOT NULL DEFAULT 'social-media-engagement'
 );
 
 CREATE INDEX ai_trigger_actions_oid_ind ON public.ai_trigger_actions("org_id");

@@ -8,7 +8,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) RunApprovedSocialMediaTriggerActions(ctx workflow.Context, tar TriggerActionsWorkflowParams) error {
+func (z *ZeusAiPlatformServiceWorkflows) RunApprovedSocialMediaTriggerActionsWorkflow(ctx workflow.Context, tar TriggerActionsWorkflowParams) error {
 	if tar.Emr == nil || tar.Mb == nil {
 		return nil
 	}

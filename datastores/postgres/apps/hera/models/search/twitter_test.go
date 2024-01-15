@@ -55,37 +55,31 @@ func (s *SearchAITestSuite) TestInsertIncomingTweets() {
 }
 
 func (s *SearchAITestSuite) TestSelectTweets() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	si := artemis_orchestrations.Window{}
-	si.Start = time.Now().AddDate(0, 0, -7)
+	si.Start = time.Now().AddDate(0, 0, -30)
 	si.End = time.Now()
 
 	// Call the function
 	sp := AiSearchParams{
 		Retrieval: artemis_orchestrations.RetrievalItem{
-			RetrievalID:    0,
 			RetrievalName:  "",
 			RetrievalGroup: "",
 			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
-				RetrievalPlatform:       "",
-				RetrievalPrompt:         "",
-				RetrievalPlatformGroups: "",
-				RetrievalKeywords:       "k8s",
-				RetrievalUsernames:      "",
-				DiscordFilters:          nil,
+				DiscordFilters: nil,
 			},
-			Instructions: nil,
 		},
 		Window: si,
 	}
 
 	results, err := SearchTwitter(ctx, ou, sp)
 
+	resp := FormatSearchResultsV3(results)
+	s.NotEmpty(resp)
 	// Assert expected outcomes
 	s.Require().NoError(err, "SearchTwitter should not return an error")
 	s.Require().NotNil(results, "Results should not be nil")

@@ -55,7 +55,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SendTriggerActionRequestForApproval, z.CreateOrUpdateTriggerActionToExec,
 		z.CheckEvalTriggerCondition, z.LookupEvalTriggerConditions,
 		z.SocialTweetTask, z.SocialRedditTask, z.SocialDiscordTask, z.SocialTelegramTask,
-		z.EvalFormatForApi,
+		z.EvalFormatForApi, z.SaveTriggerResponseOutput, z.SaveEvalResponseOutput,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -172,7 +172,7 @@ func (z *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgU
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: "gpt-4-1106-preview",
+			Model: Gpt4JsonModel,
 			Messages: []openai.ChatCompletionMessage{
 				systemMessage,
 				{

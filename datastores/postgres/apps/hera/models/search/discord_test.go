@@ -26,26 +26,25 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
 
 	// Call the function
 	sp := AiSearchParams{
-		Retrieval: artemis_orchestrations.RetrievalItem{
-			RetrievalID:    0,
-			RetrievalName:  "",
-			RetrievalGroup: "",
-			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
-				RetrievalPlatform:       "discord",
-				RetrievalPrompt:         "",
-				RetrievalPlatformGroups: "CryptoDevs",
-				RetrievalKeywords:       "",
-				RetrievalUsernames:      "",
-				DiscordFilters: &artemis_orchestrations.DiscordFilters{
-					CategoryTopic: "",
-					CategoryName:  "solidity",
-					Category:      "",
-				},
-			},
-			Instructions: nil,
-		},
-		TimeRange: "",
-		Window:    si,
+		//Retrieval: artemis_orchestrations.RetrievalItem{
+		//	RetrievalID:    0,
+		//	RetrievalName:  "",
+		//	RetrievalGroup: "",
+		//	RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
+		//		RetrievalPlatform:       "discord",
+		//		RetrievalPrompt:         "",
+		//		RetrievalPlatformGroups: "CryptoDevs",
+		//		RetrievalKeywords:       "",
+		//		RetrievalUsernames:      "",
+		//		DiscordFilters: &artemis_orchestrations.DiscordFilters{
+		//			CategoryTopic: "",
+		//			CategoryName:  "solidity",
+		//			Category:      "",
+		//		},
+		//	},
+		//},
+		//TimeRange: "",
+		//Window:    si,
 	}
 
 	results, err := SearchDiscord(ctx, ou, sp)
@@ -60,24 +59,23 @@ func (s *SearchAITestSuite) TestSelectDiscordSearchMessagesQuery() {
 	// Call the function
 	// Call the function
 	sp = AiSearchParams{
-		Retrieval: artemis_orchestrations.RetrievalItem{
-			RetrievalID:    0,
-			RetrievalName:  "",
-			RetrievalGroup: "",
-			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
-				RetrievalPlatform:       "discord",
-				RetrievalPrompt:         "",
-				RetrievalPlatformGroups: "CryptoDevs",
-				RetrievalKeywords:       "",
-				RetrievalUsernames:      "",
-				DiscordFilters: &artemis_orchestrations.DiscordFilters{
-					CategoryTopic: "",
-					CategoryName:  "js-and",
-					Category:      "",
-				},
-			},
-			Instructions: nil,
-		},
+		//Retrieval: artemis_orchestrations.RetrievalItem{
+		//	RetrievalID:    0,
+		//	RetrievalName:  "",
+		//	RetrievalGroup: "",
+		//	RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
+		//		RetrievalPlatform:       "discord",
+		//		RetrievalPrompt:         "",
+		//		RetrievalPlatformGroups: "CryptoDevs",
+		//		RetrievalKeywords:       "",
+		//		RetrievalUsernames:      "",
+		//		DiscordFilters: &artemis_orchestrations.DiscordFilters{
+		//			CategoryTopic: "",
+		//			CategoryName:  "js-and",
+		//			Category:      "",
+		//		},
+		//	},
+		//},
 		Window: si,
 	}
 

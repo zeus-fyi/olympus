@@ -28,16 +28,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunTriggerActions(ctx workflow.Context,
 		},
 	}
 
+	ou := tar.Mb.Ou
 	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 	var triggerActions []artemis_orchestrations.TriggerAction
-
-	//var sr []hera_search.SearchResult
-	//if tar.Mb.AnalysisEvalActionParams != nil {
-	//	sr = tar.Mb.AnalysisEvalActionParams.SearchResults
-	//	fmt.Println(sr)
-	//}
 	// looks up if there are any trigger actions to execute by eval id
-	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(triggerEvalsLookupCtx, &triggerActions)
+	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, ou, tar.Emr.EvalContext.EvalID).Get(triggerEvalsLookupCtx, &triggerActions)
 	if err != nil {
 		logger.Error("failed to get eval info", "Error", err)
 		return err
@@ -52,8 +47,42 @@ func (z *ZeusAiPlatformServiceWorkflows) RunTriggerActions(ctx workflow.Context,
 			logger.Error("failed to check eval trigger condition", "Error", err)
 			return err
 		}
+
 		if ta == nil {
 			continue
+		}
+		var cr *ChatCompletionQueryResponse
+		if tar.Mb.AnalysisEvalActionParams != nil && tar.Mb.AnalysisEvalActionParams.SearchResultGroup != nil {
+			ta.TriggerPlatformReference.PlatformReferenceName = tar.Mb.AnalysisEvalActionParams.SearchResultGroup.PlatformName
+			switch ta.TriggerEnv {
+			case socialMediaEngagementResponseFormat:
+				smApiEvalFormatCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				err = workflow.ExecuteActivity(smApiEvalFormatCtx, z.EvalFormatForApi, ou, ta).Get(smApiEvalFormatCtx, &cr)
+				if err != nil {
+					logger.Error("failed to check eval trigger condition", "Error", err)
+					return err
+				}
+			}
+		}
+		if cr != nil {
+			var triggerCompletionID int
+			triggerCompletionResponseCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			err = workflow.ExecuteActivity(triggerCompletionResponseCtx, z.RecordCompletionResponse, ou, cr).Get(triggerCompletionResponseCtx, &triggerCompletionID)
+			if err != nil {
+				logger.Error("failed to get completion response", "Error", err)
+				return err
+			}
+			trr := artemis_orchestrations.AIWorkflowTriggerResultResponse{
+				WorkflowResultID: tar.Mb.WorkflowResult.WorkflowResultID,
+				TriggerID:        ta.TriggerID,
+				ResponseID:       triggerCompletionID,
+			}
+			saveCompletionResponseCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			err = workflow.ExecuteActivity(saveCompletionResponseCtx, z.SaveTriggerResponseOutput, trr).Get(saveCompletionResponseCtx, nil)
+			if err != nil {
+				logger.Error("failed to save trigger response", "Error", err)
+				return err
+			}
 		}
 		// if conditions are met, create or update the trigger action
 		recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)

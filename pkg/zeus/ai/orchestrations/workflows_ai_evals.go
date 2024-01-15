@@ -31,7 +31,7 @@ type EvalActionParams struct {
 	WorkflowTemplateData artemis_orchestrations.WorkflowTemplateData `json:"parentProcess"`
 	ParentOutputToEval   *ChatCompletionQueryResponse                `json:"parentOutputToEval"`
 	EvalFns              []artemis_orchestrations.EvalFnDB           `json:"evalFns"`
-	SearchResults        []hera_search.SearchResult                  `json:"searchResults,omitempty"`
+	SearchResultGroup    *hera_search.SearchResultGroup              `json:"searchResultsGroup,omitempty"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe *EvalActionParams) error {
@@ -72,7 +72,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				},
 			}
 			var emr *artemis_orchestrations.EvalMetricsResults
-
 			evCtx := artemis_orchestrations.EvalContext{
 				EvalID:                evalFn.EvalID,
 				OrchestrationID:       mb.Oj.OrchestrationID,
@@ -85,7 +84,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 
 			switch strings.ToLower(evalFnWithMetrics.EvalType) {
 			case "model":
-				cr := &ChatCompletionQueryResponse{}
+				var cr *ChatCompletionQueryResponse
 				modelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(modelScoredJsonCtx, z.CreateJsonOutputModelResponse, mb.Ou, evalParams).Get(modelScoredJsonCtx, &cr)
 				if err != nil {
@@ -96,6 +95,24 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 					continue
 				}
 
+				var evalCompletionID int
+				evalJsonCompCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				err = workflow.ExecuteActivity(evalJsonCompCtx, z.RecordCompletionResponse, mb.Ou, cr).Get(evalJsonCompCtx, &evalCompletionID)
+				if err != nil {
+					logger.Error("failed to save eval json response", "Error", err)
+					return err
+				}
+				recordEvalResponseCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
+					WorkflowResultID: mb.WorkflowResult.WorkflowResultID,
+					EvalID:           evalFn.EvalID,
+					ResponseID:       evalCompletionID,
+				}
+				err = workflow.ExecuteActivity(recordEvalResponseCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResponseCtx, nil)
+				if err != nil {
+					logger.Error("failed to save eval response relationship", "Error", err)
+					return err
+				}
 				m := make(map[string]interface{})
 				for _, cho := range cr.Response.Choices {
 					for _, tvr := range cho.Message.ToolCalls {
@@ -157,6 +174,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				continue
 			}
 			for _, er := range emr.EvalMetricsResults {
+				// in the eval stage, if any filter fails, skip the analysis.
 				if er.EvalState == "filter" && ((er.EvalMetricResult == "pass" && er.EvalResultOutcome == false) || (er.EvalMetricResult == "fail" && er.EvalResultOutcome == true)) {
 					mb.WorkflowResult.SkipAnalysis = true
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
@@ -165,6 +183,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 						logger.Error("failed to save analysis skip", "Error", err)
 						return err
 					}
+					break
 				}
 			}
 			saveEvalResultsCtx := workflow.WithActivityOptions(ctx, aoAiAct)

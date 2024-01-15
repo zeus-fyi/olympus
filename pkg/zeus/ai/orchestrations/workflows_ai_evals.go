@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	"go.temporal.io/sdk/temporal"
@@ -16,19 +17,21 @@ import (
 )
 
 type MbChildSubProcessParams struct {
-	WfID           string                                          `json:"wfID"`
-	Ou             org_users.OrgUser                               `json:"ou"`
-	WfExecParams   artemis_orchestrations.WorkflowExecParams       `json:"wfExecParams"`
-	Oj             artemis_orchestrations.OrchestrationJob         `json:"oj"`
-	RunCycle       int                                             `json:"runCycle"`
-	Window         artemis_orchestrations.Window                   `json:"window"`
-	WorkflowResult artemis_orchestrations.AIWorkflowAnalysisResult `json:"workflowResult"`
+	WfID                     string                                          `json:"wfID"`
+	Ou                       org_users.OrgUser                               `json:"ou"`
+	WfExecParams             artemis_orchestrations.WorkflowExecParams       `json:"wfExecParams"`
+	Oj                       artemis_orchestrations.OrchestrationJob         `json:"oj"`
+	RunCycle                 int                                             `json:"runCycle"`
+	Window                   artemis_orchestrations.Window                   `json:"window"`
+	WorkflowResult           artemis_orchestrations.AIWorkflowAnalysisResult `json:"workflowResult"`
+	AnalysisEvalActionParams *EvalActionParams                               `json:"analysisEvalActionParams,omitempty"`
 }
 
 type EvalActionParams struct {
 	WorkflowTemplateData artemis_orchestrations.WorkflowTemplateData `json:"parentProcess"`
 	ParentOutputToEval   *ChatCompletionQueryResponse                `json:"parentOutputToEval"`
 	EvalFns              []artemis_orchestrations.EvalFnDB           `json:"evalFns"`
+	SearchResults        []hera_search.SearchResult                  `json:"searchResults,omitempty"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe *EvalActionParams) error {

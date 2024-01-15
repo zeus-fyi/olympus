@@ -39,34 +39,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RunApprovedTriggerActions(ctx workflow.
 		logger.Error("failed to create or update trigger action", "Error", err)
 		return err
 	}
-	smType := ""
-	switch smType {
-	case "twitter":
-		socialMediaExecCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(socialMediaExecCtx, z.SocialTweetTask, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(socialMediaExecCtx, nil)
-		if err != nil {
-			logger.Error("failed to exec twitter api call", "Error", err)
-			return err
+	switch ta.TriggerEnv {
+	case "social-media-engagement":
+		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+			//WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + suffix,
+			//WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 		}
-	case "reddit":
-		socialMediaExecCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(socialMediaExecCtx, z.SocialRedditTask, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(socialMediaExecCtx, nil)
+		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunApprovedSocialMediaTriggerActions, tar).Get(childAnalysisCtx, nil)
 		if err != nil {
-			logger.Error("failed to exec reddit api call", "Error", err)
-			return err
-		}
-	case "discord":
-		socialMediaExecCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(socialMediaExecCtx, z.SocialDiscordTask, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(socialMediaExecCtx, nil)
-		if err != nil {
-			logger.Error("failed to exec discord api call", "Error", err)
-			return err
-		}
-	case "telegram":
-		socialMediaExecCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(socialMediaExecCtx, z.SocialTelegramTask, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(socialMediaExecCtx, nil)
-		if err != nil {
-			logger.Error("failed to exec telegram api call", "Error", err)
+			logger.Error("failed to execute child run trigger actions workflow", "Error", err)
 			return err
 		}
 	}

@@ -9,8 +9,8 @@ import (
 )
 
 type TriggerActionsWorkflowParams struct {
-	Emr *artemis_orchestrations.EvalMetricsResults
-	Mb  *MbChildSubProcessParams
+	Emr *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
+	Mb  *MbChildSubProcessParams                   `json:"mb,omitempty"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) RunTriggerActions(ctx workflow.Context, tar TriggerActionsWorkflowParams) error {
@@ -31,6 +31,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunTriggerActions(ctx workflow.Context,
 	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 	var triggerActions []artemis_orchestrations.TriggerAction
 
+	//var sr []hera_search.SearchResult
+	//if tar.Mb.AnalysisEvalActionParams != nil {
+	//	sr = tar.Mb.AnalysisEvalActionParams.SearchResults
+	//	fmt.Println(sr)
+	//}
 	// looks up if there are any trigger actions to execute by eval id
 	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(triggerEvalsLookupCtx, &triggerActions)
 	if err != nil {

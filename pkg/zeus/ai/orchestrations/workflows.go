@@ -31,7 +31,7 @@ func (z *ZeusAiPlatformServiceWorkflows) GetWorkflows() []interface{} {
 		z.AiIngestRedditWorkflow, z.AiIngestDiscordWorkflow, z.AiFetchDataToIngestDiscordWorkflow,
 		z.RunAiWorkflowProcess, z.CancelWorkflowRuns, z.AiSearchIndexerActionsWorkflow, z.AiSearchIndexerWorkflow,
 		z.RunAiWorkflowChildAggAnalysisProcess, z.RunAiWorkflowChildAnalysisProcess, z.RunAiWorkflowAutoEvalProcess,
-		z.RunTriggerActions, z.RunApprovedTriggerActions,
+		z.RunTriggerActions, z.RunApprovedTriggerActions, z.RunApprovedSocialMediaTriggerActions,
 	}
 }
 

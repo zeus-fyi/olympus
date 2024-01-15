@@ -159,7 +159,6 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 
 func SelectTriggerActionApprovals(ctx context.Context, ou org_users.OrgUser, state string) ([]TriggerActionsApproval, error) {
 	var approvals []TriggerActionsApproval
-
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
         SELECT a.approval_id, a.eval_id, a.trigger_id, a.workflow_result_id, a.approval_state, a.request_summary, a.updated_at
@@ -204,7 +203,7 @@ func CreateOrUpdateTriggerActionApproval(ctx context.Context, ou org_users.OrgUs
 	}
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
-        INSERT INTO public.ai_trigger_actions_approval(eval_id, trigger_id, workflow_result_id, approval_state, request_summary)
+        INSERT INTO ai_trigger_actions_approval(eval_id, trigger_id, workflow_result_id, approval_state, request_summary)
         VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (eval_id, trigger_id, workflow_result_id)
         DO UPDATE SET 

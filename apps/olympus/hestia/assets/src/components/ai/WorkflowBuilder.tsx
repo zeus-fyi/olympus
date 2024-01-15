@@ -2381,7 +2381,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="info">{'info'}</MenuItem>
-                                                                    <MenuItem value="optional">{'optional'}</MenuItem>
+                                                                    {/*<MenuItem value="optional">{'optional'}</MenuItem>*/}
                                                                     <MenuItem value="filter">{'filter'}</MenuItem>
                                                                     {/*<MenuItem value="warning">{'warning'}</MenuItem>*/}
                                                                     {/*<MenuItem value="critical">{'critical'}</MenuItem>*/}
@@ -2671,7 +2671,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     >
                                                                         <MenuItem value="info">{'info'}</MenuItem>
                                                                         <MenuItem value="filter">{'filter'}</MenuItem>
-                                                                        <MenuItem value="optional">{'optional'}</MenuItem>
+                                                                        {/*<MenuItem value="optional">{'optional'}</MenuItem>*/}
                                                                         {/*<MenuItem value="warning">{'warning'}</MenuItem>*/}
                                                                         {/*<MenuItem value="critical">{'critical'}</MenuItem>*/}
                                                                         <MenuItem value="error">{'error'}</MenuItem>

@@ -11,9 +11,9 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx workflow.Context, cp *MbChildSubProcessParams) error {
+func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx workflow.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	if cp == nil || cp.WfExecParams.WorkflowTasks == nil || cp.Oj.OrchestrationID == 0 || cp.Ou.OrgID == 0 || cp.Ou.UserID == 0 {
-		return nil
+		return nil, nil
 	}
 	wfExecParams := cp.WfExecParams
 	ou := cp.Ou
@@ -51,14 +51,14 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				err := workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, ou, analysisInst, window).Get(retrievalCtx, &sr)
 				if err != nil {
 					logger.Error("failed to run retrieval", "Error", err)
-					return err
+					return nil, err
 				}
 				var routes []iris_models.RouteInfo
 				retrievalWebCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, ou, analysisInst).Get(retrievalWebCtx, &routes)
 				if err != nil {
 					logger.Error("failed to run retrieval", "Error", err)
-					return err
+					return nil, err
 				}
 				for _, route := range routes {
 					fetchedResult := &hera_search.SearchResult{}
@@ -66,7 +66,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.AiWebRetrievalTask, ou, analysisInst, route).Get(retrievalWebTaskCtx, &fetchedResult)
 					if err != nil {
 						logger.Error("failed to run retrieval", "Error", err)
-						return err
+						return nil, err
 					}
 					if fetchedResult != nil && len(fetchedResult.Value) > 0 {
 						sr = append(sr, *fetchedResult)
@@ -82,7 +82,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			err := workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sr).Get(analysisCtx, &aiResp)
 			if err != nil {
 				logger.Error("failed to run analysis", "Error", err)
-				return err
+				return nil, err
 			}
 			if aiResp == nil || len(aiResp.Response.Choices) == 0 {
 				continue
@@ -92,7 +92,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
 			if err != nil {
 				logger.Error("failed to save analysis response", "Error", err)
-				return err
+				return nil, err
 			}
 			wr := artemis_orchestrations.AIWorkflowAnalysisResult{
 				OrchestrationsID:      oj.OrchestrationID,
@@ -106,7 +106,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr).Get(recordAnalysisCtx, nil)
 			if err != nil {
 				logger.Error("failed to save analysis", "Error", err)
-				return err
+				return nil, err
 			}
 			evalWfID := oj.OrchestrationName + "-analysis-eval=" + strconv.Itoa(i)
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
@@ -121,6 +121,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				WorkflowTemplateData: analysisInst,
 				ParentOutputToEval:   aiResp,
 				EvalFns:              analysisInst.AnalysisTaskDB.AnalysisEvalFns,
+				SearchResults:        sr,
 			}
 			if analysisInst.AggTaskID != nil {
 				ea.EvalFns = analysisInst.AggAnalysisEvalFns
@@ -138,11 +139,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
 					if err != nil {
 						logger.Error("failed to execute child analysis workflow", "Error", err)
-						return err
+						return nil, err
 					}
 				}
 			}
+			cp.AnalysisEvalActionParams = ea
+			return cp, nil
 		}
 	}
-	return nil
+	return cp, nil
 }

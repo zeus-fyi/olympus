@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/g8rswimmer/go-twitter/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -128,6 +129,8 @@ type ChatCompletionQueryResponse struct {
 	Prompt         map[string]string             `json:"prompt"`
 	Response       openai.ChatCompletionResponse `json:"response"`
 	ResponseTaskID int                           `json:"responseTaskID,omitempty"`
+
+	*twitter.CreateTweetRequest `json:"twitterCreateTweetRequest,omitempty"`
 }
 
 func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (*ChatCompletionQueryResponse, error) {

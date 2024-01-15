@@ -153,6 +153,17 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			if emr == nil {
 				continue
 			}
+			for _, er := range emr.EvalMetricsResults {
+				if er.EvalState == "filter" && ((er.EvalMetricResult == "pass" && er.EvalResultOutcome == false) || (er.EvalMetricResult == "fail" && er.EvalResultOutcome == true)) {
+					mb.WorkflowResult.SkipAnalysis = true
+					recordAnalysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, mb.WorkflowResult).Get(recordAnalysisCtx, nil)
+					if err != nil {
+						logger.Error("failed to save analysis skip", "Error", err)
+						return err
+					}
+				}
+			}
 			saveEvalResultsCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			emr.EvalContext = evCtx
 			err = workflow.ExecuteActivity(saveEvalResultsCtx, z.SaveEvalMetricResults, emr).Get(saveEvalResultsCtx, nil)

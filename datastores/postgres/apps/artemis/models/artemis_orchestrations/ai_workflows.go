@@ -21,6 +21,7 @@ type Task struct {
 	TaskID            int        `json:"taskID"`
 	TaskName          string     `json:"taskName"`
 	TaskType          string     `json:"taskType"`
+	ResponseFormat    string     `json:"responseFormat"`
 	Model             string     `json:"model"`
 	Prompt            string     `json:"prompt"`
 	CycleCount        int        `json:"cycleCount"`

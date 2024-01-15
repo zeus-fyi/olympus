@@ -318,7 +318,7 @@ type EvalMetricsResult struct {
 	EvalMetricName        string          `json:"evalMetricName"`
 	EvalMetricID          int             `json:"evalMetricID,omitempty"`
 	EvalMetricsResultID   int             `json:"evalMetricsResultId"`
-	EvalMetricResult      string          `json:"evalMetricResult"`
+	EvalMetricResult      string          `json:"evalMetricResult"` // pass or fail expected result
 	EvalComparisonBoolean *bool           `json:"evalComparisonBoolean,omitempty"`
 	EvalComparisonNumber  *float64        `json:"evalComparisonNumber,omitempty"`
 	EvalComparisonString  *string         `json:"evalComparisonString,omitempty"`
@@ -328,7 +328,7 @@ type EvalMetricsResult struct {
 	RunningCycleNumber    int             `json:"runningCycleNumber"`
 	SearchWindowUnixStart int             `json:"searchWindowUnixStart,omitempty"`
 	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd,omitempty"`
-	EvalResultOutcome     bool            `json:"evalResultOutcome"`
+	EvalResultOutcome     bool            `json:"evalResultOutcome"` // true if eval passed, false if eval failed
 	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
 }
 

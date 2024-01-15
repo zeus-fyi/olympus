@@ -43,7 +43,7 @@ type TriggerPlatformReference struct {
 type EvalTriggerActions struct {
 	EvalID               int    `db:"eval_id" json:"evalID,omitempty"`
 	TriggerID            int    `db:"trigger_id" json:"triggerID,omitempty"`
-	EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"`
+	EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"` // eg. info, filter, etc
 	EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"`
 }
 

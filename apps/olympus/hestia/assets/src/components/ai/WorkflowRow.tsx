@@ -82,6 +82,11 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                         </TableCell>
                                         <TableCell>
                                             <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                                Response Format
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="subtitle2" component="div" fontWeight="bold">
                                                 Cycle Count
                                             </Typography>
                                         </TableCell>
@@ -112,6 +117,7 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                         <TableRow key={dataIndex}>
                                             <TableCell>{data.taskName}</TableCell>
                                             <TableCell>{data.taskType}</TableCell>
+                                            <TableCell>{data.responseFormat}</TableCell>
                                             <TableCell>{data.cycleCount}</TableCell>
                                             <TableCell style={{ width: '15%'}}>{data.model}</TableCell>
                                             <TableCell style={{ width: '50%', whiteSpace: 'pre-wrap' }}>

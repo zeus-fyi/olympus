@@ -53,6 +53,7 @@ type AggTaskDb struct {
 	AggPrompt                string     `json:"aggPrompt"`
 	AggTaskId                int        `json:"aggTaskId"` // Assuming IDs are large numbers
 	AggTaskName              string     `json:"aggTaskName"`
+	AggResponseFormat        string     `json:"aggResponseFormat"`
 	AggTaskType              string     `json:"aggTaskType"`
 	AggCycleCount            int        `json:"aggCycleCount"`
 	AggAnalysisTaskId        int        `json:"aggAnalysisTaskId"` // Assuming IDs are large numbers
@@ -80,6 +81,7 @@ type AnalysisTaskDB struct {
 	AnalysisPrompt                string `json:"analysisPrompt"`
 	AnalysisTaskID                int    `json:"analysisTaskID"`
 	AnalysisTaskName              string `json:"analysisTaskName"`
+	AnalysisResponseFormat        string `json:"analysisResponseFormat"`
 	AnalysisTaskType              string `json:"analysisTaskType"`
 	AnalysisMaxTokensPerTask      int    `json:"analysisMaxTokensPerTask"`
 	AnalysisTokenOverflowStrategy string `json:"analysisTokenOverflowStrategy"`
@@ -93,127 +95,6 @@ type RetrievalDB struct {
 	RetrievalGroup        string          `json:"retrievalGroup"`
 	RetrievalPlatform     string          `json:"retrievalPlatform"`
 	RetrievalInstructions json.RawMessage `json:"retrievalInstructions"`
-}
-
-func SelectWorkflowTemplate(ctx context.Context, ou org_users.OrgUser, workflowName string) ([]WorkflowTemplateData, error) {
-	var results []WorkflowTemplateData
-	q := sql_query_templates.QueryParams{}
-	params := []interface{}{ou.OrgID, workflowName}
-	q.RawQuery = `WITH cte_1 AS (
-						SELECT
-							awtat.task_id AS analysis_task_id,
-							awtat.cycle_count AS analysis_cycle_count,
-							ait.task_name AS analysis_task_name,
-							ait.task_type AS analysis_task_type,
-							ait.prompt AS analysis_prompt, 
-							ait.model AS analysis_model,
-							ait.token_overflow_strategy AS analysis_token_overflow_strategy,
-							ait.max_tokens_per_task AS analysis_max_tokens_per_task,
-							awtat.retrieval_id AS retrieval_id
-						FROM ai_workflow_template wate
-						JOIN public.ai_workflow_template_analysis_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
-						JOIN public.ai_task_library ait ON ait.task_id = awtat.task_id
-						WHERE wate.org_id = $1 AND wate.workflow_name = $2
-						), cte_2 AS (
-							SELECT
-								awtat.agg_task_id,
-								awtat.analysis_task_id,
-								awtat.cycle_count AS agg_cycle_count,
-								ait.task_name AS agg_task_name,
-								ait.task_type AS agg_task_type,
-								ait.prompt AS agg_prompt,
-								ait.model AS agg_model,
-								ait.token_overflow_strategy AS agg_token_overflow_strategy,
-								ait.max_tokens_per_task AS agg_max_tokens_per_task
-							FROM ai_workflow_template wate
-							JOIN public.ai_workflow_template_agg_tasks awtat ON awtat.workflow_template_id = wate.workflow_template_id
-							JOIN public.ai_task_library ait ON ait.task_id = awtat.agg_task_id
-							JOIN public.ai_task_library ait1 ON ait1.task_id = awtat.analysis_task_id
-							WHERE wate.org_id = $1 AND wate.workflow_name = $2
-							), cte_3 AS (
-								SELECT  art.retrieval_id,
-											art.retrieval_name,
-											art.retrieval_group,
-											art.retrieval_platform as retrieval_platform,
-											art.instructions as retrieval_instructions
-								FROM cte_1 c1 
-								JOIN ai_retrieval_library art ON art.retrieval_id = c1.retrieval_id
-						), aggregate_cte AS (
-						SELECT
-							cte_1.analysis_task_id,
-							cte_1.analysis_cycle_count,
-							cte_1.analysis_task_name,
-							cte_1.analysis_task_type,
-							cte_1.analysis_prompt,
-							cte_1.analysis_model,
-							cte_1.analysis_token_overflow_strategy,
-							cte_1.analysis_max_tokens_per_task,
-							cte_2.agg_task_id,
-							cte_2.analysis_task_id,
-							cte_2.agg_task_name,
-							cte_2.agg_task_type,
-							cte_2.agg_prompt,
-							cte_2.agg_model,
-							cte_2.agg_token_overflow_strategy,
-							cte_2.agg_max_tokens_per_task,
-							cte_2.agg_cycle_count,
-							cte_3.retrieval_id,
-							COALESCE(cte_3.retrieval_name, '') AS retrieval_name,
-							COALESCE(cte_3.retrieval_group, '') AS retrieval_group,
-							COALESCE(cte_3.retrieval_platform, '') AS retrieval_platform,
-							cte_3.retrieval_instructions
-						FROM cte_1 
-						LEFT JOIN cte_2 ON cte_1.analysis_task_id = cte_2.analysis_task_id
-						LEFT JOIN cte_3 ON cte_1.retrieval_id = cte_3.retrieval_id
-						) 
-						SELECT * FROM aggregate_cte`
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
-	if err != nil {
-		log.Err(err).Msg("Error querying SelectWorkflowTemplate")
-		return nil, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var aggAnalysisTaskID *int
-		var data WorkflowTemplateData
-		rowErr := rows.Scan(
-			&data.AnalysisTaskID,
-			&data.AnalysisCycleCount,
-			&data.AnalysisTaskName,
-			&data.AnalysisTaskType,
-			&data.AnalysisPrompt,
-			&data.AnalysisModel,
-			&data.AnalysisTokenOverflowStrategy,
-			&data.AnalysisMaxTokensPerTask,
-			&data.AggTaskID,
-			&aggAnalysisTaskID,
-			&data.AggTaskName,
-			&data.AggTaskType,
-			&data.AggPrompt,
-			&data.AggModel,
-			&data.AggTokenOverflowStrategy,
-			&data.AggMaxTokensPerTask,
-			&data.AggCycleCount,
-			&data.RetrievalID,
-			&data.RetrievalName,
-			&data.RetrievalGroup,
-			&data.RetrievalPlatform,
-			&data.RetrievalInstructions,
-		)
-		if rowErr != nil {
-			log.Err(rowErr).Msg("Error scanning row in SelectWorkflowTemplate")
-			return nil, rowErr
-		}
-		results = append(results, data)
-	}
-	// Check for errors from iterating over rows
-	if err = rows.Err(); err != nil {
-		log.Err(err).Msg("error iterating over rows")
-		return nil, err
-	}
-
-	return results, nil
 }
 
 func SelectWorkflowTemplates(ctx context.Context, ou org_users.OrgUser) (*Workflows, error) {
@@ -274,6 +155,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 							'analysisModel', ait.model,
 							'analysisTokenOverflowStrategy', ait.token_overflow_strategy,
 							'analysisMaxTokensPerTask', ait.max_tokens_per_task,
+							'analysisResponseFormat', ait.response_format,
 							'retrievalID', COALESCE(art.retrieval_id, 0),
 							'retrievalName', COALESCE(art.retrieval_name, ''),
 							'retrievalGroup', COALESCE(art.retrieval_group, ''),
@@ -286,7 +168,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 					LEFT JOIN ai_retrieval_library art ON art.retrieval_id = cte_0.retrieval_id
 					LEFT JOIN cte_wf_evals ON cte_wf_evals.workflow_template_id = cte_0.workflow_template_id AND cte_wf_evals.task_id = cte_0.analysis_task_id
 					GROUP BY cte_0.workflow_template_id, cte_0.analysis_task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, ait.token_overflow_strategy,
-						ait.max_tokens_per_task, art.retrieval_id, art.retrieval_name, art.retrieval_group, art.retrieval_platform, art.instructions, cte_0.analysis_cycle_count
+						ait.max_tokens_per_task, ait.response_format, art.retrieval_id, art.retrieval_name, art.retrieval_group, art.retrieval_platform, art.instructions, cte_0.analysis_cycle_count
 				),
 				cte_1a AS (
 					SELECT 
@@ -314,6 +196,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 				'aggTaskType', ait.task_type,
 				'aggPrompt', ait.prompt,
 				'aggModel', ait.model,
+				'aggResponseFormat', ait.response_format,
 				'aggTokenOverflowStrategy', ait.token_overflow_strategy,
 				'aggMaxTokensPerTask', ait.max_tokens_per_task,
 				'aggCycleCount', awtat.cycle_count,
@@ -330,7 +213,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 		LEFT JOIN unique_evals ue1 ON ue1.workflow_template_id = wate.workflow_template_id AND ue1.task_id = ait1.task_id
    	 	WHERE wate.org_id = $1 ` + additionalCondition + `
     	GROUP BY wate.workflow_template_id, ait.task_id, ait1.task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, 
-             ait.token_overflow_strategy, ait.max_tokens_per_task, awtat.cycle_count, ue.eval_fns_data_agg, ue1.eval_fns_data_agg, awtat1.cycle_count
+             ait.token_overflow_strategy, ait.max_tokens_per_task, ait.response_format, awtat.cycle_count, ue.eval_fns_data_agg, ue1.eval_fns_data_agg, awtat1.cycle_count
 				), cte_2a AS (
 						SELECT 
 							workflow_template_id, 
@@ -474,6 +357,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 				TaskID:            at.AnalysisTaskID,
 				TaskName:          at.AnalysisTaskName,
 				TaskType:          at.AnalysisTaskType,
+				ResponseFormat:    at.AnalysisResponseFormat,
 				Model:             at.AnalysisModel,
 				Prompt:            at.AnalysisPrompt,
 				CycleCount:        at.AnalysisCycleCount,
@@ -500,6 +384,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 				TaskID:            aggTask.AggTaskId,
 				TaskName:          aggTask.AggTaskName,
 				TaskType:          aggTask.AggTaskType,
+				ResponseFormat:    aggTask.AggResponseFormat,
 				Model:             aggTask.AggModel,
 				Prompt:            aggTask.AggPrompt,
 				CycleCount:        aggTask.AggCycleCount,

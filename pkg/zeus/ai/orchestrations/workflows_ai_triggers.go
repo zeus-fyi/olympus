@@ -30,15 +30,19 @@ func (z *ZeusAiPlatformServiceWorkflows) RunTriggerActions(ctx workflow.Context,
 
 	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 	var triggerActions []artemis_orchestrations.TriggerAction
+
+	// looks up if there are any trigger actions to execute by eval id
 	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(triggerEvalsLookupCtx, &triggerActions)
 	if err != nil {
 		logger.Error("failed to get eval info", "Error", err)
 		return err
 	}
 
+	// if there are no trigger actions to execute, check if conditions are met for execution
 	for _, triggerAction := range triggerActions {
 		var ta *artemis_orchestrations.TriggerAction
-		err = workflow.ExecuteActivity(ctx, z.CheckEvalTriggerCondition, &triggerAction, tar.Emr).Get(ctx, &ta)
+		checkTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		err = workflow.ExecuteActivity(checkTriggerCondCtx, z.CheckEvalTriggerCondition, &triggerAction, tar.Emr).Get(checkTriggerCondCtx, &ta)
 		if err != nil {
 			logger.Error("failed to check eval trigger condition", "Error", err)
 			return err
@@ -46,7 +50,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunTriggerActions(ctx workflow.Context,
 		if ta == nil {
 			continue
 		}
-		err = workflow.ExecuteActivity(ctx, z.CreateOrUpdateTriggerActionToExec, tar.Mb, ta).Get(ctx, nil)
+		// if conditions are met, create or update the trigger action
+		recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionToExec, tar.Mb, ta).Get(recordTriggerCondCtx, nil)
 		if err != nil {
 			logger.Error("failed to create or update trigger action", "Error", err)
 			return err

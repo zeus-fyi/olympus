@@ -231,6 +231,7 @@ export interface WorkflowTemplate {
 export type Task = {
     taskName: string;
     taskType: string;
+    responseFormat: string;
     model: string;
     prompt: string;
     cycleCount: number;

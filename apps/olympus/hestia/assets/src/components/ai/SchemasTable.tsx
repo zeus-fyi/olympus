@@ -43,6 +43,7 @@ export function SchemasTable(props: any) {
     const countTrueValues = (): number => {
         return Object.values(selected).filter(value => value).length;
     };
+
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="actions pagination table">

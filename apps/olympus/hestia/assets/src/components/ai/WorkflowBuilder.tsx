@@ -1036,6 +1036,9 @@ function WorkflowEngineBuilder(props: any) {
         } else if (newValue === 6) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
+        } else if (newValue === 7) {
+            dispatch(setSelectedWorkflows([]));
+            setSelected({});
         }
         if (addAssistantsView && newValue !== 6) {
             dispatch(setAddAssistantsView(false));
@@ -1112,8 +1115,14 @@ function WorkflowEngineBuilder(props: any) {
                 return acc;
             }, {});
             setSelected(newSelection);
-        } else if (selectedMainTabBuilder === 6)  {
+        } else if (selectedMainTabBuilder === 6) {
             const newSelection = assistants.reduce((acc: { [key: number]: boolean }, assistant: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
+        } else if (selectedMainTabBuilder === 7) {
+            const newSelection = schemas.reduce((acc: { [key: number]: boolean }, schema: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
             }, {});
@@ -1957,7 +1966,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 <Button fullWidth variant="contained" onClick={createOrUpdateWorkflow} >Save Workflow</Button>
                                             </Box>
                                         </CardActions>
-                                            {requestStatus != '' && (
+                                            {requestStatus !== '' && (
                                                 <Container sx={{  mt: 2}}>
                                                     <Typography variant="h6" color={requestStatusError}>
                                                         {requestStatus}

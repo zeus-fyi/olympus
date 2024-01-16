@@ -13,6 +13,7 @@ import {
     setAssistants,
     setEvalFns,
     setRetrievals,
+    setSchemas,
     setSearchIndexers,
     setSelectedSearchIndexers,
     setTriggerActions,
@@ -58,6 +59,7 @@ export function SearchIndexersTable(props: any) {
                     dispatch(setSearchIndexers(data.searchIndexers));
                     dispatch(setTriggerActions(data.triggerActions));
                     dispatch(setAssistants(data.assistants));
+                    dispatch(setSchemas(data.schemas))
                 } else {
                     console.log('Failed to get workflows', response);
                 }

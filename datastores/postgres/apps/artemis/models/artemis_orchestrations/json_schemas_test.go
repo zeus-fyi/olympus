@@ -6,7 +6,7 @@ import (
 )
 
 func (s *OrchestrationsTestSuite) TestInsertJsonSchema() {
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 
 	// get internal assignments
 	ou := org_users.OrgUser{}

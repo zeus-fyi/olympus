@@ -12,8 +12,17 @@ import {
     UpdateTaskMapPayload
 } from "./ai.types";
 import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
+import {JsonSchemaDefinition} from "./ai.types.schemas";
 
 const initialState: AiState = {
+    schemas: [],
+    schema: {
+        schemaID: 0,
+        isObjArray: false,
+        schemaName: '',
+        schemaGroup: 'default',
+        fields: [],
+    },
     assistant: {
         id: '',
         object: 'assistant',
@@ -173,6 +182,12 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setSchemas: (state, action: PayloadAction<JsonSchemaDefinition[]>) => {
+            state.schemas = action.payload;
+        },
+        setSchema: (state, action: PayloadAction<JsonSchemaDefinition>) => {
+            state.schema = action.payload;
+        },
         setAddAssistantsView: (state, action: PayloadAction<boolean>) => {
             state.addAssistantsView = action.payload;
         },
@@ -540,5 +555,7 @@ export const {
     setAddAssistantsView,
     setAddTriggerActionsView,
     setAddTriggersToEvalFnView,
+    setSchema,
+    setSchemas,
 } = aiSlice.actions;
 export default aiSlice.reducer;

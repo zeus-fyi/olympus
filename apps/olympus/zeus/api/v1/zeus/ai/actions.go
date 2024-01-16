@@ -34,7 +34,6 @@ func CreateOrUpdateAction(c echo.Context, act *artemis_orchestrations.TriggerAct
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-
 	act.EvalTriggerActions = append(act.EvalTriggerActions, act.EvalTriggerAction)
 	err := artemis_orchestrations.CreateOrUpdateTriggerAction(c.Request().Context(), ou, act)
 	if err != nil {

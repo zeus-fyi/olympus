@@ -13,6 +13,7 @@ import {
     setAssistants,
     setEvalFns,
     setRetrievals,
+    setSchemas,
     setSelectedWorkflows,
     setTriggerActions,
     setWorkflows
@@ -56,6 +57,7 @@ export function WorkflowTable(props: any) {
                     dispatch(setAiTasks(data.tasks));
                     dispatch(setRetrievals(data.retrievals));
                     dispatch(setAssistants(data.assistants));
+                    dispatch(setSchemas(data.schemas))
                 } else {
                     console.log('Failed to get workflows', response);
                 }

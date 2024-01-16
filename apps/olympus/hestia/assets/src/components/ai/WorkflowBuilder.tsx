@@ -87,10 +87,14 @@ import {Assistants} from "./Assistants";
 import {AssistantsTable} from "./AssistantsTable";
 import {ActionsTable} from "./ActionsTable";
 import {Retrieval, TriggerAction} from "../../redux/ai/ai.types2";
+import {SchemasTable} from "./SchemasTable";
+import {Schemas} from "./Schemas";
 
 const mdTheme = createTheme();
 
 function WorkflowEngineBuilder(props: any) {
+    const schema =  useSelector((state: RootState) => state.ai.schema);
+    const schemas =  useSelector((state: RootState) => state.ai.schemas);
     const [open, setOpen] = useState(true);
     const assistants = useSelector((state: RootState) => state.ai.assistants);
     const evalMap = useSelector((state: RootState) => state.ai.evalMap);
@@ -576,6 +580,8 @@ function WorkflowEngineBuilder(props: any) {
     const [requestMetricActionCreateOrUpdateStatusError, setRequestMetricActionCreateOrUpdateStatusError] = useState('');
     const [requestStatusAssistant, setRequestStatusAssistant] = useState('');
     const [requestStatusAssistantError, setRequestStatusAssistantError] = useState('');
+    const [requestStatusSchema, setRequestStatusSchema] = useState('');
+    const [requestStatusSchemaError, setRequestStatusSchemaError] = useState('');
 
     const createOrUpdateWorkflow = async () => {
         try {
@@ -668,7 +674,37 @@ function WorkflowEngineBuilder(props: any) {
             setIsLoading(false);
         }
     }
-
+    const createOrUpdateSchema = async () => {
+        try {
+            setIsLoading(true)
+            if (!isValidLabel(schema.schemaName)) {
+                setRequestStatusSchema('Schema name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                setRequestStatusSchemaError('error')
+                return;
+            }
+            if (!isValidLabel(schema.schemaGroup)) {
+                setRequestStatusSchema('Schema group name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+                setRequestStatusSchemaError('error')
+                return;
+            }
+            const response = await aiApiGateway.createOrUpdateJsonSchema(schema);
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                // const data = response.data as Retrieval;
+                // dispatch(setRetrievals([...retrievals, data]))
+                setRequestStatusSchema('Assistant created or updated successfully')
+                setRequestStatusSchemaError('success')
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
+                setRequestStatusSchema('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestStatusSchemaError('error')
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }
     const createOrUpdateAssistant = async () => {
         try {
             setIsLoading(true)
@@ -3078,7 +3114,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         <MenuItem value="text">text</MenuItem>
                                                         <MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>
                                                         <MenuItem value="social-media-engagement">social-media-engagement</MenuItem>
-                                                        {/*<MenuItem value="json">json</MenuItem>*/}
+                                                        <MenuItem value="json">json</MenuItem>
                                                     </Select>
                                                 </FormControl>
                                             </Box>
@@ -3109,6 +3145,10 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
+                                    {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 7 && !loading && !addRetrievalView && !addEvalsView && !addTriggerActionsView && !addAssistantsView &&
+
+                                        <Schemas schema={schema} createOrUpdateSchema={createOrUpdateSchema}/>
+                                    }
                                 </CardContent>
                             </Card>
                         </Stack>
@@ -3123,6 +3163,7 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-evals" label="Evals" />
                                 <Tab className="onboarding-card-highlight-all-actions" label="Actions" />
                                 <Tab className="onboarding-card-highlight-all-assistants" label="Assistants" />
+                                <Tab className="onboarding-card-highlight-all-schemas" label="Schemas" />
                             </Tabs>
                         </Box>
                     </Container>
@@ -3220,6 +3261,17 @@ function WorkflowEngineBuilder(props: any) {
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <AssistantsTable assistants={assistants} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
+                            </Container>
+                        </div>
+                    }
+
+                    { (selectedMainTabBuilder === 7) &&
+                        <div>
+                            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                <SchemasTable schemas={schemas}
+                                              requestStatusSchema={requestStatusSchema}
+                                              requestStatusSchemaError={requestStatusSchemaError}
+                                              selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
                             </Container>
                         </div>
                     }

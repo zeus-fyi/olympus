@@ -11,15 +11,17 @@ import (
 )
 
 type JsonSchemaDefinition struct {
-	SchemaID   int               `db:"schema_id" json:"schemaID"`
-	SchemaName string            `db:"schema_name" json:"schemaName"`
-	IsObjArray bool              `db:"is_obj_array" json:"isObjArray"`
-	Fields     []JsonSchemaField `db:"-" json:"fields"`
+	SchemaID    int               `db:"schema_id" json:"schemaID"`
+	SchemaName  string            `db:"schema_name" json:"schemaName"`
+	SchemaGroup string            `db:"schema_group" json:"schemaGroup"`
+	IsObjArray  bool              `db:"is_obj_array" json:"isObjArray"`
+	Fields      []JsonSchemaField `db:"-" json:"fields"`
 }
 
 type JsonSchemaField struct {
-	FieldName string `db:"field_name" json:"fieldName"`
-	DataType  string `db:"data_type" json:"dataType"`
+	FieldName        string `db:"field_name" json:"fieldName"`
+	FieldDescription string `db:"field_description" json:"fieldDescription"`
+	DataType         string `db:"data_type" json:"dataType"`
 }
 
 type AITaskJsonSchema struct {
@@ -36,10 +38,10 @@ func CreateOrUpdateJsonSchema(ctx context.Context, ou org_users.OrgUser, schema 
 	defer tx.Rollback(ctx)
 	// Insert into json_schema_definitions and get the generated schema_id
 	err = tx.QueryRow(ctx, `
-			INSERT INTO public.json_schema_definitions(org_id, schema_name, is_obj_array)
+			INSERT INTO public.ai_json_schema_definitions(org_id, schema_name, is_obj_array)
 			VALUES ($1, $2, $3)
 			ON CONFLICT (org_id, schema_name) DO UPDATE 
-			SET is_obj_array = EXCLUDED.is_obj_array
+			SET is_obj_array = EXCLUDED.is_obj_array, schema_group = EXCLUDED.schema_group
 			RETURNING schema_id;
 	`, ou.OrgID, schema.SchemaName, schema.IsObjArray).Scan(&schema.SchemaID)
 	if err != nil {
@@ -53,23 +55,23 @@ func CreateOrUpdateJsonSchema(ctx context.Context, ou org_users.OrgUser, schema 
 	}
 	// Delete fields that are not in the new schema
 	_, err = tx.Exec(ctx, `
-        DELETE FROM public.ai_task_json_schema_fields 
+        DELETE FROM public.ai_json_schema_fields 
         WHERE schema_id = $1 AND field_name NOT IN (SELECT unnest($2::text[]));
     `, schema.SchemaID, pq.Array(getFieldNames(schema.Fields)))
 	if err != nil && err != pgx.ErrNoRows {
 		log.Err(err).Msg("failed to delete old fields from ai_task_json_schema_fields")
 		return err
 	}
-	// Insert into ai_task_json_schema_fields
+	// Insert into ai_json_schema_fields
 	for _, field := range schema.Fields {
 		_, err = tx.Exec(ctx, `
-        INSERT INTO public.ai_task_json_schema_fields(schema_id, field_name, data_type)
-        VALUES ($1, $2, $3)
+        INSERT INTO public.ai_json_schema_fields(schema_id, field_name, data_type, field_description)
+        VALUES ($1, $2, $3, $4)
         ON CONFLICT (schema_id, field_name) DO UPDATE 
-        SET data_type = EXCLUDED.data_type;
-    `, schema.SchemaID, field.FieldName, field.DataType)
+        SET data_type = EXCLUDED.data_type, field_description = EXCLUDED.field_description;
+    `, schema.SchemaID, field.FieldName, field.DataType, field.FieldDescription)
 		if err != nil {
-			log.Err(err).Msg("failed to insert or update ai_task_json_schema_fields")
+			log.Err(err).Msg("failed to insert or update ai_json_schema_fields")
 			return err
 		}
 	}
@@ -77,7 +79,7 @@ func CreateOrUpdateJsonSchema(ctx context.Context, ou org_users.OrgUser, schema 
 	// Additional step to handle ai_task_json_schemas
 	if taskID != nil {
 		_, err = tx.Exec(ctx, `
-			INSERT INTO public.ai_task_json_schemas(schema_id, task_id)
+			INSERT INTO public.ai_json_task_schemas(schema_id, task_id)
 			VALUES ($1, $2)
 			ON CONFLICT (schema_id, task_id) DO NOTHING;
 		`, schema.SchemaID, *taskID)
@@ -108,7 +110,7 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSch
 	var schemas []JsonSchemaDefinition
 	// Query to join json_schema_definitions and ai_task_json_schema_fields
 	query := `
-        SELECT d.schema_id, d.org_id, d.schema_name, d.is_obj_array, f.field_name, f.data_type
+        SELECT d.schema_id, d.org_id, d.schema_name, d.schema_group, d.is_obj_array, f.field_name, f.data_type, f.field_description
         FROM public.json_schema_definitions d
         JOIN public.ai_task_json_schema_fields f ON d.schema_id = f.schema_id
         WHERE d.org_id = $1
@@ -128,7 +130,7 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSch
 		var field JsonSchemaField
 		var schema JsonSchemaDefinition
 
-		err = rows.Scan(&schemaID, &ou.OrgID, &schema.SchemaName, &schema.IsObjArray, &field.FieldName, &field.DataType)
+		err = rows.Scan(&schemaID, &ou.OrgID, &schema.SchemaName, &schema.SchemaGroup, &schema.IsObjArray, &field.FieldName, &field.DataType, &field.FieldDescription)
 		if err != nil {
 			log.Err(err).Msg("failed to scan JSON schema row")
 			return nil, err

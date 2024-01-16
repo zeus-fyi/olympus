@@ -30,6 +30,9 @@ type AITaskJsonSchema struct {
 }
 
 func CreateOrUpdateJsonSchema(ctx context.Context, ou org_users.OrgUser, schema *JsonSchemaDefinition, taskID *int) error {
+	if schema == nil {
+		return nil
+	}
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to start transaction")
@@ -110,7 +113,7 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSch
 	var schemas []JsonSchemaDefinition
 	// Query to join json_schema_definitions and ai_task_json_schema_fields
 	query := `
-        SELECT d.schema_id, d.org_id, d.schema_name, d.schema_group, d.is_obj_array, f.field_name, f.data_type, f.field_description
+        SELECT d.schema_id, d.schema_name, d.schema_group, d.is_obj_array, f.field_name, f.data_type, f.field_description
         FROM public.ai_json_schema_definitions d
         JOIN public.ai_json_schema_fields f ON d.schema_id = f.schema_id
         WHERE d.org_id = $1
@@ -126,23 +129,22 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSch
 	// A map to keep track of schemas and their fields
 	schemaMap := make(map[int]*JsonSchemaDefinition)
 	for rows.Next() {
-		var schemaID int
 		var field JsonSchemaField
 		var schema JsonSchemaDefinition
 
-		err = rows.Scan(&schemaID, &ou.OrgID, &schema.SchemaName, &schema.SchemaGroup, &schema.IsObjArray, &field.FieldName, &field.DataType, &field.FieldDescription)
+		err = rows.Scan(&schema.SchemaID, &schema.SchemaName, &schema.SchemaGroup, &schema.IsObjArray, &field.FieldName, &field.DataType, &field.FieldDescription)
 		if err != nil {
 			log.Err(err).Msg("failed to scan JSON schema row")
 			return nil, err
 		}
 
-		if s, exists := schemaMap[schemaID]; exists {
+		if s, exists := schemaMap[schema.SchemaID]; exists {
 			// If schema already exists in map, append the field to it
 			s.Fields = append(s.Fields, field)
 		} else {
 			// If new schema, initialize and add to map
 			schema.Fields = append(schema.Fields, field)
-			schemaMap[schemaID] = &schema
+			schemaMap[schema.SchemaID] = &schema
 		}
 	}
 	if err = rows.Err(); err != nil {

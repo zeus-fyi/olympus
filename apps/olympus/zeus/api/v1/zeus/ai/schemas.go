@@ -39,5 +39,5 @@ func CreateOrUpdateSchema(c echo.Context, js *artemis_orchestrations.JsonSchemaD
 		log.Err(err).Msg("failed to insert action")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, js)
 }

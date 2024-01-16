@@ -59,6 +59,7 @@ import {
     setEvalsTaskMap,
     setRetrieval,
     setSchema,
+    setSchemas,
     setSelectedMainTabBuilder,
     setSelectedWorkflows,
     setTaskMap,
@@ -89,7 +90,7 @@ import {ActionsTable} from "./ActionsTable";
 import {Retrieval, TriggerAction} from "../../redux/ai/ai.types2";
 import {SchemasTable} from "./SchemasTable";
 import {Schemas} from "./Schemas";
-import {JsonSchemaField} from "../../redux/ai/ai.types.schemas";
+import {JsonSchemaDefinition, JsonSchemaField} from "../../redux/ai/ai.types.schemas";
 
 const mdTheme = createTheme();
 
@@ -233,6 +234,14 @@ function WorkflowEngineBuilder(props: any) {
         // Add the new field to the array
         return [...fieldsWithoutOld, newField];
     };
+
+    const updateSchemaByName = (schemas: JsonSchemaDefinition[], newSchema: JsonSchemaDefinition) => {
+        // Filter out the old field if it exists
+        const schemasWithoutOld = schemas.filter(schema => schema.schemaName !== newSchema.schemaName);
+        // Add the new field to the array
+        return [...schemasWithoutOld, schema];
+    };
+
 
     const addEvalMetricRow = () => {
         if (!isValidLabel(evalMetric.evalMetricName)){
@@ -388,8 +397,6 @@ function WorkflowEngineBuilder(props: any) {
                     triggerFunctions: selectedTriggers // Update with combined triggers
                 }));
             }
-
-
         }
         setIsLoading(false);
     };
@@ -740,6 +747,9 @@ function WorkflowEngineBuilder(props: any) {
             const response = await aiApiGateway.createOrUpdateJsonSchema(schema);
             const statusCode = response.status;
             if (statusCode < 400) {
+                const data = response.data as JsonSchemaDefinition;
+                const updatedSchemas = updateSchemaByName(schemas, data);
+                dispatch(setSchemas(updatedSchemas))
                 setRequestStatusSchema('Schema created or updated successfully')
                 setRequestStatusSchemaError('success')
             }

@@ -46,6 +46,9 @@ export function SchemasRow(props: { row: JsonSchemaDefinition, index: number, ha
                     {row.schemaID ? row.schemaID : 0}
                 </TableCell>
                 <TableCell component="th" scope="row">
+                    {row.schemaGroup}
+                </TableCell>
+                <TableCell component="th" scope="row">
                     {row.schemaName}
                 </TableCell>
                 <TableCell component="th" scope="row">

@@ -41,7 +41,7 @@ func (s *OrchestrationsTestSuite) TestInsertJsonTask() {
 		ResponseFormat:        "json",
 		Schemas: []JsonSchemaDefinition{
 			{
-				SchemaID: 1705373225147975000,
+				SchemaID: 1705373864663807000,
 			},
 		},
 	}

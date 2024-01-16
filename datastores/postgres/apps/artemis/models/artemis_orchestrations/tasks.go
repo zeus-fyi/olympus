@@ -36,7 +36,8 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
     		 WHERE task_id IN (SELECT task_id FROM cte_task_wrapper)`
 
 	opt2 := `INSERT INTO public.ai_json_task_schemas (task_id, schema_id)
-			SELECT (SELECT task_id FROM cte_task_wrapper), unnest($11::bigint[])`
+			 SELECT (SELECT task_id FROM cte_task_wrapper), unnest($11::bigint[])
+			 ON CONFLICT (schema_id, task_id) DO NOTHING`
 
 	// Executing the query
 	if task.ResponseFormat == "" {

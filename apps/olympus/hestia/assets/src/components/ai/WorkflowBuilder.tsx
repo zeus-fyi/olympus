@@ -142,8 +142,8 @@ function WorkflowEngineBuilder(props: any) {
     const action = useSelector((state: any) => state.ai.triggerAction);
     const evalMetric = useSelector((state: any) => state.ai.evalMetric);
     const evalFn = useSelector((state: any) => state.ai.evalFn);
-    const actionMetric = useSelector((state: any) => state.ai.actionMetric);
-    const actionsEvalTrigger = useSelector((state: any) => state.ai.actionsEvalTrigger);
+    //const actionMetric = useSelector((state: any) => state.ai.actionMetric);
+    //const actionsEvalTrigger = useSelector((state: any) => state.ai.actionsEvalTrigger);
     // const actionPlatformAccount = useSelector((state: any) => state.ai.actionPlatformAccount);
     const assistant = useSelector((state: RootState) => state.ai.assistant);
     const [openRetrievals, setOpenRetrievals] = useState<boolean>(true); // Or use an object/array for multiple sections
@@ -214,24 +214,24 @@ function WorkflowEngineBuilder(props: any) {
         }
     };
 
-    const addActionMetricRow = () => {
-        if (!isValidLabel(actionMetric.metricName)){
-            setRequestMetricActionCreateOrUpdateStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
-            setRequestMetricActionCreateOrUpdateStatusError('error')
-            return;
-        }
-        // Check if the metric name already exists in actionMetrics
-        const existingMetric = action.actionMetrics.some((metric: { metricName: string; }) => metric.metricName === actionMetric.metricName);
-        if (existingMetric) {
-            setRequestMetricActionCreateOrUpdateStatus('Metric name already exists.');
-            setRequestMetricActionCreateOrUpdateStatusError('error');
-            return;
-        }
-        setRequestMetricActionCreateOrUpdateStatus('')
-        setRequestMetricActionCreateOrUpdateStatusError('')
-        const updatedMetrics = [...action.actionMetrics,actionMetric];
-        // dispatch(updateActionMetrics(updatedMetrics));
-    };
+    // const addActionMetricRow = () => {
+    //     if (!isValidLabel(actionMetric.metricName)){
+    //         setRequestMetricActionCreateOrUpdateStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
+    //         setRequestMetricActionCreateOrUpdateStatusError('error')
+    //         return;
+    //     }
+    //     // Check if the metric name already exists in actionMetrics
+    //     const existingMetric = action.actionMetrics.some((metric: { metricName: string; }) => metric.metricName === actionMetric.metricName);
+    //     if (existingMetric) {
+    //         setRequestMetricActionCreateOrUpdateStatus('Metric name already exists.');
+    //         setRequestMetricActionCreateOrUpdateStatusError('error');
+    //         return;
+    //     }
+    //     setRequestMetricActionCreateOrUpdateStatus('')
+    //     setRequestMetricActionCreateOrUpdateStatusError('')
+    //     const updatedMetrics = [...action.actionMetrics,actionMetric];
+    //     // dispatch(updateActionMetrics(updatedMetrics));
+    // };
     const handleAddRetrievalToAnalysis = () => {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
             return;
@@ -2254,29 +2254,29 @@ function WorkflowEngineBuilder(props: any) {
                                                         Describe how the AI should extract data from the website address.
                                                     </Typography>
                                                 }
-                                                { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
-                                                    <Typography variant="h5" color="text.secondary">
-                                                        Describe what you're looking for, and the AI will generate a list of keywords to search for after it runs for the first time.
-                                                        You can preview, edit, or give the AI more information to refine the search.
-                                                    </Typography>
-                                                }
-                                                    <Box  sx={{ mb: 2, mt: 2 }}>
-                                                        <TextareaAutosize
-                                                            minRows={18}
-                                                            value={retrieval.retrievalItemInstruction?.retrievalPrompt || ''}
-                                                            onChange={(e) => {
-                                                                const updatedRetrieval = {
-                                                                    ...retrieval,
-                                                                    retrievalItemInstruction: {
-                                                                        ...retrieval.retrievalItemInstruction,
-                                                                        retrievalPrompt: e.target.value
-                                                                    }
-                                                                };
-                                                                dispatch(setRetrieval(updatedRetrieval));
-                                                            }}
-                                                            style={{ resize: "both", width: "100%" }}
-                                                        />
-                                                    </Box>
+                                                {/*{ retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&*/}
+                                                {/*    <Typography variant="h5" color="text.secondary">*/}
+                                                {/*        Describe what you're looking for, and the AI will generate a list of keywords to search for after it runs for the first time.*/}
+                                                {/*        You can preview, edit, or give the AI more information to refine the search.*/}
+                                                {/*    </Typography>*/}
+                                                {/*}*/}
+                                                {/*    <Box  sx={{ mb: 2, mt: 2 }}>*/}
+                                                {/*        <TextareaAutosize*/}
+                                                {/*            minRows={18}*/}
+                                                {/*            value={retrieval.retrievalItemInstruction?.retrievalPrompt || ''}*/}
+                                                {/*            onChange={(e) => {*/}
+                                                {/*                const updatedRetrieval = {*/}
+                                                {/*                    ...retrieval,*/}
+                                                {/*                    retrievalItemInstruction: {*/}
+                                                {/*                        ...retrieval.retrievalItemInstruction,*/}
+                                                {/*                        retrievalPrompt: e.target.value*/}
+                                                {/*                    }*/}
+                                                {/*                };*/}
+                                                {/*                dispatch(setRetrieval(updatedRetrieval));*/}
+                                                {/*            }}*/}
+                                                {/*            style={{ resize: "both", width: "100%" }}*/}
+                                                {/*        />*/}
+                                                {/*    </Box>*/}
                                                     <Typography variant="h5" color="text.secondary">
                                                         Add search keywords using comma separated values below.
                                                     </Typography>
@@ -2512,9 +2512,9 @@ function WorkflowEngineBuilder(props: any) {
                                                             {/*        }))}*/}
                                                             {/*    />*/}
                                                             {/*</Box>*/}
-                                                            <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>
-                                                                <Button fullWidth variant={"contained"} onClick={addActionMetricRow}>Add</Button>
-                                                            </Box>
+                                                            {/*<Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>*/}
+                                                            {/*    <Button fullWidth variant={"contained"} onClick={addActionMetricRow}>Add</Button>*/}
+                                                            {/*</Box>*/}
                                                         </Stack>
                                                     }
                                                     {/*{*/}

@@ -17,10 +17,17 @@ import {useDispatch} from "react-redux";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
+import {JsonSchemaField} from "../../redux/ai/ai.types.schemas";
 
 export function Schemas(props: any) {
-    const {schema, createOrUpdateSchema, requestStatusSchema, requestStatusSchemaError} = props;
+    const {schema, loading, createOrUpdateSchema, requestStatusSchema, requestStatusSchemaError} = props;
 
+    const editJsonSchemaField = (index: number) => {
+        // dispatch(setEditEvalMetric(evalMetrics[index]))
+    }
+    const removeJsonSchemaField = (index: number) => {
+        // dispatch(setEditEvalMetric(evalMetrics[index]))
+    }
     const dispatch = useDispatch();
     return (
         <div>
@@ -115,7 +122,6 @@ export function Schemas(props: any) {
                 </Box>
                 <Box sx={{ mt: 1, mb: 0,ml: 2, mr:2  }}>
                     <Button fullWidth variant={"contained"} >Clear</Button>
-                    {/*<Button fullWidth variant={"contained"} onClick={clearEvalMetricRow}>Clear</Button>*/}
                 </Box>
             </Stack>
             <Box  sx={{ mt: 1, mb: 0,ml: 2, mr:2  }}>
@@ -123,14 +129,61 @@ export function Schemas(props: any) {
                     Field description
                 </Typography>
             </Box>
-                <Box  sx={{ mb: 2, mt: 2, ml: 2, mr: 2 }}>
-                    <TextareaAutosize
-                        minRows={18}
-                        // value={editAggregateTask.prompt}
-                        // onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, prompt: event.target.value }))}
-                        style={{ resize: "both", width: "100%" }}
-                    />
-                </Box>
+            <Box  sx={{ mb: 2, mt: 1, ml: 2, mr: 2 }}>
+                <TextareaAutosize
+                    minRows={18}
+                    // value={editAggregateTask.prompt}
+                    // onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, prompt: event.target.value }))}
+                    style={{ resize: "both", width: "100%" }}
+                />
+            </Box>
+            {
+                !loading && schema && schema.fields && schema.fields.map((field: JsonSchemaField, index: number) => (
+                    <Stack key={index} direction="column" sx={{ mt: 4, mb: 4, mr: 0 }}>
+                        <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                            {/* Metric Name */}
+                            <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                <TextField
+                                    fullWidth
+                                    id={`field-name-${index}`}
+                                    label="Field Name"
+                                    variant="outlined"
+                                    value={field.fieldName}
+                                    inputProps={{ readOnly: true }}
+                                />
+                            </Box>
+                            <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                <TextField
+                                    fullWidth
+                                    id={`field-type-${index}`}
+                                    label="Field Type"
+                                    variant="outlined"
+                                    value={field.dataType}
+                                    inputProps={{ readOnly: true }}
+                                />
+                            </Box>
+                            <Stack direction="row" spacing={2} sx={{ ml: 4, mr: 4 }}>
+                                <Box sx={{ mr: 4 }}>
+                                    <Button variant={"contained"} onClick={() => editJsonSchemaField(index)}>Edit</Button>
+                                </Box>
+                                <Box sx={{ mr: 4 }}>
+                                    <Button variant={"contained"} onClick={() => removeJsonSchemaField(index)}>Remove</Button>
+                                </Box>
+                            </Stack>
+                        </Stack>
+                        <Box flexGrow={1} sx={{ ml: 0, mr: 12 }}>
+                            <TextField
+                                fullWidth
+                                id={`field-description-${index}`}
+                                label="Field Description"
+                                variant="outlined"
+                                value={field.fieldDescription}
+                                inputProps={{ readOnly: true }}
+                            />
+                        </Box>
+                    </Stack>
+                ))
+            }
             <CardActions>
                 <Box flexGrow={1} sx={{ ml: 0, mr: 0}}>
                     <Button fullWidth variant="contained" onClick={createOrUpdateSchema}>Create or Update Schema</Button>

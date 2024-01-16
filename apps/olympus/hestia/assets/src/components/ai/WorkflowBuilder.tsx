@@ -2231,8 +2231,8 @@ function WorkflowEngineBuilder(props: any) {
                                                             label="Aggregation Model"
                                                             onChange={(event) => handleEditAggregateTaskModel(event)}
                                                         >
-                                                                    <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
-                                                                    <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                            <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                                                            <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
@@ -2279,7 +2279,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Box>
 
                                             </Stack>
-                                            { editAggregateTask.responseFormat === 'json' ?
+                                            { editAggregateTask.responseFormat === 'json' || editAggregateTask.responseFormat === 'social-media-engagement'?
                                                 <div>
                                                     <Box  sx={{ mb: 4, mt: 2, ml: -1 }}>
                                                         <Button variant="contained" color="secondary" onClick={addSchemasViewToggle} style={{marginLeft: '10px'}}>

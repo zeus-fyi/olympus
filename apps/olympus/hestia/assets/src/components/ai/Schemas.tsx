@@ -12,23 +12,23 @@ import {
 import Typography from "@mui/material/Typography";
 import * as React from "react";
 import Box from "@mui/material/Box";
-import {setSchema} from "../../redux/ai/ai.reducer";
+import {setSchema, setSchemaField} from "../../redux/ai/ai.reducer";
 import {useDispatch} from "react-redux";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
 import {JsonSchemaField} from "../../redux/ai/ai.types.schemas";
 
 export function Schemas(props: any) {
-    const {schema, loading, createOrUpdateSchema, requestStatusSchema,
-        addJsonSchemaFieldRow, requestStatusSchemaError} = props;
+    const {schema, schemaField,loading, createOrUpdateSchema,
+        addJsonSchemaFieldRow, removeSchemaField} = props;
 
     const editJsonSchemaField = (index: number) => {
-        // dispatch(setEditEvalMetric(evalMetrics[index]))
+        dispatch(setSchemaField(schema.fields[index]));
     }
     const removeJsonSchemaField = (index: number) => {
-        // dispatch(setEditEvalMetric(evalMetrics[index]))
+        removeSchemaField(index);
     }
+
     const dispatch = useDispatch();
     return (
         <div>
@@ -88,11 +88,11 @@ export function Schemas(props: any) {
                         id="field-name"
                         label="Field Name"
                         variant="outlined"
-                        // value={evalMetric.evalMetricName}
-                        // onChange={(e) => dispatch(setEvalMetric({
-                        //     ...evalMetric, // Spread the existing action properties
-                        //     evalMetricName: e.target.value // Update the actionName
-                        // }))}
+                        value={schemaField.fieldName}
+                        onChange={(e) => dispatch(setSchemaField({
+                            ...schemaField, // Spread the existing action properties
+                            fieldName: e.target.value // Update the actionName
+                        }))}
                     />
                 </Box>
                 <Box flexGrow={7} sx={{ mb: 2,ml: 2, mr:0  }}>
@@ -101,13 +101,13 @@ export function Schemas(props: any) {
                         <Select
                             labelId="field-data-type-label"
                             id="field-data-type-label"
-                            // value={evalMetric.evalMetricDataType}
-                            // label="Eval Metric Type"
-                            // fullWidth
-                            // onChange={(e) => dispatch(setEvalMetric({
-                            //     ...evalMetric, // Spread the existing action properties
-                            //     evalMetricDataType: e.target.value // Update the actionName
-                            // }))}
+                            label="Data Type"
+                            fullWidth
+                            value={schemaField.dataType}
+                            onChange={(e) => dispatch(setSchemaField({
+                                ...schemaField, // Spread the existing action properties
+                                dataType: e.target.value // Update the actionName
+                            }))}
                         >
                             <MenuItem value="number">{'number'}</MenuItem>
                             <MenuItem value="string">{'string'}</MenuItem>
@@ -128,7 +128,14 @@ export function Schemas(props: any) {
                     </Button>
                 </Box>
                 <Box sx={{ mt: 1, mb: 0,ml: 2, mr:2  }}>
-                    <Button fullWidth variant={"contained"} >Clear</Button>
+                    <Button fullWidth
+                            variant={"contained"}
+                            onClick={() => dispatch(setSchemaField({
+                                fieldName: '',
+                                dataType: '',
+                                fieldDescription: ''
+                            }))}
+                    >Clear</Button>
                 </Box>
             </Stack>
             <Box  sx={{ mt: 1, mb: 0,ml: 2, mr:2  }}>
@@ -139,8 +146,11 @@ export function Schemas(props: any) {
             <Box  sx={{ mb: 2, mt: 1, ml: 2, mr: 2 }}>
                 <TextareaAutosize
                     minRows={18}
-                    // value={editAggregateTask.prompt}
-                    // onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, prompt: event.target.value }))}
+                    value={schemaField.fieldDescription}
+                    onChange={(e) => dispatch(setSchemaField({
+                        ...schemaField,
+                        fieldDescription: e.target.value
+                    }))}
                     style={{ resize: "both", width: "100%" }}
                 />
             </Box>
@@ -196,13 +206,6 @@ export function Schemas(props: any) {
                     <Button fullWidth variant="contained" onClick={createOrUpdateSchema}>Create or Update Schema</Button>
                 </Box>
             </CardActions>
-            {requestStatusSchema != '' && (
-                <Container sx={{ mt: 2}}>
-                    <Typography variant="h6" color={requestStatusSchemaError}>
-                        {requestStatusSchema}
-                    </Typography>
-                </Container>
-            )}
         </div>
     )
 }

@@ -58,7 +58,6 @@ import {
     setEvalMetric,
     setEvalsTaskMap,
     setRetrieval,
-    setRetrievals,
     setSchema,
     setSelectedMainTabBuilder,
     setSelectedWorkflows,
@@ -90,6 +89,7 @@ import {ActionsTable} from "./ActionsTable";
 import {Retrieval, TriggerAction} from "../../redux/ai/ai.types2";
 import {SchemasTable} from "./SchemasTable";
 import {Schemas} from "./Schemas";
+import {JsonSchemaField} from "../../redux/ai/ai.types.schemas";
 
 const mdTheme = createTheme();
 
@@ -174,6 +174,16 @@ function WorkflowEngineBuilder(props: any) {
         setRequestEvalCreateOrUpdateStatusError('')
     };
 
+    const removeSchemaField = (index: number) => {
+        const updatedFields = schema.fields.filter((_: JsonSchemaField, i: number) => i !== index);
+        dispatch(setSchema({
+            ...schema,
+            fields: updatedFields
+        }))
+        setRequestStatusSchema('')
+        setRequestStatusSchemaError('')
+    };
+
     const clearEvalMetricRow = () => {
         dispatch(setEvalMetric({
             evalMetricName: '',
@@ -198,19 +208,17 @@ function WorkflowEngineBuilder(props: any) {
             setRequestStatusSchemaError('error')
             return;
         }
-        // Check if the metric name already exists in actionMetrics
-        if (schema.fields && schema.fields.length > 0 && schema.fields.some((field: {
-            fieldName: string;
-        }) => field.fieldName === schemaField.fieldName)) {
-            setRequestStatusSchema('Field name already exists.');
-            setRequestStatusSchemaError('error');
+        if (schemaField.fieldDescription.length <= 0) {
+            setRequestStatusSchema('Field description must be set')
+            setRequestStatusSchemaError('error')
             return;
         }
+
         setRequestStatusSchema('')
         setRequestStatusSchemaError('')
 
         if (schema.fields && schema.fields.length > 0) {
-            const updatedFields = [...schema.fields, schemaField];
+            const updatedFields = updateFieldByName(schema.fields, schemaField);
             dispatch(setSchema(
                 {...schema, fields: updatedFields}))
         } else {
@@ -218,6 +226,14 @@ function WorkflowEngineBuilder(props: any) {
                 {...schema, fields: [schemaField]}))
         }
     };
+
+    const updateFieldByName = (fields: JsonSchemaField[], newField: JsonSchemaField) => {
+        // Filter out the old field if it exists
+        const fieldsWithoutOld = fields.filter(field => field.fieldName !== newField.fieldName);
+        // Add the new field to the array
+        return [...fieldsWithoutOld, newField];
+    };
+
     const addEvalMetricRow = () => {
         if (!isValidLabel(evalMetric.evalMetricName)){
             setRequestEvalCreateOrUpdateStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
@@ -229,23 +245,20 @@ function WorkflowEngineBuilder(props: any) {
             setRequestEvalCreateOrUpdateStatusError('error')
             return;
         }
-        // Check if the metric name already exists in actionMetrics
-        if (evalFn.evalMetrics && evalFn.evalMetrics.length > 0 && evalFn.evalMetrics.some((metric: { evalMetricName: string; }) => metric.evalMetricName === evalMetric.evalMetricName)) {
-            setRequestEvalCreateOrUpdateStatus('Metric name already exists.');
-            setRequestEvalCreateOrUpdateStatusError('error');
-            return;
-        }
         setRequestEvalCreateOrUpdateStatus('')
         setRequestEvalCreateOrUpdateStatusError('')
 
         if (evalFn.evalMetrics && evalFn.evalMetrics.length > 0){
-            const updatedMetrics = [...evalFn.evalMetrics,evalMetric];
+            const updatedMetrics = updateMetricByName(evalFn.evalMetrics, evalMetric);
             dispatch(updateEvalMetrics(updatedMetrics));
         } else {
             dispatch(updateEvalMetrics([evalMetric]));
         }
     };
-
+    const updateMetricByName = (metrics: EvalMetric[], newMetric: EvalMetric) => {
+        const metricsWithoutOld = metrics.filter(metric => metric.evalMetricName !== newMetric.evalMetricName);
+        return [...metricsWithoutOld, newMetric];
+    };
     // const addActionMetricRow = () => {
     //     if (!isValidLabel(actionMetric.metricName)){
     //         setRequestMetricActionCreateOrUpdateStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
@@ -719,12 +732,15 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestStatusSchemaError('error')
                 return;
             }
+            if (schema.fields.length <= 0) {
+                setRequestStatusSchema('Schema must have at least one field')
+                setRequestStatusSchemaError('error')
+                return;
+            }
             const response = await aiApiGateway.createOrUpdateJsonSchema(schema);
             const statusCode = response.status;
             if (statusCode < 400) {
-                // const data = response.data as Retrieval;
-                // dispatch(setRetrievals([...retrievals, data]))
-                setRequestStatusSchema('Assistant created or updated successfully')
+                setRequestStatusSchema('Schema created or updated successfully')
                 setRequestStatusSchemaError('success')
             }
         } catch (error: any) {
@@ -764,7 +780,7 @@ function WorkflowEngineBuilder(props: any) {
         }
     }
 
-    const createOrUpdateRetrieval= async () => {
+    const createOrUpdateRetrieval = async () => {
         try {
             setIsLoading(true)
             if (!isValidLabel(retrieval.retrievalName)) {
@@ -790,8 +806,8 @@ function WorkflowEngineBuilder(props: any) {
             const response = await aiApiGateway.createOrUpdateRetrieval(retrieval);
             const statusCode = response.status;
             if (statusCode < 400) {
-                const data = response.data as Retrieval;
-                dispatch(setRetrievals([...retrievals, data]))
+                // const data = response.data as Retrieval;
+                // dispatch(setRetrievals([...retrievals, data]))
                 setRequestRetrievalStatus('Retrieval created successfully')
                 setRequestRetrievalStatusError('success')
             }
@@ -1048,6 +1064,8 @@ function WorkflowEngineBuilder(props: any) {
         setRequestMetricActionCreateOrUpdateStatusError('');
         setRequestStatusAssistant('');
         setRequestStatusAssistantError('');
+        setRequestStatusSchemaError('');
+        setRequestStatusSchema('');
         dispatch(setAddAnalysisView(false));
         dispatch(setSelectedMainTabBuilder(newValue));
     };
@@ -3178,8 +3196,20 @@ function WorkflowEngineBuilder(props: any) {
                                         </div>
                                     }
                                     {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 7 && !loading && !addRetrievalView && !addEvalsView && !addTriggerActionsView && !addAssistantsView &&
-
-                                        <Schemas schema={schema} addJsonSchemaFieldRow={addJsonSchemaFieldRow} createOrUpdateSchema={createOrUpdateSchema}/>
+                                        <div>
+                                            <Schemas schemaField={schemaField}
+                                                     schema={schema}
+                                                     removeSchemaField={removeSchemaField}
+                                                     addJsonSchemaFieldRow={addJsonSchemaFieldRow}
+                                                     createOrUpdateSchema={createOrUpdateSchema}/>
+                                            {requestStatusSchema != '' && (
+                                                <Container sx={{ mt: 2}}>
+                                                    <Typography variant="h6" color={requestStatusSchemaError}>
+                                                        {requestStatusSchema}
+                                                    </Typography>
+                                                </Container>
+                                            )}
+                                        </div>
                                     }
                                 </CardContent>
                             </Card>

@@ -48,50 +48,41 @@ export function TasksRow(props: { row: TaskModelInstructions, index: number, han
                 <TableCell align="left">{row.taskName}</TableCell>
                 <TableCell align="left">{row.model}</TableCell>
                 <TableCell align="left">{row.responseFormat}</TableCell>
-                <TableCell align="left"><Button  fullWidth variant="contained" onClick={handleEditClick}>Edit</Button></TableCell>
+                <TableCell align="left"><Button fullWidth variant="contained" onClick={handleEditClick}>Edit</Button></TableCell>
             </TableRow>
             <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
-                    <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box sx={{ margin: 1 }}>
-                            <Typography variant="h6" gutterBottom component="div">
-                               Prompt
-                            </Typography>
-                            <Table size="small" aria-label="purchases">
-                                <TableBody>
-                                    <TableRow >
-                                        <TableCell component="th" scope="row">
-                                            {row.prompt}
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </Box>
-                    </Collapse>
-                </TableCell>
+                {
+                    row.responseFormat === 'json' ?
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+                            <Collapse in={open} timeout="auto" unmountOnExit>
+                                <Box sx={{ margin: 1 }}>
+                                    <Typography variant="h6" gutterBottom component="div">
+                                        Schemas
+                                    </Typography>
+                                </Box>
+                            </Collapse>
+                        </TableCell>
+                        :
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+                            <Collapse in={open} timeout="auto" unmountOnExit>
+                                <Box sx={{ margin: 1 }}>
+                                    <Typography variant="h6" gutterBottom component="div">
+                                        Prompt
+                                    </Typography>
+                                    <Table size="small" aria-label="prompt">
+                                        <TableBody>
+                                            <TableRow >
+                                                <TableCell component="th" scope="row">
+                                                    {row.prompt}
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </Box>
+                            </Collapse>
+                        </TableCell>
+                }
             </TableRow>
         </React.Fragment>
     );
-}
-
-export function createTaskDetailsData(
-    taskID: number,
-    maxTokensPerTask: number,
-    taskType: string,
-    taskName: string,
-    taskGroup: string = 'default',
-    tokenOverflowStrategy: string = 'deduce',
-    model: string,
-    prompt: string,
-) {
-    return {
-        taskID,
-        maxTokensPerTask,
-        taskType,
-        taskName,
-        taskGroup,
-        tokenOverflowStrategy,
-        model,
-        prompt
-    };
 }

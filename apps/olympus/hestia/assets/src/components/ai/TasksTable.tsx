@@ -61,7 +61,7 @@ export function TasksTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Model</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Response Format</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Format</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                     </TableRow>
                 </TableHead>

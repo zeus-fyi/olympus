@@ -576,6 +576,17 @@ function WorkflowEngineBuilder(props: any) {
         }
 
     }
+
+    const removeSchemasViewToggle = async (event: any, index: number) => {
+        if (taskType === 'analysis') {
+            const updatedSchemas = editAnalysisTask.schemas.filter((_: JsonSchemaDefinition, i: number) => i !== index);
+            dispatch(setEditAnalysisTask({ ...editAnalysisTask, schemas: updatedSchemas }))
+        } else if (taskType === 'aggregation') {
+            const updatedSchemas = editAggregateTask.schemas.filter((_: JsonSchemaDefinition, i: number) => i !== index);
+            dispatch(setEditAggregateTask({ ...editAggregateTask, schemas: updatedSchemas }))
+        }
+    }
+
     const addEvalsStageView = async () => {
         const toggle = !addEvalsView;
         dispatch(setAddAnalysisView(false));
@@ -2194,11 +2205,45 @@ function WorkflowEngineBuilder(props: any) {
 
                                             </Stack>
                                             { editAggregateTask.responseFormat === 'json' ?
-                                            <Box  sx={{ mb: 2, mt: 2 }}>
-                                                <Button variant="contained" color="secondary" onClick={addSchemasViewToggle} style={{marginLeft: '10px'}}>
-                                                    { addSchemasView ? 'Done Adding':'Add Schemas' }
-                                                </Button>
-                                            </Box>
+                                                <div>
+                                                    <Box  sx={{ mb: 4, mt: 2 }}>
+                                                        <Button variant="contained" color="secondary" onClick={addSchemasViewToggle} style={{marginLeft: '10px'}}>
+                                                            { addSchemasView ? 'Done Adding':'Add Schemas' }
+                                                        </Button>
+                                                    </Box>
+                                                        { editAggregateTask.schemas && editAggregateTask.schemas.length > 0 &&
+                                                            editAggregateTask.schemas.map((schema: JsonSchemaDefinition, index: number) => (
+                                                                <div>
+                                                                    <Stack direction="row" >
+                                                                        <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
+                                                                            <TextField
+                                                                                key={index}
+                                                                                fullWidth
+                                                                                id={`schema-${index}`}
+                                                                                label={`Schema-Name-${index}`}
+                                                                                variant="outlined"
+                                                                                value={schema.schemaName}
+                                                                                InputProps={{ readOnly: true }}
+                                                                            />
+                                                                        </Box>
+                                                                        <Box sx={{ ml: 2, mb: 2, mt: 3 }}>
+                                                                            <Button
+                                                                                variant="contained"
+                                                                                color="primary"
+                                                                                onClick={(e) => removeSchemasViewToggle(e, index)}
+                                                                            >
+                                                                                Remove
+                                                                            </Button>
+                                                                        </Box>
+
+
+                                                                    </Stack>
+
+                                                                </div>
+
+                                                            ))
+                                                        }
+                                                </div>
                                                 :
                                                 <Box  sx={{ mb: 2, mt: 2 }}>
                                                     <TextareaAutosize

@@ -2066,29 +2066,47 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Box>
                                             </Stack>
                                             <Stack direction="row" >
-                                                <Box flexGrow={3} sx={{ mb: 4, mt: 4 }}>
-                                                    <FormControl fullWidth>
-                                                        <InputLabel id="analysis-model-label">Analysis Model</InputLabel>
-                                                        <Select
-                                                            labelId="analysis-model-label"
-                                                            id="analysis-model-select"
-                                                            value={editAnalysisTask.model}
-                                                            label="Analysis Model"
-                                                            onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, model: event.target.value }))} // Dispatch action directly
-                                                        >
-                                                            <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
-                                                            <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
-                                                            <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
-                                                            <MenuItem value="gpt-4">gpt-4</MenuItem>
-                                                            <MenuItem value="gpt-4-32k">gpt-4-32k</MenuItem>
-                                                            <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
-                                                            <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
-                                                            <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
-                                                            <MenuItem value="babbage-002">babbage-002</MenuItem>
-                                                            <MenuItem value="davinci-002">davinci-002</MenuItem>
-                                                        </Select>
-                                                    </FormControl>
-                                                </Box>
+                                                { editAggregateTask.responseFormat === 'json' ?
+                                                    <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
+                                                        <FormControl fullWidth>
+                                                            <InputLabel id="analysis-model-label">Analysis Model</InputLabel>
+                                                            <Select
+                                                                labelId="analysis-model-label"
+                                                                id="analysis-model-select"
+                                                                value={editAnalysisTask.model}
+                                                                label="Analysis Model"
+                                                                onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, model: event.target.value }))}
+                                                            >
+                                                                <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                                                                <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                            </Select>
+                                                        </FormControl>
+                                                    </Box>
+                                                    :
+                                                    <Box flexGrow={3} sx={{ mb: 4, mt: 4 }}>
+                                                        <FormControl fullWidth>
+                                                            <InputLabel id="analysis-model-label">Analysis Model</InputLabel>
+                                                            <Select
+                                                                labelId="analysis-model-label"
+                                                                id="analysis-model-select"
+                                                                value={editAnalysisTask.model}
+                                                                label="Analysis Model"
+                                                                onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, model: event.target.value }))}
+                                                            >
+                                                                <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
+                                                                <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                                                                <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
+                                                                <MenuItem value="gpt-4">gpt-4</MenuItem>
+                                                                <MenuItem value="gpt-4-32k">gpt-4-32k</MenuItem>
+                                                                <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
+                                                                <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
+                                                                <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                                <MenuItem value="babbage-002">babbage-002</MenuItem>
+                                                                <MenuItem value="davinci-002">davinci-002</MenuItem>
+                                                            </Select>
+                                                        </FormControl>
+                                                    </Box>
+                                                }
                                                 <Box flexGrow={2} sx={{ mb: 4, mt: 4, ml:2 }}>
                                                     <FormControl fullWidth>
                                                         <InputLabel id="token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
@@ -2105,14 +2123,66 @@ function WorkflowEngineBuilder(props: any) {
                                                     </FormControl>
                                                 </Box>
                                             </Stack>
-                                            <Box  sx={{ mb: 2, mt: -2 }}>
-                                                <TextareaAutosize
-                                                    minRows={18}
-                                                    value={editAnalysisTask.prompt}
-                                                    onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, prompt: event.target.value }))} // Dispatch action directly
-                                                    style={{ resize: "both", width: "100%" }}
-                                                />
-                                            </Box>
+                                            { editAnalysisTask.responseFormat === 'json' || editAnalysisTask.responseFormat === 'social-media-engagement' ?
+                                                <div>
+                                                    <Box  sx={{ mb: 4, mt: 0, ml: -1}}>
+                                                        <Button variant="contained" color="secondary" onClick={addSchemasViewToggle} style={{marginLeft: '10px'}}>
+                                                            { addSchemasView ? 'Done Adding':'Add Schemas' }
+                                                        </Button>
+                                                    </Box>
+                                                    { editAnalysisTask.schemas && editAnalysisTask.schemas.length > 0 &&
+                                                        editAnalysisTask.schemas.map((schema: JsonSchemaDefinition, index: number) => (
+                                                            <div>
+                                                                <Stack direction="row" key={index}>
+                                                                    <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
+                                                                        <TextField
+                                                                            key={`schema-name-${index}`}
+                                                                            fullWidth
+                                                                            id={`schema-${index}`}
+                                                                            label={`Schema-Name-${index}`}
+                                                                            variant="outlined"
+                                                                            value={schema.schemaName}
+                                                                            InputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box sx={{ mb: 2, mt: 2, ml: 2, width: '50%' }}>
+                                                                        <TextField
+                                                                            key={`schema-group-${index}`}
+                                                                            fullWidth
+                                                                            id={`schema-group-${index}`}
+                                                                            label={`Schema-Group-${index}`}
+                                                                            variant="outlined"
+                                                                            value={schema.schemaGroup}
+                                                                            InputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box sx={{ ml: 2, mb: 2, mt: 3 }}>
+                                                                        <Button
+                                                                            variant="contained"
+                                                                            id={`sm-button-${index}`}
+                                                                            color="primary"
+                                                                            key={`sm-button-${index}`}
+                                                                            onClick={(e) => removeSchemasViewToggle(e, index)}
+                                                                        >
+                                                                            Remove
+                                                                        </Button>
+                                                                    </Box>
+                                                                </Stack>
+                                                            </div>
+
+                                                        ))
+                                                    }
+                                                </div>
+                                                :
+                                                <Box  sx={{ mb: 2, mt: -2 }}>
+                                                    <TextareaAutosize
+                                                        minRows={18}
+                                                        value={editAnalysisTask.prompt}
+                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, prompt: event.target.value }))} // Dispatch action directly
+                                                        style={{ resize: "both", width: "100%" }}
+                                                    />
+                                                </Box>
+                                            }
                                         </div>
                                     }
                                     { !addAggregateView && !addAnalysisView && !addRetrievalView && !addEvalsView && selectedMainTabBuilder === 2 &&
@@ -2206,7 +2276,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Stack>
                                             { editAggregateTask.responseFormat === 'json' ?
                                                 <div>
-                                                    <Box  sx={{ mb: 4, mt: 2 }}>
+                                                    <Box  sx={{ mb: 4, mt: 2, ml: -1 }}>
                                                         <Button variant="contained" color="secondary" onClick={addSchemasViewToggle} style={{marginLeft: '10px'}}>
                                                             { addSchemasView ? 'Done Adding':'Add Schemas' }
                                                         </Button>
@@ -3261,7 +3331,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             <MenuItem value="text">text</MenuItem>
                                                             <MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>
                                                             <MenuItem value="social-media-engagement">social-media-engagement</MenuItem>
-                                                            {/*<MenuItem value="json">json</MenuItem>*/}
+                                                            <MenuItem value="json">json</MenuItem>
                                                         </Select>
                                                     </FormControl>
                                                 </Box>

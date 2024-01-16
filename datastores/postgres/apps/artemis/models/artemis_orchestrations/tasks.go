@@ -171,7 +171,6 @@ func SelectTasks(ctx context.Context, ou org_users.OrgUser) ([]AITaskLibrary, er
 			log.Err(err).Msg("failed to scan task")
 			return nil, err
 		}
-
 		for _, elem := range jsonSchema.Elements {
 			var schema JsonSchemaDefinition
 			if elem.Bytes == nil {

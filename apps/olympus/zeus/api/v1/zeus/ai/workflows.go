@@ -40,7 +40,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get retrievals")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	tasks, err := artemis_orchestrations.SelectTasks(c.Request().Context(), ou.OrgID)
+	tasks, err := artemis_orchestrations.SelectTasks(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Msg("failed to get tasks")
 		return c.JSON(http.StatusInternalServerError, nil)

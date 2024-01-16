@@ -48,7 +48,6 @@ func (s *OrchestrationsTestSuite) TestInsertJsonTask() {
 			},
 		},
 	}
-
 	err := InsertTask(ctx, &testTask)
 	s.Require().Nil(err)
 	s.Require().NotZero(testTask.TaskID)

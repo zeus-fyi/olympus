@@ -52,3 +52,15 @@ func (s *OrchestrationsTestSuite) TestSelectJsonSchemas() {
 	s.Require().NotNil(js, "Failed to select JSON schemas")
 
 }
+
+func (s *OrchestrationsTestSuite) TestJsonParsing() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	// get internal assignments
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	js, err := SelectJsonSchemaByOrg(ctx, ou)
+	s.Require().NoError(err, "Failed to select JSON schemas")
+	v := ConvertToJsonDef("test", js)
+	s.Require().NotNil(v, "Failed to convert JSON schema to OpenAI function definition")
+}

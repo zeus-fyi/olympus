@@ -6,6 +6,8 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -109,6 +111,57 @@ func getFieldNames(fields []JsonSchemaField) []string {
 	return names
 }
 
+func jsonSchemaType(dataType string) jsonschema.DataType {
+	switch dataType {
+	case "string":
+		return jsonschema.String
+	case "number":
+		return jsonschema.Number
+	case "boolean":
+		return jsonschema.Boolean
+	case "array":
+		return jsonschema.Array
+	case "object":
+		return jsonschema.Object
+	default:
+		return jsonschema.String // default or throw an error based on your requirements
+	}
+}
+
+func ConvertToJsonDef(fnName string, schemas []JsonSchemaDefinition) openai.FunctionDefinition {
+	properties := make(map[string]jsonschema.Definition)
+	for _, schema := range schemas {
+		fieldSchema := jsonschema.Definition{
+			Type:       jsonschema.Object,
+			Properties: make(map[string]jsonschema.Definition),
+		}
+
+		for _, field := range schema.Fields {
+			fieldSchema.Properties[field.FieldName] = jsonschema.Definition{
+				Type:        jsonSchemaType(field.DataType),
+				Description: field.FieldDescription,
+			}
+		}
+		if schema.IsObjArray {
+			properties[schema.SchemaName] = jsonschema.Definition{
+				Type:  jsonschema.Array,
+				Items: &fieldSchema,
+			}
+		} else {
+			properties[schema.SchemaName] = fieldSchema
+		}
+	}
+	fdSchema := jsonschema.Definition{
+		Type:       jsonschema.Object,
+		Properties: properties,
+	}
+	fd := openai.FunctionDefinition{
+		Name:       fnName,
+		Parameters: fdSchema,
+	}
+
+	return fd
+}
 func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSchemaDefinition, error) {
 	var schemas []JsonSchemaDefinition
 	// Query to join json_schema_definitions and ai_task_json_schema_fields

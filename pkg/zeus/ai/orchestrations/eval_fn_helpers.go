@@ -11,8 +11,8 @@ import (
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
-// mapDataType maps the custom data type strings to jsonschema.DataType and handles array types.
-func mapDataType(customType string) (jsonschema.DataType, *jsonschema.Definition, error) {
+// MapDataType maps the custom data type strings to jsonschema.DataType and handles array types.
+func MapDataType(customType string) (jsonschema.DataType, *jsonschema.Definition, error) {
 	switch customType {
 	case "number":
 		return jsonschema.Number, nil, nil

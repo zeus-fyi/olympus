@@ -86,7 +86,7 @@ func TransformEvalMetricsToJSONSchema(metrics []artemis_orchestrations.EvalMetri
 	properties := make(map[string]jsonschema.Definition)
 	var required []string
 	for _, metric := range metrics {
-		dataType, itemsDef, err := mapDataType(metric.EvalMetricDataType)
+		dataType, itemsDef, err := MapDataType(metric.EvalMetricDataType)
 		if err != nil {
 			return jsonschema.Definition{}, err
 		}

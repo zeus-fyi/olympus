@@ -249,6 +249,7 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
         ON CONFLICT (org_id, trigger_name) 
         DO UPDATE SET 
             user_id = EXCLUDED.user_id,
+            trigger_action = EXCLUDED.trigger_action,
             trigger_group = EXCLUDED.trigger_group
         RETURNING trigger_id;`
 
@@ -258,6 +259,9 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 		return err
 	}
 	for _, eta := range trigger.EvalTriggerActions {
+		if eta.EvalID == 0 {
+			continue
+		}
 		q.RawQuery = `
             INSERT INTO public.ai_trigger_actions_evals(eval_id, trigger_id, eval_trigger_state, eval_results_trigger_on)
             VALUES ($1, $2, $3, $4)

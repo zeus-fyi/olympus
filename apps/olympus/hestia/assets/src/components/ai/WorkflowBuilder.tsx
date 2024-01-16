@@ -66,6 +66,7 @@ import {
     setSelectedWorkflows,
     setTaskMap,
     setTriggerAction,
+    setTriggerActions,
     setWorkflowBuilderTaskMap,
     setWorkflowGroupName,
     setWorkflowName,
@@ -990,7 +991,8 @@ function WorkflowEngineBuilder(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data as TriggerAction;
-                // dispatch(setTriggerActions([...actions, data]))
+                const at = actions.filter((act: TriggerAction) => act.triggerName !== data.triggerName)
+                dispatch(setTriggerActions([data, ...at]));
                 setRequestActionStatus('Action created or updated successfully')
                 setRequestActionStatusError('success')
             }

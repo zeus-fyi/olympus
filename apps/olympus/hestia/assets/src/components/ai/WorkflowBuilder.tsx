@@ -990,8 +990,9 @@ function WorkflowEngineBuilder(props: any) {
             const response = await aiApiGateway.createOrUpdateAction(action);
             const statusCode = response.status;
             if (statusCode < 400) {
-                const data = response.data as TriggerAction;
-                const at = actions.filter((act: TriggerAction) => act.triggerName !== data.triggerName)
+                let data = response.data as TriggerAction;
+                data.evalTriggerActions = [data.evalTriggerAction]
+                const at = actions.filter((act: TriggerAction) => act.triggerID !== data.triggerID)
                 dispatch(setTriggerActions([data, ...at]));
                 setRequestActionStatus('Action created or updated successfully')
                 setRequestActionStatusError('success')

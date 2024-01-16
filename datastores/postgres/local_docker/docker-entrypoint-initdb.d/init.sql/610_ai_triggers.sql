@@ -16,14 +16,15 @@ ALTER TABLE "public"."ai_trigger_actions" ADD CONSTRAINT "ai_trigger_actions_nam
 ALTER TABLE "public"."ai_trigger_actions" ADD CONSTRAINT "ai_trigger_actions_group_names_uniq" UNIQUE ("org_id", "trigger_group", "trigger_name");
 
 CREATE TABLE public.ai_trigger_actions_evals(
-    eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),
+    eval_id BIGINT REFERENCES eval_fns(eval_id), -- Removed NOT NULL
     trigger_id BIGINT NOT NULL REFERENCES ai_trigger_actions(trigger_id),
     eval_trigger_state text NOT NULL,
     eval_results_trigger_on text NOT NULL,
-    PRIMARY KEY (eval_id, trigger_id)
+    PRIMARY KEY (trigger_id) -- Changed the primary key to trigger_id only
 );
 ALTER TABLE public.ai_trigger_actions_evals
-ADD CONSTRAINT unique_eval_triggers UNIQUE (eval_id, trigger_id);
+    ADD CONSTRAINT unique_eval_triggers UNIQUE (trigger_id, eval_id); -- Updated constraint
+
 
 CREATE TABLE public.ai_trigger_actions_approval(
     approval_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,

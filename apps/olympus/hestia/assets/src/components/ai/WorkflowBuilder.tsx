@@ -60,6 +60,7 @@ import {
     setEvalMetric,
     setEvalsTaskMap,
     setRetrieval,
+    setRetrievals,
     setSchema,
     setSchemas,
     setSelectedMainTabBuilder,
@@ -825,8 +826,6 @@ function WorkflowEngineBuilder(props: any) {
             const response = await aiApiGateway.createOrUpdateAssistant(assistant);
             const statusCode = response.status;
             if (statusCode < 400) {
-                // const data = response.data as Retrieval;
-                // dispatch(setRetrievals([...retrievals, data]))
                 setRequestStatusAssistant('Assistant created or updated successfully')
                 setRequestStatusAssistantError('success')
             }
@@ -867,8 +866,9 @@ function WorkflowEngineBuilder(props: any) {
             const response = await aiApiGateway.createOrUpdateRetrieval(retrieval);
             const statusCode = response.status;
             if (statusCode < 400) {
-                // const data = response.data as Retrieval;
-                // dispatch(setRetrievals([...retrievals, data]))
+                const data = response.data as Retrieval;
+                const ret = retrievals.filter((re: Retrieval) => re.retrievalName !== data.retrievalName)
+                dispatch(setRetrievals([data,...retrievals]))
                 setRequestRetrievalStatus('Retrieval created successfully')
                 setRequestRetrievalStatusError('success')
             }

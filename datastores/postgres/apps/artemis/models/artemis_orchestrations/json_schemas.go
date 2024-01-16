@@ -111,7 +111,7 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSch
 	// Query to join json_schema_definitions and ai_task_json_schema_fields
 	query := `
         SELECT d.schema_id, d.org_id, d.schema_name, d.schema_group, d.is_obj_array, f.field_name, f.data_type, f.field_description
-        FROM public.json_schema_definitions d
+        FROM public.ai_json_schema_definitions d
         JOIN public.ai_task_json_schema_fields f ON d.schema_id = f.schema_id
         WHERE d.org_id = $1
         ORDER BY d.schema_id, f.field_name;`

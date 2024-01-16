@@ -2214,7 +2214,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         { editAggregateTask.schemas && editAggregateTask.schemas.length > 0 &&
                                                             editAggregateTask.schemas.map((schema: JsonSchemaDefinition, index: number) => (
                                                                 <div>
-                                                                    <Stack direction="row" >
+                                                                    <Stack direction="row" key={index}>
                                                                         <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
                                                                             <TextField
                                                                                 key={`schema-name-${index}`}
@@ -2240,7 +2240,9 @@ function WorkflowEngineBuilder(props: any) {
                                                                         <Box sx={{ ml: 2, mb: 2, mt: 3 }}>
                                                                             <Button
                                                                                 variant="contained"
+                                                                                id={`sm-button-${index}`}
                                                                                 color="primary"
+                                                                                key={`sm-button-${index}`}
                                                                                 onClick={(e) => removeSchemasViewToggle(e, index)}
                                                                             >
                                                                                 Remove

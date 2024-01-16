@@ -1,9 +1,10 @@
 import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
-import {JsonSchemaDefinition} from "./ai.types.schemas";
+import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 
 export interface AiState {
     schema: JsonSchemaDefinition;
     schemas: JsonSchemaDefinition[];
+    schemaField: JsonSchemaField;
     assistants: Assistant[];
     assistant: Assistant;
     usernames: string;

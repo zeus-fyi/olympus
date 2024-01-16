@@ -59,6 +59,7 @@ import {
     setEvalsTaskMap,
     setRetrieval,
     setRetrievals,
+    setSchema,
     setSelectedMainTabBuilder,
     setSelectedWorkflows,
     setTaskMap,
@@ -93,8 +94,9 @@ import {Schemas} from "./Schemas";
 const mdTheme = createTheme();
 
 function WorkflowEngineBuilder(props: any) {
-    const schema =  useSelector((state: RootState) => state.ai.schema);
-    const schemas =  useSelector((state: RootState) => state.ai.schemas);
+    const schema = useSelector((state: RootState) => state.ai.schema);
+    const schemas = useSelector((state: RootState) => state.ai.schemas);
+    const schemaField = useSelector((state: RootState) => state.ai.schemaField);
     const [open, setOpen] = useState(true);
     const assistants = useSelector((state: RootState) => state.ai.assistants);
     const evalMap = useSelector((state: RootState) => state.ai.evalMap);
@@ -174,18 +176,48 @@ function WorkflowEngineBuilder(props: any) {
 
     const clearEvalMetricRow = () => {
         dispatch(setEvalMetric({
-                evalMetricName: '',
-                evalModelPrompt: '',
-                evalComparisonNumber: 1,
-                evalComparisonString: '',
-                evalComparisonBoolean: false,
-                evalMetricDataType: '',
-                evalOperator: '',
-                evalState: 'info',
-                evalMetricResult: '',
+            evalMetricName: '',
+            evalModelPrompt: '',
+            evalComparisonNumber: 1,
+            evalComparisonString: '',
+            evalComparisonBoolean: false,
+            evalMetricDataType: '',
+            evalOperator: '',
+            evalState: 'info',
+            evalMetricResult: '',
         }));
     }
+    const addJsonSchemaFieldRow = () => {
+        if (schemaField.fieldName.length <= 0) {
+            setRequestStatusSchema('Field name is empty')
+            setRequestStatusSchemaError('error')
+            return;
+        }
+        if (schemaField.dataType.length <= 0) {
+            setRequestStatusSchema('Data type must be set')
+            setRequestStatusSchemaError('error')
+            return;
+        }
+        // Check if the metric name already exists in actionMetrics
+        if (schema.fields && schema.fields.length > 0 && schema.fields.some((field: {
+            fieldName: string;
+        }) => field.fieldName === schemaField.fieldName)) {
+            setRequestStatusSchema('Field name already exists.');
+            setRequestStatusSchemaError('error');
+            return;
+        }
+        setRequestStatusSchema('')
+        setRequestStatusSchemaError('')
 
+        if (schema.fields && schema.fields.length > 0) {
+            const updatedFields = [...schema.fields, schemaField];
+            dispatch(setSchema(
+                {...schema, fields: updatedFields}))
+        } else {
+            dispatch(setSchema(
+                {...schema, fields: [schemaField]}))
+        }
+    };
     const addEvalMetricRow = () => {
         if (!isValidLabel(evalMetric.evalMetricName)){
             setRequestEvalCreateOrUpdateStatus('Metric name is invalid. It must be must be 63 characters or less and begin and end with an alphanumeric character and can contain contain dashes (-), underscores (_), dots (.), and alphanumerics between')
@@ -3147,7 +3179,7 @@ function WorkflowEngineBuilder(props: any) {
                                     }
                                     {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 7 && !loading && !addRetrievalView && !addEvalsView && !addTriggerActionsView && !addAssistantsView &&
 
-                                        <Schemas schema={schema} createOrUpdateSchema={createOrUpdateSchema}/>
+                                        <Schemas schema={schema} addJsonSchemaFieldRow={addJsonSchemaFieldRow} createOrUpdateSchema={createOrUpdateSchema}/>
                                     }
                                 </CardContent>
                             </Card>

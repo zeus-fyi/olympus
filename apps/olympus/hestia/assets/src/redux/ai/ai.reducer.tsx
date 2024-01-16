@@ -12,7 +12,7 @@ import {
     UpdateTaskMapPayload
 } from "./ai.types";
 import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
-import {JsonSchemaDefinition} from "./ai.types.schemas";
+import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 
 const initialState: AiState = {
     schemas: [],
@@ -22,6 +22,11 @@ const initialState: AiState = {
         schemaName: '',
         schemaGroup: 'default',
         fields: [],
+    },
+    schemaField: {
+        fieldName: '',
+        fieldDescription: '',
+        dataType: '',
     },
     assistant: {
         id: '',
@@ -182,6 +187,9 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setSchemaField: (state, action: PayloadAction<JsonSchemaField>) => {
+            state.schemaField = action.payload;
+        },
         setSchemas: (state, action: PayloadAction<JsonSchemaDefinition[]>) => {
             state.schemas = action.payload;
         },
@@ -557,5 +565,6 @@ export const {
     setAddTriggersToEvalFnView,
     setSchema,
     setSchemas,
+    setSchemaField,
 } = aiSlice.actions;
 export default aiSlice.reducer;

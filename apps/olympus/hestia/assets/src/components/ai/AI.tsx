@@ -25,8 +25,7 @@ import {
     Stack,
     Switch,
     Tab,
-    Tabs,
-    TextareaAutosize
+    Tabs
 } from "@mui/material";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
@@ -40,7 +39,6 @@ import {
     setDiscordOptionsCategoryName,
     setRetrieval,
     setRetrievalKeywords,
-    setRetrievalPrompt,
     setSearchIndexer,
     setSearchResults,
     setSelectedMainTab,
@@ -654,17 +652,17 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     onChange={(e) => dispatch(setRetrievalKeywords(e.target.value))}
                                                 />
                                             </Box>
-                                            <Typography variant="h6" color="text.secondary">
-                                                Optionally describe what you're looking for, and the AI will analyze your returned search data.
-                                            </Typography>
-                                            <Box  sx={{ mb: 2, mt: 2 }}>
-                                                <TextareaAutosize
-                                                    minRows={18}
-                                                    value={retrieval.retrievalItemInstruction.retrievalPrompt}
-                                                    onChange={(e) => dispatch(setRetrievalPrompt(e.target.value))}
-                                                    style={{ resize: "both", width: "100%" }}
-                                                />
-                                            </Box>
+                                            {/*<Typography variant="h6" color="text.secondary">*/}
+                                            {/*    Optionally describe what you're looking for, and the AI will analyze your returned search data.*/}
+                                            {/*</Typography>*/}
+                                            {/*<Box  sx={{ mb: 2, mt: 2 }}>*/}
+                                            {/*    <TextareaAutosize*/}
+                                            {/*        minRows={18}*/}
+                                            {/*        value={retrieval.retrievalItemInstruction.retrievalPrompt}*/}
+                                            {/*        onChange={(e) => dispatch(setRetrievalPrompt(e.target.value))}*/}
+                                            {/*        style={{ resize: "both", width: "100%" }}*/}
+                                            {/*    />*/}
+                                            {/*</Box>*/}
                                         </Stack>
                                     </div>
                                 </CardContent>

@@ -20,7 +20,8 @@ import Container from "@mui/material/Container";
 import {JsonSchemaField} from "../../redux/ai/ai.types.schemas";
 
 export function Schemas(props: any) {
-    const {schema, loading, createOrUpdateSchema, requestStatusSchema, requestStatusSchemaError} = props;
+    const {schema, loading, createOrUpdateSchema, requestStatusSchema,
+        addJsonSchemaFieldRow, requestStatusSchemaError} = props;
 
     const editJsonSchemaField = (index: number) => {
         // dispatch(setEditEvalMetric(evalMetrics[index]))
@@ -118,7 +119,13 @@ export function Schemas(props: any) {
                     </FormControl>
                 </Box>
                 <Box sx={{ mt: 1, mb: 0,ml: 2, mr:0  }}>
-                    <Button fullWidth variant={"contained"} >Add</Button>
+                    <Button
+                        fullWidth
+                        variant={"contained"}
+                        onClick={() => addJsonSchemaFieldRow()}
+                    >
+                        Add
+                    </Button>
                 </Box>
                 <Box sx={{ mt: 1, mb: 0,ml: 2, mr:2  }}>
                     <Button fullWidth variant={"contained"} >Clear</Button>

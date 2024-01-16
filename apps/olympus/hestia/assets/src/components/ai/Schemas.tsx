@@ -11,9 +11,10 @@ import {
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
+import {useEffect} from "react";
 import Box from "@mui/material/Box";
 import {setSchema, setSchemaField} from "../../redux/ai/ai.reducer";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {JsonSchemaField} from "../../redux/ai/ai.types.schemas";
@@ -21,15 +22,24 @@ import {JsonSchemaField} from "../../redux/ai/ai.types.schemas";
 export function Schemas(props: any) {
     const {schema, schemaField,loading, createOrUpdateSchema,
         addJsonSchemaFieldRow, removeSchemaField} = props;
-
+    const addSchemasView = useSelector((state: any) => state.ai.addSchemasView);
     const editJsonSchemaField = (index: number) => {
         dispatch(setSchemaField(schema.fields[index]));
     }
     const removeJsonSchemaField = (index: number) => {
         removeSchemaField(index);
     }
+    // useEffect hook to handle changes in addSchemasView
+    useEffect(() => {
+        if(addSchemasView) {
+        }
+    }, [addSchemasView]); // Dependency array includes addSchemasView
 
     const dispatch = useDispatch();
+    if (addSchemasView) {
+        return <div></div>
+    }
+
     return (
         <div>
             <Box sx={{ ml: 0, mr: 2 }} >

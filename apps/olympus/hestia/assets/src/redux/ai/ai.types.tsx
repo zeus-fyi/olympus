@@ -2,6 +2,7 @@ import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 
 export interface AiState {
+    addSchemasView: boolean;
     schema: JsonSchemaDefinition;
     schemas: JsonSchemaDefinition[];
     schemaField: JsonSchemaField;
@@ -129,6 +130,7 @@ export interface TaskModelInstructions {
     cycleCount: number;
     responseFormat: string;
     retrievals?: AnalysisRetrievalsMap;
+    schemas: JsonSchemaDefinition[];
 }
 
 export interface TaskMap {

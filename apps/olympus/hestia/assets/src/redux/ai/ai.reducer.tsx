@@ -15,6 +15,7 @@ import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 
 const initialState: AiState = {
+    addSchemasView: false,
     schemas: [],
     schema: {
         schemaID: 0,
@@ -145,10 +146,10 @@ const initialState: AiState = {
     },
 
     evalFns: [],
-    editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '',
+    editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
         tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text',
     },
-    editAggregateTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '',
+    editAggregateTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
         tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text'},
     editRetrieval:  {
         retrievalID: undefined, // Optional field set to undefined
@@ -187,6 +188,9 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setAddSchemasView: (state, action: PayloadAction<boolean>) => {
+            state.addSchemasView = action.payload;
+        },
         setSchemaField: (state, action: PayloadAction<JsonSchemaField>) => {
             state.schemaField = action.payload;
         },
@@ -566,5 +570,6 @@ export const {
     setSchema,
     setSchemas,
     setSchemaField,
+    setAddSchemasView
 } = aiSlice.actions;
 export default aiSlice.reducer;

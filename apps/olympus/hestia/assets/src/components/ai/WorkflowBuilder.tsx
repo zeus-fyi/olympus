@@ -48,6 +48,7 @@ import {
     setAddEvalFnsView,
     setAddRetrievalTasks,
     setAddRetrievalView,
+    setAddSchemasView,
     setAddTriggerActionsView,
     setAddTriggersToEvalFnView,
     setAnalysisRetrievalsMap,
@@ -95,6 +96,7 @@ import {JsonSchemaDefinition, JsonSchemaField} from "../../redux/ai/ai.types.sch
 const mdTheme = createTheme();
 
 function WorkflowEngineBuilder(props: any) {
+    const addSchemasView = useSelector((state: RootState) => state.ai.addSchemasView);
     const schema = useSelector((state: RootState) => state.ai.schema);
     const schemas = useSelector((state: RootState) => state.ai.schemas);
     const schemaField = useSelector((state: RootState) => state.ai.schemaField);
@@ -109,8 +111,6 @@ function WorkflowEngineBuilder(props: any) {
     const selectedWorkflows = useSelector((state: any) => state.ai.selectedWorkflows);
     const selectedMainTabBuilder = useSelector((state: any) => state.ai.selectedMainTabBuilder);
     const [selected, setSelected] = useState<{ [key: number]: boolean }>({});
-    const analysisWorkflowInstructions = useSelector((state: RootState) => state.ai.analysisWorkflowInstructions);
-    const aggregationWorkflowInstructions = useSelector((state: RootState) => state.ai.aggregationWorkflowInstructions);
     const addAnalysisView = useSelector((state: RootState) => state.ai.addAnalysisView);
     const addAggregateView = useSelector((state: RootState) => state.ai.addAggregationView);
     const addRetrievalView = useSelector((state: RootState) => state.ai.addRetrievalView);
@@ -160,7 +160,18 @@ function WorkflowEngineBuilder(props: any) {
     const setToggleEvalTaskType = () => {
         setToggleEvalToTaskType(!toggleEvalToTaskType);
     };
+    const handleEditAnalysisTaskResponseFormat = (event: any) => {
+        const responseFormat = event.target.value;
+        dispatch(setEditAnalysisTask({ ...editAnalysisTask, responseFormat: responseFormat }))
+    }
+    const handleEditAggTaskResponseFormat = (event: any) => {
+        const responseFormat = event.target.value;
+        dispatch(setEditAggregateTask({ ...editAggregateTask, responseFormat: responseFormat }))
+    }
 
+    const handleEditAggregateTaskModel = (event: any) => {
+        dispatch(setEditAggregateTask({ ...editAggregateTask, model: event.target.value }))
+    }
     const editEvalMetricRow = (index: number) => {
         const updatedMetrics = evalFn.evalMetrics.filter((_: EvalMetric, i: number) => i === index);
         if (updatedMetrics.length > 0) {
@@ -457,7 +468,7 @@ function WorkflowEngineBuilder(props: any) {
 
 
     useEffect(() => {
-    }, [addEvalsView, addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder,
+    }, [addEvalsView, addAggregateView, addAnalysisView,addRetrievalView, selectedMainTabBuilder, addSchemasView,
         analysisStages, aggregationStages, evalFnStages, retrievals, retrievalStages,workflowBuilderEvalsTaskMap, workflowBuilderTaskMap,
         workflowAnalysisRetrievalsMap, evalMap, taskMap]);
     const dispatch = useDispatch();
@@ -538,6 +549,33 @@ function WorkflowEngineBuilder(props: any) {
         setIsLoading(false)
     }
 
+    const addSchemaToTask = async (event: any) => {
+        const selectedSchemas: JsonSchemaDefinition[] = Object.keys(selected)
+            .filter(key => selected[Number(key)])
+            .map(key => schemas[Number(key)]);
+
+        if (taskType === 'analysis') {
+            dispatch(setEditAnalysisTask({ ...editAnalysisTask, schemas: selectedSchemas }))
+        } else if (taskType === 'aggregation') {
+            dispatch(setEditAggregateTask({ ...editAggregateTask, schemas: selectedSchemas }))
+        }
+    }
+
+    const addSchemasViewToggle = async (event: any) => {
+        const toggle = !addSchemasView;
+        dispatch(setAddSchemasView(toggle));
+        if (toggle) {
+            if (taskType === 'analysis') {
+                dispatch(setSelectedMainTabBuilder(1))
+            } else if (taskType === 'aggregation') {
+                dispatch(setSelectedMainTabBuilder(2))
+            }
+            setSelected({});
+        } else {
+            setSelected({});
+        }
+
+    }
     const addEvalsStageView = async () => {
         const toggle = !addEvalsView;
         dispatch(setAddAnalysisView(false));
@@ -874,6 +912,7 @@ function WorkflowEngineBuilder(props: any) {
                 taskType: taskType,
                 taskGroup:taskGn,
                 taskName: tn,
+                schemas: [],
                 responseFormat: (taskType === 'analysis' ? editAnalysisTask.responseFormat : editAggregateTask.responseFormat),
                 model: (taskType === 'analysis' ? editAnalysisTask.model : editAggregateTask.model),
                 prompt: (taskType === 'analysis' ? editAnalysisTask.prompt : editAggregateTask.prompt),
@@ -1036,10 +1075,13 @@ function WorkflowEngineBuilder(props: any) {
         } else if (newValue === 6) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
-        } else if (newValue === 7) {
+        } else if (newValue === 7 && addSchemasView) {
+            dispatch(setAddSchemasView(!addSchemasView));
             dispatch(setSelectedWorkflows([]));
             setSelected({});
         }
+        setSelected({});
+
         if (addAssistantsView && newValue !== 6) {
             dispatch(setAddAssistantsView(false));
         }
@@ -1091,7 +1133,7 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = event.target.checked;
-        if (addRetrievalView || selectedMainTabBuilder === 3) {
+        if (addRetrievalView || selectedMainTabBuilder === 3 && !addSchemasView) {
             const newSelection = retrievals.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
@@ -1122,6 +1164,12 @@ function WorkflowEngineBuilder(props: any) {
             }, {});
             setSelected(newSelection);
         } else if (selectedMainTabBuilder === 7) {
+            const newSelection = schemas.reduce((acc: { [key: number]: boolean }, schema: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
+        } else if (addSchemasView) {
             const newSelection = schemas.reduce((acc: { [key: number]: boolean }, schema: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
@@ -1976,7 +2024,7 @@ function WorkflowEngineBuilder(props: any) {
                                 </div>
                                 }
                                 <CardContent>
-                                    {!addAnalysisView && !addAggregateView && !addRetrievalView && selectedMainTabBuilder == 1 && !addEvalsView &&
+                                    {!addAnalysisView && !addAggregateView && !addRetrievalView && (selectedMainTabBuilder === 1 || (taskType === 'analysis' && addSchemasView && selectedMainTabBuilder === 7)) && !addEvalsView &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Analysis Instructions
@@ -2056,7 +2104,7 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    { !addAggregateView && !addAnalysisView && !addRetrievalView && selectedMainTabBuilder === 2 && !addEvalsView &&
+                                    { !addAggregateView && !addAnalysisView && !addRetrievalView && !addEvalsView && selectedMainTabBuilder === 2 &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
                                                 Aggregation Instructions
@@ -2086,7 +2134,8 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Box>
                                             </Stack>
                                             <Stack direction="row" >
-                                                <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
+                                                { editAggregateTask.responseFormat === 'json' ?
+                                                    <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                                     <FormControl fullWidth>
                                                         <InputLabel id="model-label">Aggregation Model</InputLabel>
                                                         <Select
@@ -2094,21 +2143,39 @@ function WorkflowEngineBuilder(props: any) {
                                                             id="model-select"
                                                             value={editAggregateTask.model}
                                                             label="Aggregation Model"
-                                                            onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, model: event.target.value }))}
+                                                            onChange={(event) => handleEditAggregateTaskModel(event)}
                                                         >
-                                                            <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
-                                                            <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
-                                                            <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
-                                                            <MenuItem value="gpt-4">gpt-4</MenuItem>
-                                                            <MenuItem value="gpt-4-32k">gpt-4-32k</MenuItem>
-                                                            <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
-                                                            <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
-                                                            <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
-                                                            <MenuItem value="babbage-002">babbage-002</MenuItem>
-                                                            <MenuItem value="davinci-002">davinci-002</MenuItem>
+                                                                    <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                                                                    <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
+                                                    :
+                                                    <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
+                                                        <FormControl fullWidth>
+                                                            <InputLabel id="model-label">Aggregation Model</InputLabel>
+                                                            <Select
+                                                                labelId="model-label"
+                                                                id="model-select"
+                                                                value={editAggregateTask.model}
+                                                                label="Aggregation Model"
+                                                                onChange={(event) => handleEditAggregateTaskModel(event)}
+                                                            >
+                                                                <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
+                                                                <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                                                                <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
+                                                                <MenuItem value="gpt-4">gpt-4</MenuItem>
+                                                                <MenuItem value="gpt-4-32k">gpt-4-32k</MenuItem>
+                                                                <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
+                                                                <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
+                                                                <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                                <MenuItem value="babbage-002">babbage-002</MenuItem>
+                                                                <MenuItem value="davinci-002">davinci-002</MenuItem>
+
+                                                            </Select>
+                                                        </FormControl>
+                                                    </Box>
+                                                }
                                                 <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
                                                     <FormControl fullWidth>
                                                         <InputLabel id="aggregation-token-overflow-analysis-label">Token Overflow Strategy</InputLabel>
@@ -2126,14 +2193,22 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Box>
 
                                             </Stack>
+                                            { editAggregateTask.responseFormat === 'json' ?
                                             <Box  sx={{ mb: 2, mt: 2 }}>
-                                                <TextareaAutosize
-                                                    minRows={18}
-                                                    value={editAggregateTask.prompt}
-                                                    onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, prompt: event.target.value }))}
-                                                    style={{ resize: "both", width: "100%" }}
-                                                />
+                                                <Button variant="contained" color="secondary" onClick={addSchemasViewToggle} style={{marginLeft: '10px'}}>
+                                                    { addSchemasView ? 'Done Adding':'Add Schemas' }
+                                                </Button>
                                             </Box>
+                                                :
+                                                <Box  sx={{ mb: 2, mt: 2 }}>
+                                                    <TextareaAutosize
+                                                        minRows={18}
+                                                        value={editAggregateTask.prompt}
+                                                        onChange={(event) => dispatch(setEditAggregateTask({ ...editAggregateTask, prompt: event.target.value }))}
+                                                        style={{ resize: "both", width: "100%" }}
+                                                    />
+                                                </Box>
+                                            }
                                         </div>
                                     }
                                     {
@@ -3125,10 +3200,8 @@ function WorkflowEngineBuilder(props: any) {
                                                             id="response-format-label"
                                                             value={editAnalysisTask.responseFormat}
                                                             label="Response Format"
-                                                            onChange={(e) => dispatch(setEditAnalysisTask({
-                                                                ...editAnalysisTask,
-                                                                responseFormat: e.target.value
-                                                            }))}
+                                                            onChange={(e) => handleEditAnalysisTaskResponseFormat(e)}
+
                                                         >
                                                             <MenuItem value="text">text</MenuItem>
                                                             <MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>
@@ -3175,10 +3248,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         id="response-format-label"
                                                         value={editAggregateTask.responseFormat}
                                                         label="Response Format"
-                                                        onChange={(e) => dispatch(setEditAggregateTask({
-                                                            ...editAggregateTask, // Spread the existing action properties
-                                                            responseFormat: e.target.value // Update the actionName
-                                                        }))}
+                                                        onChange={(e) => handleEditAggTaskResponseFormat(e)}
                                                     >
                                                         <MenuItem value="text">text</MenuItem>
                                                         <MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>
@@ -3214,15 +3284,18 @@ function WorkflowEngineBuilder(props: any) {
                                             </Box>
                                         </div>
                                     }
-                                    {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 7 && !loading && !addRetrievalView && !addEvalsView && !addTriggerActionsView && !addAssistantsView &&
+                                    { !addAnalysisView && !addAggregateView &&
+                                        (selectedMainTabBuilder === 7 ||
+                                            ((selectedMainTabBuilder === 1 || selectedMainTabBuilder === 2) && addSchemasView) &&
+                                            !loading && !addRetrievalView && !addEvalsView && !addTriggerActionsView && !addAssistantsView) &&
                                         <div>
                                             <Schemas schemaField={schemaField}
                                                      schema={schema}
                                                      removeSchemaField={removeSchemaField}
                                                      addJsonSchemaFieldRow={addJsonSchemaFieldRow}
                                                      createOrUpdateSchema={createOrUpdateSchema}/>
-                                            {requestStatusSchema != '' && (
-                                                <Container sx={{ mt: 2}}>
+                                            {requestStatusSchema !== '' && (
+                                                <Container sx={{ mt: 2 }}>
                                                     <Typography variant="h6" color={requestStatusSchemaError}>
                                                         {requestStatusSchema}
                                                     </Typography>
@@ -3287,7 +3360,7 @@ function WorkflowEngineBuilder(props: any) {
                             </Box>
                         </Container>
                     }
-                    { (selectedMainTabBuilder === 1 || selectedMainTabBuilder === 2) &&
+                    { (selectedMainTabBuilder === 1 || selectedMainTabBuilder === 2) && !addSchemasView &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <TasksTable tasks={tasks} selected={selected} handleClick={handleClick} handleSelectAllClick={handleSelectAllClick} />
@@ -3324,6 +3397,19 @@ function WorkflowEngineBuilder(props: any) {
 
                         </div>
                     }
+                    { addSchemasView &&
+                        <div>
+                            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                <Box sx={{ mb: 2 }}>
+                                    <span>({Object.values(selected).filter(value => value).length} Selected Schemas)</span>
+                                    <Button variant="outlined" color="secondary" onClick={(event) => addSchemaToTask(event)} style={{marginLeft: '10px'}}>
+                                        Add {Object.values(selected).filter(value => value).length === 1 ? 'Schema' : 'Schemas'}
+                                    </Button>
+                                </Box>
+                            </Container>
+
+                        </div>
+                    }
                     { (selectedMainTabBuilder === 4) && !addTriggersToEvalFnView &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -3346,7 +3432,7 @@ function WorkflowEngineBuilder(props: any) {
                         </div>
                     }
 
-                    { (selectedMainTabBuilder === 7) &&
+                    { (selectedMainTabBuilder === 7 || addSchemasView) &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <SchemasTable schemas={schemas}

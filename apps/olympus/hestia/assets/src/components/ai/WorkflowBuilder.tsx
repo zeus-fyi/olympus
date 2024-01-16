@@ -55,6 +55,7 @@ import {
     setEditAggregateTask,
     setEditAnalysisTask,
     setEval,
+    setEvalFns,
     setEvalMap,
     setEvalMetric,
     setEvalsTaskMap,
@@ -923,7 +924,7 @@ function WorkflowEngineBuilder(props: any) {
                 taskType: taskType,
                 taskGroup:taskGn,
                 taskName: tn,
-                schemas: [],
+                schemas: (taskType === 'analysis' ? editAnalysisTask.schemas : editAggregateTask.schemas),
                 responseFormat: (taskType === 'analysis' ? editAnalysisTask.responseFormat : editAggregateTask.responseFormat),
                 model: (taskType === 'analysis' ? editAnalysisTask.model : editAggregateTask.model),
                 prompt: (taskType === 'analysis' ? editAnalysisTask.prompt : editAggregateTask.prompt),
@@ -935,11 +936,14 @@ function WorkflowEngineBuilder(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data as TaskModelInstructions;
-                // setTasks([...tasks, data])
                 if (taskType === 'analysis') {
+                    const at = allTasks.filter((task: any) => task.taskType === 'analysis' && task.taskID !== data.taskID)
+                    setTasks([data, ...at]);
                     setRequestAnalysisStatus('Task created successfully')
                     setRequestAnalysisStatusError('success')
                 } else if (taskType === 'aggregation') {
+                    const at = allTasks.filter((task: any) => task.taskType === 'aggregation' && task.taskID !== data.taskID)
+                    setTasks([data, ...at]);
                     setRequestAggStatus('Task created successfully')
                     setRequestAggStatusError('success')
                 }
@@ -1048,7 +1052,8 @@ function WorkflowEngineBuilder(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data as EvalFn;
-                // dispatch(setEvalFns([...evalFns, data]))
+                const ae = evalFns.filter((ef: EvalFn) =>  ef.evalID !== data.evalID)
+                dispatch(setEvalFns([data, ...ae]));
                 setRequestEvalCreateOrUpdateStatus('Eval created or updated successfully')
                 setRequestEvalCreateOrUpdateStatusError('success')
             }

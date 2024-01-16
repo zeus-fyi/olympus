@@ -11,6 +11,7 @@ import Button from "@mui/material/Button";
 import {TaskModelInstructions} from "../../redux/ai/ai.types";
 import {setEditAggregateTask, setEditAnalysisTask} from "../../redux/ai/ai.reducer";
 import {useDispatch} from "react-redux";
+import TableHead from "@mui/material/TableHead";
 
 export function TasksRow(props: { row: TaskModelInstructions, index: number, handleClick: any,checked: boolean}) {
     const { row, index, handleClick, checked } = props;
@@ -55,11 +56,37 @@ export function TasksRow(props: { row: TaskModelInstructions, index: number, han
                     row.responseFormat === 'json' ?
                         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
                             <Collapse in={open} timeout="auto" unmountOnExit>
-                                <Box sx={{ margin: 1 }}>
-                                    <Typography variant="h6" gutterBottom component="div">
-                                        Schemas
-                                    </Typography>
-                                </Box>
+                                {row.schemas && row.schemas.length > 0 && (
+                                    <Box sx={{ margin: 1 }}>
+                                        <Typography variant="h6" gutterBottom component="div">
+                                            Schemas
+                                        </Typography>
+                                        <Table size="small" aria-label="sub-analysis">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell>Group</TableCell>
+                                                    <TableCell>Name</TableCell>
+                                                    <TableCell>Fields</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {row.schemas && row.schemas.map((data, dataIndex) => (
+                                                    <TableRow key={dataIndex}>
+                                                        <TableCell>{data.schemaGroup}</TableCell>
+                                                        <TableCell>{data.schemaName}</TableCell>
+                                                        {data.fields && data.fields.length > 0 && data.fields.map((field, fieldIndex) => (
+                                                            <TableRow key={fieldIndex}>
+                                                                <TableCell>{field.dataType}</TableCell>
+                                                                <TableCell>{field.fieldName}</TableCell>
+                                                                {/*<TableCell>{field.fieldDescription}</TableCell>*/}
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </Box>
+                                )}
                             </Collapse>
                         </TableCell>
                         :

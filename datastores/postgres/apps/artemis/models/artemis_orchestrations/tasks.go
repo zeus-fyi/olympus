@@ -2,11 +2,14 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 type AITaskLibrary struct {
@@ -85,15 +88,65 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 	return nil
 }
 
-func SelectTasks(ctx context.Context, orgID int) ([]AITaskLibrary, error) {
-	query := `
-        SELECT task_id, org_id, user_id, max_tokens_per_task, task_type, task_name, task_group, token_overflow_strategy, model, prompt, response_format
-        FROM public.ai_task_library
-        WHERE org_id = $1
-        ORDER BY task_id, task_group, task_name DESC;`
+func SelectTasks(ctx context.Context, ou org_users.OrgUser) ([]AITaskLibrary, error) {
+	query := `SELECT 
+				tl.task_id, 
+				tl.max_tokens_per_task, 
+				tl.task_type,
+				tl.task_name, 
+				tl.task_group, 
+				tl.token_overflow_strategy, 
+				tl.model, 
+				tl.prompt, 
+				tl.response_format,
+				array_agg(json_schema) AS json_schemas
+			FROM 
+				public.ai_task_library tl
+			LEFT JOIN 
+				public.ai_json_task_schemas js ON tl.task_id = js.task_id
+			LEFT JOIN (
+				SELECT 
+					d.schema_id, 
+					d.org_id, 
+					jsonb_build_object(
+						'schemaID', d.schema_id, 
+						'schemaName', d.schema_name, 
+						'schemaGroup', d.schema_group, 
+						'isObjArray', d.is_obj_array,
+						'fields', array_agg(
+							jsonb_build_object(
+								'fieldName', f.field_name, 
+								'dataType', f.data_type, 
+								'fieldDescription', f.field_description
+							)
+						)
+					) AS json_schema
+				FROM 
+					public.ai_json_schema_definitions d
+				JOIN 
+					public.ai_json_schema_fields f ON d.schema_id = f.schema_id
+				WHERE 
+					d.org_id = $1
+				GROUP BY 
+					d.schema_id, d.org_id
+			) AS schemas ON js.schema_id = schemas.schema_id AND tl.org_id = schemas.org_id
+			WHERE 
+				tl.org_id = $1
+			GROUP BY 
+				tl.task_id, 
+				tl.max_tokens_per_task, 
+				tl.task_type,
+				tl.task_name, 
+				tl.task_group,
+				tl.token_overflow_strategy, 
+				tl.model, 
+				tl.prompt, 
+				tl.response_format
+			ORDER BY task_id DESC 
+`
 
 	// Executing the query
-	rows, err := apps.Pg.Query(ctx, query, orgID)
+	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil
@@ -107,12 +160,30 @@ func SelectTasks(ctx context.Context, orgID int) ([]AITaskLibrary, error) {
 	// Iterating over the result set
 	for rows.Next() {
 		var task AITaskLibrary
-		err = rows.Scan(&task.TaskID, &task.OrgID, &task.UserID, &task.MaxTokensPerTask, &task.TaskType, &task.TaskName,
-			&task.TaskGroup, &task.TokenOverflowStrategy, &task.Model, &task.Prompt, &task.ResponseFormat)
+		var jsonSchema pgtype.JSONBArray
+
+		err = rows.Scan(
+			&task.TaskID, &task.MaxTokensPerTask, &task.TaskType, &task.TaskName,
+			&task.TaskGroup, &task.TokenOverflowStrategy, &task.Model,
+			&task.Prompt, &task.ResponseFormat, &jsonSchema, // Scan into a string
+		)
 		if err != nil {
 			log.Err(err).Msg("failed to scan task")
 			return nil, err
 		}
+
+		for _, elem := range jsonSchema.Elements {
+			var schema JsonSchemaDefinition
+			if elem.Bytes == nil {
+				continue
+			}
+			if err = json.Unmarshal(elem.Bytes, &schema); err != nil {
+				log.Err(err).Msg("failed to unmarshal json schema element")
+				return nil, err
+			}
+			task.Schemas = append(task.Schemas, schema)
+		}
+
 		tasks = append(tasks, task)
 	}
 	return tasks, nil

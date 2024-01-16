@@ -41,6 +41,9 @@ func (s *OrchestrationsTestSuite) TestInsertJsonTask() {
 		ResponseFormat:        "json",
 		Schemas: []JsonSchemaDefinition{
 			{
+				SchemaID: 1705373225147975000,
+			},
+			{
 				SchemaID: 1705373864663807000,
 			},
 		},
@@ -51,6 +54,16 @@ func (s *OrchestrationsTestSuite) TestInsertJsonTask() {
 	s.Require().NotZero(testTask.TaskID)
 }
 
+func (s *OrchestrationsTestSuite) TestSelectTasks() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	tasks, err := SelectTasks(ctx, ou)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(tasks)
+}
 func (s *OrchestrationsTestSuite) TestTaskAggregation() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}

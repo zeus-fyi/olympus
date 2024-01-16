@@ -2217,12 +2217,23 @@ function WorkflowEngineBuilder(props: any) {
                                                                     <Stack direction="row" >
                                                                         <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
                                                                             <TextField
-                                                                                key={index}
+                                                                                key={`schema-name-${index}`}
                                                                                 fullWidth
                                                                                 id={`schema-${index}`}
                                                                                 label={`Schema-Name-${index}`}
                                                                                 variant="outlined"
                                                                                 value={schema.schemaName}
+                                                                                InputProps={{ readOnly: true }}
+                                                                            />
+                                                                        </Box>
+                                                                        <Box sx={{ mb: 2, mt: 2, ml: 2, width: '50%' }}>
+                                                                            <TextField
+                                                                                key={`schema-group-${index}`}
+                                                                                fullWidth
+                                                                                id={`schema-group-${index}`}
+                                                                                label={`Schema-Group-${index}`}
+                                                                                variant="outlined"
+                                                                                value={schema.schemaGroup}
                                                                                 InputProps={{ readOnly: true }}
                                                                             />
                                                                         </Box>
@@ -2235,10 +2246,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 Remove
                                                                             </Button>
                                                                         </Box>
-
-
                                                                     </Stack>
-
                                                                 </div>
 
                                                             ))

@@ -981,7 +981,7 @@ function WorkflowEngineBuilder(props: any) {
                 return;
             }
 
-            if (action.triggerEnv.length <= 0) {
+            if (action.triggerAction.length <= 0) {
                 setRequestActionStatus('Trigger action environment must be set')
                 setRequestActionStatusError('error')
                 return;
@@ -2658,18 +2658,18 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                         <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                                             <FormControl fullWidth>
-                                                                <InputLabel id="trigger-env-label">Trigger Env</InputLabel>
+                                                                <InputLabel id="trigger-env-label">Trigger Action</InputLabel>
                                                                 <Select
                                                                     labelId="trigger-env-label"
                                                                     id="trigger-env-input"
-                                                                    value={action.triggerEnv}
-                                                                    label="Trigger Env"
+                                                                    value={action.triggerAction}
+                                                                    label="Trigger Action"
                                                                     onChange={(e) => dispatch(setTriggerAction({
                                                                         ...action,
-                                                                        triggerEnv: e.target.value
+                                                                        triggerAction: e.target.value
                                                                     }))}
                                                                 >
-                                                                    <MenuItem value="social-media-engagement">Social Media Engagement</MenuItem>
+                                                                    <MenuItem value="social-media-engagement">Social Media Engagement Approval</MenuItem>
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
                                                                 </Select>

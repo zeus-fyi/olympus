@@ -39,7 +39,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunApprovedTriggerActions(ctx workflow.
 		logger.Error("failed to create or update trigger action", "Error", err)
 		return err
 	}
-	switch ta.TriggerEnv {
+	switch ta.TriggerAction {
 	case "social-media-engagement":
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 			//WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + suffix,

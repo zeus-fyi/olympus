@@ -54,7 +54,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunTriggerActions(ctx workflow.Context,
 		var cr *ChatCompletionQueryResponse
 		if tar.Mb.AnalysisEvalActionParams != nil && tar.Mb.AnalysisEvalActionParams.SearchResultGroup != nil {
 			ta.TriggerPlatformReference.PlatformReferenceName = tar.Mb.AnalysisEvalActionParams.SearchResultGroup.PlatformName
-			switch ta.TriggerEnv {
+			switch ta.TriggerAction {
 			case socialMediaEngagementResponseFormat:
 				smApiEvalFormatCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(smApiEvalFormatCtx, z.EvalFormatForApi, ou, ta).Get(smApiEvalFormatCtx, &cr)

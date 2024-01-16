@@ -64,7 +64,7 @@ func (z *ZeusAiPlatformActivities) EvalFormatForApi(ctx context.Context, ou org_
 	platformName := ta.TriggerPlatformReference.PlatformReferenceName
 	switch platformName {
 	case twitterPlatform:
-		fnApiFormat = EvalFormatTweetForApiJsonSchema(ta.TriggerEnv)
+		fnApiFormat = EvalFormatTweetForApiJsonSchema(ta.TriggerAction)
 		log.Info().Msgf("EvalFormatTweetForApi: body: %v", fnApiFormat)
 	default:
 		return nil, fmt.Errorf("EvalFormatForApi: platform %s not supported", platformName)

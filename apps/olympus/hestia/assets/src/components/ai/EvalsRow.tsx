@@ -126,7 +126,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                 <TableCell>{data.triggerGroup}</TableCell>
                                                 <TableCell>{evalTrigger.evalTriggerState}</TableCell>
                                                 <TableCell>{evalTrigger.evalResultsTriggerOn}</TableCell>
-                                                <TableCell>{data.triggerEnv}</TableCell>
+                                                <TableCell>{data.triggerAction}</TableCell>
                                             </TableRow>
                                         ))
                                     ))}

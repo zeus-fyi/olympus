@@ -208,7 +208,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				COALESCE(m.eval_operator, '') AS eval_operator,
 				COALESCE(m.eval_state, '') AS eval_state,
 			   	COALESCE(tab.trigger_id, 0), COALESCE(tab.trigger_name, ''), COALESCE(tab.trigger_group, ''),
- 			   	COALESCE(tab.trigger_env, ''), COALESCE(ta.eval_trigger_state, ''), COALESCE(ta.eval_results_trigger_on, '')
+ 			   	COALESCE(tab.trigger_action, ''), COALESCE(ta.eval_trigger_state, ''), COALESCE(ta.eval_results_trigger_on, '')
         FROM public.eval_fns f
         LEFT JOIN public.eval_metrics m ON f.eval_id = m.eval_id
         LEFT JOIN public.ai_trigger_actions_evals ta ON f.eval_id = ta.eval_id
@@ -236,7 +236,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			&em.EvalMetricID, &em.EvalModelPrompt, &em.EvalMetricName, &em.EvalMetricResult, &em.EvalComparisonBoolean,
 			&em.EvalComparisonNumber, &em.EvalComparisonString, &em.EvalMetricDataType, &em.EvalOperator, &em.EvalState,
 			&ta.TriggerID, &ta.TriggerName, &ta.TriggerGroup,
-			&ta.TriggerEnv, &eta.EvalTriggerState, &eta.EvalResultsTriggerOn) // Scan for TriggerActions
+			&ta.TriggerAction, &eta.EvalTriggerState, &eta.EvalResultsTriggerOn) // Scan for TriggerActions
 		if err != nil {
 			log.Err(err).Msg("failed to scan row")
 			return nil, err

@@ -111,7 +111,7 @@ const initialState: AiState = {
         triggerID: 0,
         triggerName: '',
         triggerGroup: '',
-        triggerEnv: 'social-media-engagement',
+        triggerAction: 'social-media-engagement',
         triggerActionsApprovals: [],
         evalTriggerActions: [],
         evalTriggerAction: {

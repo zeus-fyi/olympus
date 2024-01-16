@@ -53,7 +53,7 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
                     {row.triggerName}
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.triggerEnv}
+                    {row.triggerAction}
                 </TableCell>
                 <TableCell align="left">
                     <Button onClick={event => handleEditTriggerAction(event, row)} fullWidth variant="contained" >{'Edit'}</Button>

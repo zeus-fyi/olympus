@@ -64,9 +64,10 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 	q.RawQuery = `
 			WITH TriggerActions AS (
 				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action,
-					   COALESCE(tae.eval_id, 0) as eval_id, tae.eval_trigger_state, tae.eval_results_trigger_on
+					   COALESCE(tae.eval_id, 0) as eval_id, taee.eval_trigger_state, taee.eval_results_trigger_on
 				FROM public.ai_trigger_actions ta
 				LEFT JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
+				LEFT JOIN public.ai_trigger_eval taee ON ta.trigger_id = taee.trigger_id
 				WHERE ta.org_id = $1` + additionalQuery + `
 			)
 			SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action,
@@ -259,24 +260,29 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 		return err
 	}
 	for _, eta := range trigger.EvalTriggerActions {
-
-		var evalID *int
-		if eta.EvalID != 0 {
-			evalID = &eta.EvalID
-		}
 		q.RawQuery = `
-            INSERT INTO public.ai_trigger_actions_evals(eval_id, trigger_id, eval_trigger_state, eval_results_trigger_on)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO public.ai_trigger_eval(trigger_id, eval_trigger_state, eval_results_trigger_on)
+            VALUES ($1, $2, $3)
          	ON CONFLICT (trigger_id)
-    		DO UPDATE SET
-    		    eval_id = EXCLUDED.eval_id,
+         	DO UPDATE SET
 				eval_trigger_state = EXCLUDED.eval_trigger_state,
-				eval_results_trigger_on = EXCLUDED.eval_results_trigger_on;` // Adjust as needed
-
-		_, err = tx.Exec(ctx, q.RawQuery, evalID, trigger.TriggerID, eta.EvalTriggerState, eta.EvalResultsTriggerOn)
+				eval_results_trigger_on = EXCLUDED.eval_results_trigger_on;`
+		_, err = tx.Exec(ctx, q.RawQuery, trigger.TriggerID, eta.EvalTriggerState, eta.EvalResultsTriggerOn)
 		if err != nil {
 			log.Err(err).Msg("failed to insert eval trigger action")
 			return err
+		}
+		if eta.EvalID != 0 {
+			q.RawQuery = `
+            INSERT INTO public.ai_trigger_actions_evals(eval_id, trigger_id)
+            VALUES ($1, $2)
+         	ON CONFLICT (eval_id, trigger_id)
+    		DO NOTHING;`
+			_, err = tx.Exec(ctx, q.RawQuery, eta.EvalID, trigger.TriggerID)
+			if err != nil {
+				log.Err(err).Msg("failed to insert eval trigger action")
+				return err
+			}
 		}
 	}
 	err = tx.Commit(ctx)

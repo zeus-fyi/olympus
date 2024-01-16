@@ -15,16 +15,20 @@ CREATE INDEX ai_trigger_actions_group_ind ON public.ai_trigger_actions("trigger_
 ALTER TABLE "public"."ai_trigger_actions" ADD CONSTRAINT "ai_trigger_actions_name_uniq" UNIQUE ("org_id", "trigger_name");
 ALTER TABLE "public"."ai_trigger_actions" ADD CONSTRAINT "ai_trigger_actions_group_names_uniq" UNIQUE ("org_id", "trigger_group", "trigger_name");
 
-CREATE TABLE public.ai_trigger_actions_evals(
-    eval_id BIGINT REFERENCES eval_fns(eval_id), -- Removed NOT NULL
+CREATE TABLE public.ai_trigger_eval(
     trigger_id BIGINT NOT NULL REFERENCES ai_trigger_actions(trigger_id),
     eval_trigger_state text NOT NULL,
     eval_results_trigger_on text NOT NULL,
-    PRIMARY KEY (trigger_id) -- Changed the primary key to trigger_id only
+    PRIMARY KEY (trigger_id)
 );
-ALTER TABLE public.ai_trigger_actions_evals
-    ADD CONSTRAINT unique_eval_triggers UNIQUE (trigger_id, eval_id); -- Updated constraint
 
+CREATE TABLE public.ai_trigger_actions_evals(
+    eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),
+    trigger_id BIGINT NOT NULL REFERENCES ai_trigger_actions(trigger_id),
+    PRIMARY KEY (eval_id, trigger_id)
+);
+CREATE INDEX ai_trigger_actions_evals_indx ON public.ai_trigger_actions_evals("eval_id");
+CREATE INDEX ai_trigger_actions_trg_indx ON public.ai_trigger_actions_evals("trigger_id");
 
 CREATE TABLE public.ai_trigger_actions_approval(
     approval_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,

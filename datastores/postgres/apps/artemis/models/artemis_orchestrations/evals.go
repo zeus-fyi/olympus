@@ -163,15 +163,13 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 	for _, eta := range evalFn.TriggerActions {
 		for _, evTrig := range eta.EvalTriggerActions {
 			query := `
-            INSERT INTO ai_trigger_actions_evals(eval_id, trigger_id, eval_trigger_state, eval_results_trigger_on)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO ai_trigger_actions_evals(eval_id, trigger_id)
+            VALUES ($1, $2)
          	ON CONFLICT (eval_id, trigger_id)
-    		DO UPDATE SET
-				eval_trigger_state = EXCLUDED.eval_trigger_state,
-				eval_results_trigger_on = EXCLUDED.eval_results_trigger_on;` // Adjust as needed
-			_, err = tx.Exec(ctx, query, evalFn.EvalID, eta.TriggerID, evTrig.EvalTriggerState, evTrig.EvalResultsTriggerOn)
+    		DO NOTHING ` // Adjust as needed
+			_, err = tx.Exec(ctx, query, evalFn.EvalID, eta.TriggerID)
 			if err != nil {
-				log.Err(err).Msg("failed to insert eval trigger action")
+				log.Err(err).Interface("evTrig", evTrig).Msg("failed to insert eval trigger action")
 				return err
 			}
 		}
@@ -207,12 +205,17 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				COALESCE(m.eval_metric_data_type, '') AS eval_metric_data_type,
 				COALESCE(m.eval_operator, '') AS eval_operator,
 				COALESCE(m.eval_state, '') AS eval_state,
-			   	COALESCE(tab.trigger_id, 0), COALESCE(tab.trigger_name, ''), COALESCE(tab.trigger_group, ''),
- 			   	COALESCE(tab.trigger_action, ''), COALESCE(ta.eval_trigger_state, ''), COALESCE(ta.eval_results_trigger_on, '')
+			   	COALESCE(tab.trigger_id, 0),
+				COALESCE(tab.trigger_name, ''),
+				COALESCE(tab.trigger_group, ''),
+ 			   	COALESCE(tab.trigger_action, ''),
+				COALESCE(ta.eval_trigger_state, ''),
+				COALESCE(ta.eval_results_trigger_on, '')
         FROM public.eval_fns f
         LEFT JOIN public.eval_metrics m ON f.eval_id = m.eval_id
-        LEFT JOIN public.ai_trigger_actions_evals ta ON f.eval_id = ta.eval_id
-		LEFT JOIN public.ai_trigger_actions tab ON ta.trigger_id = tab.trigger_id
+        LEFT JOIN public.ai_trigger_actions_evals tae ON f.eval_id = tae.eval_id
+		LEFT JOIN public.ai_trigger_eval ta ON ta.trigger_id = tae.trigger_id
+		LEFT JOIN public.ai_trigger_actions tab ON tab.trigger_id = ta.trigger_id
         WHERE f.org_id = $1 ` + addOnQuery + `
     )
     SELECT * FROM eval_fns_with_metrics;`

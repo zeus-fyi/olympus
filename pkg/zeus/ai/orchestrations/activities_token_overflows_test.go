@@ -46,11 +46,17 @@ func (t *ZeusWorkerTestSuite) TestSearchResultsTokenOverflowReduction() {
 			OutSearchGroups: []*hera_search.SearchResultGroup{},
 		},
 	}
-	err = ChunkSearchResults(ctx, pr)
-	t.Require().NoError(err)
+	//err = ChunkSearchResults(ctx, pr)
+	//t.Require().NoError(err)
+	//
+	//sgOut := pr.PromptReductionSearchResults.OutSearchGroups
+	//fmt.Println("sgOut", len(sgOut))
+	//t.Require().NotEmpty(sgOut)
+	////act := NewZeusAiPlatformActivities()}
 
+	err = TruncateSearchResults(ctx, pr)
+	t.Require().NoError(err)
 	sgOut := pr.PromptReductionSearchResults.OutSearchGroups
 	fmt.Println("sgOut", len(sgOut))
 	t.Require().NotEmpty(sgOut)
-	//act := NewZeusAiPlatformActivities()}
 }

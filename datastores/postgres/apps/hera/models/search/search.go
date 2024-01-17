@@ -63,12 +63,13 @@ type AiModelParams struct {
 }
 
 type SearchResultGroup struct {
-	PlatformName        string                        `json:"platformName"`
-	ExtractionPromptExt string                        `json:"extractionPromptExt,omitempty"`
-	Model               string                        `json:"model,omitempty"`
-	ResponseFormat      string                        `json:"responseFormat,omitempty"`
-	SearchResults       []SearchResult                `json:"searchResults"`
-	Window              artemis_orchestrations.Window `json:"window,omitempty"`
+	PlatformName                   string                        `json:"platformName"`
+	ExtractionPromptExt            string                        `json:"extractionPromptExt,omitempty"`
+	Model                          string                        `json:"model,omitempty"`
+	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
+	SearchResults                  []SearchResult                `json:"searchResults"`
+	SearchResultChunkTokenEstimate int                           `json:"searchResultChunkTokenEstimates,omitempty"`
+	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
 }
 
 type SearchResult struct {

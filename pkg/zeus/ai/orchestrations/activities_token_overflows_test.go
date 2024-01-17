@@ -46,17 +46,78 @@ func (t *ZeusWorkerTestSuite) TestSearchResultsTokenOverflowReduction() {
 			OutSearchGroups: []*hera_search.SearchResultGroup{},
 		},
 	}
-	//err = ChunkSearchResults(ctx, pr)
-	//t.Require().NoError(err)
-	//
-	//sgOut := pr.PromptReductionSearchResults.OutSearchGroups
-	//fmt.Println("sgOut", len(sgOut))
-	//t.Require().NotEmpty(sgOut)
-	////act := NewZeusAiPlatformActivities()}
-
-	err = TruncateSearchResults(ctx, pr)
+	err = ChunkSearchResults(ctx, pr)
 	t.Require().NoError(err)
+
 	sgOut := pr.PromptReductionSearchResults.OutSearchGroups
 	fmt.Println("sgOut", len(sgOut))
 	t.Require().NotEmpty(sgOut)
+	pr = &PromptReduction{
+		MarginBuffer:          0.5,
+		TokenOverflowStrategy: OverflowStrategyTruncate,
+		PromptReductionSearchResults: &PromptReductionSearchResults{
+			InPromptBody: "This is a test prompt body",
+			InSearchGroup: &hera_search.SearchResultGroup{
+				PlatformName:        twitterPlatform,
+				ExtractionPromptExt: "",
+				Model:               Gpt4JsonModel,
+				ResponseFormat:      socialMediaExtractionResponseFormat,
+				SearchResults:       sr,
+				Window:              aiSp.Window,
+			},
+			OutSearchGroups: []*hera_search.SearchResultGroup{},
+		},
+	}
+	err = TruncateSearchResults(ctx, pr)
+	t.Require().NoError(err)
+	sgOut = pr.PromptReductionSearchResults.OutSearchGroups
+	fmt.Println("sgOut", len(sgOut))
+	t.Require().NotEmpty(sgOut)
+}
+
+func (t *ZeusWorkerTestSuite) TestPromptStringTokenOverflowReduction() {
+	aiSp := hera_search.AiSearchParams{
+		TimeRange: "30 days",
+		Window:    artemis_orchestrations.Window{},
+	}
+	hera_search.TimeRangeStringToWindow(&aiSp)
+	t.Require().NotEmpty(aiSp.Window)
+
+	sr, err := hera_search.SearchTwitter(ctx, t.Ou, aiSp)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(sr)
+	fmt.Println("srLen", len(sr))
+	res := hera_search.FormatSearchResultsV3(sr)
+	t.Require().NotEmpty(res)
+	fmt.Println("res", len(res))
+
+	pr := &PromptReduction{
+		MarginBuffer:          0.5,
+		TokenOverflowStrategy: OverflowStrategyDeduce,
+		PromptReductionText: &PromptReductionText{
+			Model:        Gpt4JsonModel,
+			InPromptBody: res,
+		},
+	}
+	err = TokenOverflowString(ctx, pr)
+	t.Require().NoError(err)
+	t.Assert().NotEmpty(pr.PromptReductionText.OutPromptChunks)
+	fmt.Println("pr.PromptReductionText.OutPromptChunks", len(pr.PromptReductionText.OutPromptChunks))
+
+	for _, chunk := range pr.PromptReductionText.OutPromptChunks {
+		fmt.Println("chunkLen", len(chunk))
+	}
+
+	pr = &PromptReduction{
+		MarginBuffer:          0.5,
+		TokenOverflowStrategy: OverflowStrategyTruncate,
+		PromptReductionText: &PromptReductionText{
+			Model:        Gpt4JsonModel,
+			InPromptBody: res,
+		},
+	}
+	err = TokenOverflowString(ctx, pr)
+	t.Require().NoError(err)
+	t.Assert().NotEmpty(pr.PromptReductionText.OutPromptTruncated)
+	fmt.Println("pr.PromptReductionText.OutPromptTruncated", len(pr.PromptReductionText.OutPromptTruncated))
 }

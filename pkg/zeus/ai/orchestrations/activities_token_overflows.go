@@ -87,6 +87,7 @@ func TokenOverflowSearchResults(ctx context.Context, pr *PromptReduction) error 
 	}
 	return nil
 }
+
 func TruncateSearchResults(ctx context.Context, pr *PromptReduction) error {
 	err := ChunkSearchResults(ctx, pr)
 	if err != nil {
@@ -196,25 +197,92 @@ func TokenOverflowString(ctx context.Context, pr *PromptReduction) error {
 	if pr.PromptReductionText == nil || len(pr.PromptReductionText.InPromptBody) <= 0 {
 		return nil
 	}
-	needsReduction, _, err := CheckTokenContextMargin(ctx, pr.PromptReductionSearchResults.InSearchGroup.Model, pr.PromptReductionText.InPromptBody, pr.MarginBuffer)
+
+	model := pr.PromptReductionText.Model
+	margin := validateMarginBufferLimits(pr.MarginBuffer)
+	needsReduction, _, err := CheckTokenContextMargin(ctx, model, pr.PromptReductionText.InPromptBody, margin)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 		return err
 	}
 	if !needsReduction {
+		pr.PromptReductionText.OutPromptTruncated = pr.PromptReductionText.InPromptBody
+		pr.PromptReductionText.OutPromptChunks = []string{pr.PromptReductionText.InPromptBody}
 		return nil
 	}
+	var chunks []string
 	switch pr.TokenOverflowStrategy {
 	case OverflowStrategyDeduce:
-		pr.PromptReductionText.OutPromptChunks = ChunkPromptToSlices(pr.PromptReductionText.InPromptBody, pr.MarginBuffer)
+		chunks, err = ChunkPromptToSlices(ctx, model, pr.PromptReductionText.InPromptBody, margin)
+		if err != nil {
+			log.Err(err).Msg("TokenOverflowSearchResults: ChunkPromptToSlices")
+			return err
+		}
+		pr.PromptReductionText.OutPromptChunks = chunks
 	case OverflowStrategyTruncate:
-		pr.PromptReductionText.OutPromptTruncated = TruncateString(pr.PromptReductionText.InPromptBody, pr.MarginBuffer)
+		chunks, err = ChunkPromptToSlices(ctx, model, pr.PromptReductionText.InPromptBody, margin)
+		if err != nil {
+			log.Err(err).Msg("TokenOverflowSearchResults: ChunkPromptToSlices")
+			return err
+		}
+		if len(chunks) > 0 {
+			pr.PromptReductionText.OutPromptTruncated = chunks[0]
+		}
 	}
 	return nil
 }
 
-func ChunkPromptToSlices(strIn string, marginBuffer float64) []string {
-	return nil
+func ChunkPromptToSlices(ctx context.Context, model, strIn string, marginBuffer float64) ([]string, error) {
+	splitIteration := 2
+	for {
+		chunks := splitStringIntoChunks(strIn, splitIteration)
+		allChunksValid := true
+		var validChunks []string
+		for _, chunk := range chunks {
+			needsReduction, _, err := CheckTokenContextMargin(ctx, model, chunk, marginBuffer)
+			if err != nil {
+				log.Err(err).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
+				return nil, err
+			}
+
+			if needsReduction {
+				allChunksValid = false
+				break
+			}
+			validChunks = append(validChunks, chunk)
+		}
+		if allChunksValid {
+			return validChunks, nil
+		}
+		splitIteration++
+		// Avoid infinite loop: stop if splitIteration exceeds the length of the string
+		if splitIteration > len(strIn) {
+			return nil, fmt.Errorf("unable to reduce token overflow with current margin buffer")
+		}
+	}
+}
+
+func splitStringIntoChunks(str string, chunkCount int) []string {
+	if chunkCount <= 0 {
+		return nil
+	}
+	var chunks []string
+	chunkSize := len(str) / chunkCount
+	remainder := len(str) % chunkCount
+	start := 0
+	for i := 0; i < chunkCount; i++ {
+		end := start + chunkSize
+		if remainder > 0 {
+			end++
+			remainder--
+		}
+		if end > len(str) {
+			end = len(str)
+		}
+		chunks = append(chunks, str[start:end])
+		start = end
+	}
+	return chunks
 }
 
 func TruncateString(strIn string, marginBuffer float64) string {

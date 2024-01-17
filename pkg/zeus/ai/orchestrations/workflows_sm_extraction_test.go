@@ -10,8 +10,10 @@ import (
 func (t *ZeusWorkerTestSuite) TestSmExtractionWfTwitter() {
 	t.initWorker()
 	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalBearerToken
-	aiSp := hera_search.AiSearchParams{}
-	hera_search.TimeRangeStringToWindow("30 days", &aiSp.Window)
+	aiSp := hera_search.AiSearchParams{
+		TimeRange: "30 days",
+	}
+	hera_search.TimeRangeStringToWindow(&aiSp)
 	sr, err := hera_search.SearchTwitter(ctx, t.Ou, aiSp)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(sr)

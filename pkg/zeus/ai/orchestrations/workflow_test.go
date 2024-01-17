@@ -10,6 +10,7 @@ import (
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 )
 
 type ZeusWorkerTestSuite struct {
@@ -21,11 +22,11 @@ var ctx = context.Background()
 func (t *ZeusWorkerTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalBearerToken
 }
 
 func (t *ZeusWorkerTestSuite) initWorker() {
 	ta := t.Tc.DevTemporalAuth
-
 	temporalAuthCfg := temporal_auth.TemporalAuth{
 		ClientCertPath:   "/etc/ssl/certs/ca.pem",
 		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",

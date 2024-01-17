@@ -26,12 +26,13 @@ type AiSearchParams struct {
 	Window    artemis_orchestrations.Window        `json:"window,omitempty"`
 }
 
-func TimeRangeStringToWindow(trs string, w *artemis_orchestrations.Window) {
-	if w == nil {
-		w = &artemis_orchestrations.Window{}
+func TimeRangeStringToWindow(sp *AiSearchParams) {
+	if sp == nil {
+		return
 	}
 	ts := time.Now()
-	switch trs {
+	w := artemis_orchestrations.Window{}
+	switch sp.TimeRange {
 	case "1 hour":
 		w.Start = ts.Add(-1 * time.Hour)
 		w.End = ts
@@ -50,6 +51,10 @@ func TimeRangeStringToWindow(trs string, w *artemis_orchestrations.Window) {
 	case "window":
 		log.Info().Interface("searchInterval", w).Msg("window")
 	}
+
+	w.UnixStartTime = int(w.Start.Unix())
+	w.UnixEndTime = int(w.End.Unix())
+	sp.Window = w
 }
 
 type AiModelParams struct {

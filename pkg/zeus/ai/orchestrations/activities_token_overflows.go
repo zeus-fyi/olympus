@@ -71,8 +71,9 @@ func TokenOverflowSearchResults(ctx context.Context, pr *PromptReduction) error 
 	if pr.PromptReductionSearchResults == nil || pr.PromptReductionSearchResults.InSearchGroup == nil || pr.PromptReductionSearchResults.InSearchGroup.SearchResults == nil {
 		return nil
 	}
+	marginBuffer := validateMarginBufferLimits(pr.MarginBuffer)
 	compressedSearchStr := hera_search.FormatSearchResultsV3(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
-	needsReduction, err := CheckTokenContextMargin(ctx, pr.PromptReductionSearchResults.InSearchGroup.Model, compressedSearchStr, pr.MarginBuffer)
+	needsReduction, err := CheckTokenContextMargin(ctx, pr.PromptReductionSearchResults.InSearchGroup.Model, compressedSearchStr, marginBuffer)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 		return err
@@ -80,21 +81,95 @@ func TokenOverflowSearchResults(ctx context.Context, pr *PromptReduction) error 
 	if !needsReduction {
 		return nil
 	}
-	sr := pr.PromptReductionSearchResults.InSearchGroup.SearchResults
 	switch pr.TokenOverflowStrategy {
 	case OverflowStrategyDeduce:
-		pr.PromptReductionSearchResults.OutSearchGroups = ChunkSearchResults(sr)
+		err = ChunkSearchResults(ctx, pr)
+		if err != nil {
+			log.Err(err).Msg("TokenOverflowSearchResults: ChunkSearchResults")
+			return err
+		}
 	case OverflowStrategyTruncate:
-		pr.PromptReductionSearchResults.OutSearchGroups = TruncateSearchResults(sr)
 	}
 	return nil
 }
 
-func ChunkSearchResults(srs []hera_search.SearchResult) []*hera_search.SearchResultGroup {
-	return nil
+func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
+	marginBuffer := validateMarginBufferLimits(pr.MarginBuffer)
+	compressedSearchStr := hera_search.FormatSearchResultsV3(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
+	model := pr.PromptReductionSearchResults.InSearchGroup.Model
+	needsReduction, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)
+	if err != nil {
+		log.Err(err).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
+		return err
+	}
+	totalSearchResults := pr.PromptReductionSearchResults.InSearchGroup.SearchResults
+	splitIteration := 2
+	for needsReduction && splitIteration < len(totalSearchResults) {
+		chunks := splitSliceIntoChunks(totalSearchResults, splitIteration)
+		needsReduction, err = validateChunkTokenLimits(ctx, model, marginBuffer, chunks)
+		if err != nil {
+			log.Err(err).Msg("TokenOverflowSearchResults: validateChunkTokenLimits")
+			return err
+		}
+		if !needsReduction {
+			pr.PromptReductionSearchResults.OutSearchGroups = make([]*hera_search.SearchResultGroup, len(chunks))
+			for i, chunk := range chunks {
+				pr.PromptReductionSearchResults.OutSearchGroups[i] = createChunk(pr.PromptReductionSearchResults.InSearchGroup, chunk)
+			}
+			return nil
+		}
+		splitIteration++
+	}
+	return fmt.Errorf("TokenOverflowSearchResults: failed to reduce search results")
 }
 
-func TruncateSearchResults(srs []hera_search.SearchResult) []*hera_search.SearchResultGroup {
+func validateChunkTokenLimits(ctx context.Context, model string, marginBuffer float64, srs [][]hera_search.SearchResult) (bool, error) {
+	for _, chunk := range srs {
+		compressedSearchStr := hera_search.FormatSearchResultsV3(chunk)
+		needsReduction, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)
+		if err != nil {
+			log.Err(err).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
+			return false, err
+		}
+		if needsReduction {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+func splitSliceIntoChunks[T any](s []T, chunkCount int) [][]T {
+	if chunkCount <= 0 {
+		// Handle invalid chunk count
+		return nil
+	}
+	length := len(s)
+	var chunks [][]T
+	chunkSize := length / chunkCount
+	remainder := length % chunkCount
+	start := 0
+	for i := 0; i < chunkCount; i++ {
+		end := start + chunkSize
+		if remainder > 0 {
+			end++ // Distribute the remainder among the first few chunks
+			remainder--
+		}
+		// Slice the chunk
+		if end > length {
+			end = length
+		}
+		chunks = append(chunks, s[start:end])
+		start = end
+	}
+	return chunks
+}
+
+func createChunk(originalGroup *hera_search.SearchResultGroup, chunk []hera_search.SearchResult) *hera_search.SearchResultGroup {
+	newGroup := *originalGroup
+	newGroup.SearchResults = chunk
+	return &newGroup
+}
+
+func TruncateSearchResults(inSearchGroup *hera_search.SearchResultGroup) []*hera_search.SearchResultGroup {
 	return nil
 }
 
@@ -143,6 +218,9 @@ func CheckTokenContextMargin(ctx context.Context, model, promptStr string, margi
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: GetTokenCountEstimate")
 		return false, err
+	}
+	if tokenEstimate < 0 {
+		return false, fmt.Errorf("CheckTokenContextMargin: failed to estimate token count")
 	}
 	marginBuffer = validateMarginBufferLimits(marginBuffer)
 	// Calculate the threshold using the margin buffer

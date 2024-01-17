@@ -65,7 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 			}
 			aggCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			var aiAggResp *ChatCompletionQueryResponse
-
+			// TODO, should add token chunking check here
 			switch aggInst.AnalysisResponseFormat {
 			case jsonFormat:
 				selectTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)

@@ -93,6 +93,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					continue
 				}
 			}
+
 			var aiResp *ChatCompletionQueryResponse
 			var fullTaskDef []artemis_orchestrations.AITaskLibrary
 			if analysisInst.AnalysisResponseFormat == socialMediaExtractionResponseFormat || analysisInst.AnalysisResponseFormat == jsonFormat {
@@ -106,6 +107,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					continue
 				}
 			}
+			// TODO, should add token chunking check here
 			switch analysisInst.AnalysisResponseFormat {
 			case jsonFormat:
 				var jdef []artemis_orchestrations.JsonSchemaDefinition
@@ -138,6 +140,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					logger.Error("failed to execute child social media extraction workflow", "Error", err)
 					return nil, err
 				}
+				// TODO, now these extraction results are going to eval, check process
 			default:
 				analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err := workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
@@ -146,10 +149,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					return nil, err
 				}
 			}
-
 			if aiResp == nil || len(aiResp.Response.Choices) == 0 {
 				continue
 			}
+			// TODO, validate chunk saving works
 			var analysisRespId int
 			analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
 			err := workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)

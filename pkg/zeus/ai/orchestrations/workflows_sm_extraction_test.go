@@ -21,25 +21,20 @@ func (t *ZeusWorkerTestSuite) TestSmExtractionWfTwitter() {
 	fmt.Println("srLen", len(sr))
 	res := hera_search.FormatSearchResultsV3(sr)
 	t.Require().NotEmpty(res)
-	fmt.Println("res", len(res))
 
-	tc, err := GetTokenCountEstimate(ctx, Gpt4JsonModel, res)
+	// TODO, use the truncate function to truncate the search results for simple valid input
+	extPrompt := "todo, which tweets to extract"
+	sg := &hera_search.SearchResultGroup{
+		PlatformName:        twitterPlatform,
+		ExtractionPromptExt: extPrompt,
+		Model:               Gpt4JsonModel,
+		ResponseFormat:      socialMediaExtractionResponseFormat,
+		SearchResults:       sr,
+		Window:              aiSp.Window,
+	}
+
+	cr, err := ZeusAiPlatformWorker.ExecuteSocialMediaExtractionWorkflow(ctx, t.Ou, sg)
 	t.Require().Nil(err)
-	t.Require().NotZero(tc)
-	fmt.Println("tc", tc)
-	//extPrompt := "todo, which tweets to extract"
-	//sg := &hera_search.SearchResultGroup{
-	//	PlatformName:        twitterPlatform,
-	//	ExtractionPromptExt: extPrompt,
-	//	Model:               Gpt4JsonModel,
-	//	ResponseFormat:      socialMediaExtractionResponseFormat,
-	//	SearchResults:       sr,
-	//	Window:              aiSp.Window,
-	//}
-	//
-	//cr, err := ZeusAiPlatformWorker.ExecuteSocialMediaExtractionWorkflow(ctx, t.Ou, sg)
-	//t.Require().Nil(err)
-	//t.Require().NotNil(cr)
-
-	// TODO, verify response
+	t.Require().NotNil(cr)
+	t.Assert().NotEmpty(cr.Response)
 }

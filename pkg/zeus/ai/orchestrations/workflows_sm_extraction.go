@@ -43,7 +43,6 @@ func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workf
 	case discordPlatform:
 	case redditPlatform:
 	}
-
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {

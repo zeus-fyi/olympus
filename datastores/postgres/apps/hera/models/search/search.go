@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
@@ -25,14 +26,44 @@ type AiSearchParams struct {
 	Window    artemis_orchestrations.Window        `json:"window,omitempty"`
 }
 
+func TimeRangeStringToWindow(trs string, w *artemis_orchestrations.Window) {
+	if w == nil {
+		w = &artemis_orchestrations.Window{}
+	}
+	ts := time.Now()
+	switch trs {
+	case "1 hour":
+		w.Start = ts.Add(-1 * time.Hour)
+		w.End = ts
+	case "24 hours":
+		w.Start = ts.AddDate(0, 0, -1)
+		w.End = ts
+	case "7 days":
+		w.Start = ts.AddDate(0, 0, -7)
+		w.End = ts
+	case "30 days":
+		w.Start = ts.AddDate(0, 0, -30)
+		w.End = ts
+	case "all":
+		w.Start = time.Unix(0, 0)
+		w.End = ts
+	case "window":
+		log.Info().Interface("searchInterval", w).Msg("window")
+	}
+}
+
 type AiModelParams struct {
 	Model         string `json:"model"`
 	TokenCountMax int    `json:"tokenCountMax"`
 }
 
 type SearchResultGroup struct {
-	PlatformName  string         `json:"platformName"`
-	SearchResults []SearchResult `json:"searchResults"`
+	PlatformName        string                        `json:"platformName"`
+	ExtractionPromptExt string                        `json:"extractionPromptExt,omitempty"`
+	Model               string                        `json:"model,omitempty"`
+	ResponseFormat      string                        `json:"responseFormat,omitempty"`
+	SearchResults       []SearchResult                `json:"searchResults"`
+	Window              artemis_orchestrations.Window `json:"window,omitempty"`
 }
 
 type SearchResult struct {
@@ -274,8 +305,8 @@ func FormatSearchResultsV2(results []SearchResult) string {
 }
 
 type SimplifiedSearchResultJSON struct {
-	MessageID   string `json:"messageID"`
-	MessageBody string `json:"messageBody"`
+	MessageID   string `json:"msg_id"`
+	MessageBody string `json:"msg_body"`
 }
 
 func FormatSearchResultsV3(results []SearchResult) string {
@@ -292,6 +323,7 @@ func FormatSearchResultsV3(results []SearchResult) string {
 	}
 	b, err := json.Marshal(newResults)
 	if err != nil {
+		log.Err(err).Msg("FormatSearchResultsV3: Error marshalling search results")
 		return ""
 	}
 	return string(b)

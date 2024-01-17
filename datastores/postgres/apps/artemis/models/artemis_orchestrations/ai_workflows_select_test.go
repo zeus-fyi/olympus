@@ -206,7 +206,7 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplateSingle() {
 }
 
 func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesWithEvalFns() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
@@ -214,6 +214,10 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesWithEvalFns() {
 	res, err := SelectWorkflowTemplates(ctx, ou)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
+
+	tv, err := SelectTask(ctx, ou, 1705429002403077000)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(tv)
 }
 
 func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesWithEvalFnsByName() {

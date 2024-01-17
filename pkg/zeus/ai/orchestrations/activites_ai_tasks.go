@@ -15,8 +15,12 @@ import (
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 )
 
+const (
+	OpenAiPlatform = "openai"
+)
+
 func GetMockingBirdSecrets(ctx context.Context, ou org_users.OrgUser) (*aws_secrets.OAuth2PlatformSecret, error) {
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 	if err != nil || ps == nil || ps.ApiKey == "" {
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")
@@ -25,6 +29,15 @@ func GetMockingBirdSecrets(ctx context.Context, ou org_users.OrgUser) (*aws_secr
 		return nil, err
 	}
 	return ps, nil
+}
+
+func (z *ZeusAiPlatformActivities) SelectTaskDefinition(ctx context.Context, ou org_users.OrgUser, taskID int) ([]artemis_orchestrations.AITaskLibrary, error) {
+	tv, err := artemis_orchestrations.SelectTask(ctx, ou, taskID)
+	if err != nil {
+		log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
+		return nil, err
+	}
+	return tv, nil
 }
 
 func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
@@ -209,7 +222,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	} else {
 		log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
 		aws_secrets.ClearOrgSecretCache(ou)
-		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
+		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 		if err != nil || ps == nil || ps.ApiKey == "" {
 			if err == nil {
 				err = fmt.Errorf("failed to get mockingbird secrets")

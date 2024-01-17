@@ -32,10 +32,12 @@ func InitOrgHeraOpenAI(bearer string) OpenAI {
 }
 
 type OpenAIParams struct {
-	Model              string                    `json:"model"`
-	MaxTokens          int                       `json:"maxTokens"`
-	Prompt             string                    `json:"prompt"`
-	FunctionDefinition openai.FunctionDefinition `json:"functionDefinition,omitempty"`
+	Model                string                    `json:"model"`
+	MaxTokens            int                       `json:"maxTokens"`
+	Prompt               string                    `json:"prompt"`
+	SystemPromptOverride string                    `json:"systemPromptOverride,omitempty"`
+	SystemPromptExt      string                    `json:"systemPromptExt,omitempty"`
+	FunctionDefinition   openai.FunctionDefinition `json:"functionDefinition,omitempty"`
 }
 
 func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.OrgUser, params openai.ChatCompletionResponse, prompt []byte) error {
@@ -49,6 +51,13 @@ func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.Org
 }
 
 func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.ChatCompletionResponse, error) {
+	sysPrompt := "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary\n"
+	if params.SystemPromptOverride != "" {
+		sysPrompt = params.SystemPromptOverride
+	}
+	if params.SystemPromptExt != "" {
+		sysPrompt += params.SystemPromptExt
+	}
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
 		Content: "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary",
@@ -56,7 +65,7 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 	}
 
 	reqBody := openai.ChatCompletionRequest{
-		Model: "gpt-4-1106-preview",
+		Model: params.Model,
 		Tools: []openai.Tool{{
 			Type:     "function",
 			Function: params.FunctionDefinition,

@@ -33,28 +33,28 @@ func (z *ZeusAiPlatformServiceWorkflows) RunApprovedSocialMediaTriggerActionsWor
 	}
 	smType := ""
 	switch smType {
-	case "twitter":
+	case twitterPlatform:
 		socialMediaExecCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(socialMediaExecCtx, z.SocialTweetTask, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(socialMediaExecCtx, nil)
 		if err != nil {
 			logger.Error("failed to exec twitter api call", "Error", err)
 			return err
 		}
-	case "reddit":
+	case redditPlatform:
 		socialMediaExecCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(socialMediaExecCtx, z.SocialRedditTask, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(socialMediaExecCtx, nil)
 		if err != nil {
 			logger.Error("failed to exec reddit api call", "Error", err)
 			return err
 		}
-	case "discord":
+	case discordPlatform:
 		socialMediaExecCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(socialMediaExecCtx, z.SocialDiscordTask, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(socialMediaExecCtx, nil)
 		if err != nil {
 			logger.Error("failed to exec discord api call", "Error", err)
 			return err
 		}
-	case "telegram":
+	case telegramPlatform:
 		socialMediaExecCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(socialMediaExecCtx, z.SocialTelegramTask, tar.Mb.Ou, tar.Emr.EvalContext.EvalID).Get(socialMediaExecCtx, nil)
 		if err != nil {

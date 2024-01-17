@@ -190,7 +190,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			emr.EvalContext = evCtx
 			err = workflow.ExecuteActivity(saveEvalResultsCtx, z.SaveEvalMetricResults, emr).Get(saveEvalResultsCtx, nil)
 			if err != nil {
-				logger.Error("failed to get score eval", "Error", err)
+				logger.Error("failed to save eval metric results", "Error", err)
 				return err
 			}
 			suffix := strings.Split(uuid.New().String(), "-")[0]

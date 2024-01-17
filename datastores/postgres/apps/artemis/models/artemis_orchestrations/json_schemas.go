@@ -159,9 +159,9 @@ func ConvertToJsonDef(fnName string, schemas []JsonSchemaDefinition) openai.Func
 		Name:       fnName,
 		Parameters: fdSchema,
 	}
-
 	return fd
 }
+
 func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSchemaDefinition, error) {
 	var schemas []JsonSchemaDefinition
 	// Query to join json_schema_definitions and ai_task_json_schema_fields

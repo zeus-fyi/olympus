@@ -2109,8 +2109,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
                                                                 <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
                                                                 <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
-                                                                <MenuItem value="babbage-002">babbage-002</MenuItem>
-                                                                <MenuItem value="davinci-002">davinci-002</MenuItem>
                                                             </Select>
                                                         </FormControl>
                                                     </Box>
@@ -2131,7 +2129,7 @@ function WorkflowEngineBuilder(props: any) {
                                                     </FormControl>
                                                 </Box>
                                             </Stack>
-                                            { editAnalysisTask.responseFormat === 'json' || editAnalysisTask.responseFormat === 'social-media-engagement' ?
+                                            { editAnalysisTask.responseFormat === 'json' ?
                                                 <div>
                                                     <Box  sx={{ mb: 4, mt: 0, ml: -1}}>
                                                         <Button variant="contained" color="secondary" onClick={addSchemasViewToggle} style={{marginLeft: '10px'}}>
@@ -2258,9 +2256,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
                                                                 <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
                                                                 <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
-                                                                <MenuItem value="babbage-002">babbage-002</MenuItem>
-                                                                <MenuItem value="davinci-002">davinci-002</MenuItem>
-
                                                             </Select>
                                                         </FormControl>
                                                     </Box>
@@ -3338,7 +3333,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         >
                                                             <MenuItem value="text">text</MenuItem>
                                                             <MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>
-                                                            <MenuItem value="social-media-engagement">social-media-engagement</MenuItem>
+                                                            <MenuItem value="social-media-extraction">social-media-extraction</MenuItem>
                                                             <MenuItem value="json">json</MenuItem>
                                                         </Select>
                                                     </FormControl>

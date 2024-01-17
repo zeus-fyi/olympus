@@ -1,10 +1,13 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -62,10 +65,64 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 			}
 			aggCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			var aiAggResp *ChatCompletionQueryResponse
-			err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, dataIn).Get(aggCtx, &aiAggResp)
-			if err != nil {
-				logger.Error("failed to run aggregation", "Error", err)
-				return err
+
+			switch aggInst.AnalysisResponseFormat {
+			case jsonFormat:
+				selectTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				var fullTaskDef []artemis_orchestrations.AITaskLibrary
+				err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, ou, aggInst.AggTaskID).Get(selectTaskCtx, &fullTaskDef)
+				if err != nil {
+					logger.Error("failed to run agg json task selection", "Error", err)
+					return err
+				}
+				var jdef []artemis_orchestrations.JsonSchemaDefinition
+				for _, taskDef := range fullTaskDef {
+					jdef = append(jdef, taskDef.Schemas...)
+				}
+				fname := "aggtask"
+				if aggInst.AggTaskName != nil {
+					fname = *aggInst.AggTaskName
+				}
+				if aggInst.AggModel == nil {
+					logger.Error("failed to run agg json task selection", "Error", err)
+					return fmt.Errorf("agg model is nil")
+				}
+				fd := artemis_orchestrations.ConvertToJsonDef(fname, jdef)
+				jsonTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				params := hera_openai.OpenAIParams{
+					Model:              *aggInst.AggModel,
+					FunctionDefinition: fd,
+				}
+				err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, ou, params).Get(jsonTaskCtx, &aiAggResp)
+				if err != nil {
+					logger.Error("failed to run agg", "Error", err)
+					return err
+				}
+			case socialMediaEngagementResponseFormat:
+				var sg *hera_search.SearchResultGroup
+				if cp.AnalysisEvalActionParams != nil && cp.AnalysisEvalActionParams.SearchResultGroup != nil {
+					sg = cp.AnalysisEvalActionParams.SearchResultGroup
+				}
+				if sg == nil || len(sg.SearchResults) == 0 {
+					continue
+				}
+				sg.ExtractionPromptExt = *aggInst.AggPrompt
+				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+					WorkflowID:               oj.OrchestrationName + "-agg-social-media-extraction-" + strconv.Itoa(i),
+					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+				}
+				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaMessagingWorkflow, ou, sg).Get(childAnalysisCtx, &aiAggResp)
+				if err != nil {
+					logger.Error("failed to execute child social media extraction workflow", "Error", err)
+					return err
+				}
+			default:
+				err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, dataIn).Get(aggCtx, &aiAggResp)
+				if err != nil {
+					logger.Error("failed to run aggregation", "Error", err)
+					return err
+				}
 			}
 			if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 {
 				continue

@@ -20,10 +20,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	logger := workflow.GetLogger(ctx)
+
+	// TODO update activity options by wfExecParams
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
 	}
-
 	i := runCycle
 	for _, aggInst := range wfExecParams.WorkflowTasks {
 		if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggPrompt == nil || aggInst.AggModel == nil || wfExecParams.WorkflowTaskRelationships.AggAnalysisTasks == nil {
@@ -65,7 +66,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 			}
 			aggCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			var aiAggResp *ChatCompletionQueryResponse
-			// TODO, should add token chunking check here
+
+			// TODO, finish integration checkout of token chunking check here
+			pr := &PromptReduction{}
+			chunkedTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, ou, pr).Get(chunkedTaskCtx, &pr)
+			if err != nil {
+				logger.Error("failed to run analysis json", "Error", err)
+				return err
+			}
+
 			switch aggInst.AnalysisResponseFormat {
 			case jsonFormat:
 				selectTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
@@ -127,6 +137,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 			if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 {
 				continue
 			}
+			// TODO, validate chunk saving works
 			var aggRespId int
 			aggCompCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &aggRespId)
@@ -164,7 +175,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 				ParentOutputToEval:   aiAggResp,
 				EvalFns:              aggInst.AggEvalFns,
 			}
-
 			for _, evalFn := range ea.EvalFns {
 				evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]
 				if i%evalAggCycle == 0 {

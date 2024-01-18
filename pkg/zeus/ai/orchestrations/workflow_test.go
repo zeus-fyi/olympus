@@ -7,10 +7,12 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 type ZeusWorkerTestSuite struct {
@@ -23,6 +25,12 @@ func (t *ZeusWorkerTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalBearerToken
+	auth := aegis_aws_auth.AuthAWS{
+		Region:    "us-west-1",
+		AccessKey: t.Tc.AwsAccessKeySecretManager,
+		SecretKey: t.Tc.AwsSecretKeySecretManager,
+	}
+	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
 }
 
 func (t *ZeusWorkerTestSuite) initWorker() {

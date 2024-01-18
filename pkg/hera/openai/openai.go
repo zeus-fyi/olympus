@@ -123,7 +123,7 @@ func (ai *OpenAI) MakeCodeGenRequestV2(ctx context.Context, ou org_users.OrgUser
 	resp, err := ai.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: "gpt-4-1106-preview",
+			Model: params.Model,
 			Messages: []openai.ChatCompletionMessage{
 				systemMessage,
 				{

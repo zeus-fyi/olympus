@@ -1,14 +1,20 @@
 package ai_platform_service_orchestrations
 
 import (
+	"encoding/json"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
+
+type FilteredMessages struct {
+	MsgKeepIds []string `json:"msg_keep_ids"`
+}
 
 func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, sg *hera_openai_dbmodels.SearchResultGroup) (*ChatCompletionQueryResponse, error) {
 	if sg == nil || sg.SearchResults == nil || len(sg.SearchResults) == 0 {
@@ -50,4 +56,25 @@ func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workf
 		return nil, err
 	}
 	return aiResp, nil
+}
+
+func UnmarshallFilteredMsgIdsFromAiJson(fn string, cr *ChatCompletionQueryResponse) error {
+	m, err := UnmarshallOpenAiJsonInterface(fn, cr)
+	if err != nil {
+		log.Err(err).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+		return err
+	}
+	jsonData, err := json.Marshal(m)
+	if err != nil {
+		log.Err(err).Msg("UnmarshallFilteredMsgIdsFromAiJson: json.Marshal failed")
+		return err
+	}
+	// Unmarshal the JSON string into the FilteredMessages struct
+	cr.FilteredMessages = &FilteredMessages{}
+	err = json.Unmarshal(jsonData, &cr.FilteredMessages)
+	if err != nil {
+		log.Err(err).Msg("UnmarshallFilteredMsgIdsFromAiJson: json.Unmarshal failed")
+		return err
+	}
+	return nil
 }

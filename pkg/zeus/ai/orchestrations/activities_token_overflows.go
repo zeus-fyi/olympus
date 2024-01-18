@@ -94,11 +94,9 @@ func TruncateSearchResults(ctx context.Context, pr *PromptReduction) error {
 		log.Err(err).Msg("TruncateSearchResults: ChunkSearchResults")
 		return err
 	}
-	tmp := pr.PromptReductionSearchResults.OutSearchGroups
-	if len(tmp) > 0 {
-		pr.PromptReductionSearchResults.OutSearchGroups = []*hera_search.SearchResultGroup{
-			tmp[0],
-		}
+	if pr.PromptReductionSearchResults != nil && len(pr.PromptReductionSearchResults.OutSearchGroups) > 0 {
+		// Keep only the first element and remove the rest.
+		pr.PromptReductionSearchResults.OutSearchGroups = pr.PromptReductionSearchResults.OutSearchGroups[:1]
 	}
 	return nil
 }
@@ -113,7 +111,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		return err
 	}
 	if !needsReduction {
-		pr.PromptReductionSearchResults.InSearchGroup.SearchResultChunkTokenEstimate = tokenEstimate
+		pr.PromptReductionSearchResults.InSearchGroup.SearchResultChunkTokenEstimate = &tokenEstimate
 		pr.PromptReductionSearchResults.OutSearchGroups = []*hera_search.SearchResultGroup{
 			pr.PromptReductionSearchResults.InSearchGroup,
 		}
@@ -133,7 +131,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 			pr.PromptReductionSearchResults.OutSearchGroups = make([]*hera_search.SearchResultGroup, len(chunks))
 			for i, chunk := range chunks {
 				pr.PromptReductionSearchResults.OutSearchGroups[i] = createChunk(pr.PromptReductionSearchResults.InSearchGroup, chunk)
-				pr.PromptReductionSearchResults.OutSearchGroups[i].SearchResultChunkTokenEstimate = tokenEstimates[i]
+				pr.PromptReductionSearchResults.OutSearchGroups[i].SearchResultChunkTokenEstimate = &tokenEstimates[i]
 			}
 			return nil
 		}
@@ -197,7 +195,6 @@ func TokenOverflowString(ctx context.Context, pr *PromptReduction) error {
 	if pr.PromptReductionText == nil || len(pr.PromptReductionText.InPromptBody) <= 0 {
 		return nil
 	}
-
 	model := pr.PromptReductionText.Model
 	margin := validateMarginBufferLimits(pr.MarginBuffer)
 	needsReduction, _, err := CheckTokenContextMargin(ctx, model, pr.PromptReductionText.InPromptBody, margin)

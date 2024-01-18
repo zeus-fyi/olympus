@@ -2,6 +2,8 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
@@ -21,24 +23,51 @@ func (z *ZeusAiPlatformActivities) ExtractTweets(ctx context.Context, ou org_use
 		log.Info().Msg("ExtractTweets: no search results")
 		return nil, nil
 	}
-	fd := FilterAndExtractRelevantTweetsJsonSchemaFunctionDef(keepTweetDescriptionField, discardTweetDescriptionField)
+	fd := FilterAndExtractRelevantTweetsJsonSchemaFunctionDef(keepTweetDescriptionField)
 	za := NewZeusAiPlatformActivities()
-	resp, err := za.CreateJsonOutputModelResponse(ctx, ou, hera_openai.OpenAIParams{
+	params := hera_openai.OpenAIParams{
 		Model:              sg.Model,
 		FunctionDefinition: fd,
 		Prompt:             hera_search.FormatSearchResultsV3(sg.SearchResults),
 		SystemPromptExt:    sg.ExtractionPromptExt,
-	})
+	}
+	resp, err := za.CreateJsonOutputModelResponse(ctx, ou, params)
 	if err != nil {
 		log.Err(err).Msg("ExtractTweets: CreateJsonOutputModelResponse failed")
 		return nil, err
 	}
+	err = UnmarshallFilteredMsgIdsFromAiJson(fd.Name, resp)
+	if err != nil {
+		log.Err(err).Msg("ExtractTweets: failed to unmarshall json interface")
+		return nil, err
+	}
+
+	msgMap := make(map[int]bool)
+	for _, v := range sg.SearchResults {
+		msgMap[v.UnixTimestamp] = true
+	}
+	seen := make(map[int]bool)
+	for _, v := range resp.FilteredMessages.MsgKeepIds {
+		msgID, mrr := strconv.Atoi(v)
+		if mrr != nil {
+			log.Err(mrr).Msg("ExtractTweets: failed to convert msg id to int")
+			return nil, mrr
+		}
+		if _, ok := seen[msgID]; ok {
+			log.Info().Msgf("ExtractTweets: msgID %d already seen", msgID)
+			return nil, fmt.Errorf("ExtractTweets: msgID %d already seen", msgID)
+		}
+		if _, ok := msgMap[msgID]; !ok {
+			log.Info().Msgf("ExtractTweets: msgID %d not found in original search results", msgID)
+			return nil, fmt.Errorf("ExtractTweets: msgID %d not found in original search results", msgID)
+		}
+		seen[msgID] = true
+	}
+	log.Info().Int("kept", len(resp.FilteredMessages.MsgKeepIds)).Int("all", len(msgMap)).Msg("ExtractTweets: kept messages")
 	prompt := make(map[string]string)
 	prompt["prompt"] = sg.ExtractionPromptExt
-	return &ChatCompletionQueryResponse{
-		Prompt:   prompt,
-		Response: resp.Response,
-	}, nil
+	resp.Prompt = prompt
+	return resp, nil
 }
 
 const (
@@ -48,7 +77,7 @@ const (
 	discardMsgIDs       = "msg_discard_ids"
 )
 
-func FilterAndExtractRelevantTweetsJsonSchemaFunctionDef(keepMsgInst, discardMsgInst string) openai.FunctionDefinition {
+func FilterAndExtractRelevantTweetsJsonSchemaFunctionDef(keepMsgInst string) openai.FunctionDefinition {
 	properties := make(map[string]jsonschema.Definition)
 	keepMsgs := jsonschema.Definition{
 		Type:        jsonschema.Array,
@@ -58,14 +87,6 @@ func FilterAndExtractRelevantTweetsJsonSchemaFunctionDef(keepMsgInst, discardMsg
 		},
 	}
 	properties[keepMsgIDs] = keepMsgs
-	//discardMsgs := jsonschema.Definition{
-	//	Type:        jsonschema.Array,
-	//	Description: discardMsgInst,
-	//	Items: &jsonschema.Definition{
-	//		Type: jsonschema.String,
-	//	},
-	//}
-	//properties[discardMsgIDs] = discardMsgs
 	fdSchema := jsonschema.Definition{
 		Type:       jsonschema.Object,
 		Properties: properties,

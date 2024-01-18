@@ -68,7 +68,7 @@ type SearchResultGroup struct {
 	Model                          string                        `json:"model,omitempty"`
 	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
 	SearchResults                  []SearchResult                `json:"searchResults"`
-	SearchResultChunkTokenEstimate int                           `json:"searchResultChunkTokenEstimates,omitempty"`
+	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
 	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
 }
 

@@ -23,6 +23,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	logger := workflow.GetLogger(ctx)
+	// TODO update activity options by wfExecParams
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
 	}
@@ -107,7 +108,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					continue
 				}
 			}
-			// TODO, should add token chunking check here
+			// TODO, finish integration checkout of token chunking check here
+			pr := &PromptReduction{}
+			chunkedTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, ou, pr).Get(chunkedTaskCtx, &pr)
+			if err != nil {
+				logger.Error("failed to run analysis json", "Error", err)
+				return nil, err
+			}
+
 			switch analysisInst.AnalysisResponseFormat {
 			case jsonFormat:
 				var jdef []artemis_orchestrations.JsonSchemaDefinition
@@ -120,7 +129,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					Model:              analysisInst.AnalysisModel,
 					FunctionDefinition: fd,
 				}
-				err := workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, ou, params).Get(jsonTaskCtx, &aiResp)
+				err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, ou, params).Get(jsonTaskCtx, &aiResp)
 				if err != nil {
 					logger.Error("failed to run analysis json", "Error", err)
 					return nil, err
@@ -135,7 +144,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaExtractionWorkflow, ou, sg).Get(childAnalysisCtx, &aiResp)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaExtractionWorkflow, ou, sg).Get(childAnalysisCtx, &aiResp)
 				if err != nil {
 					logger.Error("failed to execute child social media extraction workflow", "Error", err)
 					return nil, err
@@ -143,7 +152,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				// TODO, now these extraction results are going to eval, check process
 			default:
 				analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				err := workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
+				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
 				if err != nil {
 					logger.Error("failed to run analysis", "Error", err)
 					return nil, err
@@ -155,7 +164,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			// TODO, validate chunk saving works
 			var analysisRespId int
 			analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
+			err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
 			if err != nil {
 				logger.Error("failed to save analysis response", "Error", err)
 				return nil, err

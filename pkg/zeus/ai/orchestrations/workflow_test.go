@@ -9,7 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
-	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -35,14 +34,14 @@ func (t *ZeusWorkerTestSuite) SetupTest() {
 
 func (t *ZeusWorkerTestSuite) initWorker() {
 	ta := t.Tc.DevTemporalAuth
-	temporalAuthCfg := temporal_auth.TemporalAuth{
-		ClientCertPath:   "/etc/ssl/certs/ca.pem",
-		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
-		Namespace:        "production-zeus.ngb72",
-		HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
-	}
-	ta.Namespace = temporalAuthCfg.Namespace
-	ta.HostPort = temporalAuthCfg.HostPort
+	//temporalAuthCfg := temporal_auth.TemporalAuth{
+	//	ClientCertPath:   "/etc/ssl/certs/ca.pem",
+	//	ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
+	//	Namespace:        "production-zeus.ngb72",
+	//	HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
+	//}
+	//ta.Namespace = temporalAuthCfg.Namespace
+	//ta.HostPort = temporalAuthCfg.HostPort
 
 	InitZeusAiServicesWorker(ctx, ta)
 	cKronos := ZeusAiPlatformWorker.Worker.ConnectTemporalClient()

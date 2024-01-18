@@ -139,10 +139,11 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 }
 
 type ChatCompletionQueryResponse struct {
-	Prompt           map[string]string             `json:"prompt"`
-	Response         openai.ChatCompletionResponse `json:"response"`
-	ResponseTaskID   int                           `json:"responseTaskID,omitempty"`
-	FilteredMessages *FilteredMessages             `json:"filteredMessages,omitempty"`
+	Prompt                map[string]string             `json:"prompt"`
+	Response              openai.ChatCompletionResponse `json:"response"`
+	ResponseTaskID        int                           `json:"responseTaskID,omitempty"`
+	FilteredMessages      *FilteredMessages             `json:"filteredMessages,omitempty"`
+	FilteredSearchResults []hera_search.SearchResult    `json:"filteredSearchResults,omitempty"`
 
 	*twitter.CreateTweetRequest `json:"twitterCreateTweetRequest,omitempty"`
 }
@@ -185,7 +186,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	if *aggInst.AggMaxTokensPerTask > 0 {
 		cr.MaxTokens = *aggInst.AggMaxTokensPerTask
 	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 	if err != nil || ps == nil || ps.ApiKey == "" {
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")

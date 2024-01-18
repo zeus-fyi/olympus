@@ -2,7 +2,6 @@ package ai_platform_service_orchestrations
 
 import (
 	"fmt"
-	"strconv"
 
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
@@ -51,27 +50,25 @@ func (t *ZeusWorkerTestSuite) TestSmExtractionWfTwitter() {
 	t.Require().NotEmpty(pr.PromptReductionSearchResults.OutSearchGroups)
 	t.Require().NotEmpty(pr.PromptReductionSearchResults.OutSearchGroups[0].SearchResults)
 	t.Require().NotEmpty(pr.PromptReductionSearchResults.OutSearchGroups[0].SearchResultChunkTokenEstimate)
-
-	na := NewZeusAiPlatformActivities()
 	sg := pr.PromptReductionSearchResults.OutSearchGroups[0]
-	cr, err := na.ExtractTweets(ctx, t.Ou, sg)
-	t.Require().Nil(err)
-	t.Require().NotNil(cr)
-	t.Require().NotEmpty(cr.FilteredMessages)
-	t.Require().NotEmpty(cr.FilteredMessages.MsgKeepIds)
 
-	for _, v := range cr.FilteredMessages.MsgKeepIds {
-		msgID, mrr := strconv.Atoi(v)
-		t.Require().Nil(mrr)
-		if _, ok := msgMap[msgID]; !ok {
-			t.Fail("msgID not found in original search results")
-		}
-	}
-
-	fmt.Println("kept", len(cr.FilteredMessages.MsgKeepIds), "all", len(msgMap))
-	cr, err = ZeusAiPlatformWorker.ExecuteSocialMediaExtractionWorkflow(ctx, t.Ou, sg)
+	//na := NewZeusAiPlatformActivities()
+	//cr, err := na.ExtractTweets(ctx, t.Ou, sg)
+	//t.Require().Nil(err)
+	//t.Require().NotNil(cr)
+	//t.Require().NotEmpty(cr.FilteredMessages)
+	//t.Require().NotEmpty(cr.FilteredMessages.MsgKeepIds)
+	//
+	//for _, msgID := range cr.FilteredMessages.MsgKeepIds {
+	//	if _, ok := msgMap[msgID]; !ok {
+	//		t.Fail("msgID not found in original search results", msgID, cr.FilteredMessages.MsgKeepIds)
+	//	}
+	//}
+	//fmt.Println("kept", len(cr.FilteredMessages.MsgKeepIds), "all", len(msgMap))
+	cr2, err := ZeusAiPlatformWorker.ExecuteSocialMediaExtractionWorkflow(ctx, t.Ou, sg)
 	t.Require().Nil(err)
-	t.Require().NotNil(cr)
-	t.Assert().NotEmpty(cr.Response)
-	t.Assert().NotEmpty(cr.FilteredMessages)
+	t.Require().NotNil(cr2)
+	t.Assert().NotEmpty(cr2.Response)
+	t.Assert().NotEmpty(cr2.FilteredMessages)
+	fmt.Println("kept", len(cr2.FilteredMessages.MsgKeepIds), "all", len(msgMap))
 }

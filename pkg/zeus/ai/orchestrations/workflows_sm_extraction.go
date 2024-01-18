@@ -13,7 +13,7 @@ import (
 )
 
 type FilteredMessages struct {
-	MsgKeepIds []string `json:"msg_keep_ids"`
+	MsgKeepIds []int `json:"msg_keep_ids"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, sg *hera_openai_dbmodels.SearchResultGroup) (*ChatCompletionQueryResponse, error) {
@@ -61,19 +61,19 @@ func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workf
 func UnmarshallFilteredMsgIdsFromAiJson(fn string, cr *ChatCompletionQueryResponse) error {
 	m, err := UnmarshallOpenAiJsonInterface(fn, cr)
 	if err != nil {
-		log.Err(err).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+		log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
 		return err
 	}
 	jsonData, err := json.Marshal(m)
 	if err != nil {
-		log.Err(err).Msg("UnmarshallFilteredMsgIdsFromAiJson: json.Marshal failed")
+		log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: json.Marshal failed")
 		return err
 	}
 	// Unmarshal the JSON string into the FilteredMessages struct
 	cr.FilteredMessages = &FilteredMessages{}
 	err = json.Unmarshal(jsonData, &cr.FilteredMessages)
 	if err != nil {
-		log.Err(err).Msg("UnmarshallFilteredMsgIdsFromAiJson: json.Unmarshal failed")
+		log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: json.Unmarshal failed")
 		return err
 	}
 	return nil

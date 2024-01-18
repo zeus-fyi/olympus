@@ -97,7 +97,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 
 			var aiResp *ChatCompletionQueryResponse
 			var fullTaskDef []artemis_orchestrations.AITaskLibrary
-			if analysisInst.AnalysisResponseFormat == socialMediaExtractionResponseFormat || analysisInst.AnalysisResponseFormat == jsonFormat {
+			if analysisInst.AnalysisResponseFormat == jsonFormat {
 				selectTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err := workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, ou, analysisInst.AnalysisTaskID).Get(selectTaskCtx, &fullTaskDef)
 				if err != nil {
@@ -149,7 +149,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					logger.Error("failed to execute child social media extraction workflow", "Error", err)
 					return nil, err
 				}
-				// TODO, now these extraction results are going to eval, check process
+				sg.SearchResults = aiResp.FilteredSearchResults
+				// TODO, now these extraction results are going to eval via embedded wf eval, refactor to use eval workflow
 			default:
 				analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
@@ -164,6 +165,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			// TODO, validate chunk saving works
 			var analysisRespId int
 			analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+			// TODO, needs to catch iterative retries
 			err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
 			if err != nil {
 				logger.Error("failed to save analysis response", "Error", err)
@@ -191,7 +193,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			cp.Window = window
 			cp.WfID = evalWfID
 			cp.WorkflowResult = wr
-
 			ea := &EvalActionParams{
 				WorkflowTemplateData: analysisInst,
 				ParentOutputToEval:   aiResp,

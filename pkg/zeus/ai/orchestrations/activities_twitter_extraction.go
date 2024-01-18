@@ -2,8 +2,6 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
@@ -17,6 +15,11 @@ const (
 	keepTweetDescriptionField    = "add the ids from the msg_id fields you want to keep to this list"
 	discardTweetDescriptionField = "add the ids from the msg_id fields you want to discard to this list"
 )
+
+type SocialExtractionParams struct {
+	Sg   *hera_search.SearchResultGroup
+	Resp *ChatCompletionQueryResponse
+}
 
 func (z *ZeusAiPlatformActivities) ExtractTweets(ctx context.Context, ou org_users.OrgUser, sg *hera_search.SearchResultGroup) (*ChatCompletionQueryResponse, error) {
 	if sg == nil || sg.SearchResults == nil || len(sg.SearchResults) == 0 {
@@ -43,30 +46,34 @@ func (z *ZeusAiPlatformActivities) ExtractTweets(ctx context.Context, ou org_use
 	}
 
 	msgMap := make(map[int]bool)
+	srMap := make(map[int]hera_search.SearchResult)
 	for _, v := range sg.SearchResults {
 		msgMap[v.UnixTimestamp] = true
+		srMap[v.UnixTimestamp] = v
 	}
 	seen := make(map[int]bool)
-	for _, v := range resp.FilteredMessages.MsgKeepIds {
-		msgID, mrr := strconv.Atoi(v)
-		if mrr != nil {
-			log.Err(mrr).Msg("ExtractTweets: failed to convert msg id to int")
-			return nil, mrr
-		}
+	for _, msgID := range resp.FilteredMessages.MsgKeepIds {
+		//msgID, mrr := strconv.Atoi(v)
+		//if mrr != nil {
+		//	log.Err(mrr).Msg("ExtractTweets: failed to convert msg id to int")
+		//	return nil, mrr
+		//}
 		if _, ok := seen[msgID]; ok {
-			log.Info().Msgf("ExtractTweets: msgID %d already seen", msgID)
-			return nil, fmt.Errorf("ExtractTweets: msgID %d already seen", msgID)
+			log.Warn().Msgf("ExtractTweets: msgID %d already seen", msgID)
+			continue
 		}
 		if _, ok := msgMap[msgID]; !ok {
 			log.Info().Msgf("ExtractTweets: msgID %d not found in original search results", msgID)
-			return nil, fmt.Errorf("ExtractTweets: msgID %d not found in original search results", msgID)
+			continue
 		}
+		resp.FilteredSearchResults = append(resp.FilteredSearchResults, srMap[msgID])
 		seen[msgID] = true
 	}
 	log.Info().Int("kept", len(resp.FilteredMessages.MsgKeepIds)).Int("all", len(msgMap)).Msg("ExtractTweets: kept messages")
-	prompt := make(map[string]string)
-	prompt["prompt"] = sg.ExtractionPromptExt
-	resp.Prompt = prompt
+	if resp.Prompt == nil {
+		resp.Prompt = make(map[string]string)
+	}
+	resp.Prompt["extraction-prompt"] = sg.ExtractionPromptExt
 	return resp, nil
 }
 
@@ -83,7 +90,7 @@ func FilterAndExtractRelevantTweetsJsonSchemaFunctionDef(keepMsgInst string) ope
 		Type:        jsonschema.Array,
 		Description: keepMsgInst,
 		Items: &jsonschema.Definition{
-			Type: jsonschema.String,
+			Type: jsonschema.Integer,
 		},
 	}
 	properties[keepMsgIDs] = keepMsgs

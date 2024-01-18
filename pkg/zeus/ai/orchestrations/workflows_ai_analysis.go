@@ -123,7 +123,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				for _, taskDef := range fullTaskDef {
 					jdef = append(jdef, taskDef.Schemas...)
 				}
-				fd := artemis_orchestrations.ConvertToJsonDef(analysisInst.AnalysisTaskName, jdef)
+				fd := artemis_orchestrations.ConvertToFuncDef(analysisInst.AnalysisTaskName, jdef)
 				jsonTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				params := hera_openai.OpenAIParams{
 					Model:              analysisInst.AnalysisModel,

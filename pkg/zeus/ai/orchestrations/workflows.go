@@ -33,6 +33,7 @@ func (z *ZeusAiPlatformServiceWorkflows) GetWorkflows() []interface{} {
 		z.RunAiWorkflowChildAggAnalysisProcess, z.RunAiWorkflowChildAnalysisProcess, z.RunAiWorkflowAutoEvalProcess,
 		z.RunTriggerActions, z.RunApprovedTriggerActions, z.RunApprovedSocialMediaTriggerActionsWorkflow,
 		z.SocialMediaExtractionWorkflow, z.SocialMediaInteractiveWorkflow, z.SocialMediaMessagingWorkflow,
+		z.SocialMediaEngagementWorkflow,
 	}
 }
 

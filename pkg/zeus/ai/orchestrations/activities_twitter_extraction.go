@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	keepTweetDescriptionField    = "add the ids from the msg_id fields you want to keep to this list"
-	discardTweetDescriptionField = "add the ids from the msg_id fields you want to discard to this list"
+	keepTweetDescriptionField = "add the msg_id with the msg_body field that you want to keep to this array of msg_ids"
 )
 
 type SocialExtractionParams struct {
@@ -53,11 +52,6 @@ func (z *ZeusAiPlatformActivities) ExtractTweets(ctx context.Context, ou org_use
 	}
 	seen := make(map[int]bool)
 	for _, msgID := range resp.FilteredMessages.MsgKeepIds {
-		//msgID, mrr := strconv.Atoi(v)
-		//if mrr != nil {
-		//	log.Err(mrr).Msg("ExtractTweets: failed to convert msg id to int")
-		//	return nil, mrr
-		//}
 		if _, ok := seen[msgID]; ok {
 			log.Warn().Msgf("ExtractTweets: msgID %d already seen", msgID)
 			continue
@@ -78,10 +72,8 @@ func (z *ZeusAiPlatformActivities) ExtractTweets(ctx context.Context, ou org_use
 }
 
 const (
-	ingestedMessageID   = "msg_id"
-	ingestedMessageBody = "msg_body"
-	keepMsgIDs          = "msg_keep_ids"
-	discardMsgIDs       = "msg_discard_ids"
+	filteredMessageArrayJsonFieldName = "msg_ids"
+	ingestedMessageBody               = "msg_body"
 )
 
 func FilterAndExtractRelevantTweetsJsonSchemaFunctionDef(keepMsgInst string) openai.FunctionDefinition {
@@ -93,11 +85,11 @@ func FilterAndExtractRelevantTweetsJsonSchemaFunctionDef(keepMsgInst string) ope
 			Type: jsonschema.Integer,
 		},
 	}
-	properties[keepMsgIDs] = keepMsgs
+	properties[filteredMessageArrayJsonFieldName] = keepMsgs
 	fdSchema := jsonschema.Definition{
 		Type:       jsonschema.Object,
 		Properties: properties,
-		Required:   []string{keepMsgIDs},
+		Required:   []string{filteredMessageArrayJsonFieldName},
 	}
 	fd := openai.FunctionDefinition{
 		Name:       "twitter_extract_tweets",

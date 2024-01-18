@@ -1,10 +1,10 @@
 package ai_platform_service_orchestrations
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
@@ -66,7 +66,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 			}
 			aggCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			var aiAggResp *ChatCompletionQueryResponse
-
 			// TODO, finish integration checkout of token chunking check here
 			pr := &PromptReduction{}
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
@@ -75,11 +74,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 				logger.Error("failed to run analysis json", "Error", err)
 				return err
 			}
-
+			var fullTaskDef []artemis_orchestrations.AITaskLibrary
+			var fd openai.FunctionDefinition
 			switch aggInst.AnalysisResponseFormat {
-			case jsonFormat:
+			case jsonFormat, socialMediaEngagementResponseFormat:
 				selectTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				var fullTaskDef []artemis_orchestrations.AITaskLibrary
 				err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, ou, aggInst.AggTaskID).Get(selectTaskCtx, &fullTaskDef)
 				if err != nil {
 					logger.Error("failed to run agg json task selection", "Error", err)
@@ -89,15 +88,18 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 				for _, taskDef := range fullTaskDef {
 					jdef = append(jdef, taskDef.Schemas...)
 				}
-				fname := "aggtask"
-				if aggInst.AggTaskName != nil {
+
+				fname := "default"
+				if aggInst.AggResponseFormat != nil && *aggInst.AggResponseFormat == socialMediaEngagementResponseFormat {
+					fname = socialMediaEngagementResponseFormat
+				} else if aggInst.AggTaskName != nil {
 					fname = *aggInst.AggTaskName
 				}
-				if aggInst.AggModel == nil {
-					logger.Error("failed to run agg json task selection", "Error", err)
-					return fmt.Errorf("agg model is nil")
-				}
-				fd := artemis_orchestrations.ConvertToJsonDef(fname, jdef)
+				fd = artemis_orchestrations.ConvertToFuncDef(fname, jdef)
+			}
+
+			switch aggInst.AnalysisResponseFormat {
+			case jsonFormat:
 				jsonTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				params := hera_openai.OpenAIParams{
 					Model:              *aggInst.AggModel,
@@ -116,15 +118,18 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 				if sg == nil || len(sg.SearchResults) == 0 {
 					continue
 				}
-				sg.ExtractionPromptExt = *aggInst.AggPrompt
+				sg.FunctionDefinition = fd
+				if aggInst.AggPrompt != nil {
+					sg.ExtractionPromptExt = *aggInst.AggPrompt
+				}
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               oj.OrchestrationName + "-agg-social-media-extraction-" + strconv.Itoa(i),
+					WorkflowID:               oj.OrchestrationName + "-agg-social-media-engagement-" + strconv.Itoa(i),
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaMessagingWorkflow, ou, sg).Get(childAnalysisCtx, &aiAggResp)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaEngagementWorkflow, ou, sg).Get(childAnalysisCtx, &aiAggResp)
 				if err != nil {
-					logger.Error("failed to execute child social media extraction workflow", "Error", err)
+					logger.Error("failed to execute child social media engagement workflow", "Error", err)
 					return err
 				}
 			default:

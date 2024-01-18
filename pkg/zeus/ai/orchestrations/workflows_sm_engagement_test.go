@@ -6,7 +6,7 @@ import (
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 )
 
-func (t *ZeusWorkerTestSuite) TestSmExtractionWfTwitter() {
+func (t *ZeusWorkerTestSuite) TestSmEngagementWfTwitter() {
 	t.initWorker()
 	aiSp := hera_search.AiSearchParams{
 		TimeRange: "30 days",
@@ -63,7 +63,7 @@ func (t *ZeusWorkerTestSuite) TestSmExtractionWfTwitter() {
 	//	}
 	//}
 	//fmt.Println("kept", len(cr.FilteredMessages.MsgKeepIds), "all", len(msgMap))
-	cr2, err := ZeusAiPlatformWorker.ExecuteSocialMediaExtractionWorkflow(ctx, t.Ou, sg)
+	cr2, err := ZeusAiPlatformWorker.ExecuteSocialMediaEngagementWorkflow(ctx, t.Ou, sg)
 	t.Require().Nil(err)
 	t.Require().NotNil(cr2)
 	t.Assert().NotEmpty(cr2.Response)

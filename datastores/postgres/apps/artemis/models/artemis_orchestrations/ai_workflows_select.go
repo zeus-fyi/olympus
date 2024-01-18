@@ -40,6 +40,7 @@ type WorkflowTemplateData struct {
 	AggCycleCount            *int       `json:"aggCycleCount,omitempty"`
 	AggTaskName              *string    `json:"aggTaskName,omitempty"`
 	AggTaskType              *string    `json:"aggTaskType,omitempty"`
+	AggResponseFormat        *string    `json:"aggResponseFormat,omitempty"`
 	AggPrompt                *string    `json:"aggPrompt,omitempty"`
 	AggModel                 *string    `json:"aggModel,omitempty"`
 	AggTokenOverflowStrategy *string    `json:"aggTokenOverflowStrategy,omitempty"`

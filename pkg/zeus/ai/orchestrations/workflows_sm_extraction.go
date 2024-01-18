@@ -13,7 +13,7 @@ import (
 )
 
 type FilteredMessages struct {
-	MsgKeepIds []int `json:"msg_keep_ids"`
+	MsgKeepIds []int `json:"msg_ids"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, sg *hera_openai_dbmodels.SearchResultGroup) (*ChatCompletionQueryResponse, error) {

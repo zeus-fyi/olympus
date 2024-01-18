@@ -34,3 +34,27 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteSocialMediaExtractionWorkflow(ctx 
 	}
 	return cr, nil
 }
+
+func (z *ZeusAiPlatformServicesWorker) ExecuteSocialMediaEngagementWorkflow(ctx context.Context, ou org_users.OrgUser,
+	sg *hera_openai_dbmodels.SearchResultGroup) (*ChatCompletionQueryResponse, error) {
+	tc := z.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: z.TaskQueueName,
+		ID:        fmt.Sprintf("sm-engagement-%s", uuid.New().String()),
+	}
+	txWf := NewZeusPlatformServiceWorkflows()
+	wf := txWf.SocialMediaEngagementWorkflow
+	var cr *ChatCompletionQueryResponse
+	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, sg)
+	if err != nil {
+		log.Err(err).Msg("ExecuteSocialMediaEngagementWorkflow")
+		return nil, err
+	}
+	err = workflowRun.Get(ctx, &cr)
+	if err != nil {
+		log.Err(err).Msg("ExecuteSocialMediaEngagementWorkflow: Get ChatCompletionQueryResponse")
+		return nil, err
+	}
+	return cr, nil
+}

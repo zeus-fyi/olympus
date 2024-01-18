@@ -48,7 +48,7 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 		task.Schemas = nil
 	}
 	var sids []int
-	if task.ResponseFormat == "json" {
+	if task.ResponseFormat == "json" || task.ResponseFormat == "social-media-engagement" {
 		if len(task.Schemas) == 0 {
 			return nil
 		}

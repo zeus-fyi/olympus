@@ -2221,7 +2221,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Box>
                                             </Stack>
                                             <Stack direction="row" >
-                                                { editAggregateTask.responseFormat === 'json' ?
+                                                { editAggregateTask.responseFormat === 'json' || editAggregateTask.responseFormat === 'social-media-engagement' ?
                                                     <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                                     <FormControl fullWidth>
                                                         <InputLabel id="model-label">Aggregation Model</InputLabel>

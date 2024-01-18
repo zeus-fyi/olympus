@@ -70,6 +70,7 @@ type SearchResultGroup struct {
 	SearchResults                  []SearchResult                `json:"searchResults"`
 	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
 	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
+	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`
 }
 
 type SearchResult struct {

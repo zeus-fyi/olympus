@@ -53,7 +53,7 @@ export function TasksRow(props: { row: TaskModelInstructions, index: number, han
             </TableRow>
             <TableRow>
                 {
-                    row.responseFormat === 'json' ?
+                    row.responseFormat === 'json' || row.responseFormat === 'social-media-engagement' ?
                         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
                             <Collapse in={open} timeout="auto" unmountOnExit>
                                 {row.schemas && row.schemas.length > 0 && (

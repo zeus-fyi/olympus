@@ -21,9 +21,15 @@ type JsonSchemaDefinition struct {
 }
 
 type JsonSchemaField struct {
-	FieldName        string `db:"field_name" json:"fieldName"`
-	FieldDescription string `db:"field_description" json:"fieldDescription"`
-	DataType         string `db:"data_type" json:"dataType"`
+	FieldName         string     `db:"field_name" json:"fieldName"`
+	FieldDescription  string     `db:"field_description" json:"fieldDescription"`
+	DataType          string     `db:"data_type" json:"dataType"`
+	StringValue       *string    `db:"-" json:"stringValue,omitempty"`
+	NumberValue       *float64   `db:"-" json:"numberValue,omitempty"`
+	BooleanValue      *bool      `db:"-" json:"booleanValue,omitempty"`
+	StringValueSlice  []*string  `db:"-" json:"stringValueSlice,omitempty"`
+	NumberValueSlice  []*float64 `db:"-" json:"numberValueSlice,omitempty"`
+	BooleanValueSlice []*bool    `db:"-" json:"booleanValueSlice,omitempty"`
 }
 
 type AITaskJsonSchema struct {
@@ -128,20 +134,51 @@ func jsonSchemaType(dataType string) jsonschema.DataType {
 	}
 }
 
-func ConvertToJsonDef(fnName string, schemas []JsonSchemaDefinition) openai.FunctionDefinition {
+const (
+	msgID                                = "msg_id"
+	socialMediaEngagementResponseFormat  = "social-media-engagement"
+	keepTweetRelationshipToSingleMessage = "add the msg_id from the msg_body field that you are analyzing"
+)
+
+// TODO fix this function and add tests
+
+func ConvertToFuncDef(fnName string, schemas []JsonSchemaDefinition) openai.FunctionDefinition {
 	properties := make(map[string]jsonschema.Definition)
 	for _, schema := range schemas {
-		fieldSchema := jsonschema.Definition{
-			Type:       jsonschema.Object,
-			Properties: make(map[string]jsonschema.Definition),
-		}
-
+		var fieldSchema jsonschema.Definition
+		// Initialize the Properties and Required fields for the object
+		fieldSchema.Properties = make(map[string]jsonschema.Definition)
+		fieldSchema.Required = []string{}
 		for _, field := range schema.Fields {
-			fieldSchema.Properties[field.FieldName] = jsonschema.Definition{
-				Type:        jsonSchemaType(field.DataType),
+			fieldType := jsonSchemaType(field.DataType)
+			fieldDef := jsonschema.Definition{
+				Type:        fieldType,
 				Description: field.FieldDescription,
 			}
+			// Append each field to the Properties map
+			fieldSchema.Properties[field.FieldName] = fieldDef
+			// If the field is an array, specify the type of its items
+			// Assuming we have a way to determine the item type for arrays
+			if fieldType == jsonschema.Array {
+				fieldSchema.Description = keepTweetRelationshipToSingleMessage
+				// fieldDef.Items needs to be set accordingly, assuming we have the information available
+			}
+			// Append each field to the Required slice
+			fieldSchema.Required = append(fieldSchema.Required, field.FieldName)
 		}
+		// If the function name matches, add 'msg_id' as a required field
+		if fnName == socialMediaEngagementResponseFormat {
+			// Check if 'msg_id' is not already in the Required slice
+			if !contains(fieldSchema.Required, msgID) {
+				fieldSchema.Required = append(fieldSchema.Required, msgID)
+			}
+			// Define or override the 'msg_id' field definition
+			fieldSchema.Properties[msgID] = jsonschema.Definition{
+				Type:        jsonschema.Number,
+				Description: "System defined message ID",
+			}
+		}
+		// Assign the fieldSchema to the corresponding schema name
 		if schema.IsObjArray {
 			properties[schema.SchemaName] = jsonschema.Definition{
 				Type:  jsonschema.Array,
@@ -155,11 +192,86 @@ func ConvertToJsonDef(fnName string, schemas []JsonSchemaDefinition) openai.Func
 		Type:       jsonschema.Object,
 		Properties: properties,
 	}
+
 	fd := openai.FunctionDefinition{
 		Name:       fnName,
 		Parameters: fdSchema,
 	}
+
 	return fd
+}
+
+// Helper function to check if a slice contains a particular string
+func contains(slice []string, str string) bool {
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+	return false
+}
+
+// Helper function to convert jsonschema.Type to a string representation
+func jsonSchemaDataType(t jsonschema.DataType) string {
+	switch t {
+	case jsonschema.String:
+		return "string"
+	case jsonschema.Number:
+		return "number"
+	case jsonschema.Boolean:
+		return "boolean"
+	case jsonschema.Object:
+		return "object"
+	case jsonschema.Array:
+		return "array"
+	default:
+		return "unknown"
+	}
+}
+
+func ConvertToJsonSchema(fd openai.FunctionDefinition) []JsonSchemaDefinition {
+	var schemas []JsonSchemaDefinition
+	jsd, oks := fd.Parameters.(jsonschema.Definition)
+	if !oks {
+		log.Error().Msg("failed to convert to jsonschema.Definition")
+		return schemas
+	}
+	// Iterate through the properties of the FunctionDefinition
+	for name, def := range jsd.Properties {
+		schema := JsonSchemaDefinition{
+			SchemaName: name,
+			Fields:     []JsonSchemaField{},
+		}
+		// Check if the property is an array of objects
+		if def.Type == jsonschema.Array && def.Items != nil {
+			schema.IsObjArray = true
+			for fieldName, fieldDef := range def.Items.Properties {
+				schema.Fields = append(schema.Fields, JsonSchemaField{
+					FieldName:        fieldName,
+					FieldDescription: fieldDef.Description,
+					DataType:         jsonSchemaDataType(fieldDef.Type),
+				})
+			}
+		} else if def.Type == jsonschema.Object {
+			// Property is an object
+			for fieldName, fieldDef := range def.Properties {
+				schema.Fields = append(schema.Fields, JsonSchemaField{
+					FieldName:        fieldName,
+					FieldDescription: fieldDef.Description,
+					DataType:         jsonSchemaDataType(fieldDef.Type),
+				})
+			}
+		} else {
+			// Simple field
+			schema.Fields = append(schema.Fields, JsonSchemaField{
+				FieldName:        name,
+				FieldDescription: def.Description,
+				DataType:         jsonSchemaDataType(def.Type),
+			})
+		}
+		schemas = append(schemas, schema)
+	}
+	return schemas
 }
 
 func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSchemaDefinition, error) {

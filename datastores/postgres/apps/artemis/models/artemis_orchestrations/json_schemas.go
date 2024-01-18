@@ -140,75 +140,77 @@ const (
 	keepTweetRelationshipToSingleMessage = "add the msg_id from the msg_body field that you are analyzing"
 )
 
-// TODO fix this function and add tests
-
 func ConvertToFuncDef(fnName string, schemas []JsonSchemaDefinition) openai.FunctionDefinition {
-	properties := make(map[string]jsonschema.Definition)
-	for _, schema := range schemas {
-		var fieldSchema jsonschema.Definition
-		// Initialize the Properties and Required fields for the object
-		fieldSchema.Properties = make(map[string]jsonschema.Definition)
-		fieldSchema.Required = []string{}
-		for _, field := range schema.Fields {
-			fieldType := jsonSchemaType(field.DataType)
-			fieldDef := jsonschema.Definition{
-				Type:        fieldType,
-				Description: field.FieldDescription,
-			}
-			// Append each field to the Properties map
-			fieldSchema.Properties[field.FieldName] = fieldDef
-			// If the field is an array, specify the type of its items
-			// Assuming we have a way to determine the item type for arrays
-			if fieldType == jsonschema.Array {
-				fieldSchema.Description = keepTweetRelationshipToSingleMessage
-				// fieldDef.Items needs to be set accordingly, assuming we have the information available
-			}
-			// Append each field to the Required slice
-			fieldSchema.Required = append(fieldSchema.Required, field.FieldName)
-		}
-		// If the function name matches, add 'msg_id' as a required field
-		if fnName == socialMediaEngagementResponseFormat {
-			// Check if 'msg_id' is not already in the Required slice
-			if !contains(fieldSchema.Required, msgID) {
-				fieldSchema.Required = append(fieldSchema.Required, msgID)
-			}
-			// Define or override the 'msg_id' field definition
-			fieldSchema.Properties[msgID] = jsonschema.Definition{
-				Type:        jsonschema.Number,
-				Description: "System defined message ID",
-			}
-		}
-		// Assign the fieldSchema to the corresponding schema name
-		if schema.IsObjArray {
-			properties[schema.SchemaName] = jsonschema.Definition{
-				Type:  jsonschema.Array,
-				Items: &fieldSchema,
-			}
-		} else {
-			properties[schema.SchemaName] = fieldSchema
-		}
-	}
-	fdSchema := jsonschema.Definition{
-		Type:       jsonschema.Object,
-		Properties: properties,
-	}
-
 	fd := openai.FunctionDefinition{
 		Name:       fnName,
-		Parameters: fdSchema,
+		Parameters: ConvertToFuncDefJsonSchemas(schemas), // Set the combined schema here
 	}
-
 	return fd
 }
 
-// Helper function to check if a slice contains a particular string
-func contains(slice []string, str string) bool {
-	for _, s := range slice {
-		if s == str {
-			return true
+func ConvertToFuncDefJsonSchemas(schemas []JsonSchemaDefinition) jsonschema.Definition {
+	// Initialize the combined properties
+	combinedProperties := make(map[string]jsonschema.Definition)
+	// Iterate over each schema and create a field for each
+	for _, schema := range schemas {
+		schemaField := convertDbJsonSchemaFieldsTSchema(schema)
+		// If the schema represents an array of objects, adjust the type and items
+		if schema.IsObjArray {
+			schemaField = jsonschema.Definition{
+				Type: jsonschema.Array,
+				Items: &jsonschema.Definition{
+					Type:       jsonschema.Object,
+					Properties: schemaField.Properties,
+					Required:   schemaField.Required,
+				},
+			}
 		}
+		// Add this schema field to the combined properties
+		combinedProperties[schema.SchemaName] = schemaField
 	}
-	return false
+	// Create the combined schema object
+	combinedSchema := jsonschema.Definition{
+		Type:       jsonschema.Object,
+		Properties: combinedProperties,
+	}
+
+	var requiredFields []string
+	for k, _ := range combinedSchema.Properties {
+		requiredFields = append(requiredFields, k)
+	}
+	combinedSchema.Required = requiredFields
+	return combinedSchema
+}
+
+func convertDbJsonSchemaFieldsTSchema(schema JsonSchemaDefinition) jsonschema.Definition {
+	properties := make(map[string]jsonschema.Definition)
+	var requiredFields []string
+	for _, field := range schema.Fields {
+		fieldDef := jsonschema.Definition{
+			Description: field.FieldDescription,
+		}
+		switch field.DataType {
+		case "array[number]":
+			fieldDef.Type = jsonschema.Array
+			fieldDef.Items = &jsonschema.Definition{Type: jsonschema.Number}
+		case "array[string]":
+			fieldDef.Type = jsonschema.Array
+			fieldDef.Items = &jsonschema.Definition{Type: jsonschema.String}
+		case "array[boolean]":
+			fieldDef.Type = jsonschema.Array
+			fieldDef.Items = &jsonschema.Definition{Type: jsonschema.Boolean}
+		default:
+			fieldDef.Type = jsonSchemaType(field.DataType) // Assume this function correctly returns the jsonschema type
+		}
+		properties[field.FieldName] = fieldDef
+		requiredFields = append(requiredFields, field.FieldName)
+	}
+
+	return jsonschema.Definition{
+		Type:       jsonschema.Object,
+		Properties: properties,
+		Required:   requiredFields,
+	}
 }
 
 // Helper function to convert jsonschema.Type to a string representation

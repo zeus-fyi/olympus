@@ -2,10 +2,10 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -22,11 +22,10 @@ func (z *ZeusAiPlatformActivities) AnalyzeEngagementTweets(ctx context.Context, 
 		Model:              sg.Model,
 		FunctionDefinition: sg.FunctionDefinition,
 		Prompt:             hera_search.FormatSearchResultsV3(sg.SearchResults),
-		SystemPromptExt:    "Analyze the messages using the criteria provided by the schema field definitions.",
 	}
 	resp, err := za.CreateJsonOutputModelResponse(ctx, ou, params)
 	if err != nil {
-		log.Err(err).Msg("ExtractTweets: CreateJsonOutputModelResponse failed")
+		log.Err(err).Msg("AnalyzeEngagementTweets: CreateJsonOutputModelResponse failed")
 		return nil, err
 	}
 	m, err := UnmarshallOpenAiJsonInterface(sg.FunctionDefinition.Name, resp)
@@ -35,7 +34,6 @@ func (z *ZeusAiPlatformActivities) AnalyzeEngagementTweets(ctx context.Context, 
 		return nil, err
 	}
 	jsd := artemis_orchestrations.ConvertToJsonSchema(sg.FunctionDefinition)
-	err = mapToSchema(m, jsd)
 	if err != nil {
 		log.Err(err).Msg("AnalyzeEngagementTweets: mapToSchema failed")
 		return nil, err
@@ -44,123 +42,47 @@ func (z *ZeusAiPlatformActivities) AnalyzeEngagementTweets(ctx context.Context, 
 	return resp, nil
 }
 
-func mapToSchema(m map[string]interface{}, schemas []artemis_orchestrations.JsonSchemaDefinition) error {
-	for _, schema := range schemas {
-		if schemaValue, ok1 := m[schema.SchemaName]; ok1 {
-			switch v := schemaValue.(type) {
-			case []interface{}:
-				if schema.IsObjArray {
-					// Handle array of objects
-					for _, item := range v {
-						if obj, ok := item.(map[string]interface{}); ok {
-							if err := mapObjectToSchemaFields(obj, schema.Fields); err != nil {
-								return err
-							}
-						}
-					}
-				}
-			case map[string]interface{}:
-				if !schema.IsObjArray {
-					// Handle a single object
-					if err := mapObjectToSchemaFields(v, schema.Fields); err != nil {
-						return err
-					}
-				}
-			}
-		}
+func FilterAndExtractRelevantTweetsJsonSchemaFunctionDef3() openai.FunctionDefinition {
+	fdSchema := jsonschema.Definition{
+		Type: jsonschema.Object,
+		Properties: map[string]jsonschema.Definition{
+			"analyzed_tweet": {
+				Type: jsonschema.Object,
+				Properties: map[string]jsonschema.Definition{
+					"msg_id": {
+						Type:        jsonschema.Number,
+						Description: "The system message ID of the analyzed tweet which is given by the user json key msg_id",
+					},
+					"lead_score": {
+						Type:        jsonschema.Integer,
+						Description: scoreInst,
+					},
+				},
+				Required: []string{"analyzed_msg_id", "lead_score"},
+			},
+		},
+		Required: []string{"analyzed_tweet"},
 	}
-	return nil
+	fd := openai.FunctionDefinition{
+		Name:       "twitter_engagement_scores",
+		Parameters: fdSchema,
+	}
+	return fd
 }
 
-func mapObjectToSchemaFields(obj map[string]interface{}, fields []artemis_orchestrations.JsonSchemaField) error {
-	for i, field := range fields {
-		if fieldValue, ok1 := obj[field.FieldName]; ok1 {
-			switch field.DataType {
-			case "string":
-				if strVal, ok := fieldValue.(string); ok {
-					fields[i].StringValue = &strVal
-				}
-			case "number":
-				if numVal, ok := fieldValue.(float64); ok { // JSON numbers are float64
-					fields[i].NumberValue = &numVal
-				}
-			case "boolean":
-				if boolVal, ok := fieldValue.(bool); ok {
-					fields[i].BooleanValue = &boolVal
-				}
-			case "array":
-				// Assuming arrays of basic types (string, number, boolean)
-				switch {
-				case field.StringValueSlice != nil:
-					if strSlice, ok2 := fieldValue.([]interface{}); ok2 {
-						for _, v := range strSlice {
-							if str, ok3 := v.(string); ok3 {
-								fields[i].StringValueSlice = append(fields[i].StringValueSlice, &str)
-							}
-						}
-					}
-				case field.NumberValueSlice != nil:
-					if numSlice, ok4 := fieldValue.([]interface{}); ok4 {
-						for _, v := range numSlice {
-							if num, ok := v.(float64); ok {
-								fields[i].NumberValueSlice = append(fields[i].NumberValueSlice, &num)
-							}
-						}
-					}
-				case field.BooleanValueSlice != nil:
-					if boolSlice, ok5 := fieldValue.([]interface{}); ok5 {
-						for _, v := range boolSlice {
-							if b, ok := v.(bool); ok {
-								fields[i].BooleanValueSlice = append(fields[i].BooleanValueSlice, &b)
-							}
-						}
-					}
-				}
-			case "object":
-				// Assuming the object is another JsonSchemaField or similar structure
-				if nestedObj, ok := fieldValue.(map[string]interface{}); ok {
-					// You need to define a way to get the fields for the nested object
-					// For simplicity, let's assume it's the same fields (recursive structure)
-					if err := mapObjectToSchemaFields(nestedObj, fields); err != nil {
-						return err
-					}
-				}
-			default:
-				return fmt.Errorf("unsupported data type: %s", field.DataType)
-			}
-		}
-	}
-	return nil
-}
-
-func UnmarshallFilteredMsgIdsFromAiJsonSmExtraction(fn string, cr *ChatCompletionQueryResponse) error {
-	m, err := UnmarshallOpenAiJsonInterface(fn, cr)
-	if err != nil {
-		log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
-		return err
-	}
-	jsonData, err := json.Marshal(m)
-	if err != nil {
-		log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: json.Marshal failed")
-		return err
-	}
-	// Unmarshal the JSON string into the FilteredMessages struct
-	cr.FilteredMessages = &FilteredMessages{}
-	err = json.Unmarshal(jsonData, &cr.FilteredMessages)
-	if err != nil {
-		log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: json.Unmarshal failed")
-		return err
-	}
-	return nil
-}
-
-func AppendFieldToSchema(f artemis_orchestrations.JsonSchemaField, jd artemis_orchestrations.JsonSchemaDefinition) artemis_orchestrations.JsonSchemaDefinition {
-	for i, v := range jd.Fields {
-		if v.FieldName == f.FieldName {
-			jd.Fields[i] = f
-			return jd
-		}
-	}
-	jd.Fields = append(jd.Fields, f)
-	return jd
-}
+const scoreInst = `Create a lead score using the below metrics Scoring Metrics:
+Error Mention (429, 5xx, etc.): 10 points. High importance as it directly relates to the problem the
+load balancer solves. Mention of Dissatisfaction with Current RPC Solution: 8 points.
+Indicates a clear need for a new solution. Engagement or mentions related relevant content: 5 points.
+Suggests interest in the topic. Organization Size/Market Potential: Score based on potential usage volume
+(e.g., large enterprises 10 points, mid-size businesses 5 points, small businesses 3 points).
+If you are unable to tell, set it to 0. Mention of EVM/Blockchain Transaction Challenges: 10 points. 
+Indicating direct relevance and need. Interest in EVM tx simulations or Smart Contracts: 8 points. Shows alignment 
+with the product offering. Developer Platform Discussion: Assign 10 points for any mention of "developer platform" or similar terms
+that align with Zeusfyi's target audience. Kubernetes Engagement: Allot 15 points when Kubernetes is mentioned, indicating
+a direct interest or existing investment in the technology that Zeusfyi enhances. Complex Deployment Solutions: Add 10 points for
+discussions about challenging deployments, indicating a need for Zeusfyi's deployment strategies. Cloud Management and Flexibility: 
+Score 8 points for expressions of a need for versatile cloud management, which is central to Zeusfyi’s capabilities. Multi-Cloud and 
+Multi-Tenancy: Give 12 points for any reference to multi-cloud strategies or multi-tenancy challenges, as Zeusfyi excels in these areas. 
+Temporal Workflow Interest: Allocate 7 points for interests in temporal workflows, suggesting a good fit for Zeusfyi's process orchestration tools.
+AI-Powered Optimization: Add 10 points for mentions of AI or iterative solver workflows, as this is a unique feature of Zeusfyi that can offer significant value to the user.`

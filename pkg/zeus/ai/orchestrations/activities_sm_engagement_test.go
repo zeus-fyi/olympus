@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/sashabaranov/go-openai/jsonschema"
@@ -47,6 +48,10 @@ func (t *ZeusWorkerTestSuite) TestJsonAggJoins() {
 	fdv, ok := fd.Parameters.(jsonschema.Definition)
 	t.Require().True(ok)
 	t.Require().NotNil(fdv)
+
+	b, err := json.Marshal(fdv)
+	t.Require().Nil(err)
+	t.Require().NotNil(b)
 
 	model := Gpt4JsonModel
 	pr := &PromptReduction{

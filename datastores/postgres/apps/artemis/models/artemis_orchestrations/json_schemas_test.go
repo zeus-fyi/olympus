@@ -3,8 +3,6 @@ package artemis_orchestrations
 import (
 	"fmt"
 
-	"github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -40,31 +38,7 @@ func (s *OrchestrationsTestSuite) TestConvertToFuncDef4() {
 	}
 	fd := ConvertToFuncDef("twitter_extract_tweets", []JsonSchemaDefinition{schema})
 
-	fd2 := FilterAndExtractRelevantTweetsJsonSchemaFunctionDef("system message ids")
-	fmt.Println(fd2)
 	s.Require().NotNil(fd, "Failed to convert JSON schema to OpenAI function definition")
-}
-
-func FilterAndExtractRelevantTweetsJsonSchemaFunctionDef(keepMsgInst string) openai.FunctionDefinition {
-	properties := make(map[string]jsonschema.Definition)
-	keepMsgs := jsonschema.Definition{
-		Type:        jsonschema.Array,
-		Description: keepMsgInst,
-		Items: &jsonschema.Definition{
-			Type: jsonschema.Number,
-		},
-	}
-	properties["msg_ids"] = keepMsgs
-	fdSchema := jsonschema.Definition{
-		Type:       jsonschema.Object,
-		Properties: properties,
-		Required:   []string{"msg_ids"},
-	}
-	fd := openai.FunctionDefinition{
-		Name:       "twitter_extract_tweets",
-		Parameters: fdSchema,
-	}
-	return fd
 }
 
 func (s *OrchestrationsTestSuite) TestInsertJsonSchema() {
@@ -125,4 +99,73 @@ func (s *OrchestrationsTestSuite) TestJsonParsing() {
 	s.Require().NoError(err, "Failed to select JSON schemas")
 	v := ConvertToFuncDef("fn", js)
 	s.Require().NotNil(v, "Failed to convert JSON schema to OpenAI function definition")
+
+	jsb := ConvertToJsonSchema(v)
+	s.Require().NotNil(jsb, "Failed to convert OpenAI function definition to JSON schema")
+
+	s.Require().NoError(err, "Failed to convert JSON schema to map")
+
+	mi := CreateMapInterfaceJson(jsb[1])
+	s.Require().NotNil(mi, "Failed to convert JSON schema to map interface")
+	fmt.Println(mi)
+}
+func (s *OrchestrationsTestSuite) TestAssignSliceMapValuesJsonSchemaFields() {
+	// This is the map structure based on the provided image
+	m := map[string]interface{}{
+		"web3-sales-lead-scoring-2": []interface{}{
+			map[string]interface{}{
+				"analyzed_msg_id":      1704249180,
+				"aggregate_lead_score": 15,
+				"lead_score_metrics":   "Kubernetes mention, indicating direct interest in technology Zeusfyi enhances.",
+			},
+			map[string]interface{}{
+				"analyzed_msg_id":      2704249180,
+				"aggregate_lead_score": 10,
+				"lead_score_metrics":   "Other mention, indicating indirect interest in technology Zeusfyi enhances.",
+			},
+			// Add other map elements as needed based on the actual data
+		},
+	}
+
+	sz := JsonSchemaDefinition{
+		SchemaID:    0,
+		SchemaName:  "schema_field",
+		SchemaGroup: "",
+		IsObjArray:  true, // This should be true to match the array structure in the image
+		Fields: []JsonSchemaField{
+			// Define your schema fields based on the actual structure of the map elements
+			{FieldName: "analyzed_msg_id", DataType: "number", FieldDescription: "Analyzed message ID"},
+			{FieldName: "aggregate_lead_score", DataType: "integer", FieldDescription: "Aggregate lead score"},
+			{FieldName: "lead_score_metrics", DataType: "string", FieldDescription: "Lead score metrics"},
+			// Add other fields as needed
+		},
+	}
+
+	// Pass the value part of the map to the function, not the entire map
+	jr := AssignMapValuesJsonSchemaFieldsSlice(&sz, m["web3-sales-lead-scoring-2"])
+	for _, r := range jr {
+		fmt.Println(*r)
+	}
+}
+
+func (s *OrchestrationsTestSuite) TestAssignMapValuesJsonSchemaFields() {
+	m := map[string]interface{}{
+		"id":     "stringID",
+		"values": []interface{}{1, 2},
+	}
+	sz := JsonSchemaDefinition{
+		SchemaID:    0,
+		SchemaName:  "schema_field",
+		SchemaGroup: "",
+		IsObjArray:  false,
+		Fields: []JsonSchemaField{
+			{FieldName: "id", DataType: "string", FieldDescription: "id"},
+			{FieldName: "values", DataType: "array[number]", FieldDescription: "values"},
+			// Add other field types as needed
+			{FieldName: "integer_field", DataType: "integer", FieldDescription: "integer value"},
+			{FieldName: "number_field", DataType: "number", FieldDescription: "number value"},
+		},
+	}
+	jr := AssignMapValuesJsonSchemaFields(&sz, m)
+	fmt.Println(*jr)
 }

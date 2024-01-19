@@ -2,6 +2,7 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
@@ -21,15 +22,147 @@ type JsonSchemaDefinition struct {
 }
 
 type JsonSchemaField struct {
-	FieldName         string     `db:"field_name" json:"fieldName"`
-	FieldDescription  string     `db:"field_description" json:"fieldDescription"`
-	DataType          string     `db:"data_type" json:"dataType"`
-	StringValue       *string    `db:"-" json:"stringValue,omitempty"`
-	NumberValue       *float64   `db:"-" json:"numberValue,omitempty"`
-	BooleanValue      *bool      `db:"-" json:"booleanValue,omitempty"`
-	StringValueSlice  []*string  `db:"-" json:"stringValueSlice,omitempty"`
-	NumberValueSlice  []*float64 `db:"-" json:"numberValueSlice,omitempty"`
-	BooleanValueSlice []*bool    `db:"-" json:"booleanValueSlice,omitempty"`
+	FieldName         string    `db:"field_name" json:"fieldName"`
+	FieldDescription  string    `db:"field_description" json:"fieldDescription"`
+	DataType          string    `db:"data_type" json:"dataType"`
+	IntValue          *int      `db:"-" json:"intValue,omitempty"`
+	StringValue       *string   `db:"-" json:"stringValue,omitempty"`
+	NumberValue       *float64  `db:"-" json:"numberValue,omitempty"`
+	BooleanValue      *bool     `db:"-" json:"booleanValue,omitempty"`
+	IntValueSlice     []int     `db:"-" json:"intValueSlice,omitempty"`
+	StringValueSlice  []string  `db:"-" json:"stringValueSlice,omitempty"`
+	NumberValueSlice  []float64 `db:"-" json:"numberValueSlice,omitempty"`
+	BooleanValueSlice []bool    `db:"-" json:"booleanValueSlice,omitempty"`
+}
+
+func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m interface{}) []*JsonSchemaDefinition {
+	if sz == nil {
+		return nil
+	}
+	var schemas []*JsonSchemaDefinition
+	if sz.IsObjArray {
+		// Handle case where sz is an array of objects
+		sliceOfMaps, ok := m.([]interface{})
+		if !ok {
+			return nil // or handle the error as you see fit
+		}
+
+		for _, v := range sliceOfMaps {
+			if mv, rok := v.(map[string]interface{}); rok {
+				jsd := AssignMapValuesJsonSchemaFields(sz, mv)
+				schemas = append(schemas, jsd)
+			}
+		}
+	} else {
+		// Handle case where sz is a single object
+		jsd := AssignMapValuesJsonSchemaFields(sz, m.(map[string]interface{}))
+		schemas = append(schemas, jsd)
+	}
+	return []*JsonSchemaDefinition{sz}
+}
+
+func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]interface{}) *JsonSchemaDefinition {
+	if sz == nil || len(m) == 0 {
+		return nil
+	}
+	for i, _ := range sz.Fields {
+		fieldDef := &sz.Fields[i] // Get a reference to the field definition
+		if val, ok1 := m[fieldDef.FieldName]; ok1 {
+			switch fieldDef.DataType {
+			case "string":
+				if strVal, okStr := val.(string); okStr {
+					fieldDef.StringValue = &strVal
+					fmt.Printf("Field %s is a string: %s\n", fieldDef.FieldName, strVal)
+				}
+			case "integer":
+				if intVal, okInt := val.(int); okInt {
+					fieldDef.IntValue = &intVal
+					fmt.Printf("Field %s is an integer: %d\n", fieldDef.FieldName, intVal)
+				}
+			case "number":
+				if numVal, okNum := val.(float64); okNum {
+					fieldDef.NumberValue = &numVal
+					fmt.Printf("Field %s is a number: %f\n", fieldDef.FieldName, numVal)
+				} else if numValInt, okNumInt := val.(int); okNumInt {
+					numValFloat := float64(numValInt)
+					fieldDef.NumberValue = &numValFloat
+					fmt.Printf("Field %s is a number: %f\n", fieldDef.FieldName, numValFloat)
+				}
+			case "boolean":
+				if boolVal, okBool := val.(bool); okBool {
+					fieldDef.BooleanValue = &boolVal
+					fmt.Printf("Field %s is a boolean: %t\n", fieldDef.FieldName, boolVal)
+				}
+			case "array[number]":
+				if sliceVal, okArrayNum := val.([]interface{}); okArrayNum {
+					numbers := make([]float64, 0)
+					for _, v := range sliceVal {
+						if num, okNum := v.(float64); okNum {
+							numbers = append(numbers, num)
+						}
+					}
+					fieldDef.NumberValueSlice = numbers
+					fmt.Printf("Field %s is an array of numbers: %v\n", fieldDef.FieldName, numbers)
+				}
+			case "array[int]":
+				if sliceVal, okArrayInt := val.([]interface{}); okArrayInt {
+					intSlice := make([]int, 0)
+					for _, v := range sliceVal {
+						if str, okInt := v.(int); okInt {
+							intSlice = append(intSlice, str)
+						}
+					}
+					fieldDef.IntValueSlice = intSlice
+					fmt.Printf("Field %s is an array of ints: %v\n", fieldDef.FieldName, intSlice)
+				}
+			case "array[string]":
+				if sliceVal, okArrayStr := val.([]interface{}); okArrayStr {
+					strings := make([]string, 0)
+					for _, v := range sliceVal {
+						if str, okStr := v.(string); okStr {
+							strings = append(strings, str)
+						}
+					}
+					fieldDef.StringValueSlice = strings
+					fmt.Printf("Field %s is an array of strings: %v\n", fieldDef.FieldName, strings)
+				}
+			case "array[boolean]":
+				if sliceVal, okArrayBool := val.([]interface{}); okArrayBool {
+					booleans := make([]bool, 0)
+					for _, v := range sliceVal {
+						if b, okBool := v.(bool); okBool {
+							booleans = append(booleans, b)
+						}
+					}
+					fieldDef.BooleanValueSlice = booleans
+					fmt.Printf("Field %s is an array of booleans: %v\n", fieldDef.FieldName, booleans)
+				}
+			}
+		}
+	}
+	return sz
+}
+
+func CreateMapInterfaceJson(schema JsonSchemaDefinition) map[string]interface{} {
+	m := make(map[string]interface{})
+
+	for _, field := range schema.Fields {
+		switch field.DataType {
+		case "string":
+			m[field.FieldName] = field.StringValue
+		case "number":
+			m[field.FieldName] = field.NumberValue
+		case "boolean":
+			m[field.FieldName] = field.BooleanValue
+		case "array[string]":
+			m[field.FieldName] = field.StringValueSlice
+		case "array[number]":
+			m[field.FieldName] = field.NumberValueSlice
+		case "array[boolean]":
+			m[field.FieldName] = field.BooleanValueSlice
+		}
+	}
+	return m
 }
 
 type AITaskJsonSchema struct {
@@ -136,6 +269,7 @@ func jsonSchemaType(dataType string) jsonschema.DataType {
 
 const (
 	msgID                                = "msg_id"
+	analyzedMsgId                        = "analyzed_msg_id"
 	socialMediaEngagementResponseFormat  = "social-media-engagement"
 	keepTweetRelationshipToSingleMessage = "add the msg_id from the msg_body field that you are analyzing"
 )
@@ -143,21 +277,22 @@ const (
 func ConvertToFuncDef(fnName string, schemas []JsonSchemaDefinition) openai.FunctionDefinition {
 	fd := openai.FunctionDefinition{
 		Name:       fnName,
-		Parameters: ConvertToFuncDefJsonSchemas(schemas), // Set the combined schema here
+		Parameters: ConvertToFuncDefJsonSchemas(fnName, schemas), // Set the combined schema here
 	}
 	return fd
 }
 
-func ConvertToFuncDefJsonSchemas(schemas []JsonSchemaDefinition) jsonschema.Definition {
+func ConvertToFuncDefJsonSchemas(fnName string, schemas []JsonSchemaDefinition) jsonschema.Definition {
 	// Initialize the combined properties
 	combinedProperties := make(map[string]jsonschema.Definition)
 	// Iterate over each schema and create a field for each
 	for _, schema := range schemas {
-		schemaField := convertDbJsonSchemaFieldsTSchema(schema)
+		schemaField := convertDbJsonSchemaFieldsTSchema(fnName, schema)
 		// If the schema represents an array of objects, adjust the type and items
 		if schema.IsObjArray {
 			schemaField = jsonschema.Definition{
-				Type: jsonschema.Array,
+				Type:     jsonschema.Array,
+				Required: []string{schema.SchemaName},
 				Items: &jsonschema.Definition{
 					Type:       jsonschema.Object,
 					Properties: schemaField.Properties,
@@ -175,6 +310,7 @@ func ConvertToFuncDefJsonSchemas(schemas []JsonSchemaDefinition) jsonschema.Defi
 	}
 
 	var requiredFields []string
+
 	for k, _ := range combinedSchema.Properties {
 		requiredFields = append(requiredFields, k)
 	}
@@ -182,7 +318,7 @@ func ConvertToFuncDefJsonSchemas(schemas []JsonSchemaDefinition) jsonschema.Defi
 	return combinedSchema
 }
 
-func convertDbJsonSchemaFieldsTSchema(schema JsonSchemaDefinition) jsonschema.Definition {
+func convertDbJsonSchemaFieldsTSchema(fnName string, schema JsonSchemaDefinition) jsonschema.Definition {
 	properties := make(map[string]jsonschema.Definition)
 	var requiredFields []string
 	for _, field := range schema.Fields {
@@ -203,9 +339,18 @@ func convertDbJsonSchemaFieldsTSchema(schema JsonSchemaDefinition) jsonschema.De
 			fieldDef.Type = jsonSchemaType(field.DataType) // Assume this function correctly returns the jsonschema type
 		}
 		properties[field.FieldName] = fieldDef
-		requiredFields = append(requiredFields, field.FieldName)
 	}
 
+	if fnName == socialMediaEngagementResponseFormat {
+		properties[analyzedMsgId] = jsonschema.Definition{
+			Type:        jsonschema.Number,
+			Description: keepTweetRelationshipToSingleMessage,
+		}
+	}
+
+	for k, _ := range properties {
+		requiredFields = append(requiredFields, k)
+	}
 	return jsonschema.Definition{
 		Type:       jsonschema.Object,
 		Properties: properties,

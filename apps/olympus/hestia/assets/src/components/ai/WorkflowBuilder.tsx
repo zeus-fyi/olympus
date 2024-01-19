@@ -1067,7 +1067,7 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestEvalCreateOrUpdateStatusError('error')
                 return;
             }
-            if (evalFn.evalMetrics.length <= 0){
+            if (evalFn.evalMetrics.length <= 0 && evalFn.schemas.length <= 0) {
                 setRequestEvalCreateOrUpdateStatus('You must add at least one metric create an eval')
                 setRequestEvalCreateOrUpdateStatusError('error')
                 return;

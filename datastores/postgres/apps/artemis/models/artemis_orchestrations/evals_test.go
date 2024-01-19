@@ -63,6 +63,60 @@ func (s *OrchestrationsTestSuite) TestEvalMetricsDeleteEvalMetricsAndTriggers() 
 	s.Require().Nil(err)
 }
 
+func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchem() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	// Example data for EvalFn and
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	evalModel := "gpt-4"
+	evalFn := EvalFn{
+		EvalID:        aws.Int(1705700769002257000), // nil implies a new entry
+		OrgID:         s.Tc.ProductionLocalTemporalOrgID,
+		UserID:        s.Tc.ProductionLocalTemporalUserID,
+		EvalName:      "test-eval-schemas",
+		EvalType:      "json",
+		EvalGroupName: "test-eval-schemas",
+		EvalModel:     &evalModel, // Assume evalModel is defined elsewhere
+		EvalFormat:    "model",
+		Schemas: []*JsonSchemaDefinition{
+			{
+				SchemaID:    1705373864663807000, // Assuming an existing schema ID for testing
+				SchemaName:  "web3-sales-lead-scoring-2",
+				SchemaGroup: "default",
+				IsObjArray:  true,
+				Fields: []JsonSchemaField{
+					{
+						FieldName:        "aggregate_lead_score",
+						FieldDescription: "aggregate_lead_score description",
+						DataType:         "number",
+						EvalMetric: EvalMetric{
+							EvalMetricResult:     "pass",
+							EvalOperator:         "gt",
+							EvalComparisonNumber: aws.Float64(100),
+							EvalState:            "info",
+						},
+					},
+					{
+						FieldName:        "lead_score_metrics",
+						FieldDescription: "lead_score_metrics description",
+						DataType:         "string",
+						EvalMetric: EvalMetric{
+							EvalMetricResult:     "ignore",
+							EvalOperator:         "equals",
+							EvalState:            "info",
+							EvalComparisonString: aws.String("test"),
+						},
+					},
+				},
+			},
+		},
+	}
+	err := InsertOrUpdateEvalFnWithMetrics(ctx, ou, &evalFn)
+	s.Require().Nil(err)
+	s.Require().NotNil(evalFn.EvalID)
+}
+
 func (s *OrchestrationsTestSuite) TestInsertEval() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	// Example data for EvalFn and

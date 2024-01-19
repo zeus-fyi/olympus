@@ -35,31 +35,12 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 	t.OrgID = ou.OrgID
 	t.UserID = ou.UserID
 
-	for _, em := range t.EvalFn.EvalMetrics {
-		switch em.EvalMetricDataType + "-" + em.EvalOperator {
-		case "array[string]" + "-" + "length-less-than":
-			err := ValidateStrArrayPayload(&em)
-			if err != nil {
-				return c.JSON(http.StatusBadRequest, nil)
-			}
-		case "array[string]" + "-" + "length-less-than-eq":
-			err := ValidateStrArrayPayload(&em)
-			if err != nil {
-				return c.JSON(http.StatusBadRequest, nil)
-			}
-		case "array[string]" + "-" + "length-greater-than":
-			err := ValidateStrArrayPayload(&em)
-			if err != nil {
-				return c.JSON(http.StatusBadRequest, nil)
-			}
-		case "array[string]" + "-" + "length-greater-than-eq":
-			err := ValidateStrArrayPayload(&em)
-			if err != nil {
-				return c.JSON(http.StatusBadRequest, nil)
-			}
-		}
+	err := ValidateEvalOps(t.EvalFn)
+	if err != nil {
+		log.Err(err).Msg("failed to validate eval")
+		return c.JSON(http.StatusBadRequest, nil)
 	}
-	err := artemis_orchestrations.InsertOrUpdateEvalFnWithMetrics(c.Request().Context(), ou, &t.EvalFn)
+	err = artemis_orchestrations.InsertOrUpdateEvalFnWithMetrics(c.Request().Context(), ou, &t.EvalFn)
 	if err != nil {
 		log.Err(err).Msg("failed to insert evals")
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -82,5 +63,64 @@ func ValidateStrArrayPayload(em *artemis_orchestrations.EvalMetric) error {
 	}
 	em.EvalComparisonNumber = &fv
 	em.EvalComparisonString = nil
+	return nil
+}
+
+func ValidateEvalOps(ef artemis_orchestrations.EvalFn) error {
+	for _, evf := range ef.Schemas {
+		if evf.SchemaID <= 0 {
+			return errors.New("invalid schema id")
+		}
+		for _, fe := range evf.Fields {
+			if len(fe.FieldName) <= 0 {
+				return errors.New("invalid field name")
+			}
+			if len(fe.DataType) <= 0 {
+				return errors.New("invalid field type")
+			}
+			err := ValidateEvalMetricOps(fe.EvalMetric)
+			if err != nil {
+				log.Err(err).Msg("failed to validate eval")
+				return err
+			}
+		}
+	}
+	for _, em := range ef.EvalMetrics {
+		err := ValidateEvalMetricOps(em)
+		if err != nil {
+			log.Err(err).Msg("failed to validate eval")
+			return err
+		}
+	}
+	return nil
+}
+
+func ValidateEvalMetricOps(em artemis_orchestrations.EvalMetric) error {
+	switch em.EvalMetricDataType + "-" + em.EvalOperator {
+	case "array[string]" + "-" + "length-less-than":
+		err := ValidateStrArrayPayload(&em)
+		if err != nil {
+			log.Err(err).Msg("failed to validate eval")
+			return err
+		}
+	case "array[string]" + "-" + "length-less-than-eq":
+		err := ValidateStrArrayPayload(&em)
+		if err != nil {
+			log.Err(err).Msg("failed to validate eval")
+			return err
+		}
+	case "array[string]" + "-" + "length-greater-than":
+		err := ValidateStrArrayPayload(&em)
+		if err != nil {
+			log.Err(err).Msg("failed to validate eval")
+			return err
+		}
+	case "array[string]" + "-" + "length-greater-than-eq":
+		err := ValidateStrArrayPayload(&em)
+		if err != nil {
+			log.Err(err).Msg("failed to validate eval")
+			return err
+		}
+	}
 	return nil
 }

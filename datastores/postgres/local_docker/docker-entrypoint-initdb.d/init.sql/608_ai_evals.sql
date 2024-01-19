@@ -9,6 +9,7 @@ CREATE TABLE public.eval_fns(
     eval_format text NOT NULL
 );
 
+CREATE INDEX eval_id_ind ON public.eval_fns("eval_id");
 CREATE INDEX eval_fns_oid_ind ON public.eval_fns("org_id");
 CREATE INDEX eval_fns_uid_ind ON public.eval_fns("user_id");
 CREATE INDEX eval_fns_name_ind ON public.eval_fns("eval_name");
@@ -31,6 +32,8 @@ CREATE TABLE public.eval_metrics(
     eval_state text NOT NULL
 );
 ALTER TABLE "public"."eval_metrics" ADD CONSTRAINT "eval_metrics_fn_uniq" UNIQUE ("eval_id", "eval_metric_id");
+CREATE INDEX eval_metrics_name_idx ON public.eval_metrics("eval_metric_name");
+CREATE INDEX eval_metric_id_indx ON public.eval_metrics("eval_metric_id");
 
 CREATE TABLE public.eval_metrics_results(
     eval_metrics_result_id int8 NOT NULL DEFAULT next_id() PRIMARY KEY,

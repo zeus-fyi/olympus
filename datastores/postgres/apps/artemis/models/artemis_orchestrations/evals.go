@@ -31,6 +31,7 @@ type EvalFn struct {
 }
 
 type EvalMetric struct {
+	JsonSchemaID          *int     `json:"jsonSchemaID,omitempty"`
 	EvalMetricID          *int     `json:"evalMetricID"`
 	EvalModelPrompt       string   `json:"evalModelPrompt"`
 	EvalMetricName        string   `json:"evalMetricName"`
@@ -257,6 +258,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 	}
 	return nil
 }
+
 func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFnID int) ([]EvalFn, error) {
 	params := []interface{}{
 		ou.OrgID,
@@ -272,7 +274,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
          SELECT	f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format,
                 COALESCE(m.eval_metric_id, 0) AS eval_metric_id,
 				COALESCE(m.eval_model_prompt, '') AS eval_model_prompt,
-				COALESCE(m.eval_metric_name, '') AS eval_metric_name,
+				COALESCE(jsf.field_name, m.eval_metric_name, '') AS eval_metric_name,
 				COALESCE(m.eval_metric_result, '') AS eval_metric_result,
 				COALESCE(m.eval_comparison_boolean, FALSE) AS eval_comparison_boolean,
 				COALESCE(m.eval_comparison_number, 0.0) AS eval_comparison_number,
@@ -280,18 +282,23 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				COALESCE(m.eval_metric_data_type, '') AS eval_metric_data_type,
 				COALESCE(m.eval_operator, '') AS eval_operator,
 				COALESCE(m.eval_state, '') AS eval_state,
-			   	COALESCE(tab.trigger_id, 0),
-				COALESCE(tab.trigger_name, ''),
-				COALESCE(tab.trigger_group, ''),
- 			   	COALESCE(tab.trigger_action, ''),
-				COALESCE(ta.eval_trigger_state, ''),
-				COALESCE(ta.eval_results_trigger_on, '')
+			   	COALESCE(tab.trigger_id, 0) AS trigger_id,
+				COALESCE(tab.trigger_name, '') AS trigger_name,
+				COALESCE(tab.trigger_group, '') AS trigger_group,
+ 			   	COALESCE(tab.trigger_action, '') AS trigger_action,
+				COALESCE(ta.eval_trigger_state, '') AS eval_trigger_state,
+				COALESCE(ta.eval_results_trigger_on, '') AS eval_results_trigger_on,
+				jsf.schema_id
         FROM public.eval_fns f
         LEFT JOIN public.eval_metrics m ON f.eval_id = m.eval_id
         LEFT JOIN public.ai_trigger_actions_evals tae ON f.eval_id = tae.eval_id
 		LEFT JOIN public.ai_trigger_eval ta ON ta.trigger_id = tae.trigger_id
 		LEFT JOIN public.ai_trigger_actions tab ON tab.trigger_id = ta.trigger_id
+ 		LEFT JOIN public.ai_json_eval_schemas jes ON f.eval_id = jes.eval_id
+		LEFT JOIN public.ai_json_schema_definitions jsd ON jes.schema_id = jsd.schema_id
+		LEFT JOIN public.ai_json_schema_fields jsf ON jsd.schema_id = jsf.schema_id AND m.eval_metric_name = jsf.field_name
         WHERE f.org_id = $1 ` + addOnQuery + `
+		GROUP BY f.eval_id, eval_metric_id, jsf.schema_id, tab.trigger_id, ta.eval_trigger_state,ta.eval_results_trigger_on,jsf.field_name
     )
     SELECT * FROM eval_fns_with_metrics;`
 
@@ -314,7 +321,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			&em.EvalMetricID, &em.EvalModelPrompt, &em.EvalMetricName, &em.EvalMetricResult, &em.EvalComparisonBoolean,
 			&em.EvalComparisonNumber, &em.EvalComparisonString, &em.EvalMetricDataType, &em.EvalOperator, &em.EvalState,
 			&ta.TriggerID, &ta.TriggerName, &ta.TriggerGroup,
-			&ta.TriggerAction, &eta.EvalTriggerState, &eta.EvalResultsTriggerOn) // Scan for TriggerActions
+			&ta.TriggerAction, &eta.EvalTriggerState, &eta.EvalResultsTriggerOn, &em.JsonSchemaID)
 		if err != nil {
 			log.Err(err).Msg("failed to scan row")
 			return nil, err

@@ -21,6 +21,7 @@ CREATE TABLE public.ai_trigger_eval(
     eval_results_trigger_on text NOT NULL,
     PRIMARY KEY (trigger_id)
 );
+CREATE INDEX ai_trigger_eval_trigger_index ON public.ai_trigger_eval("trigger_id");
 
 CREATE TABLE public.ai_trigger_actions_evals(
     eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),
@@ -39,7 +40,6 @@ CREATE TABLE public.ai_trigger_actions_approval(
     request_summary text NOT NULL,
     updated_at timestamptz  NOT NULL DEFAULT NOW()
 );
-
 CREATE INDEX ai_trigger_actions_approval_eval_source ON public.ai_trigger_actions_approval("eval_id");
 CREATE INDEX ai_trigger_actions_approval_trigger_id ON public.ai_trigger_actions_approval("trigger_id");
 CREATE INDEX ai_trigger_actions_approval_trigger_state ON public.ai_trigger_actions_approval("approval_state");

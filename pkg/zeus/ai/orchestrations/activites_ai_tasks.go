@@ -139,12 +139,12 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 }
 
 type ChatCompletionQueryResponse struct {
-	Prompt                      map[string]string                             `json:"prompt"`
-	Response                    openai.ChatCompletionResponse                 `json:"response"`
-	ResponseTaskID              int                                           `json:"responseTaskID,omitempty"`
-	FilteredMessages            *FilteredMessages                             `json:"filteredMessages,omitempty"`
-	FilteredSearchResults       []hera_search.SearchResult                    `json:"filteredSearchResults,omitempty"`
-	JsonResponseResults         []artemis_orchestrations.JsonSchemaDefinition `json:"jsonResponseResults,omitempty"`
+	Prompt                      map[string]string                                `json:"prompt"`
+	Response                    openai.ChatCompletionResponse                    `json:"response"`
+	ResponseTaskID              int                                              `json:"responseTaskID,omitempty"`
+	FilteredMessages            *FilteredMessages                                `json:"filteredMessages,omitempty"`
+	FilteredSearchResults       []hera_search.SearchResult                       `json:"filteredSearchResults,omitempty"`
+	JsonResponseResults         [][]*artemis_orchestrations.JsonSchemaDefinition `json:"jsonResponseResults,omitempty"`
 	*twitter.CreateTweetRequest `json:"twitterCreateTweetRequest,omitempty"`
 }
 

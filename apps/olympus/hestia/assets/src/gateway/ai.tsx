@@ -3,7 +3,6 @@ import inMemoryJWT from "../auth/InMemoryJWT";
 import {
     AiSearchParams,
     DeleteWorkflowsActionRequest,
-    EvalFn,
     PostCreateOrUpdateSearchIndexerRequest,
     PostRunsActionRequest,
     PostSearchIndexerActionsRequest,
@@ -13,6 +12,7 @@ import {
 } from "../redux/ai/ai.types";
 import {Assistant, Retrieval, TriggerAction, TriggerActionApprovalPutRequest} from "../redux/ai/ai.types2";
 import {JsonSchemaDefinition} from "../redux/ai/ai.types.schemas";
+import {EvalFn} from "../redux/ai/ai.eval.types";
 
 class AiApiGateway {
     async searchRequest(params: AiSearchParams): Promise<any> {

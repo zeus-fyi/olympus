@@ -26,3 +26,24 @@ CREATE TABLE public.ai_json_task_schemas(
 );
 
 CREATE INDEX idx_task_json_schema_id ON public.ai_json_task_schemas(task_id);
+
+CREATE TABLE public.ai_json_eval_schemas(
+    schema_id BIGINT NOT NULL REFERENCES ai_json_schema_definitions(schema_id),
+    eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),
+    PRIMARY KEY (schema_id, eval_id)
+);
+
+CREATE INDEX idx_eval_id_json_schema_id ON public.ai_json_eval_schemas(eval_id);
+
+-- Redefine the ai_json_eval_schemas table
+CREATE TABLE public.ai_json_eval_metric_schemas (
+     eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),
+     schema_id BIGINT NOT NULL REFERENCES ai_json_schema_definitions(schema_id),
+     field_name text NOT NULL,
+     eval_metric_id BIGINT NOT NULL REFERENCES eval_metrics(eval_metric_id),
+     PRIMARY KEY (eval_id, schema_id, field_name),
+     FOREIGN KEY (schema_id, field_name) REFERENCES ai_json_schema_fields(schema_id, field_name)
+);
+
+-- Create an index for the eval_id field
+CREATE INDEX idx_eval_id_on_ai_json_eval_metric_schemas ON public.ai_json_eval_metric_schemas(eval_id);

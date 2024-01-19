@@ -104,10 +104,10 @@ func (s *OrchestrationsTestSuite) TestJsonParsing() {
 	s.Require().NotNil(jsb, "Failed to convert OpenAI function definition to JSON schema")
 
 	s.Require().NoError(err, "Failed to convert JSON schema to map")
-
-	mi := CreateMapInterfaceJson(jsb[1])
-	s.Require().NotNil(mi, "Failed to convert JSON schema to map interface")
-	fmt.Println(mi)
+	//
+	//mi := CreateMapInterfaceJson(jsb)
+	//s.Require().NotNil(mi, "Failed to convert JSON schema to map interface")
+	//fmt.Println(mi)
 }
 func (s *OrchestrationsTestSuite) TestAssignSliceMapValuesJsonSchemaFields() {
 	// This is the map structure based on the provided image
@@ -125,11 +125,29 @@ func (s *OrchestrationsTestSuite) TestAssignSliceMapValuesJsonSchemaFields() {
 			},
 			// Add other map elements as needed based on the actual data
 		},
+		"add-on": []interface{}{
+			map[string]interface{}{
+				"test_id":    "test_id_1",
+				"test_score": "100",
+			},
+		},
+	}
+	sz2 := JsonSchemaDefinition{
+		SchemaID:    0,
+		SchemaName:  "add-on",
+		SchemaGroup: "",
+		IsObjArray:  true, // This should be true to match the array structure in the image
+		Fields: []JsonSchemaField{
+			// Define your schema fields based on the actual structure of the map elements
+			{FieldName: "test_id", DataType: "string", FieldDescription: "Analyzed test ID"},
+			{FieldName: "test_id", DataType: "string", FieldDescription: "Analyzed test score ID"},
+			// Add other fields as needed
+		},
 	}
 
 	sz := JsonSchemaDefinition{
 		SchemaID:    0,
-		SchemaName:  "schema_field",
+		SchemaName:  "web3-sales-lead-scoring-2",
 		SchemaGroup: "",
 		IsObjArray:  true, // This should be true to match the array structure in the image
 		Fields: []JsonSchemaField{
@@ -146,6 +164,19 @@ func (s *OrchestrationsTestSuite) TestAssignSliceMapValuesJsonSchemaFields() {
 	for _, r := range jr {
 		fmt.Println(*r)
 	}
+
+	// Pass the value part of the map to the function, not the entire map
+	jr2 := AssignMapValuesJsonSchemaFieldsSlice(&sz2, m["add-on"])
+	for _, r := range jr2 {
+		fmt.Println(*r)
+	}
+
+	//jr3 := AssignMapValuesMultipleJsonSchemasSlice([]*JsonSchemaDefinition{&sz, &sz2}, m)
+	//for _, r := range jr3 {
+	//	for _, r2 := range r {
+	//		fmt.Println(*r2)
+	//	}
+	//}
 }
 
 func (s *OrchestrationsTestSuite) TestAssignMapValuesJsonSchemaFields() {

@@ -19,8 +19,8 @@ func (t *ZeusWorkerTestSuite) TestJsonAggJoins() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(sr)
 
-	if len(sr) > 20 {
-		sr = sr[:20]
+	if len(sr) > 15 {
+		sr = sr[:15]
 	}
 	msgMap := make(map[int]bool)
 	for _, v := range sr {
@@ -53,7 +53,7 @@ func (t *ZeusWorkerTestSuite) TestJsonAggJoins() {
 	t.Require().Nil(err)
 	t.Require().NotNil(b)
 
-	model := Gpt4JsonModel
+	model := Gpt3JsonModel
 	pr := &PromptReduction{
 		MarginBuffer:          0.5,
 		TokenOverflowStrategy: OverflowStrategyTruncate,

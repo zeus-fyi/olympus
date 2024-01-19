@@ -22,35 +22,57 @@ type JsonSchemaDefinition struct {
 }
 
 type JsonSchemaField struct {
-	FieldName         string    `db:"field_name" json:"fieldName"`
-	FieldDescription  string    `db:"field_description" json:"fieldDescription"`
-	DataType          string    `db:"data_type" json:"dataType"`
-	IntValue          *int      `db:"-" json:"intValue,omitempty"`
-	StringValue       *string   `db:"-" json:"stringValue,omitempty"`
-	NumberValue       *float64  `db:"-" json:"numberValue,omitempty"`
-	BooleanValue      *bool     `db:"-" json:"booleanValue,omitempty"`
-	IntValueSlice     []int     `db:"-" json:"intValueSlice,omitempty"`
-	StringValueSlice  []string  `db:"-" json:"stringValueSlice,omitempty"`
-	NumberValueSlice  []float64 `db:"-" json:"numberValueSlice,omitempty"`
-	BooleanValueSlice []bool    `db:"-" json:"booleanValueSlice,omitempty"`
+	FieldName         string     `db:"field_name" json:"fieldName"`
+	FieldDescription  string     `db:"field_description" json:"fieldDescription"`
+	DataType          string     `db:"data_type" json:"dataType"`
+	IntValue          *int       `db:"-" json:"intValue,omitempty"`
+	StringValue       *string    `db:"-" json:"stringValue,omitempty"`
+	NumberValue       *float64   `db:"-" json:"numberValue,omitempty"`
+	BooleanValue      *bool      `db:"-" json:"booleanValue,omitempty"`
+	IntValueSlice     []int      `db:"-" json:"intValueSlice,omitempty"`
+	StringValueSlice  []string   `db:"-" json:"stringValueSlice,omitempty"`
+	NumberValueSlice  []float64  `db:"-" json:"numberValueSlice,omitempty"`
+	BooleanValueSlice []bool     `db:"-" json:"booleanValueSlice,omitempty"`
+	EvalMetric        EvalMetric `db:"-" json:"evalMetric,omitempty"`
 }
 
-func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m interface{}) []*JsonSchemaDefinition {
+func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any) [][]*JsonSchemaDefinition {
+	var responses [][]*JsonSchemaDefinition
+	mis, ok := ms.([]map[string]interface{})
+	msng, ook := ms.(map[string]interface{})
+	for _, sz := range szs {
+		if ok {
+			for _, mi := range mis {
+				responses = append(responses, AssignMapValuesJsonSchemaFieldsSlice(sz, mi))
+			}
+		} else if ook {
+			responses = append(responses, AssignMapValuesJsonSchemaFieldsSlice(sz, msng))
+		}
+	}
+	return responses
+}
+
+func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m any) []*JsonSchemaDefinition {
 	if sz == nil {
 		return nil
 	}
 	var schemas []*JsonSchemaDefinition
 	if sz.IsObjArray {
 		// Handle case where sz is an array of objects
-		sliceOfMaps, ok := m.([]interface{})
+		sliceOfMaps, ok := m.(map[string]interface{})
 		if !ok {
 			return nil // or handle the error as you see fit
 		}
-
 		for _, v := range sliceOfMaps {
-			if mv, rok := v.(map[string]interface{}); rok {
-				jsd := AssignMapValuesJsonSchemaFields(sz, mv)
-				schemas = append(schemas, jsd)
+			vi, vok := v.([]interface{})
+			if vok {
+				for i, _ := range vi {
+					vmi, bok := vi[i].(map[string]interface{})
+					if bok {
+						jsd := AssignMapValuesJsonSchemaFields(sz, vmi)
+						schemas = append(schemas, jsd)
+					}
+				}
 			}
 		}
 	} else {
@@ -58,7 +80,7 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m interface{
 		jsd := AssignMapValuesJsonSchemaFields(sz, m.(map[string]interface{}))
 		schemas = append(schemas, jsd)
 	}
-	return []*JsonSchemaDefinition{sz}
+	return schemas
 }
 
 func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]interface{}) *JsonSchemaDefinition {
@@ -376,8 +398,8 @@ func jsonSchemaDataType(t jsonschema.DataType) string {
 	}
 }
 
-func ConvertToJsonSchema(fd openai.FunctionDefinition) []JsonSchemaDefinition {
-	var schemas []JsonSchemaDefinition
+func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
+	var schemas []*JsonSchemaDefinition
 	jsd, oks := fd.Parameters.(jsonschema.Definition)
 	if !oks {
 		log.Error().Msg("failed to convert to jsonschema.Definition")
@@ -385,7 +407,7 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []JsonSchemaDefinition {
 	}
 	// Iterate through the properties of the FunctionDefinition
 	for name, def := range jsd.Properties {
-		schema := JsonSchemaDefinition{
+		schema := &JsonSchemaDefinition{
 			SchemaName: name,
 			Fields:     []JsonSchemaField{},
 		}

@@ -21,6 +21,7 @@ import {
     CardContent,
     Collapse,
     FormControl,
+    Grid,
     InputLabel,
     MenuItem,
     Select,
@@ -54,7 +55,7 @@ import {
     setAnalysisRetrievalsMap,
     setEditAggregateTask,
     setEditAnalysisTask,
-    setEval,
+    setEvalFn,
     setEvalFns,
     setEvalMap,
     setEvalMetric,
@@ -74,13 +75,7 @@ import {
     updateEvalMetrics,
 } from "../../redux/ai/ai.reducer";
 import {aiApiGateway} from "../../gateway/ai";
-import {
-    DeleteWorkflowsActionRequest,
-    EvalFn,
-    EvalMetric,
-    PostWorkflowsRequest,
-    TaskModelInstructions
-} from "../../redux/ai/ai.types";
+import {DeleteWorkflowsActionRequest, PostWorkflowsRequest, TaskModelInstructions} from "../../redux/ai/ai.types";
 import {TasksTable} from "./TasksTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {RetrievalsTable} from "./RetrievalsTable";
@@ -95,6 +90,7 @@ import {Retrieval, TriggerAction} from "../../redux/ai/ai.types2";
 import {SchemasTable} from "./SchemasTable";
 import {Schemas} from "./Schemas";
 import {JsonSchemaDefinition, JsonSchemaField} from "../../redux/ai/ai.types.schemas";
+import {EvalFn, EvalMetric} from "../../redux/ai/ai.eval.types";
 
 const mdTheme = createTheme();
 
@@ -160,6 +156,29 @@ function WorkflowEngineBuilder(props: any) {
     const [toggleEvalToTaskType, setToggleEvalToTaskType] = useState<boolean>(false); // Or use an object/array for multiple sections
     const editAnalysisTask = useSelector((state: any) => state.ai.editAnalysisTask);
     const editAggregateTask = useSelector((state: any) => state.ai.editAggregateTask);
+
+    const dispatchUpdateField = (dataIndex: number, fieldIndex: number, updatedField: JsonSchemaField) => {
+        const updatedSchemas = evalFn.schemas.map((schema: JsonSchemaDefinition, idx: number) => {
+            if (idx === dataIndex) {
+                return {
+                    ...schema,
+                    fields: schema.fields.map((field: JsonSchemaField, fIdx: number) => {
+                        if (fIdx === fieldIndex) {
+                            return updatedField;
+                        }
+                        return field;
+                    })
+                };
+            }
+            return schema;
+        });
+        // console.log('updatedSchemas', updatedSchemas)
+        dispatch(setEvalFn({
+            ...evalFn,
+            schemas: updatedSchemas
+        }));
+    };
+
     const setToggleEvalTaskType = () => {
         setToggleEvalToTaskType(!toggleEvalToTaskType);
     };
@@ -377,7 +396,7 @@ function WorkflowEngineBuilder(props: any) {
     }
     const handleRemoveTriggerFromEvalFn = async (event: any, triggerRemove: TriggerAction) => {
         const newTriggerFunctions = evalFn.triggerFunctions.filter((trigger: TriggerAction) => trigger.triggerID !== triggerRemove.triggerID);
-        dispatch(setEval({
+        dispatch(setEvalFn({
             ...evalFn, // Spread the existing action properties
             triggerFunctions: newTriggerFunctions// Update the actionName
         }))
@@ -400,13 +419,13 @@ function WorkflowEngineBuilder(props: any) {
                 const updatedTriggerFunctions: TriggerAction[] = [...evalFn.triggerFunctions, ...newTriggersToAdd];
 
                 // Dispatch the updated evalFn
-                dispatch(setEval({
+                dispatch(setEvalFn({
                     ...evalFn, // Spread the existing action properties
                     triggerFunctions: updatedTriggerFunctions // Update with combined triggers
                 }));
             } else {
                 // Dispatch the updated evalFn
-                dispatch(setEval({
+                dispatch(setEvalFn({
                     ...evalFn, // Spread the existing action properties
                     triggerFunctions: selectedTriggers // Update with combined triggers
                 }));
@@ -556,14 +575,27 @@ function WorkflowEngineBuilder(props: any) {
         const selectedSchemas: JsonSchemaDefinition[] = Object.keys(selected)
             .filter(key => selected[Number(key)])
             .map(key => schemas[Number(key)]);
-
-        if (taskType === 'analysis') {
+        if (selectedMainTabBuilder === 4) {
+            dispatch(setEvalFn({ ...evalFn, schemas: selectedSchemas }))
+        } else if (taskType === 'analysis') {
             dispatch(setEditAnalysisTask({ ...editAnalysisTask, schemas: selectedSchemas }))
         } else if (taskType === 'aggregation') {
             dispatch(setEditAggregateTask({ ...editAggregateTask, schemas: selectedSchemas }))
         }
     }
-
+    const addTriggersToEvalFn = async () => {
+        const toggle = !addTriggersToEvalFnView;
+        dispatch(setAddTriggersToEvalFnView(toggle));
+        if (toggle) {
+            dispatch(setAddSchemasView(false));
+            dispatch(setSelectedMainTabBuilder(5))
+            setSelected({});
+        } else {
+            dispatch(setSelectedMainTabBuilder(4))
+            setSelected({});
+        }
+        return
+    }
     const addSchemasViewToggle = async (event: any) => {
         const toggle = !addSchemasView;
         dispatch(setAddSchemasView(toggle));
@@ -577,11 +609,25 @@ function WorkflowEngineBuilder(props: any) {
         } else {
             setSelected({});
         }
+    }
 
+    const addSchemasViewToggleEvalFn = async (event: any) => {
+        const toggle = !addSchemasView;
+        dispatch(setAddSchemasView(toggle));
+        if (toggle) {
+            dispatch(setAddTriggersToEvalFnView(false));
+            dispatch(setSelectedMainTabBuilder(4))
+            setSelected({});
+        } else {
+            setSelected({});
+        }
     }
 
     const removeSchemasViewToggle = async (event: any, index: number) => {
-        if (taskType === 'analysis') {
+        if (selectedMainTabBuilder === 4) {
+            const updatedSchemas = evalFn.schemas.filter((_: JsonSchemaDefinition, i: number) => i !== index);
+            dispatch(setEvalFn({ ...evalFn, schemas: updatedSchemas }))
+        } else if (taskType === 'analysis') {
             const updatedSchemas = editAnalysisTask.schemas.filter((_: JsonSchemaDefinition, i: number) => i !== index);
             dispatch(setEditAnalysisTask({ ...editAnalysisTask, schemas: updatedSchemas }))
         } else if (taskType === 'aggregation') {
@@ -1007,31 +1053,6 @@ function WorkflowEngineBuilder(props: any) {
             setIsLoading(false);
         }
     }
-    // const addRetrievalStageView = async () => {
-    //     const toggle = !addRetrievalView;
-    //     dispatch(setAddAnalysisView(false));
-    //     dispatch(setAddAggregationView(false));
-    //     dispatch(setAddRetrievalView(toggle));
-    //     dispatch(setAddEvalFnsView(false));
-    //     if (toggle) {
-    //         dispatch(setSelectedMainTabBuilder(3))
-    //         setSelected({});
-    //     } else {
-    //         dispatch(setSelectedMainTabBuilder(0))
-    //     }
-    // }
-    const addTriggersToEvalFn = async () => {
-        const toggle = !addTriggersToEvalFnView;
-        dispatch(setAddTriggersToEvalFnView(toggle));
-        if (toggle) {
-            dispatch(setSelectedMainTabBuilder(5))
-            setSelected({});
-        } else {
-            dispatch(setSelectedMainTabBuilder(4))
-            setSelected({});
-        }
-        return
-    }
 
     const createOrUpdateEval= async () => {
         try {
@@ -1164,6 +1185,12 @@ function WorkflowEngineBuilder(props: any) {
                 return acc;
             }, {});
             setSelected(newSelection);
+        } else if (selectedMainTabBuilder === 4 && addSchemasView)  {
+            const newSelection = schemas.reduce((acc: { [key: number]: boolean }, schema: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
         } else if (selectedMainTabBuilder === 4)  {
             const newSelection = evalFns.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
                 acc[index] = isChecked;
@@ -1275,7 +1302,7 @@ function WorkflowEngineBuilder(props: any) {
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Stack direction="row" spacing={2}>
-                            <Card sx={{ minWidth: 700, maxWidth: 1200 }}>
+                            <Card sx={{ minWidth: 800, maxWidth: 1400 }}>
                                 {( selectedMainTabBuilder === 0 || addAnalysisView || addAggregateView || addRetrievalView || addEvalsView) &&
                                     <div>
                                         <CardContent>
@@ -2404,7 +2431,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         <TextField
                                                             fullWidth
                                                             id="group-input"
-                                                            label={"Platform Groups"}
+                                                            label={ retrieval.retrievalItemInstruction.retrievalPlatform === 'reddit' ? "Subreddits" : retrieval.retrievalItemInstruction.retrievalPlatform === 'discord' ? "Channel" : "Platform Groups"}
                                                             variant="outlined"
                                                             value={retrieval.retrievalItemInstruction.retrievalPlatformGroups || ''}
                                                             onChange={(e) => {
@@ -2521,11 +2548,11 @@ function WorkflowEngineBuilder(props: any) {
                                                 {/*    </Box>*/}
                                                 {/*}*/}
 
-                                                {  retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'web' &&
-                                                    <Typography variant="h5" color="text.secondary">
-                                                        Describe how the AI should extract data from the website address.
-                                                    </Typography>
-                                                }
+                                                {/*{  retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'web' &&*/}
+                                                {/*    <Typography variant="h5" color="text.secondary">*/}
+                                                {/*        Describe how the AI should extract data from the website address.*/}
+                                                {/*    </Typography>*/}
+                                                {/*}*/}
                                                 {/*{ retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&*/}
                                                 {/*    <Typography variant="h5" color="text.secondary">*/}
                                                 {/*        Describe what you're looking for, and the AI will generate a list of keywords to search for after it runs for the first time.*/}
@@ -2549,28 +2576,32 @@ function WorkflowEngineBuilder(props: any) {
                                                 {/*            style={{ resize: "both", width: "100%" }}*/}
                                                 {/*        />*/}
                                                 {/*    </Box>*/}
+                                                {  retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
+                                                    <div>
                                                     <Typography variant="h5" color="text.secondary">
-                                                        Add search keywords using comma separated values below.
-                                                    </Typography>
-                                                    <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
-                                                        <TextField
-                                                            fullWidth
-                                                            id="keywords-input"
-                                                            label="Keywords"
-                                                            variant="outlined"
-                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
-                                                            onChange={(e) => {
-                                                                const updatedRetrieval = {
-                                                                    ...retrieval,
-                                                                    retrievalItemInstruction: {
-                                                                        ...retrieval.retrievalItemInstruction,
-                                                                        retrievalKeywords: e.target.value
-                                                                    }
-                                                                };
-                                                                dispatch(setRetrieval(updatedRetrieval));
-                                                            }}
-                                                        />
-                                                    </Box>
+                                                            Optionally add search keywords using comma separated values below.
+                                                        </Typography>
+                                                        <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="keywords-input"
+                                                                label="Keywords"
+                                                                variant="outlined"
+                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
+                                                                onChange={(e) => {
+                                                                    const updatedRetrieval = {
+                                                                        ...retrieval,
+                                                                        retrievalItemInstruction: {
+                                                                            ...retrieval.retrievalItemInstruction,
+                                                                            retrievalKeywords: e.target.value
+                                                                        }
+                                                                    };
+                                                                    dispatch(setRetrieval(updatedRetrieval));
+                                                                }}
+                                                            />
+                                                        </Box>
+                                                    </div>
+                                                }
                                                     {requestRetrievalStatus != '' && (
                                                         <Container sx={{ mb: 2, mt: -2}}>
                                                             <Typography variant="h6" color={requestRetrievalStatusError}>
@@ -2868,7 +2899,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Eval Name"
                                                                 variant="outlined"
                                                                 value={evalFn &&  evalFn.evalName}
-                                                                onChange={(e) => dispatch(setEval({
+                                                                onChange={(e) => dispatch(setEvalFn({
                                                                     ...evalFn, // Spread the existing action properties
                                                                     evalName: e.target.value // Update the actionName
                                                                 }))}
@@ -2881,7 +2912,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Eval Group"
                                                                 variant="outlined"
                                                                 value={evalFn && evalFn.evalGroupName}
-                                                                onChange={(e) => dispatch(setEval({
+                                                                onChange={(e) => dispatch(setEvalFn({
                                                                     ...evalFn, // Spread the existing action properties
                                                                     evalGroupName: e.target.value // Update the actionName
                                                                 }))}
@@ -2896,7 +2927,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     value={evalFn && evalFn.evalType}
                                                                     label="Eval Type"
                                                                     fullWidth
-                                                                    onChange={(e) => dispatch(setEval({
+                                                                    onChange={(e) => dispatch(setEvalFn({
                                                                         ...evalFn, // Spread the existing action properties
                                                                         evalType: e.target.value // Update the actionName
                                                                     }))}
@@ -2918,7 +2949,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     id="eval-model-select"
                                                                     value={evalFn.evalModel}
                                                                     label="Eval Model"
-                                                                    onChange={(e) => dispatch(setEval({
+                                                                    onChange={(e) => dispatch(setEvalFn({
                                                                         ...evalFn, // Spread the existing action properties
                                                                         evalModel: e.target.value // Update the actionName
                                                                     }))}
@@ -2936,7 +2967,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     id="eval-format-select"
                                                                     value={evalFn.evalFormat}
                                                                     label="Eval Model"
-                                                                    onChange={(e) => dispatch(setEval({
+                                                                    onChange={(e) => dispatch(setEvalFn({
                                                                         ...evalFn, // Spread the existing action properties
                                                                         evalFormat: e.target.value // Update the actionName
                                                                     }))}
@@ -2948,6 +2979,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                     </Stack>
                                                     }
+                                                    { evalFn && evalFn.evalType === 'deprecated' &&
                                                     <Stack direction="column" >
                                                         <Stack direction="row" >
                                                             <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:2  }}>
@@ -3160,7 +3192,405 @@ function WorkflowEngineBuilder(props: any) {
                                                                 />
                                                             </Box>
                                                         }
-                                                        </Stack>
+                                                    </Stack>
+                                                    }
+                                                    {evalFn.schemas && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
+                                                        <div key={dataIndex}>
+                                                            <Stack direction="row">
+                                                                <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id={`schema-${dataIndex}`}
+                                                                        label={`Schema-Name-${dataIndex}`}
+                                                                        variant="outlined"
+                                                                        value={data.schemaName}
+                                                                        InputProps={{ readOnly: true }}
+                                                                    />
+                                                                </Box>
+                                                                <Box sx={{ mb: 2, mt: 2, ml: 2, width: '50%' }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id={`schema-group-${dataIndex}`}
+                                                                        label={`Schema-Group-${dataIndex}`}
+                                                                        variant="outlined"
+                                                                        value={data.schemaGroup}
+                                                                        InputProps={{ readOnly: true }}
+                                                                    />
+                                                                </Box>
+                                                                <Box sx={{ mb: 2, mt: 2, ml: 2, width: '50%' }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id={`schema-type-${dataIndex}`}
+                                                                        label={`Schema-Type-${dataIndex}`}
+                                                                        variant="outlined"
+                                                                        value={data.isObjArray ? 'object[array]' : 'object'}
+                                                                        InputProps={{ readOnly: true }}
+                                                                    />
+                                                                </Box>
+                                                                <Box sx={{ ml: 2, mb: 2, mt: 3 }}>
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        id={`sm-button-${dataIndex}`}
+                                                                        color="primary"
+                                                                        onClick={(e) => removeSchemasViewToggle(e, dataIndex)}
+                                                                    >
+                                                                        Remove
+                                                                    </Button>
+                                                                </Box>
+                                                            </Stack>
+                                                            <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                                                <Divider/>
+                                                            </Box>
+                                                            {data.fields && data.fields.map((field: JsonSchemaField, fieldIndex: number) => (
+                                                            <React.Fragment key={fieldIndex}>
+                                                                <Grid container alignItems="center">
+                                                                    <Grid item xs={12} sm={3}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id={`field-metric-name-${dataIndex}-${fieldIndex}`}
+                                                                            label="Eval Metric Name"
+                                                                            variant="outlined"
+                                                                            value={field.fieldName}
+                                                                            inputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Grid>
+                                                                    <Grid item xs={12} sm={2}>
+                                                                        <Box  sx={{ ml: 2, mr:0, mb: 0, mt: 0  }}>
+                                                                            <FormControl fullWidth>
+                                                                                <InputLabel id={`metric-state-operator-label-${dataIndex}-${fieldIndex}`}>Eval State</InputLabel>
+                                                                                <Select
+                                                                                    labelId={`metric-state-operator-label-${dataIndex}-${fieldIndex}`}
+                                                                                    id={`field-metric-operator-dt-${dataIndex}-${fieldIndex}`}
+                                                                                    value={field.evalMetric?.evalState || 'info'}
+                                                                                    label="Eval State"
+                                                                                    fullWidth
+                                                                                    onChange={(e) => {
+                                                                                        let updatedEvalMetric = field.evalMetric ? {
+                                                                                            ...field.evalMetric,
+                                                                                            evalState: e.target.value
+                                                                                        } : {
+                                                                                            evalMetricID: undefined,
+                                                                                            evalModelPrompt: '',
+                                                                                            evalMetricName: field.fieldName,
+                                                                                            evalMetricResult: '',
+                                                                                            evalComparisonBoolean: undefined,
+                                                                                            evalComparisonNumber: undefined,
+                                                                                            evalComparisonString: '',
+                                                                                            evalMetricDataType: field.dataType,
+                                                                                            evalOperator: '',
+                                                                                            evalState: e.target.value,
+                                                                                        };
+    
+                                                                                        const updatedField: JsonSchemaField = {
+                                                                                            ...field,
+                                                                                            evalMetric: updatedEvalMetric
+                                                                                        };
+                                                                                        dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                    }}
+                                                                                >
+                                                                                    <MenuItem value="info">{'info'}</MenuItem>
+                                                                                    <MenuItem value="filter">{'filter'}</MenuItem>
+                                                                                    {/*<MenuItem value="optional">{'optional'}</MenuItem>*/}
+                                                                                    {/*<MenuItem value="warning">{'warning'}</MenuItem>*/}
+                                                                                    {/*<MenuItem value="critical">{'critical'}</MenuItem>*/}
+                                                                                    <MenuItem value="error">{'error'}</MenuItem>
+                                                                                </Select>
+                                                                            </FormControl>
+                                                                        </Box>  
+                                                                    </Grid>
+                                                                    <Grid item xs={12} sm={2}>
+                                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>
+                                                                            <FormControl fullWidth>
+                                                                                <InputLabel id="eval-result">Result</InputLabel>
+                                                                                <Select
+                                                                                    labelId="eval-result-label"
+                                                                                    id={`field-eval-metric-result-${dataIndex}-${fieldIndex}`}
+                                                                                    value={field.evalMetric && field.evalMetric.evalMetricResult || 'ignore'}
+                                                                                    label="Result"
+                                                                                    fullWidth
+                                                                                    onChange={(e) => {
+                                                                                        let updatedEvalMetric = field.evalMetric ? {
+                                                                                            ...field.evalMetric,
+                                                                                            evalMetricResult: e.target.value
+                                                                                        } : {
+                                                                                            evalMetricID: undefined,
+                                                                                            evalModelPrompt: '',
+                                                                                            evalMetricName: field.fieldName,
+                                                                                            evalMetricResult: e.target.value,
+                                                                                            evalComparisonBoolean: undefined,
+                                                                                            evalComparisonNumber: undefined,
+                                                                                            evalComparisonString: '',
+                                                                                            evalMetricDataType: field.dataType,
+                                                                                            evalOperator: '',
+                                                                                            evalState: ''
+                                                                                        };
+                                                                                        const updatedField: JsonSchemaField = {
+                                                                                            ...field,
+                                                                                            evalMetric: updatedEvalMetric
+                                                                                        };
+                                                                                        dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                    }}
+                                                                                >
+                                                                                    <MenuItem value="pass">Pass</MenuItem>
+                                                                                    <MenuItem value="fail">Fail</MenuItem>
+                                                                                    <MenuItem value="ignore">Ignore</MenuItem>
+                                                                                </Select>
+                                                                            </FormControl>
+                                                                        </Box>
+                                                                    </Grid>
+                                                                </Grid>
+                                                                <Box  sx={{ ml: -2, mr:0, mb: 2, mt: 2  }}>
+                                                                <Grid container alignItems="center">
+                                                                    <Grid item xs={12} sm={1.5}>
+                                                                        <TextField
+                                                                            sx={{ ml: 2, mr:0  }}
+                                                                            fullWidth
+                                                                            id={`field-metric-name-dt-${dataIndex}-${fieldIndex}`}
+                                                                            label="Data Type"
+                                                                            variant="outlined"
+                                                                            value={field.dataType}
+                                                                            inputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Grid>
+                                                                    { (field.dataType  === 'string' || field.dataType  === 'array[string]') &&
+                                                                        <Grid item xs={12} sm={2}>
+                                                                            <Box flexGrow={2} sx={{ ml: 4, mr:0, mt: 0  }}>
+                                                                            <FormControl fullWidth>
+                                                                                <InputLabel id="metric-action-operator">Operator</InputLabel>
+                                                                                <Select
+                                                                                    labelId="metric-action-operator-label"
+                                                                                    id={`metric-action-operator-label-${dataIndex}-${fieldIndex}`}
+                                                                                    value={field.evalMetric?.evalOperator || ''}
+                                                                                    label="Metric Action Operator"
+                                                                                    fullWidth
+                                                                                    onChange={(e) => {
+                                                                                        let updatedEvalMetric = field.evalMetric ? {
+                                                                                            ...field.evalMetric,
+                                                                                            evalOperator: e.target.value
+                                                                                        } : {
+                                                                                            evalMetricID: undefined,
+                                                                                            evalModelPrompt: '',
+                                                                                            evalMetricName: field.fieldName,
+                                                                                            evalMetricResult: '',
+                                                                                            evalComparisonBoolean: undefined,
+                                                                                            evalComparisonNumber: undefined,
+                                                                                            evalComparisonString: '',
+                                                                                            evalMetricDataType: field.dataType,
+                                                                                            evalOperator: e.target.value,
+                                                                                            evalState: ''
+                                                                                        };
+
+                                                                                        const updatedField: JsonSchemaField = {
+                                                                                            ...field,
+                                                                                            evalMetric: updatedEvalMetric
+                                                                                        };
+                                                                                        dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                    }}
+                                                                                >
+                                                                                    {field.evalMetric?.evalMetricDataType === 'array[string]' &&
+                                                                                        <MenuItem value="all-unique-words">{'all-unique-words'}</MenuItem>
+                                                                                    }
+                                                                                    <MenuItem value="contains">{'contains'}</MenuItem>
+                                                                                    <MenuItem value="has-prefix">{'has-prefix'}</MenuItem>
+                                                                                    <MenuItem value="has-suffix">{'has-suffix'}</MenuItem>
+                                                                                    <MenuItem value="does-not-start-with-any">{'does-not-start-with'}</MenuItem>
+                                                                                    <MenuItem value="does-not-include">{'does-not-include'}</MenuItem>
+                                                                                    <MenuItem value="equals">{'equals'}</MenuItem>
+                                                                                    <MenuItem value="length-less-than">{'length-less-than'}</MenuItem>
+                                                                                    <MenuItem value="length-less-than-eq">{'length-less-than-eq'}</MenuItem>
+                                                                                    <MenuItem value="length-greater-than">{'length-greater-than'}</MenuItem>
+                                                                                    <MenuItem value="length-greater-than-eq">{'length-greater-than-eq'}</MenuItem>
+                                                                                    <MenuItem value="length-eq">{'length-eq'}</MenuItem>
+                                                                                </Select>
+                                                                            </FormControl>
+                                                                            </Box>
+                                                                        </Grid>
+                                                                        }
+                                                                        { (field.dataType === 'number' || field.dataType === 'array[number]') &&
+                                                                            <Grid item xs={12} sm={2}>
+                                                                                <Box flexGrow={3} sx={{ ml: 4, mr: 0 }}>
+                                                                                    <FormControl fullWidth>
+                                                                                        <InputLabel id="metric-action-operator">Operator</InputLabel>
+                                                                                        <Select
+                                                                                            labelId="metric-action-operator-label"
+                                                                                            id={`metric-action-operator-label-${dataIndex}-${fieldIndex}`}
+                                                                                            value={field.evalMetric?.evalOperator || ''}
+                                                                                            label="Metric Action Operator"
+                                                                                            fullWidth
+                                                                                            onChange={(e) => {
+                                                                                                let updatedEvalMetric;
+                                                                                                if (field.evalMetric) {
+                                                                                                    updatedEvalMetric = {
+                                                                                                        ...field.evalMetric,
+                                                                                                        evalOperator: e.target.value
+                                                                                                    };
+                                                                                                } else {
+                                                                                                    updatedEvalMetric = {
+                                                                                                        evalMetricID: undefined,
+                                                                                                        evalModelPrompt: '',
+                                                                                                        evalMetricName: field.fieldName,
+                                                                                                        evalMetricResult: '',
+                                                                                                        evalComparisonBoolean: undefined,
+                                                                                                        evalComparisonNumber: undefined,
+                                                                                                        evalComparisonString: '',
+                                                                                                        evalMetricDataType: field.dataType,
+                                                                                                        evalOperator: e.target.value,
+                                                                                                        evalState: ''
+                                                                                                    };
+                                                                                                }
+                                                                                                const updatedField: JsonSchemaField = {
+                                                                                                    ...field,
+                                                                                                    evalMetric: updatedEvalMetric
+                                                                                                };
+                                                                                                dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                            }}
+                                                                                        >
+                                                                                            <MenuItem value="gt">{'>'}</MenuItem>
+                                                                                            <MenuItem value="gte">{'>='}</MenuItem>
+                                                                                            <MenuItem value="lt">{'<'}</MenuItem>
+                                                                                            <MenuItem value="lte">{'<='}</MenuItem>
+                                                                                            <MenuItem value="eq">{'=='}</MenuItem>
+                                                                                        </Select>
+                                                                                    </FormControl>
+                                                                                </Box>
+                                                                            </Grid>
+                                                                        }
+                                                                        { (field.dataType === 'number'
+                                                                                || (field.evalMetric && field.evalMetric.evalOperator === 'unique-words')
+                                                                                || (field.evalMetric && field.evalMetric.evalOperator === 'length-eq')
+                                                                            ) &&
+                                                                            <Grid item xs={12} sm={2}>
+                                                                                <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>
+                                                                                    <TextField
+                                                                                        fullWidth
+                                                                                        id="eval-comparison-value"
+                                                                                        label="Comparison Value"
+                                                                                        variant="outlined"
+                                                                                        type={"number"}
+                                                                                        value={field.evalMetric && field.evalMetric.evalComparisonNumber || 0}
+                                                                                        onChange={(e) => {
+                                                                                            let updatedEvalMetric;
+                                                                                            if (field.evalMetric) {
+                                                                                                updatedEvalMetric = {
+                                                                                                    ...field.evalMetric,
+                                                                                                    evalComparisonNumber: Number(e.target.value)
+                                                                                                };
+                                                                                            } else {
+                                                                                                updatedEvalMetric = {
+                                                                                                    evalMetricID: undefined,
+
+                                                                                                    evalModelPrompt: '',
+                                                                                                    evalMetricName: field.fieldName,
+                                                                                                    evalMetricResult: '',
+                                                                                                    evalComparisonBoolean: undefined,
+                                                                                                    evalComparisonNumber: Number(e.target.value),
+                                                                                                    evalComparisonString: '',
+                                                                                                    evalMetricDataType: '',
+                                                                                                    evalOperator: '',
+                                                                                                    evalState: ''
+                                                                                                };
+                                                                                            }
+                                                                                            const updatedField: JsonSchemaField = {
+                                                                                                ...field,
+                                                                                                evalMetric: updatedEvalMetric
+                                                                                            };
+                                                                                            dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                        }}
+                                                                                    />
+                                                                                </Box>
+                                                                            </Grid>
+                                                                        }
+                                                                    {(field.dataType === 'boolean' || field.dataType === 'array[boolean]') &&
+                                                                        <Grid item xs={12} sm={2}>
+                                                                            <Box flexGrow={1} sx={{ mb: 0,ml: 4, mr:0  }}>
+                                                                                <FormControl fullWidth>
+                                                                                    <InputLabel id="metric-action-operator">Operator</InputLabel>
+                                                                                    <Select
+                                                                                        labelId="metric-action-operator-label"
+                                                                                        id="metric-action-operator-label"
+                                                                                        label="Metric Action Operator"
+                                                                                        fullWidth
+                                                                                        value={field.evalMetric && field.evalMetric.evalComparisonBoolean || 'false'}
+                                                                                        onChange={(e) => {
+                                                                                            const value = e.target.value === 'true'; // Convert string to boolean
+                                                                                            let updatedEvalMetric = field.evalMetric ? {
+                                                                                                ...field.evalMetric,
+                                                                                                evalComparisonBoolean: value
+                                                                                            } : {
+                                                                                                evalMetricID: undefined,
+                                                                                                evalModelPrompt: '',
+                                                                                                evalMetricName: field.fieldName,
+                                                                                                evalMetricResult: '',
+                                                                                                evalComparisonBoolean: value,
+                                                                                                evalComparisonNumber: undefined,
+                                                                                                evalComparisonString: undefined,
+                                                                                                evalMetricDataType: field.dataType,
+                                                                                                evalOperator: '',
+                                                                                                evalState: ''
+                                                                                            };
+
+                                                                                            const updatedField: JsonSchemaField = {
+                                                                                                ...field,
+                                                                                                evalMetric: updatedEvalMetric
+                                                                                            };
+                                                                                            dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                        }}
+                                                                                    >
+                                                                                        <MenuItem value="true">{'true'}</MenuItem>
+                                                                                        <MenuItem value="false">{'false'}</MenuItem>
+                                                                                    </Select>
+                                                                                </FormControl>
+                                                                            </Box>
+                                                                        </Grid>
+                                                                    }
+                                                                    { (field.dataType === 'string'|| field.dataType === 'array[string]') &&
+                                                                            (field.evalMetric && field.evalMetric.evalOperator !== 'all-unique-words') &&
+                                                                            (field.evalMetric && field.evalMetric.evalOperator != 'length-eq') &&
+                                                                            <Grid item xs={12} sm={2}>
+                                                                                <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>
+                                                                                    <TextField
+                                                                                        fullWidth
+                                                                                        id="eval-comparison-string"
+                                                                                        label="Comparison String"
+                                                                                        variant="outlined"
+                                                                                        value={field.evalMetric && field.evalMetric.evalComparisonString || ''}
+                                                                                        onChange={(e) => {
+                                                                                            let updatedEvalMetric = field.evalMetric ? {
+                                                                                                ...field.evalMetric,
+                                                                                                evalComparisonString: e.target.value
+                                                                                            } : {
+                                                                                                evalMetricID: undefined,
+                                                                                                evalModelPrompt: '',
+                                                                                                evalMetricName: field.fieldName,
+                                                                                                evalMetricResult: '',
+                                                                                                evalComparisonBoolean: undefined,
+                                                                                                evalComparisonNumber: undefined,
+                                                                                                evalComparisonString: e.target.value,
+                                                                                                evalMetricDataType: field.dataType,
+                                                                                                evalOperator: '',
+                                                                                                evalState: ''
+                                                                                            };
+
+                                                                                            const updatedField: JsonSchemaField = {
+                                                                                                ...field,
+                                                                                                evalMetric: updatedEvalMetric
+                                                                                            };
+                                                                                            dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                        }}
+                                                                                    />
+                                                                                </Box>
+                                                                            </Grid>
+                                                                        }
+                                                                </Grid>
+                                                                </Box>
+                                                                <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
+                                                                    <Divider/>
+                                                                </Box>
+                                                            </React.Fragment>
+
+                                                            ))}
+                                                        </div>
+                                                    ))}
                                                     {
                                                         !loading && action && evalFn.evalMetrics && evalFn.evalMetrics.map((metric: EvalMetric, index: number) => (
                                                             <Stack key={index} direction="column" sx={{ mt: 4, mb: 4, mr: 0 }}>
@@ -3248,6 +3678,13 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Stack>
                                                         ))
                                                     }
+                                                        <div>
+                                                            <Box  sx={{ mb: 4, mt: 0, ml: -1}}>
+                                                                <Button variant="contained" color="secondary" onClick={addSchemasViewToggleEvalFn} style={{marginLeft: '10px'}}>
+                                                                    { addSchemasView ? 'Done Adding':'Add Schemas' }
+                                                                </Button>
+                                                            </Box>
+                                                        </div>
                                                     <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                         <Divider/>
                                                     </Box>
@@ -3414,7 +3851,7 @@ function WorkflowEngineBuilder(props: any) {
                                     }
                                     { !addAnalysisView && !addAggregateView &&
                                         (selectedMainTabBuilder === 7 ||
-                                            ((selectedMainTabBuilder === 1 || selectedMainTabBuilder === 2) && addSchemasView) &&
+                                            ((selectedMainTabBuilder === 1 || selectedMainTabBuilder === 2 || selectedMainTabBuilder === 4) && addSchemasView) &&
                                             !loading && !addRetrievalView && !addEvalsView && !addTriggerActionsView && !addAssistantsView) &&
                                         <div>
                                             <Schemas schemaField={schemaField}
@@ -3538,7 +3975,7 @@ function WorkflowEngineBuilder(props: any) {
 
                         </div>
                     }
-                    { (selectedMainTabBuilder === 4) && !addTriggersToEvalFnView &&
+                    { (selectedMainTabBuilder === 4) && !addTriggersToEvalFnView && !addSchemasView &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <EvalsTable evalFns={evalFns} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />

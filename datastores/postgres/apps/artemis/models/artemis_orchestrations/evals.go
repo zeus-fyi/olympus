@@ -15,18 +15,19 @@ import (
 )
 
 type EvalFn struct {
-	EvalID         *int                  `json:"evalID,omitempty"`
-	OrgID          int                   `json:"orgID,omitempty"`
-	UserID         int                   `json:"userID,omitempty"`
-	EvalName       string                `json:"evalName"`
-	EvalType       string                `json:"evalType"`
-	EvalGroupName  string                `json:"evalGroupName"`
-	EvalModel      *string               `json:"evalModel,omitempty"`
-	EvalFormat     string                `json:"evalFormat"`
-	EvalMetrics    []EvalMetric          `json:"evalMetrics"`
-	EvalMetricMap  map[string]EvalMetric `json:"evalMetricMap,omitempty"`
-	EvalCycleCount int                   `json:"evalCycleCount,omitempty"`
-	TriggerActions []TriggerAction       `json:"triggerFunctions,omitempty"`
+	EvalID         *int                      `json:"evalID,omitempty"`
+	OrgID          int                       `json:"orgID,omitempty"`
+	UserID         int                       `json:"userID,omitempty"`
+	EvalName       string                    `json:"evalName"`
+	EvalType       string                    `json:"evalType"`
+	EvalGroupName  string                    `json:"evalGroupName"`
+	EvalModel      *string                   `json:"evalModel,omitempty"`
+	EvalFormat     string                    `json:"evalFormat"`
+	EvalMetrics    []EvalMetric              `json:"evalMetrics"`
+	EvalMetricMap  map[string]EvalMetric     `json:"evalMetricMap,omitempty"`
+	EvalCycleCount int                       `json:"evalCycleCount,omitempty"`
+	TriggerActions []TriggerAction           `json:"triggerFunctions,omitempty"`
+	Schemas        [][]*JsonSchemaDefinition `json:"schemas,omitempty"`
 }
 
 type EvalMetric struct {
@@ -325,6 +326,7 @@ type EvalMetricsResult struct {
 	EvalComparisonBoolean *bool           `json:"evalComparisonBoolean,omitempty"`
 	EvalComparisonNumber  *float64        `json:"evalComparisonNumber,omitempty"`
 	EvalComparisonString  *string         `json:"evalComparisonString,omitempty"`
+	EvalComparisonInt     *float64        `json:"evalComparisonInt,omitempty"`
 	EvalMetricDataType    string          `json:"evalMetricDataType"`
 	EvalOperator          string          `json:"evalOperator"`
 	EvalState             string          `json:"evalState"`

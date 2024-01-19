@@ -1,18 +1,16 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     AiState,
-    EvalFn,
-    EvalMetric,
     OrchestrationsAnalysis,
     PlatformSecretReference,
     SearchIndexerParams,
     TaskModelInstructions,
-    UpdateEvalMapPayload,
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
 } from "./ai.types";
 import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
+import {EvalFn, EvalMetric, UpdateEvalMapPayload} from "./ai.eval.types";
 
 const initialState: AiState = {
     addSchemasView: false,
@@ -143,6 +141,7 @@ const initialState: AiState = {
         evalModel: '',
         evalMetrics: [],
         triggerFunctions: [],
+        schemas: [],
     },
 
     evalFns: [],
@@ -224,7 +223,7 @@ const aiSlice = createSlice({
         setEditEvalFn: (state, action: PayloadAction<EvalFn>) => {
             state.editEvalFn = action.payload;
         },
-        setEval: (state, action: PayloadAction<EvalFn>) => {
+        setEvalFn: (state, action: PayloadAction<EvalFn>) => {
             state.evalFn = action.payload;
         },
         setEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
@@ -551,7 +550,7 @@ export const {
     // updateActionMetrics,
     // setActionMetric,
     setEvalMetric,
-    setEval,
+    setEvalFn,
     updateEvalMetrics,
     setEvalFns,
     setAddEvalFns,

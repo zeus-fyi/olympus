@@ -111,13 +111,13 @@ func (s *OrchestrationsTestSuite) TestInsertEval() {
 }
 
 func (s *OrchestrationsTestSuite) TestSelectEvals() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	// Example data for EvalFn and EvalMetrics
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	evs, err := SelectEvalFnsByOrgIDAndID(ctx, ou, 1703624059411640000)
+	evs, err := SelectEvalFnsByOrgIDAndID(ctx, ou, 1705177141444128000)
 	s.Require().Nil(err)
 	s.Require().NotNil(evs)
 }

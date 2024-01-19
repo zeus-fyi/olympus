@@ -5,7 +5,6 @@ import IconButton from "@mui/material/IconButton";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Checkbox from "@mui/material/Checkbox";
-import {EvalFn} from "../../redux/ai/ai.types";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
@@ -13,7 +12,8 @@ import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import Button from "@mui/material/Button";
 import {useDispatch} from "react-redux";
-import {setEval} from "../../redux/ai/ai.reducer";
+import {setEvalFn} from "../../redux/ai/ai.reducer";
+import {EvalFn} from "../../redux/ai/ai.eval.types";
 
 export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
@@ -21,7 +21,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
     const dispatch = useDispatch();
     const handleEditEvalFunction = async (e: any, ef: EvalFn) => {
         e.preventDefault();
-        dispatch(setEval(ef))
+        dispatch(setEvalFn(ef))
     }
     return (
         <React.Fragment>

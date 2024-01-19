@@ -102,3 +102,21 @@ func UnmarshallOpenAiJsonInterface(fn string, cr *ChatCompletionQueryResponse) (
 	}
 	return m, nil
 }
+
+func UnmarshallOpenAiJsonInterfaceSlice(fn string, cr *ChatCompletionQueryResponse) ([]map[string]interface{}, error) {
+	var results []map[string]interface{}
+	for _, cho := range cr.Response.Choices {
+		for _, tvr := range cho.Message.ToolCalls {
+			if tvr.Function.Name == fn {
+				m := make(map[string]interface{})
+				err := json.Unmarshal([]byte(tvr.Function.Arguments), &m)
+				if err != nil {
+					log.Err(err).Msg("failed to unmarshal json")
+					return nil, err
+				}
+				results = append(results, m)
+			}
+		}
+	}
+	return results, nil
+}

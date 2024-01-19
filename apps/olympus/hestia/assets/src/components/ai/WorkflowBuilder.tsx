@@ -2973,7 +2973,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }))}
                                                                 >
                                                                     {/*<MenuItem value="code">code</MenuItem>*/}
-                                                                    <MenuItem value="json">json</MenuItem>
+                                                                    <MenuItem value="json">JSON</MenuItem>
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>

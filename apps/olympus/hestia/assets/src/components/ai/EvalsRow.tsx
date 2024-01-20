@@ -77,6 +77,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                             <Table size="small" aria-label="sub-analysis">
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>Schema ID</TableCell>
                                         <TableCell>Metric ID</TableCell>
                                         <TableCell>Metric Name</TableCell>
                                         <TableCell>Description</TableCell>
@@ -89,6 +90,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                 <TableBody>
                                     {row.evalMetrics && row.evalMetrics.map((data, dataIndex) => (
                                         <TableRow key={data.evalMetricName}>
+                                            <TableCell>{data.jsonSchemaID ? data.jsonSchemaID : 'N/A'}</TableCell>
                                             <TableCell>{data.evalMetricID ? data.evalMetricID : 'N/A'}</TableCell>
                                             <TableCell>{data.evalMetricName}</TableCell>
                                             <TableCell>{data.evalModelPrompt}</TableCell>

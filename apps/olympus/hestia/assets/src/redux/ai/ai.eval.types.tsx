@@ -50,6 +50,7 @@ export interface EvalFn {
 }
 
 export interface EvalMetric {
+    jsonSchemaID?: number;
     evalMetricID?: number;
     evalModelPrompt: string;
     evalMetricName: string;

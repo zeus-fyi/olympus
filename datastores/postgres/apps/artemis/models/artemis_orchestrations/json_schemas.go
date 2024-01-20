@@ -22,18 +22,18 @@ type JsonSchemaDefinition struct {
 }
 
 type JsonSchemaField struct {
-	FieldName         string     `db:"field_name" json:"fieldName"`
-	FieldDescription  string     `db:"field_description" json:"fieldDescription"`
-	DataType          string     `db:"data_type" json:"dataType"`
-	IntValue          *int       `db:"-" json:"intValue,omitempty"`
-	StringValue       *string    `db:"-" json:"stringValue,omitempty"`
-	NumberValue       *float64   `db:"-" json:"numberValue,omitempty"`
-	BooleanValue      *bool      `db:"-" json:"booleanValue,omitempty"`
-	IntValueSlice     []int      `db:"-" json:"intValueSlice,omitempty"`
-	StringValueSlice  []string   `db:"-" json:"stringValueSlice,omitempty"`
-	NumberValueSlice  []float64  `db:"-" json:"numberValueSlice,omitempty"`
-	BooleanValueSlice []bool     `db:"-" json:"booleanValueSlice,omitempty"`
-	EvalMetric        EvalMetric `db:"-" json:"evalMetric,omitempty"`
+	FieldName         string      `db:"field_name" json:"fieldName"`
+	FieldDescription  string      `db:"field_description" json:"fieldDescription"`
+	DataType          string      `db:"data_type" json:"dataType"`
+	IntValue          *int        `db:"-" json:"intValue,omitempty"`
+	StringValue       *string     `db:"-" json:"stringValue,omitempty"`
+	NumberValue       *float64    `db:"-" json:"numberValue,omitempty"`
+	BooleanValue      *bool       `db:"-" json:"booleanValue,omitempty"`
+	IntValueSlice     []int       `db:"-" json:"intValueSlice,omitempty"`
+	StringValueSlice  []string    `db:"-" json:"stringValueSlice,omitempty"`
+	NumberValueSlice  []float64   `db:"-" json:"numberValueSlice,omitempty"`
+	BooleanValueSlice []bool      `db:"-" json:"booleanValueSlice,omitempty"`
+	EvalMetric        *EvalMetric `db:"-" json:"evalMetric,omitempty"`
 }
 
 func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any) [][]*JsonSchemaDefinition {
@@ -228,6 +228,8 @@ func CreateOrUpdateJsonSchema(ctx context.Context, ou org_users.OrgUser, schema 
 		log.Err(err).Msg("failed to delete old fields from ai_task_json_schema_fields")
 		return err
 	}
+	// TODO, delete & cleanup dangling eval metrics that are no longer in the schema
+
 	// Insert into ai_json_schema_fields
 	for _, field := range schema.Fields {
 		_, err = tx.Exec(ctx, `
@@ -443,7 +445,12 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 	return schemas
 }
 
-func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSchemaDefinition, error) {
+type JsonSchemasGroup struct {
+	Slice []JsonSchemaDefinition        `json:"jsonSchemaDefinitionsSlice,omitempty"`
+	Map   map[int]*JsonSchemaDefinition `json:"jsonSchemaDefinitionsMap,omitempty"`
+}
+
+func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) (*JsonSchemasGroup, error) {
 	var schemas []JsonSchemaDefinition
 	// Query to join json_schema_definitions and ai_task_json_schema_fields
 	query := `
@@ -489,6 +496,8 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) ([]JsonSch
 	for _, schema := range schemaMap {
 		schemas = append(schemas, *schema)
 	}
-
-	return schemas, nil
+	return &JsonSchemasGroup{
+		Slice: schemas,
+		Map:   schemaMap,
+	}, nil
 }

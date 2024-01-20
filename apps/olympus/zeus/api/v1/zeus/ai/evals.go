@@ -78,6 +78,7 @@ func ValidateEvalOps(ef artemis_orchestrations.EvalFn) error {
 			if len(fe.DataType) <= 0 {
 				return errors.New("invalid field type")
 			}
+
 			err := ValidateEvalMetricOps(fe.EvalMetric)
 			if err != nil {
 				log.Err(err).Msg("failed to validate eval")
@@ -86,7 +87,7 @@ func ValidateEvalOps(ef artemis_orchestrations.EvalFn) error {
 		}
 	}
 	for _, em := range ef.EvalMetrics {
-		err := ValidateEvalMetricOps(em)
+		err := ValidateEvalMetricOps(&em)
 		if err != nil {
 			log.Err(err).Msg("failed to validate eval")
 			return err
@@ -95,28 +96,31 @@ func ValidateEvalOps(ef artemis_orchestrations.EvalFn) error {
 	return nil
 }
 
-func ValidateEvalMetricOps(em artemis_orchestrations.EvalMetric) error {
+func ValidateEvalMetricOps(em *artemis_orchestrations.EvalMetric) error {
+	if em == nil {
+		return nil
+	}
 	switch em.EvalMetricDataType + "-" + em.EvalOperator {
 	case "array[string]" + "-" + "length-less-than":
-		err := ValidateStrArrayPayload(&em)
+		err := ValidateStrArrayPayload(em)
 		if err != nil {
 			log.Err(err).Msg("failed to validate eval")
 			return err
 		}
 	case "array[string]" + "-" + "length-less-than-eq":
-		err := ValidateStrArrayPayload(&em)
+		err := ValidateStrArrayPayload(em)
 		if err != nil {
 			log.Err(err).Msg("failed to validate eval")
 			return err
 		}
 	case "array[string]" + "-" + "length-greater-than":
-		err := ValidateStrArrayPayload(&em)
+		err := ValidateStrArrayPayload(em)
 		if err != nil {
 			log.Err(err).Msg("failed to validate eval")
 			return err
 		}
 	case "array[string]" + "-" + "length-greater-than-eq":
-		err := ValidateStrArrayPayload(&em)
+		err := ValidateStrArrayPayload(em)
 		if err != nil {
 			log.Err(err).Msg("failed to validate eval")
 			return err

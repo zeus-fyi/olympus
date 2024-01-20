@@ -90,7 +90,7 @@ func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchem() {
 						FieldName:        "aggregate_lead_score",
 						FieldDescription: "aggregate_lead_score description",
 						DataType:         "number",
-						EvalMetric: EvalMetric{
+						EvalMetric: &EvalMetric{
 							EvalMetricResult:     "pass",
 							EvalOperator:         "gt",
 							EvalComparisonNumber: aws.Float64(100),
@@ -101,7 +101,7 @@ func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchem() {
 						FieldName:        "lead_score_metrics",
 						FieldDescription: "lead_score_metrics description",
 						DataType:         "string",
-						EvalMetric: EvalMetric{
+						EvalMetric: &EvalMetric{
 							EvalMetricResult:     "ignore",
 							EvalOperator:         "equals",
 							EvalState:            "info",

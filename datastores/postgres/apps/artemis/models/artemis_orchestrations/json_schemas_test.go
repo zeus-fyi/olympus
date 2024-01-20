@@ -97,7 +97,7 @@ func (s *OrchestrationsTestSuite) TestJsonParsing() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	js, err := SelectJsonSchemaByOrg(ctx, ou)
 	s.Require().NoError(err, "Failed to select JSON schemas")
-	v := ConvertToFuncDef("fn", js)
+	v := ConvertToFuncDef("fn", js.Slice)
 	s.Require().NotNil(v, "Failed to convert JSON schema to OpenAI function definition")
 
 	jsb := ConvertToJsonSchema(v)

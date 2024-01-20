@@ -3592,7 +3592,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </div>
                                                     ))}
                                                     {
-                                                        !loading && action && evalFn.evalMetrics && evalFn.evalMetrics.map((metric: EvalMetric, index: number) => (
+                                                        !loading && action && evalFn.evalMetrics && evalFn.schemas.length <= 0 && evalFn.evalMetrics.map((metric: EvalMetric, index: number) => (
                                                             <Stack key={index} direction="column" sx={{ mt: 4, mb: 4, mr: 0 }}>
                                                                 <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
                                                                     {/* Metric Name */}
@@ -3665,16 +3665,16 @@ function WorkflowEngineBuilder(props: any) {
                                                                         </Box>
                                                                     </Stack>
                                                                 </Stack>
-                                                                <Box flexGrow={1} sx={{ ml: 0, mr: 12 }}>
-                                                                    <TextField
-                                                                        fullWidth
-                                                                        id={`eval-model-scoring-instruction-${index}`}
-                                                                        label="Model Scoring Instructions"
-                                                                        variant="outlined"
-                                                                        value={metric.evalModelPrompt}
-                                                                        inputProps={{ readOnly: true }}
-                                                                    />
-                                                                </Box>
+                                                                {/*<Box flexGrow={1} sx={{ ml: 0, mr: 12 }}>*/}
+                                                                {/*    <TextField*/}
+                                                                {/*        fullWidth*/}
+                                                                {/*        id={`eval-model-scoring-instruction-${index}`}*/}
+                                                                {/*        label="Model Scoring Instructions"*/}
+                                                                {/*        variant="outlined"*/}
+                                                                {/*        value={metric.evalModelPrompt}*/}
+                                                                {/*        inputProps={{ readOnly: true }}*/}
+                                                                {/*    />*/}
+                                                                {/*</Box>*/}
                                                             </Stack>
                                                         ))
                                                     }

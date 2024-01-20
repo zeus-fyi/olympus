@@ -2624,13 +2624,8 @@ function WorkflowEngineBuilder(props: any) {
                                                     Trigger Action Procedures
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    This allows you to setup event driven rules for AI systems. Email and text actions require a verified email and phone number.
-                                                    Contact us to use these outputs for now, as it currently requires semi-manual work from us to integrate you,
-                                                    and we require you to use a human-in-the loop to approve all AI orchestrated actions that communicate with the outside world.
-                                                    You'll need to generate metrics via the adaptive load balancer to use the metrics based actions. PromQL triggers are only available to enterprise users for now.
-                                                    You can add a trigger to any analysis or aggregation stage output. If you add multiple metrics to a trigger, it will only trigger if all metric thresholds are met.
-                                                    Post-trigger you can add an operator to the metric score to adjust the score before it is used in the trigger. Eg. you can multiply the score, or perform a general math
-                                                    operation on it.
+                                                    This allows you to setup event driven rules for AI systems. We require you to use a human-in-the loop trigger to approve all
+                                                    AI orchestrated actions that communicate messages with the outside world, on your behalf, such as social-media-engagement.
                                                 </Typography>
                                                 <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 0 }}>
                                                     <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
@@ -2674,7 +2669,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     //     ...action,
                                                                     // }))}
                                                                 >
-                                                                    <MenuItem value="eval">Eval</MenuItem>
+                                                                    <MenuItem value="eval">Eval Function</MenuItem>
                                                                     {/*<MenuItem value="metrics">Metrics</MenuItem>*/}
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}

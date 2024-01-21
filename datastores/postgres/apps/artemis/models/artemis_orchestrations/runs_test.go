@@ -6,7 +6,7 @@ import (
 )
 
 func (s *OrchestrationsTestSuite) TestSelectRuns() {
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID

@@ -13,21 +13,14 @@ import (
 )
 
 type AggregatedData struct {
-	WorkflowResultID      int             `json:"workflowResultId"`
-	ResponseID            int             `json:"responseId"`
-	SourceTaskID          int             `json:"sourceTaskId"`
-	TaskName              string          `json:"taskName"`
-	TaskType              string          `json:"taskType"`
-	Model                 string          `json:"model"`
-	RunningCycleNumber    int             `json:"runningCycleNumber"`
-	SearchWindowUnixStart int             `json:"searchWindowUnixStart"`
-	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd"`
-	Metadata              json.RawMessage `json:"metadata,omitempty"`
-	CompletionChoices     json.RawMessage `json:"completionChoices,omitempty"`
-	Prompt                json.RawMessage `json:"prompt,omitempty"`
-	PromptTokens          int             `json:"promptTokens"`
-	CompletionTokens      int             `json:"completionTokens"`
-	TotalTokens           int             `json:"totalTokens"`
+	AIWorkflowAnalysisResult
+	TaskName         string          `json:"taskName"`
+	TaskType         string          `json:"taskType"`
+	Model            string          `json:"model"`
+	Prompt           json.RawMessage `json:"prompt,omitempty"`
+	PromptTokens     int             `json:"promptTokens"`
+	CompletionTokens int             `json:"completionTokens"`
+	TotalTokens      int             `json:"totalTokens"`
 }
 
 type OrchestrationsAnalysis struct {
@@ -59,6 +52,8 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 									'workflowResultId', ai_res.workflow_result_id,
 									'responseId', ai_res.response_id,
 									'sourceTaskId', ai_res.source_task_id,
+									'iterationCount', ai_res.iteration_count,
+									'skipAnalysis', ai_res.skip_analysis,
 									'taskName', task_lib.task_name,
 									'taskType', task_lib.task_type,
 									'model', task_lib.model,

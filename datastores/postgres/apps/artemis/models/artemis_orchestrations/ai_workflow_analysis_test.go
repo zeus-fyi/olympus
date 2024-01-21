@@ -18,7 +18,7 @@ func (s *OrchestrationsTestSuite) TestInsertAiWorkflowAnalysisResult() {
 		RunningCycleNumber:    1,
 		SearchWindowUnixStart: 1701886760,
 		SearchWindowUnixEnd:   1701887760,
-		SkipAnalysis:          false,
+		SkipAnalysis:          true,
 		Metadata:              nil,
 		CompletionChoices:     nil,
 	}

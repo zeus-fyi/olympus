@@ -65,23 +65,33 @@ export function TasksRow(props: { row: TaskModelInstructions, index: number, han
                                                 <TableRow>
                                                     <TableCell>Group</TableCell>
                                                     <TableCell>Name</TableCell>
+                                                    <TableCell>Type</TableCell>
                                                     <TableCell>Fields</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {row.schemas && row.schemas.map((data, dataIndex) => (
-                                                    data &&
-                                                    <TableRow key={dataIndex}>
-                                                        <TableCell>{data.schemaGroup}</TableCell>
-                                                        <TableCell>{data.schemaName}</TableCell>
-                                                        {data.fields && data.fields.length > 0 && data.fields.map((field, fieldIndex) => (
-                                                            <TableRow key={fieldIndex}>
-                                                                <TableCell>{field.dataType}</TableCell>
-                                                                <TableCell>{field.fieldName}</TableCell>
-                                                                {/*<TableCell>{field.fieldDescription}</TableCell>*/}
-                                                            </TableRow>
-                                                        ))}
-                                                    </TableRow>
+                                                {row.schemas.map((schema, schemaIndex) => (
+                                                    schema &&
+                                                    <React.Fragment key={`schema-${schemaIndex}`}>
+                                                        <TableRow>
+                                                            <TableCell>{schema.schemaGroup}</TableCell>
+                                                            <TableCell>{schema.schemaName}</TableCell>
+                                                            <TableCell>{schema.isObjArray ? 'JSON Object Array' : 'JSON Object'}</TableCell>
+                                                            <TableCell>
+                                                                <Table size="small">
+                                                                    <TableBody>
+                                                                        {schema.fields && schema.fields.map((field, fieldIndex) => (
+                                                                            <TableRow key={`field-${schemaIndex}-${fieldIndex}`}>
+                                                                                <TableCell>{field.dataType}</TableCell>
+                                                                                <TableCell>{field.fieldName}</TableCell>
+                                                                                {/*<TableCell>{field.fieldDescription}</TableCell>*/}
+                                                                            </TableRow>
+                                                                        ))}
+                                                                    </TableBody>
+                                                                </Table>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    </React.Fragment>
                                                 ))}
                                             </TableBody>
                                         </Table>

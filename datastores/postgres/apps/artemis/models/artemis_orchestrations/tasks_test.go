@@ -53,6 +53,17 @@ func (s *OrchestrationsTestSuite) TestInsertJsonTask() {
 	s.Require().NotZero(testTask.TaskID)
 }
 
+func (s *OrchestrationsTestSuite) TestSelectTask() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	tasks, err := SelectTask(ctx, ou, 1705175259634960000)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(tasks)
+}
+
 func (s *OrchestrationsTestSuite) TestSelectTasks() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
@@ -63,6 +74,7 @@ func (s *OrchestrationsTestSuite) TestSelectTasks() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(tasks)
 }
+
 func (s *OrchestrationsTestSuite) TestTaskAggregation() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}

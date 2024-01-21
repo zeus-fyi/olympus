@@ -10,11 +10,11 @@ import (
 )
 
 type DbJsonTriggerField struct {
-	TriggerID            int64  `json:"schemaID"`
-	TriggerGroup         string `json:"triggerGroup"`
+	TriggerID            int    `json:"triggerID"`
 	TriggerName          string `json:"triggerName"`
+	TriggerGroup         string `json:"triggerGroup"`
 	TriggerAction        string `json:"triggerAction"`
-	EvalTriggerAction    string `json:"evalTriggerAction"`
+	EvalTriggerState     string `json:"evalTriggerState"`
 	EvalResultsTriggerOn string `json:"evalResultsTriggerOn"`
 }
 
@@ -23,15 +23,34 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 		ou.OrgID,
 	}
 	addOnQuery := ""
-	addOnQuery2 := ""
+
 	if evalFnID != 0 {
 		params = append(params, evalFnID)
 		addOnQuery = "AND f.eval_id = $2"
-		addOnQuery2 = "AND m.eval_id = $2"
 	}
 
 	query := `
-			WITH cte_fields_and_metrics AS (
+			WITH cte_metrics AS (
+				SELECT 
+					m.eval_id,
+					JSONB_AGG(
+						JSONB_BUILD_OBJECT(
+							'evalMetric', JSONB_BUILD_OBJECT(
+								'evalMetricID', COALESCE(m.eval_metric_id, 0),
+								'evalMetricResult', COALESCE(m.eval_metric_result, ''),
+								'evalComparisonBoolean', COALESCE(m.eval_comparison_boolean, FALSE),
+								'evalComparisonNumber', COALESCE(m.eval_comparison_number, 0.0),
+								'evalComparisonString', COALESCE(m.eval_comparison_string, ''),
+								'evalOperator', COALESCE(m.eval_operator, ''),
+								'evalState', COALESCE(m.eval_state, '')
+							)
+						)
+					) AS fields_metrics_jsonb
+				FROM public.eval_fns f
+				JOIN public.eval_metrics m ON m.eval_id = f.eval_id
+				WHERE m.is_eval_metric_archived = false AND f.org_id = $1 ` + addOnQuery + `
+				GROUP BY m.eval_id
+			), cte_fields_and_metrics AS (
 				SELECT 
 					m.eval_id,
 					jsd.schema_id,
@@ -41,25 +60,16 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 							'fieldName', COALESCE(af.field_name, ''),
 							'fieldDescription', COALESCE(af.field_description, ''),
 							'dataType', COALESCE(af.data_type, ''),
-							'evalMetric', JSONB_BUILD_OBJECT(
-								'evalMetricID', COALESCE(m.eval_metric_id, 0),
-								'evalMetricResult', COALESCE(m.eval_metric_result, ''),
-								'evalComparisonBoolean', COALESCE(m.eval_comparison_boolean, FALSE),
-								'evalComparisonNumber', COALESCE(m.eval_comparison_number, 0.0),
-								'evalComparisonString', COALESCE(m.eval_comparison_string, ''),
-								'evalMetricDataType', COALESCE(af.data_type, ''),
-								'evalOperator', COALESCE(m.eval_operator, ''),
-								'evalState', COALESCE(m.eval_state, '')
-							)
+							'evalMetric', fm.fields_metrics_jsonb -> 0 -> 'evalMetric'
 						)
-					) AS fields_metrics_jsonb
-				FROM public.eval_metrics m
-				JOIN public.ai_fields af ON m.field_id = af.field_id
+					) AS fields_jsonb
+				FROM public.ai_fields af
 				JOIN public.ai_json_schema_definitions jsd ON af.schema_id = jsd.schema_id
-				WHERE m.is_eval_metric_archived = false AND jsd.org_id = $1 ` + addOnQuery2 + `
+				JOIN public.eval_metrics m ON m.field_id = af.field_id
+				JOIN cte_metrics fm ON m.eval_id = fm.eval_id
+				WHERE m.is_eval_metric_archived = false
 				GROUP BY m.eval_id, jsd.schema_id
-			),
-			eval_fns_with_metrics AS (
+			), eval_fns_with_metrics AS (
 				SELECT 
 					f.eval_id, 
 					f.org_id,
@@ -75,12 +85,12 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 							'schemaName', COALESCE(jsd.schema_name, ''),
 							'schemaGroup', COALESCE(jsd.schema_group, 'default'),
 							'isObjArray', COALESCE(jsd.is_obj_array, false),
-							'fields', fm.fields_metrics_jsonb
+							'fields', COALESCE(fm.fields_jsonb, '[]'::jsonb)
 						)
 					) AS metrics_jsonb
 				FROM public.eval_fns f
-				JOIN cte_fields_and_metrics fm ON f.eval_id = fm.eval_id
-				JOIN public.ai_json_schema_definitions jsd ON fm.schema_id = jsd.schema_id
+				LEFT JOIN cte_fields_and_metrics fm ON f.eval_id = fm.eval_id
+				LEFT JOIN public.ai_json_schema_definitions jsd ON fm.schema_id = jsd.schema_id
 				WHERE f.org_id = $1 ` + addOnQuery + `
 				GROUP BY f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format
 			), 
@@ -112,7 +122,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				em.eval_group_name, 
 				em.eval_model, 
 				em.eval_format,
-				COALESCE(ct.triggers_list, '[]'::jsonb) AS triggers_list, 
+				ct.triggers_list AS triggers_list, 
 				COALESCE(em.metrics_jsonb, '[]'::jsonb) AS json_schemas
 			FROM eval_fns_with_metrics em
 			LEFT JOIN cte_triggers ct ON ct.eval_id = em.eval_id
@@ -147,16 +157,43 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			log.Err(err).Msg("failed to scan row")
 			return nil, err
 		}
-
+		if ef.EvalID == nil {
+			continue
+		}
 		for _, trigger := range dbTriggersHelper {
 			ta := TriggerAction{
-				TriggerID:    int(trigger.TriggerID),
-				TriggerGroup: trigger.TriggerGroup,
-				TriggerName:  trigger.TriggerName,
+				TriggerID:                trigger.TriggerID,
+				TriggerName:              trigger.TriggerName,
+				TriggerGroup:             trigger.TriggerGroup,
+				TriggerAction:            trigger.TriggerAction,
+				TriggerPlatformReference: TriggerPlatformReference{},
+				EvalTriggerAction: EvalTriggerActions{
+					EvalID:               *ef.EvalID,
+					TriggerID:            trigger.TriggerID,
+					EvalTriggerState:     trigger.EvalTriggerState,
+					EvalResultsTriggerOn: trigger.EvalResultsTriggerOn,
+				},
+				EvalTriggerActions: []EvalTriggerActions{
+					{
+						EvalID:               *ef.EvalID,
+						TriggerID:            trigger.TriggerID,
+						EvalTriggerState:     trigger.EvalTriggerState,
+						EvalResultsTriggerOn: trigger.EvalResultsTriggerOn,
+					},
+				},
+				TriggerActionsApprovals: nil,
 			}
 			ef.TriggerActions = append(ef.TriggerActions, ta)
 		}
 
+		var sc []*JsonSchemaDefinition
+		for _, schema := range ef.Schemas {
+			if schema.SchemaID == 0 || len(schema.Fields) <= 0 {
+				continue
+			}
+			sc = append(sc, schema)
+		}
+		ef.Schemas = sc
 		evalFns = append(evalFns, *ef)
 	}
 

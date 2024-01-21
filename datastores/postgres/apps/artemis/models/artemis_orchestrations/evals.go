@@ -69,7 +69,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 	evalFnInsertOrUpdateQuery := `
         INSERT INTO eval_fns (eval_id, org_id, user_id, eval_name, eval_type, eval_group_name, eval_model, eval_format)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        ON CONFLICT (org_id, eval_name) DO UPDATE SET
+        ON CONFLICT (eval_id) DO UPDATE SET
             eval_name = EXCLUDED.eval_name,
             eval_type = EXCLUDED.eval_type,
             eval_group_name = EXCLUDED.eval_group_name,

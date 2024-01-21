@@ -8,7 +8,7 @@ import (
 )
 
 func (s *OrchestrationsTestSuite) TestSelectEvals() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	// Example data for EvalFn and EvalMetrics
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID

@@ -294,9 +294,10 @@ function WorkflowEngineBuilder(props: any) {
             dispatch(updateEvalMetrics([evalMetric]));
         }
     };
+
+    // TODO: fix this if restoring non-json schema
     const updateMetricByName = (metrics: EvalMetric[], newMetric: EvalMetric) => {
         const metricsWithoutOld = metrics
-        // TODO
         // const metricsWithoutOld = metrics.filter(metric => metric.evalMetricName !== newMetric.evalMetricName);
         return [...metricsWithoutOld, newMetric];
     };
@@ -1085,16 +1086,18 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestEvalCreateOrUpdateStatusError('error')
                 return;
             }
-            if (evalFn.evalMetrics.length <= 0 && evalFn.schemas.length <= 0) {
-                setRequestEvalCreateOrUpdateStatus('You must add at least one metric create an eval')
-                setRequestEvalCreateOrUpdateStatusError('error')
-                return;
-            }
+
+            // if (evalFn.schemas.length <= 0) {
+            //     setRequestEvalCreateOrUpdateStatus('You must add at least one metric create an eval')
+            //     setRequestEvalCreateOrUpdateStatusError('error')
+            //     return;
+            // }
             const response = await aiApiGateway.createOrUpdateEval(evalFn);
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data as EvalFn;
                 const ae = evalFns.filter((ef: EvalFn) =>  ef.evalID !== data.evalID)
+                dispatch(setEvalFn(data));
                 dispatch(setEvalFns([data, ...ae]));
                 setRequestEvalCreateOrUpdateStatus('Eval created or updated successfully')
                 setRequestEvalCreateOrUpdateStatusError('success')
@@ -3290,7 +3293,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                                             evalOperator: '',
                                                                                             evalState: e.target.value,
                                                                                         };
-    
                                                                                         const updatedField: JsonSchemaField = {
                                                                                             ...field,
                                                                                             evalMetric: updatedEvalMetric
@@ -3331,7 +3333,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                                             evalOperator: '',
                                                                                             evalState: ''
                                                                                         };
-                                                                                        // TODO fix
                                                                                         const updatedField: JsonSchemaField = {
                                                                                             ...field,
                                                                                             evalMetric: updatedEvalMetric
@@ -3384,7 +3385,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                                             evalOperator: e.target.value,
                                                                                             evalState: ''
                                                                                         };
-                                                                                        // TODO fix
                                                                                         const updatedField: JsonSchemaField = {
                                                                                             ...field,
                                                                                             evalMetric: updatedEvalMetric
@@ -3431,7 +3431,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                     };
                                                                                                 } else {
 
-                                                                                                    // TODO
                                                                                                     updatedEvalMetric = {
                                                                                                         evalMetricID: undefined,
                                                                                                         evalMetricResult: '',
@@ -3490,7 +3489,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                     evalState: ''
                                                                                                 };
                                                                                             }
-                                                                                            // TODO fix
                                                                                             const updatedField: JsonSchemaField = {
                                                                                                 ...field,
                                                                                                 evalMetric: updatedEvalMetric
@@ -3526,7 +3524,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                 evalOperator: '',
                                                                                                 evalState: ''
                                                                                             };
-                                                                                                // TODO fix
                                                                                             const updatedField: JsonSchemaField = {
                                                                                                 ...field,
                                                                                                 evalMetric: updatedEvalMetric
@@ -3565,8 +3562,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                 evalOperator: '',
                                                                                                 evalState: ''
                                                                                             };
-                                                                                            // TODO fix
-
                                                                                             const updatedField: JsonSchemaField = {
                                                                                                 ...field,
                                                                                                 evalMetric: updatedEvalMetric

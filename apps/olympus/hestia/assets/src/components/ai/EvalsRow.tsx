@@ -24,7 +24,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
         console.log('EvalRow: row', ef)
         dispatch(setEvalFn(ef))
     }
-    console.log(row)
+    // console.log(row)
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -97,7 +97,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                     <TableRow>
                                                         <TableCell >{schema.schemaName} </TableCell>
                                                     </TableRow>
-                                                    {schema.fields.map((field, fieldIndex) => (
+                                                    {schema.fields && schema.fields.map((field, fieldIndex) => (
                                                         field.evalMetric ? (
                                                             <TableRow key={fieldIndex}>
                                                                 <TableCell>{schema.schemaID}</TableCell>
@@ -105,7 +105,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                                 <TableCell>{field.fieldName}</TableCell>
                                                                 <TableCell>{field.fieldDescription}</TableCell>
                                                                 <TableCell>{field.dataType}</TableCell>
-                                                                <TableCell>{field.evalMetric.evalOperator}</TableCell>
+                                                                <TableCell>{field.evalMetric.evalOperator !== '' ? field.evalMetric.evalOperator: 'N/A'}</TableCell>
                                                                 <TableCell>{field.evalMetric.evalState}</TableCell>
                                                                 <TableCell>{field.evalMetric.evalMetricResult}</TableCell>
                                                             </TableRow>
@@ -144,7 +144,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                         <TableCell>Trigger Group</TableCell>
                                         <TableCell>Eval State</TableCell>
                                         <TableCell>Trigger On</TableCell>
-                                        <TableCell>Output Env</TableCell>
+                                        <TableCell>Trigger Action</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>

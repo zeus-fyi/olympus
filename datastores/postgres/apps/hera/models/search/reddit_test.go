@@ -86,18 +86,10 @@ func (s *SearchAITestSuite) TestSearchReddit() {
 	// Call the function
 	sp := AiSearchParams{
 		Retrieval: artemis_orchestrations.RetrievalItem{
-			RetrievalID:    0,
-			RetrievalName:  "",
-			RetrievalGroup: "",
 			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
-				RetrievalPlatform:       "reddit",
-				RetrievalPrompt:         "",
-				RetrievalPlatformGroups: "",
-				RetrievalKeywords:       "",
-				RetrievalUsernames:      "",
-				DiscordFilters:          nil,
+				RetrievalPlatform: "reddit",
+				DiscordFilters:    nil,
 			},
-			Instructions: nil,
 		},
 		Window: si,
 	}

@@ -60,7 +60,7 @@ export interface TriggerAction {
     triggerID?: number;
     triggerName: string;
     triggerGroup: string;
-    triggerEnv: string;
+    triggerAction: string;
     // triggerPlatforms: TriggerPlatform[];
     triggerActionsApprovals: TriggerActionsApproval[];
     evalTriggerActions: EvalActionTrigger[];

@@ -9,6 +9,7 @@ CREATE TABLE public.eval_fns(
     eval_format text NOT NULL
 );
 
+CREATE INDEX eval_id_ind ON public.eval_fns("eval_id");
 CREATE INDEX eval_fns_oid_ind ON public.eval_fns("org_id");
 CREATE INDEX eval_fns_uid_ind ON public.eval_fns("user_id");
 CREATE INDEX eval_fns_name_ind ON public.eval_fns("eval_name");
@@ -17,20 +18,70 @@ CREATE INDEX eval_fns_type_ind ON public.eval_fns("eval_type");
 ALTER TABLE "public"."eval_fns" ADD CONSTRAINT "ai_eval_fns_name_uniq" UNIQUE ("org_id", "eval_name");
 ALTER TABLE "public"."eval_fns" ADD CONSTRAINT "ai_eval_fns_group_name_uniq" UNIQUE ("org_id", "eval_group_name", "eval_name");
 
-CREATE TABLE public.eval_metrics(
-    eval_metric_id BIGINT PRIMARY KEY,
-    eval_id BIGINT NOT NULL REFERENCES public.eval_fns(eval_id),
-    eval_model_prompt text NOT NULL,
-    eval_metric_name text NOT NULL,
-    eval_metric_result text NOT NULL,
-    eval_comparison_boolean boolean,
-    eval_comparison_number float8,
-    eval_comparison_string text,
-    eval_metric_data_type text NOT NULL,
-    eval_operator text NOT NULL,
-    eval_state text NOT NULL
+CREATE TABLE public.ai_schemas(
+  schema_id BIGINT NOT NULL DEFAULT next_id(),
+  org_id BIGINT NOT NULL REFERENCES orgs(org_id),
+  PRIMARY KEY (schema_id)
 );
-ALTER TABLE "public"."eval_metrics" ADD CONSTRAINT "eval_metrics_fn_uniq" UNIQUE ("eval_id", "eval_metric_id");
+CREATE INDEX idx_schema_field_id ON public.ai_schemas(schema_id);
+CREATE INDEX idx_schema_org_id_id ON public.ai_schemas(org_id);
+
+CREATE TABLE public.ai_fields(
+     schema_id BIGINT NOT NULL REFERENCES ai_schemas(schema_id),
+     field_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
+     field_name text NOT NULL,
+     field_description text NOT NULL,
+     data_type text NOT NULL,
+     is_field_archived boolean NOT NULL DEFAULT false,
+     archived_at timestamptz
+);
+ALTER TABLE "public"."ai_fields" ADD CONSTRAINT "ai_fields_schema_uniq" UNIQUE ("schema_id", "field_id");
+CREATE INDEX idx_json_schema_fields_table ON public.ai_fields(schema_id);
+CREATE UNIQUE INDEX idx_unique_schema_field_not_archived
+    ON public.ai_fields (schema_id, field_name)
+    WHERE is_field_archived = false;
+
+CREATE TABLE public.eval_metrics(
+    eval_metric_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
+    eval_id BIGINT NOT NULL REFERENCES public.eval_fns(eval_id),
+    field_id BIGINT NOT NULL REFERENCES public.ai_fields(field_id),
+    eval_comparison_number float8,
+    eval_comparison_boolean boolean,
+    eval_comparison_string text,
+    eval_operator text NOT NULL,
+    eval_state text NOT NULL,
+    eval_metric_result text NOT NULL,
+    is_eval_metric_archived boolean NOT NULL DEFAULT false,
+    archived_at timestamptz
+);
+CREATE INDEX eval_metric_id_indx ON public.eval_metrics("eval_metric_id");
+CREATE UNIQUE INDEX idx_eval_metrics_not_archived_uniq
+    ON public.eval_metrics (eval_id, field_id, eval_metric_id)
+    WHERE is_eval_metric_archived = false;
+
+
+CREATE OR REPLACE FUNCTION update_archived_at()
+    RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if is_field_archived is being set to true
+    IF NEW.is_field_archived = true AND OLD.is_field_archived = false THEN
+        -- Set archived_at to the current time for the ai_field
+        NEW.archived_at := now();
+        -- Additionally, archive related records in eval_metrics
+        UPDATE public.eval_metrics
+        SET is_eval_metric_archived = true, archived_at = now()
+        WHERE field_id = OLD.field_id AND is_eval_metric_archived = false;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Create the trigger
+CREATE TRIGGER trigger_update_archived_at
+    BEFORE UPDATE ON public.ai_fields
+    FOR EACH ROW
+EXECUTE FUNCTION update_archived_at();
 
 CREATE TABLE public.eval_metrics_results(
     eval_metrics_result_id int8 NOT NULL DEFAULT next_id() PRIMARY KEY,

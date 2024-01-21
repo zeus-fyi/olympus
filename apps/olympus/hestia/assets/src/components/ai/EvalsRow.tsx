@@ -5,7 +5,6 @@ import IconButton from "@mui/material/IconButton";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Checkbox from "@mui/material/Checkbox";
-import {EvalFn} from "../../redux/ai/ai.types";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
@@ -13,7 +12,8 @@ import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import Button from "@mui/material/Button";
 import {useDispatch} from "react-redux";
-import {setEval} from "../../redux/ai/ai.reducer";
+import {setEvalFn} from "../../redux/ai/ai.reducer";
+import {EvalFn} from "../../redux/ai/ai.eval.types";
 
 export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
@@ -21,8 +21,10 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
     const dispatch = useDispatch();
     const handleEditEvalFunction = async (e: any, ef: EvalFn) => {
         e.preventDefault();
-        dispatch(setEval(ef))
+        console.log('EvalRow: row', ef)
+        dispatch(setEvalFn(ef))
     }
+    console.log(row)
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -77,25 +79,54 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                             <Table size="small" aria-label="sub-analysis">
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>Schema ID</TableCell>
                                         <TableCell>Metric ID</TableCell>
                                         <TableCell>Metric Name</TableCell>
                                         <TableCell>Description</TableCell>
+                                        <TableCell>Data Type</TableCell>
                                         <TableCell>Operator</TableCell>
                                         <TableCell>Eval State</TableCell>
                                         <TableCell>Expected Result</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {row.evalMetrics && row.evalMetrics.map((data, dataIndex) => (
-                                        <TableRow key={data.evalMetricName}>
-                                            <TableCell>{data.evalMetricID ? data.evalMetricID : 'N/A'}</TableCell>
-                                            <TableCell>{data.evalMetricName}</TableCell>
-                                            <TableCell>{data.evalModelPrompt}</TableCell>
-                                            <TableCell>{data.evalOperator}</TableCell>
-                                            <TableCell>{data.evalState}</TableCell>
-                                            <TableCell>{data.evalMetricResult}</TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {
+                                        row.schemas && row.schemas.length > 0 ?
+                                            row.schemas.map((schema, schemaIndex) => (
+                                                <React.Fragment key={schemaIndex}>
+                                                    <TableRow>
+                                                        <TableCell >{schema.schemaName} </TableCell>
+                                                    </TableRow>
+                                                    {schema.fields.map((field, fieldIndex) => (
+                                                        field.evalMetric ? (
+                                                            <TableRow key={fieldIndex}>
+                                                                <TableCell>{schema.schemaID}</TableCell>
+                                                                <TableCell>{field.evalMetric.evalMetricID ? field.evalMetric.evalMetricID : 'N/A'}</TableCell>
+                                                                <TableCell>{field.fieldName}</TableCell>
+                                                                <TableCell>{field.fieldDescription}</TableCell>
+                                                                <TableCell>{field.dataType}</TableCell>
+                                                                <TableCell>{field.evalMetric.evalOperator}</TableCell>
+                                                                <TableCell>{field.evalMetric.evalState}</TableCell>
+                                                                <TableCell>{field.evalMetric.evalMetricResult}</TableCell>
+                                                            </TableRow>
+                                                        ) : null
+                                                    ))}
+                                                </React.Fragment>
+                                            )) : null
+
+                                            // row.evalMetrics && row.evalMetrics.map((data, dataIndex) => (
+                                            //     <TableRow key={data.evalMetricName}>
+                                            //         <TableCell>{data.jsonSchemaID ? data.jsonSchemaID : 'N/A'}</TableCell>
+                                            //         <TableCell>{data.evalMetricID ? data.evalMetricID : 'N/A'}</TableCell>
+                                            //         <TableCell>{data.evalMetricName}</TableCell>
+                                            //         <TableCell>{data.evalModelPrompt}</TableCell>
+                                            //         <TableCell>{data.evalMetricDataType}</TableCell>
+                                            //         <TableCell>{data.evalOperator}</TableCell>
+                                            //         <TableCell>{data.evalState}</TableCell>
+                                            //         <TableCell>{data.evalMetricResult}</TableCell>
+                                            //     </TableRow>
+                                            // ))
+                                    }
                                 </TableBody>
                             </Table>
                         </Box>
@@ -124,7 +155,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                 <TableCell>{data.triggerGroup}</TableCell>
                                                 <TableCell>{evalTrigger.evalTriggerState}</TableCell>
                                                 <TableCell>{evalTrigger.evalResultsTriggerOn}</TableCell>
-                                                <TableCell>{data.triggerEnv}</TableCell>
+                                                <TableCell>{data.triggerAction}</TableCell>
                                             </TableRow>
                                         ))
                                     ))}

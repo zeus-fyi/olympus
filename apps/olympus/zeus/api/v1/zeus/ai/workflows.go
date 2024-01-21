@@ -40,7 +40,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get retrievals")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	tasks, err := artemis_orchestrations.SelectTasks(c.Request().Context(), ou.OrgID)
+	tasks, err := artemis_orchestrations.SelectTasks(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Msg("failed to get tasks")
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -60,12 +60,16 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get actions")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	schemas, err := artemis_orchestrations.SelectJsonSchemaByOrg(c.Request().Context(), ou)
+	if err != nil {
+		log.Err(err).Msg("failed to get actions")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	evals, err := artemis_orchestrations.SelectEvalFnsByOrgIDAndID(c.Request().Context(), ou, 0)
 	if err != nil {
 		log.Err(err).Msg("failed to get actions")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	var assistants []artemis_orchestrations.AiAssistant
 	sv, err := ai_platform_service_orchestrations.GetMockingBirdSecrets(c.Request().Context(), ou)
 	if err == nil && sv != nil && sv.ApiKey != "" {
@@ -97,6 +101,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		TriggerActions: actions,
 		Evals:          evals,
 		Assistants:     assistants,
+		Schemas:        schemas.Slice,
 	})
 }
 
@@ -115,6 +120,7 @@ type AiWorkflowWrapper struct {
 	Evals          []artemis_orchestrations.EvalFn                 `json:"evalFns"`
 	TriggerActions []artemis_orchestrations.TriggerAction          `json:"triggerActions"`
 	Assistants     []artemis_orchestrations.AiAssistant            `json:"assistants"`
+	Schemas        []*artemis_orchestrations.JsonSchemaDefinition  `json:"schemas"`
 }
 
 type PostWorkflowsRequest struct {

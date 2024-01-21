@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
@@ -25,9 +26,51 @@ type AiSearchParams struct {
 	Window    artemis_orchestrations.Window        `json:"window,omitempty"`
 }
 
+func TimeRangeStringToWindow(sp *AiSearchParams) {
+	if sp == nil {
+		return
+	}
+	ts := time.Now()
+	w := artemis_orchestrations.Window{}
+	switch sp.TimeRange {
+	case "1 hour":
+		w.Start = ts.Add(-1 * time.Hour)
+		w.End = ts
+	case "24 hours":
+		w.Start = ts.AddDate(0, 0, -1)
+		w.End = ts
+	case "7 days":
+		w.Start = ts.AddDate(0, 0, -7)
+		w.End = ts
+	case "30 days":
+		w.Start = ts.AddDate(0, 0, -30)
+		w.End = ts
+	case "all":
+		w.Start = time.Unix(0, 0)
+		w.End = ts
+	case "window":
+		log.Info().Interface("searchInterval", w).Msg("window")
+	}
+
+	w.UnixStartTime = int(w.Start.Unix())
+	w.UnixEndTime = int(w.End.Unix())
+	sp.Window = w
+}
+
 type AiModelParams struct {
 	Model         string `json:"model"`
 	TokenCountMax int    `json:"tokenCountMax"`
+}
+
+type SearchResultGroup struct {
+	PlatformName                   string                        `json:"platformName"`
+	ExtractionPromptExt            string                        `json:"extractionPromptExt,omitempty"`
+	Model                          string                        `json:"model,omitempty"`
+	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
+	SearchResults                  []SearchResult                `json:"searchResults"`
+	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
+	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
+	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`
 }
 
 type SearchResult struct {
@@ -266,6 +309,31 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		builder.WriteString(line)
 	}
 	return builder.String()
+}
+
+type SimplifiedSearchResultJSON struct {
+	MessageID   string `json:"msg_id"`
+	MessageBody string `json:"msg_body"`
+}
+
+func FormatSearchResultsV3(results []SearchResult) string {
+	if len(results) == 0 {
+		return ""
+	}
+	var newResults []SimplifiedSearchResultJSON
+	for _, r := range results {
+		nr := SimplifiedSearchResultJSON{
+			MessageID:   fmt.Sprintf("%d", r.UnixTimestamp),
+			MessageBody: r.Value,
+		}
+		newResults = append(newResults, nr)
+	}
+	b, err := json.Marshal(newResults)
+	if err != nil {
+		log.Err(err).Msg("FormatSearchResultsV3: Error marshalling search results")
+		return ""
+	}
+	return string(b)
 }
 
 func telegramSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {

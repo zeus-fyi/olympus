@@ -54,35 +54,38 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SendResponseToApiForScoresInJson, z.EvalModelScoredJsonOutput, z.SaveEvalMetricResults,
 		z.SendTriggerActionRequestForApproval, z.CreateOrUpdateTriggerActionToExec,
 		z.CheckEvalTriggerCondition, z.LookupEvalTriggerConditions,
-		z.SocialTweetTask, z.SocialRedditTask, z.SocialDiscordTask,
+		z.SocialTweetTask, z.SocialRedditTask, z.SocialDiscordTask, z.SocialTelegramTask,
+		z.EvalFormatForApi, z.SaveTriggerResponseOutput, z.SaveEvalResponseOutput,
+		z.SelectTaskDefinition, z.ExtractTweets, z.TokenOverflowReduction,
+		z.AnalyzeEngagementTweets,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
 
 func (z *ZeusAiPlatformActivities) StartIndexingJob(ctx context.Context, sp hera_search.SearchIndexerParams) error {
 	switch sp.Platform {
-	case "reddit":
+	case redditPlatform:
 		ou := org_users.NewOrgUserWithID(sp.OrgID, 0)
 		err := ZeusAiPlatformWorker.ExecuteAiRedditWorkflow(ctx, ou, sp.SearchGroupName)
 		if err != nil {
 			log.Err(err).Msg("StartIndexingJob: failed to execute ai reddit workflow")
 			return err
 		}
-	case "twitter":
+	case twitterPlatform:
 		ou := org_users.NewOrgUserWithID(sp.OrgID, 0)
 		err := ZeusAiPlatformWorker.ExecuteAiTwitterWorkflow(ctx, ou, sp.SearchGroupName)
 		if err != nil {
 			log.Err(err).Msg("StartIndexingJob: failed to execute ai twitter workflow")
 			return err
 		}
-	case "telegram":
+	case telegramPlatform:
 		//ou := org_users.NewOrgUserWithID(sp.OrgID, 0)
 		//err := ZeusAiPlatformWorker.ExecuteAiTelegramWorkflow(ctx, ou, sp.SearchGroupName)
 		//if err != nil {
 		//	log.Err(err).Msg("StartIndexingJob: failed to execute ai telegram workflow")
 		//	return err
 		//}
-	case "discord":
+	case discordPlatform:
 		ou := org_users.NewOrgUserWithID(sp.OrgID, 0)
 		err := ZeusAiPlatformWorker.ExecuteAiFetchDataToIngestDiscordWorkflow(ctx, ou, sp.SearchGroupName)
 		if err != nil {
@@ -171,7 +174,7 @@ func (z *ZeusAiPlatformActivities) AiTask(ctx context.Context, ou org_users.OrgU
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: "gpt-4-1106-preview",
+			Model: Gpt4JsonModel,
 			Messages: []openai.ChatCompletionMessage{
 				systemMessage,
 				{
@@ -332,13 +335,13 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 	var resp []hera_search.SearchResult
 	var err error
 	switch taskInst.RetrievalPlatform {
-	case "twitter":
+	case twitterPlatform:
 		resp, err = hera_search.SearchTwitter(ctx, ou, sp)
-	case "reddit":
+	case redditPlatform:
 		resp, err = hera_search.SearchReddit(ctx, ou, sp)
-	case "discord":
+	case discordPlatform:
 		resp, err = hera_search.SearchDiscord(ctx, ou, sp)
-	case "telegram":
+	case telegramPlatform:
 		resp, err = hera_search.SearchTelegram(ctx, ou, sp)
 	default:
 		return nil, nil

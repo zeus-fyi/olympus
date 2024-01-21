@@ -3,7 +3,6 @@ import inMemoryJWT from "../auth/InMemoryJWT";
 import {
     AiSearchParams,
     DeleteWorkflowsActionRequest,
-    EvalFn,
     PostCreateOrUpdateSearchIndexerRequest,
     PostRunsActionRequest,
     PostSearchIndexerActionsRequest,
@@ -12,6 +11,8 @@ import {
     TaskModelInstructions,
 } from "../redux/ai/ai.types";
 import {Assistant, Retrieval, TriggerAction, TriggerActionApprovalPutRequest} from "../redux/ai/ai.types2";
+import {JsonSchemaDefinition} from "../redux/ai/ai.types.schemas";
+import {EvalFn} from "../redux/ai/ai.eval.types";
 
 class AiApiGateway {
     async searchRequest(params: AiSearchParams): Promise<any> {
@@ -30,6 +31,17 @@ class AiApiGateway {
     }
     async createAiWorkflowRequest(params: PostWorkflowsRequest): Promise<any> {
         const url = `/v1/workflows/ai`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        }
+        return await zeusApi.post(url, params, config)
+    }
+    async createOrUpdateJsonSchema(params: JsonSchemaDefinition): Promise<any> {
+        const url = `/v1/schemas/ai`;
         const sessionID = inMemoryJWT.getToken();
         let config = {
             headers: {

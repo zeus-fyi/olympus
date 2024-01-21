@@ -28,20 +28,20 @@ func (z *ZeusAiPlatformActivities) SaveAiTaskResponse(ctx context.Context, ou or
 
 func (z *ZeusAiPlatformActivities) PlatformIndexerGroupStatusUpdate(ctx context.Context, ou org_users.OrgUser, sp hera_search.SearchIndexerParams) error {
 	switch sp.Platform {
-	case "reddit":
+	case redditPlatform:
 		err := hera_search.UpdateRedditSearchQueryStatus(ctx, ou, sp)
 		if err != nil {
 			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update reddit search query status")
 			return err
 		}
-	case "twitter":
+	case twitterPlatform:
 		err := hera_search.UpdateTwitterSearchQueryStatus(ctx, ou, sp)
 		if err != nil {
 			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update twitter search query status")
 			return err
 		}
-	case "telegram":
-	case "discord":
+	case telegramPlatform:
+	case discordPlatform:
 		err := hera_search.UpdateDiscordSearchQueryStatus(ctx, ou, sp)
 		if err != nil {
 			log.Err(err).Msg("PlatformIndexerGroupStatusUpdate: failed to update discord search query status")
@@ -61,22 +61,22 @@ func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Con
 	var sisProcessed []hera_search.SearchIndexerParams
 	for _, oj := range sis {
 		switch oj.Platform {
-		case "discord":
+		case discordPlatform:
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
 				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
 				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
 			}
-		case "reddit":
+		case redditPlatform:
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
 				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
 				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
 			}
-		case "twitter":
+		case twitterPlatform:
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
 				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
 				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
 			}
-		case "telegram":
+		case telegramPlatform:
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
 				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
 				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)

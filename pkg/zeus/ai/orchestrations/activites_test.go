@@ -8,10 +8,8 @@ import (
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
-	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
-	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 func (t *ZeusWorkerTestSuite) TestIrisRoutingGroup() {
@@ -52,13 +50,6 @@ func (t *ZeusWorkerTestSuite) TestIrisRoutingGroup() {
 }
 
 func (t *ZeusWorkerTestSuite) TestTgWorkflow() {
-	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalTemporalBearerToken
-	auth := aegis_aws_auth.AuthAWS{
-		Region:    "us-west-1",
-		AccessKey: t.Tc.AwsAccessKeySecretManager,
-		SecretKey: t.Tc.AwsSecretKeySecretManager,
-	}
-	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
 	ou := org_users.NewOrgUserWithID(7138983863666903883, 7138958574876245567)
 
 	msgs, err := GetPandoraMessages(ctx, ou, "Zeus")

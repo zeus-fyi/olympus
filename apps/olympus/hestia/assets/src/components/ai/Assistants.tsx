@@ -75,8 +75,6 @@ export function Assistants(props: any) {
                             <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
                             <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
                             <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
-                            <MenuItem value="babbage-002">babbage-002</MenuItem>
-                            <MenuItem value="davinci-002">davinci-002</MenuItem>
                         </Select>
                     </FormControl>
                 </Box>

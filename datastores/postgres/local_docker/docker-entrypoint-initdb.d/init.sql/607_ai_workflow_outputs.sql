@@ -6,9 +6,10 @@ CREATE TABLE public.ai_workflow_analysis_results(
     running_cycle_number int8 NOT NULL DEFAULT 1,
     search_window_unix_start int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
     search_window_unix_end int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
+    skip_analysis bool NOT NULL DEFAULT false,
     metadata jsonb
 );
-
+CREATE INDEX wf_analysis_skip_idx ON public.ai_workflow_analysis_results("skip_analysis");
 CREATE INDEX wf_analysis_orchestrations_id_idx ON public.ai_workflow_analysis_results("orchestrations_id");
 CREATE INDEX wf_analysis_resp_id_idx ON public.ai_workflow_analysis_results("response_id");
 CREATE INDEX wf_analysis_cycle_idx ON public.ai_workflow_analysis_results("running_cycle_number");

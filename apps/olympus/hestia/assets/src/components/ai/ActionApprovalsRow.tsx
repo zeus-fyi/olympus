@@ -45,7 +45,7 @@ export function ActionApprovalsRow(props: any) {
                     {row.triggerName}
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.triggerEnv}
+                    {row.triggerAction}
                 </TableCell>
             </TableRow>
             <TableRow>

@@ -82,7 +82,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                                     <TableCell>{evalResult.searchWindowUnixStart}</TableCell>
                                                     <TableCell>{evalResult.searchWindowUnixEnd}</TableCell>
                                                     <TableCell>{evalResult.evalMetricResult}</TableCell>
-                                                    <TableCell>{evalResult.evalResultOutcome ? 'pass' : 'fail'}</TableCell>
+                                                    <TableCell>{evalResult.evalResultOutcome ? 'Pass' : 'Fail'}</TableCell>
                                                     {/*<TableCell>{evalResult.evalComparisonBoolean ? 'True' : 'False'}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonNumber}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonString}</TableCell>*/}

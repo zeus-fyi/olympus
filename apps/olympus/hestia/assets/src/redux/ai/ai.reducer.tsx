@@ -1,19 +1,32 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     AiState,
-    EvalFn,
-    EvalMetric,
     OrchestrationsAnalysis,
     PlatformSecretReference,
     SearchIndexerParams,
     TaskModelInstructions,
-    UpdateEvalMapPayload,
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
 } from "./ai.types";
 import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
+import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
+import {EvalFn, EvalMetric, UpdateEvalMapPayload} from "./ai.eval.types";
 
 const initialState: AiState = {
+    addSchemasView: false,
+    schemas: [],
+    schema: {
+        schemaID: 0,
+        isObjArray: false,
+        schemaName: '',
+        schemaGroup: 'default',
+        fields: [],
+    },
+    schemaField: {
+        fieldName: '',
+        fieldDescription: '',
+        dataType: '',
+    },
     assistant: {
         id: '',
         object: 'assistant',
@@ -96,7 +109,7 @@ const initialState: AiState = {
         triggerID: 0,
         triggerName: '',
         triggerGroup: '',
-        triggerEnv: 'social-media-engagement',
+        triggerAction: 'social-media-engagement',
         triggerActionsApprovals: [],
         evalTriggerActions: [],
         evalTriggerAction: {
@@ -110,12 +123,9 @@ const initialState: AiState = {
         triggerPlatformAccount: '',
     },
     evalMetric: {
-        evalMetricName: '',
-        evalModelPrompt: '',
         evalComparisonNumber: 0,
         evalComparisonString: '',
         evalComparisonBoolean: false,
-        evalMetricDataType: '',
         evalOperator: '',
         evalState: 'info',
         evalMetricResult: '',
@@ -128,13 +138,14 @@ const initialState: AiState = {
         evalModel: '',
         evalMetrics: [],
         triggerFunctions: [],
+        schemas: [],
     },
 
     evalFns: [],
-    editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '',
+    editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
         tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text',
     },
-    editAggregateTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '',
+    editAggregateTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
         tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text'},
     editRetrieval:  {
         retrievalID: undefined, // Optional field set to undefined
@@ -158,21 +169,24 @@ const initialState: AiState = {
             instructions: '', // Optional field set to empty string
         },
     },
-    editEvalFn: {
-        evalName: '',
-        evalType: '',
-        evalFormat: '',
-        evalGroupName: '',
-        evalModel: '',
-        evalMetrics: [],
-        triggerFunctions: [],
-    },
 }
 
 const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setAddSchemasView: (state, action: PayloadAction<boolean>) => {
+            state.addSchemasView = action.payload;
+        },
+        setSchemaField: (state, action: PayloadAction<JsonSchemaField>) => {
+            state.schemaField = action.payload;
+        },
+        setSchemas: (state, action: PayloadAction<JsonSchemaDefinition[]>) => {
+            state.schemas = action.payload;
+        },
+        setSchema: (state, action: PayloadAction<JsonSchemaDefinition>) => {
+            state.schema = action.payload;
+        },
         setAddAssistantsView: (state, action: PayloadAction<boolean>) => {
             state.addAssistantsView = action.payload;
         },
@@ -194,10 +208,7 @@ const aiSlice = createSlice({
         setRetrieval: (state, action: PayloadAction<Retrieval>) => {
             state.retrieval = action.payload;
         },
-        setEditEvalFn: (state, action: PayloadAction<EvalFn>) => {
-            state.editEvalFn = action.payload;
-        },
-        setEval: (state, action: PayloadAction<EvalFn>) => {
+        setEvalFn: (state, action: PayloadAction<EvalFn>) => {
             state.evalFn = action.payload;
         },
         setEvalFns: (state, action: PayloadAction<EvalFn[]>) => {
@@ -524,7 +535,7 @@ export const {
     // updateActionMetrics,
     // setActionMetric,
     setEvalMetric,
-    setEval,
+    setEvalFn,
     updateEvalMetrics,
     setEvalFns,
     setAddEvalFns,
@@ -534,11 +545,14 @@ export const {
     setEditAnalysisTask,
     setEditAggregateTask,
     setRetrieval,
-    setEditEvalFn,
     setAssistants,
     setAssistant,
     setAddAssistantsView,
     setAddTriggerActionsView,
     setAddTriggersToEvalFnView,
+    setSchema,
+    setSchemas,
+    setSchemaField,
+    setAddSchemasView
 } = aiSlice.actions;
 export default aiSlice.reducer;

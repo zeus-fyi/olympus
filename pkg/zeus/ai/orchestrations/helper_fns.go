@@ -60,10 +60,10 @@ func GetTokenCountEstimate(ctx context.Context, model, text string) (int, error)
 	if len(model) == 0 {
 		model = "gpt-4"
 	}
-	if strings.HasPrefix("gpt-4", model) {
+	if strings.HasPrefix(model, "gpt-4") {
 		model = "gpt-4"
 	}
-	if strings.HasPrefix("gpt-3.5", model) {
+	if strings.HasPrefix(model, "gpt-3.5") {
 		model = "gpt-3.5-turbo"
 	}
 	var tc TokenCountsEstimate
@@ -81,13 +81,13 @@ func GetTokenCountEstimate(ctx context.Context, model, text string) (int, error)
 	resp, err := res.R().SetBody(&apiReq.Payload).SetResult(&tc).Post("tokenize")
 	if err != nil {
 		log.Err(err).Msg("Zeus: GetTokenCountEstimate")
-		return 0, err
+		return -1, err
 	}
 	if resp != nil && resp.StatusCode() >= 400 {
 		if err != nil {
-			err = fmt.Errorf("Zeus: GetTokenCountEstimate: failed to relay api request: status code %d", resp.StatusCode())
+			err = fmt.Errorf("GetTokenCountEstimate: failed to relay api request: status code %d", resp.StatusCode())
 		}
-		return 0, err
+		return -1, err
 	}
 	return tc.Count, nil
 }

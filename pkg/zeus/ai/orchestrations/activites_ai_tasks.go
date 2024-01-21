@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/g8rswimmer/go-twitter/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -14,8 +15,12 @@ import (
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 )
 
+const (
+	OpenAiPlatform = "openai"
+)
+
 func GetMockingBirdSecrets(ctx context.Context, ou org_users.OrgUser) (*aws_secrets.OAuth2PlatformSecret, error) {
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 	if err != nil || ps == nil || ps.ApiKey == "" {
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")
@@ -24,6 +29,15 @@ func GetMockingBirdSecrets(ctx context.Context, ou org_users.OrgUser) (*aws_secr
 		return nil, err
 	}
 	return ps, nil
+}
+
+func (z *ZeusAiPlatformActivities) SelectTaskDefinition(ctx context.Context, ou org_users.OrgUser, taskID int) ([]artemis_orchestrations.AITaskLibrary, error) {
+	tv, err := artemis_orchestrations.SelectTask(ctx, ou, taskID)
+	if err != nil {
+		log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
+		return nil, err
+	}
+	return tv, nil
 }
 
 func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
@@ -125,9 +139,13 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 }
 
 type ChatCompletionQueryResponse struct {
-	Prompt         map[string]string             `json:"prompt"`
-	Response       openai.ChatCompletionResponse `json:"response"`
-	ResponseTaskID int                           `json:"responseTaskID,omitempty"`
+	Prompt                      map[string]string                                `json:"prompt"`
+	Response                    openai.ChatCompletionResponse                    `json:"response"`
+	ResponseTaskID              int                                              `json:"responseTaskID,omitempty"`
+	FilteredMessages            *FilteredMessages                                `json:"filteredMessages,omitempty"`
+	FilteredSearchResults       []hera_search.SearchResult                       `json:"filteredSearchResults,omitempty"`
+	JsonResponseResults         [][]*artemis_orchestrations.JsonSchemaDefinition `json:"jsonResponseResults,omitempty"`
+	*twitter.CreateTweetRequest `json:"twitterCreateTweetRequest,omitempty"`
 }
 
 func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (*ChatCompletionQueryResponse, error) {
@@ -168,7 +186,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	if *aggInst.AggMaxTokensPerTask > 0 {
 		cr.MaxTokens = *aggInst.AggMaxTokensPerTask
 	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 	if err != nil || ps == nil || ps.ApiKey == "" {
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")
@@ -206,7 +224,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	} else {
 		log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
 		aws_secrets.ClearOrgSecretCache(ou)
-		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
+		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 		if err != nil || ps == nil || ps.ApiKey == "" {
 			if err == nil {
 				err = fmt.Errorf("failed to get mockingbird secrets")

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	"go.temporal.io/sdk/temporal"
@@ -16,19 +17,21 @@ import (
 )
 
 type MbChildSubProcessParams struct {
-	WfID           string                                          `json:"wfID"`
-	Ou             org_users.OrgUser                               `json:"ou"`
-	WfExecParams   artemis_orchestrations.WorkflowExecParams       `json:"wfExecParams"`
-	Oj             artemis_orchestrations.OrchestrationJob         `json:"oj"`
-	RunCycle       int                                             `json:"runCycle"`
-	Window         artemis_orchestrations.Window                   `json:"window"`
-	WorkflowResult artemis_orchestrations.AIWorkflowAnalysisResult `json:"workflowResult"`
+	WfID                     string                                          `json:"wfID"`
+	Ou                       org_users.OrgUser                               `json:"ou"`
+	WfExecParams             artemis_orchestrations.WorkflowExecParams       `json:"wfExecParams"`
+	Oj                       artemis_orchestrations.OrchestrationJob         `json:"oj"`
+	RunCycle                 int                                             `json:"runCycle"`
+	Window                   artemis_orchestrations.Window                   `json:"window"`
+	WorkflowResult           artemis_orchestrations.AIWorkflowAnalysisResult `json:"workflowResult"`
+	AnalysisEvalActionParams *EvalActionParams                               `json:"analysisEvalActionParams,omitempty"`
 }
 
 type EvalActionParams struct {
 	WorkflowTemplateData artemis_orchestrations.WorkflowTemplateData `json:"parentProcess"`
 	ParentOutputToEval   *ChatCompletionQueryResponse                `json:"parentOutputToEval"`
 	EvalFns              []artemis_orchestrations.EvalFnDB           `json:"evalFns"`
+	SearchResultGroup    *hera_search.SearchResultGroup              `json:"searchResultsGroup,omitempty"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe *EvalActionParams) error {
@@ -55,11 +58,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			return err
 		}
 		for _, evalFnWithMetrics := range evalFnMetrics {
-			fd, ferr := TransformEvalMetricsToJSONSchema(evalFnWithMetrics.EvalMetrics)
-			if ferr != nil {
-				logger.Error("failed to transform eval metrics to json schema", "Error", ferr)
-				return ferr
-			}
+			fd := artemis_orchestrations.ConvertToFuncDef(evalFnWithMetrics.EvalName, evalFnWithMetrics.Schemas)
 			evalParams := hera_openai.OpenAIParams{
 				Model: evalFn.EvalModel,
 				FunctionDefinition: openai.FunctionDefinition{
@@ -69,7 +68,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				},
 			}
 			var emr *artemis_orchestrations.EvalMetricsResults
-
 			evCtx := artemis_orchestrations.EvalContext{
 				EvalID:                evalFn.EvalID,
 				OrchestrationID:       mb.Oj.OrchestrationID,
@@ -82,7 +80,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 
 			switch strings.ToLower(evalFnWithMetrics.EvalType) {
 			case "model":
-				cr := &ChatCompletionQueryResponse{}
+				var cr *ChatCompletionQueryResponse
 				modelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(modelScoredJsonCtx, z.CreateJsonOutputModelResponse, mb.Ou, evalParams).Get(modelScoredJsonCtx, &cr)
 				if err != nil {
@@ -93,6 +91,24 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 					continue
 				}
 
+				var evalCompletionID int
+				evalJsonCompCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				err = workflow.ExecuteActivity(evalJsonCompCtx, z.RecordCompletionResponse, mb.Ou, cr).Get(evalJsonCompCtx, &evalCompletionID)
+				if err != nil {
+					logger.Error("failed to save eval json response", "Error", err)
+					return err
+				}
+				recordEvalResponseCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
+					WorkflowResultID: mb.WorkflowResult.WorkflowResultID,
+					EvalID:           evalFn.EvalID,
+					ResponseID:       evalCompletionID,
+				}
+				err = workflow.ExecuteActivity(recordEvalResponseCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResponseCtx, nil)
+				if err != nil {
+					logger.Error("failed to save eval response relationship", "Error", err)
+					return err
+				}
 				m := make(map[string]interface{})
 				for _, cho := range cr.Response.Choices {
 					for _, tvr := range cho.Message.ToolCalls {
@@ -153,11 +169,24 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			if emr == nil {
 				continue
 			}
+			for _, er := range emr.EvalMetricsResults {
+				// in the eval stage, if any filter fails, skip the analysis.
+				if er.EvalState == "filter" && ((er.EvalMetricResult == "pass" && er.EvalResultOutcome == false) || (er.EvalMetricResult == "fail" && er.EvalResultOutcome == true)) {
+					mb.WorkflowResult.SkipAnalysis = true
+					recordAnalysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, mb.WorkflowResult).Get(recordAnalysisCtx, nil)
+					if err != nil {
+						logger.Error("failed to save analysis skip", "Error", err)
+						return err
+					}
+					break
+				}
+			}
 			saveEvalResultsCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			emr.EvalContext = evCtx
 			err = workflow.ExecuteActivity(saveEvalResultsCtx, z.SaveEvalMetricResults, emr).Get(saveEvalResultsCtx, nil)
 			if err != nil {
-				logger.Error("failed to get score eval", "Error", err)
+				logger.Error("failed to save eval metric results", "Error", err)
 				return err
 			}
 			suffix := strings.Split(uuid.New().String(), "-")[0]

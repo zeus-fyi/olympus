@@ -68,7 +68,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowChildAnalysisProcess, childParams).Get(childAnalysisCtx, nil)
+		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowChildAnalysisProcess, childParams).Get(childAnalysisCtx, &childParams)
 		if err != nil {
 			logger.Error("failed to execute child analysis workflow", "Error", err)
 			return err

@@ -20,18 +20,17 @@ func (s *SearchAITestSuite) TestSelectTelegramResults() {
 
 	sp := AiSearchParams{
 		Retrieval: artemis_orchestrations.RetrievalItem{
-			RetrievalID:    0,
+			//RetrievalID:    0,
 			RetrievalName:  "",
 			RetrievalGroup: "",
 			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
-				RetrievalPlatform:       "telegram",
-				RetrievalPrompt:         "",
-				RetrievalPlatformGroups: "Ze",
-				RetrievalKeywords:       "",
-				RetrievalUsernames:      "",
-				DiscordFilters:          nil,
+				RetrievalPlatform: "telegram",
+				//RetrievalPrompt:         "",
+				//RetrievalPlatformGroups: "Ze",
+				//RetrievalKeywords:       "",
+				//RetrievalUsernames:      "",
+				DiscordFilters: nil,
 			},
-			Instructions: nil,
 		},
 		TimeRange: "",
 		Window:    si,

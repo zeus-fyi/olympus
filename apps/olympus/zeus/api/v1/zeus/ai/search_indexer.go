@@ -77,7 +77,6 @@ func (r *AiSearchIndexerRequest) CreateOrUpdateSearchIndex(c echo.Context) error
 			return c.JSON(http.StatusBadRequest, nil)
 		}
 		act := ai_platform_service_orchestrations.NewZeusAiPlatformActivities()
-
 		resp, err := hera_search.InsertDiscordSearchQuery(c.Request().Context(), ou, r.SearchGroupName, r.Query, r.MaxResults)
 		if err != nil {
 			log.Err(err).Msg("error inserting discord search query")

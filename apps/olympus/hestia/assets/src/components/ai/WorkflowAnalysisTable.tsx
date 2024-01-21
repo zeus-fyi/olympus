@@ -14,6 +14,7 @@ import {
     setEvalFns,
     setRetrievals,
     setRuns,
+    setSchemas,
     setSelectedRuns,
     setTriggerActions,
     setWorkflows
@@ -58,6 +59,7 @@ export function WorkflowAnalysisTable(props: any) {
                     dispatch(setTriggerActions(data.triggerActions))
                     dispatch(setEvalFns(data.evalFns))
                     dispatch(setAssistants(data.assistants))
+                    dispatch(setSchemas(data.schemas))
                 } else {
                     console.log('Failed to get workflows', response);
                 }

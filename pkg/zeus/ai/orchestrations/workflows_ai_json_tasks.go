@@ -41,26 +41,34 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		logger.Error("failed to update ai orch services", "Error", err)
 		return nil, err
 	}
+	pr := &PromptReduction{
+		PromptReductionSearchResults: &PromptReductionSearchResults{
+			InSearchGroup: tte.Sg,
+		},
+	}
 	taskName := ""
-	model := ""
-	tokenOverflow := ""
-	prompt := ""
 	switch tte.TaskType {
 	case AnalysisTask:
 		taskName = tte.Wft.AnalysisTaskName
-		model = tte.Wft.AnalysisModel
-		tokenOverflow = tte.Wft.AnalysisTokenOverflowStrategy
-		prompt = tte.Wft.AnalysisPrompt
+		pr.Model = tte.Wft.AnalysisModel
+		pr.TokenOverflowStrategy = tte.Wft.AnalysisTokenOverflowStrategy
+		pr.PromptReductionText.InPromptBody = tte.Wft.AnalysisPrompt
 	case AggTask:
 		if tte.Wft.AggTaskName == nil || tte.Wft.AggModel == nil || tte.Wft.AggTokenOverflowStrategy == nil || tte.Wft.AggPrompt == nil {
 			return nil, nil
 		}
 		taskName = *tte.Wft.AggTaskName
-		model = *tte.Wft.AggModel
-		tokenOverflow = *tte.Wft.AggTokenOverflowStrategy
-		prompt = *tte.Wft.AggPrompt
+		pr.Model = *tte.Wft.AggModel
+		pr.TokenOverflowStrategy = *tte.Wft.AggTokenOverflowStrategy
+		pr.PromptReductionText.InPromptBody = *tte.Wft.AggPrompt
 	default:
 		return nil, nil
+	}
+	chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, tte.Ou, pr).Get(chunkedTaskCtx, &pr)
+	if err != nil {
+		logger.Error("failed to run analysis json", "Error", err)
+		return nil, err
 	}
 
 	var fullTaskDef []artemis_orchestrations.AITaskLibrary
@@ -77,27 +85,11 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	for _, taskDef := range fullTaskDef {
 		jdef = append(jdef, taskDef.Schemas...)
 	}
-	pr := &PromptReduction{
-		TokenOverflowStrategy: tokenOverflow,
-		PromptReductionSearchResults: &PromptReductionSearchResults{
-			InSearchGroup: tte.Sg,
-		},
-		PromptReductionText: &PromptReductionText{
-			Model:        model,
-			InPromptBody: prompt,
-		},
-	}
-	chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, tte.Ou, pr).Get(chunkedTaskCtx, &pr)
-	if err != nil {
-		logger.Error("failed to run analysis json", "Error", err)
-		return nil, err
-	}
 	var aiResp *ChatCompletionQueryResponse
 	fd := artemis_orchestrations.ConvertToFuncDef(taskName, jdef)
 	jsonTaskCtx := workflow.WithActivityOptions(ctx, ao)
 	params := hera_openai.OpenAIParams{
-		Model:              model,
+		Model:              pr.Model,
 		FunctionDefinition: fd,
 	}
 	err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, tte.Ou, params).Get(jsonTaskCtx, &aiResp)

@@ -24,8 +24,6 @@ export function TasksRow(props: { row: TaskModelInstructions, index: number, han
             dispatch(setEditAggregateTask(row));
         }
     };
-
-    console.log(row, 'asdfdsf')
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>

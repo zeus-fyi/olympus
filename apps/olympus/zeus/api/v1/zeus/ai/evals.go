@@ -35,6 +35,9 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 	t.OrgID = ou.OrgID
 	t.UserID = ou.UserID
 
+	if t.EvalFormat == "json" {
+		t.EvalMetrics = nil
+	}
 	err := ValidateEvalOps(t.EvalFn)
 	if err != nil {
 		log.Err(err).Msg("failed to validate eval")

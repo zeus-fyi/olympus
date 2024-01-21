@@ -9,7 +9,7 @@ import (
 
 func (s *OrchestrationsTestSuite) TestConvertToFuncDef3() {
 	schema := JsonSchemaDefinition{
-		SchemaName: "TestSchema",
+		SchemaName: "messages",
 		IsObjArray: true,
 		Fields: []JsonSchemaField{
 			{FieldName: "id", DataType: "string", FieldDescription: "id"},
@@ -17,7 +17,7 @@ func (s *OrchestrationsTestSuite) TestConvertToFuncDef3() {
 		},
 	}
 	schema2 := JsonSchemaDefinition{
-		SchemaName: "Scoring",
+		SchemaName: "scoring",
 		IsObjArray: true,
 		Fields: []JsonSchemaField{
 			{FieldName: "score", DataType: "number", FieldDescription: "scores"},
@@ -40,7 +40,26 @@ func (s *OrchestrationsTestSuite) TestConvertToFuncDef4() {
 
 	s.Require().NotNil(fd, "Failed to convert JSON schema to OpenAI function definition")
 }
+func (s *OrchestrationsTestSuite) TestInsertJsonSchema2() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 
+	// get internal assignments
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+
+	schema := JsonSchemaDefinition{
+		SchemaName: "web3-sales-lead-scoring-2",
+		IsObjArray: true,
+		Fields: []JsonSchemaField{
+			{FieldName: "aggregate_lead_score", DataType: "number", FieldDescription: "aggregate_lead_score description"},
+			{FieldName: "lead_score_metrics", DataType: "array[string]", FieldDescription: "lead_score_metrics description"},
+		},
+	}
+
+	// Insert the new schema
+	err := CreateOrUpdateJsonSchema(ctx, ou, &schema, nil)
+	s.Require().NoError(err, "Failed to insert new JSON schema")
+}
 func (s *OrchestrationsTestSuite) TestInsertJsonSchema() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 
@@ -48,31 +67,29 @@ func (s *OrchestrationsTestSuite) TestInsertJsonSchema() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 
-	// Define a new JSON schema
-	newSchema := &JsonSchemaDefinition{
-		SchemaName: "testSchema",
-		IsObjArray: false,
+	schema := JsonSchemaDefinition{
+		SchemaName: "messages",
+		IsObjArray: true,
 		Fields: []JsonSchemaField{
-			{FieldName: "field1", DataType: "string"},
-			{FieldName: "field2", DataType: "int"},
+			{FieldName: "id", DataType: "string", FieldDescription: "id"},
+			{FieldName: "values", DataType: "array[number]", FieldDescription: "values"},
 		},
 	}
 
 	// Insert the new schema
-	err := CreateOrUpdateJsonSchema(ctx, ou, newSchema, nil)
+	err := CreateOrUpdateJsonSchema(ctx, ou, &schema, nil)
 	s.Require().NoError(err, "Failed to insert new JSON schema")
 
 	// Update the schema by removing a field, modifying a field, and adding a new field
-	updatedSchema := &JsonSchemaDefinition{
-		SchemaName: "testSchema",
-		IsObjArray: true, // Example of modifying schema property
+	schema = JsonSchemaDefinition{
+		SchemaName: "messages",
+		IsObjArray: false,
 		Fields: []JsonSchemaField{
-			{FieldName: "field2", DataType: "integer"}, // Modified data type
-			{FieldName: "field3", DataType: "boolean"}, // New field
+			{FieldName: "msg_id", DataType: "number", FieldDescription: "id"},
 		},
 	}
 	// Update the existing schema
-	err = CreateOrUpdateJsonSchema(ctx, ou, updatedSchema, nil)
+	err = CreateOrUpdateJsonSchema(ctx, ou, &schema, nil)
 	s.Require().NoError(err, "Failed to update JSON schema")
 }
 

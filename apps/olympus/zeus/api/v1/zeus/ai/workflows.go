@@ -70,27 +70,6 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get actions")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
-	for i, ef := range evals {
-		m := make(map[int]bool)
-		for _, fd := range ef.EvalMetrics {
-			if fd.JsonSchemaID != nil {
-				m[*fd.JsonSchemaID] = true
-			}
-		}
-		for k, _ := range m {
-			if sv, sok := schemas.Map[k]; sok {
-				for ind, f := range sv.Fields {
-					fok, vv := evals[i].EvalMetricMap[f.FieldName]
-					if vv {
-						sv.Fields[ind].EvalMetric = &fok
-					}
-				}
-				evals[i].Schemas = append(evals[i].Schemas, sv)
-			}
-		}
-	}
-
 	var assistants []artemis_orchestrations.AiAssistant
 	sv, err := ai_platform_service_orchestrations.GetMockingBirdSecrets(c.Request().Context(), ou)
 	if err == nil && sv != nil && sv.ApiKey != "" {

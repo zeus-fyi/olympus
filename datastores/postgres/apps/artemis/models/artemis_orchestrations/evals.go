@@ -3,7 +3,6 @@ package artemis_orchestrations
 import (
 	"context"
 	"encoding/json"
-	"sort"
 
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -23,23 +22,17 @@ type EvalFn struct {
 	EvalGroupName  string                  `json:"evalGroupName"`
 	EvalModel      *string                 `json:"evalModel,omitempty"`
 	EvalFormat     string                  `json:"evalFormat"`
-	EvalMetrics    []EvalMetric            `json:"evalMetrics"`
-	EvalMetricMap  map[string]EvalMetric   `json:"evalMetricMap,omitempty"`
 	EvalCycleCount int                     `json:"evalCycleCount,omitempty"`
 	TriggerActions []TriggerAction         `json:"triggerFunctions,omitempty"`
 	Schemas        []*JsonSchemaDefinition `json:"schemas,omitempty"`
 }
 
 type EvalMetric struct {
-	JsonSchemaID          *int     `json:"jsonSchemaID,omitempty"`
 	EvalMetricID          *int     `json:"evalMetricID"`
-	EvalModelPrompt       string   `json:"evalModelPrompt"`
-	EvalMetricName        string   `json:"evalMetricName"`
 	EvalMetricResult      string   `json:"evalMetricResult"`
 	EvalComparisonBoolean *bool    `json:"evalComparisonBoolean,omitempty"`
 	EvalComparisonNumber  *float64 `json:"evalComparisonNumber,omitempty"`
 	EvalComparisonString  *string  `json:"evalComparisonString,omitempty"`
-	EvalMetricDataType    string   `json:"evalMetricDataType"`
 	EvalOperator          string   `json:"evalOperator"`
 	EvalState             string   `json:"evalState"`
 }
@@ -48,75 +41,6 @@ type EvalMetric struct {
 
 type EvalFnMetricResults struct {
 	Map map[string]EvalMetricsResult `json:"map"`
-}
-
-func DeleteEvalMetricsAndTriggers(ctx context.Context, ou org_users.OrgUser, tx pgx.Tx, evalFn *EvalFn) (pgx.Tx, error) {
-	if evalFn == nil || tx == nil || evalFn.EvalID == nil || *evalFn.EvalID == 0 {
-		return nil, nil
-	}
-	var keepMetricIDs []int
-	for _, metric := range evalFn.EvalMetrics {
-		if metric.EvalMetricID == nil {
-			continue
-		}
-		keepMetricIDs = append(keepMetricIDs, *metric.EvalMetricID)
-	}
-	metricIDsArray := pq.Array(keepMetricIDs)
-
-	var keepTriggerIDs []int
-	for _, tgr := range evalFn.TriggerActions {
-		keepTriggerIDs = append(keepTriggerIDs, tgr.TriggerID)
-	}
-	keepTriggerIDsArray := pq.Array(keepTriggerIDs)
-
-	var keepSchemaIDs []int
-	for _, sid := range evalFn.Schemas {
-		keepSchemaIDs = append(keepSchemaIDs, sid.SchemaID)
-	}
-	keepSchemaIDsArray := pq.Array(keepSchemaIDs)
-	// Using keepTriggerIDsArray in the delete query
-	deleteDanglingMetricAndTriggerActionsQuery := `
-	WITH cte_trigger_actions AS (
-		SELECT ef.eval_id, te.trigger_id
-		FROM ai_trigger_actions_evals te
-		JOIN eval_fns ef ON ef.eval_id = te.eval_id 
-		WHERE te.eval_id = $1 AND ef.org_id = $2 AND te.trigger_id = ANY($4)
-	), cte_schemas AS (
-		SELECT jef.schema_id, efj.eval_metric_id
-		FROM ai_json_schema_definitions sd
-		JOIN ai_json_eval_schemas jef ON jef.schema_id = sd.schema_id
-		LEFT JOIN ai_json_eval_metric_schemas efj ON efj.eval_id = jef.eval_id
-		WHERE jef.eval_id = $1 AND sd.org_id = $2 AND jef.schema_id = ANY($5)
-	), cte_delete_schemas_fields AS (
-		DELETE FROM eval_metrics
-	  	WHERE eval_id = $1 AND eval_metric_id IN (SELECT eval_metric_id FROM cte_schemas)
-	), cte_delete_schemas AS (
-		DELETE FROM ai_json_eval_schemas jef
-		WHERE jef.eval_id = $1 AND jef.schema_id NOT IN (SELECT schema_id FROM cte_schemas)
-	), cte_delete_trigger_actions AS (
-		DELETE FROM ai_trigger_actions_evals te
-		WHERE te.eval_id = $1 AND te.trigger_id NOT IN (SELECT trigger_id FROM cte_trigger_actions)
-	), cte_delete_schema_metrics AS (
-		DELETE FROM ai_json_eval_metric_schemas
-	  	WHERE eval_id = $1 AND schema_id IN (SELECT schema_id FROM cte_schemas)
-	), cte_get_metrics_to_delete AS (
-		SELECT em.eval_metric_id, ef.eval_id
-		FROM eval_metrics em
-		JOIN eval_fns ef ON em.eval_id = ef.eval_id
-		WHERE ef.eval_id = $1 AND ef.org_id = $2 AND em.eval_metric_id != ANY($3)
-	) DELETE FROM eval_metrics
-	  WHERE eval_id = $1 AND eval_metric_id IN (SELECT eval_metric_id FROM cte_get_metrics_to_delete)`
-
-	_, err := tx.Exec(ctx, deleteDanglingMetricAndTriggerActionsQuery, evalFn.EvalID, ou.OrgID, metricIDsArray, keepTriggerIDsArray, keepSchemaIDsArray)
-	if err == pgx.ErrNoRows {
-		err = nil
-	}
-	if err != nil {
-		log.Err(err).Msg("failed to delete eval fn trigger eval actions")
-		return tx, err
-	}
-
-	return tx, nil
 }
 
 func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, evalFn *EvalFn) error {
@@ -145,97 +69,55 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 	evalFnInsertOrUpdateQuery := `
         INSERT INTO eval_fns (eval_id, org_id, user_id, eval_name, eval_type, eval_group_name, eval_model, eval_format)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        ON CONFLICT (eval_id) DO UPDATE SET
+        ON CONFLICT (org_id, eval_name) DO UPDATE SET
             eval_name = EXCLUDED.eval_name,
             eval_type = EXCLUDED.eval_type,
             eval_group_name = EXCLUDED.eval_group_name,
             eval_model = EXCLUDED.eval_model,
             eval_format = EXCLUDED.eval_format
         RETURNING eval_id;`
-	err = tx.QueryRow(ctx, evalFnInsertOrUpdateQuery, evalFn.EvalID, evalFn.OrgID, evalFn.UserID, evalFn.EvalName, evalFn.EvalType, evalFn.EvalGroupName, evalFn.EvalModel, evalFn.EvalFormat).Scan(&evalFn.EvalID)
+	err = tx.QueryRow(ctx, evalFnInsertOrUpdateQuery, evalFn.EvalID, evalFn.OrgID,
+		evalFn.UserID, evalFn.EvalName, evalFn.EvalType, evalFn.EvalGroupName,
+		evalFn.EvalModel, evalFn.EvalFormat).Scan(&evalFn.EvalID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert or update eval_fns")
 		return err
 	}
-	// Inserting or updating eval_metrics from json schem
+	// Inserting or updating eval_metrics from json schema
 	for _, schema := range evalFn.Schemas {
-		insertOrUpdateEvalSchemaQuery := `
-        INSERT INTO ai_json_eval_schemas (schema_id, eval_id)
-        VALUES ($1, $2)
-        ON CONFLICT (schema_id, eval_id) DO NOTHING;` // Assuming no update needed
-		_, err = tx.Exec(ctx, insertOrUpdateEvalSchemaQuery, schema.SchemaID, evalFn.EvalID)
-		if err != nil {
-			log.Err(err).Msg("failed to insert or update ai_json_eval_schemas")
-			return err
-		}
 		for _, field := range schema.Fields {
 			metric := field.EvalMetric
+			if metric == nil {
+				continue
+			}
 			if metric.EvalMetricID == nil {
 				tv := ts.UnixTimeStampNow()
 				metric.EvalMetricID = &tv
 			}
-			metric.EvalModelPrompt = field.FieldDescription
-			metric.EvalMetricName = field.FieldName
-			metric.EvalMetricDataType = field.DataType
-			evalMetricInsertOrUpdateQuery := `
-            INSERT INTO eval_metrics (eval_metric_id, eval_id, eval_model_prompt, eval_metric_name, eval_metric_result, eval_comparison_boolean, eval_comparison_number, eval_comparison_string, eval_metric_data_type, eval_operator, eval_state)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            ON CONFLICT (eval_metric_id, eval_id) DO UPDATE SET
-                eval_id = EXCLUDED.eval_id,
-                eval_model_prompt = EXCLUDED.eval_model_prompt,
-                eval_metric_name = EXCLUDED.eval_metric_name,
-                eval_metric_result = EXCLUDED.eval_metric_result,
-                eval_comparison_boolean = EXCLUDED.eval_comparison_boolean,
-                eval_comparison_number = EXCLUDED.eval_comparison_number,
-                eval_comparison_string = EXCLUDED.eval_comparison_string,
-                eval_metric_data_type = EXCLUDED.eval_metric_data_type,
-                eval_operator = EXCLUDED.eval_operator,
-                eval_state = EXCLUDED.eval_state;`
-			_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery, metric.EvalMetricID, evalFn.EvalID, metric.EvalModelPrompt, metric.EvalMetricName, metric.EvalMetricResult, metric.EvalComparisonBoolean, metric.EvalComparisonNumber, metric.EvalComparisonString, metric.EvalMetricDataType, metric.EvalOperator, metric.EvalState)
-			if err != nil {
-				log.Err(err).Msg("failed to insert or update eval_fns")
-				return err
+			if metric.EvalState == "" {
+				metric.EvalState = "info"
 			}
-			// Insert or update ai_json_eval_metric_schemas
-			insertOrUpdateEvalMetricSchemaQuery := `
-            INSERT INTO ai_json_eval_metric_schemas (eval_id, schema_id, field_name, eval_metric_id)
-            VALUES ($1, $2, $3, $4)
-            ON CONFLICT (eval_id, schema_id, field_name) DO UPDATE SET
-                eval_metric_id = EXCLUDED.eval_metric_id;`
-			_, err = tx.Exec(ctx, insertOrUpdateEvalMetricSchemaQuery, evalFn.EvalID, schema.SchemaID, field.FieldName, metric.EvalMetricID)
+			evalMetricInsertOrUpdateQuery := `
+        INSERT INTO eval_metrics (eval_metric_id, eval_id, field_id, eval_metric_result, eval_comparison_boolean, eval_comparison_number, eval_comparison_string, eval_operator, eval_state)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (eval_metric_id) DO UPDATE SET
+            eval_metric_result = EXCLUDED.eval_metric_result,
+            eval_comparison_boolean = EXCLUDED.eval_comparison_boolean,
+            eval_comparison_number = EXCLUDED.eval_comparison_number,
+            eval_comparison_string = EXCLUDED.eval_comparison_string,
+            eval_operator = EXCLUDED.eval_operator,
+            eval_state = EXCLUDED.eval_state;`
+			_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery, metric.EvalMetricID, evalFn.EvalID, field.FieldID,
+				metric.EvalMetricResult,
+				metric.EvalComparisonBoolean, metric.EvalComparisonNumber, metric.EvalComparisonString,
+				metric.EvalOperator, metric.EvalState)
 			if err != nil {
-				log.Err(err).Msg("failed to insert or update ai_json_eval_metric_schemas")
+				log.Err(err).Msg("failed to insert or update eval_metrics")
 				return err
 			}
 		}
 	}
 
-	// Inserting or updating eval_metrics
-	for _, metric := range evalFn.EvalMetrics {
-		if metric.EvalMetricID == nil {
-			tv := ts.UnixTimeStampNow()
-			metric.EvalMetricID = &tv
-		}
-		evalMetricInsertOrUpdateQuery := `
-            INSERT INTO eval_metrics (eval_metric_id, eval_id, eval_model_prompt, eval_metric_name, eval_metric_result, eval_comparison_boolean, eval_comparison_number, eval_comparison_string, eval_metric_data_type, eval_operator, eval_state)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            ON CONFLICT (eval_metric_id, eval_id) DO UPDATE SET
-                eval_id = EXCLUDED.eval_id,
-                eval_model_prompt = EXCLUDED.eval_model_prompt,
-                eval_metric_name = EXCLUDED.eval_metric_name,
-                eval_metric_result = EXCLUDED.eval_metric_result,
-                eval_comparison_boolean = EXCLUDED.eval_comparison_boolean,
-                eval_comparison_number = EXCLUDED.eval_comparison_number,
-                eval_comparison_string = EXCLUDED.eval_comparison_string,
-                eval_metric_data_type = EXCLUDED.eval_metric_data_type,
-                eval_operator = EXCLUDED.eval_operator,
-                eval_state = EXCLUDED.eval_state;`
-		_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery, metric.EvalMetricID, evalFn.EvalID, metric.EvalModelPrompt, metric.EvalMetricName, metric.EvalMetricResult, metric.EvalComparisonBoolean, metric.EvalComparisonNumber, metric.EvalComparisonString, metric.EvalMetricDataType, metric.EvalOperator, metric.EvalState)
-		if err != nil {
-			log.Err(err).Msg("failed to insert or update eval_fns")
-			return err
-		}
-	}
 	for _, eta := range evalFn.TriggerActions {
 		for _, evTrig := range eta.EvalTriggerActions {
 			query := `
@@ -257,130 +139,6 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 		return err
 	}
 	return nil
-}
-
-func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFnID int) ([]EvalFn, error) {
-	params := []interface{}{
-		ou.OrgID,
-	}
-	addOnQuery := ""
-	if evalFnID != 0 {
-		params = append(params, evalFnID)
-		addOnQuery = "AND f.eval_id = $2"
-	}
-
-	query := `
-    WITH eval_fns_with_metrics AS (
-         SELECT	f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format,
-                COALESCE(m.eval_metric_id, 0) AS eval_metric_id,
-				COALESCE(m.eval_model_prompt, '') AS eval_model_prompt,
-				COALESCE(jsf.field_name, m.eval_metric_name, '') AS eval_metric_name,
-				COALESCE(m.eval_metric_result, '') AS eval_metric_result,
-				COALESCE(m.eval_comparison_boolean, FALSE) AS eval_comparison_boolean,
-				COALESCE(m.eval_comparison_number, 0.0) AS eval_comparison_number,
-				COALESCE(m.eval_comparison_string, '') AS eval_comparison_string,
-				COALESCE(m.eval_metric_data_type, '') AS eval_metric_data_type,
-				COALESCE(m.eval_operator, '') AS eval_operator,
-				COALESCE(m.eval_state, '') AS eval_state,
-			   	COALESCE(tab.trigger_id, 0) AS trigger_id,
-				COALESCE(tab.trigger_name, '') AS trigger_name,
-				COALESCE(tab.trigger_group, '') AS trigger_group,
- 			   	COALESCE(tab.trigger_action, '') AS trigger_action,
-				COALESCE(ta.eval_trigger_state, '') AS eval_trigger_state,
-				COALESCE(ta.eval_results_trigger_on, '') AS eval_results_trigger_on,
-				jsf.schema_id
-        FROM public.eval_fns f
-        LEFT JOIN public.eval_metrics m ON f.eval_id = m.eval_id
-        LEFT JOIN public.ai_trigger_actions_evals tae ON f.eval_id = tae.eval_id
-		LEFT JOIN public.ai_trigger_eval ta ON ta.trigger_id = tae.trigger_id
-		LEFT JOIN public.ai_trigger_actions tab ON tab.trigger_id = ta.trigger_id
- 		LEFT JOIN public.ai_json_eval_schemas jes ON f.eval_id = jes.eval_id
-		LEFT JOIN public.ai_json_schema_definitions jsd ON jes.schema_id = jsd.schema_id
-		LEFT JOIN public.ai_json_schema_fields jsf ON jsd.schema_id = jsf.schema_id AND m.eval_metric_name = jsf.field_name
-        WHERE f.org_id = $1 ` + addOnQuery + `
-		GROUP BY f.eval_id, eval_metric_id, jsf.schema_id, tab.trigger_id, ta.eval_trigger_state,ta.eval_results_trigger_on,jsf.field_name
-    )
-    SELECT * FROM eval_fns_with_metrics;`
-
-	rows, err := apps.Pg.Query(ctx, query, params...)
-	if err != nil {
-		log.Err(err).Msg("failed to execute query")
-		return nil, err
-	}
-	defer rows.Close()
-
-	tm := make(map[int]map[int]*TriggerAction)
-	evalFnsMap := make(map[int]*EvalFn)
-	for rows.Next() {
-		var ef EvalFn
-		var em EvalMetric
-		var ta TriggerAction
-		var eta EvalTriggerActions
-		var evalID int
-		err = rows.Scan(&evalID, &ef.OrgID, &ef.UserID, &ef.EvalName, &ef.EvalType, &ef.EvalGroupName, &ef.EvalModel, &ef.EvalFormat,
-			&em.EvalMetricID, &em.EvalModelPrompt, &em.EvalMetricName, &em.EvalMetricResult, &em.EvalComparisonBoolean,
-			&em.EvalComparisonNumber, &em.EvalComparisonString, &em.EvalMetricDataType, &em.EvalOperator, &em.EvalState,
-			&ta.TriggerID, &ta.TriggerName, &ta.TriggerGroup,
-			&ta.TriggerAction, &eta.EvalTriggerState, &eta.EvalResultsTriggerOn, &em.JsonSchemaID)
-		if err != nil {
-			log.Err(err).Msg("failed to scan row")
-			return nil, err
-		}
-		eta.EvalID = evalID
-		eta.TriggerID = ta.TriggerID
-		if _, ok := tm[evalID]; !ok {
-			tm[evalID] = make(map[int]*TriggerAction)
-		}
-
-		if ta.TriggerID != 0 {
-			if _, tok := tm[evalID][ta.TriggerID]; !tok {
-				if eta.EvalTriggerState != "" && eta.EvalResultsTriggerOn != "" {
-					ta.EvalTriggerActions = append(ta.EvalTriggerActions, eta)
-				}
-				tm[evalID][ta.TriggerID] = &ta
-			}
-		}
-
-		if existingEvalFn, exists := evalFnsMap[evalID]; exists {
-			if em.EvalMetricID != nil && *em.EvalMetricID > 0 {
-				existingEvalFn.EvalMetrics = append(existingEvalFn.EvalMetrics, em)
-				existingEvalFn.EvalMetricMap[em.EvalMetricName] = em
-			}
-
-		} else {
-			ef.EvalID = &evalID
-			if em.EvalMetricID != nil && *em.EvalMetricID > 0 {
-				ef.EvalMetrics = append(ef.EvalMetrics, em)
-				ef.EvalMetricMap = make(map[string]EvalMetric)
-				ef.EvalMetricMap[em.EvalMetricName] = em
-			}
-			evalFnsMap[evalID] = &ef
-		}
-	}
-	var evalFns []EvalFn
-	for _, ef := range evalFnsMap {
-		if ef == nil || ef.EvalID == nil || *ef.EvalID == 0 {
-			continue
-		}
-		for _, efts := range tm[*ef.EvalID] {
-			if efts == nil {
-				continue
-			}
-			ef.TriggerActions = append(ef.TriggerActions, *efts)
-		}
-		evalFns = append(evalFns, *ef)
-	}
-	if err = rows.Err(); err != nil {
-		log.Err(err).Msg("error in row iteration")
-		return nil, err
-	}
-	sortEvalFnsByID(evalFns)
-	return evalFns, nil
-}
-func sortEvalFnsByID(efs []EvalFn) {
-	sort.Slice(efs, func(i, j int) bool {
-		return *efs[i].EvalID > *efs[j].EvalID
-	})
 }
 
 type EvalContext struct {
@@ -472,4 +230,53 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []Eva
 		return err
 	}
 	return nil
+}
+
+func DeleteEvalMetricsAndTriggers(ctx context.Context, ou org_users.OrgUser, tx pgx.Tx, evalFn *EvalFn) (pgx.Tx, error) {
+	if evalFn == nil || tx == nil || evalFn.EvalID == nil || *evalFn.EvalID == 0 {
+		return nil, nil
+	}
+	var keepMetricIDs []int
+
+	var keepTriggerIDs []int
+	for _, tgr := range evalFn.TriggerActions {
+		keepTriggerIDs = append(keepTriggerIDs, tgr.TriggerID)
+	}
+	var keepFieldIds []int
+	for _, schema := range evalFn.Schemas {
+		for _, field := range schema.Fields {
+			if field.EvalMetric != nil && field.EvalMetric.EvalMetricID != nil {
+				keepMetricIDs = append(keepMetricIDs, *field.EvalMetric.EvalMetricID)
+			}
+			keepFieldIds = append(keepFieldIds, field.FieldID)
+		}
+	}
+	// Using keepTriggerIDsArray in the delete query
+	deleteDanglingMetricAndTriggerActionsQuery := `
+	WITH cte_trigger_actions AS (
+		SELECT ef.eval_id, te.trigger_id
+		FROM ai_trigger_actions_evals te
+		JOIN eval_fns ef ON ef.eval_id = te.eval_id 
+		WHERE te.eval_id = $1 AND ef.org_id = $2 AND te.trigger_id = ANY($4)
+	), cte_delete_trigger_actions AS (
+		DELETE FROM ai_trigger_actions_evals te
+		WHERE te.eval_id = $1 AND te.trigger_id NOT IN (SELECT trigger_id FROM cte_trigger_actions)
+	)
+		UPDATE public.eval_metrics
+		SET is_eval_metric_archived = true,
+			archived_at = NOW()
+		WHERE eval_metrics.eval_id = $1
+			AND eval_metric_id NOT IN (SELECT UNNEST($3::bigint[]))
+			AND is_eval_metric_archived = false;`
+
+	_, err := tx.Exec(ctx, deleteDanglingMetricAndTriggerActionsQuery, *evalFn.EvalID, ou.OrgID, pq.Array(keepMetricIDs), pq.Array(keepTriggerIDs))
+	if err == pgx.ErrNoRows {
+		err = nil
+	}
+	if err != nil {
+		log.Err(err).Msg("failed to delete eval fn trigger eval actions")
+		return tx, err
+	}
+
+	return tx, nil
 }

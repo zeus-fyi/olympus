@@ -172,15 +172,6 @@ const initialState: AiState = {
             instructions: '', // Optional field set to empty string
         },
     },
-    editEvalFn: {
-        evalName: '',
-        evalType: '',
-        evalFormat: '',
-        evalGroupName: '',
-        evalModel: '',
-        evalMetrics: [],
-        triggerFunctions: [],
-    },
 }
 
 const aiSlice = createSlice({
@@ -219,9 +210,6 @@ const aiSlice = createSlice({
         },
         setRetrieval: (state, action: PayloadAction<Retrieval>) => {
             state.retrieval = action.payload;
-        },
-        setEditEvalFn: (state, action: PayloadAction<EvalFn>) => {
-            state.editEvalFn = action.payload;
         },
         setEvalFn: (state, action: PayloadAction<EvalFn>) => {
             state.evalFn = action.payload;
@@ -560,7 +548,6 @@ export const {
     setEditAnalysisTask,
     setEditAggregateTask,
     setRetrieval,
-    setEditEvalFn,
     setAssistants,
     setAssistant,
     setAddAssistantsView,

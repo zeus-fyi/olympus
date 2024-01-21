@@ -46,7 +46,7 @@ export interface EvalFn {
     evalCycleCount?: number;
     evalMetrics: EvalMetric[];
     triggerFunctions?: TriggerAction[];
-    schemas?: JsonSchemaDefinition[];
+    schemas: JsonSchemaDefinition[];
 }
 
 export interface EvalMetric {

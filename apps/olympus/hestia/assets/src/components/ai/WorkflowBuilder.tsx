@@ -196,7 +196,7 @@ function WorkflowEngineBuilder(props: any) {
     }
     const editEvalMetricRow = (index: number) => {
         const updatedMetrics = evalFn.evalMetrics.filter((_: EvalMetric, i: number) => i === index);
-        if (updatedMetrics.length > 0) {
+        if (updatedMetrics && updatedMetrics.length > 0) {
             dispatch(setEvalMetric(updatedMetrics[0]));
         }
     };
@@ -572,14 +572,33 @@ function WorkflowEngineBuilder(props: any) {
     }
 
     const addSchemaToTask = async (event: any) => {
-        const selectedSchemas: JsonSchemaDefinition[] = Object.keys(selected)
-            .filter(key => selected[Number(key)])
-            .map(key => schemas[Number(key)]);
         if (selectedMainTabBuilder === 4) {
-            dispatch(setEvalFn({ ...evalFn, schemas: selectedSchemas }))
+            const selectedSchemas: JsonSchemaDefinition[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => schemas[Number(key)]);
+            const updatedSchemas = selectedSchemas.map(schema => ({
+                ...schema,
+                fields: schema.fields.map(field => ({
+                    ...field,
+                    evalMetric: {
+                        ...(field.evalMetric || {}),
+                        evalMetricID: undefined,
+                        evalComparisonBoolean: field.evalMetric?.evalComparisonBoolean || false, // Default value
+                        evalComparisonNumber: field.evalMetric?.evalComparisonNumber || 0,      // Default value
+                        evalComparisonString: field.evalMetric?.evalComparisonString || ''      // Default value
+                    }
+                }))
+            }));
+            dispatch(setEvalFn({ ...evalFn, schemas: updatedSchemas }))
         } else if (taskType === 'analysis') {
+            const selectedSchemas: JsonSchemaDefinition[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => schemas[Number(key)]);
             dispatch(setEditAnalysisTask({ ...editAnalysisTask, schemas: selectedSchemas }))
         } else if (taskType === 'aggregation') {
+            const selectedSchemas: JsonSchemaDefinition[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => schemas[Number(key)]);
             dispatch(setEditAggregateTask({ ...editAggregateTask, schemas: selectedSchemas }))
         }
     }
@@ -624,7 +643,7 @@ function WorkflowEngineBuilder(props: any) {
     }
 
     const removeSchemasViewToggle = async (event: any, index: number) => {
-        if (selectedMainTabBuilder === 4) {
+        if (selectedMainTabBuilder === 4 || addSchemasView) {
             const updatedSchemas = evalFn.schemas.filter((_: JsonSchemaDefinition, i: number) => i !== index);
             dispatch(setEvalFn({ ...evalFn, schemas: updatedSchemas }))
         } else if (taskType === 'analysis') {
@@ -3189,7 +3208,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         }
                                                     </Stack>
                                                     }
-                                                    {evalFn.schemas && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
+                                                    {evalFn && evalFn.schemas && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
                                                         <div key={dataIndex}>
                                                             <Stack direction="row">
                                                                 <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
@@ -3587,91 +3606,91 @@ function WorkflowEngineBuilder(props: any) {
                                                         </div>
                                                     ))}
                                                     {
-                                                        !loading && action && evalFn.evalMetrics && evalFn.schemas.length <= 0 && evalFn.evalMetrics.map((metric: EvalMetric, index: number) => (
-                                                            <Stack key={index} direction="column" sx={{ mt: 4, mb: 4, mr: 0 }}>
-                                                                <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                                                    {/* Metric Name */}
-                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                        <TextField
-                                                                            fullWidth
-                                                                            id={`metric-name-${index}`}
-                                                                            label="Metric Name"
-                                                                            variant="outlined"
-                                                                            value={metric.evalMetricName}
-                                                                            inputProps={{ readOnly: true }}
-                                                                        />
-                                                                    </Box>
-                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                        <TextField
-                                                                            fullWidth
-                                                                            id={`metric-state-${index}`}
-                                                                            label="Metric State"
-                                                                            variant="outlined"
-                                                                            value={metric.evalState}
-                                                                            inputProps={{ readOnly: true }}
-                                                                        />
-                                                                    </Box>
-                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                        <TextField
-                                                                            fullWidth
-                                                                            id={`metric-state-${index}`}
-                                                                            label="Data Type"
-                                                                            variant="outlined"
-                                                                            value={metric.evalMetricDataType}
-                                                                            inputProps={{ readOnly: true }}
-                                                                        />
-                                                                    </Box>
-                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                        <TextField
-                                                                            fullWidth
-                                                                            id={`metric-op-${index}`}
-                                                                            label="Operator"
-                                                                            variant="outlined"
-                                                                            value={metric.evalOperator}
-                                                                            inputProps={{ readOnly: true }}
-                                                                        />
-                                                                    </Box>
-                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                        <TextField
-                                                                            fullWidth
-                                                                            id={`metric-comp-${index}`}
-                                                                            label="Comparison Value"
-                                                                            variant="outlined"
-                                                                            value={GetValue(metric)}
-                                                                            inputProps={{ readOnly: true }}
-                                                                        />
-                                                                    </Box>
-                                                                    <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
-                                                                        <TextField
-                                                                            fullWidth
-                                                                            id={`metric-result-${index}`}
-                                                                            label="Result"
-                                                                            variant="outlined"
-                                                                            value={metric.evalMetricResult}
-                                                                            inputProps={{ readOnly: true }}
-                                                                        />
-                                                                    </Box>
-                                                                    <Stack direction="row" spacing={2} sx={{ ml: 4, mr: 4 }}>
-                                                                        <Box sx={{ mr: 4 }}>
-                                                                            <Button variant={"contained"} onClick={() => editEvalMetricRow(index)}>Edit</Button>
-                                                                        </Box>
-                                                                        <Box sx={{ mr: 4 }}>
-                                                                            <Button variant={"contained"} onClick={() => removeEvalMetricRow(index)}>Remove</Button>
-                                                                        </Box>
-                                                                    </Stack>
-                                                                </Stack>
-                                                                {/*<Box flexGrow={1} sx={{ ml: 0, mr: 12 }}>*/}
-                                                                {/*    <TextField*/}
-                                                                {/*        fullWidth*/}
-                                                                {/*        id={`eval-model-scoring-instruction-${index}`}*/}
-                                                                {/*        label="Model Scoring Instructions"*/}
-                                                                {/*        variant="outlined"*/}
-                                                                {/*        value={metric.evalModelPrompt}*/}
-                                                                {/*        inputProps={{ readOnly: true }}*/}
-                                                                {/*    />*/}
-                                                                {/*</Box>*/}
-                                                            </Stack>
-                                                        ))
+                                                        // !loading && action && evalFn.evalMetrics && evalFn.schemas && evalFn.evalMetrics.map((metric: EvalMetric, index: number) => (
+                                                        //     <Stack key={index} direction="column" sx={{ mt: 4, mb: 4, mr: 0 }}>
+                                                        //         <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                                                        //             {/* Metric Name */}
+                                                        //             <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                        //                 <TextField
+                                                        //                     fullWidth
+                                                        //                     id={`metric-name-${index}`}
+                                                        //                     label="Metric Name"
+                                                        //                     variant="outlined"
+                                                        //                     value={metric.evalMetricName}
+                                                        //                     inputProps={{ readOnly: true }}
+                                                        //                 />
+                                                        //             </Box>
+                                                        //             <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                        //                 <TextField
+                                                        //                     fullWidth
+                                                        //                     id={`metric-state-${index}`}
+                                                        //                     label="Metric State"
+                                                        //                     variant="outlined"
+                                                        //                     value={metric.evalState}
+                                                        //                     inputProps={{ readOnly: true }}
+                                                        //                 />
+                                                        //             </Box>
+                                                        //             <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                        //                 <TextField
+                                                        //                     fullWidth
+                                                        //                     id={`metric-state-${index}`}
+                                                        //                     label="Data Type"
+                                                        //                     variant="outlined"
+                                                        //                     value={metric.evalMetricDataType}
+                                                        //                     inputProps={{ readOnly: true }}
+                                                        //                 />
+                                                        //             </Box>
+                                                        //             <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                        //                 <TextField
+                                                        //                     fullWidth
+                                                        //                     id={`metric-op-${index}`}
+                                                        //                     label="Operator"
+                                                        //                     variant="outlined"
+                                                        //                     value={metric.evalOperator}
+                                                        //                     inputProps={{ readOnly: true }}
+                                                        //                 />
+                                                        //             </Box>
+                                                        //             <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                        //                 <TextField
+                                                        //                     fullWidth
+                                                        //                     id={`metric-comp-${index}`}
+                                                        //                     label="Comparison Value"
+                                                        //                     variant="outlined"
+                                                        //                     value={GetValue(metric)}
+                                                        //                     inputProps={{ readOnly: true }}
+                                                        //                 />
+                                                        //             </Box>
+                                                        //             <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
+                                                        //                 <TextField
+                                                        //                     fullWidth
+                                                        //                     id={`metric-result-${index}`}
+                                                        //                     label="Result"
+                                                        //                     variant="outlined"
+                                                        //                     value={metric.evalMetricResult}
+                                                        //                     inputProps={{ readOnly: true }}
+                                                        //                 />
+                                                        //             </Box>
+                                                        //             <Stack direction="row" spacing={2} sx={{ ml: 4, mr: 4 }}>
+                                                        //                 <Box sx={{ mr: 4 }}>
+                                                        //                     <Button variant={"contained"} onClick={() => editEvalMetricRow(index)}>Edit</Button>
+                                                        //                 </Box>
+                                                        //                 <Box sx={{ mr: 4 }}>
+                                                        //                     <Button variant={"contained"} onClick={() => removeEvalMetricRow(index)}>Remove</Button>
+                                                        //                 </Box>
+                                                        //             </Stack>
+                                                        //         </Stack>
+                                                        //         {/*<Box flexGrow={1} sx={{ ml: 0, mr: 12 }}>*/}
+                                                        //         {/*    <TextField*/}
+                                                        //         {/*        fullWidth*/}
+                                                        //         {/*        id={`eval-model-scoring-instruction-${index}`}*/}
+                                                        //         {/*        label="Model Scoring Instructions"*/}
+                                                        //         {/*        variant="outlined"*/}
+                                                        //         {/*        value={metric.evalModelPrompt}*/}
+                                                        //         {/*        inputProps={{ readOnly: true }}*/}
+                                                        //         {/*    />*/}
+                                                        //         {/*</Box>*/}
+                                                        //     </Stack>
+                                                        // ))
                                                     }
                                                         <div>
                                                             <Box  sx={{ mb: 4, mt: 0, ml: -1}}>
@@ -3957,7 +3976,7 @@ function WorkflowEngineBuilder(props: any) {
 
                         </div>
                     }
-                    { addSchemasView &&
+                    { addSchemasView && (selectedMainTabBuilder === 4 || selectedMainTabBuilder === 2 || selectedMainTabBuilder === 3) &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <Box sx={{ mb: 2 }}>
@@ -3991,16 +4010,25 @@ function WorkflowEngineBuilder(props: any) {
                             </Container>
                         </div>
                     }
-
-                    { (selectedMainTabBuilder === 7 || addSchemasView) &&
-                        <div>
-                            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                                <SchemasTable schemas={schemas}
-                                              requestStatusSchema={requestStatusSchema}
-                                              requestStatusSchemaError={requestStatusSchemaError}
-                                              selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
-                            </Container>
-                        </div>
+                    {
+                        (selectedMainTabBuilder === 7 ||
+                            (addSchemasView && (selectedMainTabBuilder === 2 || selectedMainTabBuilder === 3 || selectedMainTabBuilder === 4))) &&
+                        (!addAnalysisView && !addAggregateView && !addRetrievalView &&
+                            !addEvalsView && !addAssistantsView && !addTriggerActionsView) &&
+                        ![0, 5, 6].includes(selectedMainTabBuilder) && (
+                            <div>
+                                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                    <SchemasTable
+                                        schemas={schemas}
+                                        requestStatusSchema={requestStatusSchema}
+                                        requestStatusSchemaError={requestStatusSchemaError}
+                                        selected={selected}
+                                        handleSelectAllClick={handleSelectAllClick}
+                                        handleClick={handleClick}
+                                    />
+                                </Container>
+                            </div>
+                        )
                     }
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

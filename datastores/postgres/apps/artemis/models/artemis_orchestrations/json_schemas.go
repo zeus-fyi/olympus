@@ -11,6 +11,7 @@ import (
 	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 type JsonSchemaDefinition struct {
@@ -22,6 +23,7 @@ type JsonSchemaDefinition struct {
 }
 
 type JsonSchemaField struct {
+	FieldID           int         `db:"field_id" json:"fieldID"`
 	FieldName         string      `db:"field_name" json:"fieldName"`
 	FieldDescription  string      `db:"field_description" json:"fieldDescription"`
 	DataType          string      `db:"data_type" json:"dataType"`
@@ -165,28 +167,6 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 	return sz
 }
 
-func CreateMapInterfaceJson(schema JsonSchemaDefinition) map[string]interface{} {
-	m := make(map[string]interface{})
-
-	for _, field := range schema.Fields {
-		switch field.DataType {
-		case "string":
-			m[field.FieldName] = field.StringValue
-		case "number":
-			m[field.FieldName] = field.NumberValue
-		case "boolean":
-			m[field.FieldName] = field.BooleanValue
-		case "array[string]":
-			m[field.FieldName] = field.StringValueSlice
-		case "array[number]":
-			m[field.FieldName] = field.NumberValueSlice
-		case "array[boolean]":
-			m[field.FieldName] = field.BooleanValueSlice
-		}
-	}
-	return m
-}
-
 type AITaskJsonSchema struct {
 	SchemaID int `db:"schema_id" json:"schemaID"`
 	TaskID   int `db:"task_id" json:"taskID"`
@@ -202,14 +182,38 @@ func CreateOrUpdateJsonSchema(ctx context.Context, ou org_users.OrgUser, schema 
 		return err
 	}
 	defer tx.Rollback(ctx)
-	// Insert into json_schema_definitions and get the generated schema_id
+	var schemaID int
+
+	// Step 1: Check for existing schema in ai_json_schema_definitions
 	err = tx.QueryRow(ctx, `
-			INSERT INTO public.ai_json_schema_definitions(org_id, schema_name, is_obj_array)
-			VALUES ($1, $2, $3)
-			ON CONFLICT (org_id, schema_name) DO UPDATE 
-			SET is_obj_array = EXCLUDED.is_obj_array, schema_group = EXCLUDED.schema_group
-			RETURNING schema_id;
-	`, ou.OrgID, schema.SchemaName, schema.IsObjArray).Scan(&schema.SchemaID)
+		SELECT schema_id FROM public.ai_json_schema_definitions
+		WHERE org_id = $1 AND schema_name = $2;
+	`, ou.OrgID, schema.SchemaName).Scan(&schemaID)
+
+	if err == pgx.ErrNoRows {
+		// No existing schema, need to create a new one
+		err = tx.QueryRow(ctx, `
+        INSERT INTO public.ai_schemas (org_id)
+        VALUES ($1)
+        RETURNING schema_id;
+    `, ou.OrgID).Scan(&schemaID)
+		if err != nil {
+			log.Err(err).Msg("failed to insert into ai_schemas")
+			return err
+		}
+	} else if err != nil {
+		log.Err(err).Msg("failed to query existing schema")
+		return err
+	}
+
+	// Step 2: Insert or Update in ai_json_schema_definitions
+	err = tx.QueryRow(ctx, `
+    INSERT INTO public.ai_json_schema_definitions(org_id, schema_id, schema_name, is_obj_array)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (org_id, schema_name) DO UPDATE 
+    SET is_obj_array = EXCLUDED.is_obj_array, schema_group = EXCLUDED.schema_group
+    RETURNING schema_id;
+`, ou.OrgID, schemaID, schema.SchemaName, schema.IsObjArray).Scan(&schema.SchemaID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert or update in json_schema_definitions")
 		return err
@@ -219,27 +223,41 @@ func CreateOrUpdateJsonSchema(ctx context.Context, ou org_users.OrgUser, schema 
 	for _, field := range schema.Fields {
 		fieldMap[field.FieldName] = true
 	}
-	// Delete fields that are not in the new schema
+	// Archive fields that are not in the new schema
 	_, err = tx.Exec(ctx, `
-        DELETE FROM public.ai_json_schema_fields 
-        WHERE schema_id = $1 AND field_name NOT IN (SELECT unnest($2::text[]));
-    `, schema.SchemaID, pq.Array(getFieldNames(schema.Fields)))
-	if err != nil && err != pgx.ErrNoRows {
-		log.Err(err).Msg("failed to delete old fields from ai_task_json_schema_fields")
+		UPDATE public.ai_fields
+		SET is_field_archived = true, archived_at = NOW()
+		WHERE schema_id = $1 AND field_name NOT IN (SELECT unnest($2::text[])) AND is_field_archived = false;
+	`, schema.SchemaID, pq.Array(getFieldNames(schema.Fields)))
+	if err != nil {
+		log.Err(err).Msg("failed to archive old fields from ai_fields")
 		return err
 	}
-	// TODO, delete & cleanup dangling eval metrics that are no longer in the schema
-
 	// Insert into ai_json_schema_fields
 	for _, field := range schema.Fields {
+		cr := chronos.Chronos{}
+
+		// Check if the data_type has changed and archive the old field if necessary
 		_, err = tx.Exec(ctx, `
-        INSERT INTO public.ai_json_schema_fields(schema_id, field_name, data_type, field_description)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (schema_id, field_name) DO UPDATE 
-        SET data_type = EXCLUDED.data_type, field_description = EXCLUDED.field_description;
-    `, schema.SchemaID, field.FieldName, field.DataType, field.FieldDescription)
+        UPDATE public.ai_fields
+        SET is_field_archived = true, archived_at = NOW()
+        WHERE schema_id = $1 AND field_name = $2 AND data_type != $3 AND is_field_archived = false;
+    `, schema.SchemaID, field.FieldName, field.DataType)
 		if err != nil {
-			log.Err(err).Msg("failed to insert or update ai_json_schema_fields")
+			log.Err(err).Msg("failed to archive old field in ai_fields")
+			return err
+		}
+
+		// Insert a new field or update an existing one (if it's not archived)
+		_, err = tx.Exec(ctx, `
+        INSERT INTO public.ai_fields(field_id, schema_id, field_name, data_type, field_description)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (schema_id, field_name) WHERE is_field_archived = false DO UPDATE 
+        SET data_type = EXCLUDED.data_type,
+            field_description = EXCLUDED.field_description;
+    `, cr.UnixTimeStampNow(), schema.SchemaID, field.FieldName, field.DataType, field.FieldDescription)
+		if err != nil {
+			log.Err(err).Msg("failed to insert or update field in ai_fields")
 			return err
 		}
 	}

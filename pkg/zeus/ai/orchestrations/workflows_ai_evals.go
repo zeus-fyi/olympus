@@ -84,10 +84,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 
 			switch strings.ToLower(evalFnWithMetrics.EvalType) {
 			case "model":
-				//emMap := make(map[string]artemis_orchestrations.EvalMetricsResult)
-				//for _, i := range emr.EvalMetricsResults {
-				//	emMap[i.EvalMetricName] = i
-				//}
 				var cr *ChatCompletionQueryResponse
 				modelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(modelScoredJsonCtx, z.CreateJsonOutputModelResponse, mb.Ou, evalParams).Get(modelScoredJsonCtx, &cr)

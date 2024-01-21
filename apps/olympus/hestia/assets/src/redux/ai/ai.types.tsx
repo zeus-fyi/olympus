@@ -57,7 +57,6 @@ export interface AiState {
     editAnalysisTask: TaskModelInstructions;
     editAggregateTask: TaskModelInstructions;
     editRetrieval: Retrieval;
-    editEvalFn: EvalFn;
 }
 
 // export interface ActionMetric {

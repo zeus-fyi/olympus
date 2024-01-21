@@ -67,7 +67,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, tte.Ou, pr).Get(chunkedTaskCtx, &pr)
 	if err != nil {
-		logger.Error("failed to run analysis json", "Error", err)
+		logger.Error("failed to run token overflow task", "Error", err)
 		return nil, err
 	}
 

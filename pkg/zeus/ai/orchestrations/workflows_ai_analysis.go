@@ -94,11 +94,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			}
 			pr := &PromptReduction{
 				TokenOverflowStrategy: analysisInst.AnalysisTokenOverflowStrategy,
+				Model:                 analysisInst.AnalysisModel,
 				PromptReductionSearchResults: &PromptReductionSearchResults{
 					InSearchGroup: sg,
 				},
 				PromptReductionText: &PromptReductionText{
-					Model:        analysisInst.AnalysisModel,
 					InPromptBody: analysisInst.AnalysisPrompt,
 				},
 			}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
@@ -17,6 +18,7 @@ type AIWorkflowAnalysisResult struct {
 	OrchestrationsID      int             `json:"orchestrationsId"`
 	ResponseID            int             `json:"responseId"`
 	SourceTaskID          int             `json:"sourceTaskId"`
+	IterationCount        int             `json:"iterationCount"`
 	RunningCycleNumber    int             `json:"runningCycleNumber"`
 	SearchWindowUnixStart int             `json:"searchWindowUnixStart"`
 	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd"`
@@ -25,11 +27,13 @@ type AIWorkflowAnalysisResult struct {
 	CompletionChoices     json.RawMessage `json:"completionChoices,omitempty"`
 }
 
-func InsertAiWorkflowAnalysisResult(ctx context.Context, wr AIWorkflowAnalysisResult) (int, error) {
+func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisResult) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO ai_workflow_analysis_results(orchestrations_id, response_id, source_task_id, running_cycle_number, search_window_unix_start, search_window_unix_end, skip_analysis, metadata)
-                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                  ON CONFLICT (workflow_result_id) 
+	q.RawQuery = `INSERT INTO ai_workflow_analysis_results(orchestrations_id, response_id, source_task_id, iteration_count,
+                                         running_cycle_number, search_window_unix_start, search_window_unix_end, skip_analysis,
+                                         metadata)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                  ON CONFLICT (orchestrations_id, response_id, source_task_id, running_cycle_number, iteration_count)
                   DO UPDATE SET 
                       orchestrations_id = EXCLUDED.orchestrations_id,
                       response_id = EXCLUDED.response_id,
@@ -40,16 +44,18 @@ func InsertAiWorkflowAnalysisResult(ctx context.Context, wr AIWorkflowAnalysisRe
                       skip_analysis = EXCLUDED.skip_analysis,
                       metadata = EXCLUDED.metadata
                   RETURNING workflow_result_id;`
-
-	var id int
+	if wr.IterationCount == 0 {
+		wr.IterationCount = 1
+	}
+	md := &pgtype.JSONB{Bytes: sanitizeBytesUTF8(wr.Metadata), Status: IsNull(wr.Metadata)}
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wr.OrchestrationsID, wr.ResponseID, wr.SourceTaskID,
-		wr.RunningCycleNumber, wr.SearchWindowUnixStart, wr.SearchWindowUnixEnd, wr.SkipAnalysis,
-		string(wr.Metadata)).Scan(&id)
+		wr.IterationCount, wr.RunningCycleNumber, wr.SearchWindowUnixStart, wr.SearchWindowUnixEnd, wr.SkipAnalysis,
+		md).Scan(&wr.WorkflowResultID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("AIWorkflowAnalysisResults")); returnErr != nil {
 		log.Err(returnErr).Interface("wr", wr).Msg(q.LogHeader("AIWorkflowAnalysisResults"))
-		return id, err
+		return err
 	}
-	return id, nil
+	return nil
 }
 
 func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourceTaskIds []int) ([]AIWorkflowAnalysisResult, error) {

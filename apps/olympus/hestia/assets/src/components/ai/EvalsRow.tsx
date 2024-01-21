@@ -144,7 +144,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                         <TableCell>Trigger Group</TableCell>
                                         <TableCell>Eval State</TableCell>
                                         <TableCell>Trigger On</TableCell>
-                                        <TableCell>Output Env</TableCell>
+                                        <TableCell>Trigger Action</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>

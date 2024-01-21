@@ -59,9 +59,10 @@ func (s *OrchestrationsTestSuite) TestSelectTask() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	tasks, err := SelectTask(ctx, ou, 1705175259634960000)
+	tasks, err := SelectTask(ctx, ou, 1702098099670403000)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(tasks)
+	s.Require().NotNil(tasks[0].Schemas)
 }
 
 func (s *OrchestrationsTestSuite) TestSelectTasks() {

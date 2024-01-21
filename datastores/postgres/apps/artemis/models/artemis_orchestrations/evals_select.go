@@ -130,7 +130,6 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 	for rows.Next() {
 		ef := &EvalFn{}
 		var dbTriggersHelper []DbJsonTriggerField
-		//var dbFieldHelper []JsonSchemaDefinition
 		err = rows.Scan(
 			&ef.EvalID,
 			&ef.OrgID,

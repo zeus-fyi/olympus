@@ -41,7 +41,7 @@ func (s *OrchestrationsTestSuite) TestConvertToFuncDef4() {
 	s.Require().NotNil(fd, "Failed to convert JSON schema to OpenAI function definition")
 }
 func (s *OrchestrationsTestSuite) TestInsertJsonSchema2() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	// get internal assignments
 	ou := org_users.OrgUser{}

@@ -25,6 +25,7 @@ export function TasksRow(props: { row: TaskModelInstructions, index: number, han
         }
     };
 
+    console.log(row, 'asdfdsf')
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -71,6 +72,7 @@ export function TasksRow(props: { row: TaskModelInstructions, index: number, han
                                             </TableHead>
                                             <TableBody>
                                                 {row.schemas && row.schemas.map((data, dataIndex) => (
+                                                    data &&
                                                     <TableRow key={dataIndex}>
                                                         <TableCell>{data.schemaGroup}</TableCell>
                                                         <TableCell>{data.schemaName}</TableCell>

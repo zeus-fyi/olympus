@@ -78,13 +78,11 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 									WHEN eval_res.eval_metrics_result_id IS NOT NULL THEN
 										JSON_BUILD_OBJECT(
 											'evalName', ef.eval_name,
-											'evalMetricName', eval_met.eval_metric_name,
 											'evalMetricsResultId', eval_res.eval_metrics_result_id,
 											'evalMetricResult', eval_met.eval_metric_result,
 											'evalComparisonBoolean', eval_met.eval_comparison_boolean,
 											'evalComparisonNumber', eval_met.eval_comparison_number,
 											'evalComparisonString', eval_met.eval_comparison_string,
-											'evalMetricDataType', eval_met.eval_metric_data_type,
 											'evalOperator', eval_met.eval_operator,
 											'evalState', eval_met.eval_state,
 											'runningCycleNumber', eval_res.running_cycle_number,

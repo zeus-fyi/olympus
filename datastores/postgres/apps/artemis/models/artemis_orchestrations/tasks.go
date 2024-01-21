@@ -128,7 +128,7 @@ func SelectTasks(ctx context.Context, ou org_users.OrgUser) ([]AITaskLibrary, er
             WHERE 
                 d.org_id = $1
             GROUP BY 
-                d.schema_id, d.org_id
+                d.org_id, d.schema_id, d.schema_name, d.schema_group, d.is_obj_array
         ) AS schemas ON js.schema_id = schemas.schema_id AND tl.org_id = schemas.org_id
         WHERE 
             tl.org_id = $1
@@ -159,29 +159,16 @@ func SelectTasks(ctx context.Context, ou org_users.OrgUser) ([]AITaskLibrary, er
 	// Iterating over the result set
 	for rows.Next() {
 		var task AITaskLibrary
-		var jsonSchema pgtype.JSONBArray
 
 		err = rows.Scan(
 			&task.TaskID, &task.MaxTokensPerTask, &task.TaskType, &task.TaskName,
 			&task.TaskGroup, &task.TokenOverflowStrategy, &task.Model,
-			&task.Prompt, &task.ResponseFormat, &jsonSchema, // Scan into a string
+			&task.Prompt, &task.ResponseFormat, &task.Schemas, // Scan into a string
 		)
 		if err != nil {
 			log.Err(err).Msg("failed to scan task")
 			return nil, err
 		}
-		for _, elem := range jsonSchema.Elements {
-			var schema *JsonSchemaDefinition
-			if elem.Bytes == nil {
-				continue
-			}
-			if err = json.Unmarshal(elem.Bytes, &schema); err != nil {
-				log.Err(err).Msg("failed to unmarshal json schema element")
-				return nil, err
-			}
-			task.Schemas = append(task.Schemas, schema)
-		}
-
 		tasks = append(tasks, task)
 	}
 	return tasks, nil

@@ -124,7 +124,7 @@ func SelectTasks(ctx context.Context, ou org_users.OrgUser) ([]AITaskLibrary, er
             FROM 
                 public.ai_json_schema_definitions d
             JOIN 
-                public.ai_json_schema_fields f ON d.schema_id = f.schema_id
+                public.ai_fields f ON d.schema_id = f.schema_id
             WHERE 
                 d.org_id = $1
             GROUP BY 
@@ -223,7 +223,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 				FROM 
 					public.ai_json_schema_definitions d
 				JOIN 
-					public.ai_json_schema_fields f ON d.schema_id = f.schema_id
+					public.ai_fields f ON d.schema_id = f.schema_id
 				WHERE 
 					d.org_id = $1
 				GROUP BY 

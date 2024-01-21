@@ -35,10 +35,10 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 		return nil
 	}
 
-	opt1 := `DELETE FROM public.ai_json_task_schemas
+	opt1 := `DELETE FROM public.ai_task_schemas
     		 WHERE task_id IN (SELECT task_id FROM cte_task_wrapper)`
 
-	opt2 := `INSERT INTO public.ai_json_task_schemas (task_id, schema_id)
+	opt2 := `INSERT INTO public.ai_task_schemas (task_id, schema_id)
 			 SELECT (SELECT task_id FROM cte_task_wrapper), unnest($11::bigint[])
 			 ON CONFLICT (schema_id, task_id) DO NOTHING`
 

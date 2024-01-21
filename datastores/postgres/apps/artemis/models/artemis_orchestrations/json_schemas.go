@@ -265,7 +265,7 @@ func CreateOrUpdateJsonSchema(ctx context.Context, ou org_users.OrgUser, schema 
 	// Additional step to handle ai_task_json_schemas
 	if taskID != nil {
 		_, err = tx.Exec(ctx, `
-			INSERT INTO public.ai_json_task_schemas(schema_id, task_id)
+			INSERT INTO public.ai_task_schemas(schema_id, task_id)
 			VALUES ($1, $2)
 			ON CONFLICT (schema_id, task_id) DO NOTHING;
 		`, schema.SchemaID, *taskID)

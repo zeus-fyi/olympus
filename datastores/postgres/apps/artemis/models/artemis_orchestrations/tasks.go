@@ -72,7 +72,7 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 				prompt = EXCLUDED.prompt
 			RETURNING task_id
 		), cte_cleanup_json_schema AS (
-			DELETE FROM public.ai_json_task_schemas
+			DELETE FROM public.ai_task_schemas
 			WHERE task_id IN (SELECT task_id FROM cte_task_wrapper) AND schema_id != ANY($11)
 		), cte_insert_json_schema AS (
 			` + opt1 + `
@@ -90,61 +90,60 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 
 func SelectTasks(ctx context.Context, ou org_users.OrgUser) ([]AITaskLibrary, error) {
 	query := `SELECT 
-				tl.task_id, 
-				tl.max_tokens_per_task, 
-				tl.task_type,
-				tl.task_name, 
-				tl.task_group, 
-				tl.token_overflow_strategy, 
-				tl.model, 
-				tl.prompt, 
-				tl.response_format,
-				array_agg(json_schema) AS json_schemas
-			FROM 
-				public.ai_task_library tl
-			LEFT JOIN 
-				public.ai_json_task_schemas js ON tl.task_id = js.task_id
-			LEFT JOIN (
-				SELECT 
-					d.schema_id, 
-					d.org_id, 
-					jsonb_build_object(
-						'schemaID', d.schema_id, 
-						'schemaName', d.schema_name, 
-						'schemaGroup', d.schema_group, 
-						'isObjArray', d.is_obj_array,
-						'fields', array_agg(
-							jsonb_build_object(
-								'fieldName', f.field_name, 
-								'dataType', f.data_type, 
-								'fieldDescription', f.field_description
-							)
-						)
-					) AS json_schema
-				FROM 
-					public.ai_json_schema_definitions d
-				JOIN 
-					public.ai_json_schema_fields f ON d.schema_id = f.schema_id
-				WHERE 
-					d.org_id = $1
-				GROUP BY 
-					d.schema_id, d.org_id
-			) AS schemas ON js.schema_id = schemas.schema_id AND tl.org_id = schemas.org_id
-			WHERE 
-				tl.org_id = $1
-			GROUP BY 
-				tl.task_id, 
-				tl.max_tokens_per_task, 
-				tl.task_type,
-				tl.task_name, 
-				tl.task_group,
-				tl.token_overflow_strategy, 
-				tl.model, 
-				tl.prompt, 
-				tl.response_format
-			ORDER BY task_id DESC 
+            tl.task_id, 
+            tl.max_tokens_per_task, 
+            tl.task_type,
+            tl.task_name, 
+            tl.task_group, 
+            tl.token_overflow_strategy, 
+            tl.model, 
+            tl.prompt, 
+            tl.response_format,
+            json_agg(json_schema) AS json_schemas
+        FROM 
+            public.ai_task_library tl
+        LEFT JOIN 
+            public.ai_task_schemas js ON tl.task_id = js.task_id
+        LEFT JOIN (
+            SELECT 
+                d.schema_id, 
+                d.org_id, 
+                jsonb_build_object(
+                    'schemaID', d.schema_id, 
+                    'schemaName', d.schema_name, 
+                    'schemaGroup', d.schema_group, 
+                    'isObjArray', d.is_obj_array,
+                    'fields', json_agg(
+                        jsonb_build_object(
+                            'fieldName', f.field_name, 
+                            'dataType', f.data_type, 
+                            'fieldDescription', f.field_description
+                        )
+                    )
+                ) AS json_schema
+            FROM 
+                public.ai_json_schema_definitions d
+            JOIN 
+                public.ai_json_schema_fields f ON d.schema_id = f.schema_id
+            WHERE 
+                d.org_id = $1
+            GROUP BY 
+                d.schema_id, d.org_id
+        ) AS schemas ON js.schema_id = schemas.schema_id AND tl.org_id = schemas.org_id
+        WHERE 
+            tl.org_id = $1
+        GROUP BY 
+            tl.task_id, 
+            tl.max_tokens_per_task, 
+            tl.task_type,
+            tl.task_name, 
+            tl.task_group, 
+            tl.token_overflow_strategy, 
+            tl.model, 
+            tl.prompt, 
+            tl.response_format
+        ORDER BY tl.task_id DESC 
 `
-
 	// Executing the query
 	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)
 	if err != nil {
@@ -203,7 +202,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 			FROM 
 				public.ai_task_library tl
 			LEFT JOIN 
-				public.ai_json_task_schemas js ON tl.task_id = js.task_id
+				public.ai_task_schemas js ON tl.task_id = js.task_id
 			LEFT JOIN (
 				SELECT 
 					d.schema_id, 

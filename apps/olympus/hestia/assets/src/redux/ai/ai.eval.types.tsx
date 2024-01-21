@@ -52,13 +52,10 @@ export interface EvalFn {
 export interface EvalMetric {
     jsonSchemaID?: number;
     evalMetricID?: number;
-    evalModelPrompt: string;
-    evalMetricName: string;
     evalMetricResult: string;
     evalComparisonBoolean?: boolean;
     evalComparisonNumber?: number;
     evalComparisonString?: string;
-    evalMetricDataType: string;
     evalOperator: string;
     evalState: string;
 }

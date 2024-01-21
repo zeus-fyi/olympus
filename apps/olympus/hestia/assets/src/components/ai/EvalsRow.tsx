@@ -102,7 +102,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                             <TableRow key={fieldIndex}>
                                                                 <TableCell>{schema.schemaID}</TableCell>
                                                                 <TableCell>{field.evalMetric.evalMetricID ? field.evalMetric.evalMetricID : 'N/A'}</TableCell>
-                                                                <TableCell>{field.evalMetric.evalMetricName}</TableCell>
+                                                                <TableCell>{field.fieldName}</TableCell>
                                                                 <TableCell>{field.fieldDescription}</TableCell>
                                                                 <TableCell>{field.dataType}</TableCell>
                                                                 <TableCell>{field.evalMetric.evalOperator}</TableCell>
@@ -112,20 +112,20 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                         ) : null
                                                     ))}
                                                 </React.Fragment>
-                                            ))
-                                            :
-                                            row.evalMetrics && row.evalMetrics.map((data, dataIndex) => (
-                                                <TableRow key={data.evalMetricName}>
-                                                    <TableCell>{data.jsonSchemaID ? data.jsonSchemaID : 'N/A'}</TableCell>
-                                                    <TableCell>{data.evalMetricID ? data.evalMetricID : 'N/A'}</TableCell>
-                                                    <TableCell>{data.evalMetricName}</TableCell>
-                                                    <TableCell>{data.evalModelPrompt}</TableCell>
-                                                    <TableCell>{data.evalMetricDataType}</TableCell>
-                                                    <TableCell>{data.evalOperator}</TableCell>
-                                                    <TableCell>{data.evalState}</TableCell>
-                                                    <TableCell>{data.evalMetricResult}</TableCell>
-                                                </TableRow>
-                                            ))
+                                            )) : null
+
+                                            // row.evalMetrics && row.evalMetrics.map((data, dataIndex) => (
+                                            //     <TableRow key={data.evalMetricName}>
+                                            //         <TableCell>{data.jsonSchemaID ? data.jsonSchemaID : 'N/A'}</TableCell>
+                                            //         <TableCell>{data.evalMetricID ? data.evalMetricID : 'N/A'}</TableCell>
+                                            //         <TableCell>{data.evalMetricName}</TableCell>
+                                            //         <TableCell>{data.evalModelPrompt}</TableCell>
+                                            //         <TableCell>{data.evalMetricDataType}</TableCell>
+                                            //         <TableCell>{data.evalOperator}</TableCell>
+                                            //         <TableCell>{data.evalState}</TableCell>
+                                            //         <TableCell>{data.evalMetricResult}</TableCell>
+                                            //     </TableRow>
+                                            // ))
                                     }
                                 </TableBody>
                             </Table>

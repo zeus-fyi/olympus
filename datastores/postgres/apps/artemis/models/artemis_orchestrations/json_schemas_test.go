@@ -8,7 +8,7 @@ import (
 )
 
 func (s *OrchestrationsTestSuite) TestConvertToFuncDef3() {
-	schema := JsonSchemaDefinition{
+	schema := &JsonSchemaDefinition{
 		SchemaName: "messages",
 		IsObjArray: true,
 		Fields: []JsonSchemaField{
@@ -16,7 +16,7 @@ func (s *OrchestrationsTestSuite) TestConvertToFuncDef3() {
 			{FieldName: "values", DataType: "array[number]", FieldDescription: "values"},
 		},
 	}
-	schema2 := JsonSchemaDefinition{
+	schema2 := &JsonSchemaDefinition{
 		SchemaName: "scoring",
 		IsObjArray: true,
 		Fields: []JsonSchemaField{
@@ -24,19 +24,19 @@ func (s *OrchestrationsTestSuite) TestConvertToFuncDef3() {
 			{FieldName: "products", DataType: "array[string]", FieldDescription: "products"},
 		},
 	}
-	fd := ConvertToFuncDef("test", []JsonSchemaDefinition{schema, schema2})
+	fd := ConvertToFuncDef("test", []*JsonSchemaDefinition{schema, schema2})
 	s.Require().NotNil(fd, "Failed to convert JSON schema to OpenAI function definition")
 }
 
 func (s *OrchestrationsTestSuite) TestConvertToFuncDef4() {
-	schema := JsonSchemaDefinition{
+	schema := &JsonSchemaDefinition{
 		SchemaName: "lead_scoring",
 		IsObjArray: false,
 		Fields: []JsonSchemaField{
 			{FieldName: "msg_ids", DataType: "array[number]", FieldDescription: "system message ids"},
 		},
 	}
-	fd := ConvertToFuncDef("twitter_extract_tweets", []JsonSchemaDefinition{schema})
+	fd := ConvertToFuncDef("twitter_extract_tweets", []*JsonSchemaDefinition{schema})
 
 	s.Require().NotNil(fd, "Failed to convert JSON schema to OpenAI function definition")
 }

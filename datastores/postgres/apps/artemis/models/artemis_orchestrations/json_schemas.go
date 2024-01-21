@@ -316,7 +316,7 @@ const (
 	keepTweetRelationshipToSingleMessage = "add the msg_id from the msg_body field that you are analyzing"
 )
 
-func ConvertToFuncDef(fnName string, schemas []JsonSchemaDefinition) openai.FunctionDefinition {
+func ConvertToFuncDef(fnName string, schemas []*JsonSchemaDefinition) openai.FunctionDefinition {
 	fd := openai.FunctionDefinition{
 		Name:       fnName,
 		Parameters: ConvertToFuncDefJsonSchemas(fnName, schemas), // Set the combined schema here
@@ -324,7 +324,7 @@ func ConvertToFuncDef(fnName string, schemas []JsonSchemaDefinition) openai.Func
 	return fd
 }
 
-func ConvertToFuncDefJsonSchemas(fnName string, schemas []JsonSchemaDefinition) jsonschema.Definition {
+func ConvertToFuncDefJsonSchemas(fnName string, schemas []*JsonSchemaDefinition) jsonschema.Definition {
 	// Initialize the combined properties
 	combinedProperties := make(map[string]jsonschema.Definition)
 	// Iterate over each schema and create a field for each
@@ -360,7 +360,10 @@ func ConvertToFuncDefJsonSchemas(fnName string, schemas []JsonSchemaDefinition) 
 	return combinedSchema
 }
 
-func convertDbJsonSchemaFieldsTSchema(fnName string, schema JsonSchemaDefinition) jsonschema.Definition {
+func convertDbJsonSchemaFieldsTSchema(fnName string, schema *JsonSchemaDefinition) jsonschema.Definition {
+	if schema == nil {
+		return jsonschema.Definition{}
+	}
 	properties := make(map[string]jsonschema.Definition)
 	var requiredFields []string
 	for _, field := range schema.Fields {
@@ -464,12 +467,12 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 }
 
 type JsonSchemasGroup struct {
-	Slice []JsonSchemaDefinition        `json:"jsonSchemaDefinitionsSlice,omitempty"`
+	Slice []*JsonSchemaDefinition       `json:"jsonSchemaDefinitionsSlice,omitempty"`
 	Map   map[int]*JsonSchemaDefinition `json:"jsonSchemaDefinitionsMap,omitempty"`
 }
 
 func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) (*JsonSchemasGroup, error) {
-	var schemas []JsonSchemaDefinition
+	var schemas []*JsonSchemaDefinition
 	// Query to join json_schema_definitions and ai_task_json_schema_fields
 	query := `
         SELECT d.schema_id, d.schema_name, d.schema_group, d.is_obj_array, f.field_name, f.data_type, f.field_description
@@ -512,7 +515,7 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) (*JsonSche
 	}
 	// Convert the map to a slice
 	for _, schema := range schemaMap {
-		schemas = append(schemas, *schema)
+		schemas = append(schemas, schema)
 	}
 	return &JsonSchemasGroup{
 		Slice: schemas,

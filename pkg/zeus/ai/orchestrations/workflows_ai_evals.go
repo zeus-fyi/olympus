@@ -58,11 +58,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			return err
 		}
 		for _, evalFnWithMetrics := range evalFnMetrics {
-			fd, ferr := TransformEvalMetricsToJSONSchema(evalFnWithMetrics.EvalMetrics)
-			if ferr != nil {
-				logger.Error("failed to transform eval metrics to json schema", "Error", ferr)
-				return ferr
-			}
+			fd := artemis_orchestrations.ConvertToFuncDef(evalFnWithMetrics.EvalName, evalFnWithMetrics.Schemas)
 			evalParams := hera_openai.OpenAIParams{
 				Model: evalFn.EvalModel,
 				FunctionDefinition: openai.FunctionDefinition{

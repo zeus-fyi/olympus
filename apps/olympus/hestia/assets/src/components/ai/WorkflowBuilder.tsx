@@ -220,12 +220,9 @@ function WorkflowEngineBuilder(props: any) {
 
     const clearEvalMetricRow = () => {
         dispatch(setEvalMetric({
-            evalMetricName: '',
-            evalModelPrompt: '',
             evalComparisonNumber: 1,
             evalComparisonString: '',
             evalComparisonBoolean: false,
-            evalMetricDataType: '',
             evalOperator: '',
             evalState: 'info',
             evalMetricResult: '',
@@ -298,7 +295,9 @@ function WorkflowEngineBuilder(props: any) {
         }
     };
     const updateMetricByName = (metrics: EvalMetric[], newMetric: EvalMetric) => {
-        const metricsWithoutOld = metrics.filter(metric => metric.evalMetricName !== newMetric.evalMetricName);
+        const metricsWithoutOld = metrics
+        // TODO
+        // const metricsWithoutOld = metrics.filter(metric => metric.evalMetricName !== newMetric.evalMetricName);
         return [...metricsWithoutOld, newMetric];
     };
     // const addActionMetricRow = () => {
@@ -3284,13 +3283,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                                             evalState: e.target.value
                                                                                         } : {
                                                                                             evalMetricID: undefined,
-                                                                                            evalModelPrompt: '',
-                                                                                            evalMetricName: field.fieldName,
                                                                                             evalMetricResult: '',
                                                                                             evalComparisonBoolean: undefined,
                                                                                             evalComparisonNumber: undefined,
                                                                                             evalComparisonString: '',
-                                                                                            evalMetricDataType: field.dataType,
                                                                                             evalOperator: '',
                                                                                             evalState: e.target.value,
                                                                                         };
@@ -3328,16 +3324,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                                             evalMetricResult: e.target.value
                                                                                         } : {
                                                                                             evalMetricID: undefined,
-                                                                                            evalModelPrompt: '',
-                                                                                            evalMetricName: field.fieldName,
                                                                                             evalMetricResult: e.target.value,
                                                                                             evalComparisonBoolean: undefined,
                                                                                             evalComparisonNumber: undefined,
                                                                                             evalComparisonString: '',
-                                                                                            evalMetricDataType: field.dataType,
                                                                                             evalOperator: '',
                                                                                             evalState: ''
                                                                                         };
+                                                                                        // TODO fix
                                                                                         const updatedField: JsonSchemaField = {
                                                                                             ...field,
                                                                                             evalMetric: updatedEvalMetric
@@ -3383,17 +3377,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                                             evalOperator: e.target.value
                                                                                         } : {
                                                                                             evalMetricID: undefined,
-                                                                                            evalModelPrompt: '',
-                                                                                            evalMetricName: field.fieldName,
                                                                                             evalMetricResult: '',
                                                                                             evalComparisonBoolean: undefined,
                                                                                             evalComparisonNumber: undefined,
                                                                                             evalComparisonString: '',
-                                                                                            evalMetricDataType: field.dataType,
                                                                                             evalOperator: e.target.value,
                                                                                             evalState: ''
                                                                                         };
-
+                                                                                        // TODO fix
                                                                                         const updatedField: JsonSchemaField = {
                                                                                             ...field,
                                                                                             evalMetric: updatedEvalMetric
@@ -3401,7 +3392,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         dispatchUpdateField(dataIndex, fieldIndex, updatedField);
                                                                                     }}
                                                                                 >
-                                                                                    {field.evalMetric?.evalMetricDataType === 'array[string]' &&
+                                                                                    {field.evalMetric && field.dataType  === 'array[string]' &&
                                                                                         <MenuItem value="all-unique-words">{'all-unique-words'}</MenuItem>
                                                                                     }
                                                                                     <MenuItem value="contains">{'contains'}</MenuItem>
@@ -3439,15 +3430,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                         evalOperator: e.target.value
                                                                                                     };
                                                                                                 } else {
+
+                                                                                                    // TODO
                                                                                                     updatedEvalMetric = {
                                                                                                         evalMetricID: undefined,
-                                                                                                        evalModelPrompt: '',
-                                                                                                        evalMetricName: field.fieldName,
                                                                                                         evalMetricResult: '',
                                                                                                         evalComparisonBoolean: undefined,
                                                                                                         evalComparisonNumber: undefined,
                                                                                                         evalComparisonString: '',
-                                                                                                        evalMetricDataType: field.dataType,
                                                                                                         evalOperator: e.target.value,
                                                                                                         evalState: ''
                                                                                                     };
@@ -3492,18 +3482,15 @@ function WorkflowEngineBuilder(props: any) {
                                                                                             } else {
                                                                                                 updatedEvalMetric = {
                                                                                                     evalMetricID: undefined,
-
-                                                                                                    evalModelPrompt: '',
-                                                                                                    evalMetricName: field.fieldName,
                                                                                                     evalMetricResult: '',
                                                                                                     evalComparisonBoolean: undefined,
                                                                                                     evalComparisonNumber: Number(e.target.value),
                                                                                                     evalComparisonString: '',
-                                                                                                    evalMetricDataType: '',
                                                                                                     evalOperator: '',
                                                                                                     evalState: ''
                                                                                                 };
                                                                                             }
+                                                                                            // TODO fix
                                                                                             const updatedField: JsonSchemaField = {
                                                                                                 ...field,
                                                                                                 evalMetric: updatedEvalMetric
@@ -3532,17 +3519,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                 evalComparisonBoolean: value
                                                                                             } : {
                                                                                                 evalMetricID: undefined,
-                                                                                                evalModelPrompt: '',
-                                                                                                evalMetricName: field.fieldName,
                                                                                                 evalMetricResult: '',
                                                                                                 evalComparisonBoolean: value,
                                                                                                 evalComparisonNumber: undefined,
                                                                                                 evalComparisonString: undefined,
-                                                                                                evalMetricDataType: field.dataType,
                                                                                                 evalOperator: '',
                                                                                                 evalState: ''
                                                                                             };
-
+                                                                                                // TODO fix
                                                                                             const updatedField: JsonSchemaField = {
                                                                                                 ...field,
                                                                                                 evalMetric: updatedEvalMetric
@@ -3574,16 +3558,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                 evalComparisonString: e.target.value
                                                                                             } : {
                                                                                                 evalMetricID: undefined,
-                                                                                                evalModelPrompt: '',
-                                                                                                evalMetricName: field.fieldName,
                                                                                                 evalMetricResult: '',
                                                                                                 evalComparisonBoolean: undefined,
                                                                                                 evalComparisonNumber: undefined,
                                                                                                 evalComparisonString: e.target.value,
-                                                                                                evalMetricDataType: field.dataType,
                                                                                                 evalOperator: '',
                                                                                                 evalState: ''
                                                                                             };
+                                                                                            // TODO fix
 
                                                                                             const updatedField: JsonSchemaField = {
                                                                                                 ...field,
@@ -4043,24 +4025,28 @@ export default function AiWorkflowsEngineBuilderDashboard() {
     return <WorkflowEngineBuilder />;
 }
 
-function GetValue(evm: EvalMetric) {
-    if (evm.evalMetricDataType === 'string') {
-        return evm.evalComparisonString
+function GetValue(evm: JsonSchemaField): string | number | boolean | string[] | number[] | boolean[] {
+    if (evm.evalMetric === undefined) {
+        return '';
     }
-    if (evm.evalMetricDataType === 'number') {
-        return evm.evalComparisonNumber
+
+    switch (evm.dataType) {
+        case 'string':
+            return evm.evalMetric.evalComparisonString || '';
+        case 'number':
+            return evm.evalMetric.evalComparisonNumber !== undefined ? evm.evalMetric.evalComparisonNumber : '';
+        case 'boolean':
+            return evm.evalMetric.evalComparisonBoolean !== undefined ? evm.evalMetric.evalComparisonBoolean : '';
+        // case 'array[string]':
+        //     // Assuming evalComparisonString is a string array for this dataType
+        //     return evm.evalMetric.evalComparisonStringArray || [];
+        // case 'array[number]':
+        //     // Assuming evalComparisonNumber is a number array for this dataType
+        //     return evm.evalMetric.evalComparisonNumberArray || [];
+        // case 'array[boolean]':
+        //     // Assuming evalComparisonBoolean is a boolean array for this dataType
+        //     return evm.evalMetric.evalComparisonBooleanArray || [];
+        default:
+            return '';
     }
-    if (evm.evalMetricDataType === 'boolean') {
-        return evm.evalComparisonBoolean
-    }
-    if (evm.evalMetricDataType === 'array[string]') {
-        return evm.evalComparisonString
-    }
-    if (evm.evalMetricDataType === 'array[number]') {
-        return evm.evalComparisonNumber
-    }
-    if (evm.evalMetricDataType === 'array[boolean]') {
-        return evm.evalComparisonBoolean
-    }
-    return ''
 }

@@ -123,12 +123,9 @@ const initialState: AiState = {
         triggerPlatformAccount: '',
     },
     evalMetric: {
-        evalMetricName: '',
-        evalModelPrompt: '',
         evalComparisonNumber: 0,
         evalComparisonString: '',
         evalComparisonBoolean: false,
-        evalMetricDataType: '',
         evalOperator: '',
         evalState: 'info',
         evalMetricResult: '',

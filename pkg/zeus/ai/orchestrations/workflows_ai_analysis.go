@@ -6,7 +6,6 @@ import (
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
-	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -112,27 +111,19 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			var analysisRespId int
 			switch analysisInst.AnalysisResponseFormat {
 			case jsonFormat:
-				var jdef []*artemis_orchestrations.JsonSchemaDefinition
-				for _, taskDef := range fullTaskDef {
-					jdef = append(jdef, taskDef.Schemas...)
+				sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
+				sg.SourceTaskID = analysisInst.AnalysisTaskID
+				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+					WorkflowID:               oj.OrchestrationName + "-analysis-json-task-" + strconv.Itoa(i),
+					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
-				fd := artemis_orchestrations.ConvertToFuncDef(analysisInst.AnalysisTaskName, jdef)
-				jsonTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				params := hera_openai.OpenAIParams{
-					Model:              analysisInst.AnalysisModel,
-					FunctionDefinition: fd,
-				}
-				err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, ou, params).Get(jsonTaskCtx, &aiResp)
+				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, ou, sg).Get(childAnalysisCtx, &aiResp)
 				if err != nil {
-					logger.Error("failed to run analysis json", "Error", err)
+					logger.Error("failed to execute child social media extraction workflow", "Error", err)
 					return nil, err
 				}
-				analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
-				if err != nil {
-					logger.Error("failed to save analysis response", "Error", err)
-					return nil, err
-				}
+				sg.SearchResults = aiResp.FilteredSearchResults
 			case socialMediaExtractionResponseFormat:
 				if sg == nil || len(sg.SearchResults) == 0 {
 					continue
@@ -167,8 +158,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			if aiResp == nil || len(aiResp.Response.Choices) == 0 {
 				continue
 			}
-			// TODO, validate chunk saving works
-
 			wr := artemis_orchestrations.AIWorkflowAnalysisResult{
 				OrchestrationsID:      oj.OrchestrationID,
 				ResponseID:            analysisRespId,

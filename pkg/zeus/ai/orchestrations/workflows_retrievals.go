@@ -5,18 +5,10 @@ import (
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
-
-type TaskToExecute struct {
-	WfID string                                      `json:"wfID"`
-	Ou   org_users.OrgUser                           `json:"ou"`
-	Wft  artemis_orchestrations.WorkflowTemplateData `json:"wft"`
-	Sg   *hera_search.SearchResultGroup              `json:"sg"`
-}
 
 func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context, tte TaskToExecute) (*hera_search.SearchResultGroup, error) {
 	logger := workflow.GetLogger(ctx)

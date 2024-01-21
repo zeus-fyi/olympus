@@ -113,12 +113,19 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 			case jsonFormat:
 				sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
 				sg.SourceTaskID = analysisInst.AnalysisTaskID
+				wfID := oj.OrchestrationName + "-analysis-json-task-" + strconv.Itoa(i)
+				tte := TaskToExecute{
+					WfID: wfID,
+					Ou:   ou,
+					Wft:  analysisInst,
+					Sg:   sg,
+				}
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               oj.OrchestrationName + "-analysis-json-task-" + strconv.Itoa(i),
+					WorkflowID:               wfID,
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, ou, sg).Get(childAnalysisCtx, &aiResp)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, tte).Get(childAnalysisCtx, &aiResp)
 				if err != nil {
 					logger.Error("failed to execute child social media extraction workflow", "Error", err)
 					return nil, err
@@ -129,12 +136,20 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					continue
 				}
 				sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
+
+				wfID := oj.OrchestrationName + "-analysis-social-media-extraction-" + strconv.Itoa(i)
+				tte := TaskToExecute{
+					WfID: wfID,
+					Ou:   ou,
+					Wft:  analysisInst,
+					Sg:   sg,
+				}
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               oj.OrchestrationName + "-analysis-social-media-extraction-" + strconv.Itoa(i),
+					WorkflowID:               wfID,
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaExtractionWorkflow, ou, sg).Get(childAnalysisCtx, &aiResp)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaExtractionWorkflow, tte).Get(childAnalysisCtx, &aiResp)
 				if err != nil {
 					logger.Error("failed to execute child social media extraction workflow", "Error", err)
 					return nil, err

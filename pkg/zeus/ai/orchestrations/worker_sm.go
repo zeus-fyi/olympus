@@ -22,7 +22,12 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteSocialMediaExtractionWorkflow(ctx 
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.SocialMediaExtractionWorkflow
 	var cr *ChatCompletionQueryResponse
-	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, sg)
+	tte := TaskToExecute{
+		WfID: workflowOptions.ID,
+		Ou:   ou,
+		Sg:   sg,
+	}
+	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, tte)
 	if err != nil {
 		log.Err(err).Msg("ExecuteSmExtractionWorkflow")
 		return nil, err

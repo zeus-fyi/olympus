@@ -6,8 +6,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -16,8 +14,8 @@ type FilteredMessages struct {
 	MsgKeepIds []int `json:"msg_ids"`
 }
 
-func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workflow.Context, wfID string, ou org_users.OrgUser, sg *hera_openai_dbmodels.SearchResultGroup) (*ChatCompletionQueryResponse, error) {
-	if sg == nil || sg.SearchResults == nil || len(sg.SearchResults) == 0 {
+func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
+	if tte.Sg == nil || tte.Sg.SearchResults == nil || len(tte.Sg.SearchResults) == 0 {
 		return nil, nil
 	}
 	logger := workflow.GetLogger(ctx)
@@ -29,7 +27,7 @@ func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workf
 			MaximumAttempts:    10,
 		},
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, "ZeusAiPlatformServiceWorkflows", "SocialMediaExtractionWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(tte.Ou.OrgID, tte.WfID, "ZeusAiPlatformServiceWorkflows", "SocialMediaExtractionWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
@@ -38,9 +36,9 @@ func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workf
 	}
 	var aiResp *ChatCompletionQueryResponse
 	extractCtx := workflow.WithActivityOptions(ctx, ao)
-	switch sg.PlatformName {
+	switch tte.Sg.PlatformName {
 	case twitterPlatform:
-		err = workflow.ExecuteActivity(extractCtx, z.ExtractTweets, ou, sg).Get(extractCtx, &aiResp)
+		err = workflow.ExecuteActivity(extractCtx, z.ExtractTweets, tte.Ou, tte.Sg).Get(extractCtx, &aiResp)
 		if err != nil {
 			logger.Error("failed to run twitter extraction", "Error", err)
 			return nil, err
@@ -48,6 +46,8 @@ func (z *ZeusAiPlatformServiceWorkflows) SocialMediaExtractionWorkflow(ctx workf
 	case telegramPlatform:
 	case discordPlatform:
 	case redditPlatform:
+	default:
+
 	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)

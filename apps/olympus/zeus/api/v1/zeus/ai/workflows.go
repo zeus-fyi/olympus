@@ -120,7 +120,7 @@ type AiWorkflowWrapper struct {
 	Evals          []artemis_orchestrations.EvalFn                 `json:"evalFns"`
 	TriggerActions []artemis_orchestrations.TriggerAction          `json:"triggerActions"`
 	Assistants     []artemis_orchestrations.AiAssistant            `json:"assistants"`
-	Schemas        []artemis_orchestrations.JsonSchemaDefinition   `json:"schemas"`
+	Schemas        []*artemis_orchestrations.JsonSchemaDefinition  `json:"schemas"`
 }
 
 type PostWorkflowsRequest struct {

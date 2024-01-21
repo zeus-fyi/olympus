@@ -39,7 +39,7 @@ func (s *OrchestrationsTestSuite) TestInsertJsonTask() {
 		Model:                 "gpt-4",
 		Prompt:                "test prompt",
 		ResponseFormat:        "json",
-		Schemas: []JsonSchemaDefinition{
+		Schemas: []*JsonSchemaDefinition{
 			{
 				SchemaID: 1705373225147975000,
 			},

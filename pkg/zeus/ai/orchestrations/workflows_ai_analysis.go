@@ -119,7 +119,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 
 			switch analysisInst.AnalysisResponseFormat {
 			case jsonFormat:
-				var jdef []artemis_orchestrations.JsonSchemaDefinition
+				var jdef []*artemis_orchestrations.JsonSchemaDefinition
 				for _, taskDef := range fullTaskDef {
 					jdef = append(jdef, taskDef.Schemas...)
 				}

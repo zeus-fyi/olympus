@@ -35,9 +35,6 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 	t.OrgID = ou.OrgID
 	t.UserID = ou.UserID
 
-	if t.EvalFormat == "json" {
-		t.EvalMetrics = nil
-	}
 	err := ValidateEvalOps(t.EvalFn)
 	if err != nil {
 		log.Err(err).Msg("failed to validate eval")
@@ -70,40 +67,30 @@ func ValidateStrArrayPayload(em *artemis_orchestrations.EvalMetric) error {
 }
 
 func ValidateEvalOps(ef artemis_orchestrations.EvalFn) error {
-	for _, evf := range ef.Schemas {
-		if evf.SchemaID <= 0 {
-			return errors.New("invalid schema id")
-		}
-		for _, fe := range evf.Fields {
+	for _, em := range ef.Schemas {
+		for _, fe := range em.Fields {
 			if len(fe.FieldName) <= 0 {
 				return errors.New("invalid field name")
 			}
 			if len(fe.DataType) <= 0 {
 				return errors.New("invalid field type")
 			}
-
-			err := ValidateEvalMetricOps(fe.EvalMetric)
+			err := ValidateEvalMetricOps(fe.DataType, fe.EvalMetric)
 			if err != nil {
 				log.Err(err).Msg("failed to validate eval")
 				return err
 			}
 		}
-	}
-	for _, em := range ef.EvalMetrics {
-		err := ValidateEvalMetricOps(&em)
-		if err != nil {
-			log.Err(err).Msg("failed to validate eval")
-			return err
-		}
+
 	}
 	return nil
 }
 
-func ValidateEvalMetricOps(em *artemis_orchestrations.EvalMetric) error {
+func ValidateEvalMetricOps(dataType string, em *artemis_orchestrations.EvalMetric) error {
 	if em == nil {
 		return nil
 	}
-	switch em.EvalMetricDataType + "-" + em.EvalOperator {
+	switch dataType + "-" + em.EvalOperator {
 	case "array[string]" + "-" + "length-less-than":
 		err := ValidateStrArrayPayload(em)
 		if err != nil {

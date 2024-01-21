@@ -84,7 +84,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 					logger.Error("failed to run agg json task selection", "Error", err)
 					return err
 				}
-				var jdef []artemis_orchestrations.JsonSchemaDefinition
+				var jdef []*artemis_orchestrations.JsonSchemaDefinition
 				for _, taskDef := range fullTaskDef {
 					jdef = append(jdef, taskDef.Schemas...)
 				}

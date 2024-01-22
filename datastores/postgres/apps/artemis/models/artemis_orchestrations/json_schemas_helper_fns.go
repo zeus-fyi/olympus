@@ -283,52 +283,96 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to bool", val)
 				}
 			case "array[number]":
-				if sliceVal, okArrayNum := val.([]float64); okArrayNum {
-					fieldDef.NumberValueSlice = sliceVal
-					fmt.Printf("Field %s is an array of numbers: %v\n", fieldDef.FieldName, sliceVal)
-				} else if sliceValInt, okArrayNumInt := val.([]int); okArrayNumInt {
-					numbers := make([]float64, 0)
-					for _, num := range sliceValInt {
-						numbers = append(numbers, float64(num))
-					}
-					fieldDef.NumberValueSlice = numbers
-					fmt.Printf("Field %s is an array of numbers: %v\n", fieldDef.FieldName, numbers)
-				} else {
-					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []number", val)
-				}
-			case "array[integer]":
-				if sliceVal, okArrayInt := val.([]int); okArrayInt {
-					fieldDef.IntValueSlice = sliceVal
-					fmt.Printf("Field %s is an array of ints: %v\n", fieldDef.FieldName, sliceVal)
-				} else {
+				vin, ok := val.([]interface{})
+				if !ok {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
 				}
+				vfs, err := interfaceSliceToFloat64Slice(vin)
+				if err != nil {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
+				}
+				fieldDef.NumberValueSlice = vfs
+			case "array[integer]":
+				vin, ok := val.([]interface{})
+				if !ok {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
+				}
+				vins, err := interfaceSliceToIntSlice(vin)
+				if err != nil {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
+				}
+				fieldDef.IntValueSlice = vins
 			case "array[string]":
-				if sliceVal, okArrayStr := val.([]string); okArrayStr {
-					strings := make([]string, 0)
-					for _, v := range sliceVal {
-						strings = append(strings, v)
-
-					}
-					fieldDef.StringValueSlice = strings
-					fmt.Printf("Field %s is an array of strings: %v\n", fieldDef.FieldName, strings)
-				} else if sliceValF, okArrayNumF := val.([]float64); okArrayNumF {
-					for _, v := range sliceValF {
-						fieldDef.IntValueSlice = append(fieldDef.IntValueSlice, int(v))
-					}
-					fmt.Printf("Field %s is an array of numbers: %v\n", fieldDef.FieldName, sliceVal)
-				} else {
-					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []string{}", val)
+				vin, ok := val.([]interface{})
+				if !ok {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []string", val)
 				}
+				vins, err := interfaceSliceToStringSlice(vin)
+				if err != nil {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []string", val)
+				}
+				fieldDef.StringValueSlice = vins
 			case "array[boolean]":
-				if booleans, okArrayBool := val.([]bool); okArrayBool {
-					fieldDef.BooleanValueSlice = booleans
-					fmt.Printf("Field %s is an array of booleans: %v\n", fieldDef.FieldName, booleans)
-				} else {
-					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []bool{}", val)
+				vin, ok := val.([]interface{})
+				if !ok {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []boolean", val)
 				}
+				bs, err := interfaceSliceToBoolSlice(vin)
+				if err != nil {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
+				}
+				fieldDef.BooleanValueSlice = bs
 			}
 		}
 	}
 	return sz, nil
+}
+func interfaceSliceToIntSlice(interfaceSlice []interface{}) ([]int, error) {
+	intSlice := make([]int, len(interfaceSlice))
+	for i, v := range interfaceSlice {
+		// Try asserting as int
+		if intValue, ok := v.(int); ok {
+			intSlice[i] = intValue
+		} else if floatValue, fok := v.(float64); fok {
+			// Convert float64 to int
+			intSlice[i] = int(floatValue)
+		} else {
+			return nil, fmt.Errorf("value at index %d is neither int nor float64", i)
+		}
+	}
+	return intSlice, nil
+}
+
+func interfaceSliceToFloat64Slice(interfaceSlice []interface{}) ([]float64, error) {
+	float64Slice := make([]float64, len(interfaceSlice))
+	for i, v := range interfaceSlice {
+		f, ok := v.(float64)
+		if !ok {
+			return nil, fmt.Errorf("value at index %d is not a float64", i)
+		}
+		float64Slice[i] = f
+	}
+	return float64Slice, nil
+}
+func interfaceSliceToBoolSlice(interfaceSlice []interface{}) ([]bool, error) {
+	boolSlice := make([]bool, len(interfaceSlice))
+	for i, v := range interfaceSlice {
+		b, ok := v.(bool)
+		if !ok {
+			return nil, fmt.Errorf("value at index %d is not a bool", i)
+		}
+		boolSlice[i] = b
+	}
+	return boolSlice, nil
+}
+func interfaceSliceToStringSlice(interfaceSlice []interface{}) ([]string, error) {
+	stringSlice := make([]string, len(interfaceSlice))
+	for i, v := range interfaceSlice {
+		str, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("value at index %d is not a string", i)
+		}
+		stringSlice[i] = str
+	}
+	return stringSlice, nil
 }

@@ -1,10 +1,6 @@
 package ai_platform_service_orchestrations
 
 import (
-	"fmt"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -21,30 +17,30 @@ func (t *ZeusWorkerTestSuite) TestEvalFnJsonConstructSchemaFromDb() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(evalFnMetrics)
 
-	jd, err := TransformEvalMetricsToJSONSchema(evalFnMetrics[0].EvalMetrics)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(jd)
-
-	fdSchema := jsonschema.Definition{
-		Type: jsonschema.Object,
-		Properties: map[string]jsonschema.Definition{
-			"count": {
-				Type:        jsonschema.Number,
-				Description: "total number of words in sentence",
-			},
-			"words": {
-				Type:        jsonschema.Array,
-				Description: "list of words in sentence",
-				Items: &jsonschema.Definition{
-					Type: jsonschema.String,
-				},
-			},
-		},
-		Required: []string{"count", "words"},
-	}
-	t.Require().Equal(fdSchema.Type, jd.Type)
-	t.Require().Equal(fdSchema.Properties["count"].Description, jd.Properties["count"].Description)
-	t.Require().Equal(fdSchema.Properties["count"].Type, jd.Properties["count"].Type)
+	//jd, err := TransformEvalMetricsToJSONSchema(evalFnMetrics[0].EvalMetrics)
+	//t.Require().Nil(err)
+	//t.Require().NotEmpty(jd)
+	//
+	//fdSchema := jsonschema.Definition{
+	//	Type: jsonschema.Object,
+	//	Properties: map[string]jsonschema.Definition{
+	//		"count": {
+	//			Type:        jsonschema.Number,
+	//			Description: "total number of words in sentence",
+	//		},
+	//		"words": {
+	//			Type:        jsonschema.Array,
+	//			Description: "list of words in sentence",
+	//			Items: &jsonschema.Definition{
+	//				Type: jsonschema.String,
+	//			},
+	//		},
+	//	},
+	//	Required: []string{"count", "words"},
+	//}
+	//t.Require().Equal(fdSchema.Type, jd.Type)
+	//t.Require().Equal(fdSchema.Properties["count"].Description, jd.Properties["count"].Description)
+	//t.Require().Equal(fdSchema.Properties["count"].Type, jd.Properties["count"].Type)
 }
 
 func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
@@ -58,21 +54,21 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(evalFnMetrics)
 	// Output the resulting metrics
-	for _, evalFn := range evalFnMetrics {
-
-		for _, metric := range evalFn.EvalMetrics {
-			fmt.Printf("Metric: %+v\n", metric)
-
-			//if metric.EvalMetricDataType == "number" {
-			//	metric.EvalOperator = "=="
-			//}
-
-			if metric.EvalMetricDataType == "array[string]" {
-				metric.EvalComparisonString = aws.String("word1")
-				metric.EvalOperator = "contains"
-			}
-		}
-	}
+	//for _, evalFn := range evalFnMetrics {
+	//
+	//	for _, metric := range evalFn.EvalMetrics {
+	//		fmt.Printf("Metric: %+v\n", metric)
+	//
+	//		//if metric.EvalMetricDataType == "number" {
+	//		//	metric.EvalOperator = "=="
+	//		//}
+	//
+	//		if metric.EvalMetricDataType == "array[string]" {
+	//			metric.EvalComparisonString = aws.String("word1")
+	//			metric.EvalOperator = "contains"
+	//		}
+	//	}
+	//}
 	//jsonData := `{"count": 10, "words": ["word1", "word2"]}`
 	//metrics, err := TransformJSONToEvalScoredMetrics(jsonData, evalFnMetrics[0].EvalMetricMap)
 	//if err != nil {

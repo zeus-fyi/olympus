@@ -1,21 +1,32 @@
 package ai_platform_service_orchestrations
 
-const socialMediaJsonFormat = `[
-  {
-    "messageID": "1704249180",
-    "messageBody": "message content text"
-  }
-]`
+import (
+	"context"
 
-/*
-	if taskInst.AnalysisResponseFormat == socialMediaEngagementResponseFormat {
-		switch taskInst.RetrievalPlatform {
-		case twitterPlatform:
-			content = hera_search.FormatSearchResultsV3(sr)
-			prompt = "\n" + "The messages you will be reading and writing must be in the following format" + socialMediaJsonFormat + "\nIf you are replying to any messages," +
-				" you must return a JSON in the same format with messageID being the messageID you are responding to and messageBody being the text of your response\n" + prompt
-		}
+	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+)
+
+func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Context, ou org_users.OrgUser, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
+	var err error
+	var resp openai.ChatCompletionResponse
+	ps, err := GetMockingBirdSecrets(ctx, ou)
+	if err != nil || ps == nil || ps.ApiKey == "" {
+		log.Info().Msg("CreatJsonOutputModelResponse: GetMockingBirdSecrets failed to find user openai api key, using system key")
+		err = nil
+		resp, err = hera_openai.HeraOpenAI.MakeCodeGenRequestJsonFormattedOutput(ctx, ou, params)
+	} else {
+		oc := hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
+		resp, err = oc.MakeCodeGenRequestJsonFormattedOutput(ctx, ou, params)
 	}
-*/
-
-// TODO: add json extraction
+	if err != nil {
+		log.Err(err).Msg("CreatJsonOutputModelResponse: MakeCodeGenRequestJsonFormattedOutput failed")
+		return nil, err
+	}
+	return &ChatCompletionQueryResponse{
+		Prompt:   map[string]string{"prompt": params.Prompt},
+		Response: resp,
+	}, nil
+}

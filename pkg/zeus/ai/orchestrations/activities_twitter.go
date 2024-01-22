@@ -94,7 +94,7 @@ func UnmarshallOpenAiJsonInterface(fn string, cr *ChatCompletionQueryResponse) (
 			if tvr.Function.Name == fn {
 				err := json.Unmarshal([]byte(tvr.Function.Arguments), &m)
 				if err != nil {
-					log.Err(err).Msg("failed to unmarshal json")
+					log.Err(err).Interface("tool_calls", cho.Message.ToolCalls).Interface("tvr", tvr).Msg("failed to unmarshal json")
 					return nil, err
 				}
 			}
@@ -111,7 +111,7 @@ func UnmarshallOpenAiJsonInterfaceSlice(fn string, cr *ChatCompletionQueryRespon
 				m := make(map[string]interface{})
 				err := json.Unmarshal([]byte(tvr.Function.Arguments), &m)
 				if err != nil {
-					log.Err(err).Msg("failed to unmarshal json")
+					log.Err(err).Interface("results", results).Interface("tvr", tvr).Msg("failed to unmarshal json")
 					return nil, err
 				}
 				results = append(results, m)

@@ -41,6 +41,10 @@ func (z *ZeusAiPlatformActivities) AnalyzeEngagementTweets(ctx context.Context, 
 		}
 	}
 	jsd := artemis_orchestrations.ConvertToJsonSchema(sg.FunctionDefinition)
-	resp.JsonResponseResults = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
+	resp.JsonResponseResults, err = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
+	if err != nil {
+		log.Err(err).Msg("AnalyzeEngagementTweets: AssignMapValuesMultipleJsonSchemasSlice failed")
+		return nil, err
+	}
 	return resp, nil
 }

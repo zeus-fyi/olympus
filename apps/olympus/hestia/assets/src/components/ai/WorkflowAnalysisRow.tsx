@@ -7,7 +7,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Checkbox from "@mui/material/Checkbox";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
-import {OrchestrationsAnalysis} from "../../redux/ai/ai.types";
+import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
 import TableHead from "@mui/material/TableHead";
 import {prettyPrintJSON} from "./RetrievalsRow";
 
@@ -113,6 +113,8 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableCell>Task Name</TableCell>
                                         <TableCell>Task Type</TableCell>
                                         <TableCell>Cycle</TableCell>
+                                        <TableCell>Iteration</TableCell>
+                                        <TableCell>Usage</TableCell>
                                         <TableCell>Start</TableCell>
                                         <TableCell>End</TableCell>
                                         <TableCell style={{ width: '15%'}}>Model</TableCell>
@@ -130,6 +132,8 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>{data.taskName}</TableCell>
                                             <TableCell>{data.taskType}</TableCell>
                                             <TableCell>{data.runningCycleNumber}</TableCell>
+                                            <TableCell>{data.iterationCount}</TableCell>
+                                            <TableCell>{data.skipAnalysis ? 'skipped' : 'used'}</TableCell>
                                             <TableCell>{data.searchWindowUnixStart}</TableCell>
                                             <TableCell>{data.searchWindowUnixEnd}</TableCell>
                                             <TableCell style={{ width: '15%'}}>{data.model}</TableCell>

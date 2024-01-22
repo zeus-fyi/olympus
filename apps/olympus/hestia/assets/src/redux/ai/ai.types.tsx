@@ -1,6 +1,7 @@
-import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
+import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
-import {EvalFn, EvalFnMap, EvalMap, EvalMetric, EvalMetricsResult} from "./ai.eval.types";
+import {EvalFn, EvalFnMap, EvalMap, EvalMetric, EvalMetricsResult} from "./ai.types.evals";
+import {OrchestrationsAnalysis} from "./ai.types.runs";
 
 export interface AiState {
     addSchemasView: boolean;
@@ -118,32 +119,6 @@ export interface RetrievalsMap {
 
 export interface AnalysisRetrievalsMap {
     [key: number]: { [innerKey: number]: boolean };
-}
-
-export interface AggregatedData {
-    workflowResultId: number;
-    responseId: number;
-    sourceTaskId: number;
-    taskName: string;
-    taskType: string;
-    runningCycleNumber: number;
-    searchWindowUnixStart: number;
-    searchWindowUnixEnd: number;
-    model: string;
-    prompt?: string; // or a more specific type if the structure of prompt is known
-    metadata?: string; // or a more specific type if the structure of metadata is known
-    completionChoices?: string; // similar to metadata, define a more specific type if possible
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-}
-
-export interface OrchestrationsAnalysis {
-    totalWorkflowTokenUsage: number;
-    runCycles: number;
-    aggregatedData: AggregatedData[];
-    orchestration: Orchestration;
-    aggregatedEvalResults: EvalMetricsResult[]; // Added array of EvalMetricsResult
 }
 
 export interface DeleteWorkflowsActionRequest {

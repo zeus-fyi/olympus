@@ -1,4 +1,4 @@
-import {EvalMetric} from "./ai.eval.types";
+import {EvalMetric} from "./ai.types.evals";
 
 export interface JsonSchemaDefinition {
     schemaID: number;

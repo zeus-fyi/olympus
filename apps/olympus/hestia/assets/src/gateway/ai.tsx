@@ -10,9 +10,9 @@ import {
     PostWorkflowsRequest,
     TaskModelInstructions,
 } from "../redux/ai/ai.types";
-import {Assistant, Retrieval, TriggerAction, TriggerActionApprovalPutRequest} from "../redux/ai/ai.types2";
+import {Assistant, Retrieval, TriggerAction, TriggerActionApprovalPutRequest} from "../redux/ai/ai.types.retrievals";
 import {JsonSchemaDefinition} from "../redux/ai/ai.types.schemas";
-import {EvalFn} from "../redux/ai/ai.eval.types";
+import {EvalFn} from "../redux/ai/ai.types.evals";
 
 class AiApiGateway {
     async searchRequest(params: AiSearchParams): Promise<any> {

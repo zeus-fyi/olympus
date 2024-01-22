@@ -86,11 +86,11 @@ import {EvalsTable} from "./EvalsTable";
 import {Assistants} from "./Assistants";
 import {AssistantsTable} from "./AssistantsTable";
 import {ActionsTable} from "./ActionsTable";
-import {Retrieval, TriggerAction} from "../../redux/ai/ai.types2";
+import {Retrieval, TriggerAction} from "../../redux/ai/ai.types.retrievals";
 import {SchemasTable} from "./SchemasTable";
 import {Schemas} from "./Schemas";
 import {JsonSchemaDefinition, JsonSchemaField} from "../../redux/ai/ai.types.schemas";
-import {EvalFn, EvalMetric} from "../../redux/ai/ai.eval.types";
+import {EvalFn, EvalMetric} from "../../redux/ai/ai.types.evals";
 
 const mdTheme = createTheme();
 

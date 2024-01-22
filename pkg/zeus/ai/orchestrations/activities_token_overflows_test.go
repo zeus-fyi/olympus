@@ -120,10 +120,10 @@ func (t *ZeusWorkerTestSuite) TestPromptStringTokenOverflowReduction() {
 	fmt.Println("res", len(res))
 
 	pr := &PromptReduction{
+		Model:                 Gpt4JsonModel,
 		MarginBuffer:          0.5,
 		TokenOverflowStrategy: OverflowStrategyDeduce,
 		PromptReductionText: &PromptReductionText{
-			Model:        Gpt4JsonModel,
 			InPromptBody: res,
 		},
 	}
@@ -137,10 +137,10 @@ func (t *ZeusWorkerTestSuite) TestPromptStringTokenOverflowReduction() {
 	}
 
 	pr = &PromptReduction{
+		Model:                 Gpt4JsonModel,
 		MarginBuffer:          0.5,
 		TokenOverflowStrategy: OverflowStrategyTruncate,
 		PromptReductionText: &PromptReductionText{
-			Model:        Gpt4JsonModel,
 			InPromptBody: res,
 		},
 	}

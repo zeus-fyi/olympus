@@ -182,7 +182,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				SearchWindowUnixEnd:   window.UnixEndTime,
 			}
 			recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr).Get(recordAnalysisCtx, nil)
+			err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, &wr).Get(recordAnalysisCtx, nil)
 			if err != nil {
 				logger.Error("failed to save analysis", "Error", err)
 				return nil, err

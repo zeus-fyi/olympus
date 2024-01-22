@@ -67,7 +67,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				JOIN public.ai_json_schema_definitions jsd ON af.schema_id = jsd.schema_id
 				JOIN public.eval_metrics m ON m.field_id = af.field_id
 				JOIN cte_metrics fm ON m.eval_id = fm.eval_id
-				WHERE m.is_eval_metric_archived = false
+				WHERE m.is_eval_metric_archived = false AND af.is_field_archived = false
 				GROUP BY m.eval_id, jsd.schema_id
 			), eval_fns_with_metrics AS (
 				SELECT 

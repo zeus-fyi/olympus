@@ -40,6 +40,7 @@ type PromptReductionText struct {
 }
 
 type PromptReductionSearchResults struct {
+	InPromptBody    string                           `json:"inPromptBody"`
 	InSearchGroup   *hera_search.SearchResultGroup   `json:"inSearchGroup,omitempty"`
 	OutSearchGroups []*hera_search.SearchResultGroup `json:"outSearchGroups,omitempty"`
 }

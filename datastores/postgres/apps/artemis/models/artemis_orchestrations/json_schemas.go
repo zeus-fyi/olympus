@@ -163,7 +163,7 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) (*JsonSche
         SELECT d.schema_id, d.schema_name, d.schema_group, d.is_obj_array, f.field_name, f.data_type, f.field_description, f.field_id
         FROM public.ai_json_schema_definitions d
         JOIN public.ai_fields f ON d.schema_id = f.schema_id
-        WHERE d.org_id = $1
+        WHERE d.org_id = $1 AND f.is_field_archived = false
         ORDER BY d.schema_id, f.field_name;`
 
 	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)

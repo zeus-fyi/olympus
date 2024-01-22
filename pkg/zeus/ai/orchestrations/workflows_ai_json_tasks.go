@@ -103,6 +103,21 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		logger.Error("failed to save analysis response", "Error", err)
 		return nil, err
 	}
+	wr := artemis_orchestrations.AIWorkflowAnalysisResult{
+		//OrchestrationsID:      oj.OrchestrationID,
+		//ResponseID:            analysisRespId,
+		//SourceTaskID:          analysisInst.AnalysisTaskID,
+		//RunningCycleNumber:    i,
+		//SearchWindowUnixStart: window.UnixStartTime,
+		//SearchWindowUnixEnd:   window.UnixEndTime,
+		IterationCount: 1,
+	}
+	recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr).Get(recordAnalysisCtx, nil)
+	if err != nil {
+		logger.Error("failed to save analysis", "Error", err)
+		return nil, err
+	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {

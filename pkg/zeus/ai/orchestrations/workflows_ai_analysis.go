@@ -78,29 +78,19 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					continue
 				}
 			}
-
-			var aiResp *ChatCompletionQueryResponse
-			var fullTaskDef []artemis_orchestrations.AITaskLibrary
-			if analysisInst.AnalysisResponseFormat == jsonFormat {
-				selectTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				err := workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, ou, analysisInst.AnalysisTaskID).Get(selectTaskCtx, &fullTaskDef)
-				if err != nil {
-					logger.Error("failed to run analysis", "Error", err)
-					return nil, err
-				}
-				if len(fullTaskDef) == 0 {
-					continue
-				}
-			}
 			pr := &PromptReduction{
 				TokenOverflowStrategy: analysisInst.AnalysisTokenOverflowStrategy,
 				Model:                 analysisInst.AnalysisModel,
-				PromptReductionSearchResults: &PromptReductionSearchResults{
+			}
+			if sg != nil && len(sg.SearchResults) > 0 {
+				pr.PromptReductionSearchResults = &PromptReductionSearchResults{
+					InPromptBody:  analysisInst.AnalysisPrompt,
 					InSearchGroup: sg,
-				},
-				PromptReductionText: &PromptReductionText{
+				}
+			} else {
+				pr.PromptReductionText = &PromptReductionText{
 					InPromptBody: analysisInst.AnalysisPrompt,
-				},
+				}
 			}
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, ou, pr).Get(chunkedTaskCtx, &pr)
@@ -108,120 +98,161 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				logger.Error("failed to run analysis json", "Error", err)
 				return nil, err
 			}
-			var analysisRespId int
-			switch analysisInst.AnalysisResponseFormat {
-			case jsonFormat:
-				sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
-				sg.SourceTaskID = analysisInst.AnalysisTaskID
-				wfID := oj.OrchestrationName + "-analysis-json-task-" + strconv.Itoa(i)
-				tte := TaskToExecute{
-					WfID: wfID,
-					Ou:   ou,
-					Wft:  analysisInst,
-					Sg:   sg,
-				}
-				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               wfID,
-					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-				}
-				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, tte).Get(childAnalysisCtx, &aiResp)
-				if err != nil {
-					logger.Error("failed to execute child social media extraction workflow", "Error", err)
-					return nil, err
-				}
-				sg.SearchResults = aiResp.FilteredSearchResults
-			case socialMediaExtractionResponseFormat:
-				if sg == nil || len(sg.SearchResults) == 0 {
-					continue
-				}
-				sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
 
-				wfID := oj.OrchestrationName + "-analysis-social-media-extraction-" + strconv.Itoa(i)
-				tte := TaskToExecute{
-					WfID: wfID,
-					Ou:   ou,
-					Wft:  analysisInst,
-					Sg:   sg,
-				}
-				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               wfID,
-					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-				}
-				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaExtractionWorkflow, tte).Get(childAnalysisCtx, &aiResp)
-				if err != nil {
-					logger.Error("failed to execute child social media extraction workflow", "Error", err)
-					return nil, err
-				}
-				sg.SearchResults = aiResp.FilteredSearchResults
-				// TODO, now these extraction results are going to eval via embedded wf eval, refactor to use eval workflow
-			default:
-				analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
-				if err != nil {
-					logger.Error("failed to run analysis", "Error", err)
-					return nil, err
-				}
-				analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
-				if err != nil {
-					logger.Error("failed to save analysis response", "Error", err)
-					return nil, err
-				}
+			chunkIterator := 0
+			if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil {
+				chunkIterator = len(pr.PromptReductionSearchResults.OutSearchGroups)
 			}
-			if aiResp == nil || len(aiResp.Response.Choices) == 0 {
-				continue
+			if pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
+				chunkIterator = len(pr.PromptReductionText.OutPromptChunks)
 			}
-			wr := artemis_orchestrations.AIWorkflowAnalysisResult{
-				OrchestrationsID:      oj.OrchestrationID,
-				ResponseID:            analysisRespId,
-				SourceTaskID:          analysisInst.AnalysisTaskID,
-				RunningCycleNumber:    i,
-				SearchWindowUnixStart: window.UnixStartTime,
-				SearchWindowUnixEnd:   window.UnixEndTime,
-			}
-			recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, &wr).Get(recordAnalysisCtx, nil)
-			if err != nil {
-				logger.Error("failed to save analysis", "Error", err)
-				return nil, err
-			}
-			evalWfID := oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i)
-			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-				WorkflowID:               oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i),
-				WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-			}
-			cp.Window = window
-			cp.WfID = evalWfID
-			cp.WorkflowResult = wr
-			ea := &EvalActionParams{
-				WorkflowTemplateData: analysisInst,
-				ParentOutputToEval:   aiResp,
-				EvalFns:              analysisInst.AnalysisTaskDB.AnalysisEvalFns,
-				SearchResultGroup:    sg,
-			}
-			if analysisInst.AggTaskID != nil {
-				ea.EvalFns = analysisInst.AggAnalysisEvalFns
-			}
-			for _, evalFn := range ea.EvalFns {
-				var evalAnalysisOnlyCycle int
-				if analysisInst.AggTaskID != nil {
-					evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[*analysisInst.AggTaskID][analysisInst.AnalysisTaskID][evalFn.EvalID]
+			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
+				if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && chunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
+					sg = pr.PromptReductionSearchResults.OutSearchGroups[chunkOffset]
 				} else {
-					evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AnalysisEvalNormalizedCycleCounts[analysisInst.AnalysisTaskID][evalFn.EvalID]
+					sg = &hera_search.SearchResultGroup{
+						SearchResults: []hera_search.SearchResult{},
+					}
 				}
-				if i%evalAnalysisOnlyCycle == 0 {
+				if pr.PromptReductionText.OutPromptChunks != nil && chunkOffset < len(pr.PromptReductionText.OutPromptChunks) {
+					analysisInst.AnalysisPrompt = pr.PromptReductionText.OutPromptChunks[chunkOffset]
+				}
+
+				wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
+					OrchestrationsID:      oj.OrchestrationID,
+					SourceTaskID:          analysisInst.AnalysisTaskID,
+					RunningCycleNumber:    i,
+					ChunkOffset:           chunkOffset,
+					IterationCount:        0,
+					SearchWindowUnixStart: window.UnixStartTime,
+					SearchWindowUnixEnd:   window.UnixEndTime,
+				}
+
+				var aiResp *ChatCompletionQueryResponse
+				tte := TaskToExecute{
+					Ou:  ou,
+					Wft: analysisInst,
+					Sg:  sg,
+					Wr:  wr,
+				}
+				var wfID string
+				var analysisRespId int
+				switch analysisInst.AnalysisResponseFormat {
+				case jsonFormat:
+					sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
+					sg.SourceTaskID = analysisInst.AnalysisTaskID
+					wfID = oj.OrchestrationName + "-analysis-json-task-" + strconv.Itoa(i)
+					tte.WfID = wfID
+					pr.Model = tte.Wft.AnalysisModel
+					pr.TokenOverflowStrategy = tte.Wft.AnalysisTokenOverflowStrategy
+					pr.PromptReductionText.InPromptBody = tte.Wft.AnalysisPrompt
+					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+						WorkflowID:               wfID,
+						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+					}
+					tte.Tc = TaskContext{
+						TaskName:    analysisInst.AnalysisTaskName,
+						TaskType:    AnalysisTask,
+						Model:       analysisInst.AnalysisModel,
+						TaskID:      analysisInst.AnalysisTaskID,
+						ChunkOffset: chunkOffset,
+					}
 					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
+					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, tte).Get(childAnalysisCtx, &aiResp)
 					if err != nil {
-						logger.Error("failed to execute child analysis workflow", "Error", err)
+						logger.Error("failed to execute analysis json workflow", "Error", err)
+						return nil, err
+					}
+					sg.SearchResults = aiResp.FilteredSearchResults
+				case socialMediaExtractionResponseFormat:
+					if sg == nil || len(sg.SearchResults) == 0 {
+						continue
+					}
+					sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
+					wfID = oj.OrchestrationName + "-analysis-social-media-extraction-" + strconv.Itoa(i)
+					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+						WorkflowID:               wfID,
+						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+					}
+					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaExtractionWorkflow, tte).Get(childAnalysisCtx, &aiResp)
+					if err != nil {
+						logger.Error("failed to execute child social media extraction workflow", "Error", err)
+						return nil, err
+					}
+					sg.SearchResults = aiResp.FilteredSearchResults
+					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
+					if err != nil {
+						logger.Error("failed to save analysis response", "Error", err)
+						return nil, err
+					}
+					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, &wr).Get(recordAnalysisCtx, nil)
+					if err != nil {
+						logger.Error("failed to save analysis", "Error", err)
+						return nil, err
+					}
+				default:
+					analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
+					if err != nil {
+						logger.Error("failed to run analysis", "Error", err)
+						return nil, err
+					}
+					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
+					if err != nil {
+						logger.Error("failed to save analysis response", "Error", err)
+						return nil, err
+					}
+					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, &wr).Get(recordAnalysisCtx, nil)
+					if err != nil {
+						logger.Error("failed to save analysis", "Error", err)
 						return nil, err
 					}
 				}
+				if aiResp == nil || len(aiResp.Response.Choices) == 0 {
+					continue
+				}
+				wfID = oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i)
+				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+					WorkflowID:               wfID,
+					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+				}
+				cp.Window = window
+				cp.WfID = wfID
+				cp.WorkflowResult = *wr
+				ea := &EvalActionParams{
+					WorkflowTemplateData: analysisInst,
+					ParentOutputToEval:   aiResp,
+					EvalFns:              analysisInst.AnalysisTaskDB.AnalysisEvalFns,
+					SearchResultGroup:    sg,
+					TaskToExecute:        tte,
+				}
+				if analysisInst.AggTaskID != nil {
+					ea.EvalFns = analysisInst.AggAnalysisEvalFns
+				}
+				for _, evalFn := range ea.EvalFns {
+					var evalAnalysisOnlyCycle int
+					if analysisInst.AggTaskID != nil {
+						evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[*analysisInst.AggTaskID][analysisInst.AnalysisTaskID][evalFn.EvalID]
+					} else {
+						evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AnalysisEvalNormalizedCycleCounts[analysisInst.AnalysisTaskID][evalFn.EvalID]
+					}
+					if i%evalAnalysisOnlyCycle == 0 {
+						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
+						if err != nil {
+							logger.Error("failed to execute child analysis workflow", "Error", err)
+							return nil, err
+						}
+					}
+				}
+				cp.AnalysisEvalActionParams = ea
+				return cp, nil
 			}
-			cp.AnalysisEvalActionParams = ea
-			return cp, nil
 		}
 	}
 	return cp, nil

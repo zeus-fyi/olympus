@@ -66,7 +66,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 									'promptTokens', comp_resp.prompt_tokens,
 									'completionTokens', comp_resp.completion_tokens,
 									'totalTokens', comp_resp.total_tokens
-								) ORDER BY ai_res.running_cycle_number DESC, ai_res.response_id DESC
+								) ORDER BY ai_res.running_cycle_number DESC, ai_res.iteration_count DESC, ai_res.response_id DESC
 							) AS aggregated_data,
 							JSONB_AGG(
 								CASE 

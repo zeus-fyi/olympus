@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -17,11 +18,20 @@ const (
 )
 
 type TaskToExecute struct {
-	WfID     string                                      `json:"wfID"`
-	Ou       org_users.OrgUser                           `json:"ou"`
-	TaskType string                                      `json:"taskType"`
-	Wft      artemis_orchestrations.WorkflowTemplateData `json:"wft"`
-	Sg       *hera_search.SearchResultGroup              `json:"sg"`
+	WfID string                                           `json:"wfID"`
+	Ou   org_users.OrgUser                                `json:"ou"`
+	Tc   TaskContext                                      `json:"taskContext"`
+	Wft  artemis_orchestrations.WorkflowTemplateData      `json:"wft"`
+	Sg   *hera_search.SearchResultGroup                   `json:"sg"`
+	Wr   *artemis_orchestrations.AIWorkflowAnalysisResult `json:"wr"`
+}
+
+type TaskContext struct {
+	TaskName    string `json:"taskName"`
+	TaskType    string `json:"taskType"`
+	Model       string `json:"model"`
+	TaskID      int    `json:"taskID"`
+	ChunkOffset int    `json:"chunkOffset"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
@@ -41,35 +51,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		logger.Error("failed to update ai orch services", "Error", err)
 		return nil, err
 	}
-	pr := &PromptReduction{
-		PromptReductionSearchResults: &PromptReductionSearchResults{
-			InSearchGroup: tte.Sg,
-		},
-	}
-	taskName := ""
-	switch tte.TaskType {
-	case AnalysisTask:
-		taskName = tte.Wft.AnalysisTaskName
-		pr.Model = tte.Wft.AnalysisModel
-		pr.TokenOverflowStrategy = tte.Wft.AnalysisTokenOverflowStrategy
-		pr.PromptReductionText.InPromptBody = tte.Wft.AnalysisPrompt
-	case AggTask:
-		if tte.Wft.AggTaskName == nil || tte.Wft.AggModel == nil || tte.Wft.AggTokenOverflowStrategy == nil || tte.Wft.AggPrompt == nil {
-			return nil, nil
-		}
-		taskName = *tte.Wft.AggTaskName
-		pr.Model = *tte.Wft.AggModel
-		pr.TokenOverflowStrategy = *tte.Wft.AggTokenOverflowStrategy
-		pr.PromptReductionText.InPromptBody = *tte.Wft.AggPrompt
-	default:
-		return nil, nil
-	}
-	chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, tte.Ou, pr).Get(chunkedTaskCtx, &pr)
-	if err != nil {
-		logger.Error("failed to run token overflow task", "Error", err)
-		return nil, err
-	}
 
 	var fullTaskDef []artemis_orchestrations.AITaskLibrary
 	selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
@@ -85,39 +66,57 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	for _, taskDef := range fullTaskDef {
 		jdef = append(jdef, taskDef.Schemas...)
 	}
-	var aiResp *ChatCompletionQueryResponse
-	fd := artemis_orchestrations.ConvertToFuncDef(taskName, jdef)
+	fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.TaskName, jdef)
 	jsonTaskCtx := workflow.WithActivityOptions(ctx, ao)
-	params := hera_openai.OpenAIParams{
-		Model:              pr.Model,
-		FunctionDefinition: fd,
+	maxAttempts := ao.RetryPolicy.MaximumAttempts
+	var aiResp *ChatCompletionQueryResponse
+	for attempt := 0; attempt < int(maxAttempts); attempt++ {
+		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
+		params := hera_openai.OpenAIParams{
+			Model:              tte.Tc.Model,
+			FunctionDefinition: fd,
+		}
+		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, tte.Ou, params).Get(jsonTaskCtx, &aiResp)
+		if err != nil {
+			logger.Error("failed to run analysis json", "Error", err)
+			continue // Retry the activity
+		}
+
+		analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, tte.Ou, aiResp).Get(analysisCompCtx, &aiResp.ResponseTaskID)
+		if err == nil {
+			return nil, err
+		}
+		var m any
+		if len(aiResp.Response.Choices) > 0 && len(aiResp.Response.Choices[0].Message.ToolCalls) > 0 {
+			m, err = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, aiResp)
+			log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
+			err = nil
+		} else {
+			m, err = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, aiResp)
+			log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+			err = nil
+		}
+		jsd := artemis_orchestrations.ConvertToJsonSchema(params.FunctionDefinition)
+		aiResp.JsonResponseResults = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
+		wr := artemis_orchestrations.AIWorkflowAnalysisResult{
+			OrchestrationsID:      oj.OrchestrationID,
+			ResponseID:            aiResp.ResponseTaskID,
+			SourceTaskID:          tte.Tc.TaskID,
+			ChunkOffset:           tte.Tc.ChunkOffset,
+			IterationCount:        attempt,
+			RunningCycleNumber:    tte.Wr.RunningCycleNumber,
+			SearchWindowUnixStart: tte.Wr.SearchWindowUnixStart,
+			SearchWindowUnixEnd:   tte.Wr.SearchWindowUnixEnd,
+		}
+		recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+		if err != nil {
+			logger.Error("failed to save task output", "Error", err)
+			return nil, err
+		}
 	}
-	err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, tte.Ou, params).Get(jsonTaskCtx, &aiResp)
-	if err != nil {
-		logger.Error("failed to run analysis json", "Error", err)
-		return nil, err
-	}
-	analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, tte.Ou, aiResp).Get(analysisCompCtx, &aiResp.ResponseTaskID)
-	if err != nil {
-		logger.Error("failed to save analysis response", "Error", err)
-		return nil, err
-	}
-	wr := artemis_orchestrations.AIWorkflowAnalysisResult{
-		//OrchestrationsID:      oj.OrchestrationID,
-		//ResponseID:            analysisRespId,
-		//SourceTaskID:          analysisInst.AnalysisTaskID,
-		//RunningCycleNumber:    i,
-		//SearchWindowUnixStart: window.UnixStartTime,
-		//SearchWindowUnixEnd:   window.UnixEndTime,
-		IterationCount: 1,
-	}
-	recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr).Get(recordAnalysisCtx, nil)
-	if err != nil {
-		logger.Error("failed to save analysis", "Error", err)
-		return nil, err
-	}
+
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {

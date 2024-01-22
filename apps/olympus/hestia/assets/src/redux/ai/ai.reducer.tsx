@@ -1,16 +1,16 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     AiState,
-    OrchestrationsAnalysis,
     PlatformSecretReference,
     SearchIndexerParams,
     TaskModelInstructions,
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
 } from "./ai.types";
-import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types2";
+import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
-import {EvalFn, EvalMetric, UpdateEvalMapPayload} from "./ai.eval.types";
+import {EvalFn, EvalMetric, UpdateEvalMapPayload} from "./ai.types.evals";
+import {OrchestrationsAnalysis} from "./ai.types.runs";
 
 const initialState: AiState = {
     addSchemasView: false,

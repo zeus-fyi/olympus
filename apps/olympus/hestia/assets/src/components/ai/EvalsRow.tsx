@@ -13,7 +13,7 @@ import TableBody from "@mui/material/TableBody";
 import Button from "@mui/material/Button";
 import {useDispatch} from "react-redux";
 import {setEvalFn} from "../../redux/ai/ai.reducer";
-import {EvalFn} from "../../redux/ai/ai.eval.types";
+import {EvalFn} from "../../redux/ai/ai.types.evals";
 
 export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;

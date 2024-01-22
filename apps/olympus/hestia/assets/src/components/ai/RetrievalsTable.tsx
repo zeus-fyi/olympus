@@ -7,7 +7,7 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {RetrievalsRow} from "./RetrievalsRow";
-import {Retrieval} from "../../redux/ai/ai.types2";
+import {Retrieval} from "../../redux/ai/ai.types.retrievals";
 
 export function RetrievalsTable(props: { retrievals: Retrieval[], handleSelectAllClick: any, handleClick: any, selected: any}) {
     const {selected, retrievals, handleClick, handleSelectAllClick} = props;

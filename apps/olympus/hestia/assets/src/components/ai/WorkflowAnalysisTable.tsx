@@ -21,7 +21,7 @@ import {
 } from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
-import {OrchestrationsAnalysis} from "../../redux/ai/ai.types";
+import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
 import {WorkflowAnalysisRow} from "./WorkflowAnalysisRow";
 
 export function WorkflowAnalysisTable(props: any) {

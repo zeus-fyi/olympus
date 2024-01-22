@@ -25,8 +25,10 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		log.Err(err).Msg("CreatJsonOutputModelResponse: MakeCodeGenRequestJsonFormattedOutput failed")
 		return nil, err
 	}
-	return &ChatCompletionQueryResponse{
+	cr := &ChatCompletionQueryResponse{
+		Params:   params,
 		Prompt:   map[string]string{"prompt": params.Prompt},
 		Response: resp,
-	}, nil
+	}
+	return cr, nil
 }

@@ -1,5 +1,5 @@
 // TypeScript interface for EvalMetricsResult
-import {TriggerAction} from "./ai.types2";
+import {TriggerAction} from "./ai.types.retrievals";
 import {JsonSchemaDefinition} from "./ai.types.schemas";
 
 export interface EvalMetricsResult {

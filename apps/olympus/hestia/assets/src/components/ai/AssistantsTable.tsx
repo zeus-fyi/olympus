@@ -7,7 +7,7 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {AssistantsRow} from "./AssistantsRow";
-import {Assistant} from "../../redux/ai/ai.types2";
+import {Assistant} from "../../redux/ai/ai.types.retrievals";
 
 export function AssistantsTable(props: any) {
     const {selected, assistants, handleClick, handleSelectAllClick} = props;

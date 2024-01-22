@@ -10,7 +10,7 @@ import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
 import Button from "@mui/material/Button";
 import {setRetrieval} from "../../redux/ai/ai.reducer";
-import {Retrieval} from "../../redux/ai/ai.types2";
+import {Retrieval} from "../../redux/ai/ai.types.retrievals";
 import {useDispatch} from "react-redux";
 
 export function RetrievalsRow(props: { row: Retrieval, index: number, handleClick: any, checked: boolean}) {

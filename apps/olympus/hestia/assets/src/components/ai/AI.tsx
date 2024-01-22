@@ -62,7 +62,7 @@ import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {SearchIndexersTable} from "./SearchIndexersTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {ActionsApprovalsTable} from "./ActionsApprovalsTable";
-import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../redux/ai/ai.types2";
+import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../redux/ai/ai.types.retrievals";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"

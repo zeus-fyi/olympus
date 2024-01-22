@@ -99,7 +99,7 @@ func ConvertToFuncDefJsonSchemas(fnName string, schemas []*JsonSchemaDefinition)
 	combinedProperties := make(map[string]jsonschema.Definition)
 	// Iterate over each schema and create a field for each
 	for _, schema := range schemas {
-		schemaField := convertDbJsonSchemaFieldsTSchema(fnName, schema)
+		schemaField := convertDbJsonSchemaFieldsSchema(fnName, schema)
 		// If the schema represents an array of objects, adjust the type and items
 		if schema.IsObjArray {
 			schemaField = jsonschema.Definition{
@@ -130,7 +130,7 @@ func ConvertToFuncDefJsonSchemas(fnName string, schemas []*JsonSchemaDefinition)
 	return combinedSchema
 }
 
-func convertDbJsonSchemaFieldsTSchema(fnName string, schema *JsonSchemaDefinition) jsonschema.Definition {
+func convertDbJsonSchemaFieldsSchema(fnName string, schema *JsonSchemaDefinition) jsonschema.Definition {
 	if schema == nil {
 		return jsonschema.Definition{}
 	}
@@ -150,6 +150,9 @@ func convertDbJsonSchemaFieldsTSchema(fnName string, schema *JsonSchemaDefinitio
 		case "array[boolean]":
 			fieldDef.Type = jsonschema.Array
 			fieldDef.Items = &jsonschema.Definition{Type: jsonschema.Boolean}
+		case "array[integer]":
+			fieldDef.Type = jsonschema.Array
+			fieldDef.Items = &jsonschema.Definition{Type: jsonschema.Integer}
 		default:
 			fieldDef.Type = jsonSchemaType(field.DataType) // Assume this function correctly returns the jsonschema type
 		}
@@ -178,6 +181,8 @@ func jsonSchemaDataType(t jsonschema.DataType) string {
 	switch t {
 	case jsonschema.String:
 		return "string"
+	case jsonschema.Integer:
+		return "integer"
 	case jsonschema.Number:
 		return "number"
 	case jsonschema.Boolean:
@@ -193,9 +198,10 @@ func jsonSchemaDataType(t jsonschema.DataType) string {
 
 func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any) [][]*JsonSchemaDefinition {
 	var responses [][]*JsonSchemaDefinition
-	mis, ok := ms.([]map[string]interface{})
-	msng, ook := ms.(map[string]interface{})
+
 	for _, sz := range szs {
+		mis, ok := ms.([]map[string]interface{})
+		msng, ook := ms.(map[string]interface{})
 		if ok {
 			for _, mi := range mis {
 				responses = append(responses, AssignMapValuesJsonSchemaFieldsSlice(sz, mi))
@@ -207,22 +213,19 @@ func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any
 	return responses
 }
 
-func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m any) []*JsonSchemaDefinition {
+func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string]interface{}) []*JsonSchemaDefinition {
 	if sz == nil {
 		return nil
 	}
 	var schemas []*JsonSchemaDefinition
 	if sz.IsObjArray {
 		// Handle case where sz is an array of objects
-		sliceOfMaps, ok := m.(map[string]interface{})
-		if !ok {
-			return nil // or handle the error as you see fit
-		}
-		for _, v := range sliceOfMaps {
+		for _, v := range m {
 			vi, vok := v.([]interface{})
 			if vok {
-				for i, _ := range vi {
-					vmi, bok := vi[i].(map[string]interface{})
+				for _, item := range vi {
+					vmi, bok := item.(map[string]interface{})
+					// Check if the map contains sz.SchemaName as a key
 					if bok {
 						jsd := AssignMapValuesJsonSchemaFields(sz, vmi)
 						schemas = append(schemas, jsd)
@@ -232,8 +235,14 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m any) []*Js
 		}
 	} else {
 		// Handle case where sz is a single object
-		jsd := AssignMapValuesJsonSchemaFields(sz, m.(map[string]interface{}))
-		schemas = append(schemas, jsd)
+		// Check if the map contains sz.SchemaName as a key
+		if vfi, found := m[sz.SchemaName]; found {
+			vfim, vfiok := vfi.(map[string]interface{})
+			if vfiok {
+				jsd := AssignMapValuesJsonSchemaFields(sz, vfim)
+				schemas = append(schemas, jsd)
+			}
+		}
 	}
 	return schemas
 }
@@ -281,7 +290,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 					fieldDef.NumberValueSlice = numbers
 					fmt.Printf("Field %s is an array of numbers: %v\n", fieldDef.FieldName, numbers)
 				}
-			case "array[int]":
+			case "array[integer]":
 				if sliceVal, okArrayInt := val.([]interface{}); okArrayInt {
 					intSlice := make([]int, 0)
 					for _, v := range sliceVal {

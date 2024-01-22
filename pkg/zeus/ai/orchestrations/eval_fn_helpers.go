@@ -9,10 +9,10 @@ import (
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
-func TransformJSONToEvalScoredMetrics(emMap *artemis_orchestrations.JsonSchemaDefinition) (*artemis_orchestrations.EvalMetricsResults, error) {
+func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.JsonSchemaDefinition) (*artemis_orchestrations.EvalMetricsResults, error) {
 	var metrics []artemis_orchestrations.EvalMetricsResult
 	var evmID int
-	for _, value := range emMap.Fields {
+	for _, value := range jsonSchemaDef.Fields {
 		if value.EvalMetric == nil {
 			continue
 		}

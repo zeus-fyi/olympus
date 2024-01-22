@@ -91,6 +91,8 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	for _, v := range jsd {
 		for _, f := range v.Fields {
 			switch f.FieldName {
+			case "msg_id":
+				t.Require().Equal("integer", f.DataType)
 			case "msg_ids":
 				t.Require().Equal("array[integer]", f.DataType)
 			case "score":

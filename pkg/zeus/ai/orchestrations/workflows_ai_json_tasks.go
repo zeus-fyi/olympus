@@ -99,6 +99,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		var m any
 		if len(aiResp.Response.Choices) > 0 && len(aiResp.Response.Choices[0].Message.ToolCalls) > 0 {
 			m, anyErr = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, aiResp)
+			// ok no err
 			log.Err(anyErr).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
 		} else {
 			m, anyErr = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, aiResp)
@@ -123,9 +124,9 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			seen := make(map[int]bool)
 			notFound := make(map[int]int)
 			duplicateCount := make(map[int]int)
-			for _, schemas := range tmpResp {
-				for _, sch := range schemas {
-					for _, fi := range sch.Fields {
+			for ssi, schemas := range tmpResp {
+				for si, sch := range schemas {
+					for findex, fi := range sch.Fields {
 						switch fi.FieldName {
 						case "msg_id":
 							msgID := aws.IntValue(fi.IntValue)
@@ -137,6 +138,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 								srv.Verified = &ok
 								seen[msgID] = true
 								tte.Sg.FilteredSearchResultMap[msgID] = srv
+								tmpResp[ssi][si].Fields[findex].IsValidated = ok
 							} else {
 								notFound[msgID]++
 							}
@@ -150,6 +152,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 									srv.Verified = &ok
 									seen[msgID] = true
 									tte.Sg.FilteredSearchResultMap[msgID] = srv
+									tmpResp[ssi][si].Fields[findex].IsValidated = ok
 								} else {
 									notFound[msgID]++
 								}

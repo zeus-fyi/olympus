@@ -80,6 +80,23 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	sg := pr.PromptReductionSearchResults.OutSearchGroups[0]
 	tte.Sg = sg
 
+	var jdef []*artemis_orchestrations.JsonSchemaDefinition
+	for _, taskDef := range td {
+		jdef = append(jdef, taskDef.Schemas...)
+	}
+	fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.TaskName, jdef)
+	jsd := artemis_orchestrations.ConvertToJsonSchema(fd)
+	t.Require().NotNil(jsd)
+
+	for _, v := range jsd {
+		for _, f := range v.Fields {
+			switch f.FieldName {
+			case "msg_ids":
+				t.Require().Equal("array[integer]", f.DataType)
+			}
+		}
+	}
+
 	resp, err := ZeusAiPlatformWorker.ExecuteJsonOutputTaskWorkflow(ctx, tte)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)

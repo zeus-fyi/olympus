@@ -15,42 +15,52 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 		log.Error().Msg("failed to convert to jsonschema.Definition")
 		return schemas
 	}
-	// Iterate through the properties of the FunctionDefinition
 	for name, def := range jsd.Properties {
 		schema := &JsonSchemaDefinition{
 			SchemaName: name,
 			Fields:     []JsonSchemaField{},
 		}
-		// Check if the property is an array of objects
-		if def.Type == jsonschema.Array && def.Items != nil {
+		if def.Type == jsonschema.Array {
 			schema.IsObjArray = true
-			for fieldName, fieldDef := range def.Items.Properties {
-				schema.Fields = append(schema.Fields, JsonSchemaField{
-					FieldName:        fieldName,
-					FieldDescription: fieldDef.Description,
-					DataType:         jsonSchemaDataType(fieldDef.Type),
-				})
+			if def.Items == nil {
+				continue
 			}
-		} else if def.Type == jsonschema.Object {
-			// Property is an object
-			for fieldName, fieldDef := range def.Properties {
-				schema.Fields = append(schema.Fields, JsonSchemaField{
-					FieldName:        fieldName,
-					FieldDescription: fieldDef.Description,
-					DataType:         jsonSchemaDataType(fieldDef.Type),
-				})
+		}
+		for fieldName, fdef := range def.Items.Properties {
+			ft := jsonSchemaDataType(fdef.Type)
+			if fdef.Type == jsonschema.Array && fdef.Items != nil {
+				ft = fmt.Sprintf("array[%s]", jsonSchemaDataType(fdef.Items.Type))
 			}
-		} else {
-			// Simple field
 			schema.Fields = append(schema.Fields, JsonSchemaField{
-				FieldName:        name,
-				FieldDescription: def.Description,
-				DataType:         jsonSchemaDataType(def.Type),
+				FieldName:        fieldName,
+				FieldDescription: fdef.Description,
+				DataType:         ft,
 			})
 		}
+
 		schemas = append(schemas, schema)
 	}
 	return schemas
+}
+
+// Helper function to convert jsonschema.Type to a string representation
+func jsonSchemaDataType(t jsonschema.DataType) string {
+	switch t {
+	case jsonschema.String:
+		return "string"
+	case jsonschema.Integer:
+		return "integer"
+	case jsonschema.Number:
+		return "number"
+	case jsonschema.Boolean:
+		return "boolean"
+	case jsonschema.Object:
+		return "object"
+	case jsonschema.Array:
+		return "array"
+	default:
+		return "unknown"
+	}
 }
 
 // getFieldNames returns a slice of field names from the slice of JsonSchemaField
@@ -158,26 +168,6 @@ func convertDbJsonSchemaFieldsSchema(fnName string, schema *JsonSchemaDefinition
 		Type:       jsonschema.Object,
 		Properties: properties,
 		Required:   requiredFields,
-	}
-}
-
-// Helper function to convert jsonschema.Type to a string representation
-func jsonSchemaDataType(t jsonschema.DataType) string {
-	switch t {
-	case jsonschema.String:
-		return "string"
-	case jsonschema.Integer:
-		return "integer"
-	case jsonschema.Number:
-		return "number"
-	case jsonschema.Boolean:
-		return "boolean"
-	case jsonschema.Object:
-		return "object"
-	case jsonschema.Array:
-		return "array"
-	default:
-		return "unknown"
 	}
 }
 

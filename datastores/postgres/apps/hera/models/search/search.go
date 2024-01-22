@@ -64,6 +64,7 @@ type AiModelParams struct {
 
 type SearchResultGroup struct {
 	PlatformName                   string                        `json:"platformName"`
+	SourceTaskID                   int                           `json:"sourceTaskID,omitempty"`
 	ExtractionPromptExt            string                        `json:"extractionPromptExt,omitempty"`
 	Model                          string                        `json:"model,omitempty"`
 	ResponseFormat                 string                        `json:"responseFormat,omitempty"`

@@ -51,7 +51,7 @@ func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.Org
 }
 
 func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.ChatCompletionResponse, error) {
-	sysPrompt := "Provide your answer in JSON form which analyzes the input and returns the expected schema with values from your analysis." +
+	sysPrompt := "Provide your answer in JSON form which analyzes the input and returns the expected schema with values from your function tool call." +
 		" Reply with only the answer in JSON form and include no other commentary"
 	if params.SystemPromptOverride != "" {
 		sysPrompt = params.SystemPromptOverride

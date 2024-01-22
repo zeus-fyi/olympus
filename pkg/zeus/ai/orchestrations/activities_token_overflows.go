@@ -27,20 +27,19 @@ const (
 
 type PromptReduction struct {
 	MarginBuffer                 float64                       `json:"marginBuffer,omitempty"`
+	Model                        string                        `json:"model"`
 	TokenOverflowStrategy        string                        `json:"tokenOverflowStrategy"`
 	PromptReductionSearchResults *PromptReductionSearchResults `json:"promptReductionSearchResults,omitempty"`
 	PromptReductionText          *PromptReductionText          `json:"promptReductionText,omitempty"`
 }
 
 type PromptReductionText struct {
-	Model              string   `json:"model"`
 	InPromptBody       string   `json:"inPromptBody"`
 	OutPromptChunks    []string `json:"outPromptChunks,omitempty"`
 	OutPromptTruncated string   `json:"outPromptTruncated,omitempty"`
 }
 
 type PromptReductionSearchResults struct {
-	InPromptBody    string                           `json:"inPromptBody"`
 	InSearchGroup   *hera_search.SearchResultGroup   `json:"inSearchGroup,omitempty"`
 	OutSearchGroups []*hera_search.SearchResultGroup `json:"outSearchGroups,omitempty"`
 }
@@ -195,7 +194,7 @@ func TokenOverflowString(ctx context.Context, pr *PromptReduction) error {
 	if pr.PromptReductionText == nil || len(pr.PromptReductionText.InPromptBody) <= 0 {
 		return nil
 	}
-	model := pr.PromptReductionText.Model
+	model := pr.Model
 	margin := validateMarginBufferLimits(pr.MarginBuffer)
 	needsReduction, _, err := CheckTokenContextMargin(ctx, model, pr.PromptReductionText.InPromptBody, margin)
 	if err != nil {

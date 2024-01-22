@@ -97,7 +97,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 				}
 				fd = artemis_orchestrations.ConvertToFuncDef(fname, jdef)
 			}
-
 			switch aggInst.AnalysisResponseFormat {
 			case jsonFormat:
 				jsonTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)

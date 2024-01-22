@@ -2184,13 +2184,13 @@ function WorkflowEngineBuilder(props: any) {
                                                             { addSchemasView ? 'Done Adding':'Add Schemas' }
                                                         </Button>
                                                     </Box>
-                                                    { editAnalysisTask.schemas && editAnalysisTask.schemas.length > 0 &&
+                                                    {editAnalysisTask.schemas && editAnalysisTask.schemas.length > 0 &&
                                                         editAnalysisTask.schemas.map((schema: JsonSchemaDefinition, index: number) => (
-                                                            <div>
-                                                                <Stack direction="row" key={index}>
+                                                            schema &&
+                                                            <div key={`schema-div-${index}`}> {/* Unique key assigned here */}
+                                                                <Stack direction="row">
                                                                     <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
                                                                         <TextField
-                                                                            key={`schema-name-${index}`}
                                                                             fullWidth
                                                                             id={`schema-${index}`}
                                                                             label={`Schema-Name-${index}`}
@@ -2201,7 +2201,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                     </Box>
                                                                     <Box sx={{ mb: 2, mt: 2, ml: 2, width: '50%' }}>
                                                                         <TextField
-                                                                            key={`schema-group-${index}`}
                                                                             fullWidth
                                                                             id={`schema-group-${index}`}
                                                                             label={`Schema-Group-${index}`}
@@ -2215,7 +2214,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                             variant="contained"
                                                                             id={`sm-button-${index}`}
                                                                             color="primary"
-                                                                            key={`sm-button-${index}`}
                                                                             onClick={(e) => removeSchemasViewToggle(e, index)}
                                                                         >
                                                                             Remove
@@ -2223,7 +2221,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                     </Box>
                                                                 </Stack>
                                                             </div>
-
                                                         ))
                                                     }
                                                 </div>
@@ -2332,48 +2329,45 @@ function WorkflowEngineBuilder(props: any) {
                                                             { addSchemasView ? 'Done Adding':'Add Schemas' }
                                                         </Button>
                                                     </Box>
-                                                        { editAggregateTask.schemas && editAggregateTask.schemas.length > 0 &&
-                                                            editAggregateTask.schemas.map((schema: JsonSchemaDefinition, index: number) => (
-                                                                <div>
-                                                                    <Stack direction="row" key={index}>
-                                                                        <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
-                                                                            <TextField
-                                                                                key={`schema-name-${index}`}
-                                                                                fullWidth
-                                                                                id={`schema-${index}`}
-                                                                                label={`Schema-Name-${index}`}
-                                                                                variant="outlined"
-                                                                                value={schema.schemaName}
-                                                                                InputProps={{ readOnly: true }}
-                                                                            />
-                                                                        </Box>
-                                                                        <Box sx={{ mb: 2, mt: 2, ml: 2, width: '50%' }}>
-                                                                            <TextField
-                                                                                key={`schema-group-${index}`}
-                                                                                fullWidth
-                                                                                id={`schema-group-${index}`}
-                                                                                label={`Schema-Group-${index}`}
-                                                                                variant="outlined"
-                                                                                value={schema.schemaGroup}
-                                                                                InputProps={{ readOnly: true }}
-                                                                            />
-                                                                        </Box>
-                                                                        <Box sx={{ ml: 2, mb: 2, mt: 3 }}>
-                                                                            <Button
-                                                                                variant="contained"
-                                                                                id={`sm-button-${index}`}
-                                                                                color="primary"
-                                                                                key={`sm-button-${index}`}
-                                                                                onClick={(e) => removeSchemasViewToggle(e, index)}
-                                                                            >
-                                                                                Remove
-                                                                            </Button>
-                                                                        </Box>
-                                                                    </Stack>
-                                                                </div>
-
-                                                            ))
-                                                        }
+                                                    {editAggregateTask.schemas && editAggregateTask.schemas.length > 0 &&
+                                                        editAggregateTask.schemas.map((schema: JsonSchemaDefinition, index: number) => (
+                                                            schema &&
+                                                            <div key={`schema-wrapper-${index}`}> {/* Unique key assigned to the outermost div */}
+                                                                <Stack direction="row">
+                                                                    <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id={`schema-${index}`}
+                                                                            label={`Schema-Name-${index}`}
+                                                                            variant="outlined"
+                                                                            value={schema.schemaName}
+                                                                            InputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box sx={{ mb: 2, mt: 2, ml: 2, width: '50%' }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id={`schema-group-${index}`}
+                                                                            label={`Schema-Group-${index}`}
+                                                                            variant="outlined"
+                                                                            value={schema.schemaGroup}
+                                                                            InputProps={{ readOnly: true }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box sx={{ ml: 2, mb: 2, mt: 3 }}>
+                                                                        <Button
+                                                                            variant="contained"
+                                                                            id={`sm-button-${index}`}
+                                                                            color="primary"
+                                                                            onClick={(e) => removeSchemasViewToggle(e, index)}
+                                                                        >
+                                                                            Remove
+                                                                        </Button>
+                                                                    </Box>
+                                                                </Stack>
+                                                            </div>
+                                                        ))
+                                                    }
                                                 </div>
                                                 :
                                                 <Box  sx={{ mb: 2, mt: 2 }}>
@@ -3210,7 +3204,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         }
                                                     </Stack>
                                                     }
-                                                    {evalFn && evalFn.schemas && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
+                                                    {evalFn && evalFn.schemas && evalFn.schemas.length > 0 && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
                                                         <div key={dataIndex}>
                                                             <Stack direction="row">
                                                                 <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
@@ -3953,7 +3947,7 @@ function WorkflowEngineBuilder(props: any) {
 
                         </div>
                     }
-                    { addSchemasView && (selectedMainTabBuilder === 4 || selectedMainTabBuilder === 2 || selectedMainTabBuilder === 3) &&
+                    { addSchemasView && (selectedMainTabBuilder === 4 || selectedMainTabBuilder === 2 || selectedMainTabBuilder === 1) &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <Box sx={{ mb: 2 }}>
@@ -3989,7 +3983,7 @@ function WorkflowEngineBuilder(props: any) {
                     }
                     {
                         (selectedMainTabBuilder === 7 ||
-                            (addSchemasView && (selectedMainTabBuilder === 2 || selectedMainTabBuilder === 3 || selectedMainTabBuilder === 4))) &&
+                            (addSchemasView && (selectedMainTabBuilder === 2 || selectedMainTabBuilder === 1 || selectedMainTabBuilder === 4))) &&
                         (!addAnalysisView && !addAggregateView && !addRetrievalView &&
                             !addEvalsView && !addAssistantsView && !addTriggerActionsView) &&
                         ![0, 5, 6].includes(selectedMainTabBuilder) && (

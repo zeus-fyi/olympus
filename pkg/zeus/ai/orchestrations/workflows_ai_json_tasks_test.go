@@ -32,43 +32,56 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	for _, v := range sr {
 		msgMap[v.UnixTimestamp] = true
 	}
-	taskID := 1701313525731432000
+	taskID := 1705819235575890000
 	td, err := act.SelectTaskDefinition(ctx, ou, taskID)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(td)
-
-	model := Gpt4JsonModel
+	t.Require().Greater(len(td), 0)
+	tv := td[0]
 	tte := TaskToExecute{
 		Ou: ou,
 		Tc: TaskContext{
-			TaskName: "",
-			TaskType: "",
-			Model:    model,
-			TaskID:   taskID,
+			TaskName: tv.TaskName,
+			TaskType: tv.TaskType,
+			Model:    tv.Model,
+			TaskID:   tv.TaskID,
 		},
 		Wft: artemis_orchestrations.WorkflowTemplateData{},
 		Sg: &hera_search.SearchResultGroup{
-			PlatformName:        twitterPlatform,
-			SourceTaskID:        taskID,
-			ExtractionPromptExt: "",
-			Model:               model,
-			ResponseFormat:      jsonFormat,
-			SearchResults:       sr,
-			Window:              aiSp.Window,
+			PlatformName:   twitterPlatform,
+			SourceTaskID:   tv.TaskID,
+			Model:          tv.Model,
+			ResponseFormat: jsonFormat,
+			SearchResults:  sr,
+			Window:         aiSp.Window,
 		},
 		Wr: &artemis_orchestrations.AIWorkflowAnalysisResult{
-			OrchestrationsID:      0, // TODO
+			OrchestrationsID:      1692062857720240000,
 			ResponseID:            0,
 			SourceTaskID:          taskID,
 			SearchWindowUnixStart: aiSp.Window.UnixStartTime,
 			SearchWindowUnixEnd:   aiSp.Window.UnixEndTime,
 		},
 	}
+	pr := &PromptReduction{
+		MarginBuffer:          0.5,
+		TokenOverflowStrategy: OverflowStrategyTruncate,
+		PromptReductionSearchResults: &PromptReductionSearchResults{
+			InSearchGroup: tte.Sg,
+		},
+	}
+	err = TruncateSearchResults(ctx, pr)
+	t.Require().NoError(err)
+	t.Require().NotEmpty(pr.PromptReductionSearchResults.OutSearchGroups)
+	t.Require().NotEmpty(pr.PromptReductionSearchResults.OutSearchGroups[0].SearchResults)
+	t.Require().NotEmpty(pr.PromptReductionSearchResults.OutSearchGroups[0].SearchResultChunkTokenEstimate)
+	sg := pr.PromptReductionSearchResults.OutSearchGroups[0]
+	tte.Sg = sg
 
-	// TODO: add chunking
 	resp, err := ZeusAiPlatformWorker.ExecuteJsonOutputTaskWorkflow(ctx, tte)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
+	t.Assert().NotZero(resp.Response.ID)
 	t.Assert().NotEmpty(resp.Response)
 	t.Assert().NotEmpty(resp.JsonResponseResults)
 
@@ -78,12 +91,13 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 
 			for _, f := range v.Fields {
 				switch f.FieldName {
-				case "title":
-					t.Require().NotNil(f.StringValue)
-					fmt.Println("title", *f.StringValue)
+				case "msg_ids":
+					t.Require().NotNil(f.IntValueSlice)
+					fmt.Println("msg_ids", f.IntValueSlice)
 				case "score":
-					t.Require().NotNil(f.NumberValue)
-					fmt.Println("score", *f.NumberValue)
+					t.Require().NotNil(f.IntValue)
+					fmt.Println("score", *f.IntValue)
+					t.Require()
 				}
 			}
 		}

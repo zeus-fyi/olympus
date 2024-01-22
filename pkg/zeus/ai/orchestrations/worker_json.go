@@ -14,7 +14,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteJsonOutputTaskWorkflow(ctx context
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: z.TaskQueueName,
-		ID:        fmt.Sprintf("sm-engagement-%s", uuid.New().String()),
+		ID:        fmt.Sprintf("json-output-task-%s", uuid.New().String()),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.JsonOutputTaskWorkflow

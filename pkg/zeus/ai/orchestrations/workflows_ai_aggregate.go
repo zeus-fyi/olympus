@@ -146,12 +146,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					}
 					tte.Tc = TaskContext{
-						TaskName:    aws.StringValue(aggInst.AggTaskName),
-						TaskType:    AggTask,
-						Model:       aws.StringValue(aggInst.AggModel),
-						TaskID:      aws.IntValue(aggInst.AggTaskID),
-						ChunkOffset: chunkOffset,
+						TaskName: aws.StringValue(aggInst.AggTaskName),
+						TaskType: AggTask,
+						Model:    aws.StringValue(aggInst.AggModel),
+						TaskID:   aws.IntValue(aggInst.AggTaskID),
 					}
+
 					childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, tte).Get(childAggWfCtx, &aiAggResp)
 					if err != nil {

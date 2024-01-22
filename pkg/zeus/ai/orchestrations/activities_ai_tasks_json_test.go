@@ -40,17 +40,17 @@ func (t *ZeusWorkerTestSuite) TestJsonModelOutputActivity() {
 		FunctionDefinition: fd,
 	})
 	t.Require().Nil(err)
-	var m any
-	if len(resp.Response.Choices) > 0 && len(resp.Response.Choices[0].Message.ToolCalls) > 0 {
-		m, err = UnmarshallOpenAiJsonInterfaceSlice(fd.Name, resp)
-		t.Require().Nil(err)
-
-	} else {
-		m, err = UnmarshallOpenAiJsonInterface(fd.Name, resp)
-		t.Require().Nil(err)
-	}
-	jsd := artemis_orchestrations.ConvertToJsonSchema(fd)
-	resp.JsonResponseResults = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
+	//var m any
+	//if len(resp.Response.Choices) > 0 && len(resp.Response.Choices[0].Message.ToolCalls) > 0 {
+	//	m, err = UnmarshallOpenAiJsonInterfaceSlice(fd.Name, resp)
+	//	t.Require().Nil(err)
+	//
+	//} else {
+	//	m, err = UnmarshallOpenAiJsonInterface(fd.Name, resp)
+	//	t.Require().Nil(err)
+	//}
+	//jsd := artemis_orchestrations.ConvertToJsonSchema(fd)
+	//resp.JsonResponseResults = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
 	t.Require().NotNil(resp)
 	t.Require().NotNil(resp.JsonResponseResults)
 

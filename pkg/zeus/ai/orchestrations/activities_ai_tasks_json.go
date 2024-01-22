@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 )
@@ -25,8 +26,26 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		log.Err(err).Msg("CreatJsonOutputModelResponse: MakeCodeGenRequestJsonFormattedOutput failed")
 		return nil, err
 	}
-	return &ChatCompletionQueryResponse{
+	cr := &ChatCompletionQueryResponse{
 		Prompt:   map[string]string{"prompt": params.Prompt},
 		Response: resp,
-	}, nil
+	}
+	var m any
+	if len(cr.Response.Choices) > 0 && len(cr.Response.Choices[0].Message.ToolCalls) > 0 {
+		m, err = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, cr)
+		if err != nil {
+			log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
+			return nil, err
+		}
+
+	} else {
+		m, err = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, cr)
+		if err != nil {
+			log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+			return nil, err
+		}
+	}
+	jsd := artemis_orchestrations.ConvertToJsonSchema(params.FunctionDefinition)
+	cr.JsonResponseResults = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
+	return cr, nil
 }

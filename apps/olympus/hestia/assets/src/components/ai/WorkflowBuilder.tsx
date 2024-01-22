@@ -3043,9 +3043,11 @@ function WorkflowEngineBuilder(props: any) {
                                                                             evalMetricDataType: e.target.value // Update the actionName
                                                                         }))}
                                                                     >
+                                                                        <MenuItem value="integer">{'integer'}</MenuItem>
                                                                         <MenuItem value="number">{'number'}</MenuItem>
                                                                         <MenuItem value="string">{'string'}</MenuItem>
                                                                         <MenuItem value="boolean">{'boolean'}</MenuItem>
+                                                                        <MenuItem value="array[integer]">{'array[integer]'}</MenuItem>
                                                                         <MenuItem value="array[boolean]">{'array[boolean]'}</MenuItem>
                                                                         <MenuItem value="array[number]">{'array[number]'}</MenuItem>
                                                                         <MenuItem value="array[string]">{'array[string]'}</MenuItem>
@@ -3073,7 +3075,9 @@ function WorkflowEngineBuilder(props: any) {
                                                                     </FormControl>
                                                                 </Box>
                                                             }
-                                                            { (evalMetric.evalMetricDataType === 'number' || evalMetric.evalMetricDataType === 'array[number]') &&
+                                                            { (evalMetric.evalMetricDataType === 'number' || evalMetric.evalMetricDataType === 'array[number]'
+                                                                    || evalMetric.evalMetricDataType === 'integer' || evalMetric.evalMetricDataType === 'array[integer]'
+                                                                ) &&
                                                             <Box flexGrow={7} >
                                                                 <FormControl fullWidth >
                                                                     <InputLabel id="metric-action-operator">Operator</InputLabel>
@@ -3131,7 +3135,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Box>
                                                             }
                                                             { (evalMetric.evalMetricDataType === 'number' || evalMetric.evalMetricDataType === 'array[number]'
-                                                                || (evalMetric.evalOperator == 'unique-words') || (evalMetric.evalOperator == 'length-eq')
+                                                                    || evalMetric.evalMetricDataType === 'integer' || evalMetric.evalMetricDataType === 'array[integer]'
+                                                                    || (evalMetric.evalOperator == 'unique-words') || (evalMetric.evalOperator == 'length-eq')
                                                                 ) &&
                                                             <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:2  }}>
                                                                 <TextField
@@ -3406,7 +3411,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                             </Box>
                                                                         </Grid>
                                                                         }
-                                                                        { (field.dataType === 'number' || field.dataType === 'array[number]') &&
+                                                                        { (field.dataType === 'number' || field.dataType === 'array[number]')
+                                                                            || (field.dataType === 'integer' || field.dataType === 'array[integer]') &&
                                                                             <Grid item xs={12} sm={2}>
                                                                                 <Box flexGrow={3} sx={{ ml: 4, mr: 0 }}>
                                                                                     <FormControl fullWidth>
@@ -3453,7 +3459,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 </Box>
                                                                             </Grid>
                                                                         }
-                                                                        { (field.dataType === 'number'
+                                                                        { ( field.dataType === 'number' || field.dataType === 'array[number]'
+                                                                                || field.dataType === 'integer' || field.dataType === 'array[integer]'
                                                                                 || (field.evalMetric && field.evalMetric.evalOperator === 'unique-words')
                                                                                 || (field.evalMetric && field.evalMetric.evalOperator === 'length-eq')
                                                                             ) &&

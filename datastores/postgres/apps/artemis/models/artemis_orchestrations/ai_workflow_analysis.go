@@ -30,14 +30,13 @@ type AIWorkflowAnalysisResult struct {
 
 func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisResult) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO ai_workflow_analysis_results(orchestrations_id, response_id, source_task_id, chunk_offet, iteration_count, 
+	q.RawQuery = `INSERT INTO ai_workflow_analysis_results(orchestrations_id, response_id, source_task_id, chunk_offset, iteration_count, 
                                          running_cycle_number, search_window_unix_start, search_window_unix_end, skip_analysis, metadata)
                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                  ON CONFLICT (orchestrations_id, response_id, source_task_id, running_cycle_number, iteration_count)
+                  ON CONFLICT (orchestrations_id, response_id, source_task_id, running_cycle_number, iteration_count, chunk_offset)
                   DO UPDATE SET 
                       orchestrations_id = EXCLUDED.orchestrations_id,
                       response_id = EXCLUDED.response_id,
-                      chunk_offset = EXCLUDED.chunk_offset,
                       source_task_id = EXCLUDED.source_task_id,
                       running_cycle_number = EXCLUDED.running_cycle_number,
                       search_window_unix_start = EXCLUDED.search_window_unix_start,

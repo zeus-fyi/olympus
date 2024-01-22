@@ -32,7 +32,7 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	for _, v := range sr {
 		msgMap[v.UnixTimestamp] = true
 	}
-	taskID := 1705819235575890000
+	taskID := 1705949866538066000
 	td, err := act.SelectTaskDefinition(ctx, ou, taskID)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(td)
@@ -51,7 +51,7 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 			PlatformName:   twitterPlatform,
 			SourceTaskID:   tv.TaskID,
 			Model:          tv.Model,
-			ResponseFormat: jsonFormat,
+			ResponseFormat: socialMediaExtractionResponseFormat,
 			SearchResults:  sr,
 			Window:         aiSp.Window,
 		},
@@ -88,7 +88,6 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	for _, res := range resp.JsonResponseResults {
 		for _, v := range res {
 			t.Require().NotNil(v)
-
 			for _, f := range v.Fields {
 				switch f.FieldName {
 				case "msg_ids":
@@ -104,3 +103,21 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 		t.Require().NotNil(res)
 	}
 }
+
+const exResponse = `
+{"twitter_extract_tweets":
+[{"msg_ids":[1704249180,1704248033,1704248361,1704248824,1704247208],
+	"msg_score":"3"},
+{"msg_ids":[1704247583,1704247658,1704240059,1704246850],
+	"msg_score":"1"},
+{"msg_ids":[1704245645,1704245332,1704241340,1704245831,1704244479,1704243580,1704248681,
+	1704248481,1704248020,1704248171,1704247702,1704247420,1704247020,1704247032,1704248301,
+	1704248240,1704246896,1704246904,1704246850,1704246725,1704247000,1704246978,1704247566,
+	1704247325,1704247249,1704247851,1704247581],
+	"msg_score":"5"},
+{"msg_ids":[1704245702,1704247702,1704247851,1704246939],
+	"msg_score":"2"},
+{"msg_ids":[1704248681,1704248725,1704248033,1704247672,1704247851,1704247408,1704247681,
+	1704247459,1704247581,1704247032,1704247020,1704248000,1704248020,1704248824,1704247488,
+	1704247256,1704247020,1704246850,1704247725,1704247736,1704247658,1704246437],
+"msg_score":"4"}]}`

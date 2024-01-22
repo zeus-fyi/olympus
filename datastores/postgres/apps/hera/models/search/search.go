@@ -68,10 +68,26 @@ type SearchResultGroup struct {
 	ExtractionPromptExt            string                        `json:"extractionPromptExt,omitempty"`
 	Model                          string                        `json:"model,omitempty"`
 	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
+	BodyPrompt                     string                        `json:"bodyPrompt,omitempty"`
 	SearchResults                  []SearchResult                `json:"searchResults"`
 	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
 	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
 	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`
+}
+
+func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
+	msgMap := make(map[int]*SearchResult)
+	for _, v := range sg.SearchResults {
+		msgMap[v.UnixTimestamp] = &v
+	}
+	return msgMap
+}
+
+func (sg *SearchResultGroup) GetPromptBody() string {
+	if len(sg.SearchResults) == 0 {
+		return sg.BodyPrompt
+	}
+	return FormatSearchResultsV3(sg.SearchResults)
 }
 
 type SearchResult struct {
@@ -79,6 +95,7 @@ type SearchResult struct {
 	Source          string           `json:"source"`
 	Value           string           `json:"value"`
 	Group           string           `json:"group"`
+	Verified        *bool            `json:"verified,omitempty"`
 	Metadata        TelegramMetadata `json:"metadata,omitempty"`
 	DiscordMetadata DiscordMetadata  `json:"discordMetadata"`
 	WebResponse     WebResponse      `json:"webResponses,omitempty"`

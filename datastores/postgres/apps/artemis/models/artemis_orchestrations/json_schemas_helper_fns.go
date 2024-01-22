@@ -79,13 +79,6 @@ func jsonSchemaType(dataType string) jsonschema.DataType {
 	}
 }
 
-const (
-	msgID                                = "msg_id"
-	analyzedMsgId                        = "analyzed_msg_id"
-	socialMediaEngagementResponseFormat  = "social-media-engagement"
-	keepTweetRelationshipToSingleMessage = "add the msg_id from the msg_body field that you are analyzing"
-)
-
 func ConvertToFuncDef(fnName string, schemas []*JsonSchemaDefinition) openai.FunctionDefinition {
 	fd := openai.FunctionDefinition{
 		Name:       fnName,
@@ -158,14 +151,6 @@ func convertDbJsonSchemaFieldsSchema(fnName string, schema *JsonSchemaDefinition
 		}
 		properties[field.FieldName] = fieldDef
 	}
-
-	if fnName == socialMediaEngagementResponseFormat {
-		properties[analyzedMsgId] = jsonschema.Definition{
-			Type:        jsonschema.Number,
-			Description: keepTweetRelationshipToSingleMessage,
-		}
-	}
-
 	for k, _ := range properties {
 		requiredFields = append(requiredFields, k)
 	}

@@ -70,6 +70,7 @@ type SearchResultGroup struct {
 	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
 	BodyPrompt                     string                        `json:"bodyPrompt,omitempty"`
 	SearchResults                  []SearchResult                `json:"searchResults"`
+	FilteredSearchResultMap        map[int]*SearchResult         `json:"filteredSearchResults"`
 	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
 	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
 	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`
@@ -80,6 +81,7 @@ func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
 	for _, v := range sg.SearchResults {
 		msgMap[v.UnixTimestamp] = &v
 	}
+	sg.FilteredSearchResultMap = make(map[int]*SearchResult)
 	return msgMap
 }
 
@@ -87,7 +89,35 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 	if len(sg.SearchResults) == 0 {
 		return sg.BodyPrompt
 	}
-	return FormatSearchResultsV3(sg.SearchResults)
+	return FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
+}
+
+func FormatSearchResultsV4(filteredMap map[int]*SearchResult, results []SearchResult) string {
+	if len(results) == 0 {
+		return ""
+	}
+	var newResults []SimplifiedSearchResultJSON
+	for i, r := range results {
+		if fr, ok := filteredMap[r.UnixTimestamp]; ok {
+			if fr != nil && fr.Verified != nil && *fr.Verified {
+				results[i] = *fr
+			}
+		}
+		if results[i].Verified != nil && *results[i].Verified {
+			continue
+		}
+		nr := SimplifiedSearchResultJSON{
+			MessageID:   fmt.Sprintf("%d", r.UnixTimestamp),
+			MessageBody: r.Value,
+		}
+		newResults = append(newResults, nr)
+	}
+	b, err := json.Marshal(newResults)
+	if err != nil {
+		log.Err(err).Msg("FormatSearchResultsV3: Error marshalling search results")
+		return ""
+	}
+	return string(b)
 }
 
 type SearchResult struct {
@@ -340,6 +370,9 @@ func FormatSearchResultsV3(results []SearchResult) string {
 	}
 	var newResults []SimplifiedSearchResultJSON
 	for _, r := range results {
+		if r.Verified != nil && *r.Verified {
+			continue
+		}
 		nr := SimplifiedSearchResultJSON{
 			MessageID:   fmt.Sprintf("%d", r.UnixTimestamp),
 			MessageBody: r.Value,

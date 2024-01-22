@@ -135,8 +135,8 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 							}
 							if srv, ok := mm[aws.IntValue(fi.IntValue)]; ok {
 								srv.Verified = &ok
-								mm[msgID] = srv
 								seen[msgID] = true
+								tte.Sg.FilteredSearchResultMap[msgID] = srv
 							} else {
 								notFound[msgID]++
 							}
@@ -148,8 +148,8 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 								}
 								if srv, ok := mm[msgID]; ok {
 									srv.Verified = &ok
-									mm[msgID] = srv
 									seen[msgID] = true
+									tte.Sg.FilteredSearchResultMap[msgID] = srv
 								} else {
 									notFound[msgID]++
 								}
@@ -158,6 +158,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 					}
 				}
 			}
+
 			if len(notFound) > 0 {
 				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "notFound", notFound)
 			}

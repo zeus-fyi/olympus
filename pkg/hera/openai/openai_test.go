@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -30,6 +31,33 @@ func (s *HeraTestSuite) TestOpenAIGetModels() {
 	s.Require().Nil(err)
 	fmt.Println(string(resp.Body()))
 
+}
+func (s *HeraTestSuite) TestEnsureValidString() {
+	// Test cases
+	testCases := []struct {
+		name    string
+		input   string
+		isValid bool
+	}{
+		{"Valid String", "Valid_String-123", true},
+		{"String Too Long", generateRandomString(65), false},
+		{"String With Special Characters", "invalid@$#", false},
+		{"Empty String", "", false},
+		{"Boundary Length - 1 Char", "a", true},
+		{"Boundary Length - 64 Chars", generateRandomString(64), true},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			output := EnsureValidString(tc.input)
+			if tc.isValid {
+				s.Equal(tc.input, output)
+			} else {
+				s.NotEqual(tc.input, output)
+				s.Regexp(regexp.MustCompile("^[a-zA-Z0-9_-]{1,64}$"), output)
+			}
+		})
+	}
 }
 
 func (s *HeraTestSuite) TestOpenAICreateJsonOutputFormat() {

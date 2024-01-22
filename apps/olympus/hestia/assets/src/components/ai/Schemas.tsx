@@ -33,7 +33,7 @@ export function Schemas(props: any) {
     useEffect(() => {
         if(addSchemasView) {
         }
-    }, [addSchemasView]); // Dependency array includes addSchemasView
+    }, [addSchemasView, schema]); // Dependency array includes addSchemasView
 
     const dispatch = useDispatch();
     if (addSchemasView) {
@@ -119,10 +119,12 @@ export function Schemas(props: any) {
                                 dataType: e.target.value // Update the actionName
                             }))}
                         >
+                            <MenuItem value="integer">{'integer'}</MenuItem>
                             <MenuItem value="number">{'number'}</MenuItem>
                             <MenuItem value="string">{'string'}</MenuItem>
                             <MenuItem value="boolean">{'boolean'}</MenuItem>
                             <MenuItem value="array[boolean]">{'array[boolean]'}</MenuItem>
+                            <MenuItem value="array[integer]">{'array[integer]'}</MenuItem>
                             <MenuItem value="array[number]">{'array[number]'}</MenuItem>
                             <MenuItem value="array[string]">{'array[string]'}</MenuItem>
                         </Select>

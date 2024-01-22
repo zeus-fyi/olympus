@@ -866,6 +866,7 @@ function WorkflowEngineBuilder(props: any) {
             if (statusCode < 400) {
                 const data = response.data as JsonSchemaDefinition;
                 const updatedSchemas = updateSchemaByName(schemas, data);
+                dispatch(setSchema(data))
                 dispatch(setSchemas(updatedSchemas))
                 setRequestStatusSchema('Schema created or updated successfully')
                 setRequestStatusSchemaError('success')

@@ -3,6 +3,9 @@ package hera_openai
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"regexp"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	openai "github.com/sashabaranov/go-openai"
@@ -50,9 +53,27 @@ func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.Org
 	return nil
 }
 
+func EnsureValidString(s string) string {
+	matched, _ := regexp.MatchString("^[a-zA-Z0-9_-]{1,64}$", s)
+	if matched {
+		return s
+	}
+	return generateRandomString(10) // You can adjust the length as needed
+}
+
+func generateRandomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+	var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
+}
 func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (openai.ChatCompletionResponse, error) {
-	sysPrompt := "Provide your answer in JSON form which analyzes the input and returns the expected schema with values from your function tool call." +
-		" Reply with only the answer in JSON form and include no other commentary"
+	sysPrompt := "Using the specified tool function, analyze the provided input and generate a response that conforms to the expected JSON schema." +
+		" The response should precisely reflect the output of the tool function call." +
+		" Ensure that your reply is solely in JSON format, containing the results of the function execution, without additional commentary or explanation."
 	if params.SystemPromptOverride != "" {
 		sysPrompt = params.SystemPromptOverride
 	}
@@ -64,11 +85,11 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 		Content: sysPrompt,
 		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 	}
-
+	params.FunctionDefinition.Name = EnsureValidString(params.FunctionDefinition.Name)
 	reqBody := openai.ChatCompletionRequest{
 		Model: params.Model,
 		Tools: []openai.Tool{{
-			Type:     "function",
+			Type:     openai.ChatMessageRoleFunction,
 			Function: params.FunctionDefinition,
 		}},
 		ResponseFormat: &openai.ChatCompletionResponseFormat{Type: openai.ChatCompletionResponseFormatTypeJSONObject},

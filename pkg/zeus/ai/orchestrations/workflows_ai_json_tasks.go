@@ -99,16 +99,10 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		}
 		jsd := artemis_orchestrations.ConvertToJsonSchema(params.FunctionDefinition)
 		aiResp.JsonResponseResults = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
-		wr := artemis_orchestrations.AIWorkflowAnalysisResult{
-			OrchestrationsID:      oj.OrchestrationID,
-			ResponseID:            aiResp.ResponseTaskID,
-			SourceTaskID:          tte.Tc.TaskID,
-			ChunkOffset:           tte.Tc.ChunkOffset,
-			IterationCount:        attempt,
-			RunningCycleNumber:    tte.Wr.RunningCycleNumber,
-			SearchWindowUnixStart: tte.Wr.SearchWindowUnixStart,
-			SearchWindowUnixEnd:   tte.Wr.SearchWindowUnixEnd,
-		}
+		wr := tte.Wr
+		wr.SourceTaskID = tte.Tc.TaskID
+		wr.IterationCount = attempt
+		wr.ResponseID = aiResp.ResponseTaskID
 		recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
 		if err != nil {

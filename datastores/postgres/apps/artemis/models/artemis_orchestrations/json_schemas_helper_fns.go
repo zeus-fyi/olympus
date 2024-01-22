@@ -80,6 +80,8 @@ func jsonSchemaType(dataType string) jsonschema.DataType {
 		return jsonschema.Number
 	case "boolean":
 		return jsonschema.Boolean
+	case "integer":
+		return jsonschema.Integer
 	case "array":
 		return jsonschema.Array
 	case "object":

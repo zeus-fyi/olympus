@@ -294,14 +294,14 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 					fieldDef.NumberValueSlice = numbers
 					fmt.Printf("Field %s is an array of numbers: %v\n", fieldDef.FieldName, numbers)
 				} else {
-					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []interface{}", val)
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []number", val)
 				}
 			case "array[integer]":
 				if sliceVal, okArrayInt := val.([]int); okArrayInt {
 					fieldDef.IntValueSlice = sliceVal
 					fmt.Printf("Field %s is an array of ints: %v\n", fieldDef.FieldName, sliceVal)
 				} else {
-					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []interface{}", val)
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
 				}
 			case "array[string]":
 				if sliceVal, okArrayStr := val.([]string); okArrayStr {
@@ -312,6 +312,11 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 					}
 					fieldDef.StringValueSlice = strings
 					fmt.Printf("Field %s is an array of strings: %v\n", fieldDef.FieldName, strings)
+				} else if sliceValF, okArrayNumF := val.([]float64); okArrayNumF {
+					for _, v := range sliceValF {
+						fieldDef.IntValueSlice = append(fieldDef.IntValueSlice, int(v))
+					}
+					fmt.Printf("Field %s is an array of numbers: %v\n", fieldDef.FieldName, sliceVal)
 				} else {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []string{}", val)
 				}

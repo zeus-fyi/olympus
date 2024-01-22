@@ -99,6 +99,7 @@ func ConvertToFuncDefJsonSchemas(fnName string, schemas []*JsonSchemaDefinition)
 	combinedProperties := make(map[string]jsonschema.Definition)
 	// Iterate over each schema and create a field for each
 	for _, schema := range schemas {
+		schema.IsObjArray = true
 		schemaField := convertDbJsonSchemaFieldsSchema(fnName, schema)
 		// If the schema represents an array of objects, adjust the type and items
 		if schema.IsObjArray {
@@ -225,15 +226,10 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 			if vok {
 				for _, item := range vi {
 					vmi, bok := item.(map[string]interface{})
+					// Check if the map contains sz.SchemaName as a key
 					if bok {
-						// Check if the map contains sz.SchemaName as a key
-						if vfi, found := vmi[sz.SchemaName]; found {
-							vfim, vfiok := vfi.(map[string]interface{})
-							if vfiok {
-								jsd := AssignMapValuesJsonSchemaFields(sz, vfim)
-								schemas = append(schemas, jsd)
-							}
-						}
+						jsd := AssignMapValuesJsonSchemaFields(sz, vmi)
+						schemas = append(schemas, jsd)
 					}
 				}
 			}

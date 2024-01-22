@@ -99,7 +99,6 @@ func ConvertToFuncDefJsonSchemas(fnName string, schemas []*JsonSchemaDefinition)
 	combinedProperties := make(map[string]jsonschema.Definition)
 	// Iterate over each schema and create a field for each
 	for _, schema := range schemas {
-		schema.IsObjArray = true
 		schemaField := convertDbJsonSchemaFieldsSchema(fnName, schema)
 		// If the schema represents an array of objects, adjust the type and items
 		if schema.IsObjArray {
@@ -247,54 +246,6 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 	}
 	return schemas
 }
-
-//func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any) [][]*JsonSchemaDefinition {
-//	var responses [][]*JsonSchemaDefinition
-//
-//	for _, sz := range szs {
-//		mis, ok := ms.([]map[string]interface{})
-//		msng, ook := ms.(map[string]interface{})
-//		if ok {
-//			for _, mi := range mis {
-//				responses = append(responses, AssignMapValuesJsonSchemaFieldsSlice(sz, mi))
-//			}
-//		} else if ook {
-//			responses = append(responses, AssignMapValuesJsonSchemaFieldsSlice(sz, msng))
-//		}
-//	}
-//	return responses
-//}
-//
-//func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m any) []*JsonSchemaDefinition {
-//	if sz == nil {
-//		return nil
-//	}
-//	var schemas []*JsonSchemaDefinition
-//	if sz.IsObjArray {
-//		// Handle case where sz is an array of objects
-//		sliceOfMaps, ok := m.(map[string]interface{})
-//		if !ok {
-//			return nil // or handle the error as you see fit
-//		}
-//		for _, v := range sliceOfMaps {
-//			vi, vok := v.([]interface{})
-//			if vok {
-//				for i, _ := range vi {
-//					vmi, bok := vi[i].(map[string]interface{})
-//					if bok {
-//						jsd := AssignMapValuesJsonSchemaFields(sz, vmi)
-//						schemas = append(schemas, jsd)
-//					}
-//				}
-//			}
-//		}
-//	} else {
-//		// Handle case where sz is a single object
-//		jsd := AssignMapValuesJsonSchemaFields(sz, m.(map[string]interface{}))
-//		schemas = append(schemas, jsd)
-//	}
-//	return schemas
-//}
 
 func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]interface{}) *JsonSchemaDefinition {
 	if sz == nil || len(m) == 0 {

@@ -38,20 +38,22 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	t.Require().NotEmpty(td)
 	t.Require().Greater(len(td), 0)
 	tv := td[0]
+	tv.ResponseFormat = socialMediaExtractionResponseFormat
 	tte := TaskToExecute{
 		Ou: ou,
 		Tc: TaskContext{
-			TaskName: tv.TaskName,
-			TaskType: tv.TaskType,
-			Model:    tv.Model,
-			TaskID:   tv.TaskID,
+			TaskName:       tv.TaskName,
+			TaskType:       tv.TaskType,
+			ResponseFormat: tv.ResponseFormat,
+			Model:          tv.Model,
+			TaskID:         tv.TaskID,
 		},
 		Wft: artemis_orchestrations.WorkflowTemplateData{},
 		Sg: &hera_search.SearchResultGroup{
 			PlatformName:   twitterPlatform,
 			SourceTaskID:   tv.TaskID,
 			Model:          tv.Model,
-			ResponseFormat: socialMediaExtractionResponseFormat,
+			ResponseFormat: tv.ResponseFormat,
 			SearchResults:  sr,
 			Window:         aiSp.Window,
 		},

@@ -28,10 +28,11 @@ type TaskToExecute struct {
 }
 
 type TaskContext struct {
-	TaskName string `json:"taskName"`
-	TaskType string `json:"taskType"`
-	Model    string `json:"model"`
-	TaskID   int    `json:"taskID"`
+	TaskName       string `json:"taskName"`
+	TaskType       string `json:"taskType"`
+	ResponseFormat string `json:"responseFormat"`
+	Model          string `json:"model"`
+	TaskID         int    `json:"taskID"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
@@ -110,7 +111,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			logger.Error("failed to save task output", "Error", err)
 			return nil, err
 		}
-		switch tte.Tc.TaskType {
+		switch tte.Tc.ResponseFormat {
 		case socialMediaExtractionResponseFormat, socialMediaEngagementResponseFormat:
 
 			mm := tte.Sg.GetMessageMap()

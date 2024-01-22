@@ -197,6 +197,16 @@ func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any
 			responses = append(responses, resp)
 		}
 	}
+
+	for _, resp := range responses {
+		for _, jsd := range resp {
+			for _, f := range jsd.Fields {
+				if f.IsValidated == false {
+					return nil, fmt.Errorf("AssignMapValuesMultipleJsonSchemasSlice: failed to assign expected field %s", f.FieldName)
+				}
+			}
+		}
+	}
 	return responses, nil
 }
 
@@ -254,12 +264,14 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 				if strVal, okStr := val.(string); okStr {
 					fieldDef.StringValue = &strVal
 					fmt.Printf("Field %s is a string: %s\n", fieldDef.FieldName, strVal)
+					fieldDef.IsValidated = true
 				} else {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to string", val)
 				}
 			case "integer":
 				if intVal, okInt := val.(int); okInt {
 					fieldDef.IntValue = &intVal
+					fieldDef.IsValidated = true
 					fmt.Printf("Field %s is an integer: %d\n", fieldDef.FieldName, intVal)
 				} else {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to int", val)
@@ -267,10 +279,12 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 			case "number":
 				if numVal, okNum := val.(float64); okNum {
 					fieldDef.NumberValue = &numVal
+					fieldDef.IsValidated = true
 					fmt.Printf("Field %s is a number: %f\n", fieldDef.FieldName, numVal)
 				} else if numValInt, okNumInt := val.(int); okNumInt {
 					numValFloat := float64(numValInt)
 					fieldDef.NumberValue = &numValFloat
+					fieldDef.IsValidated = true
 					fmt.Printf("Field %s is a number: %f\n", fieldDef.FieldName, numValFloat)
 				} else {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to float64", val)
@@ -278,6 +292,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 			case "boolean":
 				if boolVal, okBool := val.(bool); okBool {
 					fieldDef.BooleanValue = &boolVal
+					fieldDef.IsValidated = true
 					fmt.Printf("Field %s is a boolean: %t\n", fieldDef.FieldName, boolVal)
 				} else {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to bool", val)
@@ -291,6 +306,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 				if err != nil {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
 				}
+				fieldDef.IsValidated = true
 				fieldDef.NumberValueSlice = vfs
 			case "array[integer]":
 				vin, ok := val.([]interface{})
@@ -301,6 +317,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 				if err != nil {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
 				}
+				fieldDef.IsValidated = true
 				fieldDef.IntValueSlice = vins
 			case "array[string]":
 				vin, ok := val.([]interface{})
@@ -311,6 +328,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 				if err != nil {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []string", val)
 				}
+				fieldDef.IsValidated = true
 				fieldDef.StringValueSlice = vins
 			case "array[boolean]":
 				vin, ok := val.([]interface{})
@@ -321,6 +339,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 				if err != nil {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
 				}
+				fieldDef.IsValidated = true
 				fieldDef.BooleanValueSlice = bs
 			}
 		}

@@ -123,7 +123,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			seen := make(map[int]bool)
 			notFound := make(map[int]int)
 			duplicateCount := make(map[int]int)
-			for _, schemas := range aiResp.JsonResponseResults {
+			for _, schemas := range tmpResp {
 				for _, sch := range schemas {
 					for _, fi := range sch.Fields {
 						switch fi.FieldName {

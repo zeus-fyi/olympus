@@ -37,12 +37,13 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(td)
 
+	model := Gpt4JsonModel
 	tte := TaskToExecute{
 		Ou: ou,
 		Tc: TaskContext{
 			TaskName: "",
 			TaskType: "",
-			Model:    "",
+			Model:    model,
 			TaskID:   taskID,
 		},
 		Wft: artemis_orchestrations.WorkflowTemplateData{},
@@ -50,15 +51,15 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 			PlatformName:        twitterPlatform,
 			SourceTaskID:        taskID,
 			ExtractionPromptExt: "",
-			Model:               "", // TODO
-			ResponseFormat:      "json",
+			Model:               model,
+			ResponseFormat:      jsonFormat,
 			SearchResults:       sr,
 			Window:              aiSp.Window,
 		},
 		Wr: &artemis_orchestrations.AIWorkflowAnalysisResult{
 			OrchestrationsID:      0, // TODO
 			ResponseID:            0,
-			SourceTaskID:          0,
+			SourceTaskID:          taskID,
 			SearchWindowUnixStart: aiSp.Window.UnixStartTime,
 			SearchWindowUnixEnd:   aiSp.Window.UnixEndTime,
 		},

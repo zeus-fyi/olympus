@@ -27,11 +27,10 @@ type TaskToExecute struct {
 }
 
 type TaskContext struct {
-	TaskName    string `json:"taskName"`
-	TaskType    string `json:"taskType"`
-	Model       string `json:"model"`
-	TaskID      int    `json:"taskID"`
-	ChunkOffset int    `json:"chunkOffset"`
+	TaskName string `json:"taskName"`
+	TaskType string `json:"taskType"`
+	Model    string `json:"model"`
+	TaskID   int    `json:"taskID"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {

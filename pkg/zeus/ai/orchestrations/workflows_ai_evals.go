@@ -70,11 +70,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			switch strings.ToLower(evalFnWithMetrics.EvalType) {
 			case "model":
 				var cr *ChatCompletionQueryResponse
-				wfID := mb.Oj.OrchestrationName + "-automated-eval-" + strconv.Itoa(mb.RunCycle)
+				wfID := mb.Oj.OrchestrationName + "-automated-evals-" + strconv.Itoa(mb.RunCycle)
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 					WorkflowID:               wfID,
 					WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
+
+				// TODO, if same model, and schema, and has results, use for first iteration, otherwise, run model json generation
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cr)
 				if err != nil {

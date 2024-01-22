@@ -15,42 +15,52 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 		log.Error().Msg("failed to convert to jsonschema.Definition")
 		return schemas
 	}
-	// Iterate through the properties of the FunctionDefinition
 	for name, def := range jsd.Properties {
 		schema := &JsonSchemaDefinition{
 			SchemaName: name,
 			Fields:     []JsonSchemaField{},
 		}
-		// Check if the property is an array of objects
-		if def.Type == jsonschema.Array && def.Items != nil {
+		if def.Type == jsonschema.Array {
 			schema.IsObjArray = true
-			for fieldName, fieldDef := range def.Items.Properties {
-				schema.Fields = append(schema.Fields, JsonSchemaField{
-					FieldName:        fieldName,
-					FieldDescription: fieldDef.Description,
-					DataType:         jsonSchemaDataType(fieldDef.Type),
-				})
+			if def.Items == nil {
+				continue
 			}
-		} else if def.Type == jsonschema.Object {
-			// Property is an object
-			for fieldName, fieldDef := range def.Properties {
-				schema.Fields = append(schema.Fields, JsonSchemaField{
-					FieldName:        fieldName,
-					FieldDescription: fieldDef.Description,
-					DataType:         jsonSchemaDataType(fieldDef.Type),
-				})
+		}
+		for fieldName, fdef := range def.Items.Properties {
+			ft := jsonSchemaDataType(fdef.Type)
+			if fdef.Type == jsonschema.Array && fdef.Items != nil {
+				ft = fmt.Sprintf("array[%s]", jsonSchemaDataType(fdef.Items.Type))
 			}
-		} else {
-			// Simple field
 			schema.Fields = append(schema.Fields, JsonSchemaField{
-				FieldName:        name,
-				FieldDescription: def.Description,
-				DataType:         jsonSchemaDataType(def.Type),
+				FieldName:        fieldName,
+				FieldDescription: fdef.Description,
+				DataType:         ft,
 			})
 		}
+
 		schemas = append(schemas, schema)
 	}
 	return schemas
+}
+
+// Helper function to convert jsonschema.Type to a string representation
+func jsonSchemaDataType(t jsonschema.DataType) string {
+	switch t {
+	case jsonschema.String:
+		return "string"
+	case jsonschema.Integer:
+		return "integer"
+	case jsonschema.Number:
+		return "number"
+	case jsonschema.Boolean:
+		return "boolean"
+	case jsonschema.Object:
+		return "object"
+	case jsonschema.Array:
+		return "array"
+	default:
+		return "unknown"
+	}
 }
 
 // getFieldNames returns a slice of field names from the slice of JsonSchemaField
@@ -70,6 +80,8 @@ func jsonSchemaType(dataType string) jsonschema.DataType {
 		return jsonschema.Number
 	case "boolean":
 		return jsonschema.Boolean
+	case "integer":
+		return jsonschema.Integer
 	case "array":
 		return jsonschema.Array
 	case "object":
@@ -78,13 +90,6 @@ func jsonSchemaType(dataType string) jsonschema.DataType {
 		return jsonschema.String // default or throw an error based on your requirements
 	}
 }
-
-const (
-	msgID                                = "msg_id"
-	analyzedMsgId                        = "analyzed_msg_id"
-	socialMediaEngagementResponseFormat  = "social-media-engagement"
-	keepTweetRelationshipToSingleMessage = "add the msg_id from the msg_body field that you are analyzing"
-)
 
 func ConvertToFuncDef(fnName string, schemas []*JsonSchemaDefinition) openai.FunctionDefinition {
 	fd := openai.FunctionDefinition{
@@ -158,14 +163,6 @@ func convertDbJsonSchemaFieldsSchema(fnName string, schema *JsonSchemaDefinition
 		}
 		properties[field.FieldName] = fieldDef
 	}
-
-	if fnName == socialMediaEngagementResponseFormat {
-		properties[analyzedMsgId] = jsonschema.Definition{
-			Type:        jsonschema.Number,
-			Description: keepTweetRelationshipToSingleMessage,
-		}
-	}
-
 	for k, _ := range properties {
 		requiredFields = append(requiredFields, k)
 	}
@@ -176,27 +173,7 @@ func convertDbJsonSchemaFieldsSchema(fnName string, schema *JsonSchemaDefinition
 	}
 }
 
-// Helper function to convert jsonschema.Type to a string representation
-func jsonSchemaDataType(t jsonschema.DataType) string {
-	switch t {
-	case jsonschema.String:
-		return "string"
-	case jsonschema.Integer:
-		return "integer"
-	case jsonschema.Number:
-		return "number"
-	case jsonschema.Boolean:
-		return "boolean"
-	case jsonschema.Object:
-		return "object"
-	case jsonschema.Array:
-		return "array"
-	default:
-		return "unknown"
-	}
-}
-
-func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any) [][]*JsonSchemaDefinition {
+func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any) ([][]*JsonSchemaDefinition, error) {
 	var responses [][]*JsonSchemaDefinition
 
 	for _, sz := range szs {
@@ -204,18 +181,28 @@ func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any
 		msng, ook := ms.(map[string]interface{})
 		if ok {
 			for _, mi := range mis {
-				responses = append(responses, AssignMapValuesJsonSchemaFieldsSlice(sz, mi))
+				resp, err := AssignMapValuesJsonSchemaFieldsSlice(sz, mi)
+				if err != nil {
+					log.Err(err).Interface("mi", mi).Msg("AssignMapValuesMultipleJsonSchemasSlice: AssignMapValuesJsonSchemaFieldsSlice failed")
+					return nil, err
+				}
+				responses = append(responses, resp)
 			}
 		} else if ook {
-			responses = append(responses, AssignMapValuesJsonSchemaFieldsSlice(sz, msng))
+			resp, err := AssignMapValuesJsonSchemaFieldsSlice(sz, msng)
+			if err != nil {
+				log.Err(err).Interface("msng", msng).Msg("AssignMapValuesMultipleJsonSchemasSlice: AssignMapValuesJsonSchemaFieldsSlice failed")
+				return nil, err
+			}
+			responses = append(responses, resp)
 		}
 	}
-	return responses
+	return responses, nil
 }
 
-func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string]interface{}) []*JsonSchemaDefinition {
+func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string]interface{}) ([]*JsonSchemaDefinition, error) {
 	if sz == nil {
-		return nil
+		return nil, nil
 	}
 	var schemas []*JsonSchemaDefinition
 	if sz.IsObjArray {
@@ -227,7 +214,11 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 					vmi, bok := item.(map[string]interface{})
 					// Check if the map contains sz.SchemaName as a key
 					if bok {
-						jsd := AssignMapValuesJsonSchemaFields(sz, vmi)
+						jsd, err := AssignMapValuesJsonSchemaFields(sz, vmi)
+						if err != nil {
+							log.Err(err).Interface("vmi", vmi).Msg("1_AssignMapValuesJsonSchemaFieldsSlice: AssignMapValuesJsonSchemaFields failed")
+							return nil, err
+						}
 						schemas = append(schemas, jsd)
 					}
 				}
@@ -239,17 +230,21 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 		if vfi, found := m[sz.SchemaName]; found {
 			vfim, vfiok := vfi.(map[string]interface{})
 			if vfiok {
-				jsd := AssignMapValuesJsonSchemaFields(sz, vfim)
+				jsd, err := AssignMapValuesJsonSchemaFields(sz, vfim)
+				if err != nil {
+					log.Err(err).Interface("vfim", vfim).Msg("2_AssignMapValuesJsonSchemaFieldsSlice: AssignMapValuesJsonSchemaFields failed")
+					return nil, err
+				}
 				schemas = append(schemas, jsd)
 			}
 		}
 	}
-	return schemas
+	return schemas, nil
 }
 
-func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]interface{}) *JsonSchemaDefinition {
+func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]interface{}) (*JsonSchemaDefinition, error) {
 	if sz == nil || len(m) == 0 {
-		return nil
+		return nil, nil
 	}
 	for i, _ := range sz.Fields {
 		fieldDef := &sz.Fields[i] // Get a reference to the field definition
@@ -259,11 +254,15 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 				if strVal, okStr := val.(string); okStr {
 					fieldDef.StringValue = &strVal
 					fmt.Printf("Field %s is a string: %s\n", fieldDef.FieldName, strVal)
+				} else {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to string", val)
 				}
 			case "integer":
 				if intVal, okInt := val.(int); okInt {
 					fieldDef.IntValue = &intVal
 					fmt.Printf("Field %s is an integer: %d\n", fieldDef.FieldName, intVal)
+				} else {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to int", val)
 				}
 			case "number":
 				if numVal, okNum := val.(float64); okNum {
@@ -273,58 +272,58 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 					numValFloat := float64(numValInt)
 					fieldDef.NumberValue = &numValFloat
 					fmt.Printf("Field %s is a number: %f\n", fieldDef.FieldName, numValFloat)
+				} else {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to float64", val)
 				}
 			case "boolean":
 				if boolVal, okBool := val.(bool); okBool {
 					fieldDef.BooleanValue = &boolVal
 					fmt.Printf("Field %s is a boolean: %t\n", fieldDef.FieldName, boolVal)
+				} else {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to bool", val)
 				}
 			case "array[number]":
-				if sliceVal, okArrayNum := val.([]interface{}); okArrayNum {
+				if sliceVal, okArrayNum := val.([]float64); okArrayNum {
+					fieldDef.NumberValueSlice = sliceVal
+					fmt.Printf("Field %s is an array of numbers: %v\n", fieldDef.FieldName, sliceVal)
+				} else if sliceValInt, okArrayNumInt := val.([]int); okArrayNumInt {
 					numbers := make([]float64, 0)
-					for _, v := range sliceVal {
-						if num, okNum := v.(float64); okNum {
-							numbers = append(numbers, num)
-						}
+					for _, num := range sliceValInt {
+						numbers = append(numbers, float64(num))
 					}
 					fieldDef.NumberValueSlice = numbers
 					fmt.Printf("Field %s is an array of numbers: %v\n", fieldDef.FieldName, numbers)
+				} else {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []interface{}", val)
 				}
 			case "array[integer]":
-				if sliceVal, okArrayInt := val.([]interface{}); okArrayInt {
-					intSlice := make([]int, 0)
-					for _, v := range sliceVal {
-						if str, okInt := v.(int); okInt {
-							intSlice = append(intSlice, str)
-						}
-					}
-					fieldDef.IntValueSlice = intSlice
-					fmt.Printf("Field %s is an array of ints: %v\n", fieldDef.FieldName, intSlice)
+				if sliceVal, okArrayInt := val.([]int); okArrayInt {
+					fieldDef.IntValueSlice = sliceVal
+					fmt.Printf("Field %s is an array of ints: %v\n", fieldDef.FieldName, sliceVal)
+				} else {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []interface{}", val)
 				}
 			case "array[string]":
-				if sliceVal, okArrayStr := val.([]interface{}); okArrayStr {
+				if sliceVal, okArrayStr := val.([]string); okArrayStr {
 					strings := make([]string, 0)
 					for _, v := range sliceVal {
-						if str, okStr := v.(string); okStr {
-							strings = append(strings, str)
-						}
+						strings = append(strings, v)
+
 					}
 					fieldDef.StringValueSlice = strings
 					fmt.Printf("Field %s is an array of strings: %v\n", fieldDef.FieldName, strings)
+				} else {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []string{}", val)
 				}
 			case "array[boolean]":
-				if sliceVal, okArrayBool := val.([]interface{}); okArrayBool {
-					booleans := make([]bool, 0)
-					for _, v := range sliceVal {
-						if b, okBool := v.(bool); okBool {
-							booleans = append(booleans, b)
-						}
-					}
+				if booleans, okArrayBool := val.([]bool); okArrayBool {
 					fieldDef.BooleanValueSlice = booleans
 					fmt.Printf("Field %s is an array of booleans: %v\n", fieldDef.FieldName, booleans)
+				} else {
+					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []bool{}", val)
 				}
 			}
 		}
 	}
-	return sz
+	return sz, nil
 }

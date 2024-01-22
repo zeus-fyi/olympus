@@ -111,7 +111,7 @@ func AiTelegramTask(ctx context.Context, ou org_users.OrgUser, msgs []hera_searc
 	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: "gpt-4-1106-preview",
+			Model: Gpt4JsonModel,
 			Messages: []openai.ChatCompletionMessage{
 				systemMessage,
 				{

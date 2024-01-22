@@ -20,13 +20,14 @@ type RetrievalItem struct {
 	RetrievalItemInstruction `json:"retrievalItemInstruction"` // Instructions for the retrieval
 }
 type RetrievalItemInstruction struct {
-	RetrievalPlatform       string          `json:"retrievalPlatform"`
-	RetrievalPrompt         *string         `json:"retrievalPrompt,omitempty"`         // Prompt for the retrieval
-	RetrievalPlatformGroups *string         `json:"retrievalPlatformGroups,omitempty"` // Platform groups for the retrieval
-	RetrievalKeywords       *string         `json:"retrievalKeywords,omitempty"`       // Keywords for the retrieval
-	RetrievalUsernames      *string         `json:"retrievalUsernames,omitempty"`      // Usernames for the retrieval
-	DiscordFilters          *DiscordFilters `json:"discordFilters,omitempty"`          // Discord filters for the retrieval
-	WebFilters              *WebFilters     `json:"webFilters,omitempty"`              // Web filters for the retrieval
+	RetrievalPlatform         string          `json:"retrievalPlatform"`
+	RetrievalPrompt           *string         `json:"retrievalPrompt,omitempty"`           // Prompt for the retrieval
+	RetrievalPlatformGroups   *string         `json:"retrievalPlatformGroups,omitempty"`   // Platform groups for the retrieval
+	RetrievalKeywords         *string         `json:"retrievalKeywords,omitempty"`         // Keywords for the retrieval
+	RetrievalNegativeKeywords *string         `json:"retrievalNegativeKeywords,omitempty"` // Keywords for the retrieval
+	RetrievalUsernames        *string         `json:"retrievalUsernames,omitempty"`        // Usernames for the retrieval
+	DiscordFilters            *DiscordFilters `json:"discordFilters,omitempty"`            // Discord filters for the retrieval
+	WebFilters                *WebFilters     `json:"webFilters,omitempty"`                // Web filters for the retrieval
 
 	Instructions []byte `json:"instructions,omitempty"` // Instructions for the retrieval
 }

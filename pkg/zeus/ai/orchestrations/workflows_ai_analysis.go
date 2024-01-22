@@ -111,13 +111,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					sg = pr.PromptReductionSearchResults.OutSearchGroups[chunkOffset]
 				} else {
 					sg = &hera_search.SearchResultGroup{
+						BodyPrompt:    pr.PromptReductionText.OutPromptChunks[chunkOffset],
 						SearchResults: []hera_search.SearchResult{},
 					}
 				}
-				if pr.PromptReductionText.OutPromptChunks != nil && chunkOffset < len(pr.PromptReductionText.OutPromptChunks) {
-					analysisInst.AnalysisPrompt = pr.PromptReductionText.OutPromptChunks[chunkOffset]
-				}
-
 				wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
 					OrchestrationsID:      oj.OrchestrationID,
 					SourceTaskID:          analysisInst.AnalysisTaskID,
@@ -151,11 +148,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					}
 					tte.Tc = TaskContext{
-						TaskName:    analysisInst.AnalysisTaskName,
-						TaskType:    AnalysisTask,
-						Model:       analysisInst.AnalysisModel,
-						TaskID:      analysisInst.AnalysisTaskID,
-						ChunkOffset: chunkOffset,
+						TaskName: analysisInst.AnalysisTaskName,
+						TaskType: AnalysisTask,
+						Model:    analysisInst.AnalysisModel,
+						TaskID:   analysisInst.AnalysisTaskID,
 					}
 					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, tte).Get(childAnalysisCtx, &aiResp)

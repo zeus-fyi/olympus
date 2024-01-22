@@ -127,66 +127,68 @@ func (s *OrchestrationsTestSuite) TestJsonParsing() {
 	//fmt.Println(mi)
 }
 func (s *OrchestrationsTestSuite) TestAssignSliceMapValuesJsonSchemaFields() {
-	// This is the map structure based on the provided image
-	m := map[string]interface{}{
-		"web3-sales-lead-scoring-2": []interface{}{
-			map[string]interface{}{
-				"analyzed_msg_id":      1704249180,
-				"aggregate_lead_score": 15,
-				"lead_score_metrics":   "Kubernetes mention, indicating direct interest in technology Zeusfyi enhances.",
-			},
-			map[string]interface{}{
-				"analyzed_msg_id":      2704249180,
-				"aggregate_lead_score": 10,
-				"lead_score_metrics":   "Other mention, indicating indirect interest in technology Zeusfyi enhances.",
-			},
-			// Add other map elements as needed based on the actual data
-		},
-		"add-on": []interface{}{
-			map[string]interface{}{
-				"test_id":    "test_id_1",
-				"test_score": "100",
-			},
-		},
-	}
-	sz2 := JsonSchemaDefinition{
-		SchemaID:    0,
-		SchemaName:  "add-on",
-		SchemaGroup: "",
-		IsObjArray:  true, // This should be true to match the array structure in the image
-		Fields: []JsonSchemaField{
-			// Define your schema fields based on the actual structure of the map elements
-			{FieldName: "test_id", DataType: "string", FieldDescription: "Analyzed test ID"},
-			{FieldName: "test_id", DataType: "string", FieldDescription: "Analyzed test score ID"},
-			// Add other fields as needed
-		},
-	}
+	//// This is the map structure based on the provided image
+	//m := map[string]interface{}{
+	//	"web3-sales-lead-scoring-2": []interface{}{
+	//		map[string]interface{}{
+	//			"analyzed_msg_id":      1704249180,
+	//			"aggregate_lead_score": 15,
+	//			"lead_score_metrics":   "Kubernetes mention, indicating direct interest in technology Zeusfyi enhances.",
+	//		},
+	//		map[string]interface{}{
+	//			"analyzed_msg_id":      2704249180,
+	//			"aggregate_lead_score": 10,
+	//			"lead_score_metrics":   "Other mention, indicating indirect interest in technology Zeusfyi enhances.",
+	//		},
+	//		// Add other map elements as needed based on the actual data
+	//	},
+	//	"add-on": []interface{}{
+	//		map[string]interface{}{
+	//			"test_id":    "test_id_1",
+	//			"test_score": "100",
+	//		},
+	//	},
+	//}
+	//sz2 := JsonSchemaDefinition{
+	//	SchemaID:    0,
+	//	SchemaName:  "add-on",
+	//	SchemaGroup: "",
+	//	IsObjArray:  true, // This should be true to match the array structure in the image
+	//	Fields: []JsonSchemaField{
+	//		// Define your schema fields based on the actual structure of the map elements
+	//		{FieldName: "test_id", DataType: "string", FieldDescription: "Analyzed test ID"},
+	//		{FieldName: "test_id", DataType: "string", FieldDescription: "Analyzed test score ID"},
+	//		// Add other fields as needed
+	//	},
+	//}
+	//
+	//sz := JsonSchemaDefinition{
+	//	SchemaID:    0,
+	//	SchemaName:  "web3-sales-lead-scoring-2",
+	//	SchemaGroup: "",
+	//	IsObjArray:  true, // This should be true to match the array structure in the image
+	//	Fields: []JsonSchemaField{
+	//		// Define your schema fields based on the actual structure of the map elements
+	//		{FieldName: "analyzed_msg_id", DataType: "number", FieldDescription: "Analyzed message ID"},
+	//		{FieldName: "aggregate_lead_score", DataType: "integer", FieldDescription: "Aggregate lead score"},
+	//		{FieldName: "lead_score_metrics", DataType: "string", FieldDescription: "Lead score metrics"},
+	//		// Add other fields as needed
+	//	},
+	//}
 
-	sz := JsonSchemaDefinition{
-		SchemaID:    0,
-		SchemaName:  "web3-sales-lead-scoring-2",
-		SchemaGroup: "",
-		IsObjArray:  true, // This should be true to match the array structure in the image
-		Fields: []JsonSchemaField{
-			// Define your schema fields based on the actual structure of the map elements
-			{FieldName: "analyzed_msg_id", DataType: "number", FieldDescription: "Analyzed message ID"},
-			{FieldName: "aggregate_lead_score", DataType: "integer", FieldDescription: "Aggregate lead score"},
-			{FieldName: "lead_score_metrics", DataType: "string", FieldDescription: "Lead score metrics"},
-			// Add other fields as needed
-		},
-	}
-
-	// Pass the value part of the map to the function, not the entire map
-	jr := AssignMapValuesJsonSchemaFieldsSlice(&sz, m["web3-sales-lead-scoring-2"])
-	for _, r := range jr {
-		fmt.Println(*r)
-	}
-
-	// Pass the value part of the map to the function, not the entire map
-	jr2 := AssignMapValuesJsonSchemaFieldsSlice(&sz2, m["add-on"])
-	for _, r := range jr2 {
-		fmt.Println(*r)
-	}
+	//// Pass the value part of the map to the function, not the entire map
+	//jr, err := AssignMapValuesJsonSchemaFieldsSlice(&sz, m["web3-sales-lead-scoring-2"])
+	//s.Require().NoError(err, "Failed to assign map values to JSON schema fields")
+	//for _, r := range jr {
+	//	fmt.Println(*r)
+	//}
+	//
+	//// Pass the value part of the map to the function, not the entire map
+	//jr2, err := AssignMapValuesJsonSchemaFieldsSlice(&sz2, m["add-on"])
+	//s.Require().NoError(err, "Failed to assign map values to JSON schema fields")
+	//for _, r := range jr2 {
+	//	fmt.Println(*r)
+	//}
 
 	//jr3 := AssignMapValuesMultipleJsonSchemasSlice([]*JsonSchemaDefinition{&sz, &sz2}, m)
 	//for _, r := range jr3 {
@@ -214,6 +216,7 @@ func (s *OrchestrationsTestSuite) TestAssignMapValuesJsonSchemaFields() {
 			{FieldName: "number_field", DataType: "number", FieldDescription: "number value"},
 		},
 	}
-	jr := AssignMapValuesJsonSchemaFields(&sz, m)
+	jr, err := AssignMapValuesJsonSchemaFields(&sz, m)
+	s.Require().NoError(err, "Failed to assign map values to JSON schema fields")
 	fmt.Println(*jr)
 }

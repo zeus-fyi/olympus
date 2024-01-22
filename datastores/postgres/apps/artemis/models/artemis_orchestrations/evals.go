@@ -182,6 +182,7 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []Eva
 		return err
 	}
 	defer tx.Rollback(ctx)
+	// TODO, add eval metric iteration count
 	const query = `
         INSERT INTO public.eval_metrics_results (
             eval_metrics_result_id,

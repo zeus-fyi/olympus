@@ -34,7 +34,6 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 	}
 	t.OrgID = ou.OrgID
 	t.UserID = ou.UserID
-
 	err := ValidateEvalOps(t.EvalFn)
 	if err != nil {
 		log.Err(err).Msg("failed to validate eval")
@@ -57,7 +56,6 @@ func ValidateStrArrayPayload(em *artemis_orchestrations.EvalMetric) error {
 		log.Err(err).Msg("failed to parse float")
 		return err
 	}
-
 	if fv < 0 {
 		return errors.New("invalid value")
 	}

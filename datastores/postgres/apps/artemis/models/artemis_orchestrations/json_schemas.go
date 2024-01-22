@@ -32,6 +32,7 @@ type JsonSchemaField struct {
 	StringValueSlice  []string    `db:"-" json:"stringValueSlice,omitempty"`
 	NumberValueSlice  []float64   `db:"-" json:"numberValueSlice,omitempty"`
 	BooleanValueSlice []bool      `db:"-" json:"booleanValueSlice,omitempty"`
+	IsValidated       bool        `db:"-" json:"isValidated,omitempty"`
 	EvalMetric        *EvalMetric `db:"-" json:"evalMetric,omitempty"`
 }
 

@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -27,11 +28,11 @@ type TaskToExecute struct {
 }
 
 type TaskContext struct {
-	TaskName    string `json:"taskName"`
-	TaskType    string `json:"taskType"`
-	Model       string `json:"model"`
-	TaskID      int    `json:"taskID"`
-	ChunkOffset int    `json:"chunkOffset"`
+	TaskName       string `json:"taskName"`
+	TaskType       string `json:"taskType"`
+	ResponseFormat string `json:"responseFormat"`
+	Model          string `json:"model"`
+	TaskID         int    `json:"taskID"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
@@ -71,50 +72,112 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	maxAttempts := ao.RetryPolicy.MaximumAttempts
 	var aiResp *ChatCompletionQueryResponse
 	for attempt := 0; attempt < int(maxAttempts); attempt++ {
+		var anyErr error
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
 		params := hera_openai.OpenAIParams{
 			Model:              tte.Tc.Model,
+			Prompt:             tte.Sg.GetPromptBody(),
 			FunctionDefinition: fd,
 		}
+		jsd := artemis_orchestrations.ConvertToJsonSchema(params.FunctionDefinition)
+		tte.Wr.IterationCount = attempt
 		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, tte.Ou, params).Get(jsonTaskCtx, &aiResp)
 		if err != nil {
 			logger.Error("failed to run analysis json", "Error", err)
-			continue // Retry the activity
-		}
-
-		analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, tte.Ou, aiResp).Get(analysisCompCtx, &aiResp.ResponseTaskID)
-		if err == nil {
 			return nil, err
 		}
+		analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, tte.Ou, aiResp).Get(analysisCompCtx, &aiResp.ResponseTaskID)
+		if err != nil {
+			logger.Error("failed to record completion response", "Error", err)
+			return nil, err
+		}
+		wr := tte.Wr
+		wr.SourceTaskID = tte.Tc.TaskID
+		wr.IterationCount = attempt
+		wr.ResponseID = aiResp.ResponseTaskID
 		var m any
 		if len(aiResp.Response.Choices) > 0 && len(aiResp.Response.Choices[0].Message.ToolCalls) > 0 {
-			m, err = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, aiResp)
-			log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
-			err = nil
+			m, anyErr = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, aiResp)
+			// ok no err
+			log.Err(anyErr).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
 		} else {
-			m, err = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, aiResp)
-			log.Err(err).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
-			err = nil
+			m, anyErr = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, aiResp)
+			log.Err(anyErr).Interface("m", m).Msg("UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
 		}
-		jsd := artemis_orchestrations.ConvertToJsonSchema(params.FunctionDefinition)
-		aiResp.JsonResponseResults = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
-		wr := artemis_orchestrations.AIWorkflowAnalysisResult{
-			OrchestrationsID:      oj.OrchestrationID,
-			ResponseID:            aiResp.ResponseTaskID,
-			SourceTaskID:          tte.Tc.TaskID,
-			ChunkOffset:           tte.Tc.ChunkOffset,
-			IterationCount:        attempt,
-			RunningCycleNumber:    tte.Wr.RunningCycleNumber,
-			SearchWindowUnixStart: tte.Wr.SearchWindowUnixStart,
-			SearchWindowUnixEnd:   tte.Wr.SearchWindowUnixEnd,
+		var tmpResp [][]*artemis_orchestrations.JsonSchemaDefinition
+		if anyErr == nil {
+			tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
 		}
+		if anyErr != nil {
+			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+			if err != nil {
+				logger.Error("failed to save task output", "Error", err)
+				return nil, err
+			}
+			continue
+		}
+		switch tte.Tc.ResponseFormat {
+		case socialMediaExtractionResponseFormat, socialMediaEngagementResponseFormat:
+			mm := tte.Sg.GetMessageMap()
+			seen := make(map[int]bool)
+			notFound := make(map[int]int)
+			duplicateCount := make(map[int]int)
+			for ssi, schemas := range tmpResp {
+				for si, sch := range schemas {
+					for findex, fi := range sch.Fields {
+						switch fi.FieldName {
+						case "msg_id":
+							msgID := aws.IntValue(fi.IntValue)
+							if _, ok := seen[msgID]; ok {
+								duplicateCount[msgID]++
+								continue
+							}
+							if srv, ok := mm[aws.IntValue(fi.IntValue)]; ok {
+								srv.Verified = &ok
+								seen[msgID] = true
+								tte.Sg.FilteredSearchResultMap[msgID] = srv
+								tmpResp[ssi][si].Fields[findex].IsValidated = ok
+							} else {
+								notFound[msgID]++
+							}
+						case "msg_ids":
+							for _, msgID := range fi.IntValueSlice {
+								if _, ok := seen[msgID]; ok {
+									duplicateCount[msgID]++
+									continue
+								}
+								if srv, ok := mm[msgID]; ok {
+									srv.Verified = &ok
+									seen[msgID] = true
+									tte.Sg.FilteredSearchResultMap[msgID] = srv
+									tmpResp[ssi][si].Fields[findex].IsValidated = ok
+								} else {
+									notFound[msgID]++
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if len(notFound) > 0 {
+				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "notFound", notFound)
+			}
+			if len(duplicateCount) > 0 {
+				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "duplicateCount", duplicateCount)
+			}
+			logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormatStats", "seen", len(seen), "notFound", len(notFound), "duplicateCount", len(duplicateCount))
+		}
+		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
 		recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+		err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
 		if err != nil {
 			logger.Error("failed to save task output", "Error", err)
 			return nil, err
 		}
+		break
 	}
 
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)

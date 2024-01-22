@@ -18,6 +18,16 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 		}
 		var result bool
 		switch value.DataType {
+		case "integer":
+			if value.EvalMetric.EvalComparisonNumber == nil {
+				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+			}
+			av, aerr := convertToInt(value)
+			if aerr != nil {
+				log.Err(aerr).Msg("TransformJSONToEvalScoredMetrics: convertToInt failed")
+				return nil, aerr
+			}
+			result = GetIntEvalComparisonResult(value.EvalMetric.EvalOperator, av, int(*value.EvalMetric.EvalComparisonNumber))
 		case "number":
 			if value.EvalMetric.EvalComparisonNumber == nil {
 				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
@@ -48,11 +58,20 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 				return nil, aerr
 			}
 			result = GetBooleanEvalComparisonResult(av, *value.EvalMetric.EvalComparisonBoolean)
-		case "array[number]":
+		case "array[integer]":
 			if value.EvalMetric.EvalComparisonNumber == nil {
 				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
 			}
 			results, rerr := EvaluateNumericArray(value.EvalMetric.EvalOperator, value.NumberValueSlice, *value.EvalMetric.EvalComparisonNumber)
+			if rerr != nil {
+				return nil, rerr
+			}
+			result = Pass(results)
+		case "array[number]":
+			if value.EvalMetric.EvalComparisonNumber == nil {
+				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+			}
+			results, rerr := EvaluateIntArray(value.EvalMetric.EvalOperator, value.IntValueSlice, int(*value.EvalMetric.EvalComparisonNumber))
 			if rerr != nil {
 				return nil, rerr
 			}
@@ -87,6 +106,23 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 func GetBooleanEvalComparisonResult(actual, expected bool) bool {
 	return actual == expected
 }
+func GetIntEvalComparisonResult(operator string, actual, expected int) bool {
+	switch operator {
+	case "==":
+		return actual == expected
+	case "!=":
+		return actual != expected
+	case ">":
+		return actual > expected
+	case "<":
+		return actual < expected
+	case ">=":
+		return actual >= expected
+	case "<=":
+		return actual <= expected
+	}
+	return false
+}
 
 func GetNumericEvalComparisonResult(operator string, actual, expected float64) bool {
 	switch operator {
@@ -104,6 +140,15 @@ func GetNumericEvalComparisonResult(operator string, actual, expected float64) b
 		return actual <= expected
 	}
 	return false
+}
+
+func EvaluateIntArray(operator string, array []int, expected int) ([]bool, error) {
+	var results []bool
+	for _, value := range array {
+		result := GetIntEvalComparisonResult(operator, value, expected)
+		results = append(results, result)
+	}
+	return results, nil
 }
 
 func EvaluateNumericArray(operator string, array []float64, expected float64) ([]bool, error) {
@@ -208,39 +253,15 @@ func convertToString(value interface{}) (string, error) {
 	}
 	return av, nil
 }
-func interfaceSliceToFloat64Slice(interfaceSlice []interface{}) ([]float64, error) {
-	float64Slice := make([]float64, len(interfaceSlice))
-	for i, v := range interfaceSlice {
-		f, ok := v.(float64)
-		if !ok {
-			return nil, fmt.Errorf("value at index %d is not a float64", i)
-		}
-		float64Slice[i] = f
+
+func convertToInt(value interface{}) (int, error) {
+	av, ok := value.(int)
+	if !ok {
+		return 0, fmt.Errorf("value is not float64")
 	}
-	return float64Slice, nil
+	return av, nil
 }
-func interfaceSliceToBoolSlice(interfaceSlice []interface{}) ([]bool, error) {
-	boolSlice := make([]bool, len(interfaceSlice))
-	for i, v := range interfaceSlice {
-		b, ok := v.(bool)
-		if !ok {
-			return nil, fmt.Errorf("value at index %d is not a bool", i)
-		}
-		boolSlice[i] = b
-	}
-	return boolSlice, nil
-}
-func interfaceSliceToStringSlice(interfaceSlice []interface{}) ([]string, error) {
-	stringSlice := make([]string, len(interfaceSlice))
-	for i, v := range interfaceSlice {
-		str, ok := v.(string)
-		if !ok {
-			return nil, fmt.Errorf("value at index %d is not a string", i)
-		}
-		stringSlice[i] = str
-	}
-	return stringSlice, nil
-}
+
 func convertToFloat64(value interface{}) (float64, error) {
 	av, ok := value.(float64)
 	if !ok {

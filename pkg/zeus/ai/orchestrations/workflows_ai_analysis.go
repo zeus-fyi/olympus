@@ -65,7 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					Sg:   sg,
 				}
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp, tte).Get(childAnalysisCtx, &sg)
+				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &sg)
 				if err != nil {
 					logger.Error("failed to execute child retrieval workflow", "Error", err)
 					return nil, err

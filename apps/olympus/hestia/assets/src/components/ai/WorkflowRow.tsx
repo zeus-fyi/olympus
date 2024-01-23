@@ -152,7 +152,7 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                                 </TableCell>
                                                 <TableCell>
                                                     <Typography variant="subtitle2" component="div" fontWeight="bold">
-                                                        Cycle Count
+                                                      N x Eval Cycles
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell>

@@ -102,7 +102,6 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 			}
 		}
 	}
-
 	for _, eta := range evalFn.TriggerActions {
 		for _, evTrig := range eta.EvalTriggerActions {
 			query := `
@@ -117,7 +116,6 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 			}
 		}
 	}
-
 	err = tx.Commit(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to commit transaction")

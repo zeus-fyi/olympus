@@ -48,6 +48,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 	}
 
 	for _, evalFn := range cpe.EvalFns {
+		if evalFn.EvalID == 0 {
+			continue
+		}
 		evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		var evalFnMetrics []artemis_orchestrations.EvalFn
 		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, evalFn.EvalID).Get(evalFnMetricsLookupCtx, &evalFnMetrics)
@@ -170,7 +173,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				Emr: emr,
 				Mb:  mb,
 			}
-			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunTriggerActions, tar).Get(childAnalysisCtx, nil)
+			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, tar).Get(childAnalysisCtx, nil)
 			if err != nil {
 				logger.Error("failed to execute child run trigger actions workflow", "Error", err)
 				return err

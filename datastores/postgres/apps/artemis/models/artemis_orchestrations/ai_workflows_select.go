@@ -347,7 +347,6 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 
 	for i, v := range results.WorkflowTemplatesMap {
 		var taskVals []Task
-
 		for _, at := range results.WorkflowTemplatesMap[i].AnalysisTasksSlice {
 			ta := Task{
 				TaskID:            at.AnalysisTaskID,

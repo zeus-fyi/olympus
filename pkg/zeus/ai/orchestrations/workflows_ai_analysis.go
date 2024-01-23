@@ -65,7 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					Sg:   sg,
 				}
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp, tte).Get(childAnalysisCtx, &sg)
+				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &sg)
 				if err != nil {
 					logger.Error("failed to execute child retrieval workflow", "Error", err)
 					return nil, err
@@ -100,7 +100,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil {
 				chunkIterator = len(pr.PromptReductionSearchResults.OutSearchGroups)
 			}
-			if pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
+			if pr.PromptReductionText != nil && pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
 				chunkIterator = len(pr.PromptReductionText.OutPromptChunks)
 			}
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
@@ -135,20 +135,23 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				case jsonFormat, socialMediaExtractionResponseFormat:
 					sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
 					sg.SourceTaskID = analysisInst.AnalysisTaskID
-					wfID = oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d", analysisInst.AnalysisResponseFormat, i)
-					tte.WfID = wfID
+					tte.WfID = oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d", analysisInst.AnalysisResponseFormat, i)
 					pr.Model = tte.Wft.AnalysisModel
+
 					pr.TokenOverflowStrategy = tte.Wft.AnalysisTokenOverflowStrategy
-					pr.PromptReductionText.InPromptBody = tte.Wft.AnalysisPrompt
+					if pr.PromptReductionText != nil {
+						pr.PromptReductionText.InPromptBody = tte.Wft.AnalysisPrompt
+					}
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-						WorkflowID:               wfID,
+						WorkflowID:               tte.WfID,
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					}
 					tte.Tc = TaskContext{
-						TaskName: analysisInst.AnalysisTaskName,
-						TaskType: AnalysisTask,
-						Model:    analysisInst.AnalysisModel,
-						TaskID:   analysisInst.AnalysisTaskID,
+						TaskName:       analysisInst.AnalysisTaskName,
+						TaskType:       AnalysisTask,
+						ResponseFormat: analysisInst.AnalysisResponseFormat,
+						Model:          analysisInst.AnalysisModel,
+						TaskID:         analysisInst.AnalysisTaskID,
 					}
 					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, tte).Get(childAnalysisCtx, &aiResp)

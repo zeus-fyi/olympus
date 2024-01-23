@@ -13,7 +13,7 @@ type TriggerActionsWorkflowParams struct {
 	Mb  *MbChildSubProcessParams                   `json:"mb,omitempty"`
 }
 
-func (z *ZeusAiPlatformServiceWorkflows) RunTriggerActions(ctx workflow.Context, tar TriggerActionsWorkflowParams) error {
+func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workflow.Context, tar TriggerActionsWorkflowParams) error {
 	if tar.Emr == nil || tar.Mb == nil {
 		return nil
 	}

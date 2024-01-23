@@ -129,7 +129,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					Sg:  sg,
 					Wr:  wr,
 				}
-				var wfID string
 				var analysisRespId int
 				switch analysisInst.AnalysisResponseFormat {
 				case jsonFormat, socialMediaExtractionResponseFormat:
@@ -159,6 +158,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						logger.Error("failed to execute analysis json workflow", "Error", err)
 						return nil, err
 					}
+					sg.FilteredSearchResults = aiResp.FilteredSearchResults
 				default:
 					analysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
@@ -182,13 +182,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if aiResp == nil || len(aiResp.Response.Choices) == 0 {
 					continue
 				}
-				wfID = oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i)
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               wfID,
+					WorkflowID:               oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i),
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
 				cp.Window = window
-				cp.WfID = wfID
+				cp.WfID = childAnalysisWorkflowOptions.WorkflowID
 				cp.WorkflowResult = *wr
 				ea := &EvalActionParams{
 					WorkflowTemplateData: analysisInst,

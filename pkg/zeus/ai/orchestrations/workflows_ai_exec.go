@@ -56,7 +56,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			}
 		}
 		childParams := &MbChildSubProcessParams{
-			WfID:         wfID,
+			WfID:         oj.OrchestrationName + "-analysis-" + strconv.Itoa(i),
 			Ou:           ou,
 			WfExecParams: wfExecParams,
 			Oj:           oj,
@@ -64,7 +64,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		}
 		// Execute child workflow for analysis
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               oj.OrchestrationName + "-analysis-" + strconv.Itoa(i),
+			WorkflowID:               childParams.WfID,
 			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)

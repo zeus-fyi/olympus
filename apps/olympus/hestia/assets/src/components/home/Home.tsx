@@ -36,7 +36,6 @@ export const HomeLayout = () => {
                 dispatch(setSessionAuth(true));
             } catch (error) {
                 dispatch(setSessionAuth(false));
-                console.log("error", error);
             }}
         fetchData().then(r =>
             console.log("")

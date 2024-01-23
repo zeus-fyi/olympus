@@ -96,7 +96,10 @@ func CalculateTimeWindowFromCycles(unixStartTime int, cycleStart, cycleEnd int, 
 	return wind
 }
 
-func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, unixStartTime, unixEndTime int, wfs []WorkflowTemplate) ([]WorkflowExecParams, error) {
+func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, window *Window, wfs []WorkflowTemplate) ([]WorkflowExecParams, error) {
+	if window == nil {
+		window = &Window{}
+	}
 	var wfExecParams []WorkflowExecParams
 	for _, wf := range wfs {
 		wtd, err := SelectWorkflowTemplateByName(ctx, ou, wf.WorkflowName)
@@ -104,22 +107,22 @@ func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, unixSta
 			log.Err(err).Msg("error selecting workflow template")
 			return nil, err
 		}
-		if unixStartTime == 0 {
-			unixStartTime = int(time.Now().Unix())
+		if window.UnixStartTime == 0 {
+			window.UnixStartTime = int(time.Now().Unix())
 		}
 		if wtd == nil || len(wtd.WorkflowTemplateSlice) <= 0 {
 			return nil, errors.New("workflow template not found")
 		}
 		wfTimeParams := ConvertTemplateValuesToWorkflowTemplateData(wf, wtd.WorkflowTemplateSlice[0])
-		if unixEndTime == 0 {
-			unixEndTime = unixStartTime + int(wfTimeParams.WorkflowExecTimekeepingParams.TotalCyclesPerOneCompleteWorkflowAsDuration.Seconds())
+		if window.UnixEndTime == 0 {
+			window.UnixEndTime = window.UnixStartTime + int(wfTimeParams.WorkflowExecTimekeepingParams.TotalCyclesPerOneCompleteWorkflowAsDuration.Seconds())
 		}
 
 		wfTimeParams.WorkflowTemplate = wf
-		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime = unixStartTime
-		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.Start = time.Unix(int64(unixStartTime), 0)
-		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.UnixEndTime = unixEndTime
-		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.End = time.Unix(int64(unixEndTime), 0)
+		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime = window.UnixStartTime
+		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.Start = time.Unix(int64(window.UnixStartTime), 0)
+		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.UnixEndTime = window.UnixEndTime
+		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.End = time.Unix(int64(window.UnixEndTime), 0)
 		wfTimeParams.WorkflowExecTimekeepingParams.RunTimeDuration = wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.End.Sub(wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.Start)
 		if wfTimeParams.WorkflowExecTimekeepingParams.TimeStepSize == 0 {
 			return nil, errors.New("time step size is 0")

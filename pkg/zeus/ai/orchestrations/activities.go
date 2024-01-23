@@ -320,6 +320,7 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 	if taskInst.RetrievalPlatform == "" || taskInst.RetrievalName == "" || taskInst.RetrievalInstructions == nil {
 		return nil, nil
 	}
+
 	retInst := artemis_orchestrations.RetrievalItemInstruction{}
 	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &retInst)
 	if jerr != nil {
@@ -332,6 +333,22 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 		},
 		Window: window,
 	}
+	if ou.OrgID == 7138983863666903883 && taskInst.RetrievalName == "twitter-test" {
+		aiSp := hera_search.AiSearchParams{
+			TimeRange: "30 days",
+		}
+		hera_search.TimeRangeStringToWindow(&aiSp)
+		resp, err := hera_search.SearchTwitter(ctx, ou, aiSp)
+		if err != nil {
+			log.Err(err).Msg("AiRetrievalTask: failed")
+			return nil, err
+		}
+		if len(resp) > 50 {
+			resp = resp[:50]
+		}
+		return resp, nil
+	}
+
 	var resp []hera_search.SearchResult
 	var err error
 	switch taskInst.RetrievalPlatform {

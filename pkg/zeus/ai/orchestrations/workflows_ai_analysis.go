@@ -135,13 +135,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				case jsonFormat, socialMediaExtractionResponseFormat:
 					sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
 					sg.SourceTaskID = analysisInst.AnalysisTaskID
-					wfID = oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d", analysisInst.AnalysisResponseFormat, i)
-					tte.WfID = wfID
+					tte.WfID = oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d", analysisInst.AnalysisResponseFormat, i)
 					pr.Model = tte.Wft.AnalysisModel
+
 					pr.TokenOverflowStrategy = tte.Wft.AnalysisTokenOverflowStrategy
-					pr.PromptReductionText.InPromptBody = tte.Wft.AnalysisPrompt
+					if pr.PromptReductionText != nil {
+						pr.PromptReductionText.InPromptBody = tte.Wft.AnalysisPrompt
+					}
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-						WorkflowID:               wfID,
+						WorkflowID:               tte.WfID,
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					}
 					tte.Tc = TaskContext{

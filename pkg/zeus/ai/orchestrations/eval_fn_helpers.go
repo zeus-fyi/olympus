@@ -62,7 +62,7 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 			if value.EvalMetric.EvalComparisonNumber == nil {
 				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
 			}
-			results, rerr := EvaluateNumericArray(value.EvalMetric.EvalOperator, value.NumberValueSlice, *value.EvalMetric.EvalComparisonNumber)
+			results, rerr := EvaluateIntArray(value.EvalMetric.EvalOperator, value.IntValueSlice, int(*value.EvalMetric.EvalComparisonNumber))
 			if rerr != nil {
 				return nil, rerr
 			}
@@ -71,7 +71,7 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 			if value.EvalMetric.EvalComparisonNumber == nil {
 				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
 			}
-			results, rerr := EvaluateIntArray(value.EvalMetric.EvalOperator, value.IntValueSlice, int(*value.EvalMetric.EvalComparisonNumber))
+			results, rerr := EvaluateNumericArray(value.EvalMetric.EvalOperator, value.NumberValueSlice, *value.EvalMetric.EvalComparisonNumber)
 			if rerr != nil {
 				return nil, rerr
 			}

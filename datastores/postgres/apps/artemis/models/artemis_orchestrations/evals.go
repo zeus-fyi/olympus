@@ -14,17 +14,18 @@ import (
 )
 
 type EvalFn struct {
-	EvalID         *int                    `json:"evalID,omitempty"`
-	OrgID          int                     `json:"orgID,omitempty"`
-	UserID         int                     `json:"userID,omitempty"`
-	EvalName       string                  `json:"evalName"`
-	EvalType       string                  `json:"evalType"`
-	EvalGroupName  string                  `json:"evalGroupName"`
-	EvalModel      *string                 `json:"evalModel,omitempty"`
-	EvalFormat     string                  `json:"evalFormat"`
-	EvalCycleCount int                     `json:"evalCycleCount,omitempty"`
-	TriggerActions []TriggerAction         `json:"triggerFunctions,omitempty"`
-	Schemas        []*JsonSchemaDefinition `json:"schemas,omitempty"`
+	EvalID         *int                          `json:"evalID,omitempty"`
+	OrgID          int                           `json:"orgID,omitempty"`
+	UserID         int                           `json:"userID,omitempty"`
+	EvalName       string                        `json:"evalName"`
+	EvalType       string                        `json:"evalType"`
+	EvalGroupName  string                        `json:"evalGroupName"`
+	EvalModel      *string                       `json:"evalModel,omitempty"`
+	EvalFormat     string                        `json:"evalFormat"`
+	EvalCycleCount int                           `json:"evalCycleCount,omitempty"`
+	TriggerActions []TriggerAction               `json:"triggerFunctions,omitempty"`
+	Schemas        []*JsonSchemaDefinition       `json:"schemas,omitempty"`
+	SchemaMap      map[int]*JsonSchemaDefinition `json:"schemaMap"`
 }
 
 type EvalMetric struct {

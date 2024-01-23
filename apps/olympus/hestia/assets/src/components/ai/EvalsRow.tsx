@@ -113,7 +113,6 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                     ))}
                                                 </React.Fragment>
                                             )) : null
-
                                             // row.evalMetrics && row.evalMetrics.map((data, dataIndex) => (
                                             //     <TableRow key={data.evalMetricName}>
                                             //         <TableCell>{data.jsonSchemaID ? data.jsonSchemaID : 'N/A'}</TableCell>

@@ -52,7 +52,6 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 		}
 		m[er.EvalState] = append(m[er.EvalState], aws.ToBool(er.EvalMetricResult.EvalResultOutcomeBool))
 	}
-
 	// gets the eval results by state, eg. info, trigger, etc.
 	for _, tr := range act.EvalTriggerActions {
 		results := m[tr.EvalTriggerState]

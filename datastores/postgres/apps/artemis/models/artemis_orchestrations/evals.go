@@ -172,13 +172,12 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []Eva
             search_window_unix_start,
             search_window_unix_end,
             eval_result_outcome,
-            eval_metadata
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        ON CONFLICT (eval_metric_id, source_task_id, orchestration_id, running_cycle_number)
+            eval_metadata,
+            chunk_offset,
+            eval_iteration_count
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ON CONFLICT (eval_metric_id, source_task_id, orchestration_id, running_cycle_number, chunk_offset, eval_iteration_count)
         DO UPDATE SET
-            orchestration_id = EXCLUDED.orchestration_id,
-            source_task_id = EXCLUDED.source_task_id,
-            eval_metric_id = EXCLUDED.eval_metric_id,
             running_cycle_number = EXCLUDED.running_cycle_number,
             search_window_unix_start = EXCLUDED.search_window_unix_start,
             search_window_unix_end = EXCLUDED.search_window_unix_end,
@@ -198,6 +197,8 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []Eva
 			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixEnd,
 			emr.EvalResultOutcome,
 			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetadata), Status: IsNull(emr.EvalMetadata)},
+			evCtx.AIWorkflowAnalysisResult.ChunkOffset,
+			evCtx.EvalIterationCount,
 		)
 		if err != nil {
 			log.Err(err).Msg("failed to execute query")

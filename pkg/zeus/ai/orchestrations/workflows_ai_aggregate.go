@@ -11,7 +11,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ctx workflow.Context, cp *MbChildSubProcessParams) error {
+func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) error {
 	wfExecParams := cp.WfExecParams
 	ou := cp.Ou
 	oj := cp.Oj
@@ -19,8 +19,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAggAnalysisProcess(ct
 
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	logger := workflow.GetLogger(ctx)
-
-	// TODO update activity options by wfExecParams
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{

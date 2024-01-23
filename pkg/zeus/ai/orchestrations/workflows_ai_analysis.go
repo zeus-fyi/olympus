@@ -10,7 +10,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx workflow.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
+func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	if cp == nil || cp.WfExecParams.WorkflowTasks == nil || cp.Oj.OrchestrationID == 0 || cp.Ou.OrgID == 0 || cp.Ou.UserID == 0 {
 		return nil, nil
 	}
@@ -21,11 +21,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	logger := workflow.GetLogger(ctx)
-	// TODO update activity options by wfExecParams
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
-	}
-	aoAiAct := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 5,
@@ -92,7 +88,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					InPromptBody: analysisInst.AnalysisPrompt,
 				}
 			}
-			chunkedTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, ou, pr).Get(chunkedTaskCtx, &pr)
 			if err != nil {
 				logger.Error("failed to run analysis json", "Error", err)
@@ -190,7 +186,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 						return nil, err
 					}
 				default:
-					analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+					analysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
 					if err != nil {
 						logger.Error("failed to run analysis", "Error", err)

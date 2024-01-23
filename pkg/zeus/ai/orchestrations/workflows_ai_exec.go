@@ -68,7 +68,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowChildAnalysisProcess, childParams).Get(childAnalysisCtx, &childParams)
+		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiChildAnalysisProcessWorkflow, childParams).Get(childAnalysisCtx, &childParams)
 		if err != nil {
 			logger.Error("failed to execute child analysis workflow", "Error", err)
 			return err
@@ -80,7 +80,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
 		childAggAnalysisCtx := workflow.WithChildOptions(ctx, childAggAnalysisWorkflowOptions)
-		err = workflow.ExecuteChildWorkflow(childAggAnalysisCtx, z.RunAiWorkflowChildAggAnalysisProcess, childParams).Get(childAggAnalysisCtx, nil)
+		err = workflow.ExecuteChildWorkflow(childAggAnalysisCtx, z.RunAiChildAggAnalysisProcessWorkflow, childParams).Get(childAggAnalysisCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute child aggregation workflow", "Error", err)
 			return err

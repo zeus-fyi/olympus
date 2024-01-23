@@ -6,16 +6,12 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	t.initWorker()
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 
-	ou := org_users.OrgUser{}
-	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
-	ou.UserID = t.Tc.ProductionLocalTemporalUserID
 	act := NewZeusAiPlatformActivities()
 	aiSp := hera_search.AiSearchParams{
 		TimeRange: "30 days",
@@ -33,14 +29,14 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 		msgMap[v.UnixTimestamp] = true
 	}
 	taskID := 1705949866538066000
-	td, err := act.SelectTaskDefinition(ctx, ou, taskID)
+	td, err := act.SelectTaskDefinition(ctx, t.Ou, taskID)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(td)
 	t.Require().Greater(len(td), 0)
 	tv := td[0]
 	tv.ResponseFormat = socialMediaExtractionResponseFormat
 	tte := TaskToExecute{
-		Ou: ou,
+		Ou: t.Ou,
 		Tc: TaskContext{
 			TaskName:       tv.TaskName,
 			TaskType:       tv.TaskType,

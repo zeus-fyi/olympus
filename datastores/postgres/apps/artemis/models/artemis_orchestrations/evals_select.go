@@ -161,6 +161,9 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			continue
 		}
 		for _, trigger := range dbTriggersHelper {
+			if trigger.TriggerID == 0 {
+				continue
+			}
 			ta := TriggerAction{
 				TriggerID:                trigger.TriggerID,
 				TriggerName:              trigger.TriggerName,

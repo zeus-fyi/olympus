@@ -174,8 +174,16 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			}
 			logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormatStats", "seen", len(seen), "notFound", len(notFound), "duplicateCount", len(duplicateCount))
 			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
+			var filteredSearchResults []hera_search.SearchResult
+			for _, fsr := range tte.Sg.FilteredSearchResultMap {
+				if fsr != nil && fsr.Verified != nil && *fsr.Verified {
+					filteredSearchResults = append(filteredSearchResults, *fsr)
+				}
+			}
+			aiResp.FilteredSearchResults = filteredSearchResults
 		default:
 			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
+			aiResp.FilteredSearchResults = tte.Sg.SearchResults
 		}
 		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
 		recordTaskCtx := workflow.WithActivityOptions(ctx, ao)

@@ -159,7 +159,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						logger.Error("failed to execute analysis json workflow", "Error", err)
 						return nil, err
 					}
-					sg.SearchResults = aiResp.FilteredSearchResults
 				default:
 					analysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
@@ -202,6 +201,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					ea.EvalFns = analysisInst.AggAnalysisEvalFns
 				}
 				for _, evalFn := range ea.EvalFns {
+					if evalFn.EvalID == 0 {
+						continue
+					}
 					var evalAnalysisOnlyCycle int
 					if analysisInst.AggTaskID != nil {
 						evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[*analysisInst.AggTaskID][analysisInst.AnalysisTaskID][evalFn.EvalID]

@@ -145,9 +145,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         </TableRow>
                                     ))}
                                 </TableBody>
-
                             </Table>
-
                             <Table  sx={{ mb: 4, mt: 4}} size="small" aria-label="sub-analysis">
                                 <TableRow>
                                     <TableCell style={{ }}>Result ID</TableCell>

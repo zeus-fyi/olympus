@@ -277,7 +277,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 				} else if fintVal, okfintVal := val.(float64); okfintVal {
 					fieldDef.IntValue = aws.Int(int(fintVal))
 					fieldDef.IsValidated = true
-					fmt.Printf("Field %s is an float -> integer: %d\n", fieldDef.FieldName, intVal)
+					//fmt.Printf("Field %s is an float -> integer: %d\n", fieldDef.FieldName, intVal)
 				} else {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to int", val)
 				}
@@ -290,7 +290,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 					numValFloat := float64(numValInt)
 					fieldDef.NumberValue = &numValFloat
 					fieldDef.IsValidated = true
-					fmt.Printf("Field %s is a number: %f\n", fieldDef.FieldName, numValFloat)
+					//fmt.Printf("Field %s is a number: %f\n", fieldDef.FieldName, numValFloat)
 				} else {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to float64", val)
 				}

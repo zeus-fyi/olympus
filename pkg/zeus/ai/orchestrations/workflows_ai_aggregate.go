@@ -144,10 +144,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					}
 					tte.Tc = TaskContext{
-						TaskName: aws.StringValue(aggInst.AggTaskName),
-						TaskType: AggTask,
-						Model:    aws.StringValue(aggInst.AggModel),
-						TaskID:   aws.IntValue(aggInst.AggTaskID),
+						TaskName:       aws.StringValue(aggInst.AggTaskName),
+						TaskType:       AggTask,
+						ResponseFormat: aws.StringValue(aggInst.AggResponseFormat),
+						Model:          aws.StringValue(aggInst.AggModel),
+						TaskID:         aws.IntValue(aggInst.AggTaskID),
 					}
 
 					childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)

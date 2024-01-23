@@ -116,9 +116,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		if anyErr != nil {
 			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")
 			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-
-			// TODO fix aiResp.JsonResponseResults
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.Response).Get(recordTaskCtx, nil)
 			if err != nil {
 				logger.Error("failed to save task output", "Error", err)
 				return nil, err
@@ -168,7 +166,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 					}
 				}
 			}
-
 			if len(notFound) > 0 {
 				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "notFound", notFound)
 			}
@@ -176,6 +173,17 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "duplicateCount", duplicateCount)
 			}
 			logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormatStats", "seen", len(seen), "notFound", len(notFound), "duplicateCount", len(duplicateCount))
+			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
+			var filteredSearchResults []hera_search.SearchResult
+			for _, fsr := range tte.Sg.FilteredSearchResultMap {
+				if fsr != nil && fsr.Verified != nil && *fsr.Verified {
+					filteredSearchResults = append(filteredSearchResults, *fsr)
+				}
+			}
+			aiResp.FilteredSearchResults = filteredSearchResults
+		default:
+			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
+			aiResp.FilteredSearchResults = tte.Sg.SearchResults
 		}
 		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
 		recordTaskCtx := workflow.WithActivityOptions(ctx, ao)

@@ -70,7 +70,8 @@ type SearchResultGroup struct {
 	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
 	BodyPrompt                     string                        `json:"bodyPrompt,omitempty"`
 	SearchResults                  []SearchResult                `json:"searchResults"`
-	FilteredSearchResultMap        map[int]*SearchResult         `json:"filteredSearchResults"`
+	FilteredSearchResults          []SearchResult                `json:"filteredSearchResults,omitempty"`
+	FilteredSearchResultMap        map[int]*SearchResult         `json:"filteredSearchResultsMap"`
 	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
 	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
 	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`

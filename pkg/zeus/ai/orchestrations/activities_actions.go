@@ -46,7 +46,7 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 		if _, ok := m[er.EvalState]; !ok {
 			m[er.EvalState] = []bool{}
 		}
-		m[er.EvalState] = append(m[er.EvalState], er.EvalResultOutcome)
+		m[er.EvalState] = append(m[er.EvalState], er.EvalExpectedResult)
 	}
 
 	// gets the eval results by state, eg. info, trigger, etc.

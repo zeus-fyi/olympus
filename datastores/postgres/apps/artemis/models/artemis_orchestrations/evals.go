@@ -93,7 +93,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
             eval_operator = EXCLUDED.eval_operator,
             eval_state = EXCLUDED.eval_state;`
 			_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery, metric.EvalMetricID, evalFn.EvalID, field.FieldID,
-				metric.EvalMetricResult,
+				metric.EvalExpectedResultState,
 				metric.EvalComparisonBoolean, metric.EvalComparisonNumber, metric.EvalComparisonString,
 				metric.EvalOperator, metric.EvalState)
 			if err != nil {
@@ -138,21 +138,21 @@ type EvalMetricsResults struct {
 }
 
 type EvalMetricResult struct {
-	EvalMetricResultID *int            `json:"evalMetricResultID"`
-	EvalResultOutcome  *bool           `json:"evalResultOutcome,omitempty"` // true if eval passed, false if eval failed
-	EvalMetadata       json.RawMessage `json:"evalMetadata,omitempty"`
+	EvalMetricResultID    *int            `json:"evalMetricResultID"`
+	EvalResultOutcomeBool *bool           `json:"evalResultOutcome,omitempty"` // true if eval passed, false if eval failed
+	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
 }
 type EvalMetric struct {
-	EvalMetricID          *int              `json:"evalMetricID"`
-	EvalMetricResult      *EvalMetricResult `json:"evalMetricResult"`
-	EvalOperator          string            `json:"evalOperator"`
-	EvalState             string            `json:"evalState"`
-	EvalComparisonBoolean *bool             `json:"evalComparisonBoolean,omitempty"`
-	EvalComparisonNumber  *float64          `json:"evalComparisonNumber,omitempty"`
-	EvalComparisonString  *string           `json:"evalComparisonString,omitempty"`
-	EvalComparisonInteger *int              `json:"evalComparisonInteger,omitempty"`
-	EvalResultOutcome     bool              `json:"evalResultOutcome"` // true if eval passed, false if eval failed
-	EvalMetadata          json.RawMessage   `json:"evalMetadata,omitempty"`
+	EvalMetricID            *int              `json:"evalMetricID"`
+	EvalMetricResult        *EvalMetricResult `json:"evalMetricResult"`
+	EvalOperator            string            `json:"evalOperator"`
+	EvalState               string            `json:"evalState"`
+	EvalExpectedResultState string            `json:"evalExpectedResultState"` // true if eval passed, false if eval failed
+	EvalComparisonBoolean   *bool             `json:"evalComparisonBoolean,omitempty"`
+	EvalComparisonNumber    *float64          `json:"evalComparisonNumber,omitempty"`
+	EvalComparisonString    *string           `json:"evalComparisonString,omitempty"`
+	EvalComparisonInteger   *int              `json:"evalComparisonInteger,omitempty"`
+	EvalMetadata            json.RawMessage   `json:"evalMetadata,omitempty"`
 }
 
 func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []EvalMetric) error {
@@ -161,7 +161,6 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []Eva
 		return err
 	}
 	defer tx.Rollback(ctx)
-	// TODO, add eval metric iteration count
 	const query = `
         INSERT INTO public.eval_metrics_results (
             eval_metrics_result_id,
@@ -195,7 +194,7 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []Eva
 			evCtx.AIWorkflowAnalysisResult.RunningCycleNumber,
 			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixStart,
 			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixEnd,
-			emr.EvalResultOutcome,
+			emr.EvalExpectedResultState,
 			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetadata), Status: IsNull(emr.EvalMetadata)},
 			evCtx.AIWorkflowAnalysisResult.ChunkOffset,
 			evCtx.EvalIterationCount,

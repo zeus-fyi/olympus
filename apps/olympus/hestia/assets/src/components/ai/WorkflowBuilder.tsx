@@ -2600,7 +2600,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             <TextField
                                                                 fullWidth
                                                                 id="keywords-input"
-                                                                label="Keywords"
+                                                                label="Positive Keywords"
                                                                 variant="outlined"
                                                                 value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
                                                                 onChange={(e) => {
@@ -2609,6 +2609,25 @@ function WorkflowEngineBuilder(props: any) {
                                                                         retrievalItemInstruction: {
                                                                             ...retrieval.retrievalItemInstruction,
                                                                             retrievalKeywords: e.target.value
+                                                                        }
+                                                                    };
+                                                                    dispatch(setRetrieval(updatedRetrieval));
+                                                                }}
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="negative-keywords-input"
+                                                                label="Negative Keywords"
+                                                                variant="outlined"
+                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalNegativeKeywords ? retrieval.retrievalItemInstruction.retrievalNegativeKeywords : ''}
+                                                                onChange={(e) => {
+                                                                    const updatedRetrieval = {
+                                                                        ...retrieval,
+                                                                        retrievalItemInstruction: {
+                                                                            ...retrieval.retrievalItemInstruction,
+                                                                            retrievalNegativeKeywords: e.target.value
                                                                         }
                                                                     };
                                                                     dispatch(setRetrieval(updatedRetrieval));

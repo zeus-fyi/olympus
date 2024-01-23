@@ -1830,16 +1830,15 @@ function WorkflowEngineBuilder(props: any) {
                                                     {openEvals ? <ExpandLess /> : <ExpandMore />}
                                                 </IconButton>
                                                 <Typography gutterBottom variant="h5" component="div">
-                                                    Automated Evals
+                                                    Automated Evals Nx Multiplier
                                                 </Typography>
                                             </Stack>
                                         </Box>
                                         <Collapse in={openEvals} timeout="auto" unmountOnExit>
                                             <Box flexGrow={2} sx={{ml: 4 , mr:2, mb: 0}}>
                                                 <Typography gutterBottom variant="body2" component="div">
-                                                    One eval cycle is equal N * the attached task cycle.
-                                                    If you have an analysis stage that occurs every 2 time cycles, and set the eval cycle count to 2,
-                                                    it will run on time cycle 4 after the analysis stage completes for the second time.
+                                                    Useful for when you want to average results from multiple evals,
+                                                    or when you want to run multiple evals in parallel.
                                                 </Typography>
                                             </Box>
                                             <Box flexGrow={2} sx={{mt: 2}}>
@@ -1861,7 +1860,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Box flexGrow={2} sx={{ mt: 1, ml: 2 }}>
                                                             <TextField
                                                                 type="number"
-                                                                label="Eval Cycle Count"
+                                                                label="Eval Fn Multiplier"
                                                                 variant="outlined"
                                                                 value={
                                                                     ef.evalID !== undefined && evalMap[ef.evalID] !== undefined &&

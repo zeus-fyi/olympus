@@ -27,16 +27,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		logger.Error("failed to update ai orch services", "Error", err)
 		return nil, err
 	}
+
 	switch tte.Wft.RetrievalPlatform {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		retrievalCtx := workflow.WithActivityOptions(ctx, ao)
-		var sr []hera_search.SearchResult
-		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, tte.Ou.OrgID, tte.Wft, tte.Sg.Window).Get(retrievalCtx, &sr)
+		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, tte.Ou.OrgID, tte.Wft, tte.Sg.Window).Get(retrievalCtx, &tte.Sg)
 		if err != nil {
 			logger.Error("failed to run retrieval", "Error", err)
 			return nil, err
 		}
-		tte.Sg.SearchResults = append(tte.Sg.SearchResults, sr...)
 	case webPlatform:
 		var routes []iris_models.RouteInfo
 		retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)

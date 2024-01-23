@@ -316,11 +316,14 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 	return sres, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) ([]hera_search.SearchResult, error) {
+func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_users.OrgUser,
+	taskInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) (*hera_search.SearchResultGroup, error) {
 	if taskInst.RetrievalPlatform == "" || taskInst.RetrievalName == "" || taskInst.RetrievalInstructions == nil {
 		return nil, nil
 	}
-
+	sg := &hera_search.SearchResultGroup{
+		PlatformName: taskInst.RetrievalPlatform,
+	}
 	retInst := artemis_orchestrations.RetrievalItemInstruction{}
 	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &retInst)
 	if jerr != nil {
@@ -346,7 +349,8 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 		if len(resp) > 50 {
 			resp = resp[:50]
 		}
-		return resp, nil
+		sg.SearchResults = resp
+		return sg, nil
 	}
 
 	var resp []hera_search.SearchResult
@@ -367,7 +371,8 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 		log.Err(err).Msg("AiRetrievalTask: failed")
 		return nil, err
 	}
-	return resp, nil
+	sg.SearchResults = resp
+	return sg, nil
 }
 
 func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp *ChatCompletionQueryResponse) (int, error) {

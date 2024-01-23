@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx workflow.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
+func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	if cp == nil || cp.WfExecParams.WorkflowTasks == nil || cp.Oj.OrchestrationID == 0 || cp.Ou.OrgID == 0 || cp.Ou.UserID == 0 {
 		return nil, nil
 	}
@@ -21,11 +22,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	logger := workflow.GetLogger(ctx)
-	// TODO update activity options by wfExecParams
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
-	}
-	aoAiAct := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 5,
@@ -92,7 +89,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 					InPromptBody: analysisInst.AnalysisPrompt,
 				}
 			}
-			chunkedTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, ou, pr).Get(chunkedTaskCtx, &pr)
 			if err != nil {
 				logger.Error("failed to run analysis json", "Error", err)
@@ -135,10 +132,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 				var wfID string
 				var analysisRespId int
 				switch analysisInst.AnalysisResponseFormat {
-				case jsonFormat:
+				case jsonFormat, socialMediaExtractionResponseFormat:
 					sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
 					sg.SourceTaskID = analysisInst.AnalysisTaskID
-					wfID = oj.OrchestrationName + "-analysis-json-task-" + strconv.Itoa(i)
+					wfID = oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d", analysisInst.AnalysisResponseFormat, i)
 					tte.WfID = wfID
 					pr.Model = tte.Wft.AnalysisModel
 					pr.TokenOverflowStrategy = tte.Wft.AnalysisTokenOverflowStrategy
@@ -160,37 +157,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowChildAnalysisProcess(ctx w
 						return nil, err
 					}
 					sg.SearchResults = aiResp.FilteredSearchResults
-				case socialMediaExtractionResponseFormat:
-					if sg == nil || len(sg.SearchResults) == 0 {
-						continue
-					}
-					sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
-					wfID = oj.OrchestrationName + "-analysis-social-media-extraction-" + strconv.Itoa(i)
-					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-						WorkflowID:               wfID,
-						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-					}
-					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.SocialMediaExtractionWorkflow, tte).Get(childAnalysisCtx, &aiResp)
-					if err != nil {
-						logger.Error("failed to execute child social media extraction workflow", "Error", err)
-						return nil, err
-					}
-					sg.SearchResults = aiResp.FilteredSearchResults
-					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
-					if err != nil {
-						logger.Error("failed to save analysis response", "Error", err)
-						return nil, err
-					}
-					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, &wr).Get(recordAnalysisCtx, nil)
-					if err != nil {
-						logger.Error("failed to save analysis", "Error", err)
-						return nil, err
-					}
 				default:
-					analysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+					analysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
 					if err != nil {
 						logger.Error("failed to run analysis", "Error", err)

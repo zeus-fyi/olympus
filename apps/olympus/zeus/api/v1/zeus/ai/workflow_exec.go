@@ -88,8 +88,11 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			}
 			endTime = w.UnixStartTime + int(weeks.Seconds())*w.Duration
 		}
-
-		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, w.UnixStartTime, endTime, w.Workflows)
+		window := artemis_orchestrations.Window{
+			UnixStartTime: w.UnixStartTime,
+			UnixEndTime:   endTime,
+		}
+		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, &window, w.Workflows)
 		if rerr != nil {
 			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)

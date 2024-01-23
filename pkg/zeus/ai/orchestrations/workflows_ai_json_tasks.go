@@ -72,7 +72,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	maxAttempts := ao.RetryPolicy.MaximumAttempts
 	var aiResp *ChatCompletionQueryResponse
 	for attempt := 0; attempt < int(maxAttempts); attempt++ {
-		var anyErr error
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
 		params := hera_openai.OpenAIParams{
 			Model:              tte.Tc.Model,
@@ -97,6 +96,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		wr.IterationCount = attempt
 		wr.ResponseID = aiResp.ResponseTaskID
 		var m any
+		var anyErr error
 		if len(aiResp.Response.Choices) > 0 && len(aiResp.Response.Choices[0].Message.ToolCalls) > 0 {
 			m, anyErr = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, aiResp)
 			// ok no err
@@ -119,7 +119,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			continue
 		}
 		switch tte.Tc.ResponseFormat {
-		case socialMediaExtractionResponseFormat, socialMediaEngagementResponseFormat:
+		case socialMediaExtractionResponseFormat:
 			mm := tte.Sg.GetMessageMap()
 			seen := make(map[int]bool)
 			notFound := make(map[int]int)

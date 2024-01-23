@@ -16,21 +16,16 @@ type Workflows struct {
 }
 
 type WorkflowTemplateValue struct {
-	WorkflowTemplateID        int                         `json:"workflowID,omitempty"`
-	WorkflowName              string                      `json:"workflowName"`
-	WorkflowGroup             string                      `json:"workflowGroup"`
-	FundamentalPeriod         int                         `json:"fundamentalPeriod"`
-	FundamentalPeriodTimeUnit string                      `json:"fundamentalPeriodTimeUnit"`
-	AnalysisTasks             map[int]AnalysisTaskDB      `json:"-"`
-	AnalysisRetrievals        map[int]map[int]RetrievalDB `json:"-"`
-	AnalysisEvalFns           map[int][]EvalFnDB          `json:"-"` // Mapping task ID to its evaluation functions
-	AggTasks                  map[int]AggTaskDb           `json:"-"`
-	AggAnalysisTasks          map[int]map[int]AggTaskDb   `json:"-"`
-	AnalysisTasksSlice        []AnalysisTaskDB            `json:"-"`
-	AggAnalysisTasksSlice     []AggTaskDb                 `json:"-"`
-	AggEvalFns                map[int][]EvalFnDB          `json:"-"` // Mapping aggregated task ID to its evaluation functions
-	AggAnalysisEvalFns        map[int]map[int]EvalFnDB    `json:"-"` // Mapping aggregated task ID to its evaluation functions
-	Tasks                     []Task                      `json:"tasks"`
+	WorkflowTemplate
+	AnalysisTasks         map[int]AnalysisTaskDB      `json:"-"`
+	AnalysisRetrievals    map[int]map[int]RetrievalDB `json:"-"`
+	AnalysisEvalFns       map[int][]EvalFnDB          `json:"-"` // Mapping task ID to its evaluation functions
+	AggTasks              map[int]AggTaskDb           `json:"-"`
+	AggAnalysisTasks      map[int]map[int]AggTaskDb   `json:"-"`
+	AnalysisTasksSlice    []AnalysisTaskDB            `json:"-"`
+	AggAnalysisTasksSlice []AggTaskDb                 `json:"-"`
+	AggEvalFns            map[int][]EvalFnDB          `json:"-"` // Mapping aggregated task ID to its evaluation functions
+	AggAnalysisEvalFns    map[int]map[int]EvalFnDB    `json:"-"` // Mapping aggregated task ID to its evaluation functions
 }
 
 type WorkflowTemplateData struct {

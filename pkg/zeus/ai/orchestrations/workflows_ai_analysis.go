@@ -147,10 +147,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					}
 					tte.Tc = TaskContext{
-						TaskName: analysisInst.AnalysisTaskName,
-						TaskType: AnalysisTask,
-						Model:    analysisInst.AnalysisModel,
-						TaskID:   analysisInst.AnalysisTaskID,
+						TaskName:       analysisInst.AnalysisTaskName,
+						TaskType:       AnalysisTask,
+						ResponseFormat: analysisInst.AnalysisResponseFormat,
+						Model:          analysisInst.AnalysisModel,
+						TaskID:         analysisInst.AnalysisTaskID,
 					}
 					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, tte).Get(childAnalysisCtx, &aiResp)

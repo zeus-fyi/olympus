@@ -146,11 +146,15 @@ type EvalMetric struct {
 	EvalOperator            string            `json:"evalOperator"`
 	EvalState               string            `json:"evalState"`
 	EvalExpectedResultState string            `json:"evalExpectedResultState"` // true if eval passed, false if eval failed
-	EvalComparisonBoolean   *bool             `json:"evalComparisonBoolean,omitempty"`
-	EvalComparisonNumber    *float64          `json:"evalComparisonNumber,omitempty"`
-	EvalComparisonString    *string           `json:"evalComparisonString,omitempty"`
-	EvalComparisonInteger   *int              `json:"evalComparisonInteger,omitempty"`
-	EvalMetadata            json.RawMessage   `json:"evalMetadata,omitempty"`
+	EvalMetricComparisonValues
+	EvalMetadata json.RawMessage `json:"evalMetadata,omitempty"`
+}
+
+type EvalMetricComparisonValues struct {
+	EvalComparisonBoolean *bool    `json:"evalComparisonBoolean,omitempty"`
+	EvalComparisonNumber  *float64 `json:"evalComparisonNumber,omitempty"`
+	EvalComparisonString  *string  `json:"evalComparisonString,omitempty"`
+	EvalComparisonInteger *int     `json:"evalComparisonInteger,omitempty"`
 }
 
 func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []EvalMetric) error {

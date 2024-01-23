@@ -10,6 +10,11 @@ import (
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
+/*
+	1. gets the
+
+*/
+
 func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.JsonSchemaDefinition) (*artemis_orchestrations.EvalMetricsResults, error) {
 	var metrics []artemis_orchestrations.EvalMetric
 	for _, value := range jsonSchemaDef.Fields {

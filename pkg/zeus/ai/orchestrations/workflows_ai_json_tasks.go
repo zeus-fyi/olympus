@@ -174,23 +174,17 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			}
 			logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormatStats", "seen", len(seen), "notFound", len(notFound), "duplicateCount", len(duplicateCount))
 			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
-			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
-			if err != nil {
-				logger.Error("failed to save task output", "Error", err)
-				return nil, err
-			}
-			break
 		default:
 			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
-			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
-			if err != nil {
-				logger.Error("failed to save task output", "Error", err)
-				return nil, err
-			}
-			break
 		}
+		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
+		recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+		if err != nil {
+			logger.Error("failed to save task output", "Error", err)
+			return nil, err
+		}
+		break
 	}
 
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)

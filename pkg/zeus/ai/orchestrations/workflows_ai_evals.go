@@ -48,6 +48,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 	}
 
 	for _, evalFn := range cpe.EvalFns {
+		if evalFn.EvalID == 0 {
+			continue
+		}
 		evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		var evalFnMetrics []artemis_orchestrations.EvalFn
 		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, evalFn.EvalID).Get(evalFnMetricsLookupCtx, &evalFnMetrics)

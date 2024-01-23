@@ -100,16 +100,21 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		if len(aiResp.Response.Choices) > 0 && len(aiResp.Response.Choices[0].Message.ToolCalls) > 0 {
 			m, anyErr = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, aiResp)
 			// ok no err
-			log.Err(anyErr).Interface("m", m).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
+			if anyErr != nil {
+				log.Err(anyErr).Interface("m", m).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
+			}
 		} else {
 			m, anyErr = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, aiResp)
-			log.Err(anyErr).Interface("m", m).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+			if anyErr != nil {
+				log.Err(anyErr).Interface("m", m).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+			}
 		}
 		var tmpResp [][]*artemis_orchestrations.JsonSchemaDefinition
 		if anyErr == nil {
 			tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
 		}
 		if anyErr != nil {
+			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")
 			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
 			if err != nil {

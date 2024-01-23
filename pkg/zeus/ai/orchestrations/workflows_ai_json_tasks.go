@@ -118,7 +118,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
 
 			// TODO fix aiResp.JsonResponseResults
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.Response).Get(recordTaskCtx, nil)
 			if err != nil {
 				logger.Error("failed to save task output", "Error", err)
 				return nil, err
@@ -168,7 +168,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 					}
 				}
 			}
-
 			if len(notFound) > 0 {
 				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "notFound", notFound)
 			}
@@ -176,15 +175,24 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "duplicateCount", duplicateCount)
 			}
 			logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormatStats", "seen", len(seen), "notFound", len(notFound), "duplicateCount", len(duplicateCount))
+			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
+			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+			if err != nil {
+				logger.Error("failed to save task output", "Error", err)
+				return nil, err
+			}
+			break
+		default:
+			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
+			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+			if err != nil {
+				logger.Error("failed to save task output", "Error", err)
+				return nil, err
+			}
+			break
 		}
-		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
-		recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
-		if err != nil {
-			logger.Error("failed to save task output", "Error", err)
-			return nil, err
-		}
-		break
 	}
 
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)

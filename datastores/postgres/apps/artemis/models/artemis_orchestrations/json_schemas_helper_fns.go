@@ -271,11 +271,11 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 				}
 			case "integer":
 				if intVal, okInt := val.(int); okInt {
-					fieldDef.IntValue = &intVal
+					fieldDef.IntegerValue = &intVal
 					fieldDef.IsValidated = true
 					fmt.Printf("Field %s is an integer: %d\n", fieldDef.FieldName, intVal)
 				} else if fintVal, okfintVal := val.(float64); okfintVal {
-					fieldDef.IntValue = aws.Int(int(fintVal))
+					fieldDef.IntegerValue = aws.Int(int(fintVal))
 					fieldDef.IsValidated = true
 					//fmt.Printf("Field %s is an float -> integer: %d\n", fieldDef.FieldName, intVal)
 				} else {
@@ -323,7 +323,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to []integer", val)
 				}
 				fieldDef.IsValidated = true
-				fieldDef.IntValueSlice = vins
+				fieldDef.IntegerValueSlice = vins
 			case "array[string]":
 				vin, ok := val.([]interface{})
 				if !ok {

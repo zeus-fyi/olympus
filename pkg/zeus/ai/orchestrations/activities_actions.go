@@ -46,7 +46,7 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 		if _, ok := m[er.EvalState]; !ok {
 			m[er.EvalState] = []bool{}
 		}
-		m[er.EvalState] = append(m[er.EvalState], er.EvalResultOutcome)
+		m[er.EvalState] = append(m[er.EvalState], er.EvalExpectedResult)
 	}
 
 	// gets the eval results by state, eg. info, trigger, etc.
@@ -55,7 +55,7 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 		// when the trigger on eval results condition is met, create a trigger action for approval
 		if checkTriggerOnEvalResults(tr.EvalResultsTriggerOn, results) {
 			tap := artemis_orchestrations.TriggerActionsApproval{
-				WorkflowResultID: emr.EvalContext.WorkflowResultID,
+				WorkflowResultID: emr.EvalContext.AIWorkflowAnalysisResult.WorkflowResultID,
 				EvalID:           tr.EvalID,
 				TriggerID:        tr.TriggerID,
 				ApprovalState:    "pending",

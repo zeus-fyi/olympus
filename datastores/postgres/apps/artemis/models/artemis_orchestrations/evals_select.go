@@ -28,7 +28,6 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 		params = append(params, evalFnID)
 		addOnQuery = "AND f.eval_id = $2"
 	}
-
 	query := `
 			WITH cte_metrics AS (
 				SELECT 
@@ -194,6 +193,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			if schema.SchemaID == 0 || len(schema.Fields) <= 0 {
 				continue
 			}
+			ef.SchemasMap[schema.SchemaID] = schema
 			sc = append(sc, schema)
 		}
 		ef.Schemas = sc

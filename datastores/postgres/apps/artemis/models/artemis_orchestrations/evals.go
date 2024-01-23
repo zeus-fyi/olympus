@@ -14,33 +14,18 @@ import (
 )
 
 type EvalFn struct {
-	EvalID         *int                    `json:"evalID,omitempty"`
-	OrgID          int                     `json:"orgID,omitempty"`
-	UserID         int                     `json:"userID,omitempty"`
-	EvalName       string                  `json:"evalName"`
-	EvalType       string                  `json:"evalType"`
-	EvalGroupName  string                  `json:"evalGroupName"`
-	EvalModel      *string                 `json:"evalModel,omitempty"`
-	EvalFormat     string                  `json:"evalFormat"`
-	EvalCycleCount int                     `json:"evalCycleCount,omitempty"`
-	TriggerActions []TriggerAction         `json:"triggerFunctions,omitempty"`
-	Schemas        []*JsonSchemaDefinition `json:"schemas,omitempty"`
-}
-
-type EvalMetric struct {
-	EvalMetricID          *int     `json:"evalMetricID"`
-	EvalMetricResult      string   `json:"evalMetricResult"`
-	EvalComparisonBoolean *bool    `json:"evalComparisonBoolean,omitempty"`
-	EvalComparisonNumber  *float64 `json:"evalComparisonNumber,omitempty"`
-	EvalComparisonString  *string  `json:"evalComparisonString,omitempty"`
-	EvalOperator          string   `json:"evalOperator"`
-	EvalState             string   `json:"evalState"`
-}
-
-// this should map eval fn metric name -> to the result after evaluation
-
-type EvalFnMetricResults struct {
-	Map map[string]EvalMetricsResult `json:"map"`
+	EvalID         *int                          `json:"evalID,omitempty"`
+	OrgID          int                           `json:"orgID,omitempty"`
+	UserID         int                           `json:"userID,omitempty"`
+	EvalName       string                        `json:"evalName"`
+	EvalType       string                        `json:"evalType"`
+	EvalGroupName  string                        `json:"evalGroupName"`
+	EvalModel      *string                       `json:"evalModel,omitempty"`
+	EvalFormat     string                        `json:"evalFormat"`
+	EvalCycleCount int                           `json:"evalCycleCount,omitempty"`
+	TriggerActions []TriggerAction               `json:"triggerFunctions,omitempty"`
+	Schemas        []*JsonSchemaDefinition       `json:"schemas,omitempty"`
+	SchemasMap     map[int]*JsonSchemaDefinition `json:"schemaMap"`
 }
 
 func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, evalFn *EvalFn) error {
@@ -108,7 +93,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
             eval_operator = EXCLUDED.eval_operator,
             eval_state = EXCLUDED.eval_state;`
 			_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery, metric.EvalMetricID, evalFn.EvalID, field.FieldID,
-				metric.EvalMetricResult,
+				metric.EvalExpectedResultState,
 				metric.EvalComparisonBoolean, metric.EvalComparisonNumber, metric.EvalComparisonString,
 				metric.EvalOperator, metric.EvalState)
 			if err != nil {
@@ -142,47 +127,40 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 }
 
 type EvalContext struct {
-	EvalID                int `json:"evalID,omitempty"`
-	WorkflowResultID      int `json:"workflowResultID,omitempty"`
-	OrchestrationID       int `json:"orchestrationID"`
-	SourceTaskID          int `json:"sourceTaskId"`
-	RunningCycleNumber    int `json:"runningCycleNumber"`
-	SearchWindowUnixStart int `json:"searchWindowUnixStart"`
-	SearchWindowUnixEnd   int `json:"searchWindowUnixEnd"`
+	EvalID                   int                      `json:"evalID,omitempty"`
+	EvalIterationCount       int                      `json:"evalIterationCount"`
+	AIWorkflowAnalysisResult AIWorkflowAnalysisResult `json:"aiWorkflowAnalysisResult"`
 }
 
 type EvalMetricsResults struct {
-	EvalContext        EvalContext         `json:"evalContext"`
-	EvalMetricsResults []EvalMetricsResult `json:"evalMetricsResults"`
+	EvalContext        EvalContext  `json:"evalContext"`
+	EvalMetricsResults []EvalMetric `json:"evalMetricsResults"`
 }
 
-type EvalMetricsResult struct {
-	EvalName              string          `json:"evalName,omitempty"`
-	EvalMetricName        string          `json:"evalMetricName"`
-	EvalMetricID          int             `json:"evalMetricID,omitempty"`
-	EvalMetricsResultID   int             `json:"evalMetricsResultId"`
-	EvalMetricResult      string          `json:"evalMetricResult"` // pass or fail expected result
-	EvalComparisonBoolean *bool           `json:"evalComparisonBoolean,omitempty"`
-	EvalComparisonNumber  *float64        `json:"evalComparisonNumber,omitempty"`
-	EvalComparisonString  *string         `json:"evalComparisonString,omitempty"`
-	EvalComparisonInt     *float64        `json:"evalComparisonInt,omitempty"`
-	EvalMetricDataType    string          `json:"evalMetricDataType"`
-	EvalOperator          string          `json:"evalOperator"`
-	EvalState             string          `json:"evalState"`
-	RunningCycleNumber    int             `json:"runningCycleNumber"`
-	SearchWindowUnixStart int             `json:"searchWindowUnixStart,omitempty"`
-	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd,omitempty"`
-	EvalResultOutcome     bool            `json:"evalResultOutcome"` // true if eval passed, false if eval failed
+type EvalMetricResult struct {
+	EvalMetricResultID    *int            `json:"evalMetricResultID"`
+	EvalResultOutcomeBool *bool           `json:"evalResultOutcome,omitempty"` // true if eval passed, false if eval failed
 	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
 }
+type EvalMetric struct {
+	EvalMetricID            *int              `json:"evalMetricID"`
+	EvalMetricResult        *EvalMetricResult `json:"evalMetricResult"`
+	EvalOperator            string            `json:"evalOperator"`
+	EvalState               string            `json:"evalState"`
+	EvalExpectedResultState string            `json:"evalExpectedResultState"` // true if eval passed, false if eval failed
+	EvalComparisonBoolean   *bool             `json:"evalComparisonBoolean,omitempty"`
+	EvalComparisonNumber    *float64          `json:"evalComparisonNumber,omitempty"`
+	EvalComparisonString    *string           `json:"evalComparisonString,omitempty"`
+	EvalComparisonInteger   *int              `json:"evalComparisonInteger,omitempty"`
+	EvalMetadata            json.RawMessage   `json:"evalMetadata,omitempty"`
+}
 
-func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []EvalMetricsResult) error {
+func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []EvalMetric) error {
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(ctx)
-	// TODO, add eval metric iteration count
 	const query = `
         INSERT INTO public.eval_metrics_results (
             eval_metrics_result_id,
@@ -193,13 +171,12 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []Eva
             search_window_unix_start,
             search_window_unix_end,
             eval_result_outcome,
-            eval_metadata
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        ON CONFLICT (eval_metric_id, source_task_id, orchestration_id, running_cycle_number)
+            eval_metadata,
+            chunk_offset,
+            eval_iteration_count
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ON CONFLICT (eval_metric_id, source_task_id, orchestration_id, running_cycle_number, chunk_offset, eval_iteration_count)
         DO UPDATE SET
-            orchestration_id = EXCLUDED.orchestration_id,
-            source_task_id = EXCLUDED.source_task_id,
-            eval_metric_id = EXCLUDED.eval_metric_id,
             running_cycle_number = EXCLUDED.running_cycle_number,
             search_window_unix_start = EXCLUDED.search_window_unix_start,
             search_window_unix_end = EXCLUDED.search_window_unix_end,
@@ -211,14 +188,16 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []Eva
 		tsNow := ts.UnixTimeStampNow()
 		_, err = tx.Exec(ctx, query,
 			tsNow,
-			evCtx.OrchestrationID,
-			evCtx.SourceTaskID,
+			evCtx.AIWorkflowAnalysisResult.OrchestrationsID,
+			evCtx.AIWorkflowAnalysisResult.SourceTaskID,
 			emr.EvalMetricID,
-			evCtx.RunningCycleNumber,
-			evCtx.SearchWindowUnixStart,
-			evCtx.SearchWindowUnixEnd,
-			emr.EvalResultOutcome,
+			evCtx.AIWorkflowAnalysisResult.RunningCycleNumber,
+			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixStart,
+			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixEnd,
+			emr.EvalExpectedResultState,
 			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetadata), Status: IsNull(emr.EvalMetadata)},
+			evCtx.AIWorkflowAnalysisResult.ChunkOffset,
+			evCtx.EvalIterationCount,
 		)
 		if err != nil {
 			log.Err(err).Msg("failed to execute query")

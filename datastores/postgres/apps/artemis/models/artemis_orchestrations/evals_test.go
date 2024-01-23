@@ -37,11 +37,11 @@ func (s *OrchestrationsTestSuite) TestEvalMetricsDeleteEvalMetricsAndTriggers() 
 						FieldName:         "",
 						FieldDescription:  "",
 						DataType:          "number",
-						IntValue:          nil,
+						IntegerValue:      nil,
 						StringValue:       nil,
 						NumberValue:       nil,
 						BooleanValue:      nil,
-						IntValueSlice:     nil,
+						IntegerValueSlice: nil,
 						StringValueSlice:  nil,
 						NumberValueSlice:  nil,
 						BooleanValueSlice: nil,
@@ -67,11 +67,11 @@ func (s *OrchestrationsTestSuite) TestEvalMetricsDeleteEvalMetricsAndTriggers() 
 						FieldName:         "",
 						FieldDescription:  "",
 						DataType:          "array[string]",
-						IntValue:          nil,
+						IntegerValue:      nil,
 						StringValue:       nil,
 						NumberValue:       nil,
 						BooleanValue:      nil,
-						IntValueSlice:     nil,
+						IntegerValueSlice: nil,
 						StringValueSlice:  nil,
 						NumberValueSlice:  nil,
 						BooleanValueSlice: nil,
@@ -100,7 +100,7 @@ func (s *OrchestrationsTestSuite) TestEvalMetricsDeleteEvalMetricsAndTriggers() 
 	s.Require().Nil(err)
 }
 
-func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchem() {
+func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchema() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	// Example data for EvalFn and
 	ou := org_users.OrgUser{}
@@ -129,11 +129,20 @@ func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchem() {
 						FieldDescription: "aggregate_lead_score description",
 						DataType:         "number",
 						EvalMetric: &EvalMetric{
-							EvalMetricID:         aws.Int(1705814469816703000),
-							EvalMetricResult:     "fail",
-							EvalOperator:         "gt",
-							EvalComparisonNumber: aws.Float64(420),
-							EvalState:            "filter",
+							EvalMetricID: aws.Int(1705814469816703000),
+							EvalMetricResult: &EvalMetricResult{
+								EvalMetricResultID:    aws.Int(420),
+								EvalResultOutcomeBool: aws.Bool(true),
+								EvalMetadata:          nil,
+							},
+							EvalOperator:            "gt",
+							EvalState:               "filter",
+							EvalComparisonBoolean:   nil,
+							EvalComparisonNumber:    aws.Float64(420),
+							EvalComparisonString:    nil,
+							EvalComparisonInteger:   nil,
+							EvalExpectedResultState: "pass",
+							EvalMetadata:            nil,
 						},
 					},
 					{
@@ -142,11 +151,12 @@ func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchem() {
 						FieldDescription: "lead_score_metrics description",
 						DataType:         "array[string]",
 						EvalMetric: &EvalMetric{
-							EvalMetricID:         aws.Int(1705812088549786000),
-							EvalMetricResult:     "ignore",
-							EvalOperator:         "equals",
-							EvalState:            "info",
-							EvalComparisonString: aws.String("test"),
+							EvalMetricID:            aws.Int(1705812088549786000),
+							EvalMetricResult:        nil,
+							EvalOperator:            "equals",
+							EvalState:               "info",
+							EvalComparisonString:    aws.String("test"),
+							EvalExpectedResultState: "fail",
 						},
 					},
 				},
@@ -163,8 +173,12 @@ func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchem() {
 						FieldDescription: "system message ids",
 						DataType:         "array[number]",
 						EvalMetric: &EvalMetric{
-							EvalMetricID:         aws.Int(1705812088550290000),
-							EvalMetricResult:     "pass",
+							EvalMetricID: aws.Int(1705812088550290000),
+							EvalMetricResult: &EvalMetricResult{
+								EvalMetricResultID:    nil,
+								EvalResultOutcomeBool: aws.Bool(true),
+								EvalMetadata:          nil,
+							},
 							EvalOperator:         "lt",
 							EvalComparisonNumber: aws.Float64(12),
 							EvalState:            "error",
@@ -207,11 +221,11 @@ func (s *OrchestrationsTestSuite) TestInsertEval() {
 						FieldName:         "",
 						FieldDescription:  "",
 						DataType:          "number",
-						IntValue:          nil,
+						IntegerValue:      nil,
 						StringValue:       nil,
 						NumberValue:       nil,
 						BooleanValue:      nil,
-						IntValueSlice:     nil,
+						IntegerValueSlice: nil,
 						StringValueSlice:  nil,
 						NumberValueSlice:  nil,
 						BooleanValueSlice: nil,
@@ -236,21 +250,25 @@ func (s *OrchestrationsTestSuite) TestInsertEval() {
 						FieldName:         "",
 						FieldDescription:  "",
 						DataType:          "array[string]",
-						IntValue:          nil,
+						IntegerValue:      nil,
 						StringValue:       nil,
 						NumberValue:       nil,
 						BooleanValue:      nil,
-						IntValueSlice:     nil,
+						IntegerValueSlice: nil,
 						StringValueSlice:  nil,
 						NumberValueSlice:  nil,
 						BooleanValueSlice: nil,
 						EvalMetric: &EvalMetric{
-							EvalMetricResult:      "", // This would be set based on actual evaluation results
+							EvalMetricResult: &EvalMetricResult{
+								EvalMetricResultID:    nil,
+								EvalResultOutcomeBool: nil,
+								EvalMetadata:          nil,
+							}, // This would be set based on actual evaluation results
 							EvalComparisonBoolean: nil,
 							EvalComparisonNumber:  nil,
 							EvalComparisonString:  nil,
-							EvalOperator:          "", // Specific to your application logic
-							EvalState:             "", // Specific to your application logic
+							EvalOperator:          "filter", // Specific to your application logic
+							EvalState:             "info",   // Specific to your application logic
 						},
 					},
 				},
@@ -270,30 +288,31 @@ func (s *OrchestrationsTestSuite) TestInsertEvalResults() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	// Example data for EvalContext
 	evalContext := EvalContext{
-		OrchestrationID:       1701135755183363072, // Assume a valid orchestration ID
-		SourceTaskID:          1701924123626391040, // Assume a valid source task ID
-		RunningCycleNumber:    1,
-		SearchWindowUnixStart: 1609459200, // Example Unix timestamp (e.g., Jan 1, 2021)
-		SearchWindowUnixEnd:   1612137600, // Example Unix timestamp (e.g., Feb 1, 2021)
+		EvalID:             0,
+		EvalIterationCount: 0,
+		AIWorkflowAnalysisResult: AIWorkflowAnalysisResult{
+			WorkflowResultID:      0,
+			OrchestrationsID:      0,
+			ResponseID:            0,
+			SourceTaskID:          0,
+			IterationCount:        0,
+			ChunkOffset:           0,
+			RunningCycleNumber:    0,
+			SearchWindowUnixStart: 0,
+			SearchWindowUnixEnd:   0,
+			SkipAnalysis:          false,
+		},
 	}
 
 	// Example data for EvalMetricsResults
-	evalMetricsResults := []EvalMetricsResult{
+	evalMetricsResults := []EvalMetric{
 		{
-			EvalMetricID:          1702959527792954000, // Assume a valid eval metric ID
-			RunningCycleNumber:    evalContext.RunningCycleNumber,
-			SearchWindowUnixStart: evalContext.SearchWindowUnixStart,
-			SearchWindowUnixEnd:   evalContext.SearchWindowUnixEnd,
-			EvalResultOutcome:     true,
-			EvalMetadata:          json.RawMessage(`{"example": "metadata1"}`),
+			EvalMetricID: aws.Int(1702959527792954000), // Assume a valid eval metric ID
+			EvalMetadata: json.RawMessage(`{"example": "metadata1"}`),
 		},
 		{
-			EvalMetricID:          1703624059422669000, // Assume another valid eval metric ID
-			RunningCycleNumber:    evalContext.RunningCycleNumber,
-			SearchWindowUnixStart: evalContext.SearchWindowUnixStart,
-			SearchWindowUnixEnd:   evalContext.SearchWindowUnixEnd,
-			EvalResultOutcome:     false,
-			EvalMetadata:          json.RawMessage(`{"example": "metadata2"}`),
+			EvalMetricID: aws.Int(1703624059422669000), // Assume another valid eval metric I
+			EvalMetadata: json.RawMessage(`{"example": "metadata2"}`),
 		},
 	}
 

@@ -24,16 +24,16 @@ type JsonSchemaField struct {
 	FieldName         string      `db:"field_name" json:"fieldName"`
 	FieldDescription  string      `db:"field_description" json:"fieldDescription"`
 	DataType          string      `db:"data_type" json:"dataType"`
-	IntValue          *int        `db:"-" json:"intValue,omitempty"`
+	IntegerValue      *int        `db:"-" json:"intValue,omitempty"`
 	StringValue       *string     `db:"-" json:"stringValue,omitempty"`
 	NumberValue       *float64    `db:"-" json:"numberValue,omitempty"`
 	BooleanValue      *bool       `db:"-" json:"booleanValue,omitempty"`
-	IntValueSlice     []int       `db:"-" json:"intValueSlice,omitempty"`
+	IntegerValueSlice []int       `db:"-" json:"intValueSlice,omitempty"`
 	StringValueSlice  []string    `db:"-" json:"stringValueSlice,omitempty"`
 	NumberValueSlice  []float64   `db:"-" json:"numberValueSlice,omitempty"`
 	BooleanValueSlice []bool      `db:"-" json:"booleanValueSlice,omitempty"`
 	IsValidated       bool        `db:"-" json:"isValidated,omitempty"`
-	EvalMetric        *EvalMetric `db:"-" json:"evalMetric,omitempty"`
+	EvalMetric        *EvalMetric `db:"-" json:"evalMetricResult,omitempty"`
 }
 
 type AITaskJsonSchema struct {

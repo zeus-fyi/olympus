@@ -106,8 +106,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && chunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
 					sg = pr.PromptReductionSearchResults.OutSearchGroups[chunkOffset]
+					sg.Model = analysisInst.AnalysisModel
 				} else {
 					sg = &hera_search.SearchResultGroup{
+						Model:         analysisInst.AnalysisModel,
 						BodyPrompt:    pr.PromptReductionText.OutPromptChunks[chunkOffset],
 						SearchResults: []hera_search.SearchResult{},
 					}
@@ -135,12 +137,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
 					sg.SourceTaskID = analysisInst.AnalysisTaskID
 					tte.WfID = oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d", analysisInst.AnalysisResponseFormat, i)
-					pr.Model = tte.Wft.AnalysisModel
-
-					pr.TokenOverflowStrategy = tte.Wft.AnalysisTokenOverflowStrategy
-					if pr.PromptReductionText != nil {
-						pr.PromptReductionText.InPromptBody = tte.Wft.AnalysisPrompt
-					}
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 						WorkflowID:               tte.WfID,
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
@@ -158,7 +154,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						logger.Error("failed to execute analysis json workflow", "Error", err)
 						return nil, err
 					}
-					sg.FilteredSearchResults = aiResp.FilteredSearchResults
+					if aiResp != nil && aiResp.FilteredSearchResults != nil {
+						sg.FilteredSearchResults = aiResp.FilteredSearchResults
+					}
 				default:
 					analysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)

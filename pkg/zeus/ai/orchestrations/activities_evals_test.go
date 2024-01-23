@@ -1,46 +1,52 @@
 package ai_platform_service_orchestrations
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 func (t *ZeusWorkerTestSuite) TestEvalFnJsonConstructSchemaFromDb() {
-	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 
 	ou := org_users.OrgUser{}
 	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = t.Tc.ProductionLocalTemporalUserID
 
 	act := NewZeusAiPlatformActivities()
-	evalFnMetrics, err := act.EvalLookup(ctx, ou, 1703624059411640000)
+	evalFns, err := act.EvalLookup(ctx, ou, 1705982938987589000)
 	t.Require().Nil(err)
-	t.Require().NotEmpty(evalFnMetrics)
+	t.Require().NotEmpty(evalFns)
 
-	//jd, err := TransformEvalMetricsToJSONSchema(evalFnMetrics[0].EvalMetrics)
-	//t.Require().Nil(err)
-	//t.Require().NotEmpty(jd)
-	//
-	//fdSchema := jsonschema.Definition{
-	//	Type: jsonschema.Object,
-	//	Properties: map[string]jsonschema.Definition{
-	//		"count": {
-	//			Type:        jsonschema.Number,
-	//			Description: "total number of words in sentence",
-	//		},
-	//		"words": {
-	//			Type:        jsonschema.Array,
-	//			Description: "list of words in sentence",
-	//			Items: &jsonschema.Definition{
-	//				Type: jsonschema.String,
-	//			},
-	//		},
-	//	},
-	//	Required: []string{"count", "words"},
-	//}
-	//t.Require().Equal(fdSchema.Type, jd.Type)
-	//t.Require().Equal(fdSchema.Properties["count"].Description, jd.Properties["count"].Description)
-	//t.Require().Equal(fdSchema.Properties["count"].Type, jd.Properties["count"].Type)
+	for _, evalFnWithMetrics := range evalFns {
+		fmt.Println(evalFnWithMetrics.EvalType)
+		resp, rerr := EvalModelScoredJsonOutput(ctx, &evalFnWithMetrics)
+		t.Require().Nil(rerr)
+		t.Require().NotNil(resp)
+	}
+}
+
+func EvalModelScoredJsonOutput(ctx context.Context, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
+	if evalFn == nil || evalFn.Schemas == nil {
+		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
+		return nil, nil
+	}
+	emr := &artemis_orchestrations.EvalMetricsResults{
+		EvalMetricsResults: []artemis_orchestrations.EvalMetric{},
+	}
+	for i, schema := range evalFn.Schemas {
+		scoredResults, err := TransformJSONToEvalScoredMetrics(schema)
+		if err != nil {
+			log.Err(err).Int("i", i).Interface("scoredResults", scoredResults).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
+			return nil, err
+		}
+		emr.EvalMetricsResults = append(emr.EvalMetricsResults, scoredResults.EvalMetricsResults...)
+	}
+	return emr, nil
 }
 
 func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {

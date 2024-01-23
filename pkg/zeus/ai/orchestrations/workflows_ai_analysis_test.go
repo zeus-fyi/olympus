@@ -18,7 +18,7 @@ func (t *ZeusWorkerTestSuite) TestRunAiChildAnalysisProcessWorkflow() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(sr)
 
-	wfName := "twitter-extract-test-wf"
+	wfName := "twitter-extract-test-wf-eval"
 	res1, err := artemis_orchestrations.SelectWorkflowTemplateByName(ctx, t.Ou, wfName)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(res1)
@@ -34,4 +34,5 @@ func (t *ZeusWorkerTestSuite) TestRunAiChildAnalysisProcessWorkflow() {
 	t.Require().Greater(len(resp), 0)
 	err = ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(ctx, t.Ou, resp[0])
 	t.Require().Nil(err)
+
 }

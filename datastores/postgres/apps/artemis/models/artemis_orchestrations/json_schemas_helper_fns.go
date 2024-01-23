@@ -3,6 +3,7 @@ package artemis_orchestrations
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/jsonschema"
@@ -80,7 +81,7 @@ func jsonSchemaType(dataType string) jsonschema.DataType {
 		return jsonschema.Number
 	case "boolean":
 		return jsonschema.Boolean
-	case "integer":
+	case "integer", "int":
 		return jsonschema.Integer
 	case "array":
 		return jsonschema.Array
@@ -273,6 +274,10 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 					fieldDef.IntValue = &intVal
 					fieldDef.IsValidated = true
 					fmt.Printf("Field %s is an integer: %d\n", fieldDef.FieldName, intVal)
+				} else if fintVal, okfintVal := val.(float64); okfintVal {
+					fieldDef.IntValue = aws.Int(int(fintVal))
+					fieldDef.IsValidated = true
+					fmt.Printf("Field %s is an float -> integer: %d\n", fieldDef.FieldName, intVal)
 				} else {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to int", val)
 				}

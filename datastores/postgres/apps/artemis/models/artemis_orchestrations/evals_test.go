@@ -76,8 +76,12 @@ func (s *OrchestrationsTestSuite) TestEvalMetricsDeleteEvalMetricsAndTriggers() 
 						NumberValueSlice:  nil,
 						BooleanValueSlice: nil,
 						EvalMetric: &EvalMetric{
-							EvalMetricID:          aws.Int(1704860505860438001),
-							EvalMetricResult:      "", // This would be set based on actual evaluation results
+							EvalMetricID: aws.Int(1704860505860438001),
+							EvalMetricResult: &EvalMetricResult{
+								EvalMetricResultID:    nil,
+								EvalResultOutcomeBool: nil,
+								EvalMetadata:          nil,
+							}, // This would be set based on actual evaluation results
 							EvalComparisonBoolean: nil,
 							EvalComparisonNumber:  nil,
 							EvalComparisonString:  nil,

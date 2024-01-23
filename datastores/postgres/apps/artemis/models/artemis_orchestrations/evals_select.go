@@ -193,6 +193,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			if schema.SchemaID == 0 || len(schema.Fields) <= 0 {
 				continue
 			}
+			ef.SchemasMap[schema.SchemaID] = schema
 			sc = append(sc, schema)
 		}
 		ef.Schemas = sc

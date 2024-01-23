@@ -18,7 +18,7 @@ func (t *ZeusWorkerTestSuite) TestEvalFnJsonConstructSchemaFromDb() {
 	ou.UserID = t.Tc.ProductionLocalTemporalUserID
 
 	act := NewZeusAiPlatformActivities()
-	evalFns, err := act.EvalLookup(ctx, ou, 1705952457940027000)
+	evalFns, err := act.EvalLookup(ctx, ou, 1705982938987589000)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(evalFns)
 

@@ -25,7 +25,7 @@ type EvalFn struct {
 	EvalCycleCount int                           `json:"evalCycleCount,omitempty"`
 	TriggerActions []TriggerAction               `json:"triggerFunctions,omitempty"`
 	Schemas        []*JsonSchemaDefinition       `json:"schemas,omitempty"`
-	SchemaMap      map[int]*JsonSchemaDefinition `json:"schemaMap"`
+	SchemasMap     map[int]*JsonSchemaDefinition `json:"schemaMap"`
 }
 
 type EvalMetric struct {

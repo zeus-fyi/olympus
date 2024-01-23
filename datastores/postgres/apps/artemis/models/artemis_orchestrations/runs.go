@@ -24,10 +24,10 @@ type AggregatedData struct {
 }
 
 type OrchestrationsAnalysis struct {
-	TotalWorkflowTokenUsage int                 `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
-	RunCycles               int                 `db:"max_run_cycle" json:"runCycles"`
-	AggregatedData          []AggregatedData    `db:"aggregated_data" json:"aggregatedData"`
-	AggregatedEvalResults   []EvalMetricsResult `db:"eval_fn_metric_results" json:"aggregatedEvalResults"`
+	TotalWorkflowTokenUsage int              `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
+	RunCycles               int              `db:"max_run_cycle" json:"runCycles"`
+	AggregatedData          []AggregatedData `db:"aggregated_data" json:"aggregatedData"`
+	AggregatedEvalResults   []EvalMetric     `db:"eval_fn_metric_results" json:"aggregatedEvalResults"`
 
 	artemis_autogen_bases.Orchestrations `json:"orchestration,omitempty"`
 }
@@ -182,25 +182,25 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 		}
 
 		// Unmarshal the aggregated evaluation results
-		var evalMetricsAllResults [][]EvalMetricsResult
+		var evalMetricsAllResults [][]EvalMetric
 		if err = json.Unmarshal(aggregatedEvalResults, &evalMetricsAllResults); err != nil {
 			log.Err(err).Msg("Error unmarshaling aggregated evaluation results")
 			return nil, err
 		}
 
-		var filteredResults []EvalMetricsResult
-		seen := make(map[int]bool)
-		for _, evalMetricsResultCycleResults := range evalMetricsAllResults {
-			for _, evalMetricsResult := range evalMetricsResultCycleResults {
-				if evalMetricsResult.EvalMetricsResultID == 0 {
-					continue
-				}
-				if _, ok := seen[evalMetricsResult.EvalMetricsResultID]; !ok {
-					filteredResults = append(filteredResults, evalMetricsResult)
-					seen[evalMetricsResult.EvalMetricsResultID] = true
-				}
-			}
-		}
+		var filteredResults []EvalMetric
+		//seen := make(map[int]bool)
+		//for _, evalMetricsResultCycleResults := range evalMetricsAllResults {
+		//	for _, evalMetricsResult := range evalMetricsResultCycleResults {
+		//		if evalMetricsResult.EvalMetricsResultID == 0 {
+		//			continue
+		//		}
+		//		if _, ok := seen[evalMetricsResult.EvalMetricsResultID]; !ok {
+		//			filteredResults = append(filteredResults, evalMetricsResult)
+		//			seen[evalMetricsResult.EvalMetricsResultID] = true
+		//		}
+		//	}
+		//}
 
 		oj.AggregatedEvalResults = filteredResults
 		ojs = append(ojs, oj)

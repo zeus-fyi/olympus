@@ -43,21 +43,17 @@ func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, e
 	return nil
 }
 
-func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
+func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, evalFn *artemis_orchestrations.EvalFn) error {
 	if evalFn == nil || evalFn.Schemas == nil {
 		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
-		return nil, nil
-	}
-	emr := &artemis_orchestrations.EvalMetricsResults{
-		EvalMetricsResults: []artemis_orchestrations.EvalMetricsResult{},
+		return nil
 	}
 	for i, schema := range evalFn.Schemas {
 		scoredResults, err := TransformJSONToEvalScoredMetrics(schema)
 		if err != nil {
 			log.Err(err).Int("i", i).Interface("scoredResults", scoredResults).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
-			return nil, err
+			return err
 		}
-		emr.EvalMetricsResults = append(emr.EvalMetricsResults, scoredResults.EvalMetricsResults...)
 	}
-	return emr, nil
+	return nil
 }

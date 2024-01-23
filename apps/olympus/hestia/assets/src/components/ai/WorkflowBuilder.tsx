@@ -3873,7 +3873,7 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
                                 <Tab className="onboarding-card-highlight-all-retrieval" label="Retrievals" />
                                 <Tab className="onboarding-card-highlight-all-evals" label="Evals" />
-                                <Tab className="onboarding-card-highlight-all-actions" label="Actions" />
+                                <Tab className="onboarding-card-highlight-all-triggers" label="Triggers" />
                                 <Tab className="onboarding-card-highlight-all-assistants" label="Assistants" />
                                 <Tab className="onboarding-card-highlight-all-schemas" label="Schemas" />
                             </Tabs>

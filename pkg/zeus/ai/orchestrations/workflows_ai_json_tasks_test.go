@@ -110,11 +110,11 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 			for _, f := range v.Fields {
 				switch f.FieldName {
 				case "msg_ids":
-					t.Require().NotNil(f.IntValueSlice)
-					fmt.Println("msg_ids", f.IntValueSlice)
+					t.Require().NotNil(f.IntegerValueSlice)
+					fmt.Println("msg_ids", f.IntegerValueSlice)
 				case "score":
-					t.Require().NotNil(f.IntValue)
-					fmt.Println("score", *f.IntValue)
+					t.Require().NotNil(f.IntegerValue)
+					fmt.Println("score", *f.IntegerValue)
 					t.Require()
 				}
 			}

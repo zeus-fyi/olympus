@@ -36,7 +36,7 @@ func EvalModelScoredJsonOutput(ctx context.Context, evalFn *artemis_orchestratio
 		return nil, nil
 	}
 	emr := &artemis_orchestrations.EvalMetricsResults{
-		EvalMetricsResults: []artemis_orchestrations.EvalMetricsResult{},
+		EvalMetricsResults: []artemis_orchestrations.EvalMetric{},
 	}
 	for i, schema := range evalFn.Schemas {
 		scoredResults, err := TransformJSONToEvalScoredMetrics(schema)

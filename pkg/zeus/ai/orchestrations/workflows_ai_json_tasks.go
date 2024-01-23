@@ -134,12 +134,12 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 					for findex, fi := range sch.Fields {
 						switch fi.FieldName {
 						case "msg_id":
-							msgID := aws.IntValue(fi.IntValue)
+							msgID := aws.IntValue(fi.IntegerValue)
 							if _, ok := seen[msgID]; ok {
 								duplicateCount[msgID]++
 								continue
 							}
-							if srv, ok := mm[aws.IntValue(fi.IntValue)]; ok {
+							if srv, ok := mm[aws.IntValue(fi.IntegerValue)]; ok {
 								srv.Verified = &ok
 								seen[msgID] = true
 								tte.Sg.FilteredSearchResultMap[msgID] = srv
@@ -148,7 +148,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 								notFound[msgID]++
 							}
 						case "msg_ids":
-							for _, msgID := range fi.IntValueSlice {
+							for _, msgID := range fi.IntegerValueSlice {
 								if _, ok := seen[msgID]; ok {
 									duplicateCount[msgID]++
 									continue

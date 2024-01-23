@@ -73,14 +73,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		}
 		var emr *artemis_orchestrations.EvalMetricsResults
 		evCtx := artemis_orchestrations.EvalContext{
-			EvalID:                aws.IntValue(evalFnWithMetrics.EvalID),
-			OrchestrationID:       mb.Oj.OrchestrationID,
-			SourceTaskID:          cpe.ParentOutputToEval.ResponseTaskID,
-			RunningCycleNumber:    mb.RunCycle,
-			EvalIterationCount:    iterationCount,
-			SearchWindowUnixStart: mb.Window.UnixStartTime,
-			SearchWindowUnixEnd:   mb.Window.UnixEndTime,
-			WorkflowResultID:      mb.WorkflowResult.WorkflowResultID,
+			EvalID:                   aws.IntValue(evalFnWithMetrics.EvalID),
+			AIWorkflowAnalysisResult: mb.WorkflowResult,
+			EvalIterationCount:       iterationCount,
 		}
 		switch strings.ToLower(evalFnWithMetrics.EvalType) {
 		case "model":
@@ -124,21 +119,20 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			if emr == nil {
 				continue
 			}
-
 			// TODO, make into it's own workflow?
-			for _, er := range emr.EvalMetricsResults {
-				// in the eval stage, if any filter fails, skip the analysis.
-				if er.EvalState == "filter" && ((er.EvalMetricResult == "pass" && er.EvalResultOutcome == false) || (er.EvalMetricResult == "fail" && er.EvalResultOutcome == true)) {
-					mb.WorkflowResult.SkipAnalysis = true
-					recordAnalysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, mb.WorkflowResult).Get(recordAnalysisCtx, nil)
-					if err != nil {
-						logger.Error("failed to save analysis skip", "Error", err)
-						return err
-					}
-					break
-				}
-			}
+			//for _, er := range emr.EvalMetricsResults {
+			//	// in the eval stage, if any filter fails, skip the analysis.
+			//	if er.EvalState == "filter" && ((er. == "pass" && er.EvalResultOutcome == false) || (er.EvalMetricResult == "fail" && er.EvalResultOutcome == true)) {
+			//		mb.WorkflowResult.SkipAnalysis = true
+			//		recordAnalysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			//		err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, mb.WorkflowResult).Get(recordAnalysisCtx, nil)
+			//		if err != nil {
+			//			logger.Error("failed to save analysis skip", "Error", err)
+			//			return err
+			//		}
+			//		break
+			//	}
+			//}
 			saveEvalResultsCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			emr.EvalContext = evCtx
 			err = workflow.ExecuteActivity(saveEvalResultsCtx, z.SaveEvalMetricResults, emr).Get(saveEvalResultsCtx, nil)

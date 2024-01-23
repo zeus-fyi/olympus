@@ -109,42 +109,58 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                             <Table size="small" aria-label="sub-analysis">
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>Result ID</TableCell>
                                         <TableCell>Task ID</TableCell>
                                         <TableCell>Task Name</TableCell>
                                         <TableCell>Task Type</TableCell>
                                         <TableCell>Cycle</TableCell>
                                         <TableCell>Iteration</TableCell>
+                                        <TableCell>Offset</TableCell>
                                         <TableCell>Usage</TableCell>
                                         <TableCell>Start</TableCell>
                                         <TableCell>End</TableCell>
-                                        <TableCell style={{ width: '15%'}}>Model</TableCell>
-                                        <TableCell>Prompt Tokens</TableCell>
+                                        <TableCell>Model</TableCell>
+                                        <TableCell>Prompt</TableCell>
                                         <TableCell>Completion Tokens</TableCell>
                                         <TableCell>Total Tokens</TableCell>
-                                        <TableCell style={{ width: '10%', whiteSpace: 'pre-wrap' }}>Prompt</TableCell>
-                                        <TableCell style={{ width: '20%', whiteSpace: 'pre-wrap' }}>Completion Choices</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {row.aggregatedData && row.aggregatedData.map((data, dataIndex) => (
                                         <TableRow key={dataIndex}>
+                                            <TableCell>{data.workflowResultId}</TableCell>
                                             <TableCell>{data.sourceTaskId}</TableCell>
                                             <TableCell>{data.taskName}</TableCell>
                                             <TableCell>{data.taskType}</TableCell>
                                             <TableCell>{data.runningCycleNumber}</TableCell>
                                             <TableCell>{data.iterationCount}</TableCell>
+                                            <TableCell>{data.chunkOffset}</TableCell>
                                             <TableCell>{data.skipAnalysis ? 'skipped' : 'used'}</TableCell>
                                             <TableCell>{data.searchWindowUnixStart}</TableCell>
                                             <TableCell>{data.searchWindowUnixEnd}</TableCell>
-                                            <TableCell style={{ width: '15%'}}>{data.model}</TableCell>
+                                            <TableCell>{data.model}</TableCell>
                                             <TableCell>{data.promptTokens}</TableCell>
                                             <TableCell>{data.completionTokens}</TableCell>
                                             <TableCell>{data.totalTokens}</TableCell>
-                                            <TableCell style={{ width: '15%', whiteSpace: 'pre-wrap' }}>
-                                                {data.prompt !== undefined ? prettyPrintJSON(data.prompt) : ""}
-                                            </TableCell>
-                                            <TableCell style={{ width: '15%', whiteSpace: 'pre-wrap' }}>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            <Table  sx={{ mb: 4, mt: 4}} size="small" aria-label="sub-analysis">
+                                <TableRow>
+                                    <TableCell style={{ }}>Result ID</TableCell>
+                                    <TableCell style={{ }}>Prompt</TableCell>
+                                    <TableCell style={{  }}>Completion Choices</TableCell>
+                                </TableRow>
+                                <TableBody>
+                                    {row.aggregatedData && row.aggregatedData.map((data, dataIndex) => (
+                                        <TableRow key={dataIndex}>
+                                            <TableCell> {data.workflowResultId}</TableCell>
+                                            <TableCell >
                                                 {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
+                                            </TableCell>
+                                            <TableCell >
+                                                {data.prompt !== undefined ? prettyPrintJSON(data.prompt) : ""}
                                             </TableCell>
                                         </TableRow>
                                     ))}

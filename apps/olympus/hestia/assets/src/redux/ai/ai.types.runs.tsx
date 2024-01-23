@@ -8,6 +8,7 @@ export interface AggregatedData {
     taskName: string;
     taskType: string;
     runningCycleNumber: number;
+    chunkOffset: number;
     searchWindowUnixStart: number;
     searchWindowUnixEnd: number;
     iterationCount: number;

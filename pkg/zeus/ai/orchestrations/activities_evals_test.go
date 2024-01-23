@@ -30,6 +30,20 @@ func (t *ZeusWorkerTestSuite) TestEvalFnJsonConstructSchemaFromDb() {
 	}
 }
 
+/*
+
+type EvalFn struct {
+	EvalID         *int                          `json:"evalID,omitempty"`
+	EvalType       string                        `json:"evalType"`
+	EvalModel      *string                       `json:"evalModel,omitempty"`
+	EvalFormat     string                        `json:"evalFormat"`
+	EvalCycleCount int                           `json:"evalCycleCount,omitempty"`
+	TriggerActions []TriggerAction               `json:"triggerFunctions,omitempty"`
+	Schemas        []*JsonSchemaDefinition       `json:"schemas,omitempty"`
+	SchemasMap     map[int]*JsonSchemaDefinition `json:"schemaMap"`
+}
+*/
+
 func EvalModelScoredJsonOutput(ctx context.Context, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
 	if evalFn == nil || evalFn.Schemas == nil {
 		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")

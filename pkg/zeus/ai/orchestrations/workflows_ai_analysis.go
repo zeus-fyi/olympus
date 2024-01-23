@@ -197,6 +197,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if analysisInst.AggTaskID != nil {
 					ea.EvalFns = analysisInst.AggAnalysisEvalFns
 				}
+
+				// TODO, run in parallel
 				for _, evalFn := range ea.EvalFns {
 					if evalFn.EvalID == 0 {
 						continue

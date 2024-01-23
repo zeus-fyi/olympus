@@ -193,6 +193,9 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			if schema.SchemaID == 0 || len(schema.Fields) <= 0 {
 				continue
 			}
+			if ef.SchemasMap == nil {
+				ef.SchemasMap = make(map[int]*JsonSchemaDefinition)
+			}
 			ef.SchemasMap[schema.SchemaID] = schema
 			sc = append(sc, schema)
 		}

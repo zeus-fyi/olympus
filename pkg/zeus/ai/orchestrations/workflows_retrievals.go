@@ -31,7 +31,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	switch tte.Wft.RetrievalPlatform {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		retrievalCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, tte.Ou.OrgID, tte.Wft, tte.Sg.Window).Get(retrievalCtx, &tte.Sg)
+		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, tte.Ou, tte.Wft, tte.Sg.Window).Get(retrievalCtx, &tte.Sg)
 		if err != nil {
 			logger.Error("failed to run retrieval", "Error", err)
 			return nil, err
@@ -47,7 +47,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		for _, route := range routes {
 			fetchedResult := &hera_search.SearchResult{}
 			retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.AiWebRetrievalTask, tte.Ou.OrgID, tte.Wft, route).Get(retrievalWebTaskCtx, &fetchedResult)
+			err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.AiWebRetrievalTask, tte.Ou, tte.Wft, route).Get(retrievalWebTaskCtx, &fetchedResult)
 			if err != nil {
 				logger.Error("failed to run retrieval", "Error", err)
 				return nil, err

@@ -100,7 +100,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil {
 				chunkIterator = len(pr.PromptReductionSearchResults.OutSearchGroups)
 			}
-			if pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
+			if pr.PromptReductionText != nil && pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
 				chunkIterator = len(pr.PromptReductionText.OutPromptChunks)
 			}
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {

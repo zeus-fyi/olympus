@@ -63,5 +63,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		logger.Error("failed to update cache for qn services", "Error", err)
 		return nil, err
 	}
+	tte.Sg.SourceTaskID = tte.Wft.AnalysisTaskID
 	return tte.Sg, nil
 }

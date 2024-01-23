@@ -41,8 +41,7 @@ func (s *OrchestrationsTestSuite) TestSelectEvalByID() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
-	evs, err := SelectEvalFnsByOrgIDAndID(ctx, ou, 1705173228307500000)
+	evs, err := SelectEvalFnsByOrgIDAndID(ctx, ou, 1705952457940027000)
 	s.Require().Nil(err)
 	s.Require().NotNil(evs)
-
 }

@@ -28,7 +28,6 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 		params = append(params, evalFnID)
 		addOnQuery = "AND f.eval_id = $2"
 	}
-
 	query := `
 			WITH cte_metrics AS (
 				SELECT 

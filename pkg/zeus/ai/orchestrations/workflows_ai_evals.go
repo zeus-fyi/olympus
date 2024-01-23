@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/google/uuid"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -52,19 +53,20 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			continue
 		}
 		evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		var evalFnMetrics []artemis_orchestrations.EvalFn
-		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, evalFn.EvalID).Get(evalFnMetricsLookupCtx, &evalFnMetrics)
+		var evalFns []artemis_orchestrations.EvalFn
+		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, evalFn.EvalID).Get(evalFnMetricsLookupCtx, &evalFns)
 		if err != nil {
 			logger.Error("failed to get eval info", "Error", err)
 			return err
 		}
-		for _, evalFnWithMetrics := range evalFnMetrics {
+		for iterationCount, evalFnWithMetrics := range evalFns {
 			var emr *artemis_orchestrations.EvalMetricsResults
 			evCtx := artemis_orchestrations.EvalContext{
 				EvalID:                evalFn.EvalID,
 				OrchestrationID:       mb.Oj.OrchestrationID,
 				SourceTaskID:          cpe.ParentOutputToEval.ResponseTaskID,
 				RunningCycleNumber:    mb.RunCycle,
+				EvalIterationCount:    iterationCount,
 				SearchWindowUnixStart: mb.Window.UnixStartTime,
 				SearchWindowUnixEnd:   mb.Window.UnixEndTime,
 				WorkflowResultID:      mb.WorkflowResult.WorkflowResultID,
@@ -78,26 +80,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 					WorkflowID:               wfID,
 					WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
+				if iterationCount == 0 && cpe != nil && cpe.TaskToExecute.Tc.Model == aws.StringValue(evalFnWithMetrics.EvalModel) && cpe.ParentOutputToEval != nil && cpe.ParentOutputToEval.JsonResponseResults != nil && evalFnWithMetrics.Schemas != nil {
 
-				// TODO, if same model, and schema, and has results, use for first iteration, otherwise, run model json generation
+				}
+
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cr)
 				if err != nil {
 					logger.Error("failed to execute analysis json workflow", "Error", err)
 					return err
 				}
-
-				/* TODO, verify eval metric results merge with the eval metric results from the json output task workflow
-				//fd := artemis_orchestrations.ConvertToFuncDef(evalFnWithMetrics.EvalName, evalFnWithMetrics.Schemas)
-					//evalParams := hera_openai.OpenAIParams{
-					//	Model: evalFn.EvalModel,
-					//	FunctionDefinition: openai.FunctionDefinition{
-					//		Name:        evalFnWithMetrics.EvalName,
-					//		Description: evalFnWithMetrics.EvalName,
-					//		Parameters:  fd,
-					//	},
-					//}
-				*/
 				evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, cpe.ParentOutputToEval.JsonResponseResults, &evalFnWithMetrics).Get(evalModelScoredJsonCtx, &emr)
 				if err != nil {

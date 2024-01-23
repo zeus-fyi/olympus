@@ -146,6 +146,7 @@ type EvalContext struct {
 	WorkflowResultID      int `json:"workflowResultID,omitempty"`
 	OrchestrationID       int `json:"orchestrationID"`
 	SourceTaskID          int `json:"sourceTaskId"`
+	EvalIterationCount    int `json:"evalIterationCount"`
 	RunningCycleNumber    int `json:"runningCycleNumber"`
 	SearchWindowUnixStart int `json:"searchWindowUnixStart"`
 	SearchWindowUnixEnd   int `json:"searchWindowUnixEnd"`

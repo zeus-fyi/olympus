@@ -3,6 +3,7 @@ package hera_search
 import (
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	twitter2 "github.com/cvcio/twitter"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -70,19 +71,27 @@ func (s *SearchAITestSuite) TestSelectTweets() {
 			RetrievalName:  "",
 			RetrievalGroup: "",
 			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
-				DiscordFilters: nil,
+				RetrievalPlatform:         "",
+				RetrievalPrompt:           nil,
+				RetrievalPlatformGroups:   nil,
+				RetrievalKeywords:         aws.String("airdrops"),
+				RetrievalNegativeKeywords: aws.String("Rafay"),
+				RetrievalUsernames:        nil,
+				DiscordFilters:            nil,
+				WebFilters:                nil,
+				Instructions:              nil,
 			},
 		},
 		Window: si,
 	}
 
 	results, err := SearchTwitter(ctx, ou, sp)
+	s.Require().NoError(err, "SearchTwitter should not return an error")
+	s.Require().NotNil(results, "Results should not be nil")
 
 	resp := FormatSearchResultsV3(results)
 	s.NotEmpty(resp)
 	// Assert expected outcomes
-	s.Require().NoError(err, "SearchTwitter should not return an error")
-	s.Require().NotNil(results, "Results should not be nil")
 
 	ou.OrgID = 0
 	results, err = SearchTwitter(ctx, ou, sp)

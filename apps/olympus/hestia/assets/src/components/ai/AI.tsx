@@ -38,7 +38,6 @@ import {RootState} from "../../redux/store";
 import {
     setDiscordOptionsCategoryName,
     setRetrieval,
-    setRetrievalKeywords,
     setSearchIndexer,
     setSearchResults,
     setSelectedMainTab,
@@ -642,14 +641,42 @@ function AiWorkflowsDashboardContent(props: any) {
                                             <Typography variant="h6" color="text.secondary">
                                                 Search keywords using comma separated values below.
                                             </Typography>
-                                            <Box flexGrow={1} sx={{ mb: 2,ml: 4, mr:4  }}>
+                                            <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
                                                 <TextField
                                                     fullWidth
                                                     id="keywords-input"
-                                                    label="Keywords"
+                                                    label="Positive Keywords"
                                                     variant="outlined"
-                                                    value={retrieval.retrievalItemInstruction.retrievalKeywords}
-                                                    onChange={(e) => dispatch(setRetrievalKeywords(e.target.value))}
+                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
+                                                    onChange={(e) => {
+                                                        const updatedRetrieval = {
+                                                            ...retrieval,
+                                                            retrievalItemInstruction: {
+                                                                ...retrieval.retrievalItemInstruction,
+                                                                retrievalKeywords: e.target.value
+                                                            }
+                                                        };
+                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                    }}
+                                                />
+                                            </Box>
+                                            <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
+                                                <TextField
+                                                    fullWidth
+                                                    id="negative-keywords-input"
+                                                    label="Negative Keywords"
+                                                    variant="outlined"
+                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalNegativeKeywords ? retrieval.retrievalItemInstruction.retrievalNegativeKeywords : ''}
+                                                    onChange={(e) => {
+                                                        const updatedRetrieval = {
+                                                            ...retrieval,
+                                                            retrievalItemInstruction: {
+                                                                ...retrieval.retrievalItemInstruction,
+                                                                retrievalNegativeKeywords: e.target.value
+                                                            }
+                                                        };
+                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                    }}
                                                 />
                                             </Box>
                                             {/*<Typography variant="h6" color="text.secondary">*/}

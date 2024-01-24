@@ -3,7 +3,6 @@ package zeus_v1_ai
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/labstack/echo/v4"
@@ -31,29 +30,7 @@ func (r *AiSearchRequest) Search(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
-	ts := time.Now()
-	switch r.TimeRange {
-	case "1 hour":
-		r.Window.Start = ts.Add(-1 * time.Hour)
-		r.Window.End = ts
-	case "24 hours":
-		r.Window.Start = ts.AddDate(0, 0, -1)
-		r.Window.End = ts
-	case "7 days":
-		r.Window.Start = ts.AddDate(0, 0, -7)
-		r.Window.End = ts
-	case "30 days":
-		r.Window.Start = ts.AddDate(0, 0, -30)
-		r.Window.End = ts
-	case "all":
-		r.Window.Start = time.Unix(0, 0)
-		r.Window.End = ts
-	case "window":
-		log.Info().Interface("searchInterval", r.Window).Msg("window")
-	}
-	r.Window.UnixStartTime = int(r.Window.Start.Unix())
-	r.Window.UnixEndTime = int(r.Window.End.Unix())
+	hera_search.TimeRangeStringToWindow(&r.AiSearchParams)
 	res, err := hera_search.PerformPlatformSearches(c.Request().Context(), ou, r.AiSearchParams)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("error performing platform searches")

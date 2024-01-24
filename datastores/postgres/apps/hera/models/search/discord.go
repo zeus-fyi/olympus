@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -50,9 +51,22 @@ func discordSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_temp
 				  JOIN public.ai_discord_search_query sq ON sq.search_id = cm.search_id
 				  WHERE sq.org_id = $1`
 
+	// Handle positive keywords
 	if sp.Retrieval.RetrievalKeywords != nil && *sp.Retrieval.RetrievalKeywords != "" {
-		baseQuery += fmt.Sprintf(` AND content_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
-		args = append(args, sp.Retrieval.RetrievalKeywords)
+		posQuery := formatKeywordsForTsQuery(aws.StringValue(sp.Retrieval.RetrievalKeywords), false)
+		if posQuery != "" {
+			baseQuery += fmt.Sprintf(` AND cm.content_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
+			args = append(args, posQuery)
+		}
+	}
+
+	// Handle negative keywords
+	if sp.Retrieval.RetrievalNegativeKeywords != nil && *sp.Retrieval.RetrievalNegativeKeywords != "" {
+		negQuery := formatKeywordsForTsQuery(aws.StringValue(sp.Retrieval.RetrievalNegativeKeywords), true)
+		if negQuery != "" {
+			baseQuery += fmt.Sprintf(` AND cm.content_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
+			args = append(args, negQuery)
+		}
 	}
 
 	if !sp.Window.IsWindowEmpty() {

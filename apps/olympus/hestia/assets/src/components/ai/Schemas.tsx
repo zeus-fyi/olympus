@@ -40,6 +40,10 @@ export function Schemas(props: any) {
         return <div></div>
     }
 
+    if (!schema) {
+        return <div></div>
+    }
+
     return (
         <div>
             <Box sx={{ ml: 0, mr: 2 }} >
@@ -63,7 +67,7 @@ export function Schemas(props: any) {
                         fullWidth
                     />
                 </Box>
-                <Box sx={{ width: '50%', ml:2, mb: 0, mt: 0 }}>
+                <Box sx={{ width: '50%', ml:2, mb: 0, mt: 0, mr: 2 }}>
                     <TextField
                         label={`Schema Group`}
                         variant="outlined"
@@ -74,6 +78,16 @@ export function Schemas(props: any) {
                     />
                 </Box>
             </Stack>
+            <Box sx={{ ml:2, mr: 2, mb: 0, mt: 2 }}>
+                <TextField
+                    label={`Schema Description`}
+                    variant="outlined"
+                    value={schema.schemaDescription}
+                    onChange={(event) => dispatch(setSchema(
+                        { ...schema, schemaDescription: event.target.value }))}
+                    fullWidth
+                />
+            </Box>
             <Stack direction="row" >
                 <Box  sx={{ mb: 2,ml: 2, mr:2, mt: 2  }}>
                     <ToggleButton
@@ -169,13 +183,14 @@ export function Schemas(props: any) {
             </Box>
             {
                 !loading && schema && schema.fields && schema.fields.map((field: JsonSchemaField, index: number) => (
+                    field &&
                     <Stack key={index} direction="column" sx={{ mt: 4, mb: 4, mr: 0 }}>
-                        <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                        <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 4, mb: 4 }}>
                             {/* Metric Name */}
                             <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
                                 <TextField
                                     fullWidth
-                                    id={`field-name-${index}`}
+                                    id={`field-name-${field.fieldName}-${index}`}
                                     label="Field Name"
                                     variant="outlined"
                                     value={field.fieldName}
@@ -185,7 +200,7 @@ export function Schemas(props: any) {
                             <Box flexGrow={1} sx={{ ml: 4, mr: 4 }}>
                                 <TextField
                                     fullWidth
-                                    id={`field-type-${index}`}
+                                    id={`field-type-${field.dataType}-${index}`}
                                     label="Field Type"
                                     variant="outlined"
                                     value={field.dataType}
@@ -204,7 +219,7 @@ export function Schemas(props: any) {
                         <Box flexGrow={1} sx={{ ml: 0, mr: 12 }}>
                             <TextField
                                 fullWidth
-                                id={`field-description-${index}`}
+                                id={`field-description-${field.dataType}-${index}`}
                                 label="Field Description"
                                 variant="outlined"
                                 value={field.fieldDescription}

@@ -4,6 +4,7 @@ export interface JsonSchemaDefinition {
     schemaID: number;
     schemaName: string;
     schemaGroup: string;
+    schemaDescription: string;
     isObjArray: boolean;
     fields: JsonSchemaField[];
 }

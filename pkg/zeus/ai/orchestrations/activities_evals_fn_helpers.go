@@ -10,107 +10,104 @@ import (
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
-func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.JsonSchemaDefinition) (*artemis_orchestrations.EvalMetricsResults, error) {
-	var metrics []artemis_orchestrations.EvalMetric
-	for _, value := range jsonSchemaDef.Fields {
-		for i, _ := range value.EvalMetrics {
-			if value.EvalMetrics[i] == nil {
-				value.EvalMetrics[i] = &artemis_orchestrations.EvalMetric{}
+func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.JsonSchemaDefinition) error {
+	for vi, _ := range jsonSchemaDef.Fields {
+		for i, _ := range jsonSchemaDef.Fields[vi].EvalMetrics {
+			if jsonSchemaDef.Fields[vi].EvalMetrics[i] == nil {
+				jsonSchemaDef.Fields[vi].EvalMetrics[i] = &artemis_orchestrations.EvalMetric{}
 			}
-			if value.EvalMetrics[i].EvalMetricResult == nil {
+			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult == nil {
 				chs := chronos.Chronos{}
-				value.EvalMetrics[i].EvalMetricResult = &artemis_orchestrations.EvalMetricResult{
+				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult = &artemis_orchestrations.EvalMetricResult{
 					EvalMetricResultID: aws.Int(chs.UnixTimeStampNow()),
 				}
 			}
-			if value.EvalMetrics[i].EvalMetricComparisonValues == nil {
-				value.EvalMetrics[i].EvalMetricComparisonValues = &artemis_orchestrations.EvalMetricComparisonValues{}
+			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues == nil {
+				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues = &artemis_orchestrations.EvalMetricComparisonValues{}
 			}
-			switch value.DataType {
+			switch jsonSchemaDef.Fields[vi].DataType {
 			case "integer":
-				if value.IntegerValue == nil {
-					return nil, fmt.Errorf("no int value for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].IntegerValue == nil {
+					return fmt.Errorf("no int value for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil && value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger == nil {
-					return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil && jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger == nil {
+					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger != nil {
-					value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(value.EvalMetrics[i].EvalOperator, *value.IntegerValue, aws.ToInt(value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger)))
-				} else if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber != nil {
-					value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(value.EvalMetrics[i].EvalOperator, *value.IntegerValue, int(aws.ToFloat64(value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber))))
+				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger != nil {
+					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].IntegerValue, aws.ToInt(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger)))
+				} else if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber != nil {
+					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].IntegerValue, int(aws.ToFloat64(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber))))
 				} else {
-					return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
 			case "number":
-				if value.NumberValue == nil {
-					return nil, fmt.Errorf("no number value for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].NumberValue == nil {
+					return fmt.Errorf("no number value for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil {
-					return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil {
+					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetNumericEvalComparisonResult(value.EvalMetrics[i].EvalOperator, *value.NumberValue, aws.ToFloat64(value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)))
+				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetNumericEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].NumberValue, aws.ToFloat64(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)))
 			case "string":
-				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString == nil {
-					return nil, fmt.Errorf("no comparison string for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString == nil {
+					return fmt.Errorf("no comparison string for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				if value.StringValue == nil {
-					return nil, fmt.Errorf("no string value for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].StringValue == nil {
+					return fmt.Errorf("no string value for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetStringEvalComparisonResult(value.EvalMetrics[i].EvalOperator, *value.StringValue, aws.ToString(value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString)))
+				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetStringEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].StringValue, aws.ToString(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString)))
 			case "boolean":
-				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean == nil {
-					return nil, fmt.Errorf("no comparison boolean for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean == nil {
+					return fmt.Errorf("no comparison boolean for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				if value.BooleanValue == nil {
-					return nil, fmt.Errorf("no boolean value for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].BooleanValue == nil {
+					return fmt.Errorf("no boolean value for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetBooleanEvalComparisonResult(aws.ToBool(value.BooleanValue), aws.ToBool(value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)))
+				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetBooleanEvalComparisonResult(aws.ToBool(jsonSchemaDef.Fields[vi].BooleanValue), aws.ToBool(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)))
 			case "array[integer]":
-				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil && value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger == nil {
-					return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil && jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger == nil {
+					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger != nil {
-					results, rerr := EvaluateIntArray(value.EvalMetrics[i].EvalOperator, value.IntegerValueSlice, *value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger)
+				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger != nil {
+					results, rerr := EvaluateIntArray(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, jsonSchemaDef.Fields[vi].IntegerValueSlice, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger)
 					if rerr != nil {
-						return nil, rerr
+						return rerr
 					}
-					value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
+					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
 				} else {
-					results, rerr := EvaluateIntArray(value.EvalMetrics[i].EvalOperator, value.IntegerValueSlice, int(*value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber))
+					results, rerr := EvaluateIntArray(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, jsonSchemaDef.Fields[vi].IntegerValueSlice, int(*jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber))
 					if rerr != nil {
-						return nil, rerr
+						return rerr
 					}
-					value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
+					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
 				}
 			case "array[number]":
-				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil {
-					return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil {
+					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				results, rerr := EvaluateNumericArray(value.EvalMetrics[i].EvalOperator, value.NumberValueSlice, *value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)
+				results, rerr := EvaluateNumericArray(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, jsonSchemaDef.Fields[vi].NumberValueSlice, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)
 				if rerr != nil {
-					return nil, rerr
+					return rerr
 				}
-				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
+				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
 			case "array[string]":
-				results, rerr := EvaluateStringArray(value.StringValueSlice, value.EvalMetrics[i].EvalOperator, *value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString)
+				results, rerr := EvaluateStringArray(jsonSchemaDef.Fields[vi].StringValueSlice, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString)
 				if rerr != nil {
-					return nil, rerr
+					return rerr
 				}
-				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
+				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
 			case "array[boolean]":
-				results, rerr := EvaluateBooleanArray(value.BooleanValueSlice, *value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)
+				results, rerr := EvaluateBooleanArray(jsonSchemaDef.Fields[vi].BooleanValueSlice, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)
 				if rerr != nil {
-					return nil, rerr
+					return rerr
 				}
-				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
+				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
 			default:
-				return nil, fmt.Errorf("unknown data type '%s'", value.DataType)
+				return fmt.Errorf("unknown data type '%s'", jsonSchemaDef.Fields[vi].DataType)
 			}
 		}
 	}
-	return &artemis_orchestrations.EvalMetricsResults{
-		EvalMetricsResults: metrics,
-	}, nil
+	return nil
 }
 
 func GetBooleanEvalComparisonResult(actual, expected bool) bool {

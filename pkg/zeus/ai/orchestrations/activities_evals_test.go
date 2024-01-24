@@ -1,12 +1,9 @@
 package ai_platform_service_orchestrations
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
@@ -24,9 +21,18 @@ func (t *ZeusWorkerTestSuite) TestEvalFnJsonConstructSchemaFromDb() {
 
 	for _, evalFnWithMetrics := range evalFns {
 		fmt.Println(evalFnWithMetrics.EvalType)
-		resp, rerr := EvalModelScoredJsonOutput(ctx, &evalFnWithMetrics)
+		rerr := act.EvalModelScoredJsonOutput(ctx, &evalFnWithMetrics)
 		t.Require().Nil(rerr)
-		t.Require().NotNil(resp)
+
+		for _, fi := range evalFnWithMetrics.Schemas {
+			for _, f := range fi.Fields {
+				for _, metric := range f.EvalMetrics {
+					t.Require().NotNil(metric.EvalMetricResult)
+					t.Require().NotNil(metric.EvalMetricResult.EvalResultOutcomeBool)
+					fmt.Println(metric.EvalMetricID, f.FieldName, *metric.EvalMetricResult.EvalResultOutcomeBool)
+				}
+			}
+		}
 	}
 }
 
@@ -82,25 +88,6 @@ type EvalMetric struct {
 	EvalMetadata            json.RawMessage   `json:"evalMetadata,omitempty"`
 }
 */
-
-func EvalModelScoredJsonOutput(ctx context.Context, evalFn *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
-	if evalFn == nil || evalFn.Schemas == nil {
-		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
-		return nil, nil
-	}
-	emr := &artemis_orchestrations.EvalMetricsResults{
-		EvalMetricsResults: []artemis_orchestrations.EvalMetric{},
-	}
-	for i, schema := range evalFn.Schemas {
-		scoredResults, err := TransformJSONToEvalScoredMetrics(schema)
-		if err != nil {
-			log.Err(err).Int("i", i).Interface("scoredResults", scoredResults).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
-			return nil, err
-		}
-		emr.EvalMetricsResults = append(emr.EvalMetricsResults, scoredResults.EvalMetricsResults...)
-	}
-	return emr, nil
-}
 
 func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)

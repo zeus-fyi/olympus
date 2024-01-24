@@ -49,9 +49,9 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 		return nil
 	}
 	for i, schema := range evalFn.Schemas {
-		scoredResults, err := TransformJSONToEvalScoredMetrics(schema)
+		err := TransformJSONToEvalScoredMetrics(schema)
 		if err != nil {
-			log.Err(err).Int("i", i).Interface("scoredResults", scoredResults).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
+			log.Err(err).Int("i", i).Interface("scoredResultsFields", schema.Fields).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
 			return err
 		}
 	}

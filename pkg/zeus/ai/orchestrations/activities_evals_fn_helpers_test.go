@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -20,9 +21,21 @@ func (t *ZeusWorkerTestSuite) TestTransformJSONToEvalScoredMetrics() {
 	t.Require().NotEmpty(evalFns)
 
 	for _, evalFnWithMetrics := range evalFns {
+		for _, fi := range evalFnWithMetrics.Schemas {
+			for fieldInd, f := range fi.Fields {
+				fmt.Println(f.FieldName, f.DataType, f.FieldValue)
+				switch f.DataType {
+				case "string":
+					fi.Fields[fieldInd].StringValue = aws.String("test")
+					fi.Fields[fieldInd].IsValidated = true
+				case "number":
+					fi.Fields[fieldInd].NumberValue = aws.Float64(1.0)
+					fi.Fields[fieldInd].IsValidated = true
+				}
+			}
+		}
 		fmt.Println(evalFnWithMetrics.EvalType)
-		resp, rerr := EvalModelScoredJsonOutput(ctx, &evalFnWithMetrics)
+		rerr := EvalModelScoredJsonOutput(ctx, &evalFnWithMetrics)
 		t.Require().Nil(rerr)
-		t.Require().NotNil(resp)
 	}
 }

@@ -3095,10 +3095,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                     <Grid item xs={12} sm={2}>
                                                                         <Box sx={{ ml: 2, mr: 0, mb: 0, mt: 0 }}>
                                                                             <FormControl fullWidth>
-                                                                                <InputLabel id={`metric-state-operator-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}>Eval State</InputLabel>
+                                                                                <InputLabel id={`eval-state-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}>Eval State</InputLabel>
                                                                                 <Select
-                                                                                    labelId={`metric-state-operator-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
-                                                                                    id={`field-metric-operator-dt-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
+                                                                                    labelId={`eval-state-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
+                                                                                    id={`eval-state-dt-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                                     value={evalMetric?.evalState || 'info'} // Default to 'info' if evalState is undefined
                                                                                     label="Eval State"
                                                                                     fullWidth
@@ -3249,9 +3249,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                             <Grid item xs={12} sm={2}>
                                                                                 <Box flexGrow={3} sx={{ ml: 4, mr: 0 }}>
                                                                                     <FormControl fullWidth>
-                                                                                        <InputLabel id="metric-action-operator">Operator </InputLabel>
+                                                                                        <InputLabel id={`metric-action-operator-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}>Operator</InputLabel>
                                                                                         <Select
-                                                                                            labelId="metric-action-operator-label"
                                                                                             id={`metric-action-operator-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                                             value={evalMetric?.evalOperator || ''}
                                                                                             label="Metric Action Operator"
@@ -3261,7 +3260,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                 // Check if an evalMetric already exists at this index; if not, create a new object
                                                                                                 let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
                                                                                                     ...updatedEvalMetrics[evalMetricIndex],
-                                                                                                    evalState: e.target.value
+                                                                                                    evalOperator: e.target.value
                                                                                                 } : {
                                                                                                     evalMetricID: undefined,
                                                                                                     evalMetricResult: undefined,
@@ -3309,7 +3308,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                             // Check if an evalMetric already exists at this index; if not, create a new object
                                                                                             let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
                                                                                                 ...updatedEvalMetrics[evalMetricIndex],
-                                                                                                evalComparisonValues: {
+                                                                                                evalMetricComparisonValues: {
                                                                                                     ...updatedEvalMetrics[evalMetricIndex].evalMetricComparisonValues,
                                                                                                     evalComparisonNumber: Number(e.target.value) // Correctly update evalComparisonNumber
                                                                                                 }
@@ -3319,7 +3318,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                 evalOperator: '',
                                                                                                 evalState: '',
                                                                                                 evalExpectedResultState: '', // Default value or logic to determine this
-                                                                                                evalComparisonValues: {
+                                                                                                evalMetricComparisonValues: {
                                                                                                     evalComparisonBoolean: undefined,
                                                                                                     evalComparisonNumber: Number(e.target.value), // Set the initial value for new metric
                                                                                                     evalComparisonString: undefined,
@@ -3350,14 +3349,17 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         // Check if an evalMetric already exists at this index; if not, create a new object
                                                                                         let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
                                                                                             ...updatedEvalMetrics[evalMetricIndex],
-                                                                                            evalState: e.target.value
+                                                                                            evalMetricComparisonValues: {
+                                                                                                ...updatedEvalMetrics[evalMetricIndex].evalMetricComparisonValues,
+                                                                                                evalComparisonBoolean: e.target.value === 'true',// Correctly update evalComparisonNumber
+                                                                                            }
                                                                                         } : {
                                                                                             evalMetricID: undefined,
                                                                                             evalMetricResult: undefined,
                                                                                             evalOperator: '', // Provide a default or existing value
                                                                                             evalState: '',
                                                                                             evalExpectedResultState: '', // Default value or logic to determine this
-                                                                                            evalComparisonValues: {
+                                                                                            evalMetricComparisonValues: {
                                                                                                 evalComparisonBoolean: e.target.value === 'true', // Convert to boolean
                                                                                                 evalComparisonNumber: undefined,
                                                                                                 evalComparisonString: undefined,
@@ -3394,14 +3396,17 @@ function WorkflowEngineBuilder(props: any) {
                                                                                             // Check if an evalMetric already exists at this index; if not, create a new object
                                                                                             let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
                                                                                                 ...updatedEvalMetrics[evalMetricIndex],
-                                                                                                evalState: e.target.value
+                                                                                                evalMetricComparisonValues: {
+                                                                                                    ...updatedEvalMetrics[evalMetricIndex].evalMetricComparisonValues,
+                                                                                                    evalComparisonString: e.target.value,
+                                                                                                }
                                                                                             } : {
                                                                                                 evalMetricID: undefined,
                                                                                                 evalMetricResult: undefined,
                                                                                                 evalOperator: '', // Provide a default or existing value
                                                                                                 evalState: '',
                                                                                                 evalExpectedResultState: '', // Default value or logic to determine this
-                                                                                                evalComparisonValues: {
+                                                                                                evalMetricComparisonValues: {
                                                                                                     evalComparisonBoolean: undefined,
                                                                                                     evalComparisonNumber: undefined,
                                                                                                     evalComparisonString: e.target.value,

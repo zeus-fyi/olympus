@@ -150,8 +150,8 @@ type EvalMetric struct {
 	EvalMetricResult           *EvalMetricResult           `json:"evalMetricResult,omitempty"`
 	EvalOperator               string                      `json:"evalOperator"`
 	EvalState                  string                      `json:"evalState"`
-	EvalExpectedResultState    string                      `json:"evalExpectedResultState"`    // true if eval passed, false if eval failed
-	EvalMetricComparisonValues *EvalMetricComparisonValues `json:"evalMetricComparisonValues"` // true if eval passed, false if eval failed
+	EvalExpectedResultState    string                      `json:"evalExpectedResultState"`
+	EvalMetricComparisonValues *EvalMetricComparisonValues `json:"evalMetricComparisonValues,omitempty"`
 }
 
 type EvalMetricComparisonValues struct {

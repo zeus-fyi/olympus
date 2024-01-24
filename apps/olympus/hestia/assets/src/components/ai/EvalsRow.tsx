@@ -24,7 +24,6 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
         // console.log('EvalRow: row', ef)
         dispatch(setEvalFn(ef))
     }
-    console.log(row)
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>

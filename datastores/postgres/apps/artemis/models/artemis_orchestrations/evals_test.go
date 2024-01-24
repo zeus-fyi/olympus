@@ -46,24 +46,6 @@ func (s *OrchestrationsTestSuite) TestEvalMetricsDeleteEvalMetricsAndTriggers() 
 							BooleanValueSlice: nil,
 							IsValidated:       false,
 						},
-
-						EvalMetric: &EvalMetric{
-							EvalMetricID: aws.Int(1704860505915566000),
-							EvalMetricResult: &EvalMetricResult{
-								EvalMetricResultID:    nil,
-								EvalResultOutcomeBool: nil,
-								EvalMetadata:          nil,
-							},
-							EvalOperator:            "", // Specific to your application logic
-							EvalState:               "", // Specific to your application logic
-							EvalExpectedResultState: "",
-							EvalMetricComparisonValues: EvalMetricComparisonValues{
-								EvalComparisonBoolean: nil,
-								EvalComparisonNumber:  nil,
-								EvalComparisonString:  nil,
-								EvalComparisonInteger: nil,
-							},
-						},
 					},
 				},
 			},
@@ -79,22 +61,6 @@ func (s *OrchestrationsTestSuite) TestEvalMetricsDeleteEvalMetricsAndTriggers() 
 						FieldDescription: "",
 						DataType:         "array[string]",
 						FieldValue:       FieldValue{},
-						EvalMetric: &EvalMetric{
-							EvalMetricID: aws.Int(1704860505860438001),
-							EvalMetricResult: &EvalMetricResult{
-								EvalMetricResultID:    nil,
-								EvalResultOutcomeBool: nil,
-								EvalMetadata:          nil,
-							}, // This would be set based on actual evaluation results
-							EvalMetricComparisonValues: EvalMetricComparisonValues{
-								EvalComparisonBoolean: nil,
-								EvalComparisonNumber:  nil,
-								EvalComparisonString:  nil,
-								EvalComparisonInteger: nil,
-							},
-							EvalOperator: "", // Specific to your application logic
-							EvalState:    "", // Specific to your application logic
-						},
 					},
 				},
 			},
@@ -139,41 +105,12 @@ func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchema() {
 						FieldName:        "aggregate_lead_score",
 						FieldDescription: "aggregate_lead_score description",
 						DataType:         "number",
-						EvalMetric: &EvalMetric{
-							EvalMetricID: aws.Int(1705814469816703000),
-							EvalMetricResult: &EvalMetricResult{
-								EvalMetricResultID:    aws.Int(420),
-								EvalResultOutcomeBool: aws.Bool(true),
-								EvalMetadata:          nil,
-							},
-							EvalOperator: "gt",
-							EvalState:    "filter",
-							EvalMetricComparisonValues: EvalMetricComparisonValues{
-								EvalComparisonBoolean: nil,
-								EvalComparisonNumber:  aws.Float64(420),
-								EvalComparisonString:  nil,
-								EvalComparisonInteger: nil,
-							},
-							EvalExpectedResultState: "pass",
-						},
 					},
 					{
 						FieldID:          1705808653789520000,
 						FieldName:        "lead_score_metrics",
 						FieldDescription: "lead_score_metrics description",
 						DataType:         "array[string]",
-						EvalMetric: &EvalMetric{
-							EvalMetricID:     aws.Int(1705812088549786000),
-							EvalMetricResult: nil,
-							EvalOperator:     "equals",
-							EvalState:        "info",
-							EvalMetricComparisonValues: EvalMetricComparisonValues{
-								EvalComparisonBoolean: nil,
-								EvalComparisonString:  aws.String("test"),
-								EvalComparisonInteger: nil,
-							},
-							EvalExpectedResultState: "fail",
-						},
 					},
 				},
 			},
@@ -188,19 +125,6 @@ func (s *OrchestrationsTestSuite) TestInsertEvalWithJsonSchema() {
 						FieldName:        "msg_ids",
 						FieldDescription: "system message ids",
 						DataType:         "array[number]",
-						EvalMetric: &EvalMetric{
-							EvalMetricID: aws.Int(1705812088550290000),
-							EvalMetricResult: &EvalMetricResult{
-								EvalMetricResultID:    nil,
-								EvalResultOutcomeBool: aws.Bool(true),
-								EvalMetadata:          nil,
-							},
-							EvalOperator: "lt",
-							EvalMetricComparisonValues: EvalMetricComparisonValues{
-								EvalComparisonNumber: aws.Float64(12),
-							},
-							EvalState: "error",
-						},
 					},
 				},
 			},
@@ -250,23 +174,6 @@ func (s *OrchestrationsTestSuite) TestInsertEval() {
 							BooleanValueSlice: nil,
 							IsValidated:       false,
 						},
-						EvalMetric: &EvalMetric{
-							EvalMetricID: nil,
-							EvalMetricResult: &EvalMetricResult{
-								EvalMetricResultID:    nil,
-								EvalResultOutcomeBool: nil,
-								EvalMetadata:          nil,
-							},
-							EvalOperator:            "", // Specific to your application logic
-							EvalState:               "", // Specific to your application logic
-							EvalExpectedResultState: "",
-							EvalMetricComparisonValues: EvalMetricComparisonValues{
-								EvalComparisonBoolean: nil,
-								EvalComparisonNumber:  nil,
-								EvalComparisonString:  nil,
-								EvalComparisonInteger: nil,
-							},
-						},
 					},
 				},
 			},
@@ -282,23 +189,6 @@ func (s *OrchestrationsTestSuite) TestInsertEval() {
 						FieldDescription: "",
 						DataType:         "array[string]",
 						FieldValue:       FieldValue{},
-						EvalMetric: &EvalMetric{
-							EvalMetricID: nil,
-							EvalMetricResult: &EvalMetricResult{
-								EvalMetricResultID:    nil,
-								EvalResultOutcomeBool: nil,
-								EvalMetadata:          nil,
-							}, // This would be set based on actual evaluation results
-							EvalOperator:            "filter", // Specific to your application logic
-							EvalState:               "info",   // Specific to your application logic
-							EvalExpectedResultState: "",
-							EvalMetricComparisonValues: EvalMetricComparisonValues{
-								EvalComparisonBoolean: nil,
-								EvalComparisonNumber:  nil,
-								EvalComparisonString:  nil,
-								EvalComparisonInteger: nil,
-							},
-						},
 					},
 				},
 			},

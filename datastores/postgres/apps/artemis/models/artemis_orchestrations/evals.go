@@ -86,19 +86,28 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 					metric.EvalMetricComparisonValues = &EvalMetricComparisonValues{}
 				}
 				evalMetricInsertOrUpdateQuery := `
-        INSERT INTO eval_metrics (eval_metric_id, eval_id, field_id, eval_metric_result, eval_comparison_boolean, eval_comparison_number, eval_comparison_string, eval_operator, eval_state)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO eval_metrics (eval_metric_id, eval_id, field_id, eval_metric_result,
+                                  eval_comparison_integer, eval_comparison_boolean, eval_comparison_number, eval_comparison_string, eval_operator, eval_state)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         ON CONFLICT (eval_metric_id) DO UPDATE SET
             eval_metric_result = EXCLUDED.eval_metric_result,
+            eval_comparison_integer = EXCLUDED.eval_comparison_integer,
             eval_comparison_boolean = EXCLUDED.eval_comparison_boolean,
             eval_comparison_number = EXCLUDED.eval_comparison_number,
             eval_comparison_string = EXCLUDED.eval_comparison_string,
             eval_operator = EXCLUDED.eval_operator,
             eval_state = EXCLUDED.eval_state;`
-				_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery, metric.EvalMetricID, evalFn.EvalID, field.FieldID,
+				_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery,
+					metric.EvalMetricID,
+					evalFn.EvalID,
+					field.FieldID,
 					metric.EvalExpectedResultState,
-					metric.EvalMetricComparisonValues.EvalComparisonBoolean, metric.EvalMetricComparisonValues.EvalComparisonNumber, metric.EvalMetricComparisonValues.EvalComparisonString,
-					metric.EvalOperator, metric.EvalState)
+					metric.EvalMetricComparisonValues.EvalComparisonInteger,
+					metric.EvalMetricComparisonValues.EvalComparisonBoolean,
+					metric.EvalMetricComparisonValues.EvalComparisonNumber,
+					metric.EvalMetricComparisonValues.EvalComparisonString,
+					metric.EvalOperator,
+					metric.EvalState)
 				if err != nil {
 					log.Err(err).Msg("failed to insert or update eval_metrics")
 					return err

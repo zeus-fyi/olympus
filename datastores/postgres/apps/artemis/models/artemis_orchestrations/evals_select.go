@@ -34,7 +34,6 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 					m.eval_id,
 					JSONB_AGG(
 						JSONB_BUILD_OBJECT(
-							'evalMetric', JSONB_BUILD_OBJECT(
 								'evalMetricID', COALESCE(m.eval_metric_id, 0),
 								'evalExpectedResultState', COALESCE(m.eval_metric_result, ''),
 								'evalComparisonBoolean', COALESCE(m.eval_comparison_boolean, FALSE),
@@ -43,7 +42,6 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 								'evalOperator', COALESCE(m.eval_operator, ''),
 								'evalState', COALESCE(m.eval_state, '')
 							)
-						)
 					) AS fields_metrics_jsonb
 				FROM public.eval_fns f
 				JOIN public.eval_metrics m ON m.eval_id = f.eval_id
@@ -59,7 +57,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 							'fieldName', COALESCE(af.field_name, ''),
 							'fieldDescription', COALESCE(af.field_description, ''),
 							'dataType', COALESCE(af.data_type, ''),
-							'evalMetric', fm.fields_metrics_jsonb -> 0 -> 'evalMetric'
+							'evalMetrics', fm.fields_metrics_jsonb
 						)
 					) AS fields_jsonb
 				FROM public.ai_fields af

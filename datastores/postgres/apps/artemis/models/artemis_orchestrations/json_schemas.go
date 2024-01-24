@@ -199,6 +199,20 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) (*JsonSche
 			s.Fields = append(s.Fields, field)
 		} else {
 			// If new schema, initialize and add to map
+			field.EvalMetrics = []*EvalMetric{
+				{
+					EvalMetricID:            nil,
+					EvalOperator:            "",
+					EvalState:               "",
+					EvalExpectedResultState: "",
+					EvalMetricComparisonValues: &EvalMetricComparisonValues{
+						EvalComparisonBoolean: nil,
+						EvalComparisonNumber:  nil,
+						EvalComparisonString:  nil,
+						EvalComparisonInteger: nil,
+					},
+				},
+			}
 			schema.Fields = append(schema.Fields, field)
 			schemaMap[schema.SchemaID] = &schema
 		}

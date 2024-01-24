@@ -3030,226 +3030,6 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                     </Stack>
                                                     }
-                                                    {/*{ evalFn && evalFn.evalType === 'deprecated' &&*/}
-                                                    {/*<Stack direction="column" >*/}
-                                                    {/*    <Stack direction="row" >*/}
-                                                    {/*        <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:2  }}>*/}
-                                                    {/*            <TextField*/}
-                                                    {/*                fullWidth*/}
-                                                    {/*                id="metric-name"*/}
-                                                    {/*                label="Metric Name"*/}
-                                                    {/*                variant="outlined"*/}
-                                                    {/*                value={evalMetric.evalMetricName}*/}
-                                                    {/*                onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                    ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                    evalMetricName: e.target.value // Update the actionName*/}
-                                                    {/*                }))}*/}
-                                                    {/*            />*/}
-                                                    {/*        </Box>*/}
-                                                    {/*        <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:2  }}>*/}
-                                                    {/*            <FormControl fullWidth >*/}
-                                                    {/*                <InputLabel id="metric-state-operator">State</InputLabel>*/}
-                                                    {/*                <Select*/}
-                                                    {/*                    labelId="metric-state-operator-label"*/}
-                                                    {/*                    id="metric-state-operator-label"*/}
-                                                    {/*                    value={evalMetric.evalState}*/}
-                                                    {/*                    label="Metric State Operator"*/}
-                                                    {/*                    fullWidth*/}
-                                                    {/*                    onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                        ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                        evalState: e.target.value // Update the actionName*/}
-                                                    {/*                    }))}*/}
-                                                    {/*                >*/}
-                                                    {/*                    <MenuItem value="info">{'info'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="filter">{'filter'}</MenuItem>*/}
-                                                    {/*                    /!*<MenuItem value="optional">{'optional'}</MenuItem>*!/*/}
-                                                    {/*                    /!*<MenuItem value="warning">{'warning'}</MenuItem>*!/*/}
-                                                    {/*                    /!*<MenuItem value="critical">{'critical'}</MenuItem>*!/*/}
-                                                    {/*                    <MenuItem value="error">{'error'}</MenuItem>*/}
-                                                    {/*                </Select>*/}
-                                                    {/*            </FormControl>*/}
-                                                    {/*        </Box>*/}
-                                                    {/*        <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:2  }}>*/}
-                                                    {/*            <FormControl fullWidth >*/}
-                                                    {/*                <InputLabel id="eval-metric-type">Metric Data Type</InputLabel>*/}
-                                                    {/*                <Select*/}
-                                                    {/*                    labelId="eval-metric-type-label"*/}
-                                                    {/*                    id="eval-metric-type-label"*/}
-                                                    {/*                    value={evalMetric.evalMetricDataType}*/}
-                                                    {/*                    label="Eval Metric Type"*/}
-                                                    {/*                    fullWidth*/}
-                                                    {/*                    onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                        ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                        evalMetricDataType: e.target.value // Update the actionName*/}
-                                                    {/*                    }))}*/}
-                                                    {/*                >*/}
-                                                    {/*                    <MenuItem value="integer">{'integer'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="number">{'number'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="string">{'string'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="boolean">{'boolean'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="array[integer]">{'array[integer]'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="array[boolean]">{'array[boolean]'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="array[number]">{'array[number]'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="array[string]">{'array[string]'}</MenuItem>*/}
-                                                    {/*                </Select>*/}
-                                                    {/*            </FormControl>*/}
-                                                    {/*        </Box>*/}
-                                                    {/*        {( evalMetric.evalMetricDataType === 'boolean' || evalMetric.evalMetricDataType === 'array[boolean]') &&*/}
-                                                    {/*            <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:2  }}>*/}
-                                                    {/*                <FormControl fullWidth >*/}
-                                                    {/*                    <InputLabel id="metric-action-operator">Operator</InputLabel>*/}
-                                                    {/*                    <Select*/}
-                                                    {/*                        labelId="metric-action-operator-label"*/}
-                                                    {/*                        id="metric-action-operator-label"*/}
-                                                    {/*                        value={evalMetric.evalComparisonBoolean}*/}
-                                                    {/*                        label="Metric Action Operator"*/}
-                                                    {/*                        fullWidth*/}
-                                                    {/*                        onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                            ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                            evalComparisonBoolean: e.target.value === 'true'// Update the actionName*/}
-                                                    {/*                        }))}*/}
-                                                    {/*                    >*/}
-                                                    {/*                        <MenuItem value="true">{'true'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="false">{'false'}</MenuItem>*/}
-                                                    {/*                    </Select>*/}
-                                                    {/*                </FormControl>*/}
-                                                    {/*            </Box>*/}
-                                                    {/*        }*/}
-                                                    {/*        { (evalMetric.evalMetricDataType === 'number' || evalMetric.evalMetricDataType === 'array[number]'*/}
-                                                    {/*                || evalMetric.evalMetricDataType === 'integer' || evalMetric.evalMetricDataType === 'array[integer]'*/}
-                                                    {/*            ) &&*/}
-                                                    {/*        <Box flexGrow={7} >*/}
-                                                    {/*            <FormControl fullWidth >*/}
-                                                    {/*                <InputLabel id="metric-action-operator">Operator</InputLabel>*/}
-                                                    {/*                <Select*/}
-                                                    {/*                    labelId="metric-action-operator-label"*/}
-                                                    {/*                    id="metric-action-operator-label"*/}
-                                                    {/*                    value={evalMetric.evalOperator}*/}
-                                                    {/*                    label="Metric Action Operator"*/}
-                                                    {/*                    fullWidth*/}
-                                                    {/*                    onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                        ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                        evalOperator: e.target.value // Update the actionName*/}
-                                                    {/*                    }))}*/}
-                                                    {/*                >*/}
-                                                    {/*                    <MenuItem value="gt">{'>'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="gte">{'>='}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="lt">{'<'}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="lte">{'<='}</MenuItem>*/}
-                                                    {/*                    <MenuItem value="eq">{'=='}</MenuItem>*/}
-                                                    {/*                </Select>*/}
-                                                    {/*            </FormControl>*/}
-                                                    {/*        </Box>*/}
-                                                    {/*        }*/}
-                                                    {/*        { evalMetric && (evalMetric.evalMetricDataType === 'string' || evalMetric.evalMetricDataType === 'array[string]') &&*/}
-                                                    {/*            <Box flexGrow={7} sx={{ mb: 2,ml: 0, mr:2  }}>*/}
-                                                    {/*                <FormControl fullWidth >*/}
-                                                    {/*                    <InputLabel id="metric-action-operator">Operator</InputLabel>*/}
-                                                    {/*                    <Select*/}
-                                                    {/*                        labelId="metric-action-operator-label"*/}
-                                                    {/*                        id="metric-action-operator-label"*/}
-                                                    {/*                        value={evalMetric.evalOperator}*/}
-                                                    {/*                        label="Metric Action Operator"*/}
-                                                    {/*                        fullWidth*/}
-                                                    {/*                        onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                            ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                            evalOperator: e.target.value // Update the actionName*/}
-                                                    {/*                        }))}*/}
-                                                    {/*                    >*/}
-                                                    {/*                        {evalMetric.evalMetricDataType === 'array[string]' &&*/}
-                                                    {/*                            <MenuItem value="all-unique-words">{'all-unique-words'}</MenuItem>*/}
-                                                    {/*                        }*/}
-                                                    {/*                        <MenuItem value="contains">{'contains'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="has-prefix">{'has-prefix'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="has-suffix">{'has-suffix'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="does-not-start-with-any">{'does-not-start-with'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="does-not-include">{'does-not-include'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="equals">{'equals'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="length-less-than">{'length-less-than'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="length-less-than-eq">{'length-less-than-eq'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="length-greater-than">{'length-greater-than'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="length-greater-than-eq">{'length-greater-than-eq'}</MenuItem>*/}
-                                                    {/*                        <MenuItem value="length-eq">{'length-eq'}</MenuItem>*/}
-                                                    {/*                    </Select>*/}
-                                                    {/*                </FormControl>*/}
-                                                    {/*            </Box>*/}
-                                                    {/*        }*/}
-                                                    {/*        { (evalMetric.evalMetricDataType === 'number' || evalMetric.evalMetricDataType === 'array[number]'*/}
-                                                    {/*                || evalMetric.evalMetricDataType === 'integer' || evalMetric.evalMetricDataType === 'array[integer]'*/}
-                                                    {/*                || (evalMetric.evalOperator == 'unique-words') || (evalMetric.evalOperator == 'length-eq')*/}
-                                                    {/*            ) &&*/}
-                                                    {/*        <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:2  }}>*/}
-                                                    {/*            <TextField*/}
-                                                    {/*                fullWidth*/}
-                                                    {/*                id="eval-comparison-value"*/}
-                                                    {/*                label="Comparison Value"*/}
-                                                    {/*                variant="outlined"*/}
-                                                    {/*                type={"number"}*/}
-                                                    {/*                value={evalMetric && evalMetric.evalComparisonNumber || 0}*/}
-                                                    {/*                onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                    ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                    evalComparisonNumber: Number(e.target.value) // Update the actionName*/}
-                                                    {/*                }))}*/}
-                                                    {/*            />*/}
-                                                    {/*        </Box>*/}
-                                                    {/*        }*/}
-                                                    {/*        { (evalMetric.evalMetricDataType === 'string'|| evalMetric.evalMetricDataType === 'array[string]') &&*/}
-                                                    {/*            (evalMetric.evalOperator !== 'all-unique-words') &&  (evalMetric.evalOperator != 'length-eq') &&*/}
-                                                    {/*            <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>*/}
-                                                    {/*                <TextField*/}
-                                                    {/*                    fullWidth*/}
-                                                    {/*                    id="eval-comparison-string"*/}
-                                                    {/*                    label="Comparison String"*/}
-                                                    {/*                    variant="outlined"*/}
-                                                    {/*                    value={evalMetric && evalMetric.evalComparisonString || ''}*/}
-                                                    {/*                    onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                        ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                        evalComparisonString: e.target.value // Update the actionName*/}
-                                                    {/*                    }))}*/}
-                                                    {/*                />*/}
-                                                    {/*            </Box>*/}
-                                                    {/*        }*/}
-                                                    {/*        <Box flexGrow={3} sx={{ mb: 0,ml: 0, mr:2  }}>*/}
-                                                    {/*            <FormControl fullWidth>*/}
-                                                    {/*                <InputLabel id="eval-result">Result</InputLabel>*/}
-                                                    {/*                <Select*/}
-                                                    {/*                    labelId="eval-result-label"*/}
-                                                    {/*                    id="eval-result-label"*/}
-                                                    {/*                    value={evalMetric.evalMetricResult}*/}
-                                                    {/*                    label="Result"*/}
-                                                    {/*                    fullWidth*/}
-                                                    {/*                    onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                        ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                        evalMetricResult: e.target.value // Update the metricOperator*/}
-                                                    {/*                    }))}*/}
-                                                    {/*                >*/}
-                                                    {/*                    <MenuItem value="pass">Pass</MenuItem>*/}
-                                                    {/*                    <MenuItem value="fail">Fail</MenuItem>*/}
-                                                    {/*                </Select>*/}
-                                                    {/*            </FormControl>*/}
-                                                    {/*        </Box>*/}
-                                                    {/*        <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 0, mr:0  }}>*/}
-                                                    {/*            <Button fullWidth variant={"contained"} onClick={addEvalMetricRow}>Add</Button>*/}
-                                                    {/*        </Box>*/}
-                                                    {/*        <Box flexGrow={2} sx={{ mt:1, mb: 0,ml: 2, mr:0  }}>*/}
-                                                    {/*            <Button fullWidth variant={"contained"} onClick={clearEvalMetricRow}>Clear</Button>*/}
-                                                    {/*        </Box>*/}
-                                                    {/*        </Stack>*/}
-                                                    {/*    { evalFn.evalType == 'model' &&*/}
-                                                    {/*        <Box  sx={{ mb: 2, mt: 2 }}>*/}
-                                                    {/*            <TextareaAutosize*/}
-                                                    {/*                minRows={18}*/}
-                                                    {/*                value={evalMetric.evalModelPrompt}*/}
-                                                    {/*                onChange={(e) => dispatch(setEvalMetric({*/}
-                                                    {/*                    ...evalMetric, // Spread the existing action properties*/}
-                                                    {/*                    evalModelPrompt: e.target.value // Update the metricOperator*/}
-                                                    {/*                }))}*/}
-                                                    {/*                style={{ resize: "both", width: "100%" }}*/}
-                                                    {/*            />*/}
-                                                    {/*        </Box>*/}
-                                                    {/*    }*/}
-                                                    {/*</Stack>*/}
-                                                    {/*}*/}
                                                     {evalFn && evalFn.schemas && evalFn.schemas.length > 0 && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
                                                         <div key={dataIndex}>
                                                             <Stack direction="row">
@@ -3305,7 +3085,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     <Grid item xs={12} sm={3}>
                                                                         <TextField
                                                                             fullWidth
-                                                                            id={`field-metric-name-${dataIndex}-${fieldIndex}`}
+                                                                            id={`field-metric-name-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                             label="Eval Metric Name"
                                                                             variant="outlined"
                                                                             value={field.fieldName}
@@ -3315,10 +3095,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                     <Grid item xs={12} sm={2}>
                                                                         <Box sx={{ ml: 2, mr: 0, mb: 0, mt: 0 }}>
                                                                             <FormControl fullWidth>
-                                                                                <InputLabel id={`metric-state-operator-label-${dataIndex}-${fieldIndex}`}>Eval State</InputLabel>
+                                                                                <InputLabel id={`metric-state-operator-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}>Eval State</InputLabel>
                                                                                 <Select
-                                                                                    labelId={`metric-state-operator-label-${dataIndex}-${fieldIndex}`}
-                                                                                    id={`field-metric-operator-dt-${dataIndex}-${fieldIndex}`}
+                                                                                    labelId={`metric-state-operator-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
+                                                                                    id={`field-metric-operator-dt-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                                     value={evalMetric?.evalState || 'info'} // Default to 'info' if evalState is undefined
                                                                                     label="Eval State"
                                                                                     fullWidth
@@ -3363,7 +3143,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 <InputLabel id="eval-result">Result</InputLabel>
                                                                                 <Select
                                                                                     labelId="eval-result-label"
-                                                                                    id={`field-eval-metric-result-${dataIndex}-${fieldIndex}`}
+                                                                                    id={`field-eval-metric-result-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                                     value={evalMetric && evalMetric.evalExpectedResultState || 'ignore'}
                                                                                     label="Result"
                                                                                     fullWidth
@@ -3404,7 +3184,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                         <TextField
                                                                             sx={{ ml: 2, mr:0  }}
                                                                             fullWidth
-                                                                            id={`field-metric-name-dt-${dataIndex}-${fieldIndex}`}
+                                                                            id={`field-metric-name-dt-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                             label="Data Type"
                                                                             variant="outlined"
                                                                             value={field.dataType}
@@ -3418,7 +3198,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 <InputLabel id="metric-action-operator">Operator</InputLabel>
                                                                                 <Select
                                                                                     labelId="metric-action-operator-label"
-                                                                                    id={`metric-action-operator-label-${dataIndex}-${fieldIndex}`}
+                                                                                    id={`metric-action-operator-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                                     value={evalMetric?.evalOperator || ''}
                                                                                     label="Metric Action Operator"
                                                                                     fullWidth
@@ -3472,7 +3252,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         <InputLabel id="metric-action-operator">Operator </InputLabel>
                                                                                         <Select
                                                                                             labelId="metric-action-operator-label"
-                                                                                            id={`metric-action-operator-label-${dataIndex}-${fieldIndex}`}
+                                                                                            id={`metric-action-operator-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                                             value={evalMetric?.evalOperator || ''}
                                                                                             label="Metric Action Operator"
                                                                                             fullWidth
@@ -3518,11 +3298,12 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>
                                                                                     <TextField
                                                                                         fullWidth
-                                                                                        id="eval-comparison-value"
+                                                                                        id={`eval-comparison-value--${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                                         label="Comparison Number"
                                                                                         variant="outlined"
                                                                                         type={"number"}
-                                                                                        value={evalMetric.evalMetricComparisonValues && evalMetric.evalMetricComparisonValues.evalComparisonNumber|| 0}
+                                                                                        value={evalMetric.evalMetricComparisonValues && evalMetric.evalMetricComparisonValues.evalComparisonNumber ?
+                                                                                            evalMetric.evalMetricComparisonValues.evalComparisonNumber : 0}
                                                                                         onChange={(e) => {
                                                                                             let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
                                                                                             // Check if an evalMetric already exists at this index; if not, create a new object
@@ -3557,7 +3338,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             <Box flexGrow={1} sx={{ mb: 0, ml: 2, mr: 0 }}>
                                                                                 <TextField
                                                                                     fullWidth
-                                                                                    id="eval-comparison-value"
+                                                                                    id={`eval-comparison-bool--${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                                     label="Comparison Boolean"
                                                                                     variant="outlined"
                                                                                     type="number"
@@ -3602,7 +3383,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>
                                                                                     <TextField
                                                                                         fullWidth
-                                                                                        id="eval-comparison-string"
+                                                                                        id={`eval-comparison-string--${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
                                                                                         label="Comparison String"
                                                                                         variant="outlined"
                                                                                         value={evalMetric.evalMetricComparisonValues?.evalComparisonString || ''}

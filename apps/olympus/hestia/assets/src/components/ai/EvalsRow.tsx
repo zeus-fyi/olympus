@@ -80,7 +80,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Schema ID</TableCell>
-                                        {/*<TableCell>Metric ID</TableCell>*/}
+                                        <TableCell>Metric ID</TableCell>
                                         <TableCell>Metric Name</TableCell>
                                         <TableCell>Description</TableCell>
                                         <TableCell>Data Type</TableCell>
@@ -102,12 +102,13 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                             field.evalMetrics.map((evalMetric, evalMetricIndex) => (
                                                                 <TableRow key={`${fieldIndex}-${evalMetricIndex}`}>
                                                                     <TableCell>{schema.schemaID}</TableCell>
+                                                                    <TableCell>{evalMetric.evalMetricID !== undefined ? evalMetric.evalMetricID  : 0}</TableCell>
                                                                     <TableCell>{field.fieldName}</TableCell>
                                                                     <TableCell>{field.fieldDescription}</TableCell>
                                                                     <TableCell>{field.dataType}</TableCell>
                                                                     <TableCell>{evalMetric.evalOperator !== undefined ? evalMetric.evalOperator : 'N/A'}</TableCell>
                                                                     <TableCell>{evalMetric.evalState}</TableCell>
-                                                                    {/*<TableCell>{evalMetric.evalMetricResult}</TableCell>*/}
+                                                                    <TableCell>{evalMetric.evalExpectedResultState}</TableCell>
                                                                 </TableRow>
                                                             ))
                                                         ) : null

@@ -35,7 +35,7 @@ func (t *ZeusWorkerTestSuite) TestTransformJSONToEvalScoredMetrics() {
 			}
 		}
 		fmt.Println(evalFnWithMetrics.EvalType)
-		rerr := EvalModelScoredJsonOutput(ctx, &evalFnWithMetrics)
+		rerr := act.EvalModelScoredJsonOutput(ctx, &evalFnWithMetrics)
 		t.Require().Nil(rerr)
 	}
 }

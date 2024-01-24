@@ -37,18 +37,17 @@ export type UpdateEvalMapPayload = {
 
 export interface EvalFn {
     evalID?: number;
-    orgID?: number;
-    userID?: number;
     evalName: string;
     evalType: string;
     evalGroupName: string;
-    evalModel?: string;
+    evalModel: string;
     evalFormat: string;
+    evalMetric?: EvalMetric;
     evalCycleCount?: number;
     evalMetrics: EvalMetric[];
     triggerFunctions?: TriggerAction[];
-    schemas: JsonSchemaDefinition[];
-    schemasMap: { [key: number]: JsonSchemaDefinition };
+    schemas?: JsonSchemaDefinition[];
+    schemasMap?: { [key: number]: JsonSchemaDefinition };
 }
 
 export interface EvalMetric {
@@ -57,7 +56,7 @@ export interface EvalMetric {
     evalOperator: string;
     evalState: string;
     evalExpectedResultState: string;
-    evalComparisonValues: EvalMetricComparisonValues;
+    evalMetricComparisonValues?: EvalMetricComparisonValues;
 }
 
 export interface EvalMetricComparisonValues {

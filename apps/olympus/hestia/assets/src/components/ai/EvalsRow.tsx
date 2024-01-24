@@ -24,7 +24,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
         // console.log('EvalRow: row', ef)
         dispatch(setEvalFn(ef))
     }
-    // console.log(row)
+    console.log(row)
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -80,13 +80,13 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Schema ID</TableCell>
-                                        {/*<TableCell>Metric ID</TableCell>*/}
+                                        <TableCell>Metric ID</TableCell>
                                         <TableCell>Metric Name</TableCell>
                                         <TableCell>Description</TableCell>
                                         <TableCell>Data Type</TableCell>
-                                        {/*<TableCell>Operator</TableCell>*/}
-                                        {/*<TableCell>Eval State</TableCell>*/}
-                                        {/*<TableCell>Expected Result</TableCell>*/}
+                                        <TableCell>Operator</TableCell>
+                                        <TableCell>Eval State</TableCell>
+                                        <TableCell>Expected Result</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -95,37 +95,28 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                             row.schemas.map((schema, schemaIndex) => (
                                                 <React.Fragment key={schemaIndex}>
                                                     <TableRow>
-                                                        <TableCell >{schema.schemaName} </TableCell>
+                                                        <TableCell>{schema.schemaName}</TableCell>
                                                     </TableRow>
                                                     {schema.fields && schema.fields.map((field, fieldIndex) => (
-                                                        field.evalMetric ? (
-                                                            <TableRow key={fieldIndex}>
-                                                                <TableCell>{schema.schemaID}</TableCell>
-                                                                {/*<TableCell>{field.evalMetric && field.evalMetric. ? field.evalMetric.evalMetricID : 'N/A'}</TableCell>*/}
-                                                                <TableCell>{field.fieldName}</TableCell>
-                                                                <TableCell>{field.fieldDescription}</TableCell>
-                                                                <TableCell>{field.dataType}</TableCell>
-                                                                {/*<TableCell>{field.evalMetric.evalOperator !== '' ? field.evalMetric.evalOperator: 'N/A'}</TableCell>*/}
-                                                                {/*<TableCell>{field.evalMetric.evalState}</TableCell>*/}
-                                                                {/*<TableCell>{field.evalMetric.evalMetricResult}</TableCell>*/}
-                                                            </TableRow>
+                                                        field.evalMetrics && field.evalMetrics.length > 0 ? (
+                                                            field.evalMetrics.map((evalMetric, evalMetricIndex) => (
+                                                                <TableRow key={`${fieldIndex}-${evalMetricIndex}`}>
+                                                                    <TableCell>{schema.schemaID}</TableCell>
+                                                                    <TableCell>{evalMetric.evalMetricID !== undefined ? evalMetric.evalMetricID  : 0}</TableCell>
+                                                                    <TableCell>{field.fieldName}</TableCell>
+                                                                    <TableCell>{field.fieldDescription}</TableCell>
+                                                                    <TableCell>{field.dataType}</TableCell>
+                                                                    <TableCell>{evalMetric.evalOperator !== undefined ? evalMetric.evalOperator : 'N/A'}</TableCell>
+                                                                    <TableCell>{evalMetric.evalState}</TableCell>
+                                                                    <TableCell>{evalMetric.evalExpectedResultState}</TableCell>
+                                                                </TableRow>
+                                                            ))
                                                         ) : null
                                                     ))}
                                                 </React.Fragment>
                                             )) : null
-                                            // row.evalMetrics && row.evalMetrics.map((data, dataIndex) => (
-                                            //     <TableRow key={data.evalMetricName}>
-                                            //         <TableCell>{data.jsonSchemaID ? data.jsonSchemaID : 'N/A'}</TableCell>
-                                            //         <TableCell>{data.evalMetricID ? data.evalMetricID : 'N/A'}</TableCell>
-                                            //         <TableCell>{data.evalMetricName}</TableCell>
-                                            //         <TableCell>{data.evalModelPrompt}</TableCell>
-                                            //         <TableCell>{data.evalMetricDataType}</TableCell>
-                                            //         <TableCell>{data.evalOperator}</TableCell>
-                                            //         <TableCell>{data.evalState}</TableCell>
-                                            //         <TableCell>{data.evalMetricResult}</TableCell>
-                                            //     </TableRow>
-                                            // ))
                                     }
+
                                 </TableBody>
                             </Table>
                         </Box>

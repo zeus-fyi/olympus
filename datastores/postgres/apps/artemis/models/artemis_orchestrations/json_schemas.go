@@ -26,7 +26,6 @@ type JsonSchemaField struct {
 	DataType         string `db:"data_type" json:"dataType"`
 	FieldValue
 	EvalMetrics []*EvalMetric `db:"-" json:"evalMetrics,omitempty"`
-	EvalMetric  *EvalMetric   `db:"-" json:"evalMetricResult,omitempty"`
 }
 
 type FieldValue struct {

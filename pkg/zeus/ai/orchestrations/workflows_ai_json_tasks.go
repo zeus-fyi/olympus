@@ -116,6 +116,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		if anyErr != nil {
 			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")
 			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
+			tte.Wr.SkipAnalysis = true
 			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.Response).Get(recordTaskCtx, nil)
 			if err != nil {
 				logger.Error("failed to save task output", "Error", err)

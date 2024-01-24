@@ -36,7 +36,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 						JSONB_BUILD_OBJECT(
 							'evalMetric', JSONB_BUILD_OBJECT(
 								'evalMetricID', COALESCE(m.eval_metric_id, 0),
-								'evalMetricResult', COALESCE(m.eval_metric_result, ''),
+								'evalExpectedResultState', COALESCE(m.eval_metric_result, ''),
 								'evalComparisonBoolean', COALESCE(m.eval_comparison_boolean, FALSE),
 								'evalComparisonNumber', COALESCE(m.eval_comparison_number, 0.0),
 								'evalComparisonString', COALESCE(m.eval_comparison_string, ''),
@@ -71,8 +71,6 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			), eval_fns_with_metrics AS (
 				SELECT 
 					f.eval_id, 
-					f.org_id,
-					f.user_id, 
 					f.eval_name, 
 					f.eval_type, 
 					f.eval_group_name, 
@@ -90,22 +88,31 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				FROM public.eval_fns f
 				LEFT JOIN cte_fields_and_metrics fm ON f.eval_id = fm.eval_id
 				LEFT JOIN public.ai_json_schema_definitions jsd ON fm.schema_id = jsd.schema_id
-				WHERE f.org_id = $1 ` + addOnQuery + `
-				GROUP BY f.eval_id, f.org_id, f.user_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format
-			), 
+				GROUP BY f.eval_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format
+			),
+						cte_eval_fn_slice AS (
+							SELECT 
+								ct.eval_id,
+							 ct.metrics_jsonb AS eval_fn_metrics_jsonb
+							FROM 
+								eval_fns_with_metrics ct
+							JOIN eval_fns evf ON evf.eval_id = ct.eval_id
+							GROUP BY 
+							ct.eval_id, ct.metrics_jsonb
+						),
 			cte_triggers AS (
 				SELECT 
 					em.eval_id,
 					JSONB_AGG(
-					JSONB_BUILD_OBJECT(
-						'triggerID', COALESCE(tab.trigger_id, 0),
-						'triggerName', COALESCE(tab.trigger_name, ''),
-						'triggerGroup', COALESCE(tab.trigger_group, ''),
-						'triggerAction', COALESCE(tab.trigger_action, ''),
-						'evalTriggerState', COALESCE(ta.eval_trigger_state, ''),
-						'evalResultsTriggerOn', COALESCE(ta.eval_results_trigger_on, '')
-					)
-				) AS triggers_list
+						JSONB_BUILD_OBJECT(
+							'triggerID', COALESCE(tab.trigger_id, 0),
+							'triggerName', COALESCE(tab.trigger_name, ''),
+							'triggerGroup', COALESCE(tab.trigger_group, ''),
+							'triggerAction', COALESCE(tab.trigger_action, ''),
+							'evalTriggerState', COALESCE(ta.eval_trigger_state, ''),
+							'evalResultsTriggerOn', COALESCE(ta.eval_results_trigger_on, '')
+						)
+					) AS triggers_list
 				FROM eval_fns_with_metrics em
 				JOIN public.ai_trigger_actions_evals tae ON em.eval_id = tae.eval_id
 				JOIN public.ai_trigger_eval ta ON ta.trigger_id = tae.trigger_id
@@ -114,17 +121,16 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			)
 			SELECT 
 				em.eval_id, 
-				em.org_id, 
-				em.user_id, 
-				em.eval_name, 
-				em.eval_type, 
-				em.eval_group_name, 
-				em.eval_model, 
-				em.eval_format,
+								em.eval_name, 
+								em.eval_type, 
+								em.eval_group_name, 
+								em.eval_model, 
+								em.eval_format,
 				ct.triggers_list AS triggers_list, 
-				COALESCE(em.metrics_jsonb, '[]'::jsonb) AS json_schemas
+				COALESCE(cs.eval_fn_metrics_jsonb, '[]'::jsonb) AS json_schemas
 			FROM eval_fns_with_metrics em
 			LEFT JOIN cte_triggers ct ON ct.eval_id = em.eval_id
+			LEFT JOIN cte_eval_fn_slice cs ON cs.eval_id = em.eval_id
 			ORDER BY em.eval_id DESC
 	`
 
@@ -141,8 +147,6 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 		var dbTriggersHelper []DbJsonTriggerField
 		err = rows.Scan(
 			&ef.EvalID,
-			&ef.OrgID,
-			&ef.UserID,
 			&ef.EvalName,
 			&ef.EvalType,
 			&ef.EvalGroupName,

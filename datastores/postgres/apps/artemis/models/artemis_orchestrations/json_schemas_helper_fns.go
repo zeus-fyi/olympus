@@ -264,7 +264,7 @@ func AssignMapValuesJsonSchemaFields(sz *JsonSchemaDefinition, m map[string]inte
 			case "string":
 				if strVal, okStr := val.(string); okStr {
 					fieldDef.StringValue = &strVal
-					fmt.Printf("Field %s is a string: %s\n", fieldDef.FieldName, strVal)
+					//fmt.Printf("Field %s is a string: %s\n", fieldDef.FieldName, strVal)
 					fieldDef.IsValidated = true
 				} else {
 					return nil, fmt.Errorf("AssignMapValuesJsonSchemaFields: failed to convert %v to string", val)

@@ -54,11 +54,12 @@ CREATE TABLE public.eval_metrics(
     is_eval_metric_archived boolean NOT NULL DEFAULT false,
     archived_at timestamptz
 );
+
+CREATE INDEX eval_metrics_eval_state_indx ON public.eval_metrics("eval_state");
 CREATE INDEX eval_metric_id_indx ON public.eval_metrics("eval_metric_id");
 CREATE UNIQUE INDEX idx_eval_metrics_not_archived_uniq
     ON public.eval_metrics (eval_id, field_id, eval_metric_id)
     WHERE is_eval_metric_archived = false;
-
 
 CREATE OR REPLACE FUNCTION update_archived_at()
     RETURNS TRIGGER AS $$

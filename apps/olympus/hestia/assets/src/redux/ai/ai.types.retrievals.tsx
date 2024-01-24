@@ -22,6 +22,7 @@ export interface RetrievalItemInstruction {
     retrievalPlatform: string;
     retrievalPlatformGroups?: string;
     retrievalKeywords?: string;
+    retrievalNegativeKeywords?: string;
     retrievalUsernames?: string;
     retrievalPrompt?: string;
     discordFilters?: DiscordFilters;

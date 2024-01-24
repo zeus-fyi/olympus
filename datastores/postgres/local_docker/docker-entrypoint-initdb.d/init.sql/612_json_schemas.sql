@@ -17,3 +17,4 @@ CREATE TABLE public.ai_task_schemas(
     PRIMARY KEY (schema_id, task_id)
 );
 CREATE INDEX idx_task_json_schema_id ON public.ai_task_schemas(task_id);
+CREATE INDEX idx_ai_task_schemas_id ON public.ai_task_schemas(schema_id);

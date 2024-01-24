@@ -3152,7 +3152,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         // Check if an evalMetric already exists at this index; if not, create a new object
                                                                                         let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
                                                                                             ...updatedEvalMetrics[evalMetricIndex],
-                                                                                            evalState: e.target.value
+                                                                                            evalExpectedResultState: e.target.value
                                                                                         } : {
                                                                                             evalMetricID: undefined,
                                                                                             evalMetricResult: undefined,
@@ -3334,49 +3334,48 @@ function WorkflowEngineBuilder(props: any) {
                                                                         }
                                                                     {(field.dataType === 'boolean' || field.dataType === 'array[boolean]') &&
                                                                         <Grid item xs={12} sm={2}>
-                                                                            <Box flexGrow={1} sx={{ mb: 0, ml: 2, mr: 0 }}>
-                                                                                <TextField
-                                                                                    fullWidth
-                                                                                    id={`eval-comparison-bool--${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
-                                                                                    label="Comparison Boolean"
-                                                                                    variant="outlined"
-                                                                                    type="number"
-                                                                                    value={evalMetric.evalMetricComparisonValues?.evalComparisonBoolean || false}
-                                                                                    onChange={(e) => {
-                                                                                        // First, clone the existing evalMetrics array or create a new one if it doesn't exist
-                                                                                        let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
+                                                                            <Box flexGrow={1} sx={{ mb: 0, ml: 4, mr: 0 }}>
+                                                                                <FormControl fullWidth>
+                                                                                    <InputLabel id={`eval-comparison-bool-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}>
+                                                                                        Comparison Boolean
+                                                                                    </InputLabel>
+                                                                                    <Select
+                                                                                        labelId={`eval-comparison-bool-label-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
+                                                                                        id={`eval-comparison-bool-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}
+                                                                                        value={evalMetric.evalMetricComparisonValues?.evalComparisonBoolean || 'false'}
+                                                                                        label="Comparison Boolean"
+                                                                                        onChange={(e) => {
+                                                                                            let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
+                                                                                            let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
+                                                                                                ...updatedEvalMetrics[evalMetricIndex],
+                                                                                                evalMetricComparisonValues: {
+                                                                                                    ...updatedEvalMetrics[evalMetricIndex].evalMetricComparisonValues,
+                                                                                                    evalComparisonBoolean: e.target.value === 'true', // Correctly update evalComparisonBoolean
+                                                                                                }
+                                                                                            } : {
+                                                                                                evalMetricID: undefined,
+                                                                                                evalMetricResult: undefined,
+                                                                                                evalOperator: '', // Provide a default or existing value
+                                                                                                evalState: '',
+                                                                                                evalExpectedResultState: '', // Default value or logic to determine this
+                                                                                                evalMetricComparisonValues: {
+                                                                                                    evalComparisonBoolean: e.target.value === 'true', // Convert to boolean
+                                                                                                    evalComparisonNumber: undefined,
+                                                                                                    evalComparisonString: undefined,
+                                                                                                    evalComparisonInteger: undefined // Assuming this property exists in your type
+                                                                                                }
+                                                                                            };
 
-                                                                                        // Check if an evalMetric already exists at this index; if not, create a new object
-                                                                                        let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
-                                                                                            ...updatedEvalMetrics[evalMetricIndex],
-                                                                                            evalMetricComparisonValues: {
-                                                                                                ...updatedEvalMetrics[evalMetricIndex].evalMetricComparisonValues,
-                                                                                                evalComparisonBoolean: e.target.value === 'true',// Correctly update evalComparisonNumber
-                                                                                            }
-                                                                                        } : {
-                                                                                            evalMetricID: undefined,
-                                                                                            evalMetricResult: undefined,
-                                                                                            evalOperator: '', // Provide a default or existing value
-                                                                                            evalState: '',
-                                                                                            evalExpectedResultState: '', // Default value or logic to determine this
-                                                                                            evalMetricComparisonValues: {
-                                                                                                evalComparisonBoolean: e.target.value === 'true', // Convert to boolean
-                                                                                                evalComparisonNumber: undefined,
-                                                                                                evalComparisonString: undefined,
-                                                                                                evalComparisonInteger: undefined // Assuming this property exists in your type
-                                                                                            }
-                                                                                        };
-
-                                                                                        // Replace the updated evalMetric in the cloned evalMetrics array
-                                                                                        updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
-
-                                                                                        // Dispatch the update with the dataIndex, fieldIndex, evalMetricIndex, and the updated evalMetric
-                                                                                        dispatchUpdateField(dataIndex, fieldIndex, evalMetricIndex, updatedEvalMetric);
-                                                                                    }}
-                                                                                />
+                                                                                            updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
+                                                                                            dispatchUpdateField(dataIndex, fieldIndex, evalMetricIndex, updatedEvalMetric);
+                                                                                        }}
+                                                                                    >
+                                                                                        <MenuItem value={'true'}>True</MenuItem>
+                                                                                        <MenuItem value={'false'}>False</MenuItem>
+                                                                                    </Select>
+                                                                                </FormControl>
                                                                             </Box>
                                                                         </Grid>
-
                                                                     }
                                                                     { (field.dataType === 'string'|| field.dataType === 'array[string]') &&
                                                                             (evalMetric && evalMetric.evalOperator !== 'all-unique-words') &&

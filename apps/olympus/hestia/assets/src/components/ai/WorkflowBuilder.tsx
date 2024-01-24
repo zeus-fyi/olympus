@@ -157,14 +157,24 @@ function WorkflowEngineBuilder(props: any) {
     const editAnalysisTask = useSelector((state: any) => state.ai.editAnalysisTask);
     const editAggregateTask = useSelector((state: any) => state.ai.editAggregateTask);
 
-    const dispatchUpdateField = (dataIndex: number, fieldIndex: number, updatedField: JsonSchemaField) => {
+    const dispatchUpdateField = (dataIndex: number, fieldIndex: number, evalMetricIndex: number, updatedEvalMetric: EvalMetric) => {
         const updatedSchemas = evalFn.schemas.map((schema: JsonSchemaDefinition, idx: number) => {
             if (idx === dataIndex) {
                 return {
                     ...schema,
                     fields: schema.fields.map((field: JsonSchemaField, fIdx: number) => {
                         if (fIdx === fieldIndex) {
-                            return updatedField;
+                            // Ensure evalMetrics exists and is an array
+                            let updatedEvalMetrics = Array.isArray(field.evalMetrics) ? [...field.evalMetrics] : [];
+
+                            // Update the specific evalMetric in the array
+                            updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
+
+                            // Return the updated field with updated evalMetrics array
+                            return {
+                                ...field,
+                                evalMetrics: updatedEvalMetrics
+                            };
                         }
                         return field;
                     })
@@ -172,12 +182,14 @@ function WorkflowEngineBuilder(props: any) {
             }
             return schema;
         });
-        // console.log('updatedSchemas', updatedSchemas)
+
+        // Dispatch the updated state
         dispatch(setEvalFn({
             ...evalFn,
             schemas: updatedSchemas
         }));
     };
+
 
     const setToggleEvalTaskType = () => {
         setToggleEvalToTaskType(!toggleEvalToTaskType);
@@ -225,7 +237,7 @@ function WorkflowEngineBuilder(props: any) {
             evalOperator: '',
             evalState: '',
             evalExpectedResultState: '',
-            evalComparisonValues: {
+            evalMetricComparisonValues: {
                 evalComparisonBoolean: undefined,
                 evalComparisonNumber: undefined,
                 evalComparisonString: undefined,
@@ -586,13 +598,16 @@ function WorkflowEngineBuilder(props: any) {
                 ...schema,
                 fields: schema.fields.map(field => ({
                     ...field,
-                    evalMetric: {
-                        ...(field.evalMetric || {}),
-                        evalMetricID: undefined,
-                        evalComparisonBoolean: field.evalMetric && field.evalMetric.evalComparisonValues.evalComparisonBoolean || false, // Default value
-                        evalComparisonNumber: field.evalMetric && field.evalMetric.evalComparisonValues.evalComparisonNumber  || 0,      // Default value
-                        evalComparisonString:  field.evalMetric && field.evalMetric.evalComparisonValues.evalComparisonString || ''      // Default value
-                    }
+                    evalMetrics: field.evalMetrics ? field.evalMetrics.map(evalMetric => ({
+                        ...evalMetric,
+                        evalMetricID: undefined, // Assuming you want to reset this for some reason
+                        evalComparisonValues: {
+                            ...evalMetric.evalMetricComparisonValues,
+                            evalComparisonBoolean: evalMetric.evalMetricComparisonValues?.evalComparisonBoolean || false, // Use false as default
+                            evalComparisonNumber: evalMetric.evalMetricComparisonValues?.evalComparisonNumber || 0,      // Use 0 as default
+                            evalComparisonString: evalMetric.evalMetricComparisonValues?.evalComparisonString || ''      // Use empty string as default
+                        }
+                    })) : []
                 }))
             }));
             dispatch(setEvalFn({ ...evalFn, schemas: updatedSchemas }))
@@ -3284,7 +3299,9 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Box>
                                                             {data.fields && data.fields.map((field: JsonSchemaField, fieldIndex: number) => (
                                                             <React.Fragment key={fieldIndex}>
-                                                                <Grid container alignItems="center">
+                                                                {field.evalMetrics && field.evalMetrics.map((evalMetric, evalMetricIndex) => (
+                                                                    <React.Fragment key={evalMetricIndex}>
+                                                                    <Grid container alignItems="center">
                                                                     <Grid item xs={12} sm={3}>
                                                                         <TextField
                                                                             fullWidth
@@ -3302,12 +3319,15 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 <Select
                                                                                     labelId={`metric-state-operator-label-${dataIndex}-${fieldIndex}`}
                                                                                     id={`field-metric-operator-dt-${dataIndex}-${fieldIndex}`}
-                                                                                    value={field.evalMetric?.evalState || 'info'} // Default to 'info' if evalState is undefined
+                                                                                    value={evalMetric?.evalState || 'info'} // Default to 'info' if evalState is undefined
                                                                                     label="Eval State"
                                                                                     fullWidth
                                                                                     onChange={(e) => {
-                                                                                        let updatedEvalMetric = field.evalMetric ? {
-                                                                                            ...field.evalMetric,
+                                                                                        let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
+
+                                                                                        // Check if an evalMetric already exists at this index; if not, create a new object
+                                                                                        let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
+                                                                                            ...updatedEvalMetrics[evalMetricIndex],
                                                                                             evalState: e.target.value
                                                                                         } : {
                                                                                             evalMetricID: undefined,
@@ -3322,13 +3342,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                 evalComparisonInteger: undefined // Assuming this property exists in your type
                                                                                             }
                                                                                         };
-
-                                                                                        const updatedField: JsonSchemaField = {
-                                                                                            ...field,
-                                                                                            evalMetric: updatedEvalMetric
-                                                                                        };
-
-                                                                                        dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                        updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
+                                                                                        dispatchUpdateField(dataIndex, fieldIndex, evalMetricIndex, updatedEvalMetric);
                                                                                     }}
                                                                                 >
                                                                                     <MenuItem value="info">info</MenuItem>
@@ -3349,36 +3364,30 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 <Select
                                                                                     labelId="eval-result-label"
                                                                                     id={`field-eval-metric-result-${dataIndex}-${fieldIndex}`}
-                                                                                    value={field.evalMetric && field.evalMetric.evalExpectedResultState || 'ignore'}
+                                                                                    value={evalMetric && evalMetric.evalExpectedResultState || 'ignore'}
                                                                                     label="Result"
                                                                                     fullWidth
                                                                                     onChange={(e) => {
-                                                                                        let updatedEvalMetric = field.evalMetric ? {
-                                                                                            ...field.evalMetric,
-                                                                                            evalExpectedResultState: e.target.value
+                                                                                        let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
+                                                                                        // Check if an evalMetric already exists at this index; if not, create a new object
+                                                                                        let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
+                                                                                            ...updatedEvalMetrics[evalMetricIndex],
+                                                                                            evalState: e.target.value
                                                                                         } : {
                                                                                             evalMetricID: undefined,
-                                                                                            evalExpectedResultState: e.target.value,
                                                                                             evalMetricResult: undefined,
-                                                                                            evalComparisonBoolean: undefined,
-                                                                                            evalComparisonNumber: undefined,
-                                                                                            evalComparisonString: '',
-                                                                                            evalOperator: '',
+                                                                                            evalOperator: '', // Provide a default or existing value
                                                                                             evalState: '',
+                                                                                            evalExpectedResultState: e.target.value, // Default value or logic to determine this
                                                                                             evalComparisonValues: {
                                                                                                 evalComparisonBoolean: undefined,
                                                                                                 evalComparisonNumber: undefined,
                                                                                                 evalComparisonString: undefined,
                                                                                                 evalComparisonInteger: undefined // Assuming this property exists in your type
                                                                                             }
-                                                                                        };
-
-                                                                                        const updatedField: JsonSchemaField = {
-                                                                                            ...field,
-                                                                                            evalMetric: updatedEvalMetric
-                                                                                        };
-
-                                                                                        dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                        }
+                                                                                        updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
+                                                                                        dispatchUpdateField(dataIndex, fieldIndex, evalMetricIndex, updatedEvalMetric);
                                                                                     }}
                                                                                 >
                                                                                     <MenuItem value="pass">Pass</MenuItem>
@@ -3410,18 +3419,20 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 <Select
                                                                                     labelId="metric-action-operator-label"
                                                                                     id={`metric-action-operator-label-${dataIndex}-${fieldIndex}`}
-                                                                                    value={field.evalMetric?.evalOperator || ''}
+                                                                                    value={evalMetric?.evalOperator || ''}
                                                                                     label="Metric Action Operator"
                                                                                     fullWidth
                                                                                     onChange={(e) => {
-                                                                                        let updatedEvalMetric = field.evalMetric ? {
-                                                                                            ...field.evalMetric,
-                                                                                            evalOperator: e.target.value
+                                                                                        let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
+                                                                                        // Check if an evalMetric already exists at this index; if not, create a new object
+                                                                                        let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
+                                                                                            ...updatedEvalMetrics[evalMetricIndex],
+                                                                                            evalState: e.target.value
                                                                                         } : {
                                                                                             evalMetricID: undefined,
-                                                                                            evalMetricResult: undefined, // Assuming evalMetricResult is an object or undefined
-                                                                                            evalOperator: e.target.value,
-                                                                                            evalState: '', // Default value or logic to determine this
+                                                                                            evalMetricResult: undefined,
+                                                                                            evalOperator: e.target.value, // Provide a default or existing value
+                                                                                            evalState: '',
                                                                                             evalExpectedResultState: '', // Default value or logic to determine this
                                                                                             evalComparisonValues: {
                                                                                                 evalComparisonBoolean: undefined,
@@ -3429,17 +3440,12 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                 evalComparisonString: undefined,
                                                                                                 evalComparisonInteger: undefined // Assuming this property exists in your type
                                                                                             }
-                                                                                        };
-
-                                                                                        const updatedField: JsonSchemaField = {
-                                                                                            ...field,
-                                                                                            evalMetric: updatedEvalMetric
-                                                                                        };
-
-                                                                                        dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                        }
+                                                                                        updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
+                                                                                        dispatchUpdateField(dataIndex, fieldIndex, evalMetricIndex, updatedEvalMetric);
                                                                                     }}
                                                                                 >
-                                                                                    {field.evalMetric && field.dataType  === 'array[string]' &&
+                                                                                    {evalMetric && field.dataType  === 'array[string]' &&
                                                                                         <MenuItem value="all-unique-words">{'all-unique-words'}</MenuItem>
                                                                                     }
                                                                                     <MenuItem value="contains">{'contains'}</MenuItem>
@@ -3467,36 +3473,30 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         <Select
                                                                                             labelId="metric-action-operator-label"
                                                                                             id={`metric-action-operator-label-${dataIndex}-${fieldIndex}`}
-                                                                                            value={field.evalMetric?.evalOperator || ''}
+                                                                                            value={evalMetric?.evalOperator || ''}
                                                                                             label="Metric Action Operator"
                                                                                             fullWidth
                                                                                             onChange={(e) => {
-                                                                                                let updatedEvalMetric;
-                                                                                                if (field.evalMetric) {
-                                                                                                    updatedEvalMetric = {
-                                                                                                        ...field.evalMetric,
-                                                                                                        evalOperator: e.target.value
-                                                                                                    };
-                                                                                                } else {
-                                                                                                    updatedEvalMetric = {
-                                                                                                        evalMetricID: undefined,
-                                                                                                        evalMetricResult: undefined, // Assuming evalMetricResult is an object or undefined
-                                                                                                        evalComparisonValues: {
-                                                                                                            evalComparisonBoolean: undefined,
-                                                                                                            evalComparisonNumber: undefined,
-                                                                                                            evalComparisonString: undefined,
-                                                                                                            evalComparisonInteger: undefined // Assuming this property exists in your type
-                                                                                                        },
-                                                                                                        evalOperator: e.target.value,
-                                                                                                        evalState: '',
-                                                                                                        evalExpectedResultState: '',
-                                                                                                    };
+                                                                                                let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
+                                                                                                // Check if an evalMetric already exists at this index; if not, create a new object
+                                                                                                let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
+                                                                                                    ...updatedEvalMetrics[evalMetricIndex],
+                                                                                                    evalState: e.target.value
+                                                                                                } : {
+                                                                                                    evalMetricID: undefined,
+                                                                                                    evalMetricResult: undefined,
+                                                                                                    evalOperator: e.target.value, // Provide a default or existing value
+                                                                                                    evalState: '',
+                                                                                                    evalExpectedResultState: '', // Default value or logic to determine this
+                                                                                                    evalComparisonValues: {
+                                                                                                        evalComparisonBoolean: undefined,
+                                                                                                        evalComparisonNumber: undefined,
+                                                                                                        evalComparisonString: undefined,
+                                                                                                        evalComparisonInteger: undefined // Assuming this property exists in your type
+                                                                                                    }
                                                                                                 }
-                                                                                                const updatedField: JsonSchemaField = {
-                                                                                                    ...field,
-                                                                                                    evalMetric: updatedEvalMetric
-                                                                                                };
-                                                                                                dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                                updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
+                                                                                                dispatchUpdateField(dataIndex, fieldIndex, evalMetricIndex, updatedEvalMetric);
                                                                                             }}
                                                                                         >
                                                                                             <MenuItem value="gt">{'>'}</MenuItem>
@@ -3511,44 +3511,42 @@ function WorkflowEngineBuilder(props: any) {
                                                                         }
                                                                         { (( field.dataType === 'number' || field.dataType === 'array[number]' )
                                                                                 || (field.dataType === 'integer' || field.dataType === 'array[integer]')
-                                                                                || (field && field.evalMetric && field.evalMetric.evalOperator === 'unique-words')
-                                                                                || (field && field.evalMetric && field.evalMetric.evalOperator === 'length-eq'))
+                                                                                || (field && evalMetric && evalMetric.evalOperator === 'unique-words')
+                                                                                || (field && evalMetric && evalMetric.evalOperator === 'length-eq'))
                                                                              &&
                                                                             <Grid item xs={12} sm={2}>
                                                                                 <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>
                                                                                     <TextField
                                                                                         fullWidth
                                                                                         id="eval-comparison-value"
-                                                                                        label="Comparison Value"
+                                                                                        label="Comparison Number"
                                                                                         variant="outlined"
                                                                                         type={"number"}
-
-                                                                                        value={field.evalMetric && field.evalMetric.evalComparisonValues.evalComparisonNumber || 0}
+                                                                                        value={evalMetric.evalMetricComparisonValues && evalMetric.evalMetricComparisonValues.evalComparisonNumber|| 0}
                                                                                         onChange={(e) => {
-                                                                                            let updatedEvalMetric = field.evalMetric ? { ...field.evalMetric } : {
+                                                                                            let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
+                                                                                            // Check if an evalMetric already exists at this index; if not, create a new object
+                                                                                            let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
+                                                                                                ...updatedEvalMetrics[evalMetricIndex],
+                                                                                                evalComparisonValues: {
+                                                                                                    ...updatedEvalMetrics[evalMetricIndex].evalMetricComparisonValues,
+                                                                                                    evalComparisonNumber: Number(e.target.value) // Correctly update evalComparisonNumber
+                                                                                                }
+                                                                                            } : {
                                                                                                 evalMetricID: undefined,
                                                                                                 evalMetricResult: undefined,
                                                                                                 evalOperator: '',
                                                                                                 evalState: '',
-                                                                                                evalExpectedResultState: '',
+                                                                                                evalExpectedResultState: '', // Default value or logic to determine this
                                                                                                 evalComparisonValues: {
                                                                                                     evalComparisonBoolean: undefined,
-                                                                                                    evalComparisonNumber: Number(e.target.value),
+                                                                                                    evalComparisonNumber: Number(e.target.value), // Set the initial value for new metric
                                                                                                     evalComparisonString: undefined,
-                                                                                                    evalComparisonInteger: undefined
+                                                                                                    evalComparisonInteger: undefined // Assuming this property exists in your type
                                                                                                 }
                                                                                             };
-
-                                                                                            updatedEvalMetric.evalComparisonValues = {
-                                                                                                ...updatedEvalMetric.evalComparisonValues,
-                                                                                                evalComparisonNumber: Number(e.target.value)
-                                                                                            };
-
-                                                                                            const updatedField: JsonSchemaField = {
-                                                                                                ...field,
-                                                                                                evalMetric: updatedEvalMetric
-                                                                                            };
-                                                                                            dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                            updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
+                                                                                            dispatchUpdateField(dataIndex, fieldIndex, evalMetricIndex, updatedEvalMetric);
                                                                                         }}
                                                                                     />
                                                                                 </Box>
@@ -3560,36 +3558,37 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 <TextField
                                                                                     fullWidth
                                                                                     id="eval-comparison-value"
-                                                                                    label="Comparison Value"
+                                                                                    label="Comparison Boolean"
                                                                                     variant="outlined"
                                                                                     type="number"
-                                                                                    value={field.evalMetric?.evalComparisonValues?.evalComparisonNumber || 0}
+                                                                                    value={evalMetric.evalMetricComparisonValues?.evalComparisonBoolean || false}
                                                                                     onChange={(e) => {
-                                                                                        let updatedEvalMetric = field.evalMetric ? { ...field.evalMetric } : {
+                                                                                        // First, clone the existing evalMetrics array or create a new one if it doesn't exist
+                                                                                        let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
+
+                                                                                        // Check if an evalMetric already exists at this index; if not, create a new object
+                                                                                        let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
+                                                                                            ...updatedEvalMetrics[evalMetricIndex],
+                                                                                            evalState: e.target.value
+                                                                                        } : {
                                                                                             evalMetricID: undefined,
                                                                                             evalMetricResult: undefined,
-                                                                                            evalOperator: '',
+                                                                                            evalOperator: '', // Provide a default or existing value
                                                                                             evalState: '',
-                                                                                            evalExpectedResultState: '',
+                                                                                            evalExpectedResultState: '', // Default value or logic to determine this
                                                                                             evalComparisonValues: {
-                                                                                                evalComparisonBoolean: undefined,
-                                                                                                evalComparisonNumber: 0,
+                                                                                                evalComparisonBoolean: e.target.value === 'true', // Convert to boolean
+                                                                                                evalComparisonNumber: undefined,
                                                                                                 evalComparisonString: undefined,
-                                                                                                evalComparisonInteger: undefined
+                                                                                                evalComparisonInteger: undefined // Assuming this property exists in your type
                                                                                             }
                                                                                         };
 
-                                                                                        updatedEvalMetric.evalComparisonValues = {
-                                                                                            ...updatedEvalMetric.evalComparisonValues,
-                                                                                            evalComparisonNumber: Number(e.target.value)
-                                                                                        };
+                                                                                        // Replace the updated evalMetric in the cloned evalMetrics array
+                                                                                        updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
 
-                                                                                        const updatedField = {
-                                                                                            ...field,
-                                                                                            evalMetric: updatedEvalMetric
-                                                                                        };
-
-                                                                                        dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                        // Dispatch the update with the dataIndex, fieldIndex, evalMetricIndex, and the updated evalMetric
+                                                                                        dispatchUpdateField(dataIndex, fieldIndex, evalMetricIndex, updatedEvalMetric);
                                                                                     }}
                                                                                 />
                                                                             </Box>
@@ -3597,8 +3596,8 @@ function WorkflowEngineBuilder(props: any) {
 
                                                                     }
                                                                     { (field.dataType === 'string'|| field.dataType === 'array[string]') &&
-                                                                            (field.evalMetric && field.evalMetric.evalOperator !== 'all-unique-words') &&
-                                                                            (field.evalMetric && field.evalMetric.evalOperator != 'length-eq') &&
+                                                                            (evalMetric && evalMetric.evalOperator !== 'all-unique-words') &&
+                                                                            (evalMetric && evalMetric.evalOperator != 'length-eq') &&
                                                                             <Grid item xs={12} sm={2}>
                                                                                 <Box flexGrow={1} sx={{ mb: 0,ml: 2, mr:0  }}>
                                                                                     <TextField
@@ -3606,32 +3605,34 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         id="eval-comparison-string"
                                                                                         label="Comparison String"
                                                                                         variant="outlined"
-                                                                                        value={field.evalMetric && field.evalMetric.evalComparisonValues.evalComparisonString || ''}
+                                                                                        value={evalMetric.evalMetricComparisonValues?.evalComparisonString || ''}
                                                                                         onChange={(e) => {
-                                                                                            let updatedEvalMetric = field.evalMetric ? { ...field.evalMetric } : {
+                                                                                            // First, clone the existing evalMetrics array or create a new one if it doesn't exist
+                                                                                            let updatedEvalMetrics = field.evalMetrics ? [...field.evalMetrics] : [];
+
+                                                                                            // Check if an evalMetric already exists at this index; if not, create a new object
+                                                                                            let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
+                                                                                                ...updatedEvalMetrics[evalMetricIndex],
+                                                                                                evalState: e.target.value
+                                                                                            } : {
                                                                                                 evalMetricID: undefined,
                                                                                                 evalMetricResult: undefined,
-                                                                                                evalOperator: '',
+                                                                                                evalOperator: '', // Provide a default or existing value
                                                                                                 evalState: '',
-                                                                                                evalExpectedResultState: '',
+                                                                                                evalExpectedResultState: '', // Default value or logic to determine this
                                                                                                 evalComparisonValues: {
                                                                                                     evalComparisonBoolean: undefined,
                                                                                                     evalComparisonNumber: undefined,
                                                                                                     evalComparisonString: e.target.value,
-                                                                                                    evalComparisonInteger: undefined
+                                                                                                    evalComparisonInteger: undefined // Assuming this property exists in your type
                                                                                                 }
                                                                                             };
 
-                                                                                            updatedEvalMetric.evalComparisonValues = {
-                                                                                                ...updatedEvalMetric.evalComparisonValues,
-                                                                                                evalComparisonString: e.target.value
-                                                                                            };
+                                                                                            // Replace the updated evalMetric in the cloned evalMetrics array
+                                                                                            updatedEvalMetrics[evalMetricIndex] = updatedEvalMetric;
 
-                                                                                            const updatedField: JsonSchemaField = {
-                                                                                                ...field,
-                                                                                                evalMetric: updatedEvalMetric
-                                                                                            };
-                                                                                            dispatchUpdateField(dataIndex, fieldIndex, updatedField);
+                                                                                            // Dispatch the update with the dataIndex, fieldIndex, evalMetricIndex, and the updated evalMetric
+                                                                                            dispatchUpdateField(dataIndex, fieldIndex, evalMetricIndex, updatedEvalMetric);
                                                                                         }}
                                                                                     />
                                                                                 </Box>
@@ -3643,7 +3644,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                     <Divider/>
                                                                 </Box>
                                                             </React.Fragment>
-
+                                                            ))}
+                                                            </React.Fragment>
                                                             ))}
                                                         </div>
                                                     ))}
@@ -4083,28 +4085,4 @@ type ValuePiece = Date | string | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
 export default function AiWorkflowsEngineBuilderDashboard() {
     return <WorkflowEngineBuilder />;
-}
-
-function GetValue(evm: JsonSchemaField): string | number | boolean | string[] | number[] | boolean[] {
-    if (evm.evalMetric === undefined) {
-        return '';
-    }
-
-    switch (evm.dataType) {
-        case 'string':
-            return evm.evalMetric.evalComparisonValues.evalComparisonString || '';
-        case 'number':
-            return evm.evalMetric.evalComparisonValues.evalComparisonNumber !== undefined ? evm.evalMetric.evalComparisonValues.evalComparisonNumber : 0;
-        case 'boolean':
-            return evm.evalMetric.evalComparisonValues.evalComparisonBoolean !== undefined ? evm.evalMetric.evalComparisonValues.evalComparisonBoolean : false;
-        // Uncomment and adjust the following cases if you have corresponding array properties in EvalMetricComparisonValues
-        // case 'array[string]':
-        //     return evm.evalMetric.evalComparisonValues.evalComparisonStringArray || [];
-        // case 'array[number]':
-        //     return evm.evalMetric.evalComparisonValues.evalComparisonNumberArray || [];
-        // case 'array[boolean]':
-        //     return evm.evalMetric.evalComparisonValues.evalComparisonBooleanArray || [];
-        default:
-            return '';
-    }
 }

@@ -129,7 +129,7 @@ const initialState: AiState = {
         evalOperator: '',
         evalState: '',
         evalExpectedResultState: '',
-        evalComparisonValues: {
+        evalMetricComparisonValues: {
             evalComparisonBoolean: undefined,
             evalComparisonNumber: undefined,
             evalComparisonString: undefined,

@@ -71,18 +71,23 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 	// Inserting or updating eval_metrics from json schema
 	for _, schema := range evalFn.Schemas {
 		for _, field := range schema.Fields {
-			metric := field.EvalMetric
-			if metric == nil {
-				continue
-			}
-			if metric.EvalMetricID == nil {
-				tv := ts.UnixTimeStampNow()
-				metric.EvalMetricID = &tv
-			}
-			if metric.EvalState == "" {
-				metric.EvalState = "info"
-			}
-			evalMetricInsertOrUpdateQuery := `
+
+			for _, metric := range field.EvalMetrics {
+				if metric == nil {
+					continue
+				}
+				if metric.EvalMetricID == nil {
+					tv := ts.UnixTimeStampNow()
+					metric.EvalMetricID = &tv
+				}
+				if metric.EvalState == "" {
+					metric.EvalState = "info"
+				}
+
+				if metric.EvalMetricComparisonValues == nil {
+					metric.EvalMetricComparisonValues = &EvalMetricComparisonValues{}
+				}
+				evalMetricInsertOrUpdateQuery := `
         INSERT INTO eval_metrics (eval_metric_id, eval_id, field_id, eval_metric_result, eval_comparison_boolean, eval_comparison_number, eval_comparison_string, eval_operator, eval_state)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         ON CONFLICT (eval_metric_id) DO UPDATE SET
@@ -92,13 +97,14 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
             eval_comparison_string = EXCLUDED.eval_comparison_string,
             eval_operator = EXCLUDED.eval_operator,
             eval_state = EXCLUDED.eval_state;`
-			_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery, metric.EvalMetricID, evalFn.EvalID, field.FieldID,
-				metric.EvalExpectedResultState,
-				metric.EvalComparisonBoolean, metric.EvalComparisonNumber, metric.EvalComparisonString,
-				metric.EvalOperator, metric.EvalState)
-			if err != nil {
-				log.Err(err).Msg("failed to insert or update eval_metrics")
-				return err
+				_, err = tx.Exec(ctx, evalMetricInsertOrUpdateQuery, metric.EvalMetricID, evalFn.EvalID, field.FieldID,
+					metric.EvalExpectedResultState,
+					metric.EvalMetricComparisonValues.EvalComparisonBoolean, metric.EvalMetricComparisonValues.EvalComparisonNumber, metric.EvalMetricComparisonValues.EvalComparisonString,
+					metric.EvalOperator, metric.EvalState)
+				if err != nil {
+					log.Err(err).Msg("failed to insert or update eval_metrics")
+					return err
+				}
 			}
 		}
 	}
@@ -141,12 +147,12 @@ type EvalMetricResult struct {
 	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
 }
 type EvalMetric struct {
-	EvalMetricID            *int              `json:"evalMetricID"`
-	EvalMetricResult        *EvalMetricResult `json:"evalMetricResult,omitempty"`
-	EvalOperator            string            `json:"evalOperator"`
-	EvalState               string            `json:"evalState"`
-	EvalExpectedResultState string            `json:"evalExpectedResultState"` // true if eval passed, false if eval failed
-	EvalMetricComparisonValues
+	EvalMetricID               *int                        `json:"evalMetricID"`
+	EvalMetricResult           *EvalMetricResult           `json:"evalMetricResult,omitempty"`
+	EvalOperator               string                      `json:"evalOperator"`
+	EvalState                  string                      `json:"evalState"`
+	EvalExpectedResultState    string                      `json:"evalExpectedResultState"` // true if eval passed, false if eval failed
+	EvalMetricComparisonValues *EvalMetricComparisonValues `json:"evalComparisonValues"`    // true if eval passed, false if eval failed
 }
 
 type EvalMetricComparisonValues struct {
@@ -234,8 +240,13 @@ func DeleteEvalMetricsAndTriggers(ctx context.Context, ou org_users.OrgUser, tx 
 	var keepFieldIds []int
 	for _, schema := range evalFn.Schemas {
 		for _, field := range schema.Fields {
-			if field.EvalMetric != nil && field.EvalMetric.EvalMetricID != nil {
-				keepMetricIDs = append(keepMetricIDs, *field.EvalMetric.EvalMetricID)
+			for _, metric := range field.EvalMetrics {
+				if metric == nil {
+					continue
+				}
+				if metric.EvalMetricID != nil {
+					keepMetricIDs = append(keepMetricIDs, *metric.EvalMetricID)
+				}
 			}
 			keepFieldIds = append(keepFieldIds, field.FieldID)
 		}

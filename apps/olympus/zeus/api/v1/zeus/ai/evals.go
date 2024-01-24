@@ -48,10 +48,10 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 }
 
 func ValidateStrArrayPayload(em *artemis_orchestrations.EvalMetric) error {
-	if em == nil {
+	if em == nil || em.EvalMetricComparisonValues == nil {
 		return nil
 	}
-	fv, err := strconv.ParseFloat(aws.StringValue(em.EvalComparisonString), 64)
+	fv, err := strconv.ParseFloat(aws.StringValue(em.EvalMetricComparisonValues.EvalComparisonString), 64)
 	if err != nil {
 		log.Err(err).Msg("failed to parse float")
 		return err
@@ -59,8 +59,8 @@ func ValidateStrArrayPayload(em *artemis_orchestrations.EvalMetric) error {
 	if fv < 0 {
 		return errors.New("invalid value")
 	}
-	em.EvalComparisonNumber = &fv
-	em.EvalComparisonString = nil
+	em.EvalMetricComparisonValues.EvalComparisonNumber = &fv
+	em.EvalMetricComparisonValues.EvalComparisonString = nil
 	return nil
 }
 
@@ -73,10 +73,12 @@ func ValidateEvalOps(ef artemis_orchestrations.EvalFn) error {
 			if len(fe.DataType) <= 0 {
 				return errors.New("invalid field type")
 			}
-			err := ValidateEvalMetricOps(fe.DataType, fe.EvalMetric)
-			if err != nil {
-				log.Err(err).Msg("failed to validate eval")
-				return err
+			for _, evm := range fe.EvalMetrics {
+				err := ValidateEvalMetricOps(fe.DataType, evm)
+				if err != nil {
+					log.Err(err).Msg("failed to validate eval")
+					return err
+				}
 			}
 		}
 

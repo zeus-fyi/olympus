@@ -15,7 +15,6 @@ export interface JsonSchemaField {
     dataType: string;
     fieldValue?: FieldValue;
     evalMetrics?: EvalMetric[];
-    evalMetric?: EvalMetric;
 }
 
 export interface AITaskJsonSchema {

@@ -10,88 +10,91 @@ import (
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
-/*
-	1. gets the
-
-*/
-
 func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.JsonSchemaDefinition) (*artemis_orchestrations.EvalMetricsResults, error) {
 	var metrics []artemis_orchestrations.EvalMetric
 	for _, value := range jsonSchemaDef.Fields {
-		if value.EvalMetric == nil {
-			value.EvalMetric = &artemis_orchestrations.EvalMetric{}
-		}
-		if value.EvalMetric.EvalMetricResult == nil {
-			chs := chronos.Chronos{}
-			value.EvalMetric.EvalMetricResult = &artemis_orchestrations.EvalMetricResult{
-				EvalMetricResultID: aws.Int(chs.UnixTimeStampNow()),
+
+		for i, _ := range value.EvalMetrics {
+			if value.EvalMetrics[i] == nil {
+				value.EvalMetrics[i] = &artemis_orchestrations.EvalMetric{}
 			}
-		}
-		switch value.DataType {
-		case "integer":
-			if value.EvalMetric.EvalComparisonNumber == nil {
-				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+			if value.EvalMetrics[i].EvalMetricResult == nil {
+				chs := chronos.Chronos{}
+				value.EvalMetrics[i].EvalMetricResult = &artemis_orchestrations.EvalMetricResult{
+					EvalMetricResultID: aws.Int(chs.UnixTimeStampNow()),
+				}
 			}
-			if value.IntegerValue == nil {
-				return nil, fmt.Errorf("no int value for key '%s'", value.FieldName)
+			if value.EvalMetrics[i].EvalMetricComparisonValues == nil {
+				value.EvalMetrics[i].EvalMetricComparisonValues = &artemis_orchestrations.EvalMetricComparisonValues{}
 			}
-			value.EvalMetric.EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(value.EvalMetric.EvalOperator, *value.IntegerValue, int(aws.ToFloat64(value.EvalMetric.EvalComparisonNumber))))
-		case "number":
-			if value.EvalMetric.EvalComparisonNumber == nil {
-				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+
+			switch value.DataType {
+			case "integer":
+				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil {
+					return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+				}
+				if value.IntegerValue == nil {
+					return nil, fmt.Errorf("no int value for key '%s'", value.FieldName)
+				}
+				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(value.EvalMetrics[i].EvalOperator, *value.IntegerValue, int(aws.ToFloat64(value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber))))
+			case "number":
+				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil {
+					return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+				}
+				if value.NumberValue == nil {
+					return nil, fmt.Errorf("no number value for key '%s'", value.FieldName)
+				}
+				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetNumericEvalComparisonResult(value.EvalMetrics[i].EvalOperator, *value.NumberValue, aws.ToFloat64(value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)))
+			case "string":
+				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString == nil {
+					return nil, fmt.Errorf("no comparison string for key '%s'", value.FieldName)
+				}
+				if value.StringValue == nil {
+					return nil, fmt.Errorf("no string value for key '%s'", value.FieldName)
+				}
+				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetStringEvalComparisonResult(value.EvalMetrics[i].EvalOperator, *value.StringValue, aws.ToString(value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString)))
+			case "boolean":
+				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean == nil {
+					return nil, fmt.Errorf("no comparison boolean for key '%s'", value.FieldName)
+				}
+				if value.BooleanValue == nil {
+					return nil, fmt.Errorf("no boolean value for key '%s'", value.FieldName)
+				}
+				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetBooleanEvalComparisonResult(aws.ToBool(value.BooleanValue), aws.ToBool(value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)))
+			case "array[integer]":
+				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil {
+					return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+				}
+
+				results, rerr := EvaluateIntArray(value.EvalMetrics[i].EvalOperator, value.IntegerValueSlice, int(*value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber))
+				if rerr != nil {
+					return nil, rerr
+				}
+				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
+			case "array[number]":
+				if value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil {
+					return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
+				}
+				results, rerr := EvaluateNumericArray(value.EvalMetrics[i].EvalOperator, value.NumberValueSlice, *value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)
+				if rerr != nil {
+					return nil, rerr
+				}
+				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
+			case "array[string]":
+				results, rerr := EvaluateStringArray(value.StringValueSlice, value.EvalMetrics[i].EvalOperator, *value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString)
+				if rerr != nil {
+					return nil, rerr
+				}
+				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
+			case "array[boolean]":
+				results, rerr := EvaluateBooleanArray(value.BooleanValueSlice, *value.EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)
+				if rerr != nil {
+					return nil, rerr
+				}
+				value.EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
+			default:
+				return nil, fmt.Errorf("unknown data type '%s'", value.DataType)
 			}
-			if value.NumberValue == nil {
-				return nil, fmt.Errorf("no number value for key '%s'", value.FieldName)
-			}
-			value.EvalMetric.EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetNumericEvalComparisonResult(value.EvalMetric.EvalOperator, *value.NumberValue, aws.ToFloat64(value.EvalMetric.EvalComparisonNumber)))
-		case "string":
-			if value.EvalMetric.EvalComparisonString == nil {
-				return nil, fmt.Errorf("no comparison string for key '%s'", value.FieldName)
-			}
-			if value.StringValue == nil {
-				return nil, fmt.Errorf("no string value for key '%s'", value.FieldName)
-			}
-			value.EvalMetric.EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetStringEvalComparisonResult(value.EvalMetric.EvalOperator, *value.StringValue, aws.ToString(value.EvalMetric.EvalComparisonString)))
-		case "boolean":
-			if value.EvalMetric.EvalComparisonBoolean == nil {
-				return nil, fmt.Errorf("no comparison boolean for key '%s'", value.FieldName)
-			}
-			if value.BooleanValue == nil {
-				return nil, fmt.Errorf("no boolean value for key '%s'", value.FieldName)
-			}
-			value.EvalMetric.EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetBooleanEvalComparisonResult(aws.ToBool(value.BooleanValue), aws.ToBool(value.EvalMetric.EvalComparisonBoolean)))
-		case "array[integer]":
-			if value.EvalMetric.EvalComparisonNumber == nil {
-				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
-			}
-			results, rerr := EvaluateIntArray(value.EvalMetric.EvalOperator, value.IntegerValueSlice, int(*value.EvalMetric.EvalComparisonNumber))
-			if rerr != nil {
-				return nil, rerr
-			}
-			value.EvalMetric.EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
-		case "array[number]":
-			if value.EvalMetric.EvalComparisonNumber == nil {
-				return nil, fmt.Errorf("no comparison number for key '%s'", value.FieldName)
-			}
-			results, rerr := EvaluateNumericArray(value.EvalMetric.EvalOperator, value.NumberValueSlice, *value.EvalMetric.EvalComparisonNumber)
-			if rerr != nil {
-				return nil, rerr
-			}
-			value.EvalMetric.EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
-		case "array[string]":
-			results, rerr := EvaluateStringArray(value.StringValueSlice, value.EvalMetric.EvalOperator, *value.EvalMetric.EvalComparisonString)
-			if rerr != nil {
-				return nil, rerr
-			}
-			value.EvalMetric.EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
-		case "array[boolean]":
-			results, rerr := EvaluateBooleanArray(value.BooleanValueSlice, *value.EvalMetric.EvalComparisonBoolean)
-			if rerr != nil {
-				return nil, rerr
-			}
-			value.EvalMetric.EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
-		default:
-			return nil, fmt.Errorf("unknown data type '%s'", value.DataType)
 		}
 	}
 	return &artemis_orchestrations.EvalMetricsResults{

@@ -94,7 +94,7 @@ func (s *OrchestrationsTestSuite) TestInsertJsonSchema() {
 }
 
 func (s *OrchestrationsTestSuite) TestSelectJsonSchemas() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	// get internal assignments
 	ou := org_users.OrgUser{}

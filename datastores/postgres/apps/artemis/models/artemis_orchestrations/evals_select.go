@@ -32,6 +32,11 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			WITH cte_metrics AS (
 				SELECT 
 					m.eval_id,
+					m.field_id,
+					af.schema_id,
+					af.field_name,
+					af.field_description,
+					af.data_type,
 					JSONB_AGG(
 						JSONB_BUILD_OBJECT(
 								'evalMetricID', COALESCE(m.eval_metric_id, 0),
@@ -48,27 +53,36 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 					) AS fields_metrics_jsonb
 				FROM public.eval_fns f
 				JOIN public.eval_metrics m ON m.eval_id = f.eval_id
+				JOIN public.ai_fields af ON af.field_id = m.field_id AND af.is_field_archived = false
 				WHERE m.is_eval_metric_archived = false AND f.org_id = $1 ` + addOnQuery + `
-				GROUP BY m.eval_id
+				GROUP BY m.eval_id, m.field_id,
+					af.schema_id,
+					af.field_name,
+					af.field_description,
+					af.data_type
 			), cte_fields_and_metrics AS (
 				SELECT 
-					m.eval_id,
+					f.eval_id,
 					jsd.schema_id,
+					jsd.schema_name,
+					jsd.schema_group,
+					jsd.schema_description,
+					jsd.is_obj_array,
 					JSONB_AGG(
 						JSONB_BUILD_OBJECT(
-							'fieldID', COALESCE(af.field_id, 0),
-							'fieldName', COALESCE(af.field_name, ''),
-							'fieldDescription', COALESCE(af.field_description, ''),
-							'dataType', COALESCE(af.data_type, ''),
+							'fieldID', COALESCE(f.field_id, 0),
+							'fieldName', COALESCE(f.field_name, ''),
+							'fieldDescription', COALESCE(f.field_description, ''),
+							'dataType', COALESCE(f.data_type, ''),
 							'evalMetrics', f.fields_metrics_jsonb
 						)
 					) AS fields_jsonb
-				FROM public.ai_fields af
-				JOIN public.ai_json_schema_definitions jsd ON af.schema_id = jsd.schema_id
-				JOIN public.eval_metrics m ON m.field_id = af.field_id
-				JOIN cte_metrics f ON m.eval_id = f.eval_id
-				WHERE m.is_eval_metric_archived = false AND af.is_field_archived = false AND jsd.org_id = $1 ` + addOnQuery + `
-				GROUP BY m.eval_id, jsd.schema_id
+				FROM cte_metrics f
+				JOIN public.ai_json_schema_definitions jsd ON f.schema_id = jsd.schema_id
+				GROUP BY f.eval_id, jsd.schema_id,jsd.schema_name,
+					jsd.schema_group,
+					jsd.schema_description,
+					jsd.is_obj_array
 			), eval_fns_with_metrics AS (
 				SELECT 
 					f.eval_id, 
@@ -79,17 +93,16 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 					f.eval_format,
 					JSONB_AGG(
 						JSONB_BUILD_OBJECT(
-							'schemaID', COALESCE(jsd.schema_id, 0),
-							'schemaName', COALESCE(jsd.schema_name, ''),
-							'schemaGroup', COALESCE(jsd.schema_group, 'default'),
-							'schemaDescription', COALESCE(jsd.schema_description, ''),
-							'isObjArray', COALESCE(jsd.is_obj_array, false),
+							'schemaID', COALESCE(fm.schema_id, 0),
+							'schemaName', COALESCE(fm.schema_name, ''),
+							'schemaGroup', COALESCE(fm.schema_group, 'default'),
+							'schemaDescription', COALESCE(fm.schema_description, ''),
+							'isObjArray', COALESCE(fm.is_obj_array, false),
 							'fields', COALESCE(fm.fields_jsonb, '[]'::jsonb)
 						)
 					) AS metrics_jsonb
-				FROM public.eval_fns f
-				LEFT JOIN cte_fields_and_metrics fm ON f.eval_id = fm.eval_id
-				LEFT JOIN public.ai_json_schema_definitions jsd ON fm.schema_id = jsd.schema_id
+				FROM cte_fields_and_metrics fm
+				JOIN eval_fns f ON f.eval_id = fm.eval_id
 				WHERE f.org_id = $1 ` + addOnQuery + `
 				GROUP BY f.eval_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format
 			),

@@ -37,25 +37,50 @@ export type UpdateEvalMapPayload = {
 
 export interface EvalFn {
     evalID?: number;
-    evalTaskID?: number;
+    orgID?: number;
+    userID?: number;
     evalName: string;
     evalType: string;
     evalGroupName: string;
     evalModel?: string;
-    evalFormat: string
+    evalFormat: string;
     evalCycleCount?: number;
     evalMetrics: EvalMetric[];
     triggerFunctions?: TriggerAction[];
     schemas: JsonSchemaDefinition[];
+    schemasMap: { [key: number]: JsonSchemaDefinition };
 }
 
 export interface EvalMetric {
-    jsonSchemaID?: number;
     evalMetricID?: number;
-    evalMetricResult: string;
+    evalMetricResult?: EvalMetricResult;
+    evalOperator: string;
+    evalState: string;
+    evalExpectedResultState: string;
+    evalComparisonValues: EvalMetricComparisonValues;
+}
+
+export interface EvalMetricComparisonValues {
     evalComparisonBoolean?: boolean;
     evalComparisonNumber?: number;
     evalComparisonString?: string;
-    evalOperator: string;
-    evalState: string;
+    evalComparisonInteger?: number;
+}
+
+export interface EvalMetricResult {
+    evalMetricResultID?: number;
+    evalResultOutcomeBool?: boolean;
+    evalMetadata?: any; // Consider using a more specific type if the structure of evalMetadata is known
+}
+
+export interface FieldValue {
+    intValue?: number;
+    stringValue?: string;
+    numberValue?: number;
+    booleanValue?: boolean;
+    intValueSlice?: number[];
+    stringValueSlice?: string[];
+    numberValueSlice?: number[];
+    booleanValueSlice?: boolean[];
+    isValidated?: boolean;
 }

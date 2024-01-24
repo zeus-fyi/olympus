@@ -206,6 +206,14 @@ func redditSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templ
 		baseQuery += fmt.Sprintf(" AND (body_tsvector @@ to_tsquery('english', $%d) OR title_tsvector @@ to_tsquery('english', $%d))", len(args), len(args))
 	}
 
+	if sp.Retrieval.RetrievalNegativeKeywords != nil && *sp.Retrieval.RetrievalNegativeKeywords != "" {
+		negQuery := formatKeywordsForTsQuery(*sp.Retrieval.RetrievalNegativeKeywords, true)
+		if negQuery != "" {
+			baseQuery += fmt.Sprintf(` AND body_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
+			args = append(args, negQuery)
+		}
+	}
+
 	if !sp.Window.IsWindowEmpty() {
 		baseQuery += ` AND`
 		tsRangeStart, tsEnd := sp.Window.GetUnixTimestamps()

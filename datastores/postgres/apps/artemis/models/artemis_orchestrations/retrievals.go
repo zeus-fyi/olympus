@@ -32,6 +32,10 @@ type RetrievalItemInstruction struct {
 	Instructions []byte `json:"instructions,omitempty"` // Instructions for the retrieval
 }
 
+func (r *RetrievalItemInstruction) GetNegativeKeywords() {
+
+}
+
 type WebFilters struct {
 	RoutingGroup *string `json:"routingGroup,omitempty"`
 	LbStrategy   *string `json:"lbStrategy,omitempty"`

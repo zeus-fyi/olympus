@@ -3,6 +3,7 @@ package hera_search
 import (
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -87,14 +88,20 @@ func (s *SearchAITestSuite) TestSearchReddit() {
 	sp := AiSearchParams{
 		Retrieval: artemis_orchestrations.RetrievalItem{
 			RetrievalItemInstruction: artemis_orchestrations.RetrievalItemInstruction{
-				RetrievalPlatform: "reddit",
-				DiscordFilters:    nil,
+				RetrievalPlatform:         "reddit",
+				RetrievalPrompt:           nil,
+				RetrievalPlatformGroups:   nil,
+				RetrievalKeywords:         aws.String("course"),
+				RetrievalNegativeKeywords: nil,
+				RetrievalUsernames:        nil,
+				DiscordFilters:            nil,
+				WebFilters:                nil,
+				Instructions:              nil,
 			},
 		},
 		Window: si,
 	}
 	results, err := SearchReddit(ctx, ou, sp)
-
 	// Assert expected outcomes
 	s.Require().NoError(err, "SearchReddit should not return an error")
 	s.Require().NotNil(results, "Results should not be nil")

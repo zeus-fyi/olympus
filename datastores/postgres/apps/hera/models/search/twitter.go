@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	twitter2 "github.com/cvcio/twitter"
@@ -30,11 +31,22 @@ func twitterSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_temp
 		   JOIN ai_twitter_search_query sq ON sq.search_id = ai_incoming_tweets.search_id
 		   WHERE sq.org_id = $1
 		   `
+	// Positive keywords
 	if sp.Retrieval.RetrievalKeywords != nil && *sp.Retrieval.RetrievalKeywords != "" {
-		bq += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
-		args = append(args, sp.Retrieval.RetrievalKeywords)
+		posQuery := formatKeywordsForTsQuery(*sp.Retrieval.RetrievalKeywords)
+		if posQuery != "" {
+			bq += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
+			args = append(args, posQuery)
+		}
 	}
 
+	if sp.Retrieval.RetrievalNegativeKeywords != nil && *sp.Retrieval.RetrievalNegativeKeywords != "" {
+		negQuery := formatKeywordsForTsQuery(*sp.Retrieval.RetrievalNegativeKeywords, true)
+		if negQuery != "" {
+			bq += fmt.Sprintf(` AND message_text_tsvector @@ to_tsquery('english', $%d)`, len(args)+1)
+			args = append(args, negQuery)
+		}
+	}
 	bq += ` AND NOT EXISTS (
 				SELECT 1
 				FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️', '💎', '🪂']) as t(emoji)
@@ -55,6 +67,25 @@ func twitterSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_temp
 	bq += ` ORDER BY tweet_id DESC`
 	q.RawQuery = bq
 	return q, args
+}
+
+// Helper function to format keywords for tsquery
+func formatKeywordsForTsQuery(queryText string, negate ...bool) string {
+	keywords := strings.FieldsFunc(queryText, func(r rune) bool {
+		return r == ',' || r == ' '
+	})
+	formattedQuery := ""
+	for _, keyword := range keywords {
+		if formattedQuery != "" {
+			formattedQuery += " & "
+		}
+		if len(negate) > 0 && negate[0] {
+			formattedQuery += "!" + keyword
+		} else {
+			formattedQuery += keyword
+		}
+	}
+	return formattedQuery
 }
 
 // links are mostly spam, filtering out links reduces the number of tweets by 75%, which results in ~90% less spam

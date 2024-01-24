@@ -15,7 +15,7 @@ func (t *ZeusWorkerTestSuite) TestTransformJSONToEvalScoredMetrics() {
 	ou.UserID = t.Tc.ProductionLocalTemporalUserID
 
 	act := NewZeusAiPlatformActivities()
-	evalFns, err := act.EvalLookup(ctx, ou, 1705982938987589000)
+	evalFns, err := act.EvalLookup(ctx, ou, 1704066747085827000)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(evalFns)
 

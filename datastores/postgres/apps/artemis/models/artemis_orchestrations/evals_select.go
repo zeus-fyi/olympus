@@ -60,14 +60,14 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 							'fieldName', COALESCE(af.field_name, ''),
 							'fieldDescription', COALESCE(af.field_description, ''),
 							'dataType', COALESCE(af.data_type, ''),
-							'evalMetrics', fm.fields_metrics_jsonb
+							'evalMetrics', f.fields_metrics_jsonb
 						)
 					) AS fields_jsonb
 				FROM public.ai_fields af
 				JOIN public.ai_json_schema_definitions jsd ON af.schema_id = jsd.schema_id
 				JOIN public.eval_metrics m ON m.field_id = af.field_id
-				JOIN cte_metrics fm ON m.eval_id = fm.eval_id
-				WHERE m.is_eval_metric_archived = false AND af.is_field_archived = false
+				JOIN cte_metrics f ON m.eval_id = f.eval_id
+				WHERE m.is_eval_metric_archived = false AND af.is_field_archived = false AND jsd.org_id = $1 ` + addOnQuery + `
 				GROUP BY m.eval_id, jsd.schema_id
 			), eval_fns_with_metrics AS (
 				SELECT 
@@ -90,6 +90,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				FROM public.eval_fns f
 				LEFT JOIN cte_fields_and_metrics fm ON f.eval_id = fm.eval_id
 				LEFT JOIN public.ai_json_schema_definitions jsd ON fm.schema_id = jsd.schema_id
+				WHERE f.org_id = $1 ` + addOnQuery + `
 				GROUP BY f.eval_id, f.eval_name, f.eval_type, f.eval_group_name, f.eval_model, f.eval_format
 			),
 						cte_eval_fn_slice AS (

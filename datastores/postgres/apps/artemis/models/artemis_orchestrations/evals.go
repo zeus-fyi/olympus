@@ -213,6 +213,7 @@ func DeleteEvalMetricsAndTriggers(ctx context.Context, ou org_users.OrgUser, tx 
 
 	_, err := tx.Exec(ctx, deleteDanglingMetricAndTriggerActionsQuery, *evalFn.EvalID, ou.OrgID, pq.Array(keepMetricIDs), pq.Array(keepTriggerIDs))
 	if err == pgx.ErrNoRows {
+		log.Warn().Msg("no rows found")
 		err = nil
 	}
 	if err != nil {

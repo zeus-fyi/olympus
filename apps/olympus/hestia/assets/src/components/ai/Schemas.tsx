@@ -145,7 +145,8 @@ export function Schemas(props: any) {
                             onClick={() => dispatch(setSchemaField({
                                 fieldName: '',
                                 dataType: '',
-                                fieldDescription: ''
+                                fieldDescription: '',
+                                evalMetrics: []
                             }))}
                     >Clear</Button>
                 </Box>

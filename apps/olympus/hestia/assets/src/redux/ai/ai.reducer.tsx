@@ -26,6 +26,7 @@ const initialState: AiState = {
         fieldName: '',
         fieldDescription: '',
         dataType: '',
+        evalMetrics: [],
     },
     assistant: {
         id: '',
@@ -123,12 +124,17 @@ const initialState: AiState = {
         triggerPlatformAccount: '',
     },
     evalMetric: {
-        evalComparisonNumber: 0,
-        evalComparisonString: '',
-        evalComparisonBoolean: false,
+        evalMetricID: undefined,
+        evalMetricResult: undefined, // Assuming evalMetricResult is an object or undefined
         evalOperator: '',
-        evalState: 'info',
-        evalMetricResult: '',
+        evalState: '',
+        evalExpectedResultState: '',
+        evalComparisonValues: {
+            evalComparisonBoolean: undefined,
+            evalComparisonNumber: undefined,
+            evalComparisonString: undefined,
+            evalComparisonInteger: undefined
+        }
     },
     evalFn: {
         evalName: '',
@@ -139,6 +145,7 @@ const initialState: AiState = {
         evalMetrics: [],
         triggerFunctions: [],
         schemas: [],
+        schemasMap: {},
     },
 
     evalFns: [],

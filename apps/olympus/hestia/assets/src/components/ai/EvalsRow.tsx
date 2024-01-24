@@ -21,7 +21,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
     const dispatch = useDispatch();
     const handleEditEvalFunction = async (e: any, ef: EvalFn) => {
         e.preventDefault();
-        console.log('EvalRow: row', ef)
+        // console.log('EvalRow: row', ef)
         dispatch(setEvalFn(ef))
     }
     // console.log(row)
@@ -80,13 +80,13 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Schema ID</TableCell>
-                                        <TableCell>Metric ID</TableCell>
+                                        {/*<TableCell>Metric ID</TableCell>*/}
                                         <TableCell>Metric Name</TableCell>
                                         <TableCell>Description</TableCell>
                                         <TableCell>Data Type</TableCell>
-                                        <TableCell>Operator</TableCell>
-                                        <TableCell>Eval State</TableCell>
-                                        <TableCell>Expected Result</TableCell>
+                                        {/*<TableCell>Operator</TableCell>*/}
+                                        {/*<TableCell>Eval State</TableCell>*/}
+                                        {/*<TableCell>Expected Result</TableCell>*/}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -101,13 +101,13 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                         field.evalMetric ? (
                                                             <TableRow key={fieldIndex}>
                                                                 <TableCell>{schema.schemaID}</TableCell>
-                                                                <TableCell>{field.evalMetric.evalMetricID ? field.evalMetric.evalMetricID : 'N/A'}</TableCell>
+                                                                {/*<TableCell>{field.evalMetric && field.evalMetric. ? field.evalMetric.evalMetricID : 'N/A'}</TableCell>*/}
                                                                 <TableCell>{field.fieldName}</TableCell>
                                                                 <TableCell>{field.fieldDescription}</TableCell>
                                                                 <TableCell>{field.dataType}</TableCell>
-                                                                <TableCell>{field.evalMetric.evalOperator !== '' ? field.evalMetric.evalOperator: 'N/A'}</TableCell>
-                                                                <TableCell>{field.evalMetric.evalState}</TableCell>
-                                                                <TableCell>{field.evalMetric.evalMetricResult}</TableCell>
+                                                                {/*<TableCell>{field.evalMetric.evalOperator !== '' ? field.evalMetric.evalOperator: 'N/A'}</TableCell>*/}
+                                                                {/*<TableCell>{field.evalMetric.evalState}</TableCell>*/}
+                                                                {/*<TableCell>{field.evalMetric.evalMetricResult}</TableCell>*/}
                                                             </TableRow>
                                                         ) : null
                                                     ))}

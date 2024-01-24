@@ -71,7 +71,6 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 	// Inserting or updating eval_metrics from json schema
 	for _, schema := range evalFn.Schemas {
 		for _, field := range schema.Fields {
-
 			for _, metric := range field.EvalMetrics {
 				if metric == nil {
 					continue
@@ -151,8 +150,8 @@ type EvalMetric struct {
 	EvalMetricResult           *EvalMetricResult           `json:"evalMetricResult,omitempty"`
 	EvalOperator               string                      `json:"evalOperator"`
 	EvalState                  string                      `json:"evalState"`
-	EvalExpectedResultState    string                      `json:"evalExpectedResultState"` // true if eval passed, false if eval failed
-	EvalMetricComparisonValues *EvalMetricComparisonValues `json:"evalComparisonValues"`    // true if eval passed, false if eval failed
+	EvalExpectedResultState    string                      `json:"evalExpectedResultState"`    // true if eval passed, false if eval failed
+	EvalMetricComparisonValues *EvalMetricComparisonValues `json:"evalMetricComparisonValues"` // true if eval passed, false if eval failed
 }
 
 type EvalMetricComparisonValues struct {

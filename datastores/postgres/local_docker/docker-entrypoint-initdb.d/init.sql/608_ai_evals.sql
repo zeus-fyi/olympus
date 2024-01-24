@@ -46,6 +46,7 @@ CREATE TABLE public.eval_metrics(
     eval_id BIGINT NOT NULL REFERENCES public.eval_fns(eval_id),
     field_id BIGINT NOT NULL REFERENCES public.ai_fields(field_id),
     eval_comparison_number float8,
+    eval_comparison_integer bigint,
     eval_comparison_boolean boolean,
     eval_comparison_string text,
     eval_operator text NOT NULL,

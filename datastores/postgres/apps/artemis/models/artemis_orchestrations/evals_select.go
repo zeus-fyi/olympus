@@ -36,9 +36,12 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 						JSONB_BUILD_OBJECT(
 								'evalMetricID', COALESCE(m.eval_metric_id, 0),
 								'evalExpectedResultState', COALESCE(m.eval_metric_result, ''),
-								'evalComparisonBoolean', COALESCE(m.eval_comparison_boolean, FALSE),
-								'evalComparisonNumber', COALESCE(m.eval_comparison_number, 0.0),
-								'evalComparisonString', COALESCE(m.eval_comparison_string, ''),
+								'evalMetricComparisonValues', JSONB_BUILD_OBJECT(
+										'evalComparisonBoolean', COALESCE(m.eval_comparison_boolean, FALSE),
+										'evalComparisonNumber', COALESCE(m.eval_comparison_number, 0.0),
+										'evalComparisonString', COALESCE(m.eval_comparison_string, ''),
+										'evalComparisonInteger', COALESCE(m.eval_comparison_integer, 0)
+									),
 								'evalOperator', COALESCE(m.eval_operator, ''),
 								'evalState', COALESCE(m.eval_state, '')
 							)

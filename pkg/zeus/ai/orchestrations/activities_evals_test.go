@@ -1,40 +1,9 @@
 package ai_platform_service_orchestrations
 
 import (
-	"fmt"
-
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
-
-func (t *ZeusWorkerTestSuite) TestEvalFnJsonConstructSchemaFromDb() {
-	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
-
-	ou := org_users.OrgUser{}
-	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
-	ou.UserID = t.Tc.ProductionLocalTemporalUserID
-
-	act := NewZeusAiPlatformActivities()
-	evalFns, err := act.EvalLookup(ctx, ou, 1705982938987589000)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(evalFns)
-
-	for _, evalFnWithMetrics := range evalFns {
-		fmt.Println(evalFnWithMetrics.EvalType)
-		rerr := act.EvalModelScoredJsonOutput(ctx, &evalFnWithMetrics)
-		t.Require().Nil(rerr)
-
-		for _, fi := range evalFnWithMetrics.Schemas {
-			for _, f := range fi.Fields {
-				for _, metric := range f.EvalMetrics {
-					t.Require().NotNil(metric.EvalMetricResult)
-					t.Require().NotNil(metric.EvalMetricResult.EvalResultOutcomeBool)
-					fmt.Println(metric.EvalMetricID, f.FieldName, *metric.EvalMetricResult.EvalResultOutcomeBool)
-				}
-			}
-		}
-	}
-}
 
 /*
 type EvalFn struct {

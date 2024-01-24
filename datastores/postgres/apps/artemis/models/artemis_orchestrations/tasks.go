@@ -150,6 +150,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					jsd.is_obj_array,
 					jsd.schema_name,
 					jsd.schema_group,
+					jsd.schema_description,
 					af.field_name, 
 					af.field_description,
 					af.data_type
@@ -169,7 +170,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					tl.response_format,
 					tl.prompt,
 					tl.eval_id,
-					jsd.schema_id, jsd.schema_name, jsd.schema_group, jsd.is_obj_array,
+					jsd.schema_id, jsd.schema_name, jsd.schema_group, jsd.is_obj_array, jsd.schema_description,
 					af.field_id
 			),
 			cte_2 AS (
@@ -184,6 +185,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					tl.is_obj_array,
 					tl.schema_name,
 					tl.schema_group,
+					tl.schema_description,
 					jsonb_agg(
 						jsonb_build_object(
 							'evalMetricID', evm.eval_metric_id,
@@ -199,7 +201,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					LEFT JOIN public.eval_metrics evm ON evm.eval_id = tl.eval_id AND evm.is_eval_metric_archived = false AND evm.eval_state != 'ignore'
 				GROUP BY 
 					tl.task_id, tl.eval_id, tl.schema_id, tl.field_id, tl.field_name,
-					tl.field_description, tl.data_type, tl.schema_name, tl.schema_group, tl.is_obj_array
+					tl.field_description, tl.data_type, tl.schema_name, tl.schema_group, tl.is_obj_array, tl.schema_description
 			),
 			cte_schema_definitions AS (
 				SELECT 
@@ -209,6 +211,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					te.is_obj_array,
 					te.schema_name,
 					te.schema_group,
+					te.schema_description,
 					jsonb_agg(
 						jsonb_build_object(
 							'fieldID', te.field_id,
@@ -221,7 +224,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 				FROM 
 					cte_2 te
 				GROUP BY 
-					te.task_id, te.eval_id, te.schema_id, te.schema_name, te.schema_group, te.is_obj_array
+					te.task_id, te.eval_id, te.schema_id, te.schema_name, te.schema_group, te.schema_description, te.is_obj_array
 			),
 			cte_xy AS (
 				SELECT 
@@ -232,13 +235,14 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 						'schemaID', ct.schema_id,
 						'schemaName', ct.schema_name,
 						'schemaGroup', ct.schema_group,
+						'schemaDescription', ct.schema_description,
 						'isObjArray', ct.is_obj_array,
 						'fields', ct.eval_fn_metrics_schemas_jsonb 
 					) AS task_schemas_jsonb
 				FROM 
 					cte_schema_definitions ct
 				GROUP BY 
-					ct.task_id, ct.eval_id, ct.schema_id, ct.schema_name, ct.schema_group, ct.is_obj_array, ct.eval_fn_metrics_schemas_jsonb
+					ct.task_id, ct.eval_id, ct.schema_id, ct.schema_name, ct.schema_group, ct.schema_description, ct.is_obj_array, ct.eval_fn_metrics_schemas_jsonb
 			),
 			cte_eval_fn_slice AS (
 				SELECT 
@@ -274,6 +278,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					jsd.schema_id,
 					jsd.schema_name,
 					jsd.schema_group,
+					jsd.schema_description,
 					jsd.is_obj_array,
 					jsonb_agg(
 						jsonb_build_object(
@@ -289,7 +294,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					JOIN public.ai_json_schema_definitions jsd ON ats.schema_id = jsd.schema_id
 					JOIN public.ai_fields af ON ats.schema_id = af.schema_id AND af.is_field_archived = false
 				GROUP BY 
-					te.task_id, jsd.schema_id, jsd.schema_name, jsd.schema_group, jsd.is_obj_array
+					te.task_id, jsd.schema_id, jsd.schema_name, jsd.schema_group, jsd.schema_description, jsd.is_obj_array
 			),
 			cte_task_schemas AS (
 				SELECT 
@@ -299,13 +304,14 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 						'schemaID', ct.schema_id,
 						'schemaName', ct.schema_name,
 						'schemaGroup', ct.schema_group,
+						'schemaDescription', ct.schema_description,
 						'isObjArray', ct.is_obj_array,
 						'fields', ct.fields
 					) AS task_schemas_jsonb
 				FROM 
 					cte_task_schema_definitions ct
 				GROUP BY 
-					ct.task_id, ct.schema_id, ct.schema_name, ct.schema_group, ct.is_obj_array, ct.fields
+					ct.task_id, ct.schema_id, ct.schema_name, ct.schema_group, ct.schema_description, ct.is_obj_array, ct.fields
 			),
 			cte_x AS (
 				SELECT 

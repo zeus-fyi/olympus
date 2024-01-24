@@ -3,7 +3,8 @@ CREATE TABLE public.ai_json_schema_definitions(
     schema_id BIGINT NOT NULL REFERENCES ai_schemas(schema_id),
     is_obj_array bool NOT NULL DEFAULT false,
     schema_name text NOT NULL,
-    schema_group text NOT NULL DEFAULT 'default'
+    schema_group text NOT NULL DEFAULT 'default',
+    schema_description text NOT NULL DEFAULT ''
 );
 CREATE INDEX ai_json_schema_definitions_org_ind ON public.ai_json_schema_definitions(org_id);
 CREATE INDEX ai_json_schema_name_ind ON public.ai_json_schema_definitions(schema_name);

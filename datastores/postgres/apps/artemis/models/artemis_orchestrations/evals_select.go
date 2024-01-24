@@ -82,6 +82,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 							'schemaID', COALESCE(jsd.schema_id, 0),
 							'schemaName', COALESCE(jsd.schema_name, ''),
 							'schemaGroup', COALESCE(jsd.schema_group, 'default'),
+							'schemaDescription', COALESCE(jsd.schema_description, ''),
 							'isObjArray', COALESCE(jsd.is_obj_array, false),
 							'fields', COALESCE(fm.fields_jsonb, '[]'::jsonb)
 						)

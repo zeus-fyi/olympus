@@ -19,6 +19,7 @@ const initialState: AiState = {
         schemaID: 0,
         isObjArray: false,
         schemaName: '',
+        schemaDescription: '',
         schemaGroup: 'default',
         fields: [],
     },

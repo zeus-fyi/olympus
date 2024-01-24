@@ -113,141 +113,181 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
                 public.ai_task_library tl
             WHERE 
                 tl.org_id = $1 ` + queryAddOn + ` 
-	),	cte_task_evals AS (
-			SELECT 
-				evm.eval_id,
-				evm.field_id,
-				ct.task_id,
-				jsonb_agg(
-					jsonb_build_object(
-						'evalMetricID', evm.eval_metric_id,
-						'evalComparisonNumber', evm.eval_comparison_number,
-						'evalComparisonBoolean', evm.eval_comparison_boolean,
-						'evalComparisonString', evm.eval_comparison_string,
-						'evalOperator', evm.eval_operator,
-						'evalState', evm.eval_state,
-						'evalExpectedResultState', evm.eval_metric_result
-					)
-				) AS eval_metrics_jsonb
-			FROM  
-				cte_tasks ct
-				JOIN public.ai_workflow_template_eval_task_relationships ate ON ct.task_id = ate.task_id
-				JOIN public.eval_metrics evm ON evm.eval_id = ate.eval_id AND evm.is_eval_metric_archived = false
-				JOIN public.ai_fields af ON evm.field_id = af.field_id AND af.is_field_archived = false
-			WHERE 
-				evm.eval_state != 'ignore'
-			GROUP BY 
-				ct.task_id, evm.eval_id, evm.field_id
-		),
-		cte_schema_definitions AS (
-			SELECT 
-				ats.task_id,
-				te.eval_id,
-				jsd.schema_id,
-				jsd.schema_name,
-				jsd.schema_group,
-				jsonb_agg(
-					jsonb_build_object(
-						'fieldID', af.field_id,
-						'fieldName', af.field_name,
-						'fieldDescription', af.field_description,
-						'dataType', af.data_type,
-						'evalMetrics', COALESCE(te.eval_metrics_jsonb, '[]'::jsonb)
-					)
-				) AS fields
-			FROM 
-				public.ai_task_schemas ats
-				JOIN cte_task_evals te ON ats.task_id = te.task_id
-				JOIN public.ai_json_schema_definitions jsd ON ats.schema_id = jsd.schema_id
-				JOIN public.ai_fields af ON jsd.schema_id = af.schema_id AND af.is_field_archived = false
-			GROUP BY 
-				ats.task_id,te.eval_id, jsd.schema_id, 	jsd.schema_name,
-				jsd.schema_group
-		),
-		cte_schema_definitions2 AS (
-			SELECT
-				cd.task_id,
-				cd.eval_id,
-				jsonb_agg(
-					jsonb_build_object(
-						'schemaID', cd.schema_id,
-						'schemaName', cd.schema_name,
-						'schemaGroup', cd.schema_group,
-						'fields', cd.fields
-					)
-				) AS eval_fn_metrics_schemas_jsonb
-			FROM cte_schema_definitions cd 
-			GROUP BY task_id, eval_id
-		), cte_eval_fn_slice AS (
-			SELECT 
-			cd.task_id,
-        jsonb_agg(
-            jsonb_build_object(
-                'evalID', evf.eval_id,
-                'evalName', evf.eval_name,
-                'evalType', evf.eval_type,
-                'evalGroupName', evf.eval_group_name,
-                'evalModel', evf.eval_model,
-                'evalFormat', evf.eval_format,
-                'schemas', eval_fn_metrics_schemas_jsonb
-            )
-        ) AS eval_fn_metrics_schemas_jsonb
-			FROM 
-				cte_schema_definitions2 cd
-			JOIN eval_fns evf ON evf.eval_id = cd.eval_id
-			GROUP BY 
-				cd.task_id
-		),
-		cte_task_schemas AS (
-			SELECT 
-				ats.task_id,
-				jsonb_agg(
-					jsonb_build_object(
-						'schemaID', jsd.schema_id,
-						'schemaName', jsd.schema_name,
-						'schemaGroup', jsd.schema_group,
-						'isObjArray', jsd.is_obj_array,
-						'fields', (
-							SELECT jsonb_agg(
-								jsonb_build_object(
-									'fieldID', af.field_id,
-									'fieldName', af.field_name,
-									'fieldDescription', af.field_description,
-									'dataType', af.data_type
-								)
-							)
-							FROM 
-								public.ai_task_schemas ats
-								JOIN public.ai_json_schema_definitions jsd ON ats.schema_id = jsd.schema_id
-								JOIN public.ai_fields af ON jsd.schema_id = af.schema_id AND af.is_field_archived = false
+			),
+			cte_tasks_0 AS (
+				SELECT 
+					tl.task_id, 
+					tl.max_tokens_per_task, 
+					tl.task_type,
+					tl.task_name, 
+					tl.task_group, 
+					tl.token_overflow_strategy, 
+					tl.model, 
+					tl.prompt, 
+					tl.response_format,
+					ate.eval_id,
+					evm.field_id,
+					evm.eval_metric_id
+				FROM  
+					cte_tasks tl
+				LEFT JOIN ai_workflow_template_eval_task_relationships ate ON tl.task_id = ate.task_id
+				LEFT JOIN public.eval_metrics evm ON evm.eval_id = ate.eval_id AND evm.is_eval_metric_archived = false AND evm.eval_state != 'ignore'
+				GROUP BY tl.task_id, tl.max_tokens_per_task, tl.task_type, tl.task_name, tl.task_group, tl.token_overflow_strategy, tl.model, tl.prompt, tl.response_format, ate.eval_id, evm.field_id, evm.eval_metric_id
+			),
+			cte_1 AS (
+				SELECT 
+					tl.task_id,
+					tl.max_tokens_per_task, 
+					tl.task_type,
+					tl.task_name, 
+					tl.task_group, 
+					tl.token_overflow_strategy, 
+					tl.model, 
+					tl.prompt, 
+					tl.response_format,
+					tl.eval_id,
+					tl.eval_metric_id,
+					tl.field_id,
+					jsd.schema_id,
+					af.field_name, 
+					af.field_description,
+					af.data_type
+				FROM cte_tasks_0 tl
+				JOIN public.ai_fields af ON tl.field_id = af.field_id AND af.is_field_archived = false
+				JOIN public.ai_json_schema_definitions jsd ON af.schema_id = jsd.schema_id
+			),
+			cte_2 AS (
+				SELECT
+					tl.task_id,
+					tl.eval_id,
+					tl.field_id,
+							tl.field_name,
+							tl.field_description,
+							tl.data_type,
+							tl.schema_id,
+							jsonb_agg(
+						jsonb_build_object(
+							'evalMetricID', evm.eval_metric_id,
+							'evalComparisonNumber', evm.eval_comparison_number,
+							'evalComparisonBoolean', evm.eval_comparison_boolean,
+							'evalComparisonString', evm.eval_comparison_string,
+							'evalOperator', evm.eval_operator,
+							'evalState', evm.eval_state,
+							'evalMetricResult', evm.eval_metric_result
 						)
-					)
-				) AS task_schemas_jsonb
+							) AS eval_metrics_jsonb
+				FROM  
+					cte_1 tl
+				JOIN public.eval_metrics evm ON evm.field_id = tl.field_id AND evm.is_eval_metric_archived = false
+				GROUP BY tl.task_id, tl.eval_id, tl.schema_id, tl.field_id,tl.field_name,
+							tl.field_description,
+							tl.data_type
+			),
+			cte_schema_definitions AS (
+				SELECT 
+					te.task_id,
+					te.eval_id,
+					jsd.schema_id,
+					jsd.schema_name,
+					jsd.schema_group,
+					jsonb_agg(
+						jsonb_build_object(
+							'fieldID', te.field_id,
+							'fieldName', te.field_name,
+							'fieldDescription', te.field_description,
+							'dataType', te.data_type,
+							'evalMetrics', COALESCE(te.eval_metrics_jsonb, '[]'::jsonb)
+						)
+					) AS eval_fn_metrics_schemas_jsonb
+				FROM 
+					cte_2 te
+				JOIN public.ai_json_schema_definitions jsd ON te.schema_id = jsd.schema_id
+				GROUP BY 
+					te.task_id, te.eval_id, jsd.schema_id, jsd.schema_name, jsd.schema_group
+			), cte_eval_fn_slice AS (
+				SELECT 
+					cd.task_id,
+					jsonb_agg(
+						jsonb_build_object(
+							'evalID', evf.eval_id,
+							'evalName', evf.eval_name,
+							'evalType', evf.eval_type,
+							'evalGroupName', evf.eval_group_name,
+							'evalModel', evf.eval_model,
+							'evalFormat', evf.eval_format,
+							'schemas', eval_fn_metrics_schemas_jsonb
+						)
+					) AS eval_fn_metrics_jsonb
+						FROM 
+							cte_schema_definitions cd
+						JOIN eval_fns evf ON evf.eval_id = cd.eval_id
+						GROUP BY 
+							cd.task_id
+			), cte_task_schema_definitions AS (
+				SELECT 
+					te.task_id,
+					jsd.schema_id,
+					jsd.schema_name,
+					jsd.schema_group,
+					jsd.is_obj_array,
+					jsonb_agg(
+						jsonb_build_object(
+							'fieldID', af.field_id,
+							'fieldName', af.field_name,
+							'fieldDescription', af.field_description,
+							'dataType', af.data_type
+						)
+					) AS fields
+				FROM 
+					cte_tasks te
+					JOIN ai_task_schemas ats ON ats.task_id = te.task_id
+					JOIN public.ai_json_schema_definitions jsd ON ats.schema_id = jsd.schema_id
+					JOIN public.ai_fields af ON ats.schema_id = af.schema_id AND af.is_field_archived = false
+				GROUP BY 
+					te.task_id, jsd.schema_id, jsd.schema_name, jsd.schema_group, jsd.is_obj_array
+			), 
+			cte_task_schemas AS (
+				SELECT 
+					ct.task_id,
+							ct.schema_id,
+					jsonb_build_object(
+						'schemaID', ct.schema_id,
+						'schemaName', ct.schema_name,
+						'schemaGroup', ct.schema_group,
+						'isObjArray', ct.is_obj_array,
+						'fields', ct.fields  -- Corrected here by adding a comma before 'fields'
+				   ) AS task_schemas_jsonb
+				FROM 
+					cte_task_schema_definitions ct
+				GROUP BY 
+					ct.task_id, ct.schema_id, ct.schema_name,  ct.schema_group,ct.is_obj_array, ct.fields
+			),
+			cte_x AS (
+				SELECT 
+					ct.task_id,
+					jsonb_agg(ct.task_schemas_jsonb) AS task_schemas_jsonb
+				FROM  cte_task_schemas ct
+				GROUP BY 
+					ct.task_id
+			)
+			SELECT 
+				ct.task_id, 
+				ct.max_tokens_per_task, 
+				ct.task_type,
+				ct.task_name, 
+				ct.task_group,
+				ct.token_overflow_strategy, 
+				ct.model, 
+				ct.prompt, 
+				ct.response_format,
+				COALESCE(css.task_schemas_jsonb, '[]'::jsonb) AS task_schemas, 
+				COALESCE(eval_fn_metrics_jsonb, '[]'::jsonb) AS eval_fns
 			FROM 
 				cte_tasks ct
-				JOIN public.ai_task_schemas ats ON ct.task_id = ats.task_id
-				JOIN public.ai_json_schema_definitions jsd ON ats.schema_id = jsd.schema_id
-			GROUP BY 
-				ats.task_id
-		)
-		SELECT 
-			ct.task_id, 
-			ct.max_tokens_per_task, 
-			ct.task_type,
-			ct.task_name, 
-			ct.task_group,
-			ct.token_overflow_strategy, 
-			ct.model, 
-			ct.prompt, 
-			ct.response_format,
-			COALESCE(css.task_schemas_jsonb, '[]'::jsonb), 
-			COALESCE(eval_fn_metrics_schemas_jsonb, '[]'::jsonb)
-		FROM 
-			cte_tasks ct
-			LEFT JOIN cte_eval_fn_slice cefs ON ct.task_id = cefs.task_id
-			LEFT JOIN cte_task_schemas css ON ct.task_id = css.task_id  
-		ORDER BY 
-			ct.task_id DESC;`
+				LEFT JOIN cte_eval_fn_slice cefs ON ct.task_id = cefs.task_id
+				LEFT JOIN cte_x css ON ct.task_id = css.task_id  
+			ORDER BY 
+				ct.task_id DESC;`
 	// Executing the query
 	rows, err := apps.Pg.Query(ctx, query, params...)
 	if err != nil {

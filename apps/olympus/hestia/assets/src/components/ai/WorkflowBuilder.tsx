@@ -975,8 +975,9 @@ function WorkflowEngineBuilder(props: any) {
                 }
                 return;
             }
+            const responseFormat = (taskType === 'analysis' ? editAnalysisTask.responseFormat : editAggregateTask.responseFormat)
             const prompt = (taskType === 'analysis' ? editAnalysisTask.prompt : editAggregateTask.prompt);
-            if (prompt.length <= 0) {
+            if (prompt.length <= 0 && responseFormat != 'json') {
                 if (taskType === 'analysis') {
                     setRequestAnalysisStatus('Analysis task prompt is empty')
                     setRequestAnalysisStatusError('error')

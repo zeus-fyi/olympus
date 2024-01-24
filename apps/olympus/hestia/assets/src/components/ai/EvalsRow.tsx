@@ -21,7 +21,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
     const dispatch = useDispatch();
     const handleEditEvalFunction = async (e: any, ef: EvalFn) => {
         e.preventDefault();
-        console.log('EvalRow: row', ef)
+        // console.log('EvalRow: row', ef)
         dispatch(setEvalFn(ef))
     }
     // console.log(row)

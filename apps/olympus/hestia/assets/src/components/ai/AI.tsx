@@ -586,14 +586,14 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     </Select>
                                                     </FormControl>
                                                     <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
-                                                        <InputLabel key={`groupNameLabel`} id={`groupName`}>
-                                                            Lb
+                                                        <InputLabel key={`lbStrategyLabel`} id={`lbStrategy`}>
+                                                            Load Balancing
                                                         </InputLabel>
                                                         <Select
-                                                            labelId="groupNameLabel"
-                                                            id="groupName"
-                                                            name="groupName"
-                                                            value={retrieval.retrievalItemInstruction.webFilters?.lbStrategy || ''}
+                                                            labelId={`lbStrategy`}
+                                                            id={`lbStrategy`}
+                                                            name="lbStrategy"
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.lbStrategy ? retrieval.retrievalItemInstruction.webFilters.lbStrategy : 'round-robin'}
                                                             onChange={(e) => {
                                                                 const updatedRetrieval = {
                                                                     ...retrieval,
@@ -601,15 +601,16 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                         ...retrieval.retrievalItemInstruction,
                                                                         webFilters: {
                                                                             ...retrieval.retrievalItemInstruction.webFilters,
-                                                                            lbStrategy: e.target.value // Correctly update the lbStrategy field
+                                                                            lbStrategy: e.target.value, // Correctly update the routingGroup field
                                                                         }
                                                                     }
                                                                 };
                                                                 dispatch(setRetrieval(updatedRetrieval));
                                                             }}
-                                                            label="Routing Group"
+                                                            label="Load Balancing"
                                                         >
-                                                            {/* Options here */}
+                                                            <MenuItem value="round-robin">Round Robin</MenuItem>
+                                                            <MenuItem value="poll-table">Poll Table</MenuItem>
                                                         </Select>
                                                     </FormControl>
                                                 </div>

@@ -3207,7 +3207,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         // Check if an evalMetric already exists at this index; if not, create a new object
                                                                                         let updatedEvalMetric = updatedEvalMetrics[evalMetricIndex] ? {
                                                                                             ...updatedEvalMetrics[evalMetricIndex],
-                                                                                            evalState: e.target.value
+                                                                                            evalOperator: e.target.value
                                                                                         } : {
                                                                                             evalMetricID: undefined,
                                                                                             evalMetricResult: undefined,

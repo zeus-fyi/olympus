@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
@@ -142,12 +141,11 @@ type EvalMetricResult struct {
 }
 type EvalMetric struct {
 	EvalMetricID            *int              `json:"evalMetricID"`
-	EvalMetricResult        *EvalMetricResult `json:"evalMetricResult"`
+	EvalMetricResult        *EvalMetricResult `json:"evalMetricResult,omitempty"`
 	EvalOperator            string            `json:"evalOperator"`
 	EvalState               string            `json:"evalState"`
 	EvalExpectedResultState string            `json:"evalExpectedResultState"` // true if eval passed, false if eval failed
 	EvalMetricComparisonValues
-	EvalMetadata json.RawMessage `json:"evalMetadata,omitempty"`
 }
 
 type EvalMetricComparisonValues struct {
@@ -157,62 +155,62 @@ type EvalMetricComparisonValues struct {
 	EvalComparisonInteger *int     `json:"evalComparisonInteger,omitempty"`
 }
 
-func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []EvalMetric) error {
-	tx, err := apps.Pg.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx)
-	const query = `
-        INSERT INTO public.eval_metrics_results (
-            eval_metrics_result_id,
-            orchestration_id,
-            source_task_id,
-            eval_metric_id,
-            running_cycle_number,
-            search_window_unix_start,
-            search_window_unix_end,
-            eval_result_outcome,
-            eval_metadata,
-            chunk_offset,
-            eval_iteration_count
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        ON CONFLICT (eval_metric_id, source_task_id, orchestration_id, running_cycle_number, chunk_offset, eval_iteration_count)
-        DO UPDATE SET
-            running_cycle_number = EXCLUDED.running_cycle_number,
-            search_window_unix_start = EXCLUDED.search_window_unix_start,
-            search_window_unix_end = EXCLUDED.search_window_unix_end,
-            eval_result_outcome = EXCLUDED.eval_result_outcome,
-            eval_metadata = EXCLUDED.eval_metadata;
-    `
-	for _, emr := range emrs {
-		ts := chronos.Chronos{}
-		tsNow := ts.UnixTimeStampNow()
-		_, err = tx.Exec(ctx, query,
-			tsNow,
-			evCtx.AIWorkflowAnalysisResult.OrchestrationsID,
-			evCtx.AIWorkflowAnalysisResult.SourceTaskID,
-			emr.EvalMetricID,
-			evCtx.AIWorkflowAnalysisResult.RunningCycleNumber,
-			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixStart,
-			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixEnd,
-			emr.EvalExpectedResultState,
-			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetadata), Status: IsNull(emr.EvalMetadata)},
-			evCtx.AIWorkflowAnalysisResult.ChunkOffset,
-			evCtx.EvalIterationCount,
-		)
-		if err != nil {
-			log.Err(err).Msg("failed to execute query")
-			return err
-		}
-	}
-	err = tx.Commit(ctx)
-	if err != nil {
-		log.Err(err).Msg("failed to commit transaction")
-		return err
-	}
-	return nil
-}
+//func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []EvalMetric) error {
+//	tx, err := apps.Pg.Begin(ctx)
+//	if err != nil {
+//		return err
+//	}
+//	defer tx.Rollback(ctx)
+//	const query = `
+//        INSERT INTO public.eval_metrics_results (
+//            eval_metrics_result_id,
+//            orchestration_id,
+//            source_task_id,
+//            eval_metric_id,
+//            running_cycle_number,
+//            search_window_unix_start,
+//            search_window_unix_end,
+//            eval_result_outcome,
+//            eval_metadata,
+//            chunk_offset,
+//            eval_iteration_count
+//        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+//        ON CONFLICT (eval_metric_id, source_task_id, orchestration_id, running_cycle_number, chunk_offset, eval_iteration_count)
+//        DO UPDATE SET
+//            running_cycle_number = EXCLUDED.running_cycle_number,
+//            search_window_unix_start = EXCLUDED.search_window_unix_start,
+//            search_window_unix_end = EXCLUDED.search_window_unix_end,
+//            eval_result_outcome = EXCLUDED.eval_result_outcome,
+//            eval_metadata = EXCLUDED.eval_metadata;
+//    `
+//	for _, emr := range emrs {
+//		ts := chronos.Chronos{}
+//		tsNow := ts.UnixTimeStampNow()
+//		_, err = tx.Exec(ctx, query,
+//			tsNow,
+//			evCtx.AIWorkflowAnalysisResult.OrchestrationsID,
+//			evCtx.AIWorkflowAnalysisResult.SourceTaskID,
+//			emr.EvalMetricID,
+//			evCtx.AIWorkflowAnalysisResult.RunningCycleNumber,
+//			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixStart,
+//			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixEnd,
+//			emr.EvalExpectedResultState,
+//			&pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetadata), Status: IsNull(emr.EvalMetadata)},
+//			evCtx.AIWorkflowAnalysisResult.ChunkOffset,
+//			evCtx.EvalIterationCount,
+//		)
+//		if err != nil {
+//			log.Err(err).Msg("failed to execute query")
+//			return err
+//		}
+//	}
+//	err = tx.Commit(ctx)
+//	if err != nil {
+//		log.Err(err).Msg("failed to commit transaction")
+//		return err
+//	}
+//	return nil
+//}
 
 func DeleteEvalMetricsAndTriggers(ctx context.Context, ou org_users.OrgUser, tx pgx.Tx, evalFn *EvalFn) (pgx.Tx, error) {
 	if evalFn == nil || tx == nil || evalFn.EvalID == nil || *evalFn.EvalID == 0 {

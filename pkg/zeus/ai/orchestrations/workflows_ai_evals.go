@@ -85,33 +85,31 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				WorkflowID:               wfID,
 				WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			}
-			skipFirstIteration := false
-			if iterationCount == 0 && cpe.ParentOutputToEval != nil && cpe.ParentOutputToEval.JsonResponseResults != nil && evalFnWithMetrics.Schemas != nil {
-				if evalsFnsMap != nil {
-					for _, schemas := range cpe.ParentOutputToEval.JsonResponseResults {
-						for _, schema := range schemas {
-							if sm, ok := evalsFnsMap[aws.IntValue(evalFnWithMetrics.EvalID)]; ok {
-								if _, sok := sm.SchemasMap[schema.SchemaID]; sok {
-									// TODO replace/generate eval metric results
-									// Only skip if json response results are present and validated per field
-									skipFirstIteration = true
-								}
-							}
-						}
-					}
-				}
+			//skipFirstIteration := false
+			//if iterationCount == 0 && cpe.ParentOutputToEval != nil && cpe.ParentOutputToEval.JsonResponseResults != nil && evalFnWithMetrics.Schemas != nil {
+			//	if evalsFnsMap != nil {
+			//		for _, schemas := range cpe.ParentOutputToEval.JsonResponseResults {
+			//			for _, schema := range schemas {
+			//				if sm, ok := evalsFnsMap[aws.IntValue(evalFnWithMetrics.EvalID)]; ok {
+			//					if _, sok := sm.SchemasMap[schema.SchemaID]; sok {
+			//						// TODO replace/generate eval metric results
+			//						// Only skip if json response results are present and validated per field
+			//						skipFirstIteration = true
+			//					}
+			//				}
+			//			}
+			//		}
+			//	}
+			//}
+			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+			err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cr)
+			if err != nil {
+				logger.Error("failed to execute analysis json workflow", "Error", err)
+				return err
 			}
-			if !skipFirstIteration {
-				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cr)
-				if err != nil {
-					logger.Error("failed to execute analysis json workflow", "Error", err)
-					return err
-				}
-			}
-			// TODO, set correct updated json schema results from the json output task workflow or the skipFirstIteration one if exists
+
 			evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, cpe.ParentOutputToEval.JsonResponseResults, &evalFnWithMetrics).Get(evalModelScoredJsonCtx, &emr)
+			err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, cpe.ParentOutputToEval.JsonResponseResults, &evalFnWithMetrics).Get(evalModelScoredJsonCtx, &emr)
 			if err != nil {
 				logger.Error("failed to get score eval", "Error", err)
 				return err
@@ -119,20 +117,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			if emr == nil {
 				continue
 			}
-			// TODO, make into it's own workflow?
-			//for _, er := range emr.EvalMetricsResults {
-			//	// in the eval stage, if any filter fails, skip the analysis.
-			//	if er.EvalState == "filter" && ((er. == "pass" && er.EvalResultOutcome == false) || (er.EvalMetricResult == "fail" && er.EvalResultOutcome == true)) {
-			//		mb.WorkflowResult.SkipAnalysis = true
-			//		recordAnalysisCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			//		err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, mb.WorkflowResult).Get(recordAnalysisCtx, nil)
-			//		if err != nil {
-			//			logger.Error("failed to save analysis skip", "Error", err)
-			//			return err
-			//		}
-			//		break
-			//	}
-			//}
 			saveEvalResultsCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			emr.EvalContext = evCtx
 			err = workflow.ExecuteActivity(saveEvalResultsCtx, z.SaveEvalMetricResults, emr).Get(saveEvalResultsCtx, nil)

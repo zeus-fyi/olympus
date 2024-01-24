@@ -42,7 +42,6 @@ export interface EvalFn {
     evalGroupName: string;
     evalModel: string;
     evalFormat: string;
-    evalMetric?: EvalMetric;
     evalCycleCount?: number;
     evalMetrics: EvalMetric[];
     triggerFunctions?: TriggerAction[];
@@ -70,16 +69,4 @@ export interface EvalMetricResult {
     evalMetricResultID?: number;
     evalResultOutcomeBool?: boolean;
     evalMetadata?: any; // Consider using a more specific type if the structure of evalMetadata is known
-}
-
-export interface FieldValue {
-    intValue?: number;
-    stringValue?: string;
-    numberValue?: number;
-    booleanValue?: boolean;
-    intValueSlice?: number[];
-    stringValueSlice?: string[];
-    numberValueSlice?: number[];
-    booleanValueSlice?: boolean[];
-    isValidated?: boolean;
 }

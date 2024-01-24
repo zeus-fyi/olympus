@@ -82,7 +82,7 @@ import {RetrievalsTable} from "./RetrievalsTable";
 import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 import {ExpandLess, ExpandMore} from "@mui/icons-material";
-import {EvalsTable} from "./EvalsTable";
+import {defaultEvalMetric, EvalsTable} from "./EvalsTable";
 import {Assistants} from "./Assistants";
 import {AssistantsTable} from "./AssistantsTable";
 import {ActionsTable} from "./ActionsTable";
@@ -593,24 +593,25 @@ function WorkflowEngineBuilder(props: any) {
         if (selectedMainTabBuilder === 4) {
             const selectedSchemas: JsonSchemaDefinition[] = Object.keys(selected)
                 .filter(key => selected[Number(key)])
-                .map(key => schemas[Number(key)]);
-            const updatedSchemas = selectedSchemas.map(schema => ({
-                ...schema,
-                fields: schema.fields.map(field => ({
-                    ...field,
-                    evalMetrics: field.evalMetrics ? field.evalMetrics.map(evalMetric => ({
-                        ...evalMetric,
-                        evalMetricID: undefined, // Assuming you want to reset this for some reason
-                        evalComparisonValues: {
-                            ...evalMetric.evalMetricComparisonValues,
-                            evalComparisonBoolean: evalMetric.evalMetricComparisonValues?.evalComparisonBoolean || false, // Use false as default
-                            evalComparisonNumber: evalMetric.evalMetricComparisonValues?.evalComparisonNumber || 0,      // Use 0 as default
-                            evalComparisonString: evalMetric.evalMetricComparisonValues?.evalComparisonString || ''      // Use empty string as default
+                .map(key => {
+                    const schema = schemas[Number(key)];
+                    // Create a new array of fields with updated evalMetrics
+                    const updatedFields = schema.fields.map(field => {
+                        // If evalMetrics is not defined or empty, add default evalMetrics
+                        if (!field.evalMetrics || field.evalMetrics.length === 0) {
+                            return {
+                                ...field, // Spread to copy all existing field properties
+                                evalMetrics: [defaultEvalMetric(field.dataType)]
+                            };
                         }
-                    })) : []
-                }))
-            }));
-            dispatch(setEvalFn({ ...evalFn, schemas: updatedSchemas }))
+                        return field;
+                    });
+                    return {
+                        ...schema, // Spread to copy all existing schema properties
+                        fields: updatedFields
+                    };
+                });
+            dispatch(setEvalFn({ ...evalFn, schemas: selectedSchemas }));
         } else if (taskType === 'analysis') {
             const selectedSchemas: JsonSchemaDefinition[] = Object.keys(selected)
                 .filter(key => selected[Number(key)])
@@ -682,7 +683,6 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setAddAggregationView(false));
         dispatch(setAddRetrievalView(false));
         dispatch(setAddEvalFnsView(toggle));
-
         if (toggle) {
             dispatch(setSelectedMainTabBuilder(4))
             setSelected({});
@@ -2206,7 +2206,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             { addSchemasView ? 'Done Adding':'Add Schemas' }
                                                         </Button>
                                                     </Box>
-                                                    {editAnalysisTask.schemas && editAnalysisTask.schemas.length > 0 &&
+                                                    {editAnalysisTask.schemas !== undefined && editAnalysisTask.schemas.length > 0 &&
                                                         editAnalysisTask.schemas.map((schema: JsonSchemaDefinition, index: number) => (
                                                             schema &&
                                                             <div key={`schema-div-${index}`}> {/* Unique key assigned here */}
@@ -3030,7 +3030,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                     </Stack>
                                                     }
-                                                    {evalFn && evalFn.schemas && evalFn.schemas.length > 0 && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
+                                                    {evalFn && evalFn.schemas !== undefined && evalFn.schemas.length > 0 && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
                                                         <div key={dataIndex}>
                                                             <Stack direction="row">
                                                                 <Box sx={{ mb: 2, mt: 2, width: '50%' }}>
@@ -3077,10 +3077,10 @@ function WorkflowEngineBuilder(props: any) {
                                                             <Box flexGrow={1} sx={{ mt: 4, mb: 2}}>
                                                                 <Divider/>
                                                             </Box>
-                                                            {data.fields && data.fields.map((field: JsonSchemaField, fieldIndex: number) => (
-                                                            <React.Fragment key={fieldIndex}>
+                                                            {data.fields !== undefined && data.fields.map((field: JsonSchemaField, fieldIndex: number) => (
+                                                            <React.Fragment key={`frag-field-metric-name-${dataIndex}-${fieldIndex}`}>
                                                                 {field.evalMetrics && field.evalMetrics.map((evalMetric, evalMetricIndex) => (
-                                                                    <React.Fragment key={evalMetricIndex}>
+                                                                    <React.Fragment key={`field-metric-name-frag-${dataIndex}-${fieldIndex}-${evalMetricIndex}`}>
                                                                     <Grid container alignItems="center">
                                                                     <Grid item xs={12} sm={3}>
                                                                         <TextField

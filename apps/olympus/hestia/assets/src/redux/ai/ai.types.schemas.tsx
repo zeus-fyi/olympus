@@ -1,4 +1,4 @@
-import {EvalMetric, FieldValue} from "./ai.types.evals";
+import {EvalMetric} from "./ai.types.evals";
 
 export interface JsonSchemaDefinition {
     schemaID: number;
@@ -21,4 +21,16 @@ export interface JsonSchemaField {
 export interface AITaskJsonSchema {
     schemaID: number;
     taskID: number;
+}
+
+export interface FieldValue {
+    intValue?: number;
+    stringValue?: string;
+    numberValue?: number;
+    booleanValue?: boolean;
+    intValueSlice?: number[];
+    stringValueSlice?: string[];
+    numberValueSlice?: number[];
+    booleanValueSlice?: boolean[];
+    isValidated?: boolean;
 }

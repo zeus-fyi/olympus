@@ -7,6 +7,23 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {EvalRow} from "./EvalsRow";
+import {EvalMetric} from "../../redux/ai/ai.types.evals";
+
+export const defaultEvalMetric = (dataType: string): EvalMetric => {
+    return {
+        // Assign default values based on dataType or other criteria
+        evalOperator: "", // Example default value
+        evalState: "info",       // Example default value
+        evalExpectedResultState: "ignore", // Example default value
+        evalMetricComparisonValues: {
+            // Example default values; adjust as needed
+            evalComparisonBoolean: dataType === "boolean" ? false : undefined,
+            evalComparisonNumber: dataType === "number" ? 0 : undefined,
+            evalComparisonString: dataType === "string" ? "" : undefined,
+            evalComparisonInteger: dataType === "integer" ? 0 : undefined,
+        },
+    };
+};
 
 export function EvalsTable(props: any) {
     const {selected, evalFns, handleClick, handleSelectAllClick} = props;

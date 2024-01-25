@@ -43,19 +43,27 @@ func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, e
 	return nil
 }
 
-func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, evalFns []artemis_orchestrations.EvalFn) error {
+func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, evalFns []artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
 	if evalFns == nil {
 		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
-		return nil
+		return nil, nil
+	}
+	emr := &artemis_orchestrations.EvalMetricsResults{
+		EvalMetricsResults: []*artemis_orchestrations.EvalMetric{},
 	}
 	for efInd, _ := range evalFns {
 		for i, _ := range evalFns[efInd].Schemas {
 			err := TransformJSONToEvalScoredMetrics(evalFns[efInd].Schemas[i])
 			if err != nil {
 				log.Err(err).Int("i", i).Interface("scoredResultsFields", evalFns[efInd].Schemas[i]).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
-				return err
+				return nil, err
+			}
+			for j, _ := range evalFns[efInd].Schemas[i].Fields {
+				for emi, _ := range evalFns[efInd].Schemas[i].Fields[j].EvalMetrics {
+					emr.EvalMetricsResults = append(emr.EvalMetricsResults, evalFns[efInd].Schemas[i].Fields[j].EvalMetrics[emi])
+				}
 			}
 		}
 	}
-	return nil
+	return emr, nil
 }

@@ -13,19 +13,19 @@ import (
 )
 
 type EvalFn struct {
-	EvalStrID      *string                       `json:"evalStrID,omitempty"`
-	EvalID         *int                          `json:"evalID,omitempty"`
-	OrgID          int                           `json:"orgID,omitempty"`
-	UserID         int                           `json:"userID,omitempty"`
-	EvalName       string                        `json:"evalName"`
-	EvalType       string                        `json:"evalType"`
-	EvalGroupName  string                        `json:"evalGroupName"`
-	EvalModel      *string                       `json:"evalModel,omitempty"`
-	EvalFormat     string                        `json:"evalFormat"`
-	EvalCycleCount int                           `json:"evalCycleCount,omitempty"`
-	TriggerActions []TriggerAction               `json:"triggerFunctions,omitempty"`
-	Schemas        []*JsonSchemaDefinition       `json:"schemas,omitempty"`
-	SchemasMap     map[int]*JsonSchemaDefinition `json:"schemaMap"`
+	EvalStrID      *string                          `json:"evalStrID,omitempty"`
+	EvalID         *int                             `json:"evalID,omitempty"`
+	OrgID          int                              `json:"orgID,omitempty"`
+	UserID         int                              `json:"userID,omitempty"`
+	EvalName       string                           `json:"evalName"`
+	EvalType       string                           `json:"evalType"`
+	EvalGroupName  string                           `json:"evalGroupName"`
+	EvalModel      *string                          `json:"evalModel,omitempty"`
+	EvalFormat     string                           `json:"evalFormat"`
+	EvalCycleCount int                              `json:"evalCycleCount,omitempty"`
+	TriggerActions []TriggerAction                  `json:"triggerFunctions,omitempty"`
+	Schemas        []*JsonSchemaDefinition          `json:"schemas,omitempty"`
+	SchemasMap     map[string]*JsonSchemaDefinition `json:"schemaMap"`
 }
 
 func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, evalFn *EvalFn) error {
@@ -145,12 +145,12 @@ type EvalContext struct {
 }
 
 type EvalMetricsResults struct {
-	EvalContext        EvalContext  `json:"evalContext"`
-	EvalMetricsResults []EvalMetric `json:"evalMetricsResults"`
+	EvalContext        EvalContext   `json:"evalContext"`
+	EvalMetricsResults []*EvalMetric `json:"evalMetricsResults"`
 }
 
 type EvalMetricResult struct {
-	EvalMetricResultStrID *int            `json:"evalMetricResultStrID"`
+	EvalMetricResultStrID *string         `json:"evalMetricResultStrID"`
 	EvalMetricResultID    *int            `json:"evalMetricResultID"`
 	EvalResultOutcomeBool *bool           `json:"evalResultOutcome,omitempty"` // true if eval passed, false if eval failed
 	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`

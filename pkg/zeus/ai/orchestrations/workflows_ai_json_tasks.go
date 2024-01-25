@@ -21,6 +21,7 @@ const (
 type TaskToExecute struct {
 	WfID string                                           `json:"wfID"`
 	Ou   org_users.OrgUser                                `json:"ou"`
+	Ec   artemis_orchestrations.EvalContext               `json:"ec"`
 	Tc   TaskContext                                      `json:"taskContext"`
 	Wft  artemis_orchestrations.WorkflowTemplateData      `json:"wft"`
 	Sg   *hera_search.SearchResultGroup                   `json:"sg"`

@@ -18,7 +18,7 @@ type AIWorkflowEvalResultResponse struct {
 	ResponseID       int `db:"response_id" json:"responseId"`
 }
 
-func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []EvalMetric) error {
+func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []*EvalMetric) error {
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		return err
@@ -47,11 +47,13 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []Eva
            eval_metadata = EXCLUDED.eval_metadata;
    `
 	for _, emr := range emrs {
+		if emr == nil {
+			continue
+		}
+
 		ts := chronos.Chronos{}
 		tsNow := ts.UnixTimeStampNow()
-
 		var pgTemp *pgtype.JSONB
-
 		if emr.EvalMetricResult == nil {
 			pgTemp = &pgtype.JSONB{Bytes: []byte{}, Status: IsNull(nil)}
 		} else {

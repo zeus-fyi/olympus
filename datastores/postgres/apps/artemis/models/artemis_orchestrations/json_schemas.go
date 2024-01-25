@@ -20,6 +20,7 @@ type JsonSchemaDefinition struct {
 	SchemaDescription string            `db:"schema_description" json:"schemaDescription"`
 	IsObjArray        bool              `db:"is_obj_array" json:"isObjArray"`
 	Fields            []JsonSchemaField `db:"-" json:"fields"`
+	FieldsMap         map[string]*JsonSchemaField
 }
 
 type JsonSchemaField struct {

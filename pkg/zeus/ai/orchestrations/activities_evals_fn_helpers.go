@@ -18,8 +18,10 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 			}
 			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult == nil {
 				chs := chronos.Chronos{}
+				tsv := chs.UnixTimeStampNow()
 				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult = &artemis_orchestrations.EvalMetricResult{
-					EvalMetricResultID: aws.Int(chs.UnixTimeStampNow()),
+					EvalMetricResultID:    aws.Int(tsv),
+					EvalMetricResultStrID: aws.String(fmt.Sprintf("%d", tsv)),
 				}
 			}
 			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues == nil {
@@ -33,6 +35,11 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil && jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger == nil {
 					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
+				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber != nil {
+					fv := aws.ToFloat64(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)
+					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger = aws.Int(int(fv))
+				}
+
 				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger != nil {
 					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].IntegerValue, aws.ToInt(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger)))
 				} else if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber != nil {
@@ -114,19 +121,21 @@ func GetBooleanEvalComparisonResult(actual, expected bool) bool {
 	return actual == expected
 }
 
+// is actual gte expected
+
 func GetIntEvalComparisonResult(operator string, actual, expected int) bool {
 	switch operator {
-	case "==":
+	case "==", "eq":
 		return actual == expected
-	case "!=":
+	case "!=", "neq":
 		return actual != expected
-	case ">":
+	case ">", "gt":
 		return actual > expected
-	case "<":
+	case "<", "lt":
 		return actual < expected
-	case ">=":
+	case ">=", "gte":
 		return actual >= expected
-	case "<=":
+	case "<=", "lte":
 		return actual <= expected
 	}
 	return false
@@ -134,17 +143,17 @@ func GetIntEvalComparisonResult(operator string, actual, expected int) bool {
 
 func GetNumericEvalComparisonResult(operator string, actual, expected float64) bool {
 	switch operator {
-	case "==":
+	case "==", "eq":
 		return actual == expected
-	case "!=":
+	case "!=", "neq":
 		return actual != expected
-	case ">":
+	case ">", "gt":
 		return actual > expected
-	case "<":
+	case "<", "lt":
 		return actual < expected
-	case ">=":
+	case ">=", "gte":
 		return actual >= expected
-	case "<=":
+	case "<=", "lte":
 		return actual <= expected
 	}
 	return false
@@ -285,4 +294,101 @@ func convertToBool(value interface{}) (bool, error) {
 		return false, fmt.Errorf("value is not bool")
 	}
 	return av, nil
+}
+func haveIdenticalKeys[K comparable, V any](map1, map2 map[K]*V) bool {
+	if map1 == nil || map2 == nil {
+		return false // Handle nil maps
+	}
+	for key := range map1 {
+		if _, exists := map2[key]; !exists {
+			return false
+		}
+	}
+	return true
+}
+
+func copyFieldValues(src, dest *artemis_orchestrations.JsonSchemaDefinition) bool {
+	if src == nil || dest == nil {
+		return false // Handle nil arguments
+	}
+
+	for _, srcField := range src.FieldsMap {
+		if srcField == nil {
+			continue // Skip if srcField is nil
+		}
+
+		destField, ok := dest.FieldsMap[srcField.FieldStrID]
+		if !ok || destField == nil {
+			return false
+		}
+		if !srcField.FieldValue.IsValidated {
+			return false
+		}
+
+		if srcField.DataType == destField.DataType {
+			destField.FieldValue = srcField.FieldValue
+		}
+	}
+	return true
+}
+
+func copyMatchingFieldValues(tasksSchemaMap, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) {
+	if tasksSchemaMap == nil || schemasMap == nil {
+		return // Handle nil maps
+	}
+	if !haveIdenticalKeys(tasksSchemaMap, schemasMap) {
+		return // The maps do not have identical keys
+	}
+	// Ensure FieldsMap is populated for both maps
+	for _, schema := range tasksSchemaMap {
+		populateFieldsMap(schema)
+	}
+	for _, schema := range schemasMap {
+		populateFieldsMap(schema)
+	}
+	for schemaID, srcSchema := range tasksSchemaMap {
+		destSchema := schemasMap[schemaID]
+		copyFieldValues(srcSchema, destSchema)
+	}
+}
+
+func copyMatchingJsonResponsesFieldValuesFromResp(respJsonResults [][]*artemis_orchestrations.JsonSchemaDefinition, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) bool {
+	for trsi, _ := range respJsonResults {
+		for si, _ := range respJsonResults[trsi] {
+			if respJsonResults[trsi][si].SchemaID == 0 || len(respJsonResults[trsi][si].Fields) <= 0 {
+				continue
+			}
+			isRespPrePopulatedForEvalScores := copyMatchingFieldValuesFromResp(respJsonResults[trsi][si], schemasMap)
+			if !isRespPrePopulatedForEvalScores {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func copyMatchingFieldValuesFromResp(respJsonResults *artemis_orchestrations.JsonSchemaDefinition, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) bool {
+	if schemasMap == nil || respJsonResults == nil {
+		return false // Handle nil maps
+	}
+	evalSchema, ok := schemasMap[respJsonResults.SchemaStrID]
+	if !ok || evalSchema == nil {
+		return false // The maps do not have identical keys
+	}
+	populateFieldsMap(respJsonResults)
+	for _, schema := range schemasMap {
+		populateFieldsMap(schema)
+	}
+	return copyFieldValues(respJsonResults, evalSchema)
+}
+
+func populateFieldsMap(schema *artemis_orchestrations.JsonSchemaDefinition) {
+	if schema == nil || schema.Fields == nil {
+		return
+	}
+	schema.FieldsMap = make(map[string]*artemis_orchestrations.JsonSchemaField)
+	for i := range schema.Fields {
+		field := &schema.Fields[i]
+		schema.FieldsMap[field.FieldName] = field
+	}
 }

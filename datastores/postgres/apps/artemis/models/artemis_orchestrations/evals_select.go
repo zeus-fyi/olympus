@@ -2,8 +2,10 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -178,6 +180,8 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 		}
 		if ef.EvalID == nil {
 			continue
+		} else {
+			ef.EvalStrID = aws.String(fmt.Sprintf("%d", *ef.EvalID))
 		}
 		for _, trigger := range dbTriggersHelper {
 			if trigger.TriggerID == 0 {
@@ -185,20 +189,25 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			}
 			ta := TriggerAction{
 				TriggerID:                trigger.TriggerID,
+				TriggerStrID:             fmt.Sprintf("%d", trigger.TriggerID),
 				TriggerName:              trigger.TriggerName,
 				TriggerGroup:             trigger.TriggerGroup,
 				TriggerAction:            trigger.TriggerAction,
 				TriggerPlatformReference: TriggerPlatformReference{},
 				EvalTriggerAction: EvalTriggerActions{
 					EvalID:               *ef.EvalID,
+					EvalStrID:            fmt.Sprintf("%d", *ef.EvalID),
 					TriggerID:            trigger.TriggerID,
+					TriggerStrID:         fmt.Sprintf("%d", trigger.TriggerID),
 					EvalTriggerState:     trigger.EvalTriggerState,
 					EvalResultsTriggerOn: trigger.EvalResultsTriggerOn,
 				},
 				EvalTriggerActions: []EvalTriggerActions{
 					{
 						EvalID:               *ef.EvalID,
+						EvalStrID:            fmt.Sprintf("%d", *ef.EvalID),
 						TriggerID:            trigger.TriggerID,
+						TriggerStrID:         fmt.Sprintf("%d", trigger.TriggerID),
 						EvalTriggerState:     trigger.EvalTriggerState,
 						EvalResultsTriggerOn: trigger.EvalResultsTriggerOn,
 					},
@@ -212,6 +221,9 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 		for _, schema := range ef.Schemas {
 			if schema.SchemaID == 0 || len(schema.Fields) <= 0 {
 				continue
+			}
+			if schema.SchemaStrID == "" {
+				schema.SchemaStrID = fmt.Sprintf("%d", schema.SchemaID)
 			}
 			if ef.SchemasMap == nil {
 				ef.SchemasMap = make(map[int]*JsonSchemaDefinition)

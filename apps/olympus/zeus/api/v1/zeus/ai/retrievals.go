@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/labstack/echo/v4"
@@ -32,6 +33,14 @@ func (t *CreateOrUpdateRetrievalRequest) CreateOrUpdateRetrieval(c echo.Context)
 	}
 	if t.RetrievalName == "" || t.RetrievalPlatform == "" || (aws.StringValue(t.RetrievalKeywords) == "" && aws.StringValue(t.RetrievalPrompt) == "" && t.RetrievalGroup == "") {
 		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if t.RetrievalStrID != nil {
+		rid, err := strconv.Atoi(*t.RetrievalStrID)
+		if err != nil {
+			log.Err(err).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		t.RetrievalID = aws.Int(rid)
 	}
 	err := artemis_orchestrations.InsertRetrieval(c.Request().Context(), ou, &t.RetrievalItem)
 	if err != nil {

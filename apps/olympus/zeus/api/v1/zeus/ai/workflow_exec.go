@@ -46,6 +46,7 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
+
 	if w.CustomBasePeriod && w.CustomBasePeriodStepSize > 0 && w.CustomBasePeriodStepSizeUnit != "" {
 		for i, _ := range w.Workflows {
 			w.Workflows[i].FundamentalPeriod = w.CustomBasePeriodStepSize

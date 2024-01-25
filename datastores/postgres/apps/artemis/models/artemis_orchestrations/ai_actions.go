@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -13,7 +14,7 @@ import (
 )
 
 type TriggerAction struct {
-	TriggerStrID             string                   `json:"triggerIDStr,omitempty"`
+	TriggerStrID             string                   `json:"triggerStrID,omitempty"`
 	TriggerID                int                      `db:"trigger_id" json:"triggerID,omitempty"`
 	OrgID                    int                      `db:"org_id" json:"orgID,omitempty"`
 	UserID                   int                      `db:"user_id" json:"userID,omitempty"`
@@ -27,6 +28,7 @@ type TriggerAction struct {
 }
 
 type TriggerActionsApproval struct {
+	ApprovalStrID    string    `json:"approvalStrID,omitempty"`
 	ApprovalID       int       `db:"approval_id" json:"approvalID"`
 	EvalID           int       `db:"eval_id" json:"evalID"`
 	TriggerID        int       `db:"trigger_id" json:"triggerID"`
@@ -43,7 +45,9 @@ type TriggerPlatformReference struct {
 
 type EvalTriggerActions struct {
 	EvalID               int    `db:"eval_id" json:"evalID,omitempty"`
+	EvalStrID            string `json:"evalStrID,omitempty"`
 	TriggerID            int    `db:"trigger_id" json:"triggerID,omitempty"`
+	TriggerStrID         string `json:"triggerStrID,omitempty"`
 	EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"` // eg. info, filter, etc
 	EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"`
 }
@@ -118,7 +122,8 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 			log.Err(err).Msg("failed to scan trigger action")
 			return nil, err
 		}
-
+		currentEvalTriggerActions.TriggerStrID = fmt.Sprintf("%d", currentTriggerID)
+		currentEvalTriggerActions.EvalStrID = fmt.Sprintf("%d", currentEvalTriggerActions.EvalID)
 		if approvalsJSON != nil {
 			// Parse the JSON string into TriggerActionsApproval slice
 			err = json.Unmarshal([]byte(*approvalsJSON), &currentTriggerActionsApprovals)
@@ -134,6 +139,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 			// TODO fix the slice conversion hack
 			triggerActionMap[currentTriggerID] = &TriggerAction{
 				TriggerID:               currentTriggerID,
+				TriggerStrID:            fmt.Sprintf("%d", currentTriggerID),
 				TriggerName:             triggerName,
 				TriggerGroup:            triggerGroup,
 				TriggerAction:           triggerEnv,
@@ -153,6 +159,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 	// Convert the map to a slice
 	for tid, ta := range triggerActionMap {
 		ta.TriggerID = tid
+		ta.TriggerStrID = fmt.Sprintf("%d", tid)
 		triggerActions = append(triggerActions, *ta)
 	}
 

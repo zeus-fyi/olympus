@@ -74,8 +74,8 @@ export function ActionApprovalsRow(props: any) {
                                             .filter((data: TriggerActionsApproval) => data.approvalState === 'pending')
                                             .map((data: TriggerActionsApproval, dataIndex: number) => (
                                                 <TableRow key={dataIndex}>
-                                                    <TableCell>{data.workflowResultID}</TableCell>
-                                                    <TableCell>{data.approvalID}</TableCell>
+                                                    <TableCell>{data.workflowResultStrID}</TableCell>
+                                                    <TableCell>{data.approvalStrID}</TableCell>
                                                     <TableCell>{capitalizeFirstLetter(data.approvalState)}</TableCell>
                                                     <TableCell>{data.requestSummary}</TableCell>
                                                     <TableCell>{new Date(data.updatedAt).toLocaleString()}</TableCell>
@@ -113,8 +113,8 @@ export function ActionApprovalsRow(props: any) {
                                             .filter((data: TriggerActionsApproval) => data.approvalState !== 'pending')
                                             .map((data: TriggerActionsApproval, dataIndex: number) => (
                                                 <TableRow key={dataIndex}>
-                                                    <TableCell>{data.workflowResultID}</TableCell>
-                                                    <TableCell>{data.approvalID}</TableCell>
+                                                    <TableCell>{data.workflowResultStrID}</TableCell>
+                                                    <TableCell>{data.approvalStrID}</TableCell>
                                                     <TableCell>{capitalizeFirstLetter(data.approvalState)}</TableCell>
                                                     <TableCell>{data.requestSummary}</TableCell>
                                                     <TableCell>{new Date(data.updatedAt).toLocaleString()}</TableCell>

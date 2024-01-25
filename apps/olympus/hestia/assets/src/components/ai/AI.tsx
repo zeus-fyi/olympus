@@ -201,7 +201,7 @@ function AiWorkflowsDashboardContent(props: any) {
 
     const handleActionApprovalRequest = async (event: any, actionApproval: string, tap: TriggerActionsApproval) => {
 
-        if (tap.approvalID === 0) {
+        if (tap.approvalStrID === 0) {
             return
         }
 

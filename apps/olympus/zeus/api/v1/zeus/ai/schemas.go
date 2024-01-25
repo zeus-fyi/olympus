@@ -36,6 +36,9 @@ func CreateOrUpdateSchema(c echo.Context, js *artemis_orchestrations.JsonSchemaD
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
 
+	if js == nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	if js.SchemaStrID != "" {
 		si, err := strconv.Atoi(js.SchemaStrID)
 		if err != nil {

@@ -34,17 +34,7 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 	}
 	t.OrgID = ou.OrgID
 	t.UserID = ou.UserID
-	if t.EvalStrID != nil {
-		eid := *t.EvalStrID
-		eidInt, err := strconv.Atoi(eid)
-		if err != nil {
-			log.Err(err).Msg("failed to parse int")
-			return c.JSON(http.StatusBadRequest, nil)
-		}
-		t.EvalID = aws.Int(eidInt)
-	}
-
-	err := ValidateEvalOps(t.EvalFn)
+	err := ValidateEvalOps(&t.EvalFn)
 	if err != nil {
 		log.Err(err).Msg("failed to validate eval")
 		return c.JSON(http.StatusBadRequest, nil)
@@ -74,9 +64,41 @@ func ValidateStrArrayPayload(em *artemis_orchestrations.EvalMetric) error {
 	return nil
 }
 
-func ValidateEvalOps(ef artemis_orchestrations.EvalFn) error {
-	for _, em := range ef.Schemas {
-		for _, fe := range em.Fields {
+func ValidateEvalOps(ef *artemis_orchestrations.EvalFn) error {
+	if ef == nil {
+		return nil
+	}
+	if ef.EvalStrID != nil {
+		eid := *ef.EvalStrID
+		eidInt, err := strconv.Atoi(eid)
+		if err != nil {
+			log.Err(err).Msg("failed to parse int")
+			return err
+		}
+		ef.EvalID = aws.Int(eidInt)
+	}
+
+	for emi, em := range ef.Schemas {
+		if len(em.SchemaStrID) > 0 {
+			sid := em.SchemaStrID
+			sidInt, err := strconv.Atoi(sid)
+			if err != nil {
+				log.Err(err).Msg("failed to parse int")
+				return err
+			}
+			ef.Schemas[emi].SchemaID = sidInt
+		}
+		for fi, fe := range em.Fields {
+			if len(fe.FieldStrID) > 0 {
+				fid := fe.FieldStrID
+				fidInt, err := strconv.Atoi(fid)
+				if err != nil {
+					log.Err(err).Msg("failed to parse int")
+					return err
+				}
+				ef.Schemas[emi].Fields[fi].FieldID = fidInt
+			}
+
 			if len(fe.FieldName) <= 0 {
 				return errors.New("invalid field name")
 			}

@@ -232,7 +232,7 @@ function WorkflowEngineBuilder(props: any) {
 
     const clearEvalMetricRow = () => {
         dispatch(setEvalMetric({
-            evalMetricID: undefined,
+            evalMetricStrID: undefined,
             evalMetricResult: undefined, // Assuming evalMetricResult is an object or undefined
             evalOperator: '',
             evalState: '',
@@ -341,29 +341,26 @@ function WorkflowEngineBuilder(props: any) {
         if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
             return;
         }
-        const retKey = Number(selectedRetrievalForAnalysis);
-        const analysisKey = Number(selectedAnalysisStageForRetrieval);
         const payload = {
-            key: retKey,
-            subKey: analysisKey,
+            key: selectedRetrievalForAnalysis,
+            subKey: selectedAnalysisStageForRetrieval,
             value: true
         };
         dispatch(setAnalysisRetrievalsMap(payload));
     };
-    const handleRemoveRetrievalRelationshipFromWorkflow = async (event: any, keystr: string, value: number) => {
-        const key = Number(keystr);
+    const handleRemoveRetrievalRelationshipFromWorkflow = async (event: any, keystr: string, value: string) => {
         const payload = {
-            key: key,
+            key: keystr,
             subKey: value,
             value: false
         };
         dispatch(setAnalysisRetrievalsMap(payload));
     }
 
-    const handleRemoveEvalFnRelationshipFromWorkflow = async (event: any, evalID: number, value: number) => {
+    const handleRemoveEvalFnRelationshipFromWorkflow = async (event: any, evalID: string, value: string) => {
         const payload = {
-            evalID: evalID,
-            evalTaskID: value,
+            evalStrID: evalID,
+            evalTaskStrID: value,
             value: false
         };
         dispatch(setEvalsTaskMap(payload));
@@ -374,11 +371,9 @@ function WorkflowEngineBuilder(props: any) {
             if (selectedAnalysisStageForEval.length <= 0 && selectedEvalStage.length <= 0){
                 return;
             }
-            const evalID = Number(selectedEvalStage);
-            const analysisKey = Number(selectedAnalysisStageForEval);
             const payload = {
-                evalID: evalID,
-                evalTaskID: analysisKey,
+                evalStrID: selectedEvalStage,
+                evalTaskStrID: selectedAnalysisStageForEval,
                 value: true
             }
             dispatch(setEvalsTaskMap(payload));
@@ -386,11 +381,9 @@ function WorkflowEngineBuilder(props: any) {
             if (selectedAggregationStageForEval.length <= 0 && selectedEvalStage.length <= 0){
                 return;
             }
-            const evalID = Number(selectedEvalStage);
-            const aggKey = Number(selectedAggregationStageForEval);
             const payload = {
-                evalID: evalID,
-                evalTaskID: aggKey,
+                evalStrID: selectedEvalStage,
+                evalTaskStrID: selectedAggregationStageForEval,
                 value: true
             }
             dispatch(setEvalsTaskMap(payload));
@@ -400,11 +393,9 @@ function WorkflowEngineBuilder(props: any) {
         if (selectedAggregationStageForAnalysis.length <= 0 || selectedAnalysisStageForAggregation.length <= 0) {
             return;
         }
-        const aggKey = Number(selectedAggregationStageForAnalysis);
-        const analysisKey = Number(selectedAnalysisStageForAggregation);
         const payload = {
-            key: aggKey,
-            subKey: analysisKey,
+            key: selectedAggregationStageForAnalysis,
+            subKey: selectedAnalysisStageForAggregation,
             value: true
         };
         dispatch(setWorkflowBuilderTaskMap(payload));
@@ -413,7 +404,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalID !== retrievalRemove.retrievalID)));
     }
     const handleRemoveTriggerFromEvalFn = async (event: any, triggerRemove: TriggerAction) => {
-        const newTriggerFunctions = evalFn.triggerFunctions.filter((trigger: TriggerAction) => trigger.triggerID !== triggerRemove.triggerID);
+        const newTriggerFunctions = evalFn.triggerFunctions.filter((trigger: TriggerAction) => trigger.triggerStrID !== triggerRemove.triggerStrID);
         dispatch(setEvalFn({
             ...evalFn, // Spread the existing action properties
             triggerFunctions: newTriggerFunctions// Update the actionName
@@ -431,11 +422,11 @@ function WorkflowEngineBuilder(props: any) {
             if (evalFn && evalFn.triggerFunctions && selectedTriggers.length > 0) {
                 // Filter out triggers that already exist in evalFn.triggerFunctions
                 const newTriggersToAdd: TriggerAction[] = selectedTriggers.filter((st: TriggerAction) =>
-                    !evalFn.triggerFunctions.some((tf: TriggerAction) => tf.triggerID === st.triggerID));
+                    !evalFn.triggerFunctions.some((tf: TriggerAction) => tf.triggerStrID === st.triggerStrID));
 
                 // Combine the existing triggers with the new, non-duplicate triggers
                 const updatedTriggerFunctions: TriggerAction[] = [...evalFn.triggerFunctions, ...newTriggersToAdd];
-
+                // console.log(updatedTriggerFunctions, 'updatedTriggerFunctions')
                 // Dispatch the updated evalFn
                 dispatch(setEvalFn({
                     ...evalFn, // Spread the existing action properties
@@ -455,36 +446,35 @@ function WorkflowEngineBuilder(props: any) {
     const handleRemoveAnalysisFromWorkflow = async (event: any, taskRemove: TaskModelInstructions) => {
         Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
             const payloadRemove = {
-                key: Number(key),
-                subKey: taskRemove.taskID? Number(taskRemove.taskID) : 0,
+                key: key,
+                subKey: taskRemove.taskStrID? taskRemove.taskStrID : '0',
                 value: false
             };
             dispatch(setWorkflowBuilderTaskMap(payloadRemove));
         })
-        dispatch(setAddAnalysisTasks(analysisStages.filter((task: TaskModelInstructions) => task.taskID !== taskRemove.taskID)));
+        dispatch(setAddAnalysisTasks(analysisStages.filter((task: TaskModelInstructions) => task.taskStrID !== taskRemove.taskStrID)));
     }
     const handleRemoveAggregationFromWorkflow = async (event: any, taskRemove: TaskModelInstructions) => {
         const payload = {
-            key: Number(taskRemove.taskID),
-            subKey: 0,
+            key: taskRemove.taskStrID? taskRemove.taskStrID : '0',
+            subKey: '',
             value: true
         };
         dispatch(removeAggregationFromWorkflowBuilderTaskMap(payload));
-        dispatch(setAddAggregateTasks(aggregationStages.filter((task: TaskModelInstructions) => task.taskID !== taskRemove.taskID)));
+        dispatch(setAddAggregateTasks(aggregationStages.filter((task: TaskModelInstructions) => task.taskStrID !== taskRemove.taskStrID)));
     }
     const handleRemoveEvalFnFromWorkflow = async (event: any, evalFn: EvalFn) => {
         const payload = {
-            key: evalFn.evalID? evalFn.evalID : 0,
-            subKey: 0,
+            key: evalFn.evalStrID? evalFn.evalStrID : '0',
+            subKey: '',
             value: false
         }
         dispatch(removeEvalFnFromWorkflowBuilderEvalMap(payload));
-        dispatch(setAddEvalFns(addedEvalFns.filter(efn => efn.evalID !== evalFn.evalID)));
+        dispatch(setAddEvalFns(addedEvalFns.filter(efn => efn.evalStrID !== evalFn.evalStrID)));
     }
-    const handleRemoveTaskRelationshipFromWorkflow = async (event: any, keystr: string, value: number) => {
-        const key = Number(keystr);
+    const handleRemoveTaskRelationshipFromWorkflow = async (event: any, keystr: string, value: string) => {
         const payload = {
-            key: key,
+            key: keystr,
             subKey: value,
             value: false
         };
@@ -516,9 +506,9 @@ function WorkflowEngineBuilder(props: any) {
         if (val <= 0) {
             val = 1
         }
-        if (task && task.taskID) {
+        if (task && task.taskStrID) {
             const payload = {
-                key: task.taskID,
+                key: task.taskStrID,
                 count: val
             };
             dispatch(setTaskMap(payload));
@@ -529,9 +519,9 @@ function WorkflowEngineBuilder(props: any) {
         if (val <= 0) {
             val = 1
         }
-        if (ef && ef.evalID) {
+        if (ef && ef.evalStrID) {
             const payload = {
-                key: ef.evalID,
+                key: ef.evalStrID,
                 count: val
             };
             dispatch(setEvalMap(payload));
@@ -681,6 +671,7 @@ function WorkflowEngineBuilder(props: any) {
         const toggle = !addEvalsView;
         dispatch(setAddAnalysisView(false));
         dispatch(setAddAggregationView(false));
+        dispatch(setAddSchemasView(false));
         dispatch(setAddRetrievalView(false));
         dispatch(setAddEvalFnsView(toggle));
         if (toggle) {
@@ -694,6 +685,7 @@ function WorkflowEngineBuilder(props: any) {
     const addRetrievalStageView = async () => {
         const toggle = !addRetrievalView;
         dispatch(setAddAnalysisView(false));
+        dispatch(setAddSchemasView(false));
         dispatch(setAddAggregationView(false));
         dispatch(setAddRetrievalView(toggle));
         dispatch(setAddEvalFnsView(false));
@@ -708,6 +700,7 @@ function WorkflowEngineBuilder(props: any) {
     const addAnalysisStageView = async () => {
         const toggle = !addAnalysisView;
         dispatch(setAddAnalysisView(toggle));
+        dispatch(setAddSchemasView(false));
         dispatch(setAddAggregationView(false));
         dispatch(setAddRetrievalView(false));
         dispatch(setAddEvalFnsView(false));
@@ -723,6 +716,7 @@ function WorkflowEngineBuilder(props: any) {
     const addAggregationStageView = async () => {
         const toggle = !addAggregateView;
         dispatch(setAddAnalysisView(false));
+        dispatch(setAddSchemasView(false));
         dispatch(setAddRetrievalView(false));
         dispatch(setAddAggregationView(toggle));
         dispatch(setAddEvalFnsView(false));
@@ -1009,7 +1003,7 @@ function WorkflowEngineBuilder(props: any) {
                 return;
             }
             const task: TaskModelInstructions = {
-                taskID: (taskType === 'analysis' ? editAnalysisTask.taskID : editAggregateTask.taskID),
+                taskStrID: (taskType === 'analysis' ? editAnalysisTask.taskStrID : editAggregateTask.taskStrID),
                 taskType: taskType,
                 taskGroup:taskGn,
                 taskName: tn,
@@ -1026,12 +1020,12 @@ function WorkflowEngineBuilder(props: any) {
             if (statusCode < 400) {
                 const data = response.data as TaskModelInstructions;
                 if (taskType === 'analysis') {
-                    const at = allTasks.filter((task: any) => task.taskType === 'analysis' && task.taskID !== data.taskID)
+                    const at = allTasks.filter((task: any) => task.taskType === 'analysis' && task.taskStrID !== data.taskStrID)
                     setTasks([data, ...at]);
                     setRequestAnalysisStatus('Task created successfully')
                     setRequestAnalysisStatusError('success')
                 } else if (taskType === 'aggregation') {
-                    const at = allTasks.filter((task: any) => task.taskType === 'aggregation' && task.taskID !== data.taskID)
+                    const at = allTasks.filter((task: any) => task.taskType === 'aggregation' && task.taskStrID !== data.taskStrID)
                     setTasks([data, ...at]);
                     setRequestAggStatus('Task created successfully')
                     setRequestAggStatusError('success')
@@ -1080,7 +1074,7 @@ function WorkflowEngineBuilder(props: any) {
             if (statusCode < 400) {
                 let data = response.data as TriggerAction;
                 data.evalTriggerActions = [data.evalTriggerAction]
-                const at = actions.filter((act: TriggerAction) => act.triggerID !== data.triggerID)
+                const at = actions.filter((act: TriggerAction) => act.triggerStrID !== data.triggerStrID)
                 dispatch(setTriggerActions([data, ...at]));
                 setRequestActionStatus('Action created or updated successfully')
                 setRequestActionStatusError('success')
@@ -1119,7 +1113,7 @@ function WorkflowEngineBuilder(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data as EvalFn;
-                const ae = evalFns.filter((ef: EvalFn) =>  ef.evalID !== data.evalID)
+                const ae = evalFns.filter((ef: EvalFn) =>  ef.evalStrID !== data.evalStrID)
                 dispatch(setEvalFn(data));
                 dispatch(setEvalFns([data, ...ae]));
                 setRequestEvalCreateOrUpdateStatus('Eval created or updated successfully')
@@ -1511,7 +1505,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     type="number"
                                                                     label="Analysis Cycle Count"
                                                                     variant="outlined"
-                                                                    value={(task?.taskID !== undefined && taskMap[task.taskID]?.cycleCount > 0) ? taskMap[task.taskID].cycleCount : 1}
+                                                                    value={(task?.taskStrID !== undefined && taskMap[task.taskStrID]?.cycleCount > 0) ? taskMap[task.taskStrID].cycleCount : 1}
                                                                     inputProps={{ min: 1 }}  // Set minimum value to 0
                                                                     onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10), task)}
                                                                     fullWidth
@@ -1540,13 +1534,12 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
                                                             <Box >
                                                                 {Object.entries(workflowAnalysisRetrievalsMap).map(([key, value], index) => {
-                                                                    const retrievalNameForKey= retrievalsMap[(Number(key))]?.retrievalName || '';
+                                                                    const retrievalNameForKey= retrievalsMap[(key)]?.retrievalName || '';
                                                                     if (!retrievalNameForKey || retrievalNameForKey.length <= 0) {
                                                                         return null;
                                                                     }
                                                                     return Object.entries(value).map(([subKey, subValue], subIndex) => {
-                                                                        const subKeyNumber = Number(subKey);
-                                                                        const subTask = taskMap[(Number(subKeyNumber))]
+                                                                        const subTask = taskMap[subKey]
                                                                         const subTaskName = subTask?.taskName || '';
                                                                         if (!subValue || subKey.length <= 0) {
                                                                             return null;
@@ -1577,7 +1570,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         margin="normal"
                                                                                     />
                                                                                     <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
-                                                                                        <Button variant="contained" onClick={(event) => handleRemoveRetrievalRelationshipFromWorkflow(event, key, subKeyNumber)}>Remove</Button>
+                                                                                        <Button variant="contained" onClick={(event) => handleRemoveRetrievalRelationshipFromWorkflow(event, key, subKey)}>Remove</Button>
                                                                                     </Box>
                                                                                 </React.Fragment>
                                                                             </Stack>
@@ -1615,7 +1608,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     onChange={(event) => setSelectedAnalysisStageForRetrieval(event.target.value)} // Update the state on change
                                                                 >
                                                                     {analysisStages && analysisStages.map((stage, subIndex) => (
-                                                                        <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                        <MenuItem key={subIndex} value={stage.taskStrID}>{stage.taskName}</MenuItem>
                                                                     ))}
                                                                 </Select>
                                                             </FormControl>
@@ -1702,7 +1695,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             type="number"
                                                                             label="Aggregation Cycle Count"
                                                                             variant="outlined"
-                                                                            value={task?.taskID !== undefined && taskMap[task.taskID]?.cycleCount > 0 ? taskMap[task.taskID].cycleCount : 1}
+                                                                            value={task?.taskStrID !== undefined && taskMap[task.taskStrID]?.cycleCount > 0 ? taskMap[task.taskStrID].cycleCount : 1}
                                                                             inputProps={{ min: 1 }}  // Set minimum value to 0
                                                                             onChange={(event) => handleTaskCycleCountChange(parseInt(event.target.value, 10),task)}
                                                                             fullWidth
@@ -1728,7 +1721,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                         <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
                                                                             <Box >
                                                                                 {Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
-                                                                                    const taskNameForKey = taskMap[Number(key)]?.taskName || '';
+                                                                                    const taskNameForKey = taskMap[key]?.taskName || '';
                                                                                     if (!taskNameForKey) {
                                                                                         return null;
                                                                                     }
@@ -1736,8 +1729,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         if (!subValue) {
                                                                                             return null;
                                                                                         }
-                                                                                        const subKeyNumber = Number(subKey);
-                                                                                        const subTaskName = taskMap[subKeyNumber]?.taskName || '';
+                                                                                        const subTaskName = taskMap[subKey]?.taskName || '';
                                                                                         if (!subTaskName) {
                                                                                             return null;
                                                                                         }
@@ -1764,7 +1756,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                                         margin="normal"
                                                                                                     />
                                                                                                     <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
-                                                                                                        <Button variant="contained" onClick={(event) => handleRemoveTaskRelationshipFromWorkflow(event, key, subKeyNumber)}>Remove</Button>
+                                                                                                        <Button variant="contained" onClick={(event) => handleRemoveTaskRelationshipFromWorkflow(event, key, subKey)}>Remove</Button>
                                                                                                     </Box>
                                                                                                 </React.Fragment>
                                                                                             </Stack>
@@ -1800,7 +1792,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                     onChange={(event) => setSelectedAnalysisStageForAggregation(event.target.value)} // Update the state on change
                                                                                 >
                                                                                     {analysisStages && analysisStages.map((stage, subIndex) => (
-                                                                                        <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                                        <MenuItem key={subIndex} value={stage.taskStrID}>{stage.taskName}</MenuItem>
                                                                                     ))}
                                                                                 </Select>
                                                                             </FormControl>
@@ -1821,7 +1813,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                     onChange={(event) => setSelectedAggregationStageForAnalysis(event.target.value)} // Update the state on change)
                                                                                 >
                                                                                     {aggregationStages && aggregationStages.map((stage: any, subIndex: number) => (
-                                                                                        <MenuItem key={stage.taskID} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                                        <MenuItem key={stage.taskStrID} value={stage.taskStrID}>{stage.taskName}</MenuItem>
                                                                                     ))}
                                                                                 </Select>
                                                                             </FormControl>
@@ -1885,8 +1877,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Eval Fn Multiplier"
                                                                 variant="outlined"
                                                                 value={
-                                                                    ef.evalID !== undefined && evalMap[ef.evalID] !== undefined &&
-                                                                    evalMap[ef.evalID].evalCycleCount? evalMap[ef.evalID].evalCycleCount : 1
+                                                                    ef.evalStrID !== undefined && evalMap[ef.evalStrID] !== undefined &&
+                                                                    evalMap[ef.evalStrID].evalCycleCount? evalMap[ef.evalStrID].evalCycleCount : 1
                                                                 }
                                                                 inputProps={{ min: 1 }}  // Set minimum value to 0
                                                                 onChange={(event) => handleEvalCycleCountChange(parseInt(event.target.value, 10), ef)}
@@ -1920,7 +1912,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     if (key === undefined){
                                                                         return null;
                                                                     }
-                                                                    const taskNameForKey= taskMap[(Number(key))]?.taskName || '';
+                                                                    const taskNameForKey= taskMap[(key)]?.taskName || '';
                                                                     if (!taskNameForKey || taskNameForKey.length <= 0) {
                                                                         return null;
                                                                     }
@@ -1929,8 +1921,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                         if (subKey === undefined){
                                                                             return null;
                                                                         }
-                                                                        const evalID = Number(subKey);
-                                                                        const evalFn = evalMap[(Number(evalID))]
+                                                                        const evalID = subKey;
+                                                                        const evalFn = evalMap[(evalID)]
                                                                         const subTaskName = evalFn?.evalName || '';
 
                                                                         if (!subValue || subKey.length <= 0) {
@@ -1966,7 +1958,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                         />
                                                                                     </Box>
                                                                                     <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
-                                                                                        <Button variant="contained" onClick={(event) => handleRemoveEvalFnRelationshipFromWorkflow(event, evalID, Number(key))}>Remove</Button>
+                                                                                        <Button variant="contained" onClick={(event) => handleRemoveEvalFnRelationshipFromWorkflow(event, evalID, key)}>Remove</Button>
                                                                                     </Box>
                                                                                 </React.Fragment>
                                                                             </Stack>
@@ -1996,7 +1988,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             onChange={(event) => setSelectedAnalysisStageForEval(event.target.value)} // Update the state on change
                                                                         >
                                                                             {analysisStages && analysisStages.map((stage, subIndex) => (
-                                                                                <MenuItem key={subIndex} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                                <MenuItem key={subIndex} value={stage.taskStrID}>{stage.taskName}</MenuItem>
                                                                             ))}
                                                                         </Select>
                                                                     </FormControl>
@@ -2014,7 +2006,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             onChange={(event) => setSelectedAggregationStageForEval(event.target.value)} // Update the state on change)
                                                                         >
                                                                             {aggregationStages && aggregationStages.map((stage: any, subIndex: number) => (
-                                                                                <MenuItem key={stage.taskID} value={stage.taskID}>{stage.taskName}</MenuItem>
+                                                                                <MenuItem key={stage.taskStrID} value={stage.taskStrID}>{stage.taskName}</MenuItem>
                                                                             ))}
                                                                         </Select>
                                                                     </FormControl>
@@ -2035,7 +2027,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             onChange={(event) => setSelectedEvalStage(event.target.value)} // Update the state on change
                                                                         >
                                                                             {evalFnStages && evalFnStages.map((stage, subIndex) => (
-                                                                                <MenuItem key={subIndex} value={stage.evalID ? stage.evalID : ''}>{stage.evalName}</MenuItem>
+                                                                                <MenuItem key={subIndex} value={stage.evalStrID ? stage.evalStrID : ''}>{stage.evalName}</MenuItem>
                                                                             ))}
                                                                         </Select>
                                                                     </FormControl>

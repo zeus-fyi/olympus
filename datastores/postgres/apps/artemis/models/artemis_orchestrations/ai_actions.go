@@ -13,6 +13,7 @@ import (
 )
 
 type TriggerAction struct {
+	TriggerStrID             string                   `json:"triggerIDStr,omitempty"`
 	TriggerID                int                      `db:"trigger_id" json:"triggerID,omitempty"`
 	OrgID                    int                      `db:"org_id" json:"orgID,omitempty"`
 	UserID                   int                      `db:"user_id" json:"userID,omitempty"`

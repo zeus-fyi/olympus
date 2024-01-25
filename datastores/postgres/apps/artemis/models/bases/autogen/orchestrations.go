@@ -3,13 +3,14 @@ package artemis_autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type Orchestrations struct {
-	OrchestrationID   int    `db:"orchestration_id" json:"orchestrationID"`
-	OrgID             int    `db:"org_id" json:"orgID"`
-	Active            bool   `db:"active" json:"active"`
-	GroupName         string `db:"group_name" json:"groupName"`
-	Type              string `db:"type" json:"type"`
-	Instructions      string `db:"instructions" json:"instructions"`
-	OrchestrationName string `db:"orchestration_name" json:"orchestrationName"`
+	OrchestrationStrID string `db:"-" json:"orchestrationStrID"`
+	OrchestrationID    int    `db:"orchestration_id" json:"orchestrationID"`
+	OrgID              int    `db:"org_id" json:"orgID"`
+	Active             bool   `db:"active" json:"active"`
+	GroupName          string `db:"group_name" json:"groupName"`
+	Type               string `db:"type" json:"type"`
+	Instructions       string `db:"instructions" json:"instructions"`
+	OrchestrationName  string `db:"orchestration_name" json:"orchestrationName"`
 }
 type OrchestrationsSlice []Orchestrations
 

@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -14,6 +16,7 @@ import (
 )
 
 type RetrievalItem struct {
+	RetrievalStrID           *string                           `json:"retrievalStrID"`
 	RetrievalID              *int                              `json:"retrievalID,omitempty"` // ID of the retrieval
 	RetrievalName            string                            `json:"retrievalName"`         // Name of the retrieval
 	RetrievalGroup           string                            `json:"retrievalGroup"`        // Group of the retrieval
@@ -130,6 +133,7 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalIte
 		//	return nil, rerr
 		//}
 		//retrieval.Instructions = inst
+		retrieval.RetrievalStrID = aws.String(fmt.Sprintf("%d", retrieval.RetrievalID))
 		retrievals = append(retrievals, retrieval)
 	}
 	// Check for errors from iterating over rows

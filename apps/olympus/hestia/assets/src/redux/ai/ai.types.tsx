@@ -80,7 +80,7 @@ export interface PostWorkflowsRequest {
 }
 
 export interface TaskModelInstructions {
-    taskID?: number;
+    taskStrID?: string;
     model: string;
     taskType: string;
     taskGroup: string;
@@ -95,30 +95,30 @@ export interface TaskModelInstructions {
 }
 
 export interface TaskMap {
-    [key: number]: TaskModelInstructions;
+    [key: string]: TaskModelInstructions;
 }
 
 export interface AggregateSubTasksMap {
-    [key: number]: { [innerKey: number]: boolean };
+    [key: string]: { [innerKey: string]: boolean };
 }
 
 export type UpdateTaskMapPayload = {
-    key: number;
-    subKey: number;
+    key: string;
+    subKey: string;
     value: boolean;
 };
 
 export type UpdateTaskCycleCountPayload = {
-    key: number;
+    key: string;
     count: number;
 };
 
 export interface RetrievalsMap {
-    [key: number]: Retrieval;
+    [key: string]: Retrieval;
 }
 
 export interface AnalysisRetrievalsMap {
-    [key: number]: { [innerKey: number]: boolean };
+    [key: string]: { [innerKey: string]: boolean };
 }
 
 export interface DeleteWorkflowsActionRequest {

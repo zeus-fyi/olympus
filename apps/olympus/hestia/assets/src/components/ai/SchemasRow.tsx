@@ -43,7 +43,7 @@ export function SchemasRow(props: { row: JsonSchemaDefinition, index: number, ha
                     />
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.schemaID ? row.schemaID : 0}
+                    {row.schemaStrID ? row.schemaStrID : '0'}
                 </TableCell>
                 <TableCell component="th" scope="row">
                     {row.schemaGroup}

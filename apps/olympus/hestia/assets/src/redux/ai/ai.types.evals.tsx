@@ -5,7 +5,7 @@ import {JsonSchemaDefinition} from "./ai.types.schemas";
 export interface EvalMetricsResult {
     evalName?: string;
     evalMetricName: string;
-    evalMetricID?: number;
+    evalMetricStrID?: number;
     evalMetricsResultId: number;
     evalMetricResult: string;
     evalComparisonBoolean?: boolean;
@@ -22,21 +22,21 @@ export interface EvalMetricsResult {
 }
 
 export interface EvalFnMap {
-    [key: number]: { [innerKey: number]: boolean };
+    [key: string]: { [innerKey: string]: boolean };
 }
 
 export interface EvalMap {
-    [key: number]: EvalFn;
+    [key: string]: EvalFn;
 }
 
 export type UpdateEvalMapPayload = {
-    evalID: number;
-    evalTaskID: number;
+    evalStrID: string;
+    evalTaskStrID: string;
     value: boolean;
 };
 
 export interface EvalFn {
-    evalID?: number;
+    evalStrID?: string;
     evalName: string;
     evalType: string;
     evalGroupName: string;
@@ -50,7 +50,7 @@ export interface EvalFn {
 }
 
 export interface EvalMetric {
-    evalMetricID?: number;
+    evalMetricStrID?: string;
     evalMetricResult?: EvalMetricResult;
     evalOperator: string;
     evalState: string;
@@ -66,7 +66,7 @@ export interface EvalMetricComparisonValues {
 }
 
 export interface EvalMetricResult {
-    evalMetricResultID?: number;
+    evalMetricResultStrID?: string;
     evalResultOutcomeBool?: boolean;
     evalMetadata?: any; // Consider using a more specific type if the structure of evalMetadata is known
 }

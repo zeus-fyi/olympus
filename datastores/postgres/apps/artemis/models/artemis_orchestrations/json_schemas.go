@@ -13,6 +13,7 @@ import (
 
 type JsonSchemaDefinition struct {
 	SchemaID          int               `db:"schema_id" json:"schemaID"`
+	SchemaStrID       string            `db:"-" json:"schemaStrID,omitempty"`
 	SchemaName        string            `db:"schema_name" json:"schemaName"`
 	SchemaGroup       string            `db:"schema_group" json:"schemaGroup"`
 	SchemaDescription string            `db:"schema_description" json:"schemaDescription"`
@@ -22,6 +23,7 @@ type JsonSchemaDefinition struct {
 
 type JsonSchemaField struct {
 	FieldID          int    `db:"field_id" json:"fieldID"`
+	FieldStrID       string `db:"-" json:"fieldStrID,omitempty"`
 	FieldName        string `db:"field_name" json:"fieldName"`
 	FieldDescription string `db:"field_description" json:"fieldDescription"`
 	DataType         string `db:"data_type" json:"dataType"`

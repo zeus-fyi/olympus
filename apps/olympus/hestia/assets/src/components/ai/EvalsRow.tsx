@@ -44,7 +44,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                     />
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.evalID? row.evalID : 0}
+                    {row.evalStrID ? row.evalStrID : '0'}
                 </TableCell>
                 <TableCell component="th" scope="row">
                     {row.evalGroupName}
@@ -100,8 +100,8 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                         field.evalMetrics && field.evalMetrics.length > 0 ? (
                                                             field.evalMetrics.map((evalMetric, evalMetricIndex) => (
                                                                 <TableRow key={`${fieldIndex}-${evalMetricIndex}`}>
-                                                                    <TableCell>{schema.schemaID}</TableCell>
-                                                                    <TableCell>{evalMetric.evalMetricID !== undefined ? evalMetric.evalMetricID  : 0}</TableCell>
+                                                                    <TableCell>{schema.schemaStrID}</TableCell>
+                                                                    <TableCell>{evalMetric.evalMetricStrID !== undefined ? evalMetric.evalMetricStrID  : ''}</TableCell>
                                                                     <TableCell>{field.fieldName}</TableCell>
                                                                     <TableCell>{field.fieldDescription}</TableCell>
                                                                     <TableCell>{field.dataType}</TableCell>

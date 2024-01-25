@@ -1,7 +1,7 @@
 import {EvalMetric} from "./ai.types.evals";
 
 export interface JsonSchemaDefinition {
-    schemaID: number;
+    schemaStrID: string;
     schemaName: string;
     schemaGroup: string;
     schemaDescription: string;
@@ -10,7 +10,7 @@ export interface JsonSchemaDefinition {
 }
 
 export interface JsonSchemaField {
-    fieldID?: number;
+    fieldStrID?: string;
     fieldName: string;
     fieldDescription: string;
     dataType: string;
@@ -19,8 +19,8 @@ export interface JsonSchemaField {
 }
 
 export interface AITaskJsonSchema {
-    schemaID: number;
-    taskID: number;
+    schemaID: string;
+    taskID: string;
 }
 
 export interface FieldValue {

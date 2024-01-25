@@ -10,6 +10,7 @@ import (
 )
 
 type WorkflowTemplate struct {
+	WorkflowTemplateStrID     string `json:"workflowTemplateStrID,omitempty"`
 	WorkflowTemplateID        int    `json:"workflowID,omitempty"`
 	WorkflowName              string `json:"workflowName"`
 	WorkflowGroup             string `json:"workflowGroup"`
@@ -18,6 +19,7 @@ type WorkflowTemplate struct {
 	Tasks                     []Task `json:"tasks"` // Array of Task to hold the JSON aggregated tasks
 }
 type Task struct {
+	TaskStrID         string     `json:"taskStrID,omitempty"`
 	TaskID            int        `json:"taskID"`
 	TaskName          string     `json:"taskName"`
 	TaskType          string     `json:"taskType"`

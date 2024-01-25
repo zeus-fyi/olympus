@@ -2,6 +2,7 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
@@ -11,6 +12,7 @@ import (
 )
 
 type AITaskLibrary struct {
+	TaskStrID             string                  `db:"task_id" json:"taskStrID,omitempty"`
 	TaskID                int                     `db:"task_id" json:"taskID,omitempty"`
 	OrgID                 int                     `db:"org_id" json:"orgID,omitempty"`
 	UserID                int                     `db:"user_id" json:"userID,omitempty"`
@@ -83,6 +85,8 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 		log.Err(err).Msg("failed to insert task")
 		return err
 	}
+
+	task.TaskStrID = fmt.Sprintf("%d", task.TaskID)
 	return nil
 }
 
@@ -366,7 +370,7 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 			log.Err(err).Msg("failed to scan task")
 			return nil, err
 		}
-
+		task.TaskStrID = fmt.Sprintf("%d", task.TaskID)
 		tasks = append(tasks, task)
 	}
 	return tasks, nil

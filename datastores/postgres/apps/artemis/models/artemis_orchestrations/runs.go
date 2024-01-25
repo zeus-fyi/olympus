@@ -3,6 +3,7 @@ package artemis_orchestrations
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -175,6 +176,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 			return nil, rowErr
 		}
 
+		oj.OrchestrationStrID = fmt.Sprintf("%d", oj.OrchestrationID)
 		for _, tlagg := range agdd {
 			for _, adj := range tlagg {
 				oj.AggregatedData = append(oj.AggregatedData, adj)

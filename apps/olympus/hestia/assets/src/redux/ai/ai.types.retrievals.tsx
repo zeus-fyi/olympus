@@ -58,7 +58,7 @@ export interface EvalActionTrigger {
 }
 
 export interface TriggerAction {
-    triggerID?: number;
+    triggerStrID?: string;
     triggerName: string;
     triggerGroup: string;
     triggerAction: string;

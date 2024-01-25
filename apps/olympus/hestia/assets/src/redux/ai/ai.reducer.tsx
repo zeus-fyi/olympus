@@ -16,7 +16,7 @@ const initialState: AiState = {
     addSchemasView: false,
     schemas: [],
     schema: {
-        schemaID: 0,
+        schemaStrID: '0',
         isObjArray: false,
         schemaName: '',
         schemaDescription: '',
@@ -108,7 +108,7 @@ const initialState: AiState = {
     selectedMainTab: 0,
     selectedMainTabBuilder: 0,
     triggerAction: {
-        triggerID: 0,
+        triggerStrID: '',
         triggerName: '',
         triggerGroup: '',
         triggerAction: 'social-media-engagement',
@@ -125,7 +125,7 @@ const initialState: AiState = {
         triggerPlatformAccount: '',
     },
     evalMetric: {
-        evalMetricID: undefined,
+        evalMetricStrID: undefined,
         evalMetricResult: undefined, // Assuming evalMetricResult is an object or undefined
         evalOperator: '',
         evalState: '',
@@ -151,10 +151,10 @@ const initialState: AiState = {
 
     evalFns: [],
     editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
-        tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text',
+        tokenOverflowStrategy: 'deduce', cycleCount: 1, taskStrID: '', maxTokens: 0, responseFormat: 'text',
     },
     editAggregateTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
-        tokenOverflowStrategy: 'deduce', cycleCount: 1, taskID: 0, maxTokens: 0, responseFormat: 'text'},
+        tokenOverflowStrategy: 'deduce', cycleCount: 1, taskStrID: '', maxTokens: 0, responseFormat: 'text'},
     editRetrieval:  {
         retrievalID: undefined, // Optional field set to undefined
         retrievalName: '',
@@ -361,8 +361,8 @@ const aiSlice = createSlice({
             state.evalMap = {};
             for (let i = 0; i < state.addedEvalFns.length; i++) {
                 const evalFn  = state.addedEvalFns[i]
-                if (evalFn && evalFn.evalID) {
-                    state.evalMap[evalFn.evalID] = evalFn;
+                if (evalFn && evalFn.evalStrID) {
+                    state.evalMap[evalFn.evalStrID] = evalFn;
                 }
             }
         },
@@ -370,11 +370,11 @@ const aiSlice = createSlice({
             state.addedAnalysisTasks = action.payload;
             for (let i = 0; i < state.addedAnalysisTasks.length; i++) {
                 const task  = state.addedAnalysisTasks[i]
-                if (task && task.taskID) {
+                if (task && task.taskStrID) {
                     if (task.cycleCount <= 0) {
                         task.cycleCount = 1;
                     }
-                    state.taskMap[task.taskID] = task;
+                    state.taskMap[task.taskStrID] = task;
                 }
             }
         },
@@ -382,11 +382,11 @@ const aiSlice = createSlice({
             state.addedAggregateTasks = action.payload;
             for (let i = 0; i < state.addedAggregateTasks.length; i++) {
                 const task  = state.addedAggregateTasks[i]
-                if (task && task.taskID) {
+                if (task && task.taskStrID) {
                     if (task.cycleCount <= 0) {
                         task.cycleCount = 1;
                     }
-                    state.taskMap[task.taskID] = task;
+                    state.taskMap[task.taskStrID] = task;
                 }
             }
         },
@@ -419,20 +419,20 @@ const aiSlice = createSlice({
             }
         },
         setEvalsTaskMap: (state, action: PayloadAction<UpdateEvalMapPayload>) => {
-            const { evalID, evalTaskID, value } = action.payload;
+            const { evalStrID, evalTaskStrID, value } = action.payload;
             if (value) {
-                if (!state.workflowBuilderEvalsTaskMap[evalTaskID]) {
-                    state.workflowBuilderEvalsTaskMap[evalTaskID] = {};
+                if (!state.workflowBuilderEvalsTaskMap[evalTaskStrID]) {
+                    state.workflowBuilderEvalsTaskMap[evalTaskStrID] = {};
                 }
-                state.workflowBuilderEvalsTaskMap[evalTaskID][evalID] = true;
+                state.workflowBuilderEvalsTaskMap[evalTaskStrID][evalStrID] = true;
             } else {
-                if (state.workflowBuilderEvalsTaskMap[evalTaskID]) {
-                    delete state.workflowBuilderEvalsTaskMap[evalTaskID][evalID];
+                if (state.workflowBuilderEvalsTaskMap[evalTaskStrID]) {
+                    delete state.workflowBuilderEvalsTaskMap[evalTaskStrID][evalStrID];
 
                     // Check if the main key has no inner keys left
-                    if (Object.keys(state.workflowBuilderEvalsTaskMap[evalTaskID]).length === 0) {
+                    if (Object.keys(state.workflowBuilderEvalsTaskMap[evalTaskStrID]).length === 0) {
                         // If so, delete the main key from the map
-                        delete state.workflowBuilderEvalsTaskMap[evalTaskID];
+                        delete state.workflowBuilderEvalsTaskMap[evalTaskStrID];
                     }
                 }
             }
@@ -481,7 +481,7 @@ const aiSlice = createSlice({
                 if (state.workflowBuilderTaskMap[key]) {
                     // Delete all subkeys from the value
                     Object.keys(state.workflowBuilderTaskMap[key]).forEach(subKey => {
-                        delete state.workflowBuilderTaskMap[key][Number(subKey)];
+                        delete state.workflowBuilderTaskMap[key][subKey];
                     });
 
                     delete state.workflowBuilderTaskMap[key];
@@ -491,9 +491,9 @@ const aiSlice = createSlice({
             const { key, subKey, value } = action.payload;
                 Object.keys(state.workflowBuilderEvalsTaskMap).forEach(taskID => {
                     // Check if the taskID matches the provided key
-                    if (state.workflowBuilderEvalsTaskMap[Number(taskID)]) {
+                    if (state.workflowBuilderEvalsTaskMap[taskID]) {
                         // Delete the evalID (subKey) from the nested map if it matches the key
-                        delete state.workflowBuilderEvalsTaskMap[Number(taskID)][key];
+                        delete state.workflowBuilderEvalsTaskMap[taskID][key];
                     }
                 });
         },

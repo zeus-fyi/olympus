@@ -44,7 +44,7 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
                     />
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {row.triggerID ? row.triggerID : 0}
+                    {row.triggerStrID ? row.triggerStrID : ''}
                 </TableCell>
                 <TableCell component="th" scope="row">
                     {row.triggerGroup}

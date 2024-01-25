@@ -13,6 +13,7 @@ import (
 )
 
 type EvalFn struct {
+	EvalStrID      *string                       `json:"evalStrID,omitempty"`
 	EvalID         *int                          `json:"evalID,omitempty"`
 	OrgID          int                           `json:"orgID,omitempty"`
 	UserID         int                           `json:"userID,omitempty"`
@@ -149,11 +150,13 @@ type EvalMetricsResults struct {
 }
 
 type EvalMetricResult struct {
+	EvalMetricResultStrID *int            `json:"evalMetricResultStrID"`
 	EvalMetricResultID    *int            `json:"evalMetricResultID"`
 	EvalResultOutcomeBool *bool           `json:"evalResultOutcome,omitempty"` // true if eval passed, false if eval failed
 	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
 }
 type EvalMetric struct {
+	EvalMetricStrID            *string                     `json:"evalMetricStrID,omitempty"`
 	EvalMetricID               *int                        `json:"evalMetricID"`
 	EvalMetricResult           *EvalMetricResult           `json:"evalMetricResult,omitempty"`
 	EvalOperator               string                      `json:"evalOperator"`

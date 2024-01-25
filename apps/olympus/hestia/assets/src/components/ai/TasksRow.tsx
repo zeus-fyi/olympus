@@ -43,7 +43,7 @@ export function TasksRow(props: { row: TaskModelInstructions, index: number, han
                         color="primary"
                     />
                 </TableCell>
-                <TableCell align="left">{row.taskID}</TableCell>
+                <TableCell align="left">{row.taskStrID}</TableCell>
                 <TableCell align="left">{row.taskGroup}</TableCell>
                 <TableCell align="left">{row.taskName}</TableCell>
                 <TableCell align="left">{row.model}</TableCell>

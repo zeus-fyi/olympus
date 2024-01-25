@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -34,6 +35,15 @@ func (t *CreateOrUpdateTaskRequest) CreateOrUpdateTask(c echo.Context) error {
 	}
 	t.OrgID = ou.OrgID
 	t.UserID = ou.UserID
+
+	if t.TaskStrID != "" {
+		tid, err := strconv.Atoi(t.TaskStrID)
+		if err != nil {
+			log.Err(err).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		t.TaskID = tid
+	}
 	err := artemis_orchestrations.InsertTask(c.Request().Context(), &t.AITaskLibrary)
 	if err != nil {
 		log.Err(err).Msg("failed to insert task")

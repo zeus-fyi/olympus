@@ -34,6 +34,16 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 	}
 	t.OrgID = ou.OrgID
 	t.UserID = ou.UserID
+	if t.EvalStrID != nil {
+		eid := *t.EvalStrID
+		eidInt, err := strconv.Atoi(eid)
+		if err != nil {
+			log.Err(err).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		t.EvalID = aws.Int(eidInt)
+	}
+
 	err := ValidateEvalOps(t.EvalFn)
 	if err != nil {
 		log.Err(err).Msg("failed to validate eval")

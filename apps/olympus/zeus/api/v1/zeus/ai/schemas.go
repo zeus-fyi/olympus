@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -33,6 +34,25 @@ func CreateOrUpdateSchema(c echo.Context, js *artemis_orchestrations.JsonSchemaD
 	}
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
+	}
+
+	if js.SchemaStrID != "" {
+		si, err := strconv.Atoi(js.SchemaStrID)
+		if err != nil {
+			log.Err(err).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		js.SchemaID = si
+	}
+	for is, _ := range js.Fields {
+		if js.Fields[is].FieldStrID != "" {
+			sfi, err := strconv.Atoi(js.Fields[is].FieldStrID)
+			if err != nil {
+				log.Err(err).Msg("failed to parse int")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			js.Fields[is].FieldID = sfi
+		}
 	}
 	err := artemis_orchestrations.CreateOrUpdateJsonSchema(c.Request().Context(), ou, js, nil)
 	if err != nil {

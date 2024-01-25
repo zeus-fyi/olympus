@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -34,6 +35,15 @@ func CreateOrUpdateAction(c echo.Context, act *artemis_orchestrations.TriggerAct
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
+	if act.TriggerStrID != "" {
+		ti, err := strconv.Atoi(act.TriggerStrID)
+		if err != nil {
+			log.Err(err).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		act.TriggerID = ti
+	}
+
 	act.EvalTriggerActions = append(act.EvalTriggerActions, act.EvalTriggerAction)
 	err := artemis_orchestrations.CreateOrUpdateTriggerAction(c.Request().Context(), ou, act)
 	if err != nil {

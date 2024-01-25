@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -38,11 +39,20 @@ func (w *RunsActionsRequest) Process(c echo.Context) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
+
 	switch w.Action {
 	case "start":
 	case "stop":
 		var runIDs []string
-		for _, run := range w.Runs {
+		for i, run := range w.Runs {
+			if run.OrchestrationStrID != "" {
+				oid, rerr := strconv.Atoi(run.OrchestrationStrID)
+				if rerr != nil {
+					log.Err(rerr).Msg("failed to parse int")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
+				w.Runs[i].OrchestrationID = oid
+			}
 			runIDs = append(runIDs, run.OrchestrationName)
 		}
 		err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteCancelWorkflowRuns(c.Request().Context(), ou, runIDs)

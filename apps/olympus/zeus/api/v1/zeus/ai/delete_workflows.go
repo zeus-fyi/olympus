@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -27,6 +28,18 @@ func (w *WorkflowsDeletionRequest) DeleteWorkflows(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+
+	for i, _ := range w.Workflows {
+		if w.Workflows[i].WorkflowTemplateStrID != "" {
+			wid, err := strconv.Atoi(w.Workflows[i].WorkflowTemplateStrID)
+			if err != nil {
+				log.Err(err).Msg("failed to parse int")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			w.Workflows[i].WorkflowTemplateID = wid
+		}
+	}
+
 	err := artemis_orchestrations.DeleteWorkflowTemplates(c.Request().Context(), ou, w.Workflows)
 	if err != nil {
 		log.Err(err).Msg("failed to delete workflows")

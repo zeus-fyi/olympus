@@ -145,8 +145,8 @@ type EvalContext struct {
 }
 
 type EvalMetricsResults struct {
-	EvalContext        EvalContext  `json:"evalContext"`
-	EvalMetricsResults []EvalMetric `json:"evalMetricsResults"`
+	EvalContext        EvalContext   `json:"evalContext"`
+	EvalMetricsResults []*EvalMetric `json:"evalMetricsResults"`
 }
 
 type EvalMetricResult struct {

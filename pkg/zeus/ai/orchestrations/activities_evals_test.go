@@ -114,7 +114,6 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 		if evalFn.EvalID == nil {
 			continue
 		}
-
 		for _, schema := range evalFn.SchemasMap {
 			for _, field := range schema.Fields {
 				// Check if the field values have been copied correctly based on field names
@@ -129,7 +128,6 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 					t.Require().Equal(1111111111111, *field.IntegerValue, "IntegerValue should be not 0 for 'msg_id'")
 					t.Require().True(field.IsValidated, "IsValidated should be true for 'msg_id'")
 					count += 10
-
 					// Add additional cases for other field types as needed
 				}
 			}

@@ -307,32 +307,38 @@ func haveIdenticalKeys[K comparable, V any](map1, map2 map[K]*V) bool {
 	return true
 }
 
-func copyFieldValues(src, dest *artemis_orchestrations.JsonSchemaDefinition) {
+func copyFieldValues(src, dest *artemis_orchestrations.JsonSchemaDefinition) bool {
 	if src == nil || dest == nil {
-		return // Handle nil arguments
+		return false // Handle nil arguments
 	}
 
-	for fieldID, srcField := range src.FieldsMap {
+	for _, srcField := range src.FieldsMap {
 		if srcField == nil {
 			continue // Skip if srcField is nil
 		}
 
-		destField, ok := dest.FieldsMap[fieldID]
+		destField, ok := dest.FieldsMap[srcField.FieldStrID]
 		if !ok || destField == nil {
-			continue // Skip if destField does not exist or is nil
+			return false
+		}
+		if !srcField.FieldValue.IsValidated {
+			return false
 		}
 
 		if srcField.DataType == destField.DataType {
-			destField.FieldValue = srcField.FieldValue // Direct assignment
+			destField.FieldValue = srcField.FieldValue
 		}
 	}
+	return true
 }
 
 func copyMatchingFieldValues(tasksSchemaMap, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) {
 	if tasksSchemaMap == nil || schemasMap == nil {
 		return // Handle nil maps
 	}
-
+	if !haveIdenticalKeys(tasksSchemaMap, schemasMap) {
+		return // The maps do not have identical keys
+	}
 	// Ensure FieldsMap is populated for both maps
 	for _, schema := range tasksSchemaMap {
 		populateFieldsMap(schema)
@@ -340,15 +346,40 @@ func copyMatchingFieldValues(tasksSchemaMap, schemasMap map[string]*artemis_orch
 	for _, schema := range schemasMap {
 		populateFieldsMap(schema)
 	}
-
-	if !haveIdenticalKeys(tasksSchemaMap, schemasMap) {
-		return // The maps do not have identical keys
-	}
-
 	for schemaID, srcSchema := range tasksSchemaMap {
 		destSchema := schemasMap[schemaID]
 		copyFieldValues(srcSchema, destSchema)
 	}
+}
+
+func copyMatchingJsonResponsesFieldValuesFromResp(respJsonResults [][]*artemis_orchestrations.JsonSchemaDefinition, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) bool {
+	for trsi, _ := range respJsonResults {
+		for si, _ := range respJsonResults[trsi] {
+			if respJsonResults[trsi][si].SchemaID == 0 || len(respJsonResults[trsi][si].Fields) <= 0 {
+				continue
+			}
+			isRespPrePopulatedForEvalScores := copyMatchingFieldValuesFromResp(respJsonResults[trsi][si], schemasMap)
+			if !isRespPrePopulatedForEvalScores {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func copyMatchingFieldValuesFromResp(respJsonResults *artemis_orchestrations.JsonSchemaDefinition, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) bool {
+	if schemasMap == nil || respJsonResults == nil {
+		return false // Handle nil maps
+	}
+	evalSchema, ok := schemasMap[respJsonResults.SchemaStrID]
+	if !ok || evalSchema == nil {
+		return false // The maps do not have identical keys
+	}
+	populateFieldsMap(respJsonResults)
+	for _, schema := range schemasMap {
+		populateFieldsMap(schema)
+	}
+	return copyFieldValues(respJsonResults, evalSchema)
 }
 
 func populateFieldsMap(schema *artemis_orchestrations.JsonSchemaDefinition) {

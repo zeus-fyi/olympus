@@ -74,6 +74,7 @@ export function SchemasRow(props: { row: JsonSchemaDefinition, index: number, ha
                             <Table size="small" aria-label="sub-analysis">
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>Field ID</TableCell>
                                         <TableCell>Field Name</TableCell>
                                         <TableCell>Data Type</TableCell>
                                         <TableCell>Description</TableCell>
@@ -82,6 +83,7 @@ export function SchemasRow(props: { row: JsonSchemaDefinition, index: number, ha
                                 <TableBody>
                                     {row.fields && row.fields.map((data, dataIndex) => (
                                         <TableRow key={data.fieldName}>
+                                            <TableCell>{data.fieldStrID ? data.fieldStrID : ''}</TableCell>
                                             <TableCell>{data.fieldName}</TableCell>
                                             <TableCell>{data.dataType}</TableCell>
                                             <TableCell>{data.fieldDescription}</TableCell>

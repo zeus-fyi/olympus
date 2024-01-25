@@ -2,6 +2,7 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
@@ -195,7 +196,8 @@ func SelectJsonSchemaByOrg(ctx context.Context, ou org_users.OrgUser) (*JsonSche
 			log.Err(err).Msg("failed to scan JSON schema row")
 			return nil, err
 		}
-
+		schema.SchemaStrID = fmt.Sprintf("%d", schema.SchemaID)
+		field.FieldStrID = fmt.Sprintf("%d", field.FieldID)
 		if s, exists := schemaMap[schema.SchemaID]; exists {
 			// If schema already exists in map, append the field to it
 			s.Fields = append(s.Fields, field)

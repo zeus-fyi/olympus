@@ -12,22 +12,23 @@ import (
 )
 
 type AITaskLibrary struct {
-	TaskStrID             string                  `db:"task_id" json:"taskStrID,omitempty"`
-	TaskID                int                     `db:"task_id" json:"taskID,omitempty"`
-	OrgID                 int                     `db:"org_id" json:"orgID,omitempty"`
-	UserID                int                     `db:"user_id" json:"userID,omitempty"`
-	MaxTokensPerTask      int                     `db:"max_tokens_per_task" json:"maxTokensPerTask"`
-	TaskType              string                  `db:"task_type" json:"taskType"`
-	TaskName              string                  `db:"task_name" json:"taskName"`
-	TaskGroup             string                  `db:"task_group" json:"taskGroup"`
-	TokenOverflowStrategy string                  `db:"token_overflow_strategy" json:"tokenOverflowStrategy"`
-	Model                 string                  `db:"model" json:"model"`
-	Prompt                string                  `db:"prompt" json:"prompt"`
-	Schemas               []*JsonSchemaDefinition `json:"schemas,omitempty"`
-	ResponseFormat        string                  `db:"response_format" json:"responseFormat"`
-	CycleCount            int                     `db:"cycle_count" json:"cycleCount,omitempty"`
-	RetrievalDependencies []RetrievalItem         `json:"retrievalDependencies,omitempty"`
-	EvalFns               []EvalFn                `json:"evalFns,omitempty"`
+	TaskStrID             string                           `db:"task_id" json:"taskStrID,omitempty"`
+	TaskID                int                              `db:"task_id" json:"taskID,omitempty"`
+	OrgID                 int                              `db:"org_id" json:"orgID,omitempty"`
+	UserID                int                              `db:"user_id" json:"userID,omitempty"`
+	MaxTokensPerTask      int                              `db:"max_tokens_per_task" json:"maxTokensPerTask"`
+	TaskType              string                           `db:"task_type" json:"taskType"`
+	TaskName              string                           `db:"task_name" json:"taskName"`
+	TaskGroup             string                           `db:"task_group" json:"taskGroup"`
+	TokenOverflowStrategy string                           `db:"token_overflow_strategy" json:"tokenOverflowStrategy"`
+	Model                 string                           `db:"model" json:"model"`
+	Prompt                string                           `db:"prompt" json:"prompt"`
+	Schemas               []*JsonSchemaDefinition          `json:"schemas,omitempty"`
+	SchemasMap            map[string]*JsonSchemaDefinition `json:"schemasMap,omitempty"`
+	ResponseFormat        string                           `db:"response_format" json:"responseFormat"`
+	CycleCount            int                              `db:"cycle_count" json:"cycleCount,omitempty"`
+	RetrievalDependencies []RetrievalItem                  `json:"retrievalDependencies,omitempty"`
+	EvalFns               []EvalFn                         `json:"evalFns,omitempty"`
 }
 
 func InsertTask(ctx context.Context, task *AITaskLibrary) error {
@@ -354,13 +355,11 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 		return nil, err
 	}
 	defer rows.Close()
-
 	var tasks []AITaskLibrary
 
 	// Iterating over the result set
 	for rows.Next() {
 		var task AITaskLibrary
-
 		err = rows.Scan(
 			&task.TaskID, &task.MaxTokensPerTask, &task.TaskType, &task.TaskName,
 			&task.TaskGroup, &task.TokenOverflowStrategy, &task.Model,
@@ -371,6 +370,20 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 			return nil, err
 		}
 		task.TaskStrID = fmt.Sprintf("%d", task.TaskID)
+		if task.TaskStrID != "" {
+			task.SchemasMap = make(map[string]*JsonSchemaDefinition)
+			for i, schema := range task.Schemas {
+				for j, field := range schema.Fields {
+					if field.FieldID == 0 {
+						continue
+					}
+					task.Schemas[i].Fields[j].FieldStrID = fmt.Sprintf("%d", field.FieldID)
+				}
+
+				task.Schemas[i].SchemaStrID = fmt.Sprintf("%d", schema.SchemaID)
+				task.SchemasMap[schema.SchemaStrID] = schema
+			}
+		}
 		tasks = append(tasks, task)
 	}
 	return tasks, nil

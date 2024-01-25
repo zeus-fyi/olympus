@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
@@ -226,9 +227,9 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				schema.SchemaStrID = fmt.Sprintf("%d", schema.SchemaID)
 			}
 			if ef.SchemasMap == nil {
-				ef.SchemasMap = make(map[int]*JsonSchemaDefinition)
+				ef.SchemasMap = make(map[string]*JsonSchemaDefinition)
 			}
-			ef.SchemasMap[schema.SchemaID] = schema
+			ef.SchemasMap[strconv.Itoa(schema.SchemaID)] = schema
 			sc = append(sc, schema)
 		}
 		ef.Schemas = sc

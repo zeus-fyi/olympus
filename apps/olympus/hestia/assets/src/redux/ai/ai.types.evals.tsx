@@ -3,15 +3,10 @@ import {TriggerAction} from "./ai.types.retrievals";
 import {JsonSchemaDefinition} from "./ai.types.schemas";
 
 export interface EvalMetricsResult {
-    evalName?: string;
-    evalMetricName: string;
-    evalMetricStrID?: number;
-    evalMetricsResultId: number;
-    evalMetricResult: string;
-    evalComparisonBoolean?: boolean;
-    evalComparisonNumber?: number;
-    evalComparisonString?: string;
-    evalMetricDataType: string;
+    evalMetricStrID?: string;
+    evalMetricsResultStrID?: string;
+    evalMetricsResult?: EvalMetricResult;
+    evalMetricComparisonValues?: EvalMetricComparisonValues;
     evalOperator: string;
     evalState: string;
     runningCycleNumber: number;
@@ -19,6 +14,12 @@ export interface EvalMetricsResult {
     searchWindowUnixEnd?: number;
     evalResultOutcome: boolean;
     evalMetadata?: string; // Assuming json.RawMessage is defined elsewhere
+}
+
+export interface EvalMetricResult {
+    evalMetricResultStrID?: string;
+    evalResultOutcomeBool?: boolean;
+    evalMetadata?: any; // Consider using a more specific type if the structure of evalMetadata is known
 }
 
 export interface EvalFnMap {
@@ -65,8 +66,3 @@ export interface EvalMetricComparisonValues {
     evalComparisonInteger?: number;
 }
 
-export interface EvalMetricResult {
-    evalMetricResultStrID?: string;
-    evalResultOutcomeBool?: boolean;
-    evalMetadata?: any; // Consider using a more specific type if the structure of evalMetadata is known
-}

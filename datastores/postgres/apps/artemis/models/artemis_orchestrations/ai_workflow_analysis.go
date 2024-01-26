@@ -14,10 +14,10 @@ import (
 )
 
 type AIWorkflowAnalysisResult struct {
-	WorkflowResultID      int             `json:"workflowResultId"`
-	OrchestrationsID      int             `json:"orchestrationsId"`
-	ResponseID            int             `json:"responseId"`
-	SourceTaskID          int             `json:"sourceTaskId"`
+	WorkflowResultID      int             `json:"workflowResultID"`
+	OrchestrationsID      int             `json:"orchestrationsID"`
+	ResponseID            int             `json:"responseID"`
+	SourceTaskID          int             `json:"sourceTaskID"`
 	IterationCount        int             `json:"iterationCount"`
 	ChunkOffset           int             `json:"chunkOffset"`
 	RunningCycleNumber    int             `json:"runningCycleNumber"`

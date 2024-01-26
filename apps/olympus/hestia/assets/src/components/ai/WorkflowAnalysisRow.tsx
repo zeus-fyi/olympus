@@ -14,6 +14,8 @@ import {prettyPrintJSON} from "./RetrievalsRow";
 export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
+
+    console.log("row", row)
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -52,9 +54,10 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                 <Table size="small" aria-label="eval-results">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Result ID</TableCell>
-                                            <TableCell>Eval Name</TableCell>
-                                            <TableCell>Metric Name</TableCell>
+                                            {/*<TableCell>Eval Name</TableCell>*/}
+                                            <TableCell>Eval Metric ID</TableCell>
+                                            <TableCell>Eval Metric Result ID</TableCell>
+                                            {/*<TableCell>Metric Name</TableCell>*/}
                                             <TableCell>State</TableCell>
                                             <TableCell>Running Cycle Number</TableCell>
                                             <TableCell>Start Unix Time</TableCell>
@@ -67,26 +70,25 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {row.aggregatedEvalResults.map((evalResult, evalIndex) => {
-                                            if (evalResult.evalMetricsResultId <= 0) {
+                                        {row.aggregatedEvalResults && row.aggregatedEvalResults.map((evalResult, evalIndex) => {
+                                            if (evalResult.evalMetricsResultStrID === undefined) {
                                                 return null;
                                             }
                                             return (
                                                 <TableRow key={evalIndex}>
-                                                    <TableCell>{evalResult.evalMetricsResultId}</TableCell>
-                                                    <TableCell>{evalResult.evalName}</TableCell>
-                                                    <TableCell>{evalResult.evalMetricName}</TableCell>
+                                                    <TableCell>{evalResult.evalMetricStrID}</TableCell>
+                                                    <TableCell>{evalResult.evalMetricsResultStrID}</TableCell>
                                                     <TableCell>{evalResult.evalState}</TableCell>
-                                                    <TableCell>{evalResult.runningCycleNumber}</TableCell>
-                                                    <TableCell>{evalResult.searchWindowUnixStart}</TableCell>
-                                                    <TableCell>{evalResult.searchWindowUnixEnd}</TableCell>
-                                                    <TableCell>{evalResult.evalMetricResult}</TableCell>
-                                                    <TableCell>{evalResult.evalResultOutcome ? 'Pass' : 'Fail'}</TableCell>
+                                                    {/*<TableCell>{evalResult.runningCycleNumber}</TableCell>*/}
+                                                    {/*<TableCell>{evalResult.searchWindowUnixStart}</TableCell>*/}
+                                                    {/*<TableCell>{evalResult.searchWindowUnixEnd}</TableCell>*/}
+                                                    {/*<TableCell>{evalResult.evalMetricResult}</TableCell>*/}
+                                                    {/*<TableCell>{evalResult.evalResultOutcome ? 'Pass' : 'Fail'}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonBoolean ? 'True' : 'False'}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonNumber}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonString}</TableCell>*/}
-                                                    <TableCell>{evalResult.evalMetricDataType}</TableCell>
-                                                    <TableCell>{evalResult.evalOperator}</TableCell>
+                                                    {/*<TableCell>{evalResult.evalMetricDataType}</TableCell>*/}
+                                                    {/*<TableCell>{evalResult.evalOperator}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalMetadata}</TableCell>*/}
                                                 </TableRow>
                                             );
@@ -127,8 +129,8 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                 <TableBody>
                                     {row.aggregatedData && row.aggregatedData.map((data, dataIndex) => (
                                         <TableRow key={dataIndex}>
-                                            <TableCell>{data.workflowResultId}</TableCell>
-                                            <TableCell>{data.sourceTaskId}</TableCell>
+                                            <TableCell>{data.workflowResultID}</TableCell>
+                                            <TableCell>{data.sourceTaskID}</TableCell>
                                             <TableCell>{data.taskName}</TableCell>
                                             <TableCell>{data.taskType}</TableCell>
                                             <TableCell>{data.runningCycleNumber}</TableCell>
@@ -147,14 +149,14 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                             </Table>
                             <Table  sx={{ mb: 4, mt: 4}} size="small" aria-label="sub-analysis">
                                 <TableRow>
-                                    <TableCell style={{ }}>Result ID</TableCell>
-                                    <TableCell style={{ }}>Prompt</TableCell>
-                                    <TableCell style={{  }}>Completion Choices</TableCell>
+                                    <TableCell >Result ID</TableCell>
+                                    <TableCell >Prompt</TableCell>
+                                    <TableCell >Completion Choices</TableCell>
                                 </TableRow>
                                 <TableBody>
                                     {row.aggregatedData && row.aggregatedData.map((data, dataIndex) => (
                                         <TableRow key={dataIndex}>
-                                            <TableCell> {data.workflowResultId}</TableCell>
+                                            <TableCell> {data.workflowResultID}</TableCell>
                                             <TableCell >
                                                 {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
                                             </TableCell>

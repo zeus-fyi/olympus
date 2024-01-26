@@ -51,9 +51,9 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 							comp_resp.total_tokens AS total_tokens,
 							JSON_AGG(
 								JSON_BUILD_OBJECT(
-									'workflowResultId', ai_res.workflow_result_id,
-									'responseId', ai_res.response_id,
-									'sourceTaskId', ai_res.source_task_id,
+									'workflowResultID', ai_res.workflow_result_id,
+									'responseID', ai_res.response_id,
+									'sourceTaskID', ai_res.source_task_id,
 									'iterationCount', ai_res.iteration_count,
 									'skipAnalysis', ai_res.skip_analysis,
 									'taskName', task_lib.task_name,
@@ -76,10 +76,9 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 										JSON_BUILD_OBJECT(
 											'evalName', ef.eval_name,
 											'evalMetricID', eval_met.eval_metric_id,	
-											'evalMetricResultID', eval_res.eval_metrics_results_id,
 											'evalExpectedResultState', eval_met.eval_metric_result,
     										'evalMetricResult', JSON_BUILD_OBJECT(
-		        									'evalMetricResultID', eval_res.eval_metrics_results_id,
+		        									'evalMetricsResultID', eval_res.eval_metrics_results_id,
         											'evalResultOutcome', eval_res.eval_result_outcome
 											),
     										'evalMetricComparisonValues', JSON_BUILD_OBJECT(

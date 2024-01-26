@@ -14,10 +14,10 @@ import (
 )
 
 type AIWorkflowEvalResultResponse struct {
-	EvalResultID        int `db:"eval_result_id" json:"evalResultId"`
+	EvalResultsID       int `db:"eval_result_id" json:"evalResultID"`
 	EvalMetricsResultID int `db:"eval_metrics_results_id" json:"evalMetricsResultID"`
-	WorkflowResultID    int `db:"workflow_result_id" json:"workflowResultId"`
-	ResponseID          int `db:"response_id" json:"responseId"`
+	WorkflowResultID    int `db:"workflow_result_id" json:"workflowResultID"`
+	ResponseID          int `db:"response_id" json:"responseID"`
 }
 
 func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) error {
@@ -103,16 +103,16 @@ func InsertOrUpdateAiWorkflowEvalResultResponse(ctx context.Context, errr AIWork
                       workflow_result_id = EXCLUDED.workflow_result_id,
                       eval_metrics_results_id = EXCLUDED.eval_metrics_results_id,
                       response_id = EXCLUDED.response_id
-                  RETURNING eval_result_id;`
+                  RETURNING eval_results_id;`
 
-	if errr.EvalResultID <= 0 {
+	if errr.EvalResultsID <= 0 {
 		ch := chronos.Chronos{}
-		errr.EvalResultID = ch.UnixTimeStampNow()
+		errr.EvalResultsID = ch.UnixTimeStampNow()
 	}
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, errr.EvalResultID, errr.WorkflowResultID, errr.EvalMetricsResultID, errr.ResponseID).Scan(&errr.EvalResultID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, errr.EvalResultsID, errr.WorkflowResultID, errr.EvalMetricsResultID, errr.ResponseID).Scan(&errr.EvalResultsID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("AIWorkflowEvalResultResponse")); returnErr != nil {
 		log.Err(returnErr).Interface("errr", errr).Msg(q.LogHeader("AIWorkflowEvalResultResponse"))
-		return errr.EvalResultID, err
+		return errr.EvalResultsID, err
 	}
-	return errr.EvalResultID, nil
+	return errr.EvalResultsID, nil
 }

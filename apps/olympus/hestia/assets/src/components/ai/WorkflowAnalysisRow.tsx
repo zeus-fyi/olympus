@@ -66,7 +66,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>Operator</TableCell>
                                             <TableCell>Expected</TableCell>
                                             <TableCell>Actual</TableCell>
-                                            {/*<TableCell>Metadata</TableCell>*/}
+                                            <TableCell>Details</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -112,7 +112,11 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                                     {/*<TableCell>{evalResult.evalComparisonNumber}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonString}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalMetricDataType}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.evalMetadata}</TableCell>*/}
+                                                    <TableCell>
+                                                        {evalResult.evalMetricResult && evalResult.evalMetricResult.evalMetadata
+                                                            ? evalResult.evalMetricResult.evalMetadata
+                                                            : ''}
+                                                    </TableCell>
                                                 </TableRow>
                                             );
                                         })}

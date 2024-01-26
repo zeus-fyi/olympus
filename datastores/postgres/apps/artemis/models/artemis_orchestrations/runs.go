@@ -87,7 +87,8 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 													'runningCycleNumber', eval_res.running_cycle_number,
 													'evalIterationCount', eval_res.eval_iteration_count,
 													'searchWindowUnixStart', eval_res.search_window_unix_start,
-													'searchWindowUnixEnd', eval_res.search_window_unix_end
+													'searchWindowUnixEnd', eval_res.search_window_unix_end,
+													'evalMetadata', eval_res.eval_metadata
 											),
     										'evalMetricComparisonValues', JSON_BUILD_OBJECT(
 												'evalComparisonInteger', eval_met.eval_comparison_integer,

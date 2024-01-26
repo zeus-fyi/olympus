@@ -1,13 +1,19 @@
 package artemis_orchestrations
 
 import (
+	"encoding/json"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
 func (s *OrchestrationsTestSuite) TestUpsertEvalMetricsResults() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-
+	eocr := EvalMetaDataResult{
+		EvalOpCtxStr: "4 gt 3",
+	}
+	b, err := json.Marshal(eocr)
+	s.Require().Nil(err)
 	evCtx := EvalContext{
 		EvalID:             1705978298687209000,
 		EvalIterationCount: 0,
@@ -27,7 +33,9 @@ func (s *OrchestrationsTestSuite) TestUpsertEvalMetricsResults() {
 			{
 				EvalMetricID: aws.Int(1706151746655067000),
 				EvalMetricResult: &EvalMetricResult{
+					EvalMetricResultID:    aws.Int(1706151746655067000),
 					EvalResultOutcomeBool: aws.Bool(true),
+					EvalMetadata:          b,
 				},
 				EvalOperator:            "gt",
 				EvalState:               "info",
@@ -38,7 +46,7 @@ func (s *OrchestrationsTestSuite) TestUpsertEvalMetricsResults() {
 			},
 		},
 	}
-	err := UpsertEvalMetricsResults(ctx, emrw)
+	err = UpsertEvalMetricsResults(ctx, emrw)
 	s.Require().Nil(err)
 
 }

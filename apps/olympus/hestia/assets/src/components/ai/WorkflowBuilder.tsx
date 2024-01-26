@@ -2137,7 +2137,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 </Box>
                                             </Stack>
                                             <Stack direction="row" >
-                                                { editAggregateTask.responseFormat === 'json' ?
+                                                { editAnalysisTask.responseFormat === 'json' ?
                                                     <Box flexGrow={2} sx={{ mb: 2, mt: 4 }}>
                                                         <FormControl fullWidth>
                                                             <InputLabel id="analysis-model-label">Analysis Model</InputLabel>

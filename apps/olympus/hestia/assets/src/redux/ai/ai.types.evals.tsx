@@ -18,12 +18,10 @@ export interface EvalMetricsResult {
     evalResultOutcomeBool?: boolean;
     evalResultOutcomeStateStr?: string;
     evalMetadata?: any; // Consider using a more specific type if the structure of evalMetadata is known
-
-    evalOperator: string;
-    runningCycleNumber: number;
+    evalIterationCount?: number;
+    runningCycleNumber?: number;
     searchWindowUnixStart?: number;
     searchWindowUnixEnd?: number;
-    evalResultOutcome: boolean;
 }
 
 export interface EvalMetricResult {

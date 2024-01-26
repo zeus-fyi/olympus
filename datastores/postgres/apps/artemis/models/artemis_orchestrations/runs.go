@@ -92,6 +92,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 											'evalOperator', eval_met.eval_operator,
 											'evalState', eval_met.eval_state,
 											'runningCycleNumber', eval_res.running_cycle_number,
+											'evalIterationCount', eval_res.eval_iteration_count,
 											'searchWindowUnixStart', eval_res.search_window_unix_start,
 											'searchWindowUnixEnd', eval_res.search_window_unix_end    
 										) 

@@ -401,20 +401,20 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 	return results, nil
 }
 
-func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, dataIn any) error {
+func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, dataIn any) (int, error) {
 	if wr == nil {
-		return nil
+		return 0, nil
 	}
 	md, err := json.Marshal(dataIn)
 	if err != nil {
 		log.Err(err).Interface("dataIn", dataIn).Interface("wr", wr).Msg("SaveTaskOutput: failed")
-		return err
+		return 0, err
 	}
 	wr.Metadata = md
 	err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 	if err != nil {
 		log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
-		return err
+		return 0, err
 	}
-	return nil
+	return wr.WorkflowResultID, nil
 }

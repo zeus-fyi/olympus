@@ -40,16 +40,17 @@ func (s *OrchestrationsTestSuite) TestUpsertEvalMetricsResults() {
 	}
 	err := UpsertEvalMetricsResults(ctx, emrw)
 	s.Require().Nil(err)
-	//zz := AIWorkflowEvalResultResponse{
-	//	EvalResultID:     0,
-	//	WorkflowResultID: 0,
-	//	EvalID:           0,
-	//	ResponseID:       0,
-	//}
-	//_, err = InsertOrUpdateAiWorkflowEvalResultResponse(ctx, zz)
-	//s.Require().Nil(err)
+
 }
 
 func (s *OrchestrationsTestSuite) TestInsertOrUpdateAiWorkflowEvalResultResponse() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	zz := AIWorkflowEvalResultResponse{
+		EvalMetricsResultID: 1706233422941559000,
+		WorkflowResultID:    1705978298687209000,
+		ResponseID:          1672188679693780000,
+	}
+	_, err := InsertOrUpdateAiWorkflowEvalResultResponse(ctx, zz)
+	s.Require().Nil(err)
 }

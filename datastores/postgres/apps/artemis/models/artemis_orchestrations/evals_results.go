@@ -14,10 +14,10 @@ import (
 )
 
 type AIWorkflowEvalResultResponse struct {
-	EvalResultID     int `db:"eval_result_id" json:"evalResultId"`
-	WorkflowResultID int `db:"workflow_result_id" json:"workflowResultId"`
-	EvalID           int `db:"eval_id" json:"evalId"`
-	ResponseID       int `db:"response_id" json:"responseId"`
+	EvalResultsID       int `db:"eval_result_id" json:"evalResultID"`
+	EvalMetricsResultID int `db:"eval_metrics_results_id" json:"evalMetricsResultID"`
+	WorkflowResultID    int `db:"workflow_result_id" json:"workflowResultID"`
+	ResponseID          int `db:"response_id" json:"responseID"`
 }
 
 func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) error {
@@ -32,7 +32,7 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
 	defer tx.Rollback(ctx)
 	const query = `
        INSERT INTO public.eval_metrics_results (
-           eval_metrics_result_id,
+           eval_metrics_results_id,
            orchestration_id,
            source_task_id,
            eval_metric_id,
@@ -96,62 +96,23 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
 
 func InsertOrUpdateAiWorkflowEvalResultResponse(ctx context.Context, errr AIWorkflowEvalResultResponse) (int, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO ai_workflow_eval_result_response(eval_result_id, workflow_result_id, eval_id, response_id)
+	q.RawQuery = `INSERT INTO eval_results_responses(eval_results_id, workflow_result_id, eval_metrics_results_id, response_id)
                   VALUES ($1, $2, $3, $4)
-                  ON CONFLICT (eval_result_id) 
+                  ON CONFLICT (eval_results_id) 
                   DO UPDATE SET 
                       workflow_result_id = EXCLUDED.workflow_result_id,
-                      eval_id = EXCLUDED.eval_id,
+                      eval_metrics_results_id = EXCLUDED.eval_metrics_results_id,
                       response_id = EXCLUDED.response_id
-                  RETURNING eval_result_id;`
+                  RETURNING eval_results_id;`
 
-	if errr.EvalResultID <= 0 {
+	if errr.EvalResultsID <= 0 {
 		ch := chronos.Chronos{}
-		errr.EvalResultID = ch.UnixTimeStampNow()
+		errr.EvalResultsID = ch.UnixTimeStampNow()
 	}
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, errr.EvalResultID, errr.WorkflowResultID, errr.EvalID, errr.ResponseID).Scan(&errr.EvalResultID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, errr.EvalResultsID, errr.WorkflowResultID, errr.EvalMetricsResultID, errr.ResponseID).Scan(&errr.EvalResultsID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("AIWorkflowEvalResultResponse")); returnErr != nil {
 		log.Err(returnErr).Interface("errr", errr).Msg(q.LogHeader("AIWorkflowEvalResultResponse"))
-		return errr.EvalResultID, err
+		return errr.EvalResultsID, err
 	}
-	return errr.EvalResultID, nil
+	return errr.EvalResultsID, nil
 }
-
-// eval_metrics_results
-/*
-CREATE TABLE public.ai_workflow_eval_result_responses(
-    eval_result_id BIGINT NOT NULL PRIMARY KEY,
-    workflow_result_id BIGINT NOT NULL REFERENCES ai_workflow_analysis_results(workflow_result_id),
-    eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),
-    response_id int8 NOT NULL REFERENCES completion_responses(response_id)
-);
-
-CREATE TABLE public.eval_metrics_results(
-    eval_metrics_result_id int8 NOT NULL DEFAULT next_id() PRIMARY KEY,
-    orchestration_id int8 NOT NULL REFERENCES orchestrations(orchestration_id),
-    source_task_id int8 NOT NULL REFERENCES ai_task_library(task_id),
-    eval_metric_id BIGINT NOT NULL REFERENCES public.eval_metrics(eval_metric_id),
-    running_cycle_number int8 NOT NULL DEFAULT 1,
-    search_window_unix_start int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
-    search_window_unix_end int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
-    eval_iteration_count int8 NOT NULL DEFAULT 0,
-    chunk_offset int8 NOT NULL DEFAULT 0,
-    eval_result_outcome boolean NOT NULL,
-    eval_metadata jsonb
-);
-ALTER TABLE public.eval_metrics_results
-    ADD COLUMN eval_iteration int8 NOT NULL DEFAULT 0;
-
-CREATE INDEX eval_result_outcome_idx ON public.eval_metrics_results("eval_result_outcome");
-CREATE INDEX eval_result_metric_idx ON public.eval_metrics_results("eval_metric_id");
-CREATE INDEX eval_result_orch_id_idx ON public.eval_metrics_results("orchestration_id");
-CREATE INDEX eval_result_cycle_idx ON public.eval_metrics_results("running_cycle_number");
-CREATE INDEX eval_result_source_search_start_idx ON public.eval_metrics_results("search_window_unix_start");
-CREATE INDEX eval_result_source_search_end_idx ON public.eval_metrics_results("search_window_unix_end");
-CREATE INDEX eval_result_eval_iter_idx ON public.eval_metrics_results("eval_iteration_count");
-CREATE INDEX eval_result_eval_chunk_idx ON public.eval_metrics_results("chunk_offset");
-ALTER TABLE public.eval_metrics_results
-ADD CONSTRAINT unique_eval_metrics_combination UNIQUE (eval_metric_id, source_task_id, orchestration_id, running_cycle_number, chunk_offset, eval_iteration_count);
-
-
-*/

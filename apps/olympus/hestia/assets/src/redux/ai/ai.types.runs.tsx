@@ -2,9 +2,9 @@ import {EvalMetricsResult} from "./ai.types.evals";
 import {Orchestration} from "./ai.types";
 
 export interface AggregatedData {
-    workflowResultId: number;
-    responseId: number;
-    sourceTaskId: number;
+    workflowResultID: number;
+    responseID: number;
+    sourceTaskID: number;
     taskName: string;
     taskType: string;
     runningCycleNumber: number;

@@ -150,12 +150,13 @@ type EvalMetricsResults struct {
 }
 
 type EvalMetricResult struct {
-	EvalMetricResultStrID *string         `json:"evalMetricResultStrID"`
-	EvalMetricResultID    *int            `json:"evalMetricResultID"`
+	EvalMetricResultStrID *string         `json:"evalMetricsResultStrID"`
+	EvalMetricResultID    *int            `json:"evalMetricsResultID"`
 	EvalResultOutcomeBool *bool           `json:"evalResultOutcome,omitempty"` // true if eval passed, false if eval failed
 	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
 }
 type EvalMetric struct {
+	EvalName                   *string                     `json:"evalName,omitempty"`
 	EvalMetricStrID            *string                     `json:"evalMetricStrID,omitempty"`
 	EvalMetricID               *int                        `json:"evalMetricID"`
 	EvalMetricResult           *EvalMetricResult           `json:"evalMetricResult,omitempty"`

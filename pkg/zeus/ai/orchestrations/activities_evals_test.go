@@ -42,7 +42,7 @@ type JsonSchemaField struct {
 }
 
 type EvalMetricResult struct {
-	EvalMetricResultID    *int            `json:"evalMetricResultID"`
+	EvalMetricsResultID    *int            `json:"evalMetricResultID"`
 	EvalResultOutcomeBool *bool           `json:"evalResultOutcome,omitempty"` // true if eval passed, false if eval failed
 	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
 }

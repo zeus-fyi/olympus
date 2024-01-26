@@ -363,15 +363,14 @@ func copyMatchingFieldValues(tasksSchemaMap, schemasMap map[string]*artemis_orch
 		return // The maps do not have identical keys
 	}
 	// Ensure FieldsMap is populated for both maps
-	for _, schema := range tasksSchemaMap {
-		populateFieldsMap(schema)
+	for si, _ := range tasksSchemaMap {
+		populateFieldsMap(tasksSchemaMap[si])
 	}
-	for _, schema := range schemasMap {
-		populateFieldsMap(schema)
+	for si, _ := range schemasMap {
+		populateFieldsMap(schemasMap[si])
 	}
-	for schemaID, srcSchema := range tasksSchemaMap {
-		destSchema := schemasMap[schemaID]
-		copyFieldValues(srcSchema, destSchema)
+	for schemaID, _ := range tasksSchemaMap {
+		copyFieldValues(tasksSchemaMap[schemaID], schemasMap[schemaID])
 	}
 }
 
@@ -410,8 +409,8 @@ func populateFieldsMap(schema *artemis_orchestrations.JsonSchemaDefinition) {
 		return
 	}
 	schema.FieldsMap = make(map[string]*artemis_orchestrations.JsonSchemaField)
-	for i := range schema.Fields {
+	for i, _ := range schema.Fields {
 		field := &schema.Fields[i]
-		schema.FieldsMap[field.FieldName] = field
+		schema.FieldsMap[field.FieldStrID] = field
 	}
 }

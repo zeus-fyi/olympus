@@ -55,9 +55,10 @@ func (s *OrchestrationsTestSuite) TestInsertOrUpdateAiWorkflowEvalResultResponse
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	zz := AIWorkflowEvalResultResponse{
-		EvalMetricsResultID: 1706233422941559000,
-		WorkflowResultID:    1705978298687209000,
-		ResponseID:          1672188679693780000,
+		EvalID:             1705978298687209000,
+		WorkflowResultID:   1705978298687209000,
+		ResponseID:         1672188679693780000,
+		EvalIterationCount: 0,
 	}
 	_, err := InsertOrUpdateAiWorkflowEvalResultResponse(ctx, zz)
 	s.Require().Nil(err)

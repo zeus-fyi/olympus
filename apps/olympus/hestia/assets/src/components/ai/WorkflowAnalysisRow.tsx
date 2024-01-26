@@ -9,7 +9,7 @@ import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
 import TableHead from "@mui/material/TableHead";
-import {prettyPrintJSON} from "./RetrievalsRow";
+import {prettyPrintJSON, prettyPrintPromptJSON} from "./RetrievalsRow";
 
 export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
@@ -61,8 +61,6 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>Field Name</TableCell>
                                             <TableCell>Data Type</TableCell>
                                             <TableCell>State</TableCell>
-                                            {/*<TableCell>Start Unix Time</TableCell>*/}
-                                            {/*<TableCell>End Unix Time</TableCell>*/}
                                             <TableCell>Operator</TableCell>
                                             <TableCell>Expected</TableCell>
                                             <TableCell>Actual</TableCell>
@@ -105,16 +103,9 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                                             ? evalResult.evalMetricResult.evalResultOutcomeStateStr
                                                             : 'No state available'}
                                                     </TableCell>
-                                                    {/*<TableCell>{evalResult.searchWindowUnixStart}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.searchWindowUnixEnd}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.evalMetricResult}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.evalComparisonBoolean ? 'True' : 'False'}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.evalComparisonNumber}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.evalComparisonString}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.evalMetricDataType}</TableCell>*/}
                                                     <TableCell>
                                                         {evalResult.evalMetricResult && evalResult.evalMetricResult.evalMetadata
-                                                            ? evalResult.evalMetricResult.evalMetadata
+                                                            ? evalResult.evalMetricResult.evalMetadata.evalOpCtxStr
                                                             : ''}
                                                     </TableCell>
                                                 </TableRow>
@@ -185,10 +176,10 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableRow key={dataIndex}>
                                             <TableCell> {data.workflowResultID}</TableCell>
                                             <TableCell >
-                                                {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
+                                                {data.prompt !== undefined ? prettyPrintPromptJSON(data.prompt) : ""}
                                             </TableCell>
                                             <TableCell >
-                                                {data.prompt !== undefined ? prettyPrintJSON(data.prompt) : ""}
+                                                {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
                                             </TableCell>
                                         </TableRow>
                                     ))}

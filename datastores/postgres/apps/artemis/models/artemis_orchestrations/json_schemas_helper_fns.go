@@ -216,14 +216,8 @@ func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any
 		}
 	}
 
-	for _, resp := range responses {
-		for _, jsd := range resp {
-			for _, f := range jsd.Fields {
-				if f.IsValidated == false {
-					return nil, fmt.Errorf("AssignMapValuesMultipleJsonSchemasSlice: failed to assign expected field %s", f.FieldName)
-				}
-			}
-		}
+	if !ValidateSchemas(responses) {
+		return nil, fmt.Errorf("AssignMapValuesMultipleJsonSchemasSlice: failed to validate schemas")
 	}
 	return responses, nil
 }

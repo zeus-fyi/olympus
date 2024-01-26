@@ -23,6 +23,26 @@ type JsonSchemaDefinition struct {
 	FieldsMap         map[string]*JsonSchemaField
 }
 
+func ValidateSchemas(jss [][]*JsonSchemaDefinition) bool {
+	for _, js := range jss {
+		for _, sch := range js {
+			if !sch.Validate() {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (j *JsonSchemaDefinition) Validate() bool {
+	for _, sch := range j.Fields {
+		if !sch.IsValidated {
+			return false
+		}
+	}
+	return true
+}
+
 type JsonSchemaField struct {
 	FieldID          int    `db:"field_id" json:"fieldID"`
 	FieldStrID       string `db:"-" json:"fieldStrID,omitempty"`

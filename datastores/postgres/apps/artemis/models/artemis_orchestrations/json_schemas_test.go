@@ -24,7 +24,7 @@ func (s *OrchestrationsTestSuite) TestConvertToFuncDef3() {
 			{FieldName: "products", DataType: "array[string]", FieldDescription: "products"},
 		},
 	}
-	fd := ConvertToFuncDef("test", []*JsonSchemaDefinition{schema, schema2})
+	fd := ConvertToFuncDef([]*JsonSchemaDefinition{schema, schema2})
 	s.Require().NotNil(fd, "Failed to convert JSON schema to OpenAI function definition")
 }
 
@@ -36,7 +36,7 @@ func (s *OrchestrationsTestSuite) TestConvertToFuncDef4() {
 			{FieldName: "msg_ids", DataType: "array[number]", FieldDescription: "system message ids"},
 		},
 	}
-	fd := ConvertToFuncDef("twitter_extract_tweets", []*JsonSchemaDefinition{schema})
+	fd := ConvertToFuncDef([]*JsonSchemaDefinition{schema})
 
 	s.Require().NotNil(fd, "Failed to convert JSON schema to OpenAI function definition")
 }
@@ -114,7 +114,7 @@ func (s *OrchestrationsTestSuite) TestJsonParsing() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	js, err := SelectJsonSchemaByOrg(ctx, ou)
 	s.Require().NoError(err, "Failed to select JSON schemas")
-	v := ConvertToFuncDef("fn", js.Slice)
+	v := ConvertToFuncDef(js.Slice)
 	s.Require().NotNil(v, "Failed to convert JSON schema to OpenAI function definition")
 
 	jsb := ConvertToJsonSchema(v)

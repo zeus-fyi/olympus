@@ -104,9 +104,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				}
 				copyMatchingJsonResponsesFieldValuesFromResp(cpe.ParentOutputToEval.JsonResponseResults, evalFnsAgg[evFnIndex].SchemasMap)
 			}
-
+			if cpe.ParentOutputToEval.JsonResponseResults == nil {
+				continue
+			}
 			evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, &evalFnsAgg[evFnIndex]).Get(evalModelScoredJsonCtx, &emr)
+			ef := []artemis_orchestrations.EvalFn{evalFnsAgg[evFnIndex]}
+			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, ef).Get(evalModelScoredJsonCtx, &emr)
 			if err != nil {
 				logger.Error("failed to get score eval", "Error", err)
 				return err

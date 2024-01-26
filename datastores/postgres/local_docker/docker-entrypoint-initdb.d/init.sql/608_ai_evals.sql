@@ -86,13 +86,13 @@ CREATE TRIGGER trigger_update_archived_at
 EXECUTE FUNCTION update_archived_at();
 
 CREATE TABLE public.eval_metrics_results(
-    eval_metrics_result_id int8 NOT NULL DEFAULT next_id() PRIMARY KEY,
+    eval_metrics_results_id int8 NOT NULL DEFAULT next_id() PRIMARY KEY,
     orchestration_id int8 NOT NULL REFERENCES orchestrations(orchestration_id),
     source_task_id int8 NOT NULL REFERENCES ai_task_library(task_id),
     eval_metric_id BIGINT NOT NULL REFERENCES public.eval_metrics(eval_metric_id),
     running_cycle_number int8 NOT NULL DEFAULT 1,
-    search_window_unix_start int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
-    search_window_unix_end int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
+    search_window_unix_start int8 NOT NULL CHECK (search_window_unix_start <= search_window_unix_end),
+    search_window_unix_end int8 NOT NULL CHECK (search_window_unix_start <= search_window_unix_end),
     eval_iteration_count int8 NOT NULL DEFAULT 0,
     chunk_offset int8 NOT NULL DEFAULT 0,
     eval_result_outcome boolean NOT NULL,

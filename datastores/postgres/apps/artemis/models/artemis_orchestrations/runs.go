@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
@@ -71,13 +72,14 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 							) AS aggregated_data,
 							JSONB_AGG(
 								CASE 
-									WHEN eval_res.eval_metrics_result_id IS NOT NULL THEN
+									WHEN eval_res.eval_metrics_results_id IS NOT NULL THEN
 										JSON_BUILD_OBJECT(
 											'evalName', ef.eval_name,
-											'evalMetricsResultId', eval_res.eval_metrics_result_id,
+											'evalMetricID', eval_met.eval_metric_id,	
+											'evalMetricResultID', eval_res.eval_metrics_results_id,
 											'evalExpectedResultState', eval_met.eval_metric_result,
     										'evalMetricResult', JSON_BUILD_OBJECT(
-		        									'evalMetricResultID', eval_res.eval_metrics_result_id,
+		        									'evalMetricResultID', eval_res.eval_metrics_results_id,
         											'evalResultOutcome', eval_res.eval_result_outcome
 											),
     										'evalMetricComparisonValues', JSON_BUILD_OBJECT(
@@ -93,7 +95,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 											'searchWindowUnixEnd', eval_res.search_window_unix_end    
 										) 
 								END
-								ORDER BY eval_res.running_cycle_number DESC, eval_res.eval_metrics_result_id DESC
+								ORDER BY eval_res.running_cycle_number DESC, eval_res.eval_metrics_results_id DESC
 							) AS aggregated_eval_results
 						FROM 
 							public.ai_workflow_analysis_results AS ai_res
@@ -124,7 +126,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 								)
 							)
 						GROUP BY 
-							ai_res.workflow_result_id, o.orchestration_id, o.orchestration_name, o.group_name, o.type, o.active, eval_res.orchestration_id, eval_res.eval_metrics_result_id, eval_res.running_cycle_number, comp_resp.total_tokens 
+							ai_res.workflow_result_id, o.orchestration_id, o.orchestration_name, o.group_name, o.type, o.active, eval_res.orchestration_id, eval_res.eval_metrics_results_id, eval_res.running_cycle_number, comp_resp.total_tokens 
 						ORDER BY 
 							o.orchestration_id DESC
 					),
@@ -197,19 +199,22 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 		}
 
 		var filteredResults []EvalMetric
-		//seen := make(map[int]bool)
-		//for _, evalMetricsResultCycleResults := range evalMetricsAllResults {
-		//	for _, evalMetricsResult := range evalMetricsResultCycleResults {
-		//		if evalMetricsResult.EvalMetricsResultID == 0 {
-		//			continue
-		//		}
-		//		if _, ok := seen[evalMetricsResult.EvalMetricsResultID]; !ok {
-		//			filteredResults = append(filteredResults, evalMetricsResult)
-		//			seen[evalMetricsResult.EvalMetricsResultID] = true
-		//		}
-		//	}
-		//}
-
+		seen := make(map[int]bool)
+		for i, evalMetricsResultCycleResults := range evalMetricsAllResults {
+			for j, _ := range evalMetricsResultCycleResults {
+				if evalMetricsAllResults[i][j].EvalMetricResult == nil || aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID) == 0 {
+					continue
+				}
+				if evalMetricsAllResults[i][j].EvalMetricID != nil {
+					evalMetricsAllResults[i][j].EvalMetricStrID = aws.String(fmt.Sprintf("%d", *evalMetricsAllResults[i][j].EvalMetricID))
+				}
+				evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultStrID = aws.String(fmt.Sprintf("%d", aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID)))
+				if _, ok := seen[aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID)]; !ok {
+					filteredResults = append(filteredResults, evalMetricsAllResults[i][j])
+					seen[aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID)] = true
+				}
+			}
+		}
 		oj.AggregatedEvalResults = filteredResults
 		ojs = append(ojs, oj)
 	}

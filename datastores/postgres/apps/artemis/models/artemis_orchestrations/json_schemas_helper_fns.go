@@ -27,7 +27,11 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 				continue
 			}
 		}
+		if def.Items == nil {
+			continue
+		}
 		for fieldName, fdef := range def.Items.Properties {
+
 			ft := jsonSchemaDataType(fdef.Type)
 			if fdef.Type == jsonschema.Array && fdef.Items != nil {
 				ft = fmt.Sprintf("array[%s]", jsonSchemaDataType(fdef.Items.Type))

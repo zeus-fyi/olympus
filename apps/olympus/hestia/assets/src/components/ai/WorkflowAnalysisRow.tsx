@@ -15,7 +15,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
 
-    // console.log("row", row)
+    console.log("row", row)
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -54,9 +54,10 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                 <Table size="small" aria-label="eval-results">
                                     <TableHead>
                                         <TableRow>
-                                            {/*<TableCell>Eval Name</TableCell>*/}
                                             <TableCell>Eval Metric ID</TableCell>
-                                            <TableCell>Outcome</TableCell>
+                                            <TableCell>Eval Name</TableCell>
+                                            <TableCell>Expected</TableCell>
+                                            <TableCell>Result</TableCell>
                                             {/*<TableCell>Metric Name</TableCell>*/}
                                             <TableCell>State</TableCell>
                                             {/*<TableCell>Running Cycle Number</TableCell>*/}
@@ -72,9 +73,14 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                     <TableBody>
                                         {row.aggregatedEvalResults && row.aggregatedEvalResults.map((evalResult, evalIndex) => {
                                             return (
-                                                <TableRow key={evalIndex}>
+                                                <TableRow key={evalResult.evalMetricStrID}>
                                                     <TableCell>{evalResult.evalMetricStrID}</TableCell>
-                                                    <TableCell>{evalResult.evalResultOutcome ? 'Pass' : 'Fail'}</TableCell>
+                                                    <TableCell>{evalResult.evalName}</TableCell>
+                                                    <TableCell>
+                                                        {evalResult.evalMetricResult && evalResult.evalMetricResult.evalResultOutcomeStateStr
+                                                            ? evalResult.evalMetricResult.evalResultOutcomeStateStr
+                                                            : 'No state available'}
+                                                    </TableCell>
                                                     <TableCell>{evalResult.evalState}</TableCell>
                                                     <TableCell>{evalResult.evalOperator}</TableCell>
                                                     {/*<TableCell>{evalResult.runningCycleNumber}</TableCell>*/}

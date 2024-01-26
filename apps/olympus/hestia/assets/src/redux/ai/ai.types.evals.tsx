@@ -1,25 +1,42 @@
 // TypeScript interface for EvalMetricsResult
 import {TriggerAction} from "./ai.types.retrievals";
-import {JsonSchemaDefinition} from "./ai.types.schemas";
+import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 
-export interface EvalMetricsResult {
+export interface EvalMetric {
     evalMetricStrID?: string;
-    evalMetricsResultStrID?: string;
-    evalMetricsResult?: EvalMetricResult;
-    evalMetricComparisonValues?: EvalMetricComparisonValues;
+    evalName?: string;
+    evalField?: JsonSchemaField;
+    evalMetricResult?: EvalMetricResult;
     evalOperator: string;
     evalState: string;
+    evalExpectedResultState: string;
+    evalMetricComparisonValues?: EvalMetricComparisonValues;
+}
+
+export interface EvalMetricsResult {
+    evalMetricsResultStrID?: string;
+    evalResultOutcomeBool?: boolean;
+    evalResultOutcomeStateStr?: string;
+    evalMetadata?: any; // Consider using a more specific type if the structure of evalMetadata is known
+
+    evalOperator: string;
     runningCycleNumber: number;
     searchWindowUnixStart?: number;
     searchWindowUnixEnd?: number;
     evalResultOutcome: boolean;
-    evalMetadata?: string; // Assuming json.RawMessage is defined elsewhere
 }
 
 export interface EvalMetricResult {
+    evalResultOutcomeStateStr?: string;
     evalMetricResultStrID?: string;
     evalResultOutcomeBool?: boolean;
-    evalMetadata?: any; // Consider using a more specific type if the structure of evalMetadata is known
+}
+
+export interface EvalMetricComparisonValues {
+    evalComparisonBoolean?: boolean;
+    evalComparisonNumber?: number;
+    evalComparisonString?: string;
+    evalComparisonInteger?: number;
 }
 
 export interface EvalFnMap {
@@ -49,20 +66,3 @@ export interface EvalFn {
     schemas?: JsonSchemaDefinition[];
     schemasMap?: { [key: number]: JsonSchemaDefinition };
 }
-
-export interface EvalMetric {
-    evalMetricStrID?: string;
-    evalMetricResult?: EvalMetricResult;
-    evalOperator: string;
-    evalState: string;
-    evalExpectedResultState: string;
-    evalMetricComparisonValues?: EvalMetricComparisonValues;
-}
-
-export interface EvalMetricComparisonValues {
-    evalComparisonBoolean?: boolean;
-    evalComparisonNumber?: number;
-    evalComparisonString?: string;
-    evalComparisonInteger?: number;
-}
-

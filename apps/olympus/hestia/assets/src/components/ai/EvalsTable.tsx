@@ -11,7 +11,7 @@ import {EvalMetric} from "../../redux/ai/ai.types.evals";
 
 export const defaultEvalMetric = (dataType: string): EvalMetric => {
     return {
-        // Assign default values based on dataType or other criteria
+        evalName: "",
         evalOperator: "", // Example default value
         evalState: "info",       // Example default value
         evalExpectedResultState: "ignore", // Example default value
@@ -21,7 +21,7 @@ export const defaultEvalMetric = (dataType: string): EvalMetric => {
             evalComparisonNumber: dataType === "number" ? 0 : undefined,
             evalComparisonString: dataType === "string" ? "" : undefined,
             evalComparisonInteger: dataType === "integer" ? 0 : undefined,
-        },
+        }
     };
 };
 

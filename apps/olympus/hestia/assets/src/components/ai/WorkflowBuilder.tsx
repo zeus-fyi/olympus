@@ -233,7 +233,7 @@ function WorkflowEngineBuilder(props: any) {
     const clearEvalMetricRow = () => {
         dispatch(setEvalMetric({
             evalMetricStrID: undefined,
-            evalMetricResult: undefined, // Assuming evalMetricResult is an object or undefined
+            evalMetricResult: undefined,
             evalOperator: '',
             evalState: '',
             evalExpectedResultState: '',
@@ -242,7 +242,8 @@ function WorkflowEngineBuilder(props: any) {
                 evalComparisonNumber: undefined,
                 evalComparisonString: undefined,
                 evalComparisonInteger: undefined
-            }
+            },
+            evalName: ''
         }));
     }
 

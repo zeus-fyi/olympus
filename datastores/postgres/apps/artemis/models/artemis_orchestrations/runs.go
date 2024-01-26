@@ -75,11 +75,13 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 									WHEN eval_res.eval_metrics_results_id IS NOT NULL THEN
 										JSON_BUILD_OBJECT(
 											'evalName', ef.eval_name,
+											'fieldName', af.field_name,
+											'dataType', af.data_type,
 											'evalMetricID', eval_met.eval_metric_id,	
 											'evalExpectedResultState', eval_met.eval_metric_result,
     										'evalMetricResult', JSON_BUILD_OBJECT(
 		        									'evalMetricsResultID', eval_res.eval_metrics_results_id,
-        											'evalResultOutcome', eval_res.eval_result_outcome
+        											'evalResultOutcomeBool', eval_res.eval_result_outcome
 											),
     										'evalMetricComparisonValues', JSON_BUILD_OBJECT(
 												'evalComparisonInteger', eval_met.eval_comparison_integer,
@@ -106,6 +108,8 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 							public.eval_metrics_results AS eval_res ON eval_res.orchestration_id = ai_res.orchestrations_id
 						LEFT JOIN 
 							public.eval_metrics AS eval_met ON eval_met.eval_metric_id = eval_res.eval_metric_id
+						LEFT JOIN 
+							public.ai_fields AS af ON af.field_id = eval_met.field_id
 						LEFT JOIN 
 							public.eval_fns AS ef ON ef.eval_id = eval_met.eval_id
 						JOIN 
@@ -207,6 +211,31 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 				if evalMetricsAllResults[i][j].EvalMetricID != nil {
 					evalMetricsAllResults[i][j].EvalMetricStrID = aws.String(fmt.Sprintf("%d", *evalMetricsAllResults[i][j].EvalMetricID))
 				}
+
+				const pass = "pass"
+				const cPass = "Pass"
+				const fail = "fail"
+				const cFail = "Pass"
+				if evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeBool != nil {
+					resultBool := aws.ToBool(evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeBool)
+					switch evalMetricsAllResults[i][j].EvalExpectedResultState {
+					case pass:
+						evalMetricsAllResults[i][j].EvalExpectedResultState = cPass
+						if resultBool {
+							evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cPass)
+						} else {
+							evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cFail)
+						}
+					case fail:
+						evalMetricsAllResults[i][j].EvalExpectedResultState = cFail
+						if resultBool {
+							evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cFail)
+						} else {
+							evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cPass)
+						}
+					}
+				}
+
 				evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultStrID = aws.String(fmt.Sprintf("%d", aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID)))
 				if _, ok := seen[aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID)]; !ok {
 					filteredResults = append(filteredResults, evalMetricsAllResults[i][j])

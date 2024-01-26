@@ -194,25 +194,29 @@ func convertDbJsonSchemaFieldsSchema(fnName string, schema *JsonSchemaDefinition
 func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any) ([][]*JsonSchemaDefinition, error) {
 	var responses [][]*JsonSchemaDefinition
 
-	for _, sz := range szs {
+	for szi, _ := range szs {
 		mis, ok := ms.([]map[string]interface{})
 		msng, ook := ms.(map[string]interface{})
 		if ok {
-			for _, mi := range mis {
-				resp, err := AssignMapValuesJsonSchemaFieldsSlice(sz, mi)
+			for mi, _ := range mis {
+				resp, err := AssignMapValuesJsonSchemaFieldsSlice(szs[szi], mis[mi])
 				if err != nil {
 					log.Err(err).Interface("mi", mi).Msg("AssignMapValuesMultipleJsonSchemasSlice: AssignMapValuesJsonSchemaFieldsSlice failed")
 					return nil, err
 				}
-				responses = append(responses, resp)
+				if resp != nil {
+					responses = append(responses, resp)
+				}
 			}
 		} else if ook {
-			resp, err := AssignMapValuesJsonSchemaFieldsSlice(sz, msng)
+			resp, err := AssignMapValuesJsonSchemaFieldsSlice(szs[szi], msng)
 			if err != nil {
 				log.Err(err).Interface("msng", msng).Msg("AssignMapValuesMultipleJsonSchemasSlice: AssignMapValuesJsonSchemaFieldsSlice failed")
 				return nil, err
 			}
-			responses = append(responses, resp)
+			if resp != nil {
+				responses = append(responses, resp)
+			}
 		}
 	}
 

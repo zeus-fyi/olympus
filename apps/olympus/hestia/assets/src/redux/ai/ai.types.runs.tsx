@@ -1,4 +1,4 @@
-import {EvalMetricsResult} from "./ai.types.evals";
+import {EvalMetric} from "./ai.types.evals";
 import {Orchestration} from "./ai.types";
 
 export interface AggregatedData {
@@ -27,5 +27,5 @@ export interface OrchestrationsAnalysis {
     runCycles: number;
     aggregatedData: AggregatedData[];
     orchestration: Orchestration;
-    aggregatedEvalResults: EvalMetricsResult[]; // Added array of EvalMetricsResult
+    aggregatedEvalResults: EvalMetric[]; // Added array of EvalMetricsResult
 }

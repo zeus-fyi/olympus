@@ -226,6 +226,14 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 			if schema.SchemaStrID == "" {
 				schema.SchemaStrID = fmt.Sprintf("%d", schema.SchemaID)
 			}
+			for fi, _ := range schema.Fields {
+				if schema.Fields[fi].FieldID == 0 {
+					continue
+				}
+				if schema.Fields[fi].FieldStrID == "" {
+					schema.Fields[fi].FieldStrID = fmt.Sprintf("%d", schema.Fields[fi].FieldID)
+				}
+			}
 			if ef.SchemasMap == nil {
 				ef.SchemasMap = make(map[string]*JsonSchemaDefinition)
 			}

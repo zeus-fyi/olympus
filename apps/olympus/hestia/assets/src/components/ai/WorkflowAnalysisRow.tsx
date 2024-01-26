@@ -15,7 +15,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
 
-    // console.log("row", row)
+    console.log("row", row)
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -54,39 +54,69 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                 <Table size="small" aria-label="eval-results">
                                     <TableHead>
                                         <TableRow>
-                                            {/*<TableCell>Eval Name</TableCell>*/}
                                             <TableCell>Eval Metric ID</TableCell>
-                                            <TableCell>Outcome</TableCell>
-                                            {/*<TableCell>Metric Name</TableCell>*/}
+                                            <TableCell>Eval Name</TableCell>
+                                            <TableCell>Cycle</TableCell>
+                                            <TableCell>Iteration</TableCell>
+                                            <TableCell>Field Name</TableCell>
+                                            <TableCell>Data Type</TableCell>
                                             <TableCell>State</TableCell>
-                                            {/*<TableCell>Running Cycle Number</TableCell>*/}
                                             {/*<TableCell>Start Unix Time</TableCell>*/}
                                             {/*<TableCell>End Unix Time</TableCell>*/}
-                                            {/*<TableCell>Result Expected</TableCell>*/}
-                                            {/*<TableCell>Result Actual</TableCell>*/}
-                                            {/*<TableCell>Metric Data Type</TableCell>*/}
                                             <TableCell>Operator</TableCell>
-                                            {/*<TableCell>Metadata</TableCell>*/}
+                                            <TableCell>Expected</TableCell>
+                                            <TableCell>Actual</TableCell>
+                                            <TableCell>Details</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {row.aggregatedEvalResults && row.aggregatedEvalResults.map((evalResult, evalIndex) => {
                                             return (
-                                                <TableRow key={evalIndex}>
+                                                <TableRow key={evalResult.evalMetricStrID}>
                                                     <TableCell>{evalResult.evalMetricStrID}</TableCell>
-                                                    <TableCell>{evalResult.evalResultOutcome ? 'Pass' : 'Fail'}</TableCell>
+                                                    <TableCell>{evalResult.evalName}</TableCell>
+                                                    <TableCell>
+                                                        {evalResult.evalMetricResult && evalResult.evalMetricResult.runningCycleNumber
+                                                            ? evalResult.evalMetricResult.runningCycleNumber
+                                                            : 0}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {evalResult.evalMetricResult && evalResult.evalMetricResult.evalIterationCount
+                                                            ? evalResult.evalMetricResult.evalIterationCount
+                                                            : 0}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {evalResult.evalField && evalResult.evalField.fieldName
+                                                            ?  evalResult.evalField.fieldName
+                                                            : 'No name available'}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {evalResult.evalField && evalResult.evalField.dataType
+                                                            ?  evalResult.evalField.dataType
+                                                            : 'No type available'}
+                                                    </TableCell>
                                                     <TableCell>{evalResult.evalState}</TableCell>
                                                     <TableCell>{evalResult.evalOperator}</TableCell>
-                                                    {/*<TableCell>{evalResult.runningCycleNumber}</TableCell>*/}
+                                                    <TableCell>
+                                                        {evalResult.evalExpectedResultState}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {evalResult.evalMetricResult && evalResult.evalMetricResult.evalResultOutcomeStateStr
+                                                            ? evalResult.evalMetricResult.evalResultOutcomeStateStr
+                                                            : 'No state available'}
+                                                    </TableCell>
                                                     {/*<TableCell>{evalResult.searchWindowUnixStart}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.searchWindowUnixEnd}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalMetricResult}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.evalResultOutcome ? 'Pass' : 'Fail'}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonBoolean ? 'True' : 'False'}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonNumber}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonString}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalMetricDataType}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.evalMetadata}</TableCell>*/}
+                                                    <TableCell>
+                                                        {evalResult.evalMetricResult && evalResult.evalMetricResult.evalMetadata
+                                                            ? evalResult.evalMetricResult.evalMetadata
+                                                            : ''}
+                                                    </TableCell>
                                                 </TableRow>
                                             );
                                         })}

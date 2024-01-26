@@ -3,7 +3,6 @@ package ai_platform_service_orchestrations
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -105,7 +104,9 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		if m == nil || len(tmpResp) == 0 {
 			continue
 		}
-
+		if len(tmpResp) > 0 && len(tmpResp[0]) <= 0 {
+			continue
+		}
 		if anyErr != nil {
 			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")
 			tte.Wr.SkipAnalysis = true
@@ -131,68 +132,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				}
 			}
 			continue
-		}
-		switch tte.Tc.ResponseFormat {
-		case socialMediaExtractionResponseFormat:
-			mm := tte.Sg.GetMessageMap()
-			seen := make(map[int]bool)
-			notFound := make(map[int]int)
-			duplicateCount := make(map[int]int)
-			for ssi, schemas := range tmpResp {
-				for si, sch := range schemas {
-					for findex, fi := range sch.Fields {
-						switch fi.FieldName {
-						case "msg_id":
-							msgID := aws.IntValue(fi.IntegerValue)
-							if _, ok := seen[msgID]; ok {
-								duplicateCount[msgID]++
-								continue
-							}
-							if srv, ok := mm[aws.IntValue(fi.IntegerValue)]; ok {
-								srv.Verified = &ok
-								seen[msgID] = true
-								tte.Sg.FilteredSearchResultMap[msgID] = srv
-								tmpResp[ssi][si].Fields[findex].IsValidated = ok
-							} else {
-								notFound[msgID]++
-							}
-						case "msg_ids":
-							for _, msgID := range fi.IntegerValueSlice {
-								if _, ok := seen[msgID]; ok {
-									duplicateCount[msgID]++
-									continue
-								}
-								if srv, ok := mm[msgID]; ok {
-									srv.Verified = &ok
-									seen[msgID] = true
-									tte.Sg.FilteredSearchResultMap[msgID] = srv
-									tmpResp[ssi][si].Fields[findex].IsValidated = ok
-								} else {
-									notFound[msgID]++
-								}
-							}
-						}
-					}
-				}
-			}
-			if len(notFound) > 0 {
-				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "notFound", notFound)
-			}
-			if len(duplicateCount) > 0 {
-				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "duplicateCount", duplicateCount)
-			}
-			logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormatStats", "seen", len(seen), "notFound", len(notFound), "duplicateCount", len(duplicateCount))
-			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
-			var filteredSearchResults []hera_search.SearchResult
-			for _, fsr := range tte.Sg.FilteredSearchResultMap {
-				if fsr != nil && fsr.Verified != nil && *fsr.Verified {
-					filteredSearchResults = append(filteredSearchResults, *fsr)
-				}
-			}
-			aiResp.FilteredSearchResults = filteredSearchResults
-		default:
-			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
-			aiResp.FilteredSearchResults = tte.Sg.SearchResults
 		}
 		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
 		if tte.Tc.EvalID > 0 {

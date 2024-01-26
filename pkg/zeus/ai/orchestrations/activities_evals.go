@@ -26,7 +26,7 @@ func (z *ZeusAiPlatformActivities) SaveEvalMetricResults(ctx context.Context, em
 		log.Info().Msg("SaveEvalMetricResults: emr is nil")
 		return nil
 	}
-	err := artemis_orchestrations.UpsertEvalMetricsResults(ctx, emr.EvalContext, emr.EvalMetricsResults)
+	err := artemis_orchestrations.UpsertEvalMetricsResults(ctx, emr)
 	if err != nil {
 		log.Err(err).Msg("EvalLookup: failed to get eval fn")
 		return err

@@ -1,6 +1,7 @@
 package artemis_orchestrations
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
@@ -8,45 +9,45 @@ func (s *OrchestrationsTestSuite) TestUpsertEvalMetricsResults() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	evCtx := EvalContext{
-		EvalID:             0,
+		EvalID:             1705978298687209000,
 		EvalIterationCount: 0,
 		AIWorkflowAnalysisResult: AIWorkflowAnalysisResult{
-			WorkflowResultID: 0,
-			OrchestrationsID: 0,
-			ResponseID:       0,
-			SourceTaskID:     0,
+			WorkflowResultID: 1705978298687209000,
+			OrchestrationsID: 1705978283783333000,
+			ResponseID:       1672188679693780000,
+			SourceTaskID:     1705949866538066000,
 			IterationCount:   0,
 			ChunkOffset:      0,
 			SkipAnalysis:     false,
 		},
 	}
-	emrw := EvalMetricsResults{
+	emrw := &EvalMetricsResults{
 		EvalContext: evCtx,
-		EvalMetricsResults: []EvalMetric{
+		EvalMetricsResults: []*EvalMetric{
 			{
-				EvalMetricResult:        nil,
-				EvalOperator:            "",
-				EvalState:               "",
-				EvalExpectedResultState: "",
+				EvalMetricID: aws.Int(1706151746655067000),
+				EvalMetricResult: &EvalMetricResult{
+					EvalResultOutcomeBool: aws.Bool(true),
+				},
+				EvalOperator:            "gt",
+				EvalState:               "info",
+				EvalExpectedResultState: "pass",
 				EvalMetricComparisonValues: &EvalMetricComparisonValues{
-					EvalComparisonBoolean: nil,
-					EvalComparisonNumber:  nil,
-					EvalComparisonString:  nil,
-					EvalComparisonInteger: nil,
+					EvalComparisonNumber: aws.Float64(3),
 				},
 			},
 		},
 	}
-	err := UpsertEvalMetricsResults(ctx, emrw.EvalContext, emrw.EvalMetricsResults)
+	err := UpsertEvalMetricsResults(ctx, emrw)
 	s.Require().Nil(err)
-	zz := AIWorkflowEvalResultResponse{
-		EvalResultID:     0,
-		WorkflowResultID: 0,
-		EvalID:           0,
-		ResponseID:       0,
-	}
-	_, err = InsertOrUpdateAiWorkflowEvalResultResponse(ctx, zz)
-	s.Require().Nil(err)
+	//zz := AIWorkflowEvalResultResponse{
+	//	EvalResultID:     0,
+	//	WorkflowResultID: 0,
+	//	EvalID:           0,
+	//	ResponseID:       0,
+	//}
+	//_, err = InsertOrUpdateAiWorkflowEvalResultResponse(ctx, zz)
+	//s.Require().Nil(err)
 }
 
 func (s *OrchestrationsTestSuite) TestInsertOrUpdateAiWorkflowEvalResultResponse() {

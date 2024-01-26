@@ -75,16 +75,22 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 										JSON_BUILD_OBJECT(
 											'evalName', ef.eval_name,
 											'evalMetricsResultId', eval_res.eval_metrics_result_id,
-											'evalMetricResult', eval_met.eval_metric_result,
-											'evalComparisonBoolean', eval_met.eval_comparison_boolean,
-											'evalComparisonNumber', eval_met.eval_comparison_number,
-											'evalComparisonString', eval_met.eval_comparison_string,
+											'evalExpectedResultState', eval_met.eval_metric_result,
+    										'evalMetricResult', JSON_BUILD_OBJECT(
+		        									'evalMetricResultID', eval_res.eval_metrics_result_id,
+        											'evalResultOutcome', eval_res.eval_result_outcome
+											),
+    										'evalMetricComparisonValues', JSON_BUILD_OBJECT(
+												'evalComparisonInteger', eval_met.eval_comparison_integer,
+												'evalComparisonBoolean', eval_met.eval_comparison_boolean,
+												'evalComparisonNumber', eval_met.eval_comparison_number,
+												'evalComparisonString', eval_met.eval_comparison_string
+											),	
 											'evalOperator', eval_met.eval_operator,
 											'evalState', eval_met.eval_state,
 											'runningCycleNumber', eval_res.running_cycle_number,
 											'searchWindowUnixStart', eval_res.search_window_unix_start,
-											'searchWindowUnixEnd', eval_res.search_window_unix_end,    
-											'evalResultOutcome', eval_res.eval_result_outcome
+											'searchWindowUnixEnd', eval_res.search_window_unix_end    
 										) 
 								END
 								ORDER BY eval_res.running_cycle_number DESC, eval_res.eval_metrics_result_id DESC

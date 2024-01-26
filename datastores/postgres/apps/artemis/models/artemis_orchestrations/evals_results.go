@@ -2,7 +2,9 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgtype"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -18,7 +20,11 @@ type AIWorkflowEvalResultResponse struct {
 	ResponseID       int `db:"response_id" json:"responseId"`
 }
 
-func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []*EvalMetric) error {
+func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) error {
+	if emrs == nil || emrs.EvalMetricsResults == nil {
+		log.Info().Msg("UpsertEvalMetricsResults: emr is nil")
+		return nil
+	}
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		return err
@@ -46,13 +52,16 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []*Ev
            eval_result_outcome = EXCLUDED.eval_result_outcome,
            eval_metadata = EXCLUDED.eval_metadata;
    `
-	for _, emr := range emrs {
-		if emr == nil {
+	for _, emr := range emrs.EvalMetricsResults {
+		if emr == nil || aws.ToInt(emr.EvalMetricID) == 0 || emr.EvalMetricResult == nil || emr.EvalMetricResult.EvalResultOutcomeBool == nil {
 			continue
 		}
-
 		ts := chronos.Chronos{}
 		tsNow := ts.UnixTimeStampNow()
+		if aws.ToInt(emr.EvalMetricResult.EvalMetricResultID) <= 0 {
+			emr.EvalMetricResult.EvalMetricResultID = &tsNow
+			emr.EvalMetricResult.EvalMetricResultStrID = aws.String(fmt.Sprintf("%d", tsNow))
+		}
 		var pgTemp *pgtype.JSONB
 		if emr.EvalMetricResult == nil {
 			pgTemp = &pgtype.JSONB{Bytes: []byte{}, Status: IsNull(nil)}
@@ -60,17 +69,17 @@ func UpsertEvalMetricsResults(ctx context.Context, evCtx EvalContext, emrs []*Ev
 			pgTemp = &pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetricResult.EvalMetadata), Status: IsNull(emr.EvalMetricResult.EvalMetadata)}
 		}
 		_, err = tx.Exec(ctx, query,
-			tsNow,
-			evCtx.AIWorkflowAnalysisResult.OrchestrationsID,
-			evCtx.AIWorkflowAnalysisResult.SourceTaskID,
+			emr.EvalMetricResult.EvalMetricResultID,
+			emrs.EvalContext.AIWorkflowAnalysisResult.OrchestrationsID,
+			emrs.EvalContext.AIWorkflowAnalysisResult.SourceTaskID,
 			emr.EvalMetricID,
-			evCtx.AIWorkflowAnalysisResult.RunningCycleNumber,
-			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixStart,
-			evCtx.AIWorkflowAnalysisResult.SearchWindowUnixEnd,
-			emr.EvalExpectedResultState,
+			emrs.EvalContext.AIWorkflowAnalysisResult.RunningCycleNumber,
+			emrs.EvalContext.AIWorkflowAnalysisResult.SearchWindowUnixStart,
+			emrs.EvalContext.AIWorkflowAnalysisResult.SearchWindowUnixEnd,
+			emr.EvalMetricResult.EvalResultOutcomeBool,
 			pgTemp,
-			evCtx.AIWorkflowAnalysisResult.ChunkOffset,
-			evCtx.EvalIterationCount,
+			emrs.EvalContext.AIWorkflowAnalysisResult.ChunkOffset,
+			emrs.EvalContext.EvalIterationCount,
 		)
 		if err != nil {
 			log.Err(err).Msg("failed to execute query")

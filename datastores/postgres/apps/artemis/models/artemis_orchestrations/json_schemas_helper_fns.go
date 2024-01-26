@@ -233,11 +233,11 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 	var schemas []*JsonSchemaDefinition
 	if sz.IsObjArray {
 		// Handle case where sz is an array of objects
-		for _, v := range m {
-			vi, vok := v.([]interface{})
+		for mi, _ := range m {
+			vi, vok := m[mi].([]interface{})
 			if vok {
-				for _, item := range vi {
-					vmi, bok := item.(map[string]interface{})
+				for ii, _ := range vi {
+					vmi, bok := vi[ii].(map[string]interface{})
 					// Check if the map contains sz.SchemaName as a key
 					if bok {
 						jsd, err := AssignMapValuesJsonSchemaFields(sz, vmi)
@@ -255,6 +255,7 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 		// Check if the map contains sz.SchemaName as a key
 		if vfi, found := m[sz.SchemaName]; found {
 			vfim, vfiok := vfi.(map[string]interface{})
+			vi, vok := vfi.([]interface{})
 			if vfiok {
 				jsd, err := AssignMapValuesJsonSchemaFields(sz, vfim)
 				if err != nil {
@@ -262,6 +263,19 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 					return nil, err
 				}
 				schemas = append(schemas, jsd)
+			}
+			if vok {
+				for ii, _ := range vi {
+					vmi, bok := vi[ii].(map[string]interface{})
+					if bok {
+						jsd, err := AssignMapValuesJsonSchemaFields(sz, vmi)
+						if err != nil {
+							log.Err(err).Interface("vmi", vmi).Msg("3_AssignMapValuesJsonSchemaFieldsSlice: AssignMapValuesJsonSchemaFields failed")
+							return nil, err
+						}
+						schemas = append(schemas, jsd)
+					}
+				}
 			}
 		}
 	}

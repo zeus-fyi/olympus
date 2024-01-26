@@ -98,8 +98,6 @@ CREATE TABLE public.eval_metrics_results(
     eval_result_outcome boolean NOT NULL,
     eval_metadata jsonb
 );
-ALTER TABLE public.eval_metrics_results
-    ADD COLUMN eval_iteration int8 NOT NULL DEFAULT 0;
 
 CREATE INDEX eval_result_outcome_idx ON public.eval_metrics_results("eval_result_outcome");
 CREATE INDEX eval_result_metric_idx ON public.eval_metrics_results("eval_metric_id");

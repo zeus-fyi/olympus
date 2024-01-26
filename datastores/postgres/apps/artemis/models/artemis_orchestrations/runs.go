@@ -29,7 +29,7 @@ type OrchestrationsAnalysis struct {
 	TotalWorkflowTokenUsage int              `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
 	RunCycles               int              `db:"max_run_cycle" json:"runCycles"`
 	AggregatedData          []AggregatedData `db:"aggregated_data" json:"aggregatedData"`
-	AggregatedEvalResults   []EvalMetric     `db:"eval_fn_metric_results" json:"aggregatedEvalResults"`
+	AggregatedEvalResults   []EvalMetric     `json:"aggregatedEvalResults"`
 
 	artemis_autogen_bases.Orchestrations `json:"orchestration,omitempty"`
 }

@@ -56,29 +56,27 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableRow>
                                             {/*<TableCell>Eval Name</TableCell>*/}
                                             <TableCell>Eval Metric ID</TableCell>
-                                            <TableCell>Eval Metric Result ID</TableCell>
+                                            <TableCell>Outcome</TableCell>
                                             {/*<TableCell>Metric Name</TableCell>*/}
                                             <TableCell>State</TableCell>
-                                            <TableCell>Running Cycle Number</TableCell>
-                                            <TableCell>Start Unix Time</TableCell>
-                                            <TableCell>End Unix Time</TableCell>
-                                            <TableCell>Result Expected</TableCell>
-                                            <TableCell>Result Actual</TableCell>
-                                            <TableCell>Metric Data Type</TableCell>
+                                            {/*<TableCell>Running Cycle Number</TableCell>*/}
+                                            {/*<TableCell>Start Unix Time</TableCell>*/}
+                                            {/*<TableCell>End Unix Time</TableCell>*/}
+                                            {/*<TableCell>Result Expected</TableCell>*/}
+                                            {/*<TableCell>Result Actual</TableCell>*/}
+                                            {/*<TableCell>Metric Data Type</TableCell>*/}
                                             <TableCell>Operator</TableCell>
                                             {/*<TableCell>Metadata</TableCell>*/}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {row.aggregatedEvalResults && row.aggregatedEvalResults.map((evalResult, evalIndex) => {
-                                            if (evalResult.evalMetricsResultStrID === undefined) {
-                                                return null;
-                                            }
                                             return (
                                                 <TableRow key={evalIndex}>
                                                     <TableCell>{evalResult.evalMetricStrID}</TableCell>
-                                                    <TableCell>{evalResult.evalMetricsResultStrID}</TableCell>
+                                                    <TableCell>{evalResult.evalResultOutcome ? 'Pass' : 'Fail'}</TableCell>
                                                     <TableCell>{evalResult.evalState}</TableCell>
+                                                    <TableCell>{evalResult.evalOperator}</TableCell>
                                                     {/*<TableCell>{evalResult.runningCycleNumber}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.searchWindowUnixStart}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.searchWindowUnixEnd}</TableCell>*/}
@@ -88,7 +86,6 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                                     {/*<TableCell>{evalResult.evalComparisonNumber}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalComparisonString}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalMetricDataType}</TableCell>*/}
-                                                    {/*<TableCell>{evalResult.evalOperator}</TableCell>*/}
                                                     {/*<TableCell>{evalResult.evalMetadata}</TableCell>*/}
                                                 </TableRow>
                                             );

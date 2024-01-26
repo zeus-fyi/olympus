@@ -48,7 +48,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		},
 	}
 
-	var evalsFnsMap map[int]*artemis_orchestrations.EvalFn
+	evalsFnsMap := make(map[int]*artemis_orchestrations.EvalFn)
 	var evalFnsAgg []artemis_orchestrations.EvalFn
 	for ei, _ := range cpe.EvalFns {
 		if cpe.EvalFns[ei].EvalID == 0 {

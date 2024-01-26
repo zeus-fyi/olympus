@@ -75,13 +75,19 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 									WHEN eval_res.eval_metrics_results_id IS NOT NULL THEN
 										JSON_BUILD_OBJECT(
 											'evalName', ef.eval_name,
-											'fieldName', af.field_name,
-											'dataType', af.data_type,
+											'evalField', JSON_BUILD_OBJECT(
+		        									'fieldName', af.field_name,
+        											'dataType', af.data_type
+											),
 											'evalMetricID', eval_met.eval_metric_id,	
 											'evalExpectedResultState', eval_met.eval_metric_result,
     										'evalMetricResult', JSON_BUILD_OBJECT(
 		        									'evalMetricsResultID', eval_res.eval_metrics_results_id,
-        											'evalResultOutcomeBool', eval_res.eval_result_outcome
+        											'evalResultOutcomeBool', eval_res.eval_result_outcome,
+													'runningCycleNumber', eval_res.running_cycle_number,
+													'evalIterationCount', eval_res.eval_iteration_count,
+													'searchWindowUnixStart', eval_res.search_window_unix_start,
+													'searchWindowUnixEnd', eval_res.search_window_unix_end
 											),
     										'evalMetricComparisonValues', JSON_BUILD_OBJECT(
 												'evalComparisonInteger', eval_met.eval_comparison_integer,
@@ -90,11 +96,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 												'evalComparisonString', eval_met.eval_comparison_string
 											),	
 											'evalOperator', eval_met.eval_operator,
-											'evalState', eval_met.eval_state,
-											'runningCycleNumber', eval_res.running_cycle_number,
-											'evalIterationCount', eval_res.eval_iteration_count,
-											'searchWindowUnixStart', eval_res.search_window_unix_start,
-											'searchWindowUnixEnd', eval_res.search_window_unix_end    
+											'evalState', eval_met.eval_state
 										) 
 								END
 								ORDER BY eval_res.running_cycle_number DESC, eval_res.eval_metrics_results_id DESC

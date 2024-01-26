@@ -6,7 +6,7 @@ export interface EvalMetric {
     evalMetricStrID?: string;
     evalName?: string;
     evalField?: JsonSchemaField;
-    evalMetricResult?: EvalMetricResult;
+    evalMetricResult?: EvalMetricsResult;
     evalOperator: string;
     evalState: string;
     evalExpectedResultState: string;
@@ -22,12 +22,6 @@ export interface EvalMetricsResult {
     runningCycleNumber?: number;
     searchWindowUnixStart?: number;
     searchWindowUnixEnd?: number;
-}
-
-export interface EvalMetricResult {
-    evalResultOutcomeStateStr?: string;
-    evalMetricResultStrID?: string;
-    evalResultOutcomeBool?: boolean;
 }
 
 export interface EvalMetricComparisonValues {

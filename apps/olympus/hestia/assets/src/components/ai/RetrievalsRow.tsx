@@ -80,6 +80,20 @@ export function RetrievalsRow(props: { row: Retrieval, index: number, handleClic
     );
 }
 
+export const prettyPrintPromptJSON = (json: any): string => {
+    try {
+        // Check if the input is a string that needs to be parsed
+        if (typeof json === 'string') {
+            json = JSON.parse(json);
+        }
+        return JSON.stringify(json.prompt, null, 2)
+
+    } catch (error) {
+        console.error('Error parsing or formatting JSON:', error);
+        return ''; // Return an empty string in case of error
+    }
+};
+
 export const prettyPrintJSON = (json: any): string => {
     try {
         // Check if the input is a string that needs to be parsed

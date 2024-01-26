@@ -9,7 +9,7 @@ import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
 import TableHead from "@mui/material/TableHead";
-import {prettyPrintJSON} from "./RetrievalsRow";
+import {prettyPrintJSON, prettyPrintPromptJSON} from "./RetrievalsRow";
 
 export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;
@@ -176,10 +176,10 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableRow key={dataIndex}>
                                             <TableCell> {data.workflowResultID}</TableCell>
                                             <TableCell >
-                                                {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
+                                                {data.prompt !== undefined ? prettyPrintPromptJSON(data.prompt) : ""}
                                             </TableCell>
                                             <TableCell >
-                                                {data.prompt !== undefined ? prettyPrintJSON(data.prompt) : ""}
+                                                {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
                                             </TableCell>
                                         </TableRow>
                                     ))}

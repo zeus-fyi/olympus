@@ -50,13 +50,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 
 	var evalsFnsMap map[int]*artemis_orchestrations.EvalFn
 	var evalFnsAgg []artemis_orchestrations.EvalFn
-	for _, evalFn := range cpe.EvalFns {
-		if evalFn.EvalID == 0 {
+	for ei, _ := range cpe.EvalFns {
+		if cpe.EvalFns[ei].EvalID == 0 {
 			continue
 		}
 		var efs []artemis_orchestrations.EvalFn
 		evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, evalFn.EvalID).Get(evalFnMetricsLookupCtx, &efs)
+		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, cpe.EvalFns[ei].EvalID).Get(evalFnMetricsLookupCtx, &efs)
 		if err != nil {
 			logger.Error("failed to get eval info", "Error", err)
 			return err

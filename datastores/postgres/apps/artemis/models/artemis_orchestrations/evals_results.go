@@ -14,10 +14,11 @@ import (
 )
 
 type AIWorkflowEvalResultResponse struct {
-	EvalResultsID       int `db:"eval_result_id" json:"evalResultID"`
-	EvalMetricsResultID int `db:"eval_metrics_results_id" json:"evalMetricsResultID"`
-	WorkflowResultID    int `db:"workflow_result_id" json:"workflowResultID"`
-	ResponseID          int `db:"response_id" json:"responseID"`
+	EvalResultsID      int `db:"eval_result_id" json:"evalResultID"`
+	EvalID             int `db:"eval_id" json:"evalID"`
+	WorkflowResultID   int `db:"workflow_result_id" json:"workflowResultID"`
+	ResponseID         int `db:"response_id" json:"responseID"`
+	EvalIterationCount int `db:"eval_iteration_count" json:"evalIterationCount"`
 }
 
 func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) error {
@@ -96,12 +97,12 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
 
 func InsertOrUpdateAiWorkflowEvalResultResponse(ctx context.Context, errr AIWorkflowEvalResultResponse) (int, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO eval_results_responses(eval_results_id, workflow_result_id, eval_metrics_results_id, response_id)
-                  VALUES ($1, $2, $3, $4)
-                  ON CONFLICT (eval_results_id) 
+	q.RawQuery = `INSERT INTO eval_results_responses(eval_results_id, workflow_result_id, eval_id, response_id, eval_iteration_count)
+                  VALUES ($1, $2, $3, $4, $5)
+                  ON CONFLICT (workflow_result_id, eval_id, eval_iteration_count, response_id)
                   DO UPDATE SET 
                       workflow_result_id = EXCLUDED.workflow_result_id,
-                      eval_metrics_results_id = EXCLUDED.eval_metrics_results_id,
+                      eval_id = EXCLUDED.eval_id,
                       response_id = EXCLUDED.response_id
                   RETURNING eval_results_id;`
 
@@ -109,7 +110,7 @@ func InsertOrUpdateAiWorkflowEvalResultResponse(ctx context.Context, errr AIWork
 		ch := chronos.Chronos{}
 		errr.EvalResultsID = ch.UnixTimeStampNow()
 	}
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, errr.EvalResultsID, errr.WorkflowResultID, errr.EvalMetricsResultID, errr.ResponseID).Scan(&errr.EvalResultsID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, errr.EvalResultsID, errr.WorkflowResultID, errr.EvalID, errr.ResponseID, errr.EvalIterationCount).Scan(&errr.EvalResultsID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("AIWorkflowEvalResultResponse")); returnErr != nil {
 		log.Err(returnErr).Interface("errr", errr).Msg(q.LogHeader("AIWorkflowEvalResultResponse"))
 		return errr.EvalResultsID, err

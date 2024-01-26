@@ -34,6 +34,7 @@ type TaskContext struct {
 	ResponseFormat string `json:"responseFormat"`
 	Model          string `json:"model"`
 	TaskID         int    `json:"taskID"`
+	EvalID         int    `json:"evalID,omitempty"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
@@ -116,12 +117,27 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		}
 		if anyErr != nil {
 			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")
-			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			tte.Wr.SkipAnalysis = true
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.Response).Get(recordTaskCtx, nil)
-			if err != nil {
-				logger.Error("failed to save task output", "Error", err)
-				return nil, err
+			if tte.Tc.EvalID > 0 {
+				evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
+					EvalID:             tte.Tc.EvalID,
+					WorkflowResultID:   wr.WorkflowResultID,
+					ResponseID:         wr.ResponseID,
+					EvalIterationCount: wr.IterationCount,
+				}
+				recordEvalResCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(recordEvalResCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResCtx, nil)
+				if err != nil {
+					logger.Error("failed to save eval resp id", "Error", err)
+					return nil, err
+				}
+			} else {
+				recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.Response).Get(recordTaskCtx, nil)
+				if err != nil {
+					logger.Error("failed to save task output", "Error", err)
+					return nil, err
+				}
 			}
 			continue
 		}
@@ -188,12 +204,28 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			aiResp.FilteredSearchResults = tte.Sg.SearchResults
 		}
 		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
-		recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-		tte.Wr.SkipAnalysis = false
-		err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
-		if err != nil {
-			logger.Error("failed to save task output", "Error", err)
-			return nil, err
+
+		if tte.Tc.EvalID > 0 {
+			evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
+				EvalID:             tte.Tc.EvalID,
+				WorkflowResultID:   wr.WorkflowResultID,
+				ResponseID:         wr.ResponseID,
+				EvalIterationCount: wr.IterationCount,
+			}
+			recordEvalResCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(recordEvalResCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResCtx, nil)
+			if err != nil {
+				logger.Error("failed to save eval resp id", "Error", err)
+				return nil, err
+			}
+		} else {
+			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
+			tte.Wr.SkipAnalysis = false
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+			if err != nil {
+				logger.Error("failed to save task output", "Error", err)
+				return nil, err
+			}
 		}
 		break
 	}

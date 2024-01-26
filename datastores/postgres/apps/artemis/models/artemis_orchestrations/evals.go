@@ -161,6 +161,14 @@ type EvalMetricResult struct {
 	SearchWindowUnixEnd   *int            `json:"searchWindowUnixEnd,omitempty"`
 	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
 }
+
+type EvalMetaDataResult struct {
+	EvalOpCtxStr string `json:"evalOpCtxStr"`
+	Operator     string `json:"operator"`
+	*EvalMetricComparisonValues
+	*FieldValue
+}
+
 type EvalMetric struct {
 	EvalMetricStrID            *string                     `json:"evalMetricStrID,omitempty"`
 	EvalMetricID               *int                        `json:"evalMetricID"`

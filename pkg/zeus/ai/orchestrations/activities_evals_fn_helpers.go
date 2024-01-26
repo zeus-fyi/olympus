@@ -1,10 +1,12 @@
 package ai_platform_service_orchestrations
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
@@ -24,6 +26,12 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 					EvalMetricResultStrID: aws.String(fmt.Sprintf("%d", tsv)),
 				}
 			}
+			eocr := artemis_orchestrations.EvalMetaDataResult{
+				EvalOpCtxStr:               "",
+				Operator:                   jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator,
+				EvalMetricComparisonValues: jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues,
+				FieldValue:                 &jsonSchemaDef.Fields[vi].FieldValue,
+			}
 			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues == nil {
 				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues = &artemis_orchestrations.EvalMetricComparisonValues{}
 			}
@@ -42,7 +50,9 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 
 				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger != nil {
 					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].IntegerValue, aws.ToInt(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger)))
+					eocr.EvalOpCtxStr = fmt.Sprintf("%s %s %d", jsonSchemaDef.Fields[vi].FieldName, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, aws.ToInt(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger))
 				} else if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber != nil {
+					eocr.EvalOpCtxStr = fmt.Sprintf("%s %s %d", jsonSchemaDef.Fields[vi].FieldName, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, int(aws.ToFloat64(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)))
 					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].IntegerValue, int(aws.ToFloat64(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber))))
 				} else {
 					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
@@ -54,6 +64,7 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil {
 					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
+				eocr.EvalOpCtxStr = fmt.Sprintf("%s %s %f", jsonSchemaDef.Fields[vi].FieldName, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, aws.ToFloat64(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber))
 				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetNumericEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].NumberValue, aws.ToFloat64(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)))
 			case "string":
 				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString == nil {
@@ -62,6 +73,7 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 				if jsonSchemaDef.Fields[vi].StringValue == nil {
 					return fmt.Errorf("no string value for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
+				eocr.EvalOpCtxStr = fmt.Sprintf("%s %s %s", jsonSchemaDef.Fields[vi].FieldName, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, aws.ToString(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString))
 				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetStringEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].StringValue, aws.ToString(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString)))
 			case "boolean":
 				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean == nil {
@@ -70,6 +82,7 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 				if jsonSchemaDef.Fields[vi].BooleanValue == nil {
 					return fmt.Errorf("no boolean value for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
+				eocr.EvalOpCtxStr = fmt.Sprintf("%s %s %t", jsonSchemaDef.Fields[vi].FieldName, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, aws.ToBool(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean))
 				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetBooleanEvalComparisonResult(aws.ToBool(jsonSchemaDef.Fields[vi].BooleanValue), aws.ToBool(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)))
 			case "array[integer]":
 				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil && jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger == nil {
@@ -86,6 +99,7 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 					if rerr != nil {
 						return rerr
 					}
+					eocr.EvalOpCtxStr = fmt.Sprintf("%s %s %d", jsonSchemaDef.Fields[vi].FieldName, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, int(*jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber))
 					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
 				}
 			case "array[number]":
@@ -96,22 +110,31 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 				if rerr != nil {
 					return rerr
 				}
+				eocr.EvalOpCtxStr = fmt.Sprintf("%s %s %f", jsonSchemaDef.Fields[vi].FieldName, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber)
 				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
 			case "array[string]":
 				results, rerr := EvaluateStringArray(jsonSchemaDef.Fields[vi].StringValueSlice, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString)
 				if rerr != nil {
 					return rerr
 				}
+				eocr.EvalOpCtxStr = fmt.Sprintf("%s %s %s", jsonSchemaDef.Fields[vi].FieldName, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonString)
 				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
 			case "array[boolean]":
 				results, rerr := EvaluateBooleanArray(jsonSchemaDef.Fields[vi].BooleanValueSlice, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)
 				if rerr != nil {
 					return rerr
 				}
+				eocr.EvalOpCtxStr = fmt.Sprintf("%s %s %t", jsonSchemaDef.Fields[vi].FieldName, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)
 				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(Pass(results))
 			default:
 				return fmt.Errorf("unknown data type '%s'", jsonSchemaDef.Fields[vi].DataType)
 			}
+			b, err := json.Marshal(eocr)
+			if err != nil {
+				log.Err(err).Msg("failed to marshal eval op ctx")
+				return err
+			}
+			jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalMetadata = b
 		}
 	}
 	return nil

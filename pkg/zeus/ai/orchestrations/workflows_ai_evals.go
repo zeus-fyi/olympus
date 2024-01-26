@@ -82,6 +82,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			if cpe.ParentOutputToEval != nil && cpe.ParentOutputToEval.JsonResponseResults != nil &&
 				cpe.ParentOutputToEval.Params.Model == aws.StringValue(evalFnsAgg[evFnIndex].EvalModel) &&
 				copyMatchingJsonResponsesFieldValuesFromResp(cpe.ParentOutputToEval.JsonResponseResults, evalFnsAgg[evFnIndex].SchemasMap) {
+				cpe.TaskToExecute.Ec.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
 			} else {
 				wfID := mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.RunCycle)
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
@@ -91,6 +92,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 					continue
 				}
+				cpe.TaskToExecute.Ec.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
 				cpe.TaskToExecute.Tc.Schemas = evalFnsAgg[evFnIndex].Schemas
 				cpe.TaskToExecute.Tc.Model = aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
 				cpe.ParentOutputToEval = &ChatCompletionQueryResponse{}
@@ -100,9 +102,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 					logger.Error("failed to execute analysis json workflow", "Error", err)
 					return err
 				}
+				copyMatchingJsonResponsesFieldValuesFromResp(cpe.ParentOutputToEval.JsonResponseResults, evalFnsAgg[evFnIndex].SchemasMap)
 			}
+
 			evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, cpe.ParentOutputToEval.JsonResponseResults, &evalFnsAgg[evFnIndex]).Get(evalModelScoredJsonCtx, &emr)
+			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, &evalFnsAgg[evFnIndex]).Get(evalModelScoredJsonCtx, &emr)
 			if err != nil {
 				logger.Error("failed to get score eval", "Error", err)
 				return err

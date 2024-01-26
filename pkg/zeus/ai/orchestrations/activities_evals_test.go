@@ -1,6 +1,8 @@
 package ai_platform_service_orchestrations
 
 import (
+	"encoding/json"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -142,6 +144,12 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 						t.Require().NotNil(em.EvalMetricResult.EvalResultOutcomeBool)
 						t.Require().False(*em.EvalMetricResult.EvalResultOutcomeBool)
 						count += 100
+
+						eorc := artemis_orchestrations.EvalMetaDataResult{}
+						err = json.Unmarshal(em.EvalMetricResult.EvalMetadata, &eorc)
+						t.Require().Nil(err)
+						t.Require().NotNil(eorc)
+						t.Require().NotNil(eorc.EvalComparisonInteger)
 					}
 				case "msg_id":
 					for _, em := range field.EvalMetrics {
@@ -149,6 +157,9 @@ func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 						t.Require().NotNil(em.EvalMetricResult.EvalResultOutcomeBool)
 						t.Require().True(*em.EvalMetricResult.EvalResultOutcomeBool)
 						count += 1000
+						eorc := artemis_orchestrations.EvalMetaDataResult{}
+						err = json.Unmarshal(em.EvalMetricResult.EvalMetadata, &eorc)
+						t.Require().NotNil(eorc.EvalComparisonInteger)
 					}
 					// Add additional cases for other field types as needed
 				}

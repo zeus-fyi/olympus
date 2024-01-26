@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
-	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -30,13 +29,13 @@ type TaskToExecute struct {
 }
 
 type TaskContext struct {
-	TaskName       string                    `json:"taskName"`
-	TaskType       string                    `json:"taskType"`
-	ResponseFormat string                    `json:"responseFormat"`
-	Model          string                    `json:"model"`
-	TaskID         int                       `json:"taskID"`
-	EvalID         int                       `json:"evalID,omitempty"`
-	Fd             openai.FunctionDefinition `json:"fd"`
+	TaskName       string `json:"taskName"`
+	TaskType       string `json:"taskType"`
+	ResponseFormat string `json:"responseFormat"`
+	Model          string `json:"model"`
+	TaskID         int    `json:"taskID"`
+	EvalID         int    `json:"evalID,omitempty"`
+	Schemas        []*artemis_orchestrations.JsonSchemaDefinition
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
@@ -62,12 +61,13 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	var aiResp *ChatCompletionQueryResponse
 	for attempt := 0; attempt < int(maxAttempts); attempt++ {
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
+		fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.Schemas)
 		params := hera_openai.OpenAIParams{
 			Model:              tte.Tc.Model,
 			Prompt:             tte.Sg.GetPromptBody(),
-			FunctionDefinition: tte.Tc.Fd,
+			FunctionDefinition: fd,
 		}
-		jsd := artemis_orchestrations.ConvertToJsonSchema(params.FunctionDefinition)
+		jsd := tte.Tc.Schemas
 		tte.Wr.IterationCount = attempt
 		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, tte.Ou, params).Get(jsonTaskCtx, &aiResp)
 		if err != nil {

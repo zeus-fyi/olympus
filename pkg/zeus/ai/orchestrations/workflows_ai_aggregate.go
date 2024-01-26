@@ -164,7 +164,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					for _, taskDef := range fullTaskDef {
 						jdef = append(jdef, taskDef.Schemas...)
 					}
-					tte.Tc.Fd = artemis_orchestrations.ConvertToFuncDef(tte.Tc.TaskName, jdef)
+					tte.Tc.Schemas = jdef
 					childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, tte).Get(childAggWfCtx, &aiAggResp)
 					if err != nil {

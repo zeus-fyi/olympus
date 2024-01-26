@@ -37,6 +37,7 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 					DataType:         ft,
 				})
 			}
+			schemas = append(schemas, schema)
 		} else {
 			for fieldName, fdef := range def.Properties {
 				ft := jsonSchemaDataType(fdef.Type)
@@ -49,9 +50,8 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 					DataType:         ft,
 				})
 			}
+			schemas = append(schemas, schema)
 		}
-
-		schemas = append(schemas, schema)
 	}
 	return schemas
 }
@@ -104,7 +104,12 @@ func jsonSchemaType(dataType string) jsonschema.DataType {
 	}
 }
 
-func ConvertToFuncDef(fnName string, schemas []*JsonSchemaDefinition) openai.FunctionDefinition {
+func ConvertToFuncDef(schemas []*JsonSchemaDefinition) openai.FunctionDefinition {
+	var fnName string
+	for _, schema := range schemas {
+		fnName += schema.SchemaName
+	}
+
 	fd := openai.FunctionDefinition{
 		Name:       fnName,
 		Parameters: ConvertToFuncDefJsonSchemas(fnName, schemas), // Set the combined schema here

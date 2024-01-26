@@ -1,7 +1,6 @@
 package ai_platform_service_orchestrations
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -49,7 +48,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		},
 	}
 
-	var evalsFnsMap map[int]*artemis_orchestrations.EvalFn
+	evalsFnsMap := make(map[int]*artemis_orchestrations.EvalFn)
 	var evalFnsAgg []artemis_orchestrations.EvalFn
 	for ei, _ := range cpe.EvalFns {
 		if cpe.EvalFns[ei].EvalID == 0 {
@@ -83,6 +82,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			if cpe.ParentOutputToEval != nil && cpe.ParentOutputToEval.JsonResponseResults != nil &&
 				cpe.ParentOutputToEval.Params.Model == aws.StringValue(evalFnsAgg[evFnIndex].EvalModel) &&
 				copyMatchingJsonResponsesFieldValuesFromResp(cpe.ParentOutputToEval.JsonResponseResults, evalFnsAgg[evFnIndex].SchemasMap) {
+				cpe.TaskToExecute.Ec.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
 			} else {
 				wfID := mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.RunCycle)
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
@@ -92,7 +92,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 					continue
 				}
-				cpe.TaskToExecute.Tc.Fd = artemis_orchestrations.ConvertToFuncDef(fmt.Sprintf("%s_eval", cpe.TaskToExecute.Tc.TaskName), evalFnsAgg[evFnIndex].Schemas)
+				cpe.TaskToExecute.Ec.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
+				cpe.TaskToExecute.Tc.Schemas = evalFnsAgg[evFnIndex].Schemas
 				cpe.TaskToExecute.Tc.Model = aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
 				cpe.ParentOutputToEval = &ChatCompletionQueryResponse{}
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
@@ -101,9 +102,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 					logger.Error("failed to execute analysis json workflow", "Error", err)
 					return err
 				}
+				copyMatchingJsonResponsesFieldValuesFromResp(cpe.ParentOutputToEval.JsonResponseResults, evalFnsAgg[evFnIndex].SchemasMap)
+			}
+			if cpe.ParentOutputToEval.JsonResponseResults == nil {
+				continue
 			}
 			evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, cpe.ParentOutputToEval.JsonResponseResults, &evalFnsAgg[evFnIndex]).Get(evalModelScoredJsonCtx, &emr)
+			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, evalFnsAgg[evFnIndex]).Get(evalModelScoredJsonCtx, &emr)
 			if err != nil {
 				logger.Error("failed to get score eval", "Error", err)
 				return err

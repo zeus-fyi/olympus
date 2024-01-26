@@ -3,9 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
-	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -30,13 +28,13 @@ type TaskToExecute struct {
 }
 
 type TaskContext struct {
-	TaskName       string                    `json:"taskName"`
-	TaskType       string                    `json:"taskType"`
-	ResponseFormat string                    `json:"responseFormat"`
-	Model          string                    `json:"model"`
-	TaskID         int                       `json:"taskID"`
-	EvalID         int                       `json:"evalID,omitempty"`
-	Fd             openai.FunctionDefinition `json:"fd"`
+	TaskName       string `json:"taskName"`
+	TaskType       string `json:"taskType"`
+	ResponseFormat string `json:"responseFormat"`
+	Model          string `json:"model"`
+	TaskID         int    `json:"taskID"`
+	EvalID         int    `json:"evalID,omitempty"`
+	Schemas        []*artemis_orchestrations.JsonSchemaDefinition
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
@@ -62,12 +60,13 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	var aiResp *ChatCompletionQueryResponse
 	for attempt := 0; attempt < int(maxAttempts); attempt++ {
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
+		fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.Schemas)
 		params := hera_openai.OpenAIParams{
 			Model:              tte.Tc.Model,
 			Prompt:             tte.Sg.GetPromptBody(),
-			FunctionDefinition: tte.Tc.Fd,
+			FunctionDefinition: fd,
 		}
-		jsd := artemis_orchestrations.ConvertToJsonSchema(params.FunctionDefinition)
+		jsd := tte.Tc.Schemas
 		tte.Wr.IterationCount = attempt
 		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, tte.Ou, params).Get(jsonTaskCtx, &aiResp)
 		if err != nil {
@@ -102,6 +101,12 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		if anyErr == nil {
 			tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
 		}
+		if m == nil || len(tmpResp) == 0 {
+			continue
+		}
+		if len(tmpResp) > 0 && len(tmpResp[0]) <= 0 {
+			continue
+		}
 		if anyErr != nil {
 			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")
 			tte.Wr.SkipAnalysis = true
@@ -120,7 +125,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				}
 			} else {
 				recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.Response).Get(recordTaskCtx, nil)
+				err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.Response).Get(recordTaskCtx, &aiResp.WorkflowResultID)
 				if err != nil {
 					logger.Error("failed to save task output", "Error", err)
 					return nil, err
@@ -128,70 +133,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			}
 			continue
 		}
-		switch tte.Tc.ResponseFormat {
-		case socialMediaExtractionResponseFormat:
-			mm := tte.Sg.GetMessageMap()
-			seen := make(map[int]bool)
-			notFound := make(map[int]int)
-			duplicateCount := make(map[int]int)
-			for ssi, schemas := range tmpResp {
-				for si, sch := range schemas {
-					for findex, fi := range sch.Fields {
-						switch fi.FieldName {
-						case "msg_id":
-							msgID := aws.IntValue(fi.IntegerValue)
-							if _, ok := seen[msgID]; ok {
-								duplicateCount[msgID]++
-								continue
-							}
-							if srv, ok := mm[aws.IntValue(fi.IntegerValue)]; ok {
-								srv.Verified = &ok
-								seen[msgID] = true
-								tte.Sg.FilteredSearchResultMap[msgID] = srv
-								tmpResp[ssi][si].Fields[findex].IsValidated = ok
-							} else {
-								notFound[msgID]++
-							}
-						case "msg_ids":
-							for _, msgID := range fi.IntegerValueSlice {
-								if _, ok := seen[msgID]; ok {
-									duplicateCount[msgID]++
-									continue
-								}
-								if srv, ok := mm[msgID]; ok {
-									srv.Verified = &ok
-									seen[msgID] = true
-									tte.Sg.FilteredSearchResultMap[msgID] = srv
-									tmpResp[ssi][si].Fields[findex].IsValidated = ok
-								} else {
-									notFound[msgID]++
-								}
-							}
-						}
-					}
-				}
-			}
-			if len(notFound) > 0 {
-				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "notFound", notFound)
-			}
-			if len(duplicateCount) > 0 {
-				logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormat", "duplicateCount", duplicateCount)
-			}
-			logger.Info("JsonOutputTaskWorkflow: socialMediaExtractionResponseFormatStats", "seen", len(seen), "notFound", len(notFound), "duplicateCount", len(duplicateCount))
-			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
-			var filteredSearchResults []hera_search.SearchResult
-			for _, fsr := range tte.Sg.FilteredSearchResultMap {
-				if fsr != nil && fsr.Verified != nil && *fsr.Verified {
-					filteredSearchResults = append(filteredSearchResults, *fsr)
-				}
-			}
-			aiResp.FilteredSearchResults = filteredSearchResults
-		default:
-			aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
-			aiResp.FilteredSearchResults = tte.Sg.SearchResults
-		}
 		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
-
 		if tte.Tc.EvalID > 0 {
 			evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
 				EvalID:             tte.Tc.EvalID,
@@ -208,7 +150,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		} else {
 			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			tte.Wr.SkipAnalysis = false
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, nil)
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, &aiResp.WorkflowResultID)
 			if err != nil {
 				logger.Error("failed to save task output", "Error", err)
 				return nil, err

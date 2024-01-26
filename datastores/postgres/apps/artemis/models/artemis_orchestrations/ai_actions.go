@@ -73,7 +73,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 				FROM public.ai_trigger_actions ta
 				LEFT JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
 				LEFT JOIN public.ai_trigger_eval taee ON ta.trigger_id = taee.trigger_id
-				WHERE ta.org_id = $1` + additionalQuery + `
+				WHERE ta.org_id = $1 ` + additionalQuery + `
 			)
 			SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action,
 				   COALESCE(ta.eval_id,0), ta.eval_trigger_state, ta.eval_results_trigger_on,

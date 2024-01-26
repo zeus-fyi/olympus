@@ -43,25 +43,50 @@ func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, e
 	return nil
 }
 
-func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, evalFns []artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
-	if evalFns == nil {
+//
+//func (z *ZeusAiPlatformActivities) EvalFnModelScoredJsonOutput(ctx context.Context, schemas [][]*artemis_orchestrations.JsonSchemaDefinition) (*artemis_orchestrations.EvalMetricsResults, error) {
+//	if schemas == nil {
+//		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
+//		return nil, nil
+//	}
+//	emr := &artemis_orchestrations.EvalMetricsResults{
+//		EvalMetricsResults: []*artemis_orchestrations.EvalMetric{},
+//	}
+//	for i, _ := range schemas {
+//		for j, _ := range schemas[i] {
+//			err := TransformJSONToEvalScoredMetrics(schemas[i][j])
+//			if err != nil {
+//				log.Err(err).Int("i", i).Interface("scoredResultsFields", schemas[i][j]).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
+//				return nil, err
+//			}
+//
+//			for fj, _ := range schemas[i][j].Fields {
+//				for emi, _ := range schemas[i][j].Fields[fj].EvalMetrics {
+//					emr.EvalMetricsResults = append(emr.EvalMetricsResults, schemas[i][j].Fields[fj].EvalMetrics[emi])
+//				}
+//			}
+//		}
+//	}
+//	return emr, nil
+//}
+
+func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, ef *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
+	if ef == nil || ef.SchemasMap == nil {
 		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
 		return nil, nil
 	}
 	emr := &artemis_orchestrations.EvalMetricsResults{
 		EvalMetricsResults: []*artemis_orchestrations.EvalMetric{},
 	}
-	for efInd, _ := range evalFns {
-		for i, _ := range evalFns[efInd].Schemas {
-			err := TransformJSONToEvalScoredMetrics(evalFns[efInd].Schemas[i])
-			if err != nil {
-				log.Err(err).Int("i", i).Interface("scoredResultsFields", evalFns[efInd].Schemas[i]).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
-				return nil, err
-			}
-			for j, _ := range evalFns[efInd].Schemas[i].Fields {
-				for emi, _ := range evalFns[efInd].Schemas[i].Fields[j].EvalMetrics {
-					emr.EvalMetricsResults = append(emr.EvalMetricsResults, evalFns[efInd].Schemas[i].Fields[j].EvalMetrics[emi])
-				}
+	for k, _ := range ef.SchemasMap {
+		err := TransformJSONToEvalScoredMetrics(ef.SchemasMap[k])
+		if err != nil {
+			log.Err(err).Str("k", k).Interface("scoredResultsFields", ef.SchemasMap[k]).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
+			return nil, err
+		}
+		for fj, _ := range ef.SchemasMap[k].Fields {
+			for emi, _ := range ef.SchemasMap[k].Fields[fj].EvalMetrics {
+				emr.EvalMetricsResults = append(emr.EvalMetricsResults, ef.SchemasMap[k].Fields[fj].EvalMetrics[emi])
 			}
 		}
 	}

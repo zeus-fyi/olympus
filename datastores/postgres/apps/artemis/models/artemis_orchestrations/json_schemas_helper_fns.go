@@ -37,6 +37,7 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 					DataType:         ft,
 				})
 			}
+			schemas = append(schemas, schema)
 		} else {
 			for fieldName, fdef := range def.Properties {
 				ft := jsonSchemaDataType(fdef.Type)
@@ -49,9 +50,8 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 					DataType:         ft,
 				})
 			}
+			schemas = append(schemas, schema)
 		}
-
-		schemas = append(schemas, schema)
 	}
 	return schemas
 }
@@ -104,7 +104,12 @@ func jsonSchemaType(dataType string) jsonschema.DataType {
 	}
 }
 
-func ConvertToFuncDef(fnName string, schemas []*JsonSchemaDefinition) openai.FunctionDefinition {
+func ConvertToFuncDef(schemas []*JsonSchemaDefinition) openai.FunctionDefinition {
+	var fnName string
+	for _, schema := range schemas {
+		fnName += schema.SchemaName
+	}
+
 	fd := openai.FunctionDefinition{
 		Name:       fnName,
 		Parameters: ConvertToFuncDefJsonSchemas(fnName, schemas), // Set the combined schema here
@@ -189,36 +194,34 @@ func convertDbJsonSchemaFieldsSchema(fnName string, schema *JsonSchemaDefinition
 func AssignMapValuesMultipleJsonSchemasSlice(szs []*JsonSchemaDefinition, ms any) ([][]*JsonSchemaDefinition, error) {
 	var responses [][]*JsonSchemaDefinition
 
-	for _, sz := range szs {
+	for szi, _ := range szs {
 		mis, ok := ms.([]map[string]interface{})
 		msng, ook := ms.(map[string]interface{})
 		if ok {
-			for _, mi := range mis {
-				resp, err := AssignMapValuesJsonSchemaFieldsSlice(sz, mi)
+			for mi, _ := range mis {
+				resp, err := AssignMapValuesJsonSchemaFieldsSlice(szs[szi], mis[mi])
 				if err != nil {
 					log.Err(err).Interface("mi", mi).Msg("AssignMapValuesMultipleJsonSchemasSlice: AssignMapValuesJsonSchemaFieldsSlice failed")
 					return nil, err
 				}
-				responses = append(responses, resp)
+				if resp != nil {
+					responses = append(responses, resp)
+				}
 			}
 		} else if ook {
-			resp, err := AssignMapValuesJsonSchemaFieldsSlice(sz, msng)
+			resp, err := AssignMapValuesJsonSchemaFieldsSlice(szs[szi], msng)
 			if err != nil {
 				log.Err(err).Interface("msng", msng).Msg("AssignMapValuesMultipleJsonSchemasSlice: AssignMapValuesJsonSchemaFieldsSlice failed")
 				return nil, err
 			}
-			responses = append(responses, resp)
+			if resp != nil {
+				responses = append(responses, resp)
+			}
 		}
 	}
 
-	for _, resp := range responses {
-		for _, jsd := range resp {
-			for _, f := range jsd.Fields {
-				if f.IsValidated == false {
-					return nil, fmt.Errorf("AssignMapValuesMultipleJsonSchemasSlice: failed to assign expected field %s", f.FieldName)
-				}
-			}
-		}
+	if !ValidateSchemas(responses) {
+		return nil, fmt.Errorf("AssignMapValuesMultipleJsonSchemasSlice: failed to validate schemas")
 	}
 	return responses, nil
 }
@@ -230,11 +233,11 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 	var schemas []*JsonSchemaDefinition
 	if sz.IsObjArray {
 		// Handle case where sz is an array of objects
-		for _, v := range m {
-			vi, vok := v.([]interface{})
+		for mi, _ := range m {
+			vi, vok := m[mi].([]interface{})
 			if vok {
-				for _, item := range vi {
-					vmi, bok := item.(map[string]interface{})
+				for ii, _ := range vi {
+					vmi, bok := vi[ii].(map[string]interface{})
 					// Check if the map contains sz.SchemaName as a key
 					if bok {
 						jsd, err := AssignMapValuesJsonSchemaFields(sz, vmi)
@@ -252,6 +255,7 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 		// Check if the map contains sz.SchemaName as a key
 		if vfi, found := m[sz.SchemaName]; found {
 			vfim, vfiok := vfi.(map[string]interface{})
+			vi, vok := vfi.([]interface{})
 			if vfiok {
 				jsd, err := AssignMapValuesJsonSchemaFields(sz, vfim)
 				if err != nil {
@@ -259,6 +263,19 @@ func AssignMapValuesJsonSchemaFieldsSlice(sz *JsonSchemaDefinition, m map[string
 					return nil, err
 				}
 				schemas = append(schemas, jsd)
+			}
+			if vok {
+				for ii, _ := range vi {
+					vmi, bok := vi[ii].(map[string]interface{})
+					if bok {
+						jsd, err := AssignMapValuesJsonSchemaFields(sz, vmi)
+						if err != nil {
+							log.Err(err).Interface("vmi", vmi).Msg("3_AssignMapValuesJsonSchemaFieldsSlice: AssignMapValuesJsonSchemaFields failed")
+							return nil, err
+						}
+						schemas = append(schemas, jsd)
+					}
+				}
 			}
 		}
 	}

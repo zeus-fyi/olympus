@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -29,12 +30,13 @@ type TaskToExecute struct {
 }
 
 type TaskContext struct {
-	TaskName       string `json:"taskName"`
-	TaskType       string `json:"taskType"`
-	ResponseFormat string `json:"responseFormat"`
-	Model          string `json:"model"`
-	TaskID         int    `json:"taskID"`
-	EvalID         int    `json:"evalID,omitempty"`
+	TaskName       string                    `json:"taskName"`
+	TaskType       string                    `json:"taskType"`
+	ResponseFormat string                    `json:"responseFormat"`
+	Model          string                    `json:"model"`
+	TaskID         int                       `json:"taskID"`
+	EvalID         int                       `json:"evalID,omitempty"`
+	Fd             openai.FunctionDefinition `json:"fd"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
@@ -55,21 +57,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		return nil, err
 	}
 
-	var fullTaskDef []artemis_orchestrations.AITaskLibrary
-	selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, tte.Sg.SourceTaskID).Get(selectTaskCtx, &fullTaskDef)
-	if err != nil {
-		logger.Error("failed to run task", "Error", err)
-		return nil, err
-	}
-	if len(fullTaskDef) == 0 {
-		return nil, nil
-	}
-	var jdef []*artemis_orchestrations.JsonSchemaDefinition
-	for _, taskDef := range fullTaskDef {
-		jdef = append(jdef, taskDef.Schemas...)
-	}
-	fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.TaskName, jdef)
 	jsonTaskCtx := workflow.WithActivityOptions(ctx, ao)
 	maxAttempts := ao.RetryPolicy.MaximumAttempts
 	var aiResp *ChatCompletionQueryResponse
@@ -78,7 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		params := hera_openai.OpenAIParams{
 			Model:              tte.Tc.Model,
 			Prompt:             tte.Sg.GetPromptBody(),
-			FunctionDefinition: fd,
+			FunctionDefinition: tte.Tc.Fd,
 		}
 		jsd := artemis_orchestrations.ConvertToJsonSchema(params.FunctionDefinition)
 		tte.Wr.IterationCount = attempt

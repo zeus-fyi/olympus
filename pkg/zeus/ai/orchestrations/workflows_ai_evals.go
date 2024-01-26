@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -88,7 +89,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 					WorkflowID:               wfID,
 					WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
-				// TODO, eval iteration counts here
+
+				if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
+					continue
+				}
+				cpe.TaskToExecute.Tc.Fd = artemis_orchestrations.ConvertToFuncDef(fmt.Sprintf("%s_eval", cpe.TaskToExecute.Tc.TaskName), evalFnsAgg[evFnIndex].Schemas)
 				cpe.ParentOutputToEval = &ChatCompletionQueryResponse{}
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cpe.ParentOutputToEval)

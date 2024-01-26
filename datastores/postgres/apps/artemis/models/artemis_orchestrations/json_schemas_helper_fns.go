@@ -26,17 +26,29 @@ func ConvertToJsonSchema(fd openai.FunctionDefinition) []*JsonSchemaDefinition {
 			if def.Items == nil {
 				continue
 			}
-		}
-		for fieldName, fdef := range def.Items.Properties {
-			ft := jsonSchemaDataType(fdef.Type)
-			if fdef.Type == jsonschema.Array && fdef.Items != nil {
-				ft = fmt.Sprintf("array[%s]", jsonSchemaDataType(fdef.Items.Type))
+			for fieldName, fdef := range def.Items.Properties {
+				ft := jsonSchemaDataType(fdef.Type)
+				if fdef.Type == jsonschema.Array && fdef.Items != nil {
+					ft = fmt.Sprintf("array[%s]", jsonSchemaDataType(fdef.Items.Type))
+				}
+				schema.Fields = append(schema.Fields, JsonSchemaField{
+					FieldName:        fieldName,
+					FieldDescription: fdef.Description,
+					DataType:         ft,
+				})
 			}
-			schema.Fields = append(schema.Fields, JsonSchemaField{
-				FieldName:        fieldName,
-				FieldDescription: fdef.Description,
-				DataType:         ft,
-			})
+		} else {
+			for fieldName, fdef := range def.Properties {
+				ft := jsonSchemaDataType(fdef.Type)
+				if fdef.Type == jsonschema.Array && fdef.Items != nil {
+					ft = fmt.Sprintf("array[%s]", jsonSchemaDataType(fdef.Items.Type))
+				}
+				schema.Fields = append(schema.Fields, JsonSchemaField{
+					FieldName:        fieldName,
+					FieldDescription: fdef.Description,
+					DataType:         ft,
+				})
+			}
 		}
 
 		schemas = append(schemas, schema)

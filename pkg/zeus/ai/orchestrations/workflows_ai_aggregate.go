@@ -150,7 +150,21 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						Model:          aws.StringValue(aggInst.AggModel),
 						TaskID:         aws.IntValue(aggInst.AggTaskID),
 					}
-
+					var fullTaskDef []artemis_orchestrations.AITaskLibrary
+					selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, tte.Sg.SourceTaskID).Get(selectTaskCtx, &fullTaskDef)
+					if err != nil {
+						logger.Error("failed to run task", "Error", err)
+						return err
+					}
+					if len(fullTaskDef) == 0 {
+						return nil
+					}
+					var jdef []*artemis_orchestrations.JsonSchemaDefinition
+					for _, taskDef := range fullTaskDef {
+						jdef = append(jdef, taskDef.Schemas...)
+					}
+					tte.Tc.Fd = artemis_orchestrations.ConvertToFuncDef(tte.Tc.TaskName, jdef)
 					childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, tte).Get(childAggWfCtx, &aiAggResp)
 					if err != nil {

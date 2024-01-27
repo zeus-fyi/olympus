@@ -101,7 +101,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, ou, pr).Get(chunkedTaskCtx, &pr)
 			if err != nil {
-				logger.Error("failed to run analysis json", "Error", err)
+				logger.Error("failed to run agg token overflow reduction task", "Error", err)
 				return err
 			}
 			chunkIterator := 0
@@ -110,6 +110,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			}
 			if pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
 				chunkIterator = len(pr.PromptReductionText.OutPromptChunks)
+			}
+			tte := TaskToExecute{
+				Ou:  ou,
+				Wft: aggInst,
+				Sg:  sg,
+				Wr:  wr,
 			}
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && chunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
@@ -125,12 +131,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				wr.ChunkOffset = chunkOffset
 				sg.ExtractionPromptExt = aws.StringValue(aggInst.AggPrompt)
 				sg.SourceTaskID = aws.IntValue(aggInst.AggTaskID)
-				tte := TaskToExecute{
-					Ou:  ou,
-					Wft: aggInst,
-					Sg:  sg,
-					Wr:  wr,
-				}
+
 				wfID := oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i)
 				tte.WfID = wfID
 				if aggInst.AggTaskName == nil || aggInst.AggModel == nil || aggInst.AggTokenOverflowStrategy == nil || aggInst.AggPrompt == nil || aggInst.AggTaskID == nil {
@@ -205,8 +206,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						logger.Error("failed to save agg response", "Error", err)
 						return err
 					}
+					wr.ResponseID = aggRespId
 					recordAggCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, dataIn).Get(recordAggCtx, nil)
+					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, dataIn).Get(recordAggCtx, &aiAggResp.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save aggregation resp", "Error", err)
 						return err
@@ -232,6 +234,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				WorkflowTemplateData: aggInst,
 				ParentOutputToEval:   aiAggResp,
 				EvalFns:              aggInst.AggEvalFns,
+				SearchResultGroup:    sg,
+				TaskToExecute:        tte,
 			}
 			for _, evalFn := range ea.EvalFns {
 				evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]

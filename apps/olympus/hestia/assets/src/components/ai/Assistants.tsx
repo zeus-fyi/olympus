@@ -67,7 +67,6 @@ export function Assistants(props: any) {
                             onChange={(event) => dispatch(setAssistant(
                                 { ...assistant, model: event.target.value }))}
                         >
-                            <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
                             <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
                             <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
                             <MenuItem value="gpt-4">gpt-4</MenuItem>

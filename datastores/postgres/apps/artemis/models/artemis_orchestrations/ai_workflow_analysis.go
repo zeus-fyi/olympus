@@ -63,7 +63,7 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
        					 ar.running_cycle_number, ar.search_window_unix_start, ar.search_window_unix_end, ar.metadata, cr.completion_choices
                   FROM ai_workflow_analysis_results ar
                   JOIN completion_responses cr ON cr.response_id = ar.response_id	
-                  WHERE ar.skip_analysis = false AND ar.search_window_unix_start >= $1 AND ar.search_window_unix_end < $2
+                  WHERE ar.skip_analysis = false AND ar.search_window_unix_start >= $1 AND ar.search_window_unix_end <= $2
                     AND ar.source_task_id = ANY($3) AND ar.orchestration_id = ANY($4);`
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, w.UnixStartTime, w.UnixEndTime, pq.Array(sourceTaskIds), pq.Array(ojIds))

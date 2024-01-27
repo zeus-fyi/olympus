@@ -41,7 +41,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			if md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false {
 				continue
 			}
-			retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			var dataIn []artemis_orchestrations.AIWorkflowAnalysisResult
 			depM := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
@@ -49,7 +48,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
 				analysisDep = append(analysisDep, k)
 			}
-			err := workflow.ExecuteActivity(retrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, analysisDep).Get(retrievalCtx, &dataIn)
+			aggRetrievalCtx := workflow.WithActivityOptions(ctx, ao)
+			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, analysisDep).Get(aggRetrievalCtx, &dataIn)
 			if err != nil {
 				logger.Error("failed to run aggregate retrieval", "Error", err)
 				return err

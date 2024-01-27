@@ -58,14 +58,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			if len(dataIn) == 0 {
 				continue
 			}
+
 			aggCtx := workflow.WithActivityOptions(ctx, ao)
 			var aiAggResp *ChatCompletionQueryResponse
 			if aggInst.AggTokenOverflowStrategy == nil || aggInst.AggModel == nil || aggInst.AggTaskID == nil {
 				continue
 			}
 			pr := &PromptReduction{
-				TokenOverflowStrategy: aws.StringValue(aggInst.AggTokenOverflowStrategy),
-				Model:                 aws.StringValue(aggInst.AggModel),
+				TokenOverflowStrategy:     aws.StringValue(aggInst.AggTokenOverflowStrategy),
+				Model:                     aws.StringValue(aggInst.AggModel),
+				DataInAnalysisAggregation: dataIn,
 			}
 			var sg *hera_search.SearchResultGroup
 			if cp.AnalysisEvalActionParams != nil && cp.AnalysisEvalActionParams.SearchResultGroup != nil {

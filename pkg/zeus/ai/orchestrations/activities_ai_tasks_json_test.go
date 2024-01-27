@@ -23,14 +23,12 @@ func (t *ZeusWorkerTestSuite) TestJsonModelOutputActivity() {
 	t.Require().NotEmpty(td)
 
 	var schemas []*artemis_orchestrations.JsonSchemaDefinition
-	fn := ""
 	for _, task := range td {
 		t.Require().NotEmpty(task.Schemas)
-		fn = task.TaskName
 		schemas = append(schemas, task.Schemas...)
 	}
 
-	fd := artemis_orchestrations.ConvertToFuncDef(fn, schemas)
+	fd := artemis_orchestrations.ConvertToFuncDef(schemas)
 	t.Require().NotNil(fd)
 	t.Require().NotNil(fd.Name)
 	t.Require().NotNil(fd.Parameters)

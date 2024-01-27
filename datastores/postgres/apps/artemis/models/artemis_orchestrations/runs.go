@@ -39,88 +39,30 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 	q := sql_query_templates.QueryParams{}
 
 	// uses main for unique id, so type == real name for related workflow
-	q.RawQuery = `WITH cte_wrapper AS (
+	q.RawQuery = `WITH cte_0 AS (
 						SELECT
-							ai_res.workflow_result_id, 
 							o.orchestration_id,
-							o.orchestration_name AS orch_name,
-							o.group_name AS orch_group_name,
-							o.type AS orch_type,
+							o.orchestration_name,
+							o.group_name AS orchestration_group_name,
+							o.type AS orchestration_type,
 							o.active,
-							ai_res.running_cycle_number AS running_cycle_number,
-							comp_resp.total_tokens AS total_tokens,
-							JSON_AGG(
-								JSON_BUILD_OBJECT(
-									'workflowResultID', ai_res.workflow_result_id,
-									'responseID', ai_res.response_id,
-									'sourceTaskID', ai_res.source_task_id,
-									'iterationCount', ai_res.iteration_count,
-									'skipAnalysis', ai_res.skip_analysis,
-									'taskName', task_lib.task_name,
-									'taskType', task_lib.task_type,
-									'model', task_lib.model,
-									'runningCycleNumber', ai_res.running_cycle_number,
-									'searchWindowUnixStart', ai_res.search_window_unix_start,
-									'searchWindowUnixEnd', ai_res.search_window_unix_end,
-									'metadata', ai_res.metadata,
-									'completionChoices', comp_resp.completion_choices,
-									'prompt', comp_resp.prompt,
-									'promptTokens', comp_resp.prompt_tokens,
-									'completionTokens', comp_resp.completion_tokens,
-									'totalTokens', comp_resp.total_tokens
-								) ORDER BY ai_res.running_cycle_number DESC, ai_res.iteration_count DESC, ai_res.response_id DESC
-							) AS aggregated_data,
-							JSONB_AGG(
-								CASE 
-									WHEN eval_res.eval_metrics_results_id IS NOT NULL THEN
-										JSON_BUILD_OBJECT(
-											'evalName', ef.eval_name,
-											'evalField', JSON_BUILD_OBJECT(
-		        									'fieldName', af.field_name,
-        											'dataType', af.data_type
-											),
-											'evalMetricID', eval_met.eval_metric_id,	
-											'evalExpectedResultState', eval_met.eval_metric_result,
-    										'evalMetricResult', JSON_BUILD_OBJECT(
-		        									'evalMetricsResultID', eval_res.eval_metrics_results_id,
-        											'evalResultOutcomeBool', eval_res.eval_result_outcome,
-													'runningCycleNumber', eval_res.running_cycle_number,
-													'evalIterationCount', eval_res.eval_iteration_count,
-													'searchWindowUnixStart', eval_res.search_window_unix_start,
-													'searchWindowUnixEnd', eval_res.search_window_unix_end,
-													'evalMetadata', eval_res.eval_metadata
-											),
-    										'evalMetricComparisonValues', JSON_BUILD_OBJECT(
-												'evalComparisonInteger', eval_met.eval_comparison_integer,
-												'evalComparisonBoolean', eval_met.eval_comparison_boolean,
-												'evalComparisonNumber', eval_met.eval_comparison_number,
-												'evalComparisonString', eval_met.eval_comparison_string
-											),	
-											'evalOperator', eval_met.eval_operator,
-											'evalState', eval_met.eval_state
-										) 
-								END
-								ORDER BY eval_res.running_cycle_number DESC, eval_res.eval_metrics_results_id DESC
-							) AS aggregated_eval_results
+							ai_res.workflow_result_id,
+							ai_res.response_id,
+							ai_res.source_task_id,
+							ai_res.iteration_count,
+							ai_res.chunk_offset,
+							ai_res.running_cycle_number,
+							ai_res.skip_analysis,
+							ai_res.search_window_unix_start,
+							ai_res.search_window_unix_end,
+							ai_res.metadata
 						FROM 
-							public.ai_workflow_analysis_results AS ai_res
-						LEFT JOIN 
-							public.ai_task_library AS task_lib ON task_lib.task_id = ai_res.source_task_id
-						LEFT JOIN 
-							public.completion_responses AS comp_resp ON comp_resp.response_id = ai_res.response_id
-						LEFT JOIN 
-							public.eval_metrics_results AS eval_res ON eval_res.orchestration_id = ai_res.orchestrations_id
-						LEFT JOIN 
-							public.eval_metrics AS eval_met ON eval_met.eval_metric_id = eval_res.eval_metric_id
-						LEFT JOIN 
-							public.ai_fields AS af ON af.field_id = eval_met.field_id
-						LEFT JOIN 
-							public.eval_fns AS ef ON ef.eval_id = eval_met.eval_id
+							public.ai_workflow_analysis_results ai_res
 						JOIN 
-							public.orchestrations AS o ON o.orchestration_id = ai_res.orchestrations_id
+							public.orchestrations AS o ON o.orchestration_id = ai_res.orchestration_id
 						WHERE 
-							o.org_id = $1
-							AND (
+							o.org_id = $1 AND
+						 	(
 								EXISTS (
 									SELECT 1
 									FROM ai_workflow_template
@@ -132,46 +74,132 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 									WHERE workflow_group = o.group_name
 								)
 							)
-						GROUP BY 
-							ai_res.workflow_result_id, o.orchestration_id, o.orchestration_name, o.group_name, o.type, o.active, eval_res.orchestration_id, eval_res.eval_metrics_results_id, eval_res.running_cycle_number, comp_resp.total_tokens 
-						ORDER BY 
-							o.orchestration_id DESC
-					),
-					cte_im AS (
-						SELECT 
-							workflow_result_id, orchestration_id, JSONB_AGG(aggregated_eval_results) AS aggregated_eval_results
-						FROM cte_wrapper
-						GROUP BY orchestration_id, workflow_result_id
-					),
-					cte_wfr AS (
-						SELECT 
-							o.orchestration_id,
-							JSONB_AGG(aggregated_data) AS aggregated_data,
-							o.orch_name,
-							o.orch_group_name AS orch_group_name,
-							o.orch_type AS orch_type,
-							o.active
-						FROM cte_wrapper o
-						GROUP BY orchestration_id, orch_name, orch_type, orch_group_name, active
-					),
-					cte_eva AS (
-						SELECT 
-							orchestration_id, aggregated_eval_results
-						FROM cte_im cim
-						GROUP BY orchestration_id, aggregated_eval_results
-					), cte_max_totals  AS (
-					 SELECT orchestration_id,
-						  MAX(running_cycle_number) AS max_run_cycle,
-							SUM(total_tokens) AS total_workflow_token_usage
-						FROM cte_wrapper
-						GROUP BY orchestration_id
-					) SELECT wf.orchestration_id, wf.orch_name, wf.orch_group_name, wf.orch_type, wf.active,
-							cm.max_run_cycle, cm.total_workflow_token_usage,
-							wf.aggregated_data, ce.aggregated_eval_results
-					FROM cte_wfr wf
-					LEFT JOIN cte_eva ce ON ce.orchestration_id = wf.orchestration_id
-					LEFT JOIN cte_max_totals cm ON cm.orchestration_id = wf.orchestration_id
-					ORDER BY orchestration_id DESC;`
+							GROUP BY 								
+								o.orchestration_id,
+								o.orchestration_name,
+								o.group_name,
+								o.type,
+								o.active,
+								ai_res.workflow_result_id,
+								ai_res.response_id,
+								ai_res.source_task_id,
+								ai_res.iteration_count,
+								ai_res.chunk_offset,
+								ai_res.running_cycle_number,
+								ai_res.skip_analysis,
+								ai_res.search_window_unix_start,
+								ai_res.search_window_unix_end,
+								ai_res.metadata
+							), cte_00 AS (
+								SELECT 
+									ai_res.orchestration_id,
+									MAX(ai_res.running_cycle_number) AS max_run_cycle,
+									SUM(comp_resp.total_tokens) AS total_workflow_token_usage
+								FROM cte_0 ai_res
+								JOIN 
+									public.completion_responses AS comp_resp ON comp_resp.response_id = ai_res.response_id
+								GROUP BY
+									ai_res.orchestration_id
+							), cte_1 AS (
+								SELECT 
+								ai_res.orchestration_id,
+								ai_res.orchestration_type,
+								ai_res.orchestration_name,
+								ai_res.active,
+								ai_res.orchestration_group_name,
+										JSONB_AGG(
+											JSON_BUILD_OBJECT(
+												'workflowResultID', ai_res.workflow_result_id,
+												'responseID', ai_res.response_id,
+												'sourceTaskID', ai_res.source_task_id,
+												'iterationCount', ai_res.iteration_count,
+												'skipAnalysis', ai_res.skip_analysis,
+												'taskName', task_lib.task_name,
+												'taskType', task_lib.task_type,
+												'model', task_lib.model,
+												'runningCycleNumber', ai_res.running_cycle_number,
+												'searchWindowUnixStart', ai_res.search_window_unix_start,
+												'searchWindowUnixEnd', ai_res.search_window_unix_end,
+												'metadata', ai_res.metadata,
+												'completionChoices', comp_resp.completion_choices,
+												'prompt', comp_resp.prompt,
+												'promptTokens', comp_resp.prompt_tokens,
+												'completionTokens', comp_resp.completion_tokens,
+												'totalTokens', comp_resp.total_tokens
+											) ORDER BY ai_res.running_cycle_number DESC, ai_res.iteration_count DESC, ai_res.response_id DESC
+										) AS aggregated_data
+								FROM cte_0 ai_res
+								JOIN 
+									public.ai_task_library AS task_lib ON task_lib.task_id = ai_res.source_task_id
+								JOIN 
+									public.completion_responses AS comp_resp ON comp_resp.response_id = ai_res.response_id
+								GROUP BY
+									ai_res.orchestration_id,ai_res.orchestration_type,ai_res.orchestration_group_name,ai_res.orchestration_name,ai_res.active
+							), cte_2 AS (
+								SELECT
+									ai_res.orchestration_id,
+									ai_res.running_cycle_number,
+									JSONB_AGG(
+										CASE 
+											WHEN eval_res.eval_metrics_results_id IS NOT NULL THEN
+												JSONB_BUILD_OBJECT(
+													'evalName', ef.eval_name,
+													'evalField', JSON_BUILD_OBJECT(
+															'fieldName', af.field_name,
+															'dataType', af.data_type
+													),
+													'evalMetricID', eval_met.eval_metric_id,	
+													'evalExpectedResultState', eval_met.eval_metric_result,
+													'evalMetricResult', JSON_BUILD_OBJECT(
+															'evalMetricsResultID', eval_res.eval_metrics_results_id,
+															'evalResultOutcomeBool', eval_res.eval_result_outcome,
+															'runningCycleNumber', eval_res.running_cycle_number,
+															'evalIterationCount', eval_res.eval_iteration_count,
+															'searchWindowUnixStart', eval_res.search_window_unix_start,
+															'searchWindowUnixEnd', eval_res.search_window_unix_end,
+															'evalMetadata', eval_res.eval_metadata
+													),
+													'evalMetricComparisonValues', JSON_BUILD_OBJECT(
+														'evalComparisonInteger', eval_met.eval_comparison_integer,
+														'evalComparisonBoolean', eval_met.eval_comparison_boolean,
+														'evalComparisonNumber', eval_met.eval_comparison_number,
+														'evalComparisonString', eval_met.eval_comparison_string
+													),	
+													'evalOperator', eval_met.eval_operator,
+													'evalState', eval_met.eval_state
+												) 
+										END
+										ORDER BY eval_res.running_cycle_number DESC, eval_res.eval_metrics_results_id DESC
+									) AS aggregated_eval_results
+								FROM 
+									cte_0 AS ai_res
+								JOIN 
+									public.eval_metrics_results AS eval_res ON eval_res.orchestration_id = ai_res.orchestration_id
+								JOIN 
+									public.eval_metrics AS eval_met ON eval_met.eval_metric_id = eval_res.eval_metric_id
+								JOIN 
+									public.ai_fields AS af ON af.field_id = eval_met.field_id
+								JOIN 
+									public.eval_fns AS ef ON ef.eval_id = eval_met.eval_id
+								GROUP BY 
+									ai_res.orchestration_id, ai_res.running_cycle_number
+								ORDER BY 
+									ai_res.orchestration_id DESC
+							)
+							SELECT 
+								c1.orchestration_id,
+								c1.orchestration_name,
+								c1.orchestration_group_name,
+								c1.orchestration_type,
+								c1.active,
+							  	c00.max_run_cycle,
+							  	c00.total_workflow_token_usage,
+								COALESCE(aggregated_data, '[]'::jsonb) AS aggregated_data,
+								COALESCE(aggregated_eval_results, '[]'::jsonb) AS aggregated_eval_results
+							 FROM cte_1 c1
+							 LEFT JOIN cte_00 c00 ON c00.orchestration_id = c1.orchestration_id
+							 LEFT JOIN cte_2 c2 ON c2.orchestration_id = c1.orchestration_id
+							 ORDER BY orchestration_id DESC;`
 
 	log.Debug().Interface("SelectSystemOrchestrationsWithInstructionsByGroup", q.LogHeader(Orchestrations))
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID)
@@ -181,72 +209,58 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 	defer rows.Close()
 	for rows.Next() {
 		oj := OrchestrationsAnalysis{}
-		var aggregatedEvalResults json.RawMessage
 
-		var agdd [][]AggregatedData
+		var evals []EvalMetric
+		var agdd []AggregatedData
 		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationName, &oj.GroupName,
-			&oj.Type, &oj.Active, &oj.RunCycles, &oj.TotalWorkflowTokenUsage, &agdd, &aggregatedEvalResults)
+			&oj.Type, &oj.Active, &oj.RunCycles, &oj.TotalWorkflowTokenUsage, &agdd, &evals)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
 			return nil, rowErr
 		}
-
-		oj.OrchestrationStrID = fmt.Sprintf("%d", oj.OrchestrationID)
-		for _, tlagg := range agdd {
-			for _, adj := range tlagg {
-				oj.AggregatedData = append(oj.AggregatedData, adj)
-			}
-		}
-
-		// Unmarshal the aggregated evaluation results
-		var evalMetricsAllResults [][]EvalMetric
-		if err = json.Unmarshal(aggregatedEvalResults, &evalMetricsAllResults); err != nil {
-			log.Err(err).Msg("Error unmarshaling aggregated evaluation results")
-			return nil, err
-		}
+		oj.AggregatedData = agdd
 
 		var filteredResults []EvalMetric
 		seen := make(map[int]bool)
-		for i, evalMetricsResultCycleResults := range evalMetricsAllResults {
-			for j, _ := range evalMetricsResultCycleResults {
-				if evalMetricsAllResults[i][j].EvalMetricResult == nil || aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID) == 0 {
-					continue
-				}
-				if evalMetricsAllResults[i][j].EvalMetricID != nil {
-					evalMetricsAllResults[i][j].EvalMetricStrID = aws.String(fmt.Sprintf("%d", *evalMetricsAllResults[i][j].EvalMetricID))
-				}
+		for j, _ := range evals {
+			if evals[j].EvalMetricResult == nil || aws.ToInt(evals[j].EvalMetricResult.EvalMetricResultID) == 0 {
+				continue
+			}
+			if evals[j].EvalMetricID != nil {
+				evals[j].EvalMetricStrID = aws.String(fmt.Sprintf("%d", *evals[j].EvalMetricID))
+			}
 
-				const pass = "pass"
-				const cPass = "Pass"
-				const fail = "fail"
-				const cFail = "Pass"
-				if evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeBool != nil {
-					resultBool := aws.ToBool(evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeBool)
-					switch evalMetricsAllResults[i][j].EvalExpectedResultState {
-					case pass:
-						evalMetricsAllResults[i][j].EvalExpectedResultState = cPass
-						if resultBool {
-							evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cPass)
-						} else {
-							evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cFail)
-						}
-					case fail:
-						evalMetricsAllResults[i][j].EvalExpectedResultState = cFail
-						if resultBool {
-							evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cFail)
-						} else {
-							evalMetricsAllResults[i][j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cPass)
-						}
+			const pass = "pass"
+			const cPass = "Pass"
+			const fail = "fail"
+			const cFail = "Pass"
+			if evals[j].EvalMetricResult.EvalResultOutcomeBool != nil {
+				resultBool := aws.ToBool(evals[j].EvalMetricResult.EvalResultOutcomeBool)
+				switch evals[j].EvalExpectedResultState {
+				case pass:
+					evals[j].EvalExpectedResultState = cPass
+					if resultBool {
+						evals[j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cPass)
+					} else {
+						evals[j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cFail)
+					}
+				case fail:
+					evals[j].EvalExpectedResultState = cFail
+					if resultBool {
+						evals[j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cFail)
+					} else {
+						evals[j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cPass)
 					}
 				}
+			}
 
-				evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultStrID = aws.String(fmt.Sprintf("%d", aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID)))
-				if _, ok := seen[aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID)]; !ok {
-					filteredResults = append(filteredResults, evalMetricsAllResults[i][j])
-					seen[aws.ToInt(evalMetricsAllResults[i][j].EvalMetricResult.EvalMetricResultID)] = true
-				}
+			evals[j].EvalMetricResult.EvalMetricResultStrID = aws.String(fmt.Sprintf("%d", aws.ToInt(evals[j].EvalMetricResult.EvalMetricResultID)))
+			if _, ok := seen[aws.ToInt(evals[j].EvalMetricResult.EvalMetricResultID)]; !ok {
+				filteredResults = append(filteredResults, evals[j])
+				seen[aws.ToInt(evals[j].EvalMetricResult.EvalMetricResultID)] = true
 			}
 		}
+
 		oj.AggregatedEvalResults = filteredResults
 		ojs = append(ojs, oj)
 	}

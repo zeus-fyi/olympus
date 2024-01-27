@@ -117,11 +117,19 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				Sg:  sg,
 				Wr:  wr,
 			}
+			tte.Tc = TaskContext{
+				TaskName:       aws.StringValue(aggInst.AggTaskName),
+				TaskType:       AggTask,
+				ResponseFormat: aws.StringValue(aggInst.AggResponseFormat),
+				Model:          aws.StringValue(aggInst.AggModel),
+				TaskID:         aws.IntValue(aggInst.AggTaskID),
+			}
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && chunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
 					sg = pr.PromptReductionSearchResults.OutSearchGroups[chunkOffset]
 				} else {
 					sg = &hera_search.SearchResultGroup{
+						SourceTaskID:  aws.IntValue(aggInst.AggTaskID),
 						SearchResults: []hera_search.SearchResult{},
 					}
 				}
@@ -146,16 +154,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						WorkflowID:               oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i),
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					}
-					tte.Tc = TaskContext{
-						TaskName:       aws.StringValue(aggInst.AggTaskName),
-						TaskType:       AggTask,
-						ResponseFormat: aws.StringValue(aggInst.AggResponseFormat),
-						Model:          aws.StringValue(aggInst.AggModel),
-						TaskID:         aws.IntValue(aggInst.AggTaskID),
-					}
 					var fullTaskDef []artemis_orchestrations.AITaskLibrary
 					selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, tte.Sg.SourceTaskID).Get(selectTaskCtx, &fullTaskDef)
+					err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, aws.IntValue(aggInst.AggTaskID)).Get(selectTaskCtx, &fullTaskDef)
 					if err != nil {
 						logger.Error("failed to run task", "Error", err)
 						return err

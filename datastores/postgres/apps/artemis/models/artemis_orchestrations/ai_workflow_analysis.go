@@ -15,7 +15,7 @@ import (
 
 type AIWorkflowAnalysisResult struct {
 	WorkflowResultID      int             `json:"workflowResultID"`
-	OrchestrationsID      int             `json:"orchestrationID"`
+	OrchestrationID       int             `json:"orchestrationID"`
 	ResponseID            int             `json:"responseID"`
 	SourceTaskID          int             `json:"sourceTaskID"`
 	IterationCount        int             `json:"iterationCount"`
@@ -45,7 +45,7 @@ func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisR
                       metadata = EXCLUDED.metadata
                   RETURNING workflow_result_id;`
 	md := &pgtype.JSONB{Bytes: sanitizeBytesUTF8(wr.Metadata), Status: IsNull(wr.Metadata)}
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wr.OrchestrationsID, wr.ResponseID, wr.SourceTaskID,
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wr.OrchestrationID, wr.ResponseID, wr.SourceTaskID,
 		wr.ChunkOffset, wr.IterationCount, wr.RunningCycleNumber,
 		wr.SearchWindowUnixStart, wr.SearchWindowUnixEnd, wr.SkipAnalysis,
 		md).Scan(&wr.WorkflowResultID)
@@ -76,7 +76,7 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
 	var results []AIWorkflowAnalysisResult
 	for rows.Next() {
 		var result AIWorkflowAnalysisResult
-		err = rows.Scan(&result.WorkflowResultID, &result.OrchestrationsID, &result.ResponseID, &result.SourceTaskID,
+		err = rows.Scan(&result.WorkflowResultID, &result.OrchestrationID, &result.ResponseID, &result.SourceTaskID,
 			&result.ChunkOffset, &result.IterationCount, &result.RunningCycleNumber,
 			&result.SearchWindowUnixStart, &result.SearchWindowUnixEnd, &result.Metadata, &result.CompletionChoices)
 		if err != nil {

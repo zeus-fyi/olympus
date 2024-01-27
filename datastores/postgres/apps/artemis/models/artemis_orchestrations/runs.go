@@ -109,10 +109,12 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 								ai_res.orchestration_group_name,
 										JSONB_AGG(
 											JSON_BUILD_OBJECT(
+												'orchestrationID', ai_res.orchestration_id,
 												'workflowResultID', ai_res.workflow_result_id,
 												'responseID', ai_res.response_id,
 												'sourceTaskID', ai_res.source_task_id,
 												'iterationCount', ai_res.iteration_count,
+												'chunkOffset', ai_res.chunk_offset,
 												'skipAnalysis', ai_res.skip_analysis,
 												'taskName', task_lib.task_name,
 												'taskType', task_lib.task_type,

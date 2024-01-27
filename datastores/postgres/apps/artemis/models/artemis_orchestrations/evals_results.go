@@ -71,7 +71,7 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
 		}
 		_, err = tx.Exec(ctx, query,
 			emr.EvalMetricResult.EvalMetricResultID,
-			emrs.EvalContext.AIWorkflowAnalysisResult.OrchestrationsID,
+			emrs.EvalContext.AIWorkflowAnalysisResult.OrchestrationID,
 			emrs.EvalContext.AIWorkflowAnalysisResult.SourceTaskID,
 			emr.EvalMetricID,
 			emrs.EvalContext.AIWorkflowAnalysisResult.RunningCycleNumber,

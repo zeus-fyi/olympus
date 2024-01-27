@@ -54,7 +54,7 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 			Window:         aiSp.Window,
 		},
 		Wr: &artemis_orchestrations.AIWorkflowAnalysisResult{
-			OrchestrationsID:      1692062857720240000,
+			OrchestrationID:       1692062857720240000,
 			ResponseID:            0,
 			SourceTaskID:          taskID,
 			SearchWindowUnixStart: aiSp.Window.UnixStartTime,

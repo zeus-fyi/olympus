@@ -176,6 +176,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						return err
 					}
 					sg.SearchResults = aiAggResp.FilteredSearchResults
+					wr.WorkflowResultID = aiAggResp.WorkflowResultID
 				case socialMediaEngagementResponseFormat:
 					if cp.AnalysisEvalActionParams != nil && cp.AnalysisEvalActionParams.SearchResultGroup != nil {
 						sg = cp.AnalysisEvalActionParams.SearchResultGroup

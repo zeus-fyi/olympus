@@ -19,7 +19,7 @@ func (s *OrchestrationsTestSuite) TestUpsertEvalMetricsResults() {
 		EvalIterationCount: 0,
 		AIWorkflowAnalysisResult: AIWorkflowAnalysisResult{
 			WorkflowResultID: 1705978298687209000,
-			OrchestrationsID: 1705978283783333000,
+			OrchestrationID:  1705978283783333000,
 			ResponseID:       1672188679693780000,
 			SourceTaskID:     1705949866538066000,
 			IterationCount:   0,

@@ -11,7 +11,7 @@ func (s *OrchestrationsTestSuite) TestInsertAiWorkflowAnalysisResult() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	wr := &AIWorkflowAnalysisResult{
-		OrchestrationsID:      1701135755183363072,
+		OrchestrationID:       1701135755183363072,
 		ResponseID:            1693500147586158080,
 		SourceTaskID:          1701657830780669952,
 		IterationCount:        2,

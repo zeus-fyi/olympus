@@ -89,7 +89,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				}
 			}
 			wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
-				OrchestrationsID:      oj.OrchestrationID,
+				OrchestrationID:       oj.OrchestrationID,
 				SourceTaskID:          aws.IntValue(aggInst.AggTaskID),
 				RunningCycleNumber:    i,
 				SearchWindowUnixStart: window.UnixStartTime,

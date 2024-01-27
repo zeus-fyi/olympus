@@ -115,7 +115,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					}
 				}
 				wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
-					OrchestrationsID:      oj.OrchestrationID,
+					OrchestrationID:       oj.OrchestrationID,
 					SourceTaskID:          analysisInst.AnalysisTaskID,
 					RunningCycleNumber:    i,
 					ChunkOffset:           chunkOffset,

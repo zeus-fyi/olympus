@@ -1,6 +1,6 @@
 CREATE TABLE public.ai_workflow_analysis_results(
     workflow_result_id int8 NOT NULL DEFAULT next_id() PRIMARY KEY,
-    orchestrations_id int8 NOT NULL REFERENCES orchestrations(orchestration_id),
+    orchestration_id int8 NOT NULL REFERENCES orchestrations(orchestration_id),
     response_id int8 NOT NULL REFERENCES completion_responses(response_id),
     source_task_id int8 NOT NULL REFERENCES ai_task_library(task_id),
     running_cycle_number int8 NOT NULL DEFAULT 1,
@@ -12,7 +12,7 @@ CREATE TABLE public.ai_workflow_analysis_results(
     metadata jsonb
 );
 CREATE INDEX wf_analysis_skip_idx ON public.ai_workflow_analysis_results("skip_analysis");
-CREATE INDEX wf_analysis_orchestrations_id_idx ON public.ai_workflow_analysis_results("orchestrations_id");
+CREATE INDEX wf_analysis_orchestrations_id_idx ON public.ai_workflow_analysis_results("orchestration_id");
 CREATE INDEX wf_analysis_resp_id_idx ON public.ai_workflow_analysis_results("response_id");
 CREATE INDEX wf_analysis_cycle_idx ON public.ai_workflow_analysis_results("running_cycle_number");
 CREATE INDEX wf_analysis_source_task_idx ON public.ai_workflow_analysis_results("source_task_id");
@@ -21,4 +21,4 @@ CREATE INDEX wf_analysis_source_search_end_idx ON public.ai_workflow_analysis_re
 CREATE INDEX wf_analysis_metadata_idx ON public.ai_workflow_analysis_results USING GIN (metadata);
 
 ALTER TABLE public.ai_workflow_analysis_results
-    ADD CONSTRAINT unique_combination_wf_analysis_iteration UNIQUE (orchestrations_id, response_id, source_task_id, running_cycle_number, iteration_count, chunk_offset);
+    ADD CONSTRAINT unique_combination_wf_analysis_iteration UNIQUE (orchestration_id, response_id, source_task_id, running_cycle_number, iteration_count, chunk_offset);

@@ -15,7 +15,7 @@ import (
 
 type AIWorkflowAnalysisResult struct {
 	WorkflowResultID      int             `json:"workflowResultID"`
-	OrchestrationsID      int             `json:"orchestrationsID"`
+	OrchestrationID       int             `json:"orchestrationID"`
 	ResponseID            int             `json:"responseID"`
 	SourceTaskID          int             `json:"sourceTaskID"`
 	IterationCount        int             `json:"iterationCount"`
@@ -30,12 +30,12 @@ type AIWorkflowAnalysisResult struct {
 
 func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisResult) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO ai_workflow_analysis_results(orchestrations_id, response_id, source_task_id, chunk_offset, iteration_count, 
+	q.RawQuery = `INSERT INTO ai_workflow_analysis_results(orchestration_id, response_id, source_task_id, chunk_offset, iteration_count, 
                                          running_cycle_number, search_window_unix_start, search_window_unix_end, skip_analysis, metadata)
                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                  ON CONFLICT (orchestrations_id, response_id, source_task_id, running_cycle_number, iteration_count, chunk_offset)
+                  ON CONFLICT (orchestration_id, response_id, source_task_id, running_cycle_number, iteration_count, chunk_offset)
                   DO UPDATE SET 
-                      orchestrations_id = EXCLUDED.orchestrations_id,
+                      orchestration_id = EXCLUDED.orchestration_id,
                       response_id = EXCLUDED.response_id,
                       source_task_id = EXCLUDED.source_task_id,
                       running_cycle_number = EXCLUDED.running_cycle_number,
@@ -45,7 +45,7 @@ func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisR
                       metadata = EXCLUDED.metadata
                   RETURNING workflow_result_id;`
 	md := &pgtype.JSONB{Bytes: sanitizeBytesUTF8(wr.Metadata), Status: IsNull(wr.Metadata)}
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wr.OrchestrationsID, wr.ResponseID, wr.SourceTaskID,
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wr.OrchestrationID, wr.ResponseID, wr.SourceTaskID,
 		wr.ChunkOffset, wr.IterationCount, wr.RunningCycleNumber,
 		wr.SearchWindowUnixStart, wr.SearchWindowUnixEnd, wr.SkipAnalysis,
 		md).Scan(&wr.WorkflowResultID)
@@ -59,12 +59,12 @@ func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisR
 func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourceTaskIds []int) ([]AIWorkflowAnalysisResult, error) {
 	q := sql_query_templates.QueryParams{}
 	// Then, select rows using the search window and source task IDs
-	q.RawQuery = `SELECT ar.workflow_result_id, ar.orchestrations_id, ar.response_id, ar.source_task_id,ar.chunk_offset, ar.iteration_count,
+	q.RawQuery = `SELECT ar.workflow_result_id, ar.orchestration_id, ar.response_id, ar.source_task_id,ar.chunk_offset, ar.iteration_count,
        					 ar.running_cycle_number, ar.search_window_unix_start, ar.search_window_unix_end, ar.metadata, cr.completion_choices
                   FROM ai_workflow_analysis_results ar
                   JOIN completion_responses cr ON cr.response_id = ar.response_id	
                   WHERE ar.skip_analysis = false AND ar.search_window_unix_start >= $1 AND ar.search_window_unix_end < $2
-                    AND ar.source_task_id = ANY($3) AND ar.orchestrations_id = ANY($4);`
+                    AND ar.source_task_id = ANY($3) AND ar.orchestration_id = ANY($4);`
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, w.UnixStartTime, w.UnixEndTime, pq.Array(sourceTaskIds), pq.Array(ojIds))
 	if err != nil {
@@ -76,7 +76,7 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
 	var results []AIWorkflowAnalysisResult
 	for rows.Next() {
 		var result AIWorkflowAnalysisResult
-		err = rows.Scan(&result.WorkflowResultID, &result.OrchestrationsID, &result.ResponseID, &result.SourceTaskID,
+		err = rows.Scan(&result.WorkflowResultID, &result.OrchestrationID, &result.ResponseID, &result.SourceTaskID,
 			&result.ChunkOffset, &result.IterationCount, &result.RunningCycleNumber,
 			&result.SearchWindowUnixStart, &result.SearchWindowUnixEnd, &result.Metadata, &result.CompletionChoices)
 		if err != nil {

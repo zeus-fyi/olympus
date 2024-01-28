@@ -1,8 +1,8 @@
 import {Assistant, Retrieval} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
-import {EvalFn, EvalFnMap, EvalMap, EvalMetric, EvalMetricsResult} from "./ai.types.evals";
+import {EvalFn, EvalFnMap, EvalMap, EvalMetric} from "./ai.types.evals";
 import {OrchestrationsAnalysis} from "./ai.types.runs";
-import {TriggerAction, TriggerPlatformAccount} from "./ai.types.triggers";
+import {TriggerAction} from "./ai.types.triggers";
 
 export interface AiState {
     addSchemasView: boolean;
@@ -53,7 +53,6 @@ export interface AiState {
     selectedMainTabBuilder: number;
     triggerAction: TriggerAction;
     triggerActions: TriggerAction[];
-    triggerPlatformAccount: TriggerPlatformAccount
     evalFn: EvalFn
     evalFns: EvalFn[];
     evalMetric: EvalMetric;
@@ -193,6 +192,7 @@ export interface Window {
 }
 
 export interface SearchIndexerParams {
+    searchStrID: string;
     searchID: number;
     searchGroupName: string;
     maxResults: number;
@@ -224,12 +224,4 @@ export interface PostSearchIndexerActionsRequest {
 
 export interface TelegramIndexerOpts {
     SearchIndexerParams: SearchIndexerParams;
-}
-
-export interface WebFilters {
-    routingGroup: string;
-}
-// TypeScript equivalent of the EvalFnMetricResults Go struct
-interface EvalFnMetricResults {
-    map: { [key: string]: EvalMetricsResult };
 }

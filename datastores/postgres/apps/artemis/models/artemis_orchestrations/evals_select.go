@@ -189,12 +189,11 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				continue
 			}
 			ta := TriggerAction{
-				TriggerID:                trigger.TriggerID,
-				TriggerStrID:             fmt.Sprintf("%d", trigger.TriggerID),
-				TriggerName:              trigger.TriggerName,
-				TriggerGroup:             trigger.TriggerGroup,
-				TriggerAction:            trigger.TriggerAction,
-				TriggerPlatformReference: TriggerPlatformReference{},
+				TriggerID:     trigger.TriggerID,
+				TriggerStrID:  fmt.Sprintf("%d", trigger.TriggerID),
+				TriggerName:   trigger.TriggerName,
+				TriggerGroup:  trigger.TriggerGroup,
+				TriggerAction: trigger.TriggerAction,
 				EvalTriggerAction: EvalTriggerActions{
 					EvalID:               *ef.EvalID,
 					EvalStrID:            fmt.Sprintf("%d", *ef.EvalID),

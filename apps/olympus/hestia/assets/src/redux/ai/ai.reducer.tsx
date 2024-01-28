@@ -11,7 +11,7 @@ import {Assistant, Retrieval} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 import {EvalFn, EvalMetric, UpdateEvalMapPayload} from "./ai.types.evals";
 import {OrchestrationsAnalysis} from "./ai.types.runs";
-import {TriggerAction, TriggerPlatformAccount} from "./ai.types.triggers";
+import {TriggerAction} from "./ai.types.triggers";
 
 const initialState: AiState = {
     addSchemasView: false,
@@ -98,6 +98,7 @@ const initialState: AiState = {
     searchIndexers: [],
     selectedSearchIndexers: [],
     searchIndexer: {
+        searchStrID: '',
         searchID: 0,
         searchGroupName: '',
         platform: '',
@@ -115,7 +116,8 @@ const initialState: AiState = {
         triggerStrID: '',
         triggerName: '',
         triggerGroup: '',
-        triggerAction: 'social-media-engagement',
+        triggerAction: 'api',
+        triggerRetrievals: [],
         triggerActionsApprovals: [],
         evalTriggerActions: [],
         evalTriggerAction: {
@@ -124,10 +126,6 @@ const initialState: AiState = {
         },
     },
     triggerActions: [],
-    triggerPlatformAccount: {
-        triggerPlatformName: '',
-        triggerPlatformAccount: '',
-    },
     evalMetric: {
         evalMetricStrID: undefined,
         evalMetricResult: undefined, // Assuming evalMetricResult is an object or undefined
@@ -241,9 +239,6 @@ const aiSlice = createSlice({
         updateEvalMetrics: (state, action: PayloadAction<EvalMetric[]>) => {
             state.evalFn.evalMetrics = action.payload;
         },
-        setActionPlatformAccount: (state, action: PayloadAction<TriggerPlatformAccount>) => {
-            state.triggerPlatformAccount = action.payload;
-        },
         setEvalMetric: (state, action: PayloadAction<EvalMetric>) => {
             state.evalMetric = action.payload;
         },
@@ -276,6 +271,10 @@ const aiSlice = createSlice({
                 state.retrieval.retrievalItemInstruction.webFilters = {
                     routingGroup: '',
                     lbStrategy: '',
+                    maxRetries: 0,
+                    backoffCoefficient: 2,
+                    endpointRoutePath: '',
+                    endpointREST: 'POST',
                 }
             }
             state.retrieval.retrievalItemInstruction.webFilters.routingGroup = action.payload;
@@ -546,7 +545,6 @@ export const {
     setSelectedMainTabBuilder,
     setTriggerActions,
     setTriggerAction,
-    setActionPlatformAccount,
     // updateActionMetrics,
     // setActionMetric,
     setEvalMetric,

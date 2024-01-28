@@ -1,12 +1,4 @@
-export interface TriggerPlatformAccount {
-    triggerPlatformName: string;
-    triggerPlatformAccount: string;
-}
-
-export interface TriggerPlatform {
-    triggerPlatformName: string;
-    triggerPlatformAccount: TriggerPlatformAccount[];
-}
+import {Retrieval} from "./ai.types.retrievals";
 
 export interface EvalActionTrigger {
     evalTriggerState: string;
@@ -18,7 +10,7 @@ export interface TriggerAction {
     triggerName: string;
     triggerGroup: string;
     triggerAction: string;
-    // triggerPlatforms: TriggerPlatform[];
+    triggerRetrievals: Retrieval[];
     triggerActionsApprovals: TriggerActionsApproval[];
     evalTriggerActions: EvalActionTrigger[];
     evalTriggerAction: EvalActionTrigger;

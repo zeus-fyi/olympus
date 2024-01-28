@@ -193,7 +193,6 @@ function WorkflowEngineBuilder(props: any) {
         }));
     };
 
-
     const setToggleEvalTaskType = () => {
         setToggleEvalToTaskType(!toggleEvalToTaskType);
     };
@@ -407,6 +406,13 @@ function WorkflowEngineBuilder(props: any) {
     const handleRemoveRetrievalFromWorkflow = async (event: any, retrievalRemove: Retrieval) => {
         dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalID !== retrievalRemove.retrievalID)));
     }
+    const handleRemoveRetrievalFromTrigger = async (event: any, retrievalRemove: Retrieval) => {
+        dispatch(setTriggerAction({
+            ...action,
+            triggerRetrievals: action.triggerRetrievals.filter((ret: Retrieval) => ret.retrievalStrID !== retrievalRemove.retrievalStrID)
+        }))
+    }
+
     const handleRemoveTriggerFromEvalFn = async (event: any, triggerRemove: TriggerAction) => {
         const newTriggerFunctions = evalFn.triggerFunctions.filter((trigger: TriggerAction) => trigger.triggerStrID !== triggerRemove.triggerStrID);
         dispatch(setEvalFn({
@@ -570,10 +576,19 @@ function WorkflowEngineBuilder(props: any) {
                 .map(key => tasks[Number(key)]);
             dispatch(setAddAggregateTasks(selectedTasks.filter((task: TaskModelInstructions) => task.taskType === 'aggregation')));
         } else if (addRetrievalView) {
-            const selectedTasks: Retrieval[] = Object.keys(selected)
+            const selectedRetrievals: Retrieval[] = Object.keys(selected)
                 .filter(key => selected[Number(key)])
                 .map(key => retrievals[Number(key)]);
-            dispatch(setAddRetrievalTasks(selectedTasks));
+            dispatch(setAddRetrievalTasks(selectedRetrievals));
+        } else if (addTriggerRetrievalView) {
+            const selectedRetrievals: Retrieval[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => retrievals[Number(key)]);
+            // TODO - filter out non-web retrievals
+            dispatch(setTriggerAction({
+                ...action,
+                triggerRetrievals: selectedRetrievals
+            }));
         } else if (addEvalsView) {
             const selectedEvals: EvalFn[] = Object.keys(selected)
                 .filter(key => selected[Number(key)])
@@ -688,18 +703,16 @@ function WorkflowEngineBuilder(props: any) {
 
     const addTriggerRetrievalStageView = async () => {
         const toggle = !addTriggerRetrievalView;
+        // TODO - filter out non-web retrievals
+
         dispatch(setAddAnalysisView(false));
         dispatch(setAddSchemasView(false));
         dispatch(setAddAggregationView(false));
         dispatch(setAddTriggerRetrievalView(toggle));
         dispatch(setAddRetrievalView(false));
         dispatch(setAddEvalFnsView(false));
-        if (toggle) {
-            dispatch(setSelectedMainTabBuilder(5))
-            setSelected({});
-        } else {
-            dispatch(setSelectedMainTabBuilder(0))
-        }
+        dispatch(setSelectedMainTabBuilder(5))
+        setSelected({});
     }
 
     const addRetrievalStageView = async () => {
@@ -1085,7 +1098,6 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestActionStatusError('error')
                 return;
             }
-
             if (action.triggerAction.length <= 0) {
                 setRequestActionStatus('Trigger action environment must be set')
                 setRequestActionStatusError('error')
@@ -1125,7 +1137,6 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestEvalCreateOrUpdateStatusError('error')
                 return;
             }
-
             // if (evalFn.schemas.length <= 0) {
             //     setRequestEvalCreateOrUpdateStatus('You must add at least one metric create an eval')
             //     setRequestEvalCreateOrUpdateStatusError('error')
@@ -1172,6 +1183,7 @@ function WorkflowEngineBuilder(props: any) {
         } else if (newValue === 5) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
+            // TODO: filter retrievals to web only for now
         } else if (newValue === 6) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
@@ -1181,7 +1193,9 @@ function WorkflowEngineBuilder(props: any) {
             setSelected({});
         }
         setSelected({});
-
+        if (addTriggerRetrievalView && newValue !== 5) {
+            dispatch(setAddTriggerRetrievalView(false));
+        }
         if (addAssistantsView && newValue !== 6) {
             dispatch(setAddAssistantsView(false));
         }
@@ -1233,7 +1247,7 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = event.target.checked;
-        if ((addRetrievalView || selectedMainTabBuilder === 3 && !addSchemasView) || (addTriggerRetrievalView && !addSchemasView)) {
+        if ((addRetrievalView || selectedMainTabBuilder === 3 && !addSchemasView) || (addTriggerRetrievalView && selectedMainTabBuilder === 5 && !addSchemasView) ) {
             const newSelection = retrievals.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
@@ -2927,7 +2941,54 @@ function WorkflowEngineBuilder(props: any) {
                                                                 This section allows configuration of retry mechanisms for API call operations. It includes settings for the maximum number of retry attempts, where a specific number limits retries, and '0' or unset implies unlimited retries within the activity's time bounds.
                                                                 Additionally, the retry backoff coefficient determines the interval increase between retries, with a default setting that doubles the interval after each attempt.
                                                             </Typography>
-
+                                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                                                {action.triggerRetrievals && action.triggerRetrievals.map((ret: Retrieval, subIndex: number) => (
+                                                                    <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
+                                                                        <Box flexGrow={2} sx={{ mt: 0, ml: 0 }}>
+                                                                            <TextField
+                                                                                key={subIndex}
+                                                                                label={`Retrieval Name`}
+                                                                                value={ret?.retrievalName || ''}
+                                                                                InputProps={{
+                                                                                    readOnly: true,
+                                                                                }}
+                                                                                variant="outlined"
+                                                                                fullWidth
+                                                                                margin="normal"
+                                                                            />
+                                                                        </Box>
+                                                                        <Box flexGrow={2} sx={{ mt: 0, ml: 2 }}>
+                                                                            <TextField
+                                                                                key={subIndex}
+                                                                                label={`Retrieval Group`}
+                                                                                value={ret?.retrievalGroup || ''}
+                                                                                InputProps={{
+                                                                                    readOnly: true,
+                                                                                }}
+                                                                                variant="outlined"
+                                                                                fullWidth
+                                                                                margin="normal"
+                                                                            />
+                                                                        </Box>
+                                                                        <Box flexGrow={2} sx={{ mt: 0, ml: 2 }}>
+                                                                            <TextField
+                                                                                key={subIndex}
+                                                                                label={`Platform`}
+                                                                                value={ret?.retrievalItemInstruction.retrievalPlatform || ''}
+                                                                                InputProps={{
+                                                                                    readOnly: true,
+                                                                                }}
+                                                                                variant="outlined"
+                                                                                fullWidth
+                                                                                margin="normal"
+                                                                            />
+                                                                        </Box>
+                                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2, mt: 3 }}>
+                                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveRetrievalFromTrigger(event, ret)}>Remove</Button>
+                                                                        </Box>
+                                                                    </Stack>
+                                                                ))}
+                                                            </Box>
                                                             <Box flexGrow={1} sx={{ mb: 2, mt: 2, ml: 0 }}>
                                                                 <Button  variant="contained" onClick={() => addTriggerRetrievalStageView()} >{addTriggerRetrievalView ? 'Done Adding': 'Add Retrieval Stages'}</Button>
                                                             </Box>

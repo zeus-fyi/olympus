@@ -243,11 +243,6 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 					resultBool = *evals[j].EvalMetricResult.EvalResultOutcomeBool
 				}
 
-				if j == 8 {
-					fmt.Println("evals[j].EvalMetricResult.EvalResultOutcomeBool", evals[j].EvalMetricResult.EvalResultOutcomeBool)
-					fmt.Println("evals[j].EvalMetricResult.EvalResultOutcomeStateStr", evals[j].EvalMetricResult.EvalResultOutcomeStateStr)
-
-				}
 				switch evals[j].EvalExpectedResultState {
 				case pass:
 					evals[j].EvalExpectedResultState = cPass

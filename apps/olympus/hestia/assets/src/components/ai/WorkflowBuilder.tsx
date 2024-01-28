@@ -2563,7 +2563,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }}
                                                                 />
                                                             </Box>
-                                                            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
                                                                 <FormControl fullWidth>
                                                                     <InputLabel id="endpoint-rest-trigger">REST</InputLabel>
                                                                     <Select
@@ -3033,6 +3033,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                             }}
                                                                         >
                                                                             <MenuItem value="post">{'POST'}</MenuItem>
+                                                                            <MenuItem value="get">{'GET'}</MenuItem>
                                                                             <MenuItem value="put">{'PUT'}</MenuItem>
                                                                             <MenuItem value="delete">{'DELETE'}</MenuItem>
                                                                         </Select>

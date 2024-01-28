@@ -52,6 +52,7 @@ export interface EvalFn {
     evalGroupName: string;
     evalModel: string;
     evalFormat: string;
+    evalMultiplier?: number;
     evalCycleCount?: number;
     evalMetrics: EvalMetric[];
     triggerFunctions?: TriggerAction[];

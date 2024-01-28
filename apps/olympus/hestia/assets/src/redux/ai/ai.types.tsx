@@ -25,6 +25,7 @@ export interface AiState {
     addAnalysisView: boolean;
     addAggregationView: boolean;
     addRetrievalView: boolean;
+    addTriggerRetrievalView: boolean;
     addEvalFnsView: boolean;
     addAssistantsView: boolean;
     addTriggersToEvalFnView: boolean;

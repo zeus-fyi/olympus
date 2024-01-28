@@ -55,6 +55,7 @@ const initialState: AiState = {
     addAssistantsView: false,
     addTriggerActionsView: false,
     addTriggersToEvalFnView: false,
+    addTriggerRetrievalView: false,
     addedEvalFns: [],
     addedAnalysisTasks: [],
     addedAggregateTasks: [],
@@ -81,6 +82,8 @@ const initialState: AiState = {
             webFilters: {
                 routingGroup: '',
                 lbStrategy: '',
+                endpointREST: 'POST',
+                endpointRoutePath: '',
             },
             instructions: '',
         }
@@ -201,6 +204,9 @@ const aiSlice = createSlice({
         },
         setAddTriggerActionsView: (state, action: PayloadAction<boolean>) => {
             state.addTriggerActionsView = action.payload;
+        },
+        setAddTriggerRetrievalView: (state, action: PayloadAction<boolean>) => {
+            state.addTriggerRetrievalView = action.payload;
         },
         setAssistant: (state, action: PayloadAction<Assistant>) => {
             state.assistant = action.payload;
@@ -562,6 +568,7 @@ export const {
     setSchema,
     setSchemas,
     setSchemaField,
-    setAddSchemasView
+    setAddSchemasView,
+    setAddTriggerRetrievalView
 } = aiSlice.actions;
 export default aiSlice.reducer;

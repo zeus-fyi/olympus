@@ -38,6 +38,15 @@ func (c *CTE) SanitizedMultiLevelValuesCTEStringBuilderSQL() string {
 					sb.WriteString("), \n")
 				}
 			}
+			if len(c.OnConflicts) > 0 {
+				sb.WriteString(fmt.Sprintf("\n ON CONFLICT (%s) DO UPDATE SET ", strings.Join(c.OnConflicts, ", ")))
+				for i, col := range c.OnConflictsUpdateColumns {
+					sb.WriteString(fmt.Sprintf("%s = EXCLUDED.%s", col, col))
+					if i < len(c.OnConflictsUpdateColumns)-1 {
+						sb.WriteString(", ")
+					}
+				}
+			}
 		} else {
 			sb.WriteString(subCteExpr.InjectRawQueryCTE())
 		}

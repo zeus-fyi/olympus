@@ -23,12 +23,10 @@ type JsonSchemaDefinition struct {
 	FieldsMap         map[string]*JsonSchemaField
 }
 
-func ValidateSchemas(jss [][]*JsonSchemaDefinition) bool {
-	for _, js := range jss {
-		for _, sch := range js {
-			if !sch.Validate() {
-				return false
-			}
+func ValidateSchemas(jss []JsonSchemaDefinition) bool {
+	for _, sch := range jss {
+		if !sch.Validate() {
+			return false
 		}
 	}
 	return true

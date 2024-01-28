@@ -3,7 +3,6 @@ package ai_platform_service_orchestrations
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -50,7 +49,7 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 		if er.EvalMetricResult == nil || er.EvalMetricResult.EvalResultOutcomeBool == nil {
 			continue
 		}
-		m[er.EvalState] = append(m[er.EvalState], aws.ToBool(er.EvalMetricResult.EvalResultOutcomeBool))
+		m[er.EvalState] = append(m[er.EvalState], *er.EvalMetricResult.EvalResultOutcomeBool)
 	}
 	// gets the eval results by state, eg. info, trigger, etc.
 	for _, tr := range act.EvalTriggerActions {

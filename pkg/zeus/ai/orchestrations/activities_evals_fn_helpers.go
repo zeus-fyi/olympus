@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
@@ -18,22 +17,12 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 			if jsonSchemaDef.Fields[vi].EvalMetrics[i] == nil {
 				jsonSchemaDef.Fields[vi].EvalMetrics[i] = &artemis_orchestrations.EvalMetric{}
 			}
-			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult == nil {
-				chs := chronos.Chronos{}
-				tsv := chs.UnixTimeStampNow()
-				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult = &artemis_orchestrations.EvalMetricResult{
-					EvalMetricResultID:    aws.Int(tsv),
-					EvalMetricResultStrID: aws.String(fmt.Sprintf("%d", tsv)),
-				}
-			}
+			jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult = &artemis_orchestrations.EvalMetricResult{}
 			eocr := artemis_orchestrations.EvalMetaDataResult{
 				EvalOpCtxStr:               "",
 				Operator:                   jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator,
 				EvalMetricComparisonValues: jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues,
 				FieldValue:                 &jsonSchemaDef.Fields[vi].FieldValue,
-			}
-			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues == nil {
-				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues = &artemis_orchestrations.EvalMetricComparisonValues{}
 			}
 			switch jsonSchemaDef.Fields[vi].DataType {
 			case "integer":
@@ -83,8 +72,9 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 				if jsonSchemaDef.Fields[vi].BooleanValue == nil {
 					return fmt.Errorf("no boolean value for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-				eocr.EvalOpCtxStr = fmt.Sprintf("%s %t %s %t", jsonSchemaDef.Fields[vi].FieldName, aws.ToBool(jsonSchemaDef.Fields[vi].BooleanValue), jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, aws.ToBool(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean))
-				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetBooleanEvalComparisonResult(aws.ToBool(jsonSchemaDef.Fields[vi].BooleanValue), aws.ToBool(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)))
+
+				eocr.EvalOpCtxStr = fmt.Sprintf("%s %t %s %t", jsonSchemaDef.Fields[vi].FieldName, *jsonSchemaDef.Fields[vi].BooleanValue, jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean)
+				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetBooleanEvalComparisonResult(*jsonSchemaDef.Fields[vi].BooleanValue, *jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonBoolean))
 			case "array[integer]":
 				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber == nil && jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger == nil {
 					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
@@ -330,31 +320,6 @@ func haveIdenticalKeys[K comparable, V any](map1, map2 map[K]*V) bool {
 	return true
 }
 
-func copyFieldValues(src, dest *artemis_orchestrations.JsonSchemaDefinition) bool {
-	if src == nil || dest == nil {
-		return false // Handle nil arguments
-	}
-
-	for _, srcField := range src.FieldsMap {
-		if srcField == nil {
-			continue // Skip if srcField is nil
-		}
-
-		destField, ok := dest.FieldsMap[srcField.FieldStrID]
-		if !ok || destField == nil {
-			return false
-		}
-		if !srcField.FieldValue.IsValidated {
-			return false
-		}
-
-		if srcField.DataType == destField.DataType {
-			destField.FieldValue = srcField.FieldValue
-		}
-	}
-	return true
-}
-
 func copyMatchingFieldValues(tasksSchemaMap, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) {
 	if tasksSchemaMap == nil || schemasMap == nil {
 		return // Handle nil maps
@@ -402,6 +367,31 @@ func copyMatchingFieldValuesFromResp(respJsonResults *artemis_orchestrations.Jso
 		populateFieldsMap(schema)
 	}
 	return copyFieldValues(respJsonResults, evalSchema)
+}
+
+func copyFieldValues(src, dest *artemis_orchestrations.JsonSchemaDefinition) bool {
+	if src == nil || dest == nil {
+		return false // Handle nil arguments
+	}
+
+	for _, srcField := range src.FieldsMap {
+		if srcField == nil {
+			continue // Skip if srcField is nil
+		}
+
+		destField, ok := dest.FieldsMap[srcField.FieldStrID]
+		if !ok || destField == nil {
+			return false
+		}
+		if !srcField.FieldValue.IsValidated {
+			return false
+		}
+
+		if srcField.DataType == destField.DataType {
+			destField.FieldValue = srcField.FieldValue
+		}
+	}
+	return true
 }
 
 func populateFieldsMap(schema *artemis_orchestrations.JsonSchemaDefinition) {

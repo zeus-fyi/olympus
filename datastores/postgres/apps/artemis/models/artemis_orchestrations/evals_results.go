@@ -2,6 +2,7 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 type AIWorkflowEvalResultResponse struct {
@@ -21,40 +23,44 @@ type AIWorkflowEvalResultResponse struct {
 	EvalIterationCount int `db:"eval_iteration_count" json:"evalIterationCount"`
 }
 
+const Sn = "UpsertEvalMetricsResults"
+
 func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) error {
-	if emrs == nil || emrs.EvalMetricsResults == nil {
-		log.Info().Msg("UpsertEvalMetricsResults: emr is nil")
-		return nil
+	fp := filepaths.Path{
+		DirOut: "/Users/alex/go/Olympus/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations",
+		FnOut:  "debug-1.json",
 	}
-	tx, err := apps.Pg.Begin(ctx)
+
+	b, _ := json.Marshal(emrs)
+	fmt.Println(string(b))
+	err := fp.WriteToFileOutPath(b)
 	if err != nil {
+		log.Err(err).Msg("UpsertEvalMetricsResults: failed to write to file")
 		return err
 	}
-	defer tx.Rollback(ctx)
-	const query = `
-       INSERT INTO public.eval_metrics_results (
-           eval_metrics_results_id,
-           orchestration_id,
-           source_task_id,
-           eval_metric_id,
-           running_cycle_number,
-           search_window_unix_start,
-           search_window_unix_end,
-           eval_result_outcome,
-           eval_metadata,
-           chunk_offset,
-           eval_iteration_count
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       ON CONFLICT (eval_metrics_results_id)
-       DO UPDATE SET
-           running_cycle_number = EXCLUDED.running_cycle_number,
-           search_window_unix_start = EXCLUDED.search_window_unix_start,
-           search_window_unix_end = EXCLUDED.search_window_unix_end,
-           eval_result_outcome = EXCLUDED.eval_result_outcome,
-           eval_metadata = EXCLUDED.eval_metadata
-       RETURNING eval_metrics_results_id;
-   `
+
+	q := sql_query_templates.NewQueryParam("UpsertEvalMetricsResults", "eval_metrics_results", "where", 1000, []string{})
+	cte := sql_query_templates.CTE{Name: "UpsertEvalMetricsResults"}
+	cte.SubCTEs = []sql_query_templates.SubCTE{}
+	cte.Params = []interface{}{}
+	ch := chronos.Chronos{}
 	for _, emr := range emrs.EvalMetricsResults {
+		queryResourceId := fmt.Sprintf("eval_metrics_results_insert_%d", ch.UnixTimeStampNow())
+		scteRe := sql_query_templates.NewSubInsertCTE(queryResourceId)
+		scteRe.TableName = "eval_metrics_results"
+		scteRe.Columns = []string{
+			"eval_metrics_results_id",
+			"orchestration_id",
+			"source_task_id",
+			"eval_metric_id",
+			"running_cycle_number",
+			"search_window_unix_start",
+			"search_window_unix_end",
+			"eval_result_outcome",
+			"eval_metadata",
+			"chunk_offset",
+			"eval_iteration_count",
+		}
 		if emr == nil || aws.ToInt(emr.EvalMetricID) == 0 || emr.EvalMetricResult == nil || emr.EvalMetricResult.EvalResultOutcomeBool == nil {
 			continue
 		}
@@ -70,7 +76,7 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
 		} else {
 			pgTemp = &pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetricResult.EvalMetadata), Status: IsNull(emr.EvalMetricResult.EvalMetadata)}
 		}
-		rowsInfo, rerr := tx.Exec(ctx, query,
+		rv := apps.RowValues{
 			aws.ToInt(emr.EvalMetricResult.EvalMetricResultID),
 			emrs.EvalContext.AIWorkflowAnalysisResult.OrchestrationID,
 			emrs.EvalContext.AIWorkflowAnalysisResult.SourceTaskID,
@@ -82,18 +88,21 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
 			pgTemp,
 			emrs.EvalContext.AIWorkflowAnalysisResult.ChunkOffset,
 			emrs.EvalContext.EvalIterationCount,
-		)
-		if rerr != nil {
-			log.Err(rerr).Interface("rowsInfo", rowsInfo).Msg("failed to execute query")
-			return rerr
 		}
+		scteRe.Values = []apps.RowValues{rv}
+
+		cte.SubCTEs = append(cte.SubCTEs, scteRe)
 	}
-	err = tx.Commit(ctx)
-	if err != nil {
-		log.Err(err).Msg("failed to commit transaction")
+	cte.OnConflicts = []string{"eval_metrics_results_id"}
+	cte.OnConflictsUpdateColumns = []string{"running_cycle_number", "search_window_unix_start", "search_window_unix_end", "eval_result_outcome", "eval_metadata"}
+	q.RawQuery = cte.GenerateChainedCTE()
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, cte.Params...)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}
-	return nil
+	rowsAffected := r.RowsAffected()
+	log.Debug().Msgf("MetricResults: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
+	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
 func InsertOrUpdateAiWorkflowEvalResultResponse(ctx context.Context, errr AIWorkflowEvalResultResponse) (int, error) {

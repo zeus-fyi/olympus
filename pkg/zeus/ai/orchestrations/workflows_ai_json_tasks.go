@@ -97,16 +97,14 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				log.Err(anyErr).Interface("m", m).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
 			}
 		}
-		var tmpResp [][]*artemis_orchestrations.JsonSchemaDefinition
+		var tmpResp []artemis_orchestrations.JsonSchemaDefinition
 		if anyErr == nil {
 			tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
 		}
 		if m == nil || len(tmpResp) == 0 {
 			continue
 		}
-		if len(tmpResp) > 0 && len(tmpResp[0]) <= 0 {
-			continue
-		}
+
 		if anyErr != nil {
 			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")
 			tte.Wr.SkipAnalysis = true

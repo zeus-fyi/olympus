@@ -70,7 +70,7 @@ func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, e
 //	return emr, nil
 //}
 
-func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, ef *artemis_orchestrations.EvalFn, jrs [][]*artemis_orchestrations.JsonSchemaDefinition) (*artemis_orchestrations.EvalMetricsResults, error) {
+func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, ef *artemis_orchestrations.EvalFn, jrs []artemis_orchestrations.JsonSchemaDefinition) (*artemis_orchestrations.EvalMetricsResults, error) {
 	if ef == nil || ef.SchemasMap == nil {
 		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
 		return nil, nil
@@ -81,23 +81,25 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 	}
 
 	for i, _ := range jrs {
-		for j, _ := range jrs[i] {
-			tmp := jrs[i][j]
-			_, ok := ef.SchemasMap[tmp.SchemaStrID]
-			if !ok {
-				continue
-			}
-			copyMatchingFieldValuesFromResp(tmp, ef.SchemasMap)
-			err := TransformJSONToEvalScoredMetrics(ef.SchemasMap[tmp.SchemaStrID])
-			if err != nil {
-				log.Err(err).Int("i", i).Interface("scoredResultsFields", jrs[i][j]).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
-				return nil, err
-			}
-			for fj, _ := range ef.SchemasMap[tmp.SchemaStrID].Fields {
-				for emi, _ := range ef.SchemasMap[tmp.SchemaStrID].Fields[fj].EvalMetrics {
-					emr.EvalMetricsResults = append(emr.EvalMetricsResults, ef.SchemasMap[tmp.SchemaStrID].Fields[fj].EvalMetrics[emi])
+		_, ok := ef.SchemasMap[jrs[i].SchemaStrID]
+		if !ok {
+			continue
+		}
+		copyMatchingFieldValuesFromResp(&jrs[i], ef.SchemasMap)
+		err := TransformJSONToEvalScoredMetrics(ef.SchemasMap[jrs[i].SchemaStrID])
+		if err != nil {
+			log.Err(err).Int("i", i).Interface("scoredResultsFields", jrs[i]).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
+			return nil, err
+		}
+		for fj, _ := range ef.SchemasMap[jrs[i].SchemaStrID].Fields {
+			for emi, _ := range ef.SchemasMap[jrs[i].SchemaStrID].Fields[fj].EvalMetrics {
+				if ef.SchemasMap[jrs[i].SchemaStrID].Fields[fj].EvalMetrics[emi] == nil {
+					continue
 				}
+				evm := *ef.SchemasMap[jrs[i].SchemaStrID].Fields[fj].EvalMetrics[emi]
+				emr.EvalMetricsResults = append(emr.EvalMetricsResults, &evm)
 			}
+
 		}
 	}
 	return emr, nil

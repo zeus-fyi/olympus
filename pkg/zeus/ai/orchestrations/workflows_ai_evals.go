@@ -35,7 +35,7 @@ func (m *MbChildSubProcessParams) GetFilteredSearchResults() []hera_search.Searc
 	return nil
 }
 
-func (m *MbChildSubProcessParams) GetJsonResponseResults() [][]*artemis_orchestrations.JsonSchemaDefinition {
+func (m *MbChildSubProcessParams) GetJsonResponseResults() []artemis_orchestrations.JsonSchemaDefinition {
 	if m == nil {
 		return nil
 	}
@@ -127,6 +127,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				logger.Error("failed to get score eval", "Error", err)
 				return err
 			}
+			emr.EvalContext = evCtx
 		case "api":
 			// TODO, complete this, should attach a retrieval option? use that for the scoring?
 			//retrievalCtx := workflow.WithActivityOptions(ctx, ao)

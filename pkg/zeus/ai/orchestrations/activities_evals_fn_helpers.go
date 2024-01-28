@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
@@ -18,22 +17,12 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 			if jsonSchemaDef.Fields[vi].EvalMetrics[i] == nil {
 				jsonSchemaDef.Fields[vi].EvalMetrics[i] = &artemis_orchestrations.EvalMetric{}
 			}
-			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult == nil {
-				chs := chronos.Chronos{}
-				tsv := chs.UnixTimeStampNow()
-				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult = &artemis_orchestrations.EvalMetricResult{
-					EvalMetricResultID:    aws.Int(tsv),
-					EvalMetricResultStrID: aws.String(fmt.Sprintf("%d", tsv)),
-				}
-			}
+			jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult = &artemis_orchestrations.EvalMetricResult{}
 			eocr := artemis_orchestrations.EvalMetaDataResult{
 				EvalOpCtxStr:               "",
 				Operator:                   jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator,
 				EvalMetricComparisonValues: jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues,
 				FieldValue:                 &jsonSchemaDef.Fields[vi].FieldValue,
-			}
-			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues == nil {
-				jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues = &artemis_orchestrations.EvalMetricComparisonValues{}
 			}
 			switch jsonSchemaDef.Fields[vi].DataType {
 			case "integer":

@@ -2775,7 +2775,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
+                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:0  }}>
                                                             <FormControl fullWidth>
                                                                 <InputLabel id="eval-completion-trigger">Eval Completion</InputLabel>
                                                                 <Select
@@ -2863,35 +2863,94 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Stack>
                                                     }
 
+
                                                     { !loading && action.triggerAction === 'api' &&
-                                                    <FormControl sx={{ mt: 2 }} fullWidth variant="outlined">
-                                                        <InputLabel key={`groupNameLabel`} id={`groupName`}>
-                                                            Routing Group
-                                                        </InputLabel>
-                                                        <Select
-                                                            labelId={`groupNameLabel`}
-                                                            id={`groupName`}
-                                                            name="groupName"
-                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.routingGroup ? retrieval.retrievalItemInstruction.webFilters.routingGroup : ''}
-                                                            onChange={(e) => {
-                                                                const updatedRetrieval = {
-                                                                    ...retrieval,
-                                                                    retrievalItemInstruction: {
-                                                                        ...retrieval.retrievalItemInstruction,
-                                                                        webFilters: {
-                                                                            ...retrieval.retrievalItemInstruction.webFilters,
-                                                                            routingGroup: e.target.value, // Correctly update the routingGroup field
-                                                                        }
-                                                                    }
-                                                                };
-                                                                dispatch(setRetrieval(updatedRetrieval));
-                                                            }}
-                                                            label="Routing Group"
-                                                        >
-                                                            {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
-                                                        </Select>
-                                                    </FormControl>
+                                                        <Stack direction="column" >
+                                                            <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2, mt: 0  }}>
+                                                                <FormControl
+                                                                    fullWidth variant="outlined">
+                                                                    <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                                                        Routing Group
+                                                                    </InputLabel>
+                                                                    <Select
+                                                                        labelId={`groupNameLabel`}
+                                                                        id={`groupName`}
+                                                                        name="groupName"
+                                                                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.routingGroup ? retrieval.retrievalItemInstruction.webFilters.routingGroup : ''}
+                                                                        onChange={(e) => {
+                                                                            const updatedRetrieval = {
+                                                                                ...retrieval,
+                                                                                retrievalItemInstruction: {
+                                                                                    ...retrieval.retrievalItemInstruction,
+                                                                                    webFilters: {
+                                                                                        ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                        routingGroup: e.target.value, // Correctly update the routingGroup field
+                                                                                    }
+                                                                                }
+                                                                            };
+                                                                            dispatch(setRetrieval(updatedRetrieval));
+                                                                        }}
+                                                                        label="Routing Group"
+                                                                    >
+                                                                        {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                            <Stack direction="row" >
+                                                                <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2, mt: 2  }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id="endpoint-route-input"
+                                                                        label="Route Path"
+                                                                        variant="outlined"
+                                                                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                        && retrieval.retrievalItemInstruction.webFilters.endpointRoutePath ? retrieval.retrievalItemInstruction.webFilters.endpointRoutePath : ''}
+                                                                        onChange={(e) => {
+                                                                            const updatedRetrieval = {
+                                                                                ...retrieval,
+                                                                                retrievalItemInstruction: {
+                                                                                    ...retrieval.retrievalItemInstruction,
+                                                                                    webFilters: {
+                                                                                        ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                        endpointRoutePath: e.target.value, // Correctly update the routingGroup field
+                                                                                    }
+                                                                                }
+                                                                            };
+                                                                            dispatch(setRetrieval(updatedRetrieval));
+                                                                        }}
+                                                                    />
+                                                                </Box>
+                                                                <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2, mt: 2  }}>
+                                                                    <FormControl fullWidth>
+                                                                        <InputLabel id="endpoint-rest-trigger">REST</InputLabel>
+                                                                        <Select
+                                                                            id="endpoint-rest-trigger"
+                                                                            label="REST Trigger"
+                                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                            && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {
+                                                                                const updatedRetrieval = {
+                                                                                    ...retrieval,
+                                                                                    retrievalItemInstruction: {
+                                                                                        ...retrieval.retrievalItemInstruction,
+                                                                                        webFilters: {
+                                                                                            ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                            endpointREST: e.target.value, // Correctly update the routingGroup field
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                                            }}
+                                                                        >
+                                                                            <MenuItem value="post">{'POST'}</MenuItem>
+                                                                            <MenuItem value="put">{'PUT'}</MenuItem>
+                                                                            <MenuItem value="delete">{'DELETE'}</MenuItem>
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                            </Stack>
+                                                        </Stack>
                                                     }
+
                                                     { !loading && action.evalResultsTriggerOn == 'metrics' &&
                                                         <Stack direction="row" >
                                                             {/*<Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>*/}

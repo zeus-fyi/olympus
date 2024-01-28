@@ -35,6 +35,8 @@ export interface WebFilters {
     lbStrategy?: string;
     maxRetries?: number;
     backoffCoefficient?: number;
+    endpointRoutePath?: string;
+    endpointREST?: string;
 }
 
 export interface Retrieval {

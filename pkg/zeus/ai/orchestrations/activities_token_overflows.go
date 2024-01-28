@@ -37,6 +37,7 @@ type PromptReduction struct {
 }
 
 type PromptReductionText struct {
+	InPromptSystem     string   `json:"inPromptSystem"`
 	InPromptBody       string   `json:"inPromptBody"`
 	OutPromptChunks    []string `json:"outPromptChunks,omitempty"`
 	OutPromptTruncated string   `json:"outPromptTruncated,omitempty"`
@@ -68,7 +69,6 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 		}
 		return pr, nil
 	}
-
 	err := TokenOverflowSearchResults(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowSearchResults")

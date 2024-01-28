@@ -2511,8 +2511,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
                                                             </Select>
                                                         </FormControl>
-
-                                                        <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
+                                                        <FormControl sx={{ mt: 2 }} fullWidth variant="outlined">
                                                             <InputLabel key={`groupNameLabel`} id={`groupName`}>
                                                                 Load Balancing
                                                             </InputLabel>
@@ -2540,7 +2539,59 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <MenuItem value="poll-table">Poll Table</MenuItem>
                                                             </Select>
                                                         </FormControl>
-
+                                                        <Stack direction="row">
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="endpoint-route-input"
+                                                                    label="Route Path"
+                                                                    variant="outlined"
+                                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                    && retrieval.retrievalItemInstruction.webFilters.endpointRoutePath ? retrieval.retrievalItemInstruction.webFilters.endpointRoutePath : ''}
+                                                                    onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    endpointRoutePath: e.target.value, // Correctly update the routingGroup field
+                                                                                }
+                                                                            }
+                                                                        };
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>
+                                                                <FormControl fullWidth>
+                                                                    <InputLabel id="endpoint-rest-trigger">REST</InputLabel>
+                                                                    <Select
+                                                                        id="endpoint-rest-trigger"
+                                                                        label="REST Trigger"
+                                                                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                        && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    endpointREST: e.target.value, // Correctly update the routingGroup field
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                    >
+                                                                        <MenuItem value="post">{'POST'}</MenuItem>
+                                                                        <MenuItem value="get">{'GET'}</MenuItem>
+                                                                        <MenuItem value="put">{'PUT'}</MenuItem>
+                                                                        <MenuItem value="delete">{'DELETE'}</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                        </Stack>
                                                     </div>
                                                 }
                                                     { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'discord' &&
@@ -2862,21 +2913,23 @@ function WorkflowEngineBuilder(props: any) {
                                                             </Box>
                                                         </Stack>
                                                     }
-
-
                                                     { !loading && action.triggerAction === 'api' &&
                                                         <Stack direction="column" >
-                                                            <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2, mt: 0  }}>
-                                                                <FormControl
-                                                                    fullWidth variant="outlined">
-                                                                    <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                                            <Stack direction={"row"}>
+                                                                <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 0}}>
+                                                                    <FormControl
+                                                                     fullWidth
+                                                                     variant="outlined">
+                                                                    <InputLabel key={`groupNameLabel`}
+                                                                                id={`groupName`}>
                                                                         Routing Group
                                                                     </InputLabel>
                                                                     <Select
                                                                         labelId={`groupNameLabel`}
                                                                         id={`groupName`}
                                                                         name="groupName"
-                                                                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.routingGroup ? retrieval.retrievalItemInstruction.webFilters.routingGroup : ''}
+                                                                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                        && retrieval.retrievalItemInstruction.webFilters.routingGroup ? retrieval.retrievalItemInstruction.webFilters.routingGroup : ''}
                                                                         onChange={(e) => {
                                                                             const updatedRetrieval = {
                                                                                 ...retrieval,
@@ -2892,12 +2945,50 @@ function WorkflowEngineBuilder(props: any) {
                                                                         }}
                                                                         label="Routing Group"
                                                                     >
-                                                                        {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
-                                                                    </Select>
-                                                                </FormControl>
-                                                            </Box>
-                                                            <Stack direction="row" >
-                                                                <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2, mt: 2  }}>
+                                                                {Object.keys(groups).map((name) => <MenuItem
+                                                                    key={name}
+                                                                    value={name}>{name}</MenuItem>)}
+                                                            </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                                <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 0}}>
+                                                                <FormControl
+                                                                                 fullWidth
+                                                                                 variant="outlined">
+                                                                        <InputLabel key={`groupNameLabel`}
+                                                                                    id={`groupName`}>
+                                                                            Load Balancing
+                                                                        </InputLabel>
+                                                                        <Select
+                                                                            labelId={`lbStrategy`}
+                                                                            id={`lbStrategy`}
+                                                                            name="lbStrategy"
+                                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.lbStrategy ? retrieval.retrievalItemInstruction.webFilters.lbStrategy : 'round-robin'}
+                                                                            onChange={(e) => {
+                                                                                const updatedRetrieval = {
+                                                                                    ...retrieval,
+                                                                                    retrievalItemInstruction: {
+                                                                                        ...retrieval.retrievalItemInstruction,
+                                                                                        webFilters: {
+                                                                                            ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                            lbStrategy: e.target.value, // Correctly update the routingGroup field
+                                                                                        }
+                                                                                    }
+                                                                                };
+                                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                                            }}
+                                                                            label="Load Balancing"
+                                                                        >
+                                                                            <MenuItem value="round-robin">Round
+                                                                                Robin</MenuItem>
+                                                                            <MenuItem value="poll-table">Poll
+                                                                                Table</MenuItem>
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                </Box>
+                                                            </Stack>
+                                                            <Stack direction="row">
+                                                                <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>
                                                                     <TextField
                                                                         fullWidth
                                                                         id="endpoint-route-input"
@@ -2920,8 +3011,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                         }}
                                                                     />
                                                                 </Box>
-                                                                <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2, mt: 2  }}>
-                                                                    <FormControl fullWidth>
+                                                                <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>
+                                                                <FormControl fullWidth>
                                                                         <InputLabel id="endpoint-rest-trigger">REST</InputLabel>
                                                                         <Select
                                                                             id="endpoint-rest-trigger"

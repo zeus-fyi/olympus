@@ -104,7 +104,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		if m == nil || len(tmpResp) == 0 {
 			continue
 		}
-
 		if anyErr != nil {
 			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")
 			tte.Wr.SkipAnalysis = true

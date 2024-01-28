@@ -99,7 +99,6 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 				evm := *ef.SchemasMap[jrs[i].SchemaStrID].Fields[fj].EvalMetrics[emi]
 				emr.EvalMetricsResults = append(emr.EvalMetricsResults, &evm)
 			}
-
 		}
 	}
 	return emr, nil

@@ -45,13 +45,14 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
            chunk_offset,
            eval_iteration_count
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       ON CONFLICT (eval_metrics_results_id, eval_metric_id, source_task_id, orchestration_id, running_cycle_number, chunk_offset, eval_iteration_count)
+       ON CONFLICT (eval_metrics_results_id)
        DO UPDATE SET
            running_cycle_number = EXCLUDED.running_cycle_number,
            search_window_unix_start = EXCLUDED.search_window_unix_start,
            search_window_unix_end = EXCLUDED.search_window_unix_end,
            eval_result_outcome = EXCLUDED.eval_result_outcome,
-           eval_metadata = EXCLUDED.eval_metadata;
+           eval_metadata = EXCLUDED.eval_metadata
+       RETURNING eval_metrics_results_id;
    `
 	for _, emr := range emrs.EvalMetricsResults {
 		if emr == nil || aws.ToInt(emr.EvalMetricID) == 0 || emr.EvalMetricResult == nil || emr.EvalMetricResult.EvalResultOutcomeBool == nil {
@@ -69,22 +70,22 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
 		} else {
 			pgTemp = &pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetricResult.EvalMetadata), Status: IsNull(emr.EvalMetricResult.EvalMetadata)}
 		}
-		_, err = tx.Exec(ctx, query,
-			emr.EvalMetricResult.EvalMetricResultID,
+		rowsInfo, rerr := tx.Exec(ctx, query,
+			aws.ToInt(emr.EvalMetricResult.EvalMetricResultID),
 			emrs.EvalContext.AIWorkflowAnalysisResult.OrchestrationID,
 			emrs.EvalContext.AIWorkflowAnalysisResult.SourceTaskID,
-			emr.EvalMetricID,
+			aws.ToInt(emr.EvalMetricID),
 			emrs.EvalContext.AIWorkflowAnalysisResult.RunningCycleNumber,
 			emrs.EvalContext.AIWorkflowAnalysisResult.SearchWindowUnixStart,
 			emrs.EvalContext.AIWorkflowAnalysisResult.SearchWindowUnixEnd,
-			emr.EvalMetricResult.EvalResultOutcomeBool,
+			aws.ToBool(emr.EvalMetricResult.EvalResultOutcomeBool),
 			pgTemp,
 			emrs.EvalContext.AIWorkflowAnalysisResult.ChunkOffset,
 			emrs.EvalContext.EvalIterationCount,
 		)
-		if err != nil {
-			log.Err(err).Msg("failed to execute query")
-			return err
+		if rerr != nil {
+			log.Err(rerr).Interface("rowsInfo", rowsInfo).Msg("failed to execute query")
+			return rerr
 		}
 	}
 	err = tx.Commit(ctx)

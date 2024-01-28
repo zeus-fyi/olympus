@@ -107,8 +107,6 @@ CREATE INDEX eval_result_source_search_start_idx ON public.eval_metrics_results(
 CREATE INDEX eval_result_source_search_end_idx ON public.eval_metrics_results("search_window_unix_end");
 CREATE INDEX eval_result_eval_iter_idx ON public.eval_metrics_results("eval_iteration_count");
 CREATE INDEX eval_result_eval_chunk_idx ON public.eval_metrics_results("chunk_offset");
-ALTER TABLE public.eval_metrics_results
-ADD CONSTRAINT unique_eval_metrics_combination UNIQUE (eval_metrics_results_id, eval_metric_id, source_task_id, orchestration_id, running_cycle_number, chunk_offset, eval_iteration_count);
 
 CREATE TABLE public.ai_workflow_template_eval_task_relationships(
     task_eval_id int8 NOT NULL DEFAULT next_id() PRIMARY KEY,

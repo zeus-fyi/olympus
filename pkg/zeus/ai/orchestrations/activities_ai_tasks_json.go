@@ -22,7 +22,7 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		resp, err = oc.MakeCodeGenRequestJsonFormattedOutput(ctx, ou, params)
 	}
 	if err != nil {
-		log.Err(err).Msg("CreatJsonOutputModelResponse: MakeCodeGenRequestJsonFormattedOutput failed")
+		log.Err(err).Interface("params", params).Msg("CreatJsonOutputModelResponse: MakeCodeGenRequestJsonFormattedOutput failed")
 		return nil, err
 	}
 	cr := &ChatCompletionQueryResponse{

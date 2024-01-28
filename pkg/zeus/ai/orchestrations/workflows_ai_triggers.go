@@ -53,7 +53,8 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		}
 		var cr *ChatCompletionQueryResponse
 		if tar.Mb.AnalysisEvalActionParams != nil && tar.Mb.AnalysisEvalActionParams.SearchResultGroup != nil {
-			ta.TriggerPlatformReference.PlatformReferenceName = tar.Mb.AnalysisEvalActionParams.SearchResultGroup.PlatformName
+			// TODO - add retrieval item instructions and API calls
+			//ta.TriggerPlatformReference.PlatformReferenceName = tar.Mb.AnalysisEvalActionParams.SearchResultGroup.PlatformName
 			switch ta.TriggerAction {
 			case socialMediaEngagementResponseFormat:
 				smApiEvalFormatCtx := workflow.WithActivityOptions(ctx, aoAiAct)

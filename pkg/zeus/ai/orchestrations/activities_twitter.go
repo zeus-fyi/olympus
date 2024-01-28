@@ -34,7 +34,7 @@ const (
 func (z *ZeusAiPlatformActivities) EvalFormatForApi(ctx context.Context, ou org_users.OrgUser, ta *artemis_orchestrations.TriggerAction) (*ChatCompletionQueryResponse, error) {
 	var fnApiFormat openai.FunctionDefinition
 
-	platformName := ta.TriggerPlatformReference.PlatformReferenceName
+	platformName := ""
 	switch platformName {
 	case twitterPlatform:
 		fnApiFormat = EvalFormatTweetForApiJsonSchema(ta.TriggerAction)

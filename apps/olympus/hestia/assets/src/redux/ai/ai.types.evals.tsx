@@ -1,6 +1,6 @@
 // TypeScript interface for EvalMetricsResult
-import {TriggerAction} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
+import {TriggerAction} from "./ai.types.triggers";
 
 export interface EvalMetric {
     evalMetricStrID?: string;
@@ -52,6 +52,7 @@ export interface EvalFn {
     evalGroupName: string;
     evalModel: string;
     evalFormat: string;
+    evalMultiplier?: number;
     evalCycleCount?: number;
     evalMetrics: EvalMetric[];
     triggerFunctions?: TriggerAction[];

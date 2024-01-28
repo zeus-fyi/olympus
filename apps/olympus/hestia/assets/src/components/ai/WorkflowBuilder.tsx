@@ -51,6 +51,7 @@ import {
     setAddRetrievalView,
     setAddSchemasView,
     setAddTriggerActionsView,
+    setAddTriggerRetrievalView,
     setAddTriggersToEvalFnView,
     setAnalysisRetrievalsMap,
     setEditAggregateTask,
@@ -86,11 +87,12 @@ import {defaultEvalMetric, EvalsTable} from "./EvalsTable";
 import {Assistants} from "./Assistants";
 import {AssistantsTable} from "./AssistantsTable";
 import {ActionsTable} from "./ActionsTable";
-import {Retrieval, TriggerAction} from "../../redux/ai/ai.types.retrievals";
+import {Retrieval} from "../../redux/ai/ai.types.retrievals";
 import {SchemasTable} from "./SchemasTable";
 import {Schemas} from "./Schemas";
 import {JsonSchemaDefinition, JsonSchemaField} from "../../redux/ai/ai.types.schemas";
 import {EvalFn, EvalMetric} from "../../redux/ai/ai.types.evals";
+import {TriggerAction} from "../../redux/ai/ai.types.triggers";
 
 const mdTheme = createTheme();
 
@@ -113,6 +115,7 @@ function WorkflowEngineBuilder(props: any) {
     const addAnalysisView = useSelector((state: RootState) => state.ai.addAnalysisView);
     const addAggregateView = useSelector((state: RootState) => state.ai.addAggregationView);
     const addRetrievalView = useSelector((state: RootState) => state.ai.addRetrievalView);
+    const addTriggerRetrievalView = useSelector((state: RootState) => state.ai.addTriggerRetrievalView);
     const allTasks = useSelector((state: any) => state.ai.tasks);
     const retrievalStages = useSelector((state: RootState) => state.ai.addedRetrievals);
     const [taskType, setTaskType] = useState('analysis');
@@ -189,7 +192,6 @@ function WorkflowEngineBuilder(props: any) {
             schemas: updatedSchemas
         }));
     };
-
 
     const setToggleEvalTaskType = () => {
         setToggleEvalToTaskType(!toggleEvalToTaskType);
@@ -404,6 +406,13 @@ function WorkflowEngineBuilder(props: any) {
     const handleRemoveRetrievalFromWorkflow = async (event: any, retrievalRemove: Retrieval) => {
         dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalID !== retrievalRemove.retrievalID)));
     }
+    const handleRemoveRetrievalFromTrigger = async (event: any, retrievalRemove: Retrieval) => {
+        dispatch(setTriggerAction({
+            ...action,
+            triggerRetrievals: action.triggerRetrievals.filter((ret: Retrieval) => ret.retrievalStrID !== retrievalRemove.retrievalStrID)
+        }))
+    }
+
     const handleRemoveTriggerFromEvalFn = async (event: any, triggerRemove: TriggerAction) => {
         const newTriggerFunctions = evalFn.triggerFunctions.filter((trigger: TriggerAction) => trigger.triggerStrID !== triggerRemove.triggerStrID);
         dispatch(setEvalFn({
@@ -567,10 +576,19 @@ function WorkflowEngineBuilder(props: any) {
                 .map(key => tasks[Number(key)]);
             dispatch(setAddAggregateTasks(selectedTasks.filter((task: TaskModelInstructions) => task.taskType === 'aggregation')));
         } else if (addRetrievalView) {
-            const selectedTasks: Retrieval[] = Object.keys(selected)
+            const selectedRetrievals: Retrieval[] = Object.keys(selected)
                 .filter(key => selected[Number(key)])
                 .map(key => retrievals[Number(key)]);
-            dispatch(setAddRetrievalTasks(selectedTasks));
+            dispatch(setAddRetrievalTasks(selectedRetrievals));
+        } else if (addTriggerRetrievalView) {
+            const selectedRetrievals: Retrieval[] = Object.keys(selected)
+                .filter(key => selected[Number(key)])
+                .map(key => retrievals[Number(key)]);
+            // TODO - filter out non-web retrievals
+            dispatch(setTriggerAction({
+                ...action,
+                triggerRetrievals: selectedRetrievals
+            }));
         } else if (addEvalsView) {
             const selectedEvals: EvalFn[] = Object.keys(selected)
                 .filter(key => selected[Number(key)])
@@ -681,6 +699,20 @@ function WorkflowEngineBuilder(props: any) {
         } else {
             dispatch(setSelectedMainTabBuilder(0))
         }
+    }
+
+    const addTriggerRetrievalStageView = async () => {
+        const toggle = !addTriggerRetrievalView;
+        // TODO - filter out non-web retrievals
+
+        dispatch(setAddAnalysisView(false));
+        dispatch(setAddSchemasView(false));
+        dispatch(setAddAggregationView(false));
+        dispatch(setAddTriggerRetrievalView(toggle));
+        dispatch(setAddRetrievalView(false));
+        dispatch(setAddEvalFnsView(false));
+        dispatch(setSelectedMainTabBuilder(5))
+        setSelected({});
     }
 
     const addRetrievalStageView = async () => {
@@ -1066,7 +1098,6 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestActionStatusError('error')
                 return;
             }
-
             if (action.triggerAction.length <= 0) {
                 setRequestActionStatus('Trigger action environment must be set')
                 setRequestActionStatusError('error')
@@ -1106,7 +1137,6 @@ function WorkflowEngineBuilder(props: any) {
                 setRequestEvalCreateOrUpdateStatusError('error')
                 return;
             }
-
             // if (evalFn.schemas.length <= 0) {
             //     setRequestEvalCreateOrUpdateStatus('You must add at least one metric create an eval')
             //     setRequestEvalCreateOrUpdateStatusError('error')
@@ -1153,6 +1183,7 @@ function WorkflowEngineBuilder(props: any) {
         } else if (newValue === 5) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
+            // TODO: filter retrievals to web only for now
         } else if (newValue === 6) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
@@ -1162,7 +1193,9 @@ function WorkflowEngineBuilder(props: any) {
             setSelected({});
         }
         setSelected({});
-
+        if (addTriggerRetrievalView && newValue !== 5) {
+            dispatch(setAddTriggerRetrievalView(false));
+        }
         if (addAssistantsView && newValue !== 6) {
             dispatch(setAddAssistantsView(false));
         }
@@ -1214,7 +1247,7 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = event.target.checked;
-        if (addRetrievalView || selectedMainTabBuilder === 3 && !addSchemasView) {
+        if ((addRetrievalView || selectedMainTabBuilder === 3 && !addSchemasView) || (addTriggerRetrievalView && selectedMainTabBuilder === 5 && !addSchemasView) ) {
             const newSelection = retrievals.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
@@ -2398,11 +2431,11 @@ function WorkflowEngineBuilder(props: any) {
                                         </div>
                                     }
                                     {
-                                        selectedMainTabBuilder == 3 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView &&
+                                        selectedMainTabBuilder == 3 && !addRetrievalView && !loading && !addAnalysisView && !addAggregateView && !addEvalsView && !addTriggerRetrievalView &&
                                     <CardContent>
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
-                                                Retrieval Procedures
+                                                Input/Output Procedures
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
                                                 This allows you to modularize your retrieval procedures and reuse them across multiple workflows.
@@ -2510,8 +2543,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
                                                             </Select>
                                                         </FormControl>
-
-                                                        <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
+                                                        <FormControl sx={{ mt: 2 }} fullWidth variant="outlined">
                                                             <InputLabel key={`groupNameLabel`} id={`groupName`}>
                                                                 Load Balancing
                                                             </InputLabel>
@@ -2539,7 +2571,111 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <MenuItem value="poll-table">Poll Table</MenuItem>
                                                             </Select>
                                                         </FormControl>
-
+                                                        <Stack direction="row" >
+                                                            <Box flexGrow={2} sx={{ mb: 0,ml: 0, mr:2, mt: 2  }}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="max-retries-input"
+                                                                    label="Max Retries"
+                                                                    variant="outlined"
+                                                                    type="number"
+                                                                    inputProps={{ min: 0 }}  // Set min and max values
+                                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                    && retrieval.retrievalItemInstruction.webFilters.maxRetries ? retrieval.retrievalItemInstruction.webFilters.maxRetries : 0}
+                                                                    onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    maxRetries: Number(e.target.value), // Correctly update the routingGroup field
+                                                                                }
+                                                                            }
+                                                                        };
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mb: 0, ml: 0, mr: 0, mt: 2 }}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="backoff-coefficient-input"
+                                                                    label="Backoff Coefficient"
+                                                                    variant="outlined"
+                                                                    type="number"
+                                                                    inputProps={{ min: 1 }}  // Set min and max values
+                                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                    && retrieval.retrievalItemInstruction.webFilters.backoffCoefficient ? retrieval.retrievalItemInstruction.webFilters.backoffCoefficient : 1}
+                                                                    onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    backoffCoefficient: Number(e.target.value), // Correctly update the field
+                                                                                }
+                                                                            }
+                                                                        };
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                />
+                                                            </Box>
+                                                        </Stack>
+                                                        <Stack direction="row">
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="endpoint-route-input"
+                                                                    label="Route Path"
+                                                                    variant="outlined"
+                                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                    && retrieval.retrievalItemInstruction.webFilters.endpointRoutePath ? retrieval.retrievalItemInstruction.webFilters.endpointRoutePath : ''}
+                                                                    onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    endpointRoutePath: e.target.value, // Correctly update the routingGroup field
+                                                                                }
+                                                                            }
+                                                                        };
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
+                                                                <FormControl fullWidth>
+                                                                    <InputLabel id="endpoint-rest-trigger">REST</InputLabel>
+                                                                    <Select
+                                                                        id="endpoint-rest-trigger"
+                                                                        label="REST Trigger"
+                                                                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                        && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    endpointREST: e.target.value, // Correctly update the routingGroup field
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                    >
+                                                                        <MenuItem value="post">{'POST'}</MenuItem>
+                                                                        <MenuItem value="get">{'GET'}</MenuItem>
+                                                                        <MenuItem value="put">{'PUT'}</MenuItem>
+                                                                        <MenuItem value="delete">{'DELETE'}</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                        </Stack>
                                                     </div>
                                                 }
                                                     { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'discord' &&
@@ -2743,6 +2879,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                         triggerAction: e.target.value
                                                                     }))}
                                                                 >
+                                                                    <MenuItem value="api">API Approval</MenuItem>
                                                                     <MenuItem value="social-media-engagement">Social Media Engagement Approval</MenuItem>
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
@@ -2773,7 +2910,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
-                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
+                                                        <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:0  }}>
                                                             <FormControl fullWidth>
                                                                 <InputLabel id="eval-completion-trigger">Eval Completion</InputLabel>
                                                                 <Select
@@ -2795,6 +2932,253 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                     </Stack>
                                                     }
+                                                    { !loading && action.triggerAction === 'api' &&
+                                                        <div>
+                                                            <Typography gutterBottom variant="h5" component="div">
+                                                                API Trigger Settings
+                                                            </Typography>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                This section allows configuration of retry mechanisms for API call operations. It includes settings for the maximum number of retry attempts, where a specific number limits retries, and '0' or unset implies unlimited retries within the activity's time bounds.
+                                                                Additionally, the retry backoff coefficient determines the interval increase between retries, with a default setting that doubles the interval after each attempt.
+                                                            </Typography>
+                                                            <Box flexGrow={2} sx={{mt: 2}}>
+                                                                {action.triggerRetrievals && action.triggerRetrievals.map((ret: Retrieval, subIndex: number) => (
+                                                                    <Stack direction={"row"} key={subIndex} sx={{ mb: 2 }}>
+                                                                        <Box flexGrow={2} sx={{ mt: 0, ml: 0 }}>
+                                                                            <TextField
+                                                                                key={subIndex}
+                                                                                label={`Retrieval Name`}
+                                                                                value={ret?.retrievalName || ''}
+                                                                                InputProps={{
+                                                                                    readOnly: true,
+                                                                                }}
+                                                                                variant="outlined"
+                                                                                fullWidth
+                                                                                margin="normal"
+                                                                            />
+                                                                        </Box>
+                                                                        <Box flexGrow={2} sx={{ mt: 0, ml: 2 }}>
+                                                                            <TextField
+                                                                                key={subIndex}
+                                                                                label={`Retrieval Group`}
+                                                                                value={ret?.retrievalGroup || ''}
+                                                                                InputProps={{
+                                                                                    readOnly: true,
+                                                                                }}
+                                                                                variant="outlined"
+                                                                                fullWidth
+                                                                                margin="normal"
+                                                                            />
+                                                                        </Box>
+                                                                        <Box flexGrow={2} sx={{ mt: 0, ml: 2 }}>
+                                                                            <TextField
+                                                                                key={subIndex}
+                                                                                label={`Platform`}
+                                                                                value={ret?.retrievalItemInstruction.retrievalPlatform || ''}
+                                                                                InputProps={{
+                                                                                    readOnly: true,
+                                                                                }}
+                                                                                variant="outlined"
+                                                                                fullWidth
+                                                                                margin="normal"
+                                                                            />
+                                                                        </Box>
+                                                                        <Box flexGrow={1} sx={{ mb: 0, ml: 2, mt: 3 }}>
+                                                                            <Button fullWidth variant="contained" onClick={(event)=>handleRemoveRetrievalFromTrigger(event, ret)}>Remove</Button>
+                                                                        </Box>
+                                                                    </Stack>
+                                                                ))}
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{ mb: 2, mt: 2, ml: 0 }}>
+                                                                <Button  variant="contained" onClick={() => addTriggerRetrievalStageView()} >{addTriggerRetrievalView ? 'Done Adding': 'Add Retrieval Stages'}</Button>
+                                                            </Box>
+                                                        </div>
+                                                    }
+
+                                                    {/*{ !loading && action.triggerAction === 'api' &&*/}
+                                                    {/*    <Stack direction="row" >*/}
+                                                    {/*        <Box flexGrow={2} sx={{ mb: 0,ml: 0, mr:2, mt: 2  }}>*/}
+                                                    {/*            <TextField*/}
+                                                    {/*                fullWidth*/}
+                                                    {/*                id="max-retries-input"*/}
+                                                    {/*                label="Max Retries"*/}
+                                                    {/*                variant="outlined"*/}
+                                                    {/*                type="number"*/}
+                                                    {/*                inputProps={{ min: 0 }}  // Set min and max values*/}
+                                                    {/*                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters*/}
+                                                    {/*                    && retrieval.retrievalItemInstruction.webFilters.maxRetries ? retrieval.retrievalItemInstruction.webFilters.maxRetries : 0}*/}
+                                                    {/*                onChange={(e) => {*/}
+                                                    {/*                    const updatedRetrieval = {*/}
+                                                    {/*                        ...retrieval,*/}
+                                                    {/*                        retrievalItemInstruction: {*/}
+                                                    {/*                            ...retrieval.retrievalItemInstruction,*/}
+                                                    {/*                            webFilters: {*/}
+                                                    {/*                                ...retrieval.retrievalItemInstruction.webFilters,*/}
+                                                    {/*                                maxRetries: Number(e.target.value), // Correctly update the routingGroup field*/}
+                                                    {/*                            }*/}
+                                                    {/*                        }*/}
+                                                    {/*                    };*/}
+                                                    {/*                    dispatch(setRetrieval(updatedRetrieval));*/}
+                                                    {/*                }}*/}
+                                                    {/*            />*/}
+                                                    {/*        </Box>*/}
+                                                    {/*        <Box flexGrow={2} sx={{ mb: 0, ml: 0, mr: 2, mt: 2 }}>*/}
+                                                    {/*            <TextField*/}
+                                                    {/*                fullWidth*/}
+                                                    {/*                id="backoff-coefficient-input"*/}
+                                                    {/*                label="Backoff Coefficient"*/}
+                                                    {/*                variant="outlined"*/}
+                                                    {/*                type="number"*/}
+                                                    {/*                inputProps={{ min: 1 }}  // Set min and max values*/}
+                                                    {/*                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters*/}
+                                                    {/*                && retrieval.retrievalItemInstruction.webFilters.backoffCoefficient ? retrieval.retrievalItemInstruction.webFilters.backoffCoefficient : 1}*/}
+                                                    {/*                onChange={(e) => {*/}
+                                                    {/*                    const updatedRetrieval = {*/}
+                                                    {/*                        ...retrieval,*/}
+                                                    {/*                        retrievalItemInstruction: {*/}
+                                                    {/*                            ...retrieval.retrievalItemInstruction,*/}
+                                                    {/*                            webFilters: {*/}
+                                                    {/*                                ...retrieval.retrievalItemInstruction.webFilters,*/}
+                                                    {/*                                backoffCoefficient: Number(e.target.value), // Correctly update the field*/}
+                                                    {/*                            }*/}
+                                                    {/*                        }*/}
+                                                    {/*                    };*/}
+                                                    {/*                    dispatch(setRetrieval(updatedRetrieval));*/}
+                                                    {/*                }}*/}
+                                                    {/*            />*/}
+                                                    {/*        </Box>*/}
+                                                    {/*    </Stack>*/}
+                                                    {/*}*/}
+                                                    {/*{ !loading && action.triggerAction === 'api' &&*/}
+                                                    {/*    <Stack direction="column" >*/}
+                                                    {/*        <Stack direction={"row"}>*/}
+                                                    {/*            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 0}}>*/}
+                                                    {/*                <FormControl*/}
+                                                    {/*                 fullWidth*/}
+                                                    {/*                 variant="outlined">*/}
+                                                    {/*                <InputLabel key={`groupNameLabel`}*/}
+                                                    {/*                            id={`groupName`}>*/}
+                                                    {/*                    Routing Group*/}
+                                                    {/*                </InputLabel>*/}
+                                                    {/*                <Select*/}
+                                                    {/*                    labelId={`groupNameLabel`}*/}
+                                                    {/*                    id={`groupName`}*/}
+                                                    {/*                    name="groupName"*/}
+                                                    {/*                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters*/}
+                                                    {/*                    && retrieval.retrievalItemInstruction.webFilters.routingGroup ? retrieval.retrievalItemInstruction.webFilters.routingGroup : ''}*/}
+                                                    {/*                    onChange={(e) => {*/}
+                                                    {/*                        const updatedRetrieval = {*/}
+                                                    {/*                            ...retrieval,*/}
+                                                    {/*                            retrievalItemInstruction: {*/}
+                                                    {/*                                ...retrieval.retrievalItemInstruction,*/}
+                                                    {/*                                webFilters: {*/}
+                                                    {/*                                    ...retrieval.retrievalItemInstruction.webFilters,*/}
+                                                    {/*                                    routingGroup: e.target.value, // Correctly update the routingGroup field*/}
+                                                    {/*                                }*/}
+                                                    {/*                            }*/}
+                                                    {/*                        };*/}
+                                                    {/*                        dispatch(setRetrieval(updatedRetrieval));*/}
+                                                    {/*                    }}*/}
+                                                    {/*                    label="Routing Group"*/}
+                                                    {/*                >*/}
+                                                    {/*            {Object.keys(groups).map((name) => <MenuItem*/}
+                                                    {/*                key={name}*/}
+                                                    {/*                value={name}>{name}</MenuItem>)}*/}
+                                                    {/*        </Select>*/}
+                                                    {/*                </FormControl>*/}
+                                                    {/*            </Box>*/}
+                                                    {/*            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 0}}>*/}
+                                                    {/*            <FormControl*/}
+                                                    {/*                             fullWidth*/}
+                                                    {/*                             variant="outlined">*/}
+                                                    {/*                    <InputLabel key={`groupNameLabel`}*/}
+                                                    {/*                                id={`groupName`}>*/}
+                                                    {/*                        Load Balancing*/}
+                                                    {/*                    </InputLabel>*/}
+                                                    {/*                    <Select*/}
+                                                    {/*                        labelId={`lbStrategy`}*/}
+                                                    {/*                        id={`lbStrategy`}*/}
+                                                    {/*                        name="lbStrategy"*/}
+                                                    {/*                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.lbStrategy ? retrieval.retrievalItemInstruction.webFilters.lbStrategy : 'round-robin'}*/}
+                                                    {/*                        onChange={(e) => {*/}
+                                                    {/*                            const updatedRetrieval = {*/}
+                                                    {/*                                ...retrieval,*/}
+                                                    {/*                                retrievalItemInstruction: {*/}
+                                                    {/*                                    ...retrieval.retrievalItemInstruction,*/}
+                                                    {/*                                    webFilters: {*/}
+                                                    {/*                                        ...retrieval.retrievalItemInstruction.webFilters,*/}
+                                                    {/*                                        lbStrategy: e.target.value, // Correctly update the routingGroup field*/}
+                                                    {/*                                    }*/}
+                                                    {/*                                }*/}
+                                                    {/*                            };*/}
+                                                    {/*                            dispatch(setRetrieval(updatedRetrieval));*/}
+                                                    {/*                        }}*/}
+                                                    {/*                        label="Load Balancing"*/}
+                                                    {/*                    >*/}
+                                                    {/*                        <MenuItem value="round-robin">Round*/}
+                                                    {/*                            Robin</MenuItem>*/}
+                                                    {/*                        <MenuItem value="poll-table">Poll*/}
+                                                    {/*                            Table</MenuItem>*/}
+                                                    {/*                    </Select>*/}
+                                                    {/*                </FormControl>*/}
+                                                    {/*            </Box>*/}
+                                                    {/*        </Stack>*/}
+                                                    {/*        <Stack direction="row">*/}
+                                                    {/*            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>*/}
+                                                    {/*                <TextField*/}
+                                                    {/*                    fullWidth*/}
+                                                    {/*                    id="endpoint-route-input"*/}
+                                                    {/*                    label="Route Path"*/}
+                                                    {/*                    variant="outlined"*/}
+                                                    {/*                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters*/}
+                                                    {/*                    && retrieval.retrievalItemInstruction.webFilters.endpointRoutePath ? retrieval.retrievalItemInstruction.webFilters.endpointRoutePath : ''}*/}
+                                                    {/*                    onChange={(e) => {*/}
+                                                    {/*                        const updatedRetrieval = {*/}
+                                                    {/*                            ...retrieval,*/}
+                                                    {/*                            retrievalItemInstruction: {*/}
+                                                    {/*                                ...retrieval.retrievalItemInstruction,*/}
+                                                    {/*                                webFilters: {*/}
+                                                    {/*                                    ...retrieval.retrievalItemInstruction.webFilters,*/}
+                                                    {/*                                    endpointRoutePath: e.target.value, // Correctly update the routingGroup field*/}
+                                                    {/*                                }*/}
+                                                    {/*                            }*/}
+                                                    {/*                        };*/}
+                                                    {/*                        dispatch(setRetrieval(updatedRetrieval));*/}
+                                                    {/*                    }}*/}
+                                                    {/*                />*/}
+                                                    {/*            </Box>*/}
+                                                    {/*            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>*/}
+                                                    {/*            <FormControl fullWidth>*/}
+                                                    {/*                    <InputLabel id="endpoint-rest-trigger">REST</InputLabel>*/}
+                                                    {/*                    <Select*/}
+                                                    {/*                        id="endpoint-rest-trigger"*/}
+                                                    {/*                        label="REST Trigger"*/}
+                                                    {/*                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters*/}
+                                                    {/*                        && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {*/}
+                                                    {/*                            const updatedRetrieval = {*/}
+                                                    {/*                                ...retrieval,*/}
+                                                    {/*                                retrievalItemInstruction: {*/}
+                                                    {/*                                    ...retrieval.retrievalItemInstruction,*/}
+                                                    {/*                                    webFilters: {*/}
+                                                    {/*                                        ...retrieval.retrievalItemInstruction.webFilters,*/}
+                                                    {/*                                        endpointREST: e.target.value, // Correctly update the routingGroup field*/}
+                                                    {/*                                    }*/}
+                                                    {/*                                }*/}
+                                                    {/*                            }*/}
+                                                    {/*                            dispatch(setRetrieval(updatedRetrieval));*/}
+                                                    {/*                        }}*/}
+                                                    {/*                    >*/}
+                                                    {/*                        <MenuItem value="post">{'POST'}</MenuItem>*/}
+                                                    {/*                        <MenuItem value="get">{'GET'}</MenuItem>*/}
+                                                    {/*                        <MenuItem value="put">{'PUT'}</MenuItem>*/}
+                                                    {/*                        <MenuItem value="delete">{'DELETE'}</MenuItem>*/}
+                                                    {/*                    </Select>*/}
+                                                    {/*                </FormControl>*/}
+                                                    {/*            </Box>*/}
+                                                    {/*        </Stack>*/}
+                                                    {/*    </Stack>*/}
+                                                    {/*}*/}
+
                                                     { !loading && action.evalResultsTriggerOn == 'metrics' &&
                                                         <Stack direction="row" >
                                                             {/*<Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>*/}
@@ -2934,6 +3318,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 <Typography variant="body2" color="text.secondary">
                                                     This allows you to setup scoring rules and triggers for AI system outputs that set metrics for the AI to use in its decision making process. For metric
                                                     array types, the comparison value returns the true/false if every array element item passes the comparison eval test.
+                                                    {/*Eval Nx Multiplier is used to to score the input body multiple times so you can take statistical outputs such as top-K, or to average scores.*/}
                                                 </Typography>
                                                 <Stack direction="column" spacing={2} sx={{ mt: 2, mb: 0 }}>
                                                     <Stack direction="row" spacing={2} sx={{ mt: 0, mb: 4 }}>
@@ -3004,7 +3389,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
-                                                        <Box flexGrow={3} sx={{ }}>
+                                                        <Box flexGrow={3} sx={{ mr: 2}}>
                                                             <FormControl fullWidth>
                                                                 <InputLabel id="eval-format-label">Eval Format</InputLabel>
                                                                 <Select
@@ -3022,7 +3407,44 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
+                                                        {/*<Box flexGrow={3} sx={{ }}>*/}
+                                                        {/*    <TextField*/}
+                                                        {/*        fullWidth*/}
+                                                        {/*        id="eval-multiplier"*/}
+                                                        {/*        label="Eval Nx Multiplier"*/}
+                                                        {/*        variant="outlined"*/}
+                                                        {/*        type="number"*/}
+                                                        {/*        inputProps={{ min: 1, max: 3 }}  // Set min and max values*/}
+                                                        {/*        value={evalFn && evalFn.evalMultiplier || 1}*/}
+                                                        {/*        onChange={(e) => dispatch(setEvalFn({*/}
+                                                        {/*            ...evalFn, // Spread the existing action properties*/}
+                                                        {/*            evalMultiplier: e.target.value // Update the actionName*/}
+                                                        {/*        }))}*/}
+                                                        {/*    />*/}
+                                                        {/*</Box>*/}
                                                     </Stack>
+                                                    }
+                                                    { evalFn && evalFn.evalType == 'api' &&
+                                                        <Stack direction={"row"} >
+                                                            <Box flexGrow={3} sx={{ }}>
+                                                                <FormControl fullWidth>
+                                                                    <InputLabel id="eval-format-label">Eval Format</InputLabel>
+                                                                    <Select
+                                                                        labelId="eval-format-label"
+                                                                        id="eval-format-select"
+                                                                        value={evalFn.evalFormat}
+                                                                        label="Eval Model"
+                                                                        onChange={(e) => dispatch(setEvalFn({
+                                                                            ...evalFn, // Spread the existing action properties
+                                                                            evalFormat: e.target.value // Update the actionName
+                                                                        }))}
+                                                                    >
+                                                                        {/*<MenuItem value="code">code</MenuItem>*/}
+                                                                        <MenuItem value="json">JSON</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                        </Stack>
                                                     }
                                                     {evalFn && evalFn.schemas !== undefined && evalFn.schemas.length > 0 && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
                                                         <div key={dataIndex}>
@@ -3558,6 +3980,32 @@ function WorkflowEngineBuilder(props: any) {
                                                                             margin="normal"
                                                                         />
                                                                     </Box>
+                                                                    <Box flexGrow={2} sx={{ mt: 0, ml: 2 }}>
+                                                                        <TextField
+                                                                            key={subIndex}
+                                                                            label={`Eval Trigger State`}
+                                                                            value={trigger && trigger.evalTriggerAction.evalTriggerState || ''}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                            variant="outlined"
+                                                                            fullWidth
+                                                                            margin="normal"
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={2} sx={{ mt: 0, ml: 2 }}>
+                                                                        <TextField
+                                                                            key={subIndex}
+                                                                            label={`Eval State Trigger Rules`}
+                                                                            value={trigger && trigger.evalTriggerAction.evalResultsTriggerOn || ''}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                            variant="outlined"
+                                                                            fullWidth
+                                                                            margin="normal"
+                                                                        />
+                                                                    </Box>
                                                                     <Box flexGrow={1} sx={{ mb: 0, ml: 2, mt: 3 }}>
                                                                         <Button fullWidth variant="contained" onClick={(event)=>handleRemoveTriggerFromEvalFn(event, trigger)}>Remove</Button>
                                                                     </Box>
@@ -3715,7 +4163,7 @@ function WorkflowEngineBuilder(props: any) {
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"  />
                                 <Tab className="onboarding-card-highlight-all-analysis" label="Analysis" />
                                 <Tab className="onboarding-card-highlight-all-aggregation" label="Aggregations" />
-                                <Tab className="onboarding-card-highlight-all-retrieval" label="Retrievals" />
+                                <Tab className="onboarding-card-highlight-all-io" label="Input/Output" />
                                 <Tab className="onboarding-card-highlight-all-evals" label="Evals" />
                                 <Tab className="onboarding-card-highlight-all-triggers" label="Triggers" />
                                 <Tab className="onboarding-card-highlight-all-assistants" label="Assistants" />
@@ -3769,7 +4217,7 @@ function WorkflowEngineBuilder(props: any) {
                             </Container>
                         </div>
                     }
-                    { (selectedMainTabBuilder === 3) && addRetrievalView &&
+                    { (selectedMainTabBuilder === 3 ||selectedMainTabBuilder === 5) && (addRetrievalView || addTriggerRetrievalView) &&
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4,  ml: 2 }}>
                             <Box sx={{ mb: 2 }}>
                                 <span>({Object.values(selected).filter(value => value).length} Selected Retrievals)</span>
@@ -3779,7 +4227,7 @@ function WorkflowEngineBuilder(props: any) {
                             </Box>
                         </Container>
                     }
-                    { (selectedMainTabBuilder === 3) &&
+                    { (selectedMainTabBuilder === 3 ||selectedMainTabBuilder === 5) && (addRetrievalView || addTriggerRetrievalView) &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <RetrievalsTable retrievals={retrievals} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
@@ -3796,7 +4244,6 @@ function WorkflowEngineBuilder(props: any) {
                                     </Button>
                                 </Box>
                             </Container>
-
                         </div>
                     }
                     { addSchemasView && (selectedMainTabBuilder === 4 || selectedMainTabBuilder === 2 || selectedMainTabBuilder === 1) &&
@@ -3819,7 +4266,7 @@ function WorkflowEngineBuilder(props: any) {
                             </Container>
                         </div>
                     }
-                    { (selectedMainTabBuilder === 5 || addTriggersToEvalFnView) &&
+                    { (selectedMainTabBuilder === 5 || addTriggersToEvalFnView) && !addTriggerRetrievalView &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 <ActionsTable actions={actions} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />

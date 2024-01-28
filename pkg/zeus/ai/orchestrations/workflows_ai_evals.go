@@ -25,6 +25,26 @@ type MbChildSubProcessParams struct {
 	AnalysisEvalActionParams *EvalActionParams                               `json:"analysisEvalActionParams,omitempty"`
 }
 
+func (m *MbChildSubProcessParams) GetFilteredSearchResults() []hera_search.SearchResult {
+	if m == nil {
+		return nil
+	}
+	if m.AnalysisEvalActionParams != nil && m.AnalysisEvalActionParams.SearchResultGroup != nil {
+		return m.AnalysisEvalActionParams.SearchResultGroup.SearchResults
+	}
+	return nil
+}
+
+func (m *MbChildSubProcessParams) GetJsonResponseResults() [][]*artemis_orchestrations.JsonSchemaDefinition {
+	if m == nil {
+		return nil
+	}
+	if m.AnalysisEvalActionParams != nil && m.AnalysisEvalActionParams.ParentOutputToEval != nil {
+		return m.AnalysisEvalActionParams.ParentOutputToEval.JsonResponseResults
+	}
+	return nil
+}
+
 type EvalActionParams struct {
 	WorkflowTemplateData artemis_orchestrations.WorkflowTemplateData `json:"parentProcess"`
 	ParentOutputToEval   *ChatCompletionQueryResponse                `json:"parentOutputToEval"`
@@ -92,7 +112,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 					continue
 				}
-				cpe.TaskToExecute.Ec.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
+				cpe.TaskToExecute.Tc.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
 				cpe.TaskToExecute.Tc.Schemas = evalFnsAgg[evFnIndex].Schemas
 				cpe.TaskToExecute.Tc.Model = aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
 				cpe.ParentOutputToEval = &ChatCompletionQueryResponse{}

@@ -68,8 +68,8 @@ func (s *OrchestrationsTestSuite) TestSelectWorkflowTemplatesP() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	newTemplate := WorkflowTemplate{
-		WorkflowName:  "twitter-web3-sales",
-		WorkflowGroup: "sales",
+		WorkflowName:  "book-scoring-agg-eval-test-wf",
+		WorkflowGroup: "book-scoring-agg-eval-test-wf",
 	}
 
 	res1, err := SelectWorkflowTemplateByName(ctx, ou, newTemplate.WorkflowName)

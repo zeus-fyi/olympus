@@ -770,6 +770,7 @@ function WorkflowEngineBuilder(props: any) {
 
     const createOrUpdateWorkflow = async () => {
         try {
+            console.log('createOrUpdateWorkflow', workflowBuilderTaskMap)
             const allMappedRetrievalIDs: Set<number> = new Set();
             Object.entries(workflowAnalysisRetrievalsMap).forEach(([retrievalID, innerMap])=> {
                 Object.entries(innerMap).forEach(([analysisID, isAdded], subInd) => {
@@ -835,6 +836,7 @@ function WorkflowEngineBuilder(props: any) {
                 evalsMap: evalMap,
                 evalTasksMap: workflowBuilderEvalsTaskMap
             }
+            console.log(payload, 'payload')
             setIsLoading(true)
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
             const statusCode = response.status
@@ -2164,7 +2166,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Analysis Model"
                                                                 onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, model: event.target.value }))}
                                                             >
-                                                                <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
                                                                 <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
                                                                 <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
                                                                 <MenuItem value="gpt-4">gpt-4</MenuItem>
@@ -2308,7 +2309,6 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Aggregation Model"
                                                                 onChange={(event) => handleEditAggregateTaskModel(event)}
                                                             >
-                                                                <MenuItem value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</MenuItem>
                                                                 <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
                                                                 <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
                                                                 <MenuItem value="gpt-4">gpt-4</MenuItem>

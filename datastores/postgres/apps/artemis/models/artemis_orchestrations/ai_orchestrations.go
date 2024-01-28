@@ -180,6 +180,7 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 				AggTaskType:              &aggAnalysisTask.AggTaskType,
 				AggPrompt:                &aggAnalysisTask.AggPrompt,
 				AggModel:                 &aggAnalysisTask.AggModel,
+				AggResponseFormat:        &aggAnalysisTask.AggResponseFormat,
 				AggTokenOverflowStrategy: &aggAnalysisTask.AggTokenOverflowStrategy,
 				AggMaxTokensPerTask:      &aggAnalysisTask.AggMaxTokensPerTask,
 				AggEvalFns:               aggAnalysisTask.EvalFns,

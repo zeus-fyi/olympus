@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -26,14 +27,17 @@ const (
 )
 
 type PromptReduction struct {
-	MarginBuffer                 float64                       `json:"marginBuffer,omitempty"`
-	Model                        string                        `json:"model"`
-	TokenOverflowStrategy        string                        `json:"tokenOverflowStrategy"`
-	PromptReductionSearchResults *PromptReductionSearchResults `json:"promptReductionSearchResults,omitempty"`
-	PromptReductionText          *PromptReductionText          `json:"promptReductionText,omitempty"`
+	MarginBuffer          float64 `json:"marginBuffer,omitempty"`
+	Model                 string  `json:"model"`
+	TokenOverflowStrategy string  `json:"tokenOverflowStrategy"`
+
+	DataInAnalysisAggregation    []artemis_orchestrations.AIWorkflowAnalysisResult `json:"dataInAnalysisAggregation,omitempty"`
+	PromptReductionSearchResults *PromptReductionSearchResults                     `json:"promptReductionSearchResults,omitempty"`
+	PromptReductionText          *PromptReductionText                              `json:"promptReductionText,omitempty"`
 }
 
 type PromptReductionText struct {
+	InPromptSystem     string   `json:"inPromptSystem"`
 	InPromptBody       string   `json:"inPromptBody"`
 	OutPromptChunks    []string `json:"outPromptChunks,omitempty"`
 	OutPromptTruncated string   `json:"outPromptTruncated,omitempty"`
@@ -53,6 +57,17 @@ const (
 func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, ou org_users.OrgUser, pr *PromptReduction) (*PromptReduction, error) {
 	if pr == nil {
 		return nil, nil
+	}
+	if pr.DataInAnalysisAggregation != nil && len(pr.DataInAnalysisAggregation) > 0 {
+		crs, err := artemis_orchestrations.GetRawMessagesFromAiWorkflowAnalysisResults(pr.DataInAnalysisAggregation)
+		if err != nil {
+			log.Err(err).Msg("TokenOverflowReduction: GetRawMessagesFromAiWorkflowAnalysisResults")
+			return nil, err
+		}
+		for _, cr := range crs {
+			pr.PromptReductionText.OutPromptChunks = append(pr.PromptReductionText.OutPromptChunks, cr.Message.Content)
+		}
+		return pr, nil
 	}
 	err := TokenOverflowSearchResults(ctx, pr)
 	if err != nil {

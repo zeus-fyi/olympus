@@ -63,18 +63,19 @@ type AiModelParams struct {
 }
 
 type SearchResultGroup struct {
-	PlatformName                   string                        `json:"platformName"`
-	SourceTaskID                   int                           `json:"sourceTaskID,omitempty"`
-	ExtractionPromptExt            string                        `json:"extractionPromptExt,omitempty"`
-	Model                          string                        `json:"model,omitempty"`
-	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
-	BodyPrompt                     string                        `json:"bodyPrompt,omitempty"`
-	SearchResults                  []SearchResult                `json:"searchResults"`
-	FilteredSearchResults          []SearchResult                `json:"filteredSearchResults,omitempty"`
-	FilteredSearchResultMap        map[int]*SearchResult         `json:"filteredSearchResultsMap"`
-	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
-	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
-	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`
+	DataIn                         []artemis_orchestrations.AIWorkflowAnalysisResult `json:"dataIn,omitempty"`
+	PlatformName                   string                                            `json:"platformName"`
+	SourceTaskID                   int                                               `json:"sourceTaskID,omitempty"`
+	ExtractionPromptExt            string                                            `json:"extractionPromptExt,omitempty"`
+	Model                          string                                            `json:"model,omitempty"`
+	ResponseFormat                 string                                            `json:"responseFormat,omitempty"`
+	BodyPrompt                     string                                            `json:"bodyPrompt,omitempty"`
+	SearchResults                  []SearchResult                                    `json:"searchResults"`
+	FilteredSearchResults          []SearchResult                                    `json:"filteredSearchResults,omitempty"`
+	FilteredSearchResultMap        map[int]*SearchResult                             `json:"filteredSearchResultsMap"`
+	SearchResultChunkTokenEstimate *int                                              `json:"searchResultChunkTokenEstimates,omitempty"`
+	Window                         artemis_orchestrations.Window                     `json:"window,omitempty"`
+	FunctionDefinition             openai.FunctionDefinition                         `json:"functionDefinition,omitempty"`
 }
 
 func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {

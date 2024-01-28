@@ -96,13 +96,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				return nil, err
 			}
 
-			chunkIterator := 0
-			if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil {
-				chunkIterator = len(pr.PromptReductionSearchResults.OutSearchGroups)
-			}
-			if pr.PromptReductionText != nil && pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
-				chunkIterator = len(pr.PromptReductionText.OutPromptChunks)
-			}
+			chunkIterator := getChunkIteratorLen(pr)
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && chunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
 					sg = pr.PromptReductionSearchResults.OutSearchGroups[chunkOffset]
@@ -185,6 +179,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						logger.Error("failed to save analysis response", "Error", err)
 						return nil, err
 					}
+					wr.ResponseID = analysisRespId
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, &wr).Get(recordAnalysisCtx, &aiResp.WorkflowResultID)
 					if err != nil {

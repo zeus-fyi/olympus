@@ -133,7 +133,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			}
 			continue
 		}
-		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
 		if tte.Tc.EvalID > 0 {
 			evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
 				EvalID:             tte.Tc.EvalID,
@@ -156,6 +155,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				return nil, err
 			}
 		}
+		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
 		break
 	}
 

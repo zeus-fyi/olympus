@@ -146,8 +146,6 @@ func GetBooleanEvalComparisonResult(actual, expected bool) bool {
 	return actual == expected
 }
 
-// is actual gte expected
-
 func GetIntEvalComparisonResult(operator string, actual, expected int) bool {
 	switch operator {
 	case "==", "eq":

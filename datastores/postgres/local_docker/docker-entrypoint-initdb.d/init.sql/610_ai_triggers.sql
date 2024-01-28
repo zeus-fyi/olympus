@@ -31,6 +31,16 @@ CREATE TABLE public.ai_trigger_actions_evals(
 CREATE INDEX ai_trigger_actions_evals_indx ON public.ai_trigger_actions_evals("eval_id");
 CREATE INDEX ai_trigger_actions_trg_indx ON public.ai_trigger_actions_evals("trigger_id");
 
+-- TODO: add this table
+-- CREATE TABLE public.ai_trigger_actions_evals_api(
+--     eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),
+--     trigger_id BIGINT NOT NULL REFERENCES ai_trigger_actions(trigger_id),
+--     retrieval_id BIGINT NOT NULL REFERENCES ai_retrievals(retrieval_id),
+--     PRIMARY KEY (eval_id, trigger_id, retrieval_id)
+-- );
+-- CREATE INDEX ai_trigger_actions_evals_indx ON public.ai_trigger_actions_evals("eval_id");
+-- CREATE INDEX ai_trigger_actions_trg_indx ON public.ai_trigger_actions_evals("trigger_id");
+
 CREATE TABLE public.ai_trigger_actions_approval(
     approval_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
     eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),

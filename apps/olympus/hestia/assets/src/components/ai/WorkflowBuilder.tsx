@@ -2539,6 +2539,58 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <MenuItem value="poll-table">Poll Table</MenuItem>
                                                             </Select>
                                                         </FormControl>
+                                                        <Stack direction="row" >
+                                                            <Box flexGrow={2} sx={{ mb: 0,ml: 0, mr:2, mt: 2  }}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="max-retries-input"
+                                                                    label="Max Retries"
+                                                                    variant="outlined"
+                                                                    type="number"
+                                                                    inputProps={{ min: 0 }}  // Set min and max values
+                                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                    && retrieval.retrievalItemInstruction.webFilters.maxRetries ? retrieval.retrievalItemInstruction.webFilters.maxRetries : 0}
+                                                                    onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    maxRetries: Number(e.target.value), // Correctly update the routingGroup field
+                                                                                }
+                                                                            }
+                                                                        };
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mb: 0, ml: 0, mr: 0, mt: 2 }}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="backoff-coefficient-input"
+                                                                    label="Backoff Coefficient"
+                                                                    variant="outlined"
+                                                                    type="number"
+                                                                    inputProps={{ min: 1 }}  // Set min and max values
+                                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                    && retrieval.retrievalItemInstruction.webFilters.backoffCoefficient ? retrieval.retrievalItemInstruction.webFilters.backoffCoefficient : 1}
+                                                                    onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    backoffCoefficient: Number(e.target.value), // Correctly update the field
+                                                                                }
+                                                                            }
+                                                                        };
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                />
+                                                            </Box>
+                                                        </Stack>
                                                         <Stack direction="row">
                                                             <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>
                                                                 <TextField

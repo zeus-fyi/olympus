@@ -70,23 +70,33 @@ func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, e
 //	return emr, nil
 //}
 
-func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, ef *artemis_orchestrations.EvalFn) (*artemis_orchestrations.EvalMetricsResults, error) {
+func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context, ef *artemis_orchestrations.EvalFn, jrs [][]*artemis_orchestrations.JsonSchemaDefinition) (*artemis_orchestrations.EvalMetricsResults, error) {
 	if ef == nil || ef.SchemasMap == nil {
 		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
 		return nil, nil
 	}
+
 	emr := &artemis_orchestrations.EvalMetricsResults{
 		EvalMetricsResults: []*artemis_orchestrations.EvalMetric{},
 	}
-	for k, _ := range ef.SchemasMap {
-		err := TransformJSONToEvalScoredMetrics(ef.SchemasMap[k])
-		if err != nil {
-			log.Err(err).Str("k", k).Interface("scoredResultsFields", ef.SchemasMap[k]).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
-			return nil, err
-		}
-		for fj, _ := range ef.SchemasMap[k].Fields {
-			for emi, _ := range ef.SchemasMap[k].Fields[fj].EvalMetrics {
-				emr.EvalMetricsResults = append(emr.EvalMetricsResults, ef.SchemasMap[k].Fields[fj].EvalMetrics[emi])
+
+	for i, _ := range jrs {
+		for j, _ := range jrs[i] {
+			tmp := jrs[i][j]
+			_, ok := ef.SchemasMap[tmp.SchemaStrID]
+			if !ok {
+				continue
+			}
+			copyMatchingFieldValuesFromResp(tmp, ef.SchemasMap)
+			err := TransformJSONToEvalScoredMetrics(ef.SchemasMap[tmp.SchemaStrID])
+			if err != nil {
+				log.Err(err).Int("i", i).Interface("scoredResultsFields", jrs[i][j]).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
+				return nil, err
+			}
+			for fj, _ := range ef.SchemasMap[tmp.SchemaStrID].Fields {
+				for emi, _ := range ef.SchemasMap[tmp.SchemaStrID].Fields[fj].EvalMetrics {
+					emr.EvalMetricsResults = append(emr.EvalMetricsResults, ef.SchemasMap[tmp.SchemaStrID].Fields[fj].EvalMetrics[emi])
+				}
 			}
 		}
 	}

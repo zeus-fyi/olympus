@@ -330,31 +330,6 @@ func haveIdenticalKeys[K comparable, V any](map1, map2 map[K]*V) bool {
 	return true
 }
 
-func copyFieldValues(src, dest *artemis_orchestrations.JsonSchemaDefinition) bool {
-	if src == nil || dest == nil {
-		return false // Handle nil arguments
-	}
-
-	for _, srcField := range src.FieldsMap {
-		if srcField == nil {
-			continue // Skip if srcField is nil
-		}
-
-		destField, ok := dest.FieldsMap[srcField.FieldStrID]
-		if !ok || destField == nil {
-			return false
-		}
-		if !srcField.FieldValue.IsValidated {
-			return false
-		}
-
-		if srcField.DataType == destField.DataType {
-			destField.FieldValue = srcField.FieldValue
-		}
-	}
-	return true
-}
-
 func copyMatchingFieldValues(tasksSchemaMap, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) {
 	if tasksSchemaMap == nil || schemasMap == nil {
 		return // Handle nil maps
@@ -402,6 +377,31 @@ func copyMatchingFieldValuesFromResp(respJsonResults *artemis_orchestrations.Jso
 		populateFieldsMap(schema)
 	}
 	return copyFieldValues(respJsonResults, evalSchema)
+}
+
+func copyFieldValues(src, dest *artemis_orchestrations.JsonSchemaDefinition) bool {
+	if src == nil || dest == nil {
+		return false // Handle nil arguments
+	}
+
+	for _, srcField := range src.FieldsMap {
+		if srcField == nil {
+			continue // Skip if srcField is nil
+		}
+
+		destField, ok := dest.FieldsMap[srcField.FieldStrID]
+		if !ok || destField == nil {
+			return false
+		}
+		if !srcField.FieldValue.IsValidated {
+			return false
+		}
+
+		if srcField.DataType == destField.DataType {
+			destField.FieldValue = srcField.FieldValue
+		}
+	}
+	return true
 }
 
 func populateFieldsMap(schema *artemis_orchestrations.JsonSchemaDefinition) {

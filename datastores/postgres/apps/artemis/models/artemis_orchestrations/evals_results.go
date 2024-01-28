@@ -45,7 +45,7 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
            chunk_offset,
            eval_iteration_count
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       ON CONFLICT (eval_metric_id, source_task_id, orchestration_id, running_cycle_number, chunk_offset, eval_iteration_count)
+       ON CONFLICT (eval_metrics_results_id, eval_metric_id, source_task_id, orchestration_id, running_cycle_number, chunk_offset, eval_iteration_count)
        DO UPDATE SET
            running_cycle_number = EXCLUDED.running_cycle_number,
            search_window_unix_start = EXCLUDED.search_window_unix_start,

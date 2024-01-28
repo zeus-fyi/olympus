@@ -2,7 +2,6 @@ package artemis_orchestrations
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -12,7 +11,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
-	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 type AIWorkflowEvalResultResponse struct {
@@ -26,19 +24,6 @@ type AIWorkflowEvalResultResponse struct {
 const Sn = "UpsertEvalMetricsResults"
 
 func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) error {
-	fp := filepaths.Path{
-		DirOut: "/Users/alex/go/Olympus/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations",
-		FnOut:  "debug-1.json",
-	}
-
-	b, _ := json.Marshal(emrs)
-	fmt.Println(string(b))
-	err := fp.WriteToFileOutPath(b)
-	if err != nil {
-		log.Err(err).Msg("UpsertEvalMetricsResults: failed to write to file")
-		return err
-	}
-
 	q := sql_query_templates.NewQueryParam("UpsertEvalMetricsResults", "eval_metrics_results", "where", 1000, []string{})
 	cte := sql_query_templates.CTE{Name: "UpsertEvalMetricsResults"}
 	cte.SubCTEs = []sql_query_templates.SubCTE{}
@@ -131,3 +116,18 @@ func InsertOrUpdateAiWorkflowEvalResultResponse(ctx context.Context, errr AIWork
 	}
 	return errr.EvalResultsID, nil
 }
+
+/*
+	fp := filepaths.Path{
+		DirOut: "/Users/alex/go/Olympus/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations",
+		FnOut:  "debug-1.json",
+	}
+
+	b, _ := json.Marshal(emrs)
+	fmt.Println(string(b))
+	err := fp.WriteToFileOutPath(b)
+	if err != nil {
+		log.Err(err).Msg("UpsertEvalMetricsResults: failed to write to file")
+		return err
+	}
+*/

@@ -1,7 +1,8 @@
-import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types.retrievals";
+import {Assistant, Retrieval} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 import {EvalFn, EvalFnMap, EvalMap, EvalMetric, EvalMetricsResult} from "./ai.types.evals";
 import {OrchestrationsAnalysis} from "./ai.types.runs";
+import {TriggerAction, TriggerPlatformAccount} from "./ai.types.triggers";
 
 export interface AiState {
     addSchemasView: boolean;

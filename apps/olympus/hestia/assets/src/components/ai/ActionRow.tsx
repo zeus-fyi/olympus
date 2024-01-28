@@ -5,7 +5,6 @@ import IconButton from "@mui/material/IconButton";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Checkbox from "@mui/material/Checkbox";
-import {TriggerAction} from "../../redux/ai/ai.types.retrievals";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
@@ -14,6 +13,7 @@ import TableBody from "@mui/material/TableBody";
 import Button from "@mui/material/Button";
 import {setTriggerAction} from "../../redux/ai/ai.reducer";
 import {useDispatch} from "react-redux";
+import {TriggerAction} from "../../redux/ai/ai.types.triggers";
 
 export function ActionRow(props: { row: TriggerAction, index: number, handleClick: any, checked: boolean}) {
     const { row, index, handleClick, checked } = props;

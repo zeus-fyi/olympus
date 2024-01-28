@@ -86,11 +86,12 @@ import {defaultEvalMetric, EvalsTable} from "./EvalsTable";
 import {Assistants} from "./Assistants";
 import {AssistantsTable} from "./AssistantsTable";
 import {ActionsTable} from "./ActionsTable";
-import {Retrieval, TriggerAction} from "../../redux/ai/ai.types.retrievals";
+import {Retrieval} from "../../redux/ai/ai.types.retrievals";
 import {SchemasTable} from "./SchemasTable";
 import {Schemas} from "./Schemas";
 import {JsonSchemaDefinition, JsonSchemaField} from "../../redux/ai/ai.types.schemas";
 import {EvalFn, EvalMetric} from "../../redux/ai/ai.types.evals";
+import {TriggerAction} from "../../redux/ai/ai.types.triggers";
 
 const mdTheme = createTheme();
 
@@ -2743,6 +2744,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                         triggerAction: e.target.value
                                                                     }))}
                                                                 >
+                                                                    <MenuItem value="api">API Approval</MenuItem>
                                                                     <MenuItem value="social-media-engagement">Social Media Engagement Approval</MenuItem>
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
@@ -2794,6 +2796,101 @@ function WorkflowEngineBuilder(props: any) {
                                                             </FormControl>
                                                         </Box>
                                                     </Stack>
+                                                    }
+                                                    { !loading && action.triggerAction === 'api' &&
+                                                        <div>
+                                                            <Typography gutterBottom variant="h5" component="div">
+                                                                API Trigger Settings
+                                                            </Typography>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                This section allows configuration of retry mechanisms for API call operations. It includes settings for the maximum number of retry attempts, where a specific number limits retries, and '0' or unset implies unlimited retries within the activity's time bounds.
+                                                                Additionally, the retry backoff coefficient determines the interval increase between retries, with a default setting that doubles the interval after each attempt.
+                                                            </Typography>
+                                                        </div>
+                                                    }
+                                                    { !loading && action.triggerAction === 'api' &&
+                                                        <Stack direction="row" >
+                                                            <Box flexGrow={2} sx={{ mb: 0,ml: 0, mr:2, mt: 2  }}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="max-retries-input"
+                                                                    label="Max Retries"
+                                                                    variant="outlined"
+                                                                    type="number"
+                                                                    inputProps={{ min: 0 }}  // Set min and max values
+                                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                        && retrieval.retrievalItemInstruction.webFilters.maxRetries ? retrieval.retrievalItemInstruction.webFilters.maxRetries : 0}
+                                                                    onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    maxRetries: Number(e.target.value), // Correctly update the routingGroup field
+                                                                                }
+                                                                            }
+                                                                        };
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={2} sx={{ mb: 0, ml: 0, mr: 2, mt: 2 }}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="backoff-coefficient-input"
+                                                                    label="Backoff Coefficient"
+                                                                    variant="outlined"
+                                                                    type="number"
+                                                                    inputProps={{ min: 1 }}  // Set min and max values
+                                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                    && retrieval.retrievalItemInstruction.webFilters.backoffCoefficient ? retrieval.retrievalItemInstruction.webFilters.backoffCoefficient : 1}
+                                                                    onChange={(e) => {
+                                                                        const updatedRetrieval = {
+                                                                            ...retrieval,
+                                                                            retrievalItemInstruction: {
+                                                                                ...retrieval.retrievalItemInstruction,
+                                                                                webFilters: {
+                                                                                    ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                    backoffCoefficient: Number(e.target.value), // Correctly update the field
+                                                                                }
+                                                                            }
+                                                                        };
+                                                                        dispatch(setRetrieval(updatedRetrieval));
+                                                                    }}
+                                                                />
+                                                            </Box>
+                                                        </Stack>
+                                                    }
+
+                                                    { !loading && action.triggerAction === 'api' &&
+                                                    <FormControl sx={{ mt: 2 }} fullWidth variant="outlined">
+                                                        <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                                            Routing Group
+                                                        </InputLabel>
+                                                        <Select
+                                                            labelId={`groupNameLabel`}
+                                                            id={`groupName`}
+                                                            name="groupName"
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.routingGroup ? retrieval.retrievalItemInstruction.webFilters.routingGroup : ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        webFilters: {
+                                                                            ...retrieval.retrievalItemInstruction.webFilters,
+                                                                            routingGroup: e.target.value, // Correctly update the routingGroup field
+                                                                        }
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                            label="Routing Group"
+                                                        >
+                                                            {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                                        </Select>
+                                                    </FormControl>
                                                     }
                                                     { !loading && action.evalResultsTriggerOn == 'metrics' &&
                                                         <Stack direction="row" >
@@ -3023,6 +3120,28 @@ function WorkflowEngineBuilder(props: any) {
                                                             </FormControl>
                                                         </Box>
                                                     </Stack>
+                                                    }
+                                                    { evalFn && evalFn.evalType == 'api' &&
+                                                        <Stack direction={"row"} >
+                                                            <Box flexGrow={3} sx={{ }}>
+                                                                <FormControl fullWidth>
+                                                                    <InputLabel id="eval-format-label">Eval Format</InputLabel>
+                                                                    <Select
+                                                                        labelId="eval-format-label"
+                                                                        id="eval-format-select"
+                                                                        value={evalFn.evalFormat}
+                                                                        label="Eval Model"
+                                                                        onChange={(e) => dispatch(setEvalFn({
+                                                                            ...evalFn, // Spread the existing action properties
+                                                                            evalFormat: e.target.value // Update the actionName
+                                                                        }))}
+                                                                    >
+                                                                        {/*<MenuItem value="code">code</MenuItem>*/}
+                                                                        <MenuItem value="json">JSON</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
+                                                        </Stack>
                                                     }
                                                     {evalFn && evalFn.schemas !== undefined && evalFn.schemas.length > 0 && evalFn.schemas.map((data: JsonSchemaDefinition, dataIndex: number) => (
                                                         <div key={dataIndex}>

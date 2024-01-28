@@ -7,10 +7,11 @@ import {
     UpdateTaskCycleCountPayload,
     UpdateTaskMapPayload
 } from "./ai.types";
-import {Assistant, Retrieval, TriggerAction, TriggerPlatformAccount} from "./ai.types.retrievals";
+import {Assistant, Retrieval} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 import {EvalFn, EvalMetric, UpdateEvalMapPayload} from "./ai.types.evals";
 import {OrchestrationsAnalysis} from "./ai.types.runs";
+import {TriggerAction, TriggerPlatformAccount} from "./ai.types.triggers";
 
 const initialState: AiState = {
     addSchemasView: false,

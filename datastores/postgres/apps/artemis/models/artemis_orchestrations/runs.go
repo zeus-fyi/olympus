@@ -237,7 +237,11 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 			const fail = "fail"
 			const cFail = "Pass"
 			if evals[j].EvalMetricResult.EvalResultOutcomeBool != nil {
-				resultBool := aws.ToBool(evals[j].EvalMetricResult.EvalResultOutcomeBool)
+
+				var resultBool bool
+				if evals[j].EvalMetricResult.EvalResultOutcomeBool != nil {
+					resultBool = *evals[j].EvalMetricResult.EvalResultOutcomeBool
+				}
 				switch evals[j].EvalExpectedResultState {
 				case pass:
 					evals[j].EvalExpectedResultState = cPass

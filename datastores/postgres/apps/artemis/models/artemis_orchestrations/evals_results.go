@@ -76,6 +76,10 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
 		} else {
 			pgTemp = &pgtype.JSONB{Bytes: sanitizeBytesUTF8(emr.EvalMetricResult.EvalMetadata), Status: IsNull(emr.EvalMetricResult.EvalMetadata)}
 		}
+
+		if emr.EvalMetricResult.EvalResultOutcomeBool == nil {
+			continue
+		}
 		rv := apps.RowValues{
 			aws.ToInt(emr.EvalMetricResult.EvalMetricResultID),
 			emrs.EvalContext.AIWorkflowAnalysisResult.OrchestrationID,
@@ -84,7 +88,7 @@ func UpsertEvalMetricsResults(ctx context.Context, emrs *EvalMetricsResults) err
 			emrs.EvalContext.AIWorkflowAnalysisResult.RunningCycleNumber,
 			emrs.EvalContext.AIWorkflowAnalysisResult.SearchWindowUnixStart,
 			emrs.EvalContext.AIWorkflowAnalysisResult.SearchWindowUnixEnd,
-			aws.ToBool(emr.EvalMetricResult.EvalResultOutcomeBool),
+			*emr.EvalMetricResult.EvalResultOutcomeBool,
 			pgTemp,
 			emrs.EvalContext.AIWorkflowAnalysisResult.ChunkOffset,
 			emrs.EvalContext.EvalIterationCount,

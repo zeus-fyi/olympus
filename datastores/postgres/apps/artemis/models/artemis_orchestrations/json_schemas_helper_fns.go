@@ -333,7 +333,6 @@ func AssignMapValuesJsonSchemaFields(fields []JsonSchemaField, m map[string]inte
 			case "string":
 				if strVal, okStr := val.(string); okStr {
 					fields[i].StringValue = &strVal
-					fmt.Println("Field %s is a string: %s\n", fields[i].FieldName, strVal)
 					//fmt.Printf("Field %s is a string: %s\n", fieldDef.FieldName, strVal)
 					fields[i].IsValidated = true
 				} else {

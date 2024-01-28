@@ -70,8 +70,7 @@ func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval() {
 				},
 			},
 		},
-		TriggerPlatformReference: TriggerPlatformReference{},
-		EvalTriggerAction:        EvalTriggerActions{},
+		EvalTriggerAction: EvalTriggerActions{},
 		EvalTriggerActions: []EvalTriggerActions{
 			{
 				EvalID:               1703922045959259000, // Use an appropriate EvalID

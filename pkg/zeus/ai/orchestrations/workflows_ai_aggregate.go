@@ -231,10 +231,10 @@ func getChunkIteratorLen(pr *PromptReduction) int {
 	}
 	chunkIterator := 0
 	if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil {
-		chunkIterator = len(pr.PromptReductionSearchResults.OutSearchGroups)
+		return len(pr.PromptReductionSearchResults.OutSearchGroups)
 	}
-	if pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
-		chunkIterator = len(pr.PromptReductionText.OutPromptChunks)
+	if pr.PromptReductionText != nil && pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
+		return len(pr.PromptReductionText.OutPromptChunks)
 	}
 	return chunkIterator
 }

@@ -19,6 +19,8 @@ export function RetrievalsRow(props: { row: Retrieval, index: number, handleClic
     const dispatch = useDispatch();
     const handleEditRetrieval = async (e: any, ret: Retrieval) => {
         e.preventDefault();
+
+        console.log(ret)
         dispatch(setRetrieval(ret))
     }
     return (
@@ -65,9 +67,7 @@ export function RetrievalsRow(props: { row: Retrieval, index: number, handleClic
                                 <TableBody>
                                     <TableRow >
                                         <TableCell component="th" scope="row" style={{ width: '50%', whiteSpace: 'pre-wrap' }}>
-                                                {
-                                                    row.retrievalItemInstruction && row.retrievalItemInstruction.instructions && prettyPrintJSONFromBytes(row.retrievalItemInstruction.instructions)
-                                                }
+                                            {JSON.stringify(row.retrievalItemInstruction, null, 2)}
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>

@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -28,9 +29,11 @@ type TriggerAction struct {
 }
 
 type TriggerActionsApproval struct {
+	TriggerAction       string    `db:"trigger_action" json:"triggerAction"`
 	ApprovalStrID       string    `json:"approvalStrID,omitempty"`
 	ApprovalID          int       `db:"approval_id" json:"approvalID"`
 	EvalID              int       `db:"eval_id" json:"evalID"`
+	EvalStrID           string    `json:"evalStrID"`
 	TriggerID           int       `db:"trigger_id" json:"triggerID"`
 	TriggerStrID        string    `db:"trigger_id" json:"triggerStrID"`
 	WorkflowResultID    int       `db:"workflow_result_id" json:"workflowResultID"`
@@ -49,23 +52,47 @@ type EvalTriggerActions struct {
 	EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"`
 }
 
-func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.OrgUser, evalID int) ([]TriggerAction, error) {
+type TriggersWorkflowQueryParams struct {
+	Ou                 org_users.OrgUser `json:"ou,omitempty"`
+	EvalID             int               `json:"evalID,omitempty"`
+	TaskID             int               `json:"taskID,omitempty"`
+	WorkflowTemplateID int               `json:"workflowTemplateID,omitempty"`
+}
+
+func (tq *TriggersWorkflowQueryParams) ValidateEvalTaskQp() bool {
+	if tq.Ou.OrgID == 0 || tq.EvalID == 0 || tq.TaskID == 0 || tq.WorkflowTemplateID == 0 {
+		return false
+	}
+	return true
+}
+
+func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkflowQueryParams) ([]TriggerAction, error) {
+	if tq.Ou.OrgID == 0 {
+		return nil, errors.New("orgID cannot be 0")
+	}
 	var triggerActions []TriggerAction
 	q := sql_query_templates.QueryParams{}
-	params := []interface{}{ou.OrgID}
+	params := []interface{}{tq.Ou.OrgID}
 
-	additionalQuery := ""
-	if evalID != 0 {
-		additionalQuery = "AND eval_id = $2"
-		params = append(params, evalID)
-	}
-	// Updated query to include TriggerActionsApproval
-	q.RawQuery = `
-			WITH cte_trigger_acts AS (
+	q1 := `	WITH cte_trigger_acts AS (
 				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action
 				FROM public.ai_trigger_actions ta
-				WHERE ta.org_id = $1 ` + additionalQuery + `
-			),
+				WHERE ta.org_id = $1
+			),`
+
+	if tq.EvalID != 0 && tq.TaskID != 0 && tq.WorkflowTemplateID != 0 {
+		q1 = `	WITH cte_trigger_acts AS (
+				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action
+				FROM public.ai_trigger_actions ta
+				JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
+				JOIN public.ai_workflow_template_eval_task_relationships trrr ON trrr.eval_id = tae.eval_id
+				WHERE ta.org_id = $1 AND tae.eval_id = $2 AND trrr.task_id = $3 AND trrr.workflow_template_id = $4
+			),`
+		params = append(params, tq.EvalID, tq.TaskID, tq.WorkflowTemplateID)
+	}
+
+	// Updated query to include TriggerActionsApproval
+	q.RawQuery = q1 + `
 			cte_trigger_action_evals AS (
 				SELECT ta.trigger_id, COALESCE(tae.eval_id, 0) as eval_id, taee.eval_trigger_state, taee.eval_results_trigger_on
 				FROM cte_trigger_acts ta
@@ -116,6 +143,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 			cte_trigger_action_approvals AS (
 				SELECT 
 					ta.trigger_id,
+					ta.trigger_action,
 					ataa.workflow_result_id,
 					ataa.eval_id,
 					ataa.trigger_id AS approval_trigger_id,
@@ -124,8 +152,8 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 					ataa.request_summary,
 					ataa.updated_at
 				FROM cte_trigger_action_evals ta
-				JOIN public.ai_trigger_actions_approval ataa ON ta.trigger_id = ataa.trigger_id
-					GROUP BY ta.trigger_id,
+				JOIN public.ai_trigger_actions_approvals ataa ON ta.trigger_id = ataa.trigger_id
+					GROUP BY ta.trigger_id, ta.trigger_action,
 					ataa.workflow_result_id,
 					ataa.eval_id,
 					ataa.trigger_id,
@@ -138,6 +166,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 					trigger_id,
 					COALESCE(JSONB_AGG(
 						JSONB_BUILD_OBJECT(
+							'triggerAction', trigger_action,
 							'workflowResultStrID', workflow_result_id::text,
 							'workflowResultID', workflow_result_id,
 							'evalID', eval_id,
@@ -237,9 +266,14 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 func SelectTriggerActionApprovals(ctx context.Context, ou org_users.OrgUser, state string) ([]TriggerActionsApproval, error) {
 	var approvals []TriggerActionsApproval
 	q := sql_query_templates.QueryParams{}
+
 	q.RawQuery = `
-        SELECT a.approval_id, a.eval_id, a.trigger_id, a.workflow_result_id, a.approval_state, a.request_summary, a.updated_at
-        FROM public.ai_trigger_actions_approval a
+        SELECT a.approval_id, a.approval_id::text,
+               a.eval_id,
+               a.trigger_id, a.trigger_id::text,
+               a.workflow_result_id, a.workflow_result_id::text, 
+               a.approval_state, a.request_summary, a.updated_at
+        FROM public.ai_trigger_actions_approvals a
         JOIN public.ai_trigger_actions t ON a.trigger_id = t.trigger_id
         WHERE t.org_id = $1 AND a.approval_state = $2
         ORDER BY a.approval_id DESC;`
@@ -255,7 +289,11 @@ func SelectTriggerActionApprovals(ctx context.Context, ou org_users.OrgUser, sta
 	// Iterating through the query results
 	for rows.Next() {
 		var approval TriggerActionsApproval
-		err = rows.Scan(&approval.ApprovalID, &approval.EvalID, &approval.TriggerID, &approval.WorkflowResultID, &approval.ApprovalState, &approval.RequestSummary, &approval.UpdatedAt)
+		err = rows.Scan(&approval.ApprovalID, &approval.ApprovalStrID,
+			&approval.EvalID,
+			&approval.TriggerID, &approval.TriggerStrID,
+			&approval.WorkflowResultID, &approval.WorkflowResultStrID,
+			&approval.ApprovalState, &approval.RequestSummary, &approval.UpdatedAt)
 		if err != nil {
 			log.Err(err).Msg("failed to scan trigger action approval")
 			return nil, err
@@ -272,14 +310,125 @@ func SelectTriggerActionApprovals(ctx context.Context, ou org_users.OrgUser, sta
 	return approvals, nil
 }
 
-// TODO, need to add orgID to the query
-
-// request summary?
-
-func CreateOrUpdateTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, approval *TriggerActionsApproval) error {
-	if approval == nil {
-		return errors.New("approval cannot be nil")
+func SelectTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, state string, approvalID int) ([]TriggerActionsApproval, error) {
+	if approvalID <= 0 {
+		return nil, nil
 	}
+	var approvals []TriggerActionsApproval
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+        SELECT a.approval_id, a.approval_id::text,
+               a.eval_id, a.eval_id::text,
+               a.trigger_id, a.trigger_id::text,
+               a.workflow_result_id, a.workflow_result_id::text, 
+               a.approval_state, a.request_summary, a.updated_at,
+               t.trigger_action
+        FROM public.ai_trigger_actions_approvals a
+        JOIN public.ai_trigger_actions t ON a.trigger_id = t.trigger_id
+        WHERE t.org_id = $1 AND a.approval_state = $2 AND a.approval_id = $3
+        ORDER BY a.approval_id DESC;`
+
+	// Executing the query
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, state, approvalID)
+	if err != nil {
+		log.Err(err).Msg("failed to execute query for trigger action approvals")
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterating through the query results
+	for rows.Next() {
+		var approval TriggerActionsApproval
+		err = rows.Scan(&approval.ApprovalID, &approval.ApprovalStrID,
+			&approval.EvalID, &approval.EvalStrID,
+			&approval.TriggerID, &approval.TriggerStrID,
+			&approval.WorkflowResultID, &approval.WorkflowResultStrID,
+			&approval.ApprovalState, &approval.RequestSummary, &approval.UpdatedAt,
+			&approval.TriggerAction)
+		if err != nil {
+			log.Err(err).Msg("failed to scan trigger action approval")
+			return nil, err
+		}
+		approvals = append(approvals, approval)
+	}
+	// Check for any error encountered during iteration
+	if err = rows.Err(); err != nil {
+		log.Err(err).Msg("error encountered during rows iteration")
+		return nil, err
+	}
+	return approvals, nil
+}
+
+func CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_users.OrgUser, approval TriggerActionsApproval, wtrr AIWorkflowTriggerResultApiReqResponse) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+		WITH cte_create_approval AS (
+			INSERT INTO ai_trigger_actions_approvals(approval_id, eval_id, trigger_id, workflow_result_id, approval_state, request_summary)
+			VALUES ($1, $2, $3, $4, $5, $6)
+			ON CONFLICT (approval_id, eval_id, trigger_id, workflow_result_id)
+			DO UPDATE SET 
+				request_summary = EXCLUDED.request_summary,
+				approval_state = EXCLUDED.approval_state
+			RETURNING approval_id
+		) INSERT INTO ai_trigger_actions_api_reqs_responses(response_id, approval_id, trigger_id, retrieval_id, req_payload, resp_payload)
+		  SELECT $7, cte_create_approval.approval_id, $8, $9, $10, $11
+		  FROM cte_create_approval
+		  ON CONFLICT (response_id, approval_id, trigger_id, retrieval_id)	 
+		  DO UPDATE SET 
+			  req_payload = EXCLUDED.req_payload,
+			  resp_payload = EXCLUDED.resp_payload
+		  RETURNING response_id, approval_id;
+	`
+	if approval.ApprovalState == "" {
+		approval.ApprovalState = "pending"
+	}
+	if approval.RequestSummary == "" {
+		approval.RequestSummary = "Requesting approval for trigger action"
+	}
+	if approval.ApprovalID <= 0 {
+		ch := chronos.Chronos{}
+		approval.ApprovalID = ch.UnixTimeStampNow()
+	}
+	if wtrr.ResponseID <= 0 {
+		ch := chronos.Chronos{}
+		wtrr.ResponseID = ch.UnixTimeStampNow()
+	}
+	var pgReqJsonB, pgRespJsonB pgtype.JSONB
+	if len(wtrr.ReqPayloads) > 0 {
+		b, err := json.Marshal(wtrr.ReqPayloads)
+		if err != nil {
+			log.Err(err).Msg("failed to marshal req payload")
+			return err
+		}
+		pgReqJsonB.Bytes = sanitizeBytesUTF8(b)
+		pgReqJsonB.Status = pgtype.Present
+	} else {
+		pgReqJsonB.Status = pgtype.Null
+	}
+	if len(wtrr.RespPayloads) > 0 {
+		b, err := json.Marshal(wtrr.RespPayloads)
+		if err != nil {
+			log.Err(err).Msg("failed to marshal resp payload")
+			return err
+		}
+		pgRespJsonB.Bytes = sanitizeBytesUTF8(b)
+		pgRespJsonB.Status = pgtype.Present
+	} else {
+		pgRespJsonB.Status = pgtype.Null
+	}
+	var returnedApprovalID int
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery,
+		approval.ApprovalID, approval.EvalID, approval.TriggerID, approval.WorkflowResultID, approval.ApprovalState, approval.RequestSummary,
+		wtrr.ResponseID, approval.TriggerID, wtrr.RetrievalID, pgReqJsonB, pgRespJsonB).Scan(&wtrr.ResponseID, &returnedApprovalID)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Int("returnedApprovalID", returnedApprovalID).Int("respID", wtrr.ResponseID).Msg("failed to insert or update trigger action approval for api")
+		return err
+	}
+
+	return nil
+}
+
+func CreateOrUpdateTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, approval TriggerActionsApproval) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
         INSERT INTO ai_trigger_actions_approval(eval_id, trigger_id, workflow_result_id, approval_state, request_summary)

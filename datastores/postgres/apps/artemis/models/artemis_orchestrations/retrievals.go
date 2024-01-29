@@ -95,15 +95,19 @@ func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalI
 	return nil
 }
 
-func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalItem, error) {
+func SelectRetrievals(ctx context.Context, ou org_users.OrgUser, retID int) ([]RetrievalItem, error) {
+	args := []interface{}{ou.OrgID}
+	var queryAddOn string
+	if retID > 0 {
+		args = append(args, retID)
+		queryAddOn = " AND retrieval_id = $2"
+	}
 	query := `
         SELECT retrieval_id, retrieval_id::text AS retrieval_id_str, retrieval_name, retrieval_group, retrieval_platform, instructions
         FROM public.ai_retrieval_library
-        WHERE org_id = $1
-        ORDER BY retrieval_id DESC;`
-
+        WHERE org_id = $1 ` + queryAddOn
 	// Executing the query
-	rows, err := apps.Pg.Query(ctx, query, ou.OrgID)
+	rows, err := apps.Pg.Query(ctx, query, args...)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil

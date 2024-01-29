@@ -10,12 +10,14 @@ func (s *OrchestrationsTestSuite) TestSelectTriggerActions() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-
-	res, err := SelectTriggerActionsByOrgAndOptParams(ctx, ou, 1702959482164376000)
+	qp := TriggersWorkflowQueryParams{Ou: ou, EvalID: 1702959482164376000}
+	res, err := SelectTriggerActionsByOrgAndOptParams(ctx, qp)
 	s.Require().Nil(err)
 	s.Require().NotNil(res)
 
-	res2, err := SelectTriggerActionsByOrgAndOptParams(ctx, ou, 0)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	qp = TriggersWorkflowQueryParams{Ou: ou, EvalID: 0}
+	res2, err := SelectTriggerActionsByOrgAndOptParams(ctx, qp)
 	s.Require().Nil(err)
 	s.Require().NotNil(res2)
 }

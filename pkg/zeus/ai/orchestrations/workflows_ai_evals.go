@@ -35,16 +35,6 @@ func (m *MbChildSubProcessParams) GetFilteredSearchResults() []hera_search.Searc
 	return nil
 }
 
-func (m *MbChildSubProcessParams) GetJsonResponseResults() []artemis_orchestrations.JsonSchemaDefinition {
-	if m == nil {
-		return nil
-	}
-	if m.AnalysisEvalActionParams != nil && m.AnalysisEvalActionParams.ParentOutputToEval != nil {
-		return m.AnalysisEvalActionParams.ParentOutputToEval.JsonResponseResults
-	}
-	return nil
-}
-
 type EvalActionParams struct {
 	WorkflowTemplateData artemis_orchestrations.WorkflowTemplateData `json:"parentProcess"`
 	ParentOutputToEval   *ChatCompletionQueryResponse                `json:"parentOutputToEval"`
@@ -173,6 +163,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			logger.Error("failed to save eval metric results", "Error", err)
 			return err
 		}
+		cpe.TaskToExecute.Ec = evCtx
 		suffix := strings.Split(uuid.New().String(), "-")[0]
 		wfID := mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + suffix
 		tar := TriggerActionsWorkflowParams{

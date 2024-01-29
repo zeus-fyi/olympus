@@ -43,16 +43,16 @@ func InsertOrUpdateAIWorkflowTriggerResultResponse(ctx context.Context, wtrr AIW
 	return wtrr.TriggerResultID, err
 }
 
-type AIWorkflowTriggerResultApiResponse struct {
-	ResponseID  int      `db:"response_id" json:"responseID"`
-	ApprovalID  int      `db:"approval_id" json:"approvalID"`
-	TriggerID   int      `db:"trigger_id" json:"triggerID"`
-	RetrievalID int      `db:"retrieval_id" json:"retrievalID"`
-	ReqPayload  echo.Map `db:"req_payload" json:"reqPayload,omitempty"`
-	RespPayload echo.Map `db:"resp_payload" json:"respPayload,omitempty"`
+type AIWorkflowTriggerResultApiReqResponse struct {
+	ResponseID   int        `db:"response_id" json:"responseID"`
+	ApprovalID   int        `db:"approval_id" json:"approvalID"`
+	TriggerID    int        `db:"trigger_id" json:"triggerID"`
+	RetrievalID  int        `db:"retrieval_id" json:"retrievalID"`
+	ReqPayloads  []echo.Map `db:"req_payloads" json:"reqPayloads,omitempty"`
+	RespPayloads []echo.Map `db:"resp_payloads" json:"respPayloads,omitempty"`
 }
 
-func InsertOrUpdateAIWorkflowTriggerResultApiResponse(ctx context.Context, wtrr *AIWorkflowTriggerResultApiResponse) error {
+func InsertOrUpdateAIWorkflowTriggerResultApiResponse(ctx context.Context, wtrr *AIWorkflowTriggerResultApiReqResponse) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO ai_trigger_actions_api_responses(response_id, approval_id, trigger_id, retrieval_id, req_payload, resp_payload)
                   VALUES ($1, $2, $3, $4, $5, $6)
@@ -66,19 +66,8 @@ func InsertOrUpdateAIWorkflowTriggerResultApiResponse(ctx context.Context, wtrr 
 		wtrr.ResponseID = ch.UnixTimeStampNow()
 	}
 	var pgReqJsonB, pgRespJsonB pgtype.JSONB
-	if len(wtrr.RespPayload) > 0 {
-		b, err := json.Marshal(wtrr.RespPayload)
-		if err != nil {
-			log.Err(err).Msg("failed to marshal resp payload")
-			return err
-		}
-		pgRespJsonB.Bytes = sanitizeBytesUTF8(b)
-		pgRespJsonB.Status = pgtype.Present
-	} else {
-		pgRespJsonB.Status = pgtype.Null
-	}
-	if len(wtrr.ReqPayload) > 0 {
-		b, err := json.Marshal(wtrr.ReqPayload)
+	if len(wtrr.ReqPayloads) > 0 {
+		b, err := json.Marshal(wtrr.ReqPayloads)
 		if err != nil {
 			log.Err(err).Msg("failed to marshal req payload")
 			return err
@@ -88,7 +77,18 @@ func InsertOrUpdateAIWorkflowTriggerResultApiResponse(ctx context.Context, wtrr 
 	} else {
 		pgReqJsonB.Status = pgtype.Null
 	}
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wtrr.ResponseID, wtrr.ApprovalID, wtrr.TriggerID, wtrr.RetrievalID, wtrr.ReqPayload, wtrr.RespPayload).Scan(&wtrr.ResponseID)
+	if len(wtrr.RespPayloads) > 0 {
+		b, err := json.Marshal(wtrr.RespPayloads)
+		if err != nil {
+			log.Err(err).Msg("failed to marshal resp payload")
+			return err
+		}
+		pgRespJsonB.Bytes = sanitizeBytesUTF8(b)
+		pgRespJsonB.Status = pgtype.Present
+	} else {
+		pgRespJsonB.Status = pgtype.Null
+	}
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wtrr.ResponseID, wtrr.ApprovalID, wtrr.TriggerID, wtrr.RetrievalID, pgReqJsonB, pgRespJsonB).Scan(&wtrr.ResponseID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("InsertOrUpdateAIWorkflowTriggerResultApiResponse")); returnErr != nil {
 		log.Err(returnErr).Interface("wtrr", wtrr).Msg(q.LogHeader("InsertOrUpdateAIWorkflowTriggerResultApiResponse"))
 		return err

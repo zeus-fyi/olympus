@@ -3,9 +3,6 @@ package ai_platform_service_orchestrations
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/jackc/pgtype"
-	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
@@ -14,7 +11,8 @@ import (
 )
 
 const (
-	lbStrategyPollTable = "poll-table"
+	lbStrategyPollTable  = "poll-table"
+	lbStrategyRoundRobin = "round-robin"
 )
 
 func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context, tte TaskToExecute) (*hera_search.SearchResultGroup, error) {
@@ -27,6 +25,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			MaximumAttempts:    10,
 		},
 	}
+
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(tte.Ou.OrgID, tte.WfID, "ZeusAiPlatformServiceWorkflows", "RetrievalsWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
@@ -75,91 +74,69 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			}
 		}
 	case apiApproval:
-		var echoResp []echo.Map
-		// part 1
-		payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(tte.Ec.JsonResponseResults)
-		for _, m := range payloadMaps {
-			echoMap := echo.Map{}
-			for k, v := range m {
-				echoMap[k] = v
-			}
-			echoResp = append(echoResp, echoMap)
-		}
-		if len(echoResp) <= 0 {
-			return nil, nil
-		}
-		// part 2
-		var rets []artemis_orchestrations.RetrievalItem
-		retrievalCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalCtx, z.SelectRetrievalTask, tte.Ou, tte.Tc.AIWorkflowTriggerResultApiResponse.RetrievalID).Get(retrievalCtx, &rets)
-		if err != nil {
-			logger.Error("failed to save trigger response", "Error", err)
-			return nil, err
-		}
-		if len(rets) <= 0 {
-			return nil, nil
-		}
-		retrieval := rets[0]
-		if retrieval.RetrievalItemInstruction.Instructions.Status == pgtype.Null {
-			return nil, nil
-		}
-		tte.Wft.RetrievalID = retrieval.RetrievalID
-		tte.Wft.RetrievalName = retrieval.RetrievalName
-		tte.Wft.RetrievalGroup = retrieval.RetrievalGroup
-		tte.Wft.RetrievalInstructions = retrieval.RetrievalItemInstruction.Instructions.Bytes
-		tte.Wft.RetrievalPlatform = retrieval.RetrievalPlatform
-		var routes []iris_models.RouteInfo
-		retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tte.Ou.OrgID, tte.Wft).Get(retrievalWebCtx, &routes)
-		if err != nil {
-			logger.Error("failed to run retrieval", "Error", err)
-			return nil, err
-		}
+		// TODO, lookup approval, req/resps, and run api call request task
 
-		var breakTwoLoop bool
-		for _, route := range routes {
-			for _, payload := range echoResp {
-				rt := RouteTask{
-					Ou:          tte.Ou,
-					RetrievalDB: tte.Wft.RetrievalDB,
-					RouteInfo:   route,
-					Payload:     payload,
-				}
-				fetchedResult := &hera_search.SearchResult{}
-				// TODO, set the retry policy from instructions
-				retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.ApiCallRequestTask, rt).Get(retrievalWebTaskCtx, &fetchedResult)
-				if err != nil {
-					logger.Error("failed to run api call request task retrieval", "Error", err)
-					return nil, err
-				}
-				if fetchedResult != nil && len(fetchedResult.WebResponse.Body) > 0 {
-					tte.Sg.ApiResponseResults = append(tte.Sg.ApiResponseResults, *fetchedResult)
-					trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiResponse{
-						ApprovalID:  tte.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
-						TriggerID:   tte.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
-						RetrievalID: aws.ToInt(tte.Wft.RetrievalID),
-						ReqPayload:  payload,
-						RespPayload: fetchedResult.WebResponse.Body,
-					}
-					saveApiRespCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.SaveTriggerApiResponseOutput, trrr).Get(saveApiRespCtx, &trrr)
-					if err != nil {
-						logger.Error("failed to save trigger response retrieval", "Error", err)
-						return nil, err
-					}
-				}
-				if fetchedResult != nil && fetchedResult.WebResponse.WebFilters != nil &&
-					fetchedResult.WebResponse.WebFilters.LbStrategy != nil &&
-					*fetchedResult.WebResponse.WebFilters.LbStrategy != lbStrategyPollTable {
-					breakTwoLoop = true
-					break
-				}
-			}
-			if breakTwoLoop {
-				break
-			}
-		}
+		//var echoResp []echo.Map
+		//// part 1
+		//// lookup api req resp info
+		//
+		//// part 2
+		//tte.Wft.RetrievalID = tte.Tc.RetrievalItem.RetrievalID
+		//tte.Wft.RetrievalName = tte.Tc.RetrievalItem.RetrievalName
+		//tte.Wft.RetrievalGroup = tte.Tc.RetrievalItem.RetrievalGroup
+		//tte.Wft.RetrievalInstructions = tte.Tc.RetrievalItem.RetrievalItemInstruction.Instructions.Bytes
+		//tte.Wft.RetrievalPlatform = tte.Tc.RetrievalItem.RetrievalPlatform
+		//var routes []iris_models.RouteInfo
+		//retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)
+		//err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tte.Ou.OrgID, tte.Wft).Get(retrievalWebCtx, &routes)
+		//if err != nil {
+		//	logger.Error("failed to run retrieval", "Error", err)
+		//	return nil, err
+		//}
+		//
+		//var breakTwoLoop bool
+		//for _, route := range routes {
+		//	for _, payload := range echoResp {
+		//		rt := RouteTask{
+		//			Ou:          tte.Ou,
+		//			RetrievalDB: tte.Wft.RetrievalDB,
+		//			RouteInfo:   route,
+		//			Payload:     payload,
+		//		}
+		//		fetchedResult := &hera_search.SearchResult{}
+		//		retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, ao)
+		//		err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.ApiCallRequestTask, rt).Get(retrievalWebTaskCtx, &fetchedResult)
+		//		if err != nil {
+		//			logger.Error("failed to run api call request task retrieval", "Error", err)
+		//			return nil, err
+		//		}
+		//		if fetchedResult != nil && len(fetchedResult.WebResponse.Body) > 0 {
+		//			tte.Sg.ApiResponseResults = append(tte.Sg.ApiResponseResults, *fetchedResult)
+		//			trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
+		//				ApprovalID:  tte.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
+		//				TriggerID:   tte.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
+		//				RetrievalID: aws.ToInt(tte.Wft.RetrievalID),
+		//				ReqPayload:  payload,
+		//				RespPayload: fetchedResult.WebResponse.Body,
+		//			}
+		//			saveApiRespCtx := workflow.WithActivityOptions(ctx, ao)
+		//			err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.SaveTriggerApiRequestResp, trrr).Get(saveApiRespCtx, &trrr)
+		//			if err != nil {
+		//				logger.Error("failed to save trigger response retrieval", "Error", err)
+		//				return nil, err
+		//			}
+		//		}
+		//		if fetchedResult != nil && fetchedResult.WebResponse.WebFilters != nil &&
+		//			fetchedResult.WebResponse.WebFilters.LbStrategy != nil &&
+		//			*fetchedResult.WebResponse.WebFilters.LbStrategy != lbStrategyPollTable {
+		//			breakTwoLoop = true
+		//			break
+		//		}
+		//	}
+		//	if breakTwoLoop {
+		//		break
+		//	}
+		//}
 	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
@@ -168,4 +145,20 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		return nil, err
 	}
 	return tte.Sg, nil
+}
+
+func GetRetryPolicy(ret artemis_orchestrations.RetrievalItem, maxRunTime time.Duration) *temporal.RetryPolicy {
+	if ret.WebFilters == nil {
+		return nil
+	}
+	retry := &temporal.RetryPolicy{
+		MaximumInterval: maxRunTime,
+	}
+	if ret.WebFilters.BackoffCoefficient != nil && *ret.WebFilters.BackoffCoefficient >= 1 {
+		retry.BackoffCoefficient = *ret.WebFilters.BackoffCoefficient
+	}
+	if ret.WebFilters.MaxRetries != nil && *ret.WebFilters.MaxRetries >= 0 {
+		retry.MaximumAttempts = int32(*ret.WebFilters.MaxRetries)
+	}
+	return retry
 }

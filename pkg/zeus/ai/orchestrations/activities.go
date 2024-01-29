@@ -57,7 +57,8 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SocialTweetTask, z.SocialRedditTask, z.SocialDiscordTask, z.SocialTelegramTask,
 		z.EvalFormatForApi, z.SaveTriggerResponseOutput, z.SaveEvalResponseOutput,
 		z.SelectTaskDefinition, z.ExtractTweets, z.TokenOverflowReduction,
-		z.AnalyzeEngagementTweets, z.SaveTriggerApiResponseOutput, z.SelectRetrievalTask,
+		z.AnalyzeEngagementTweets, z.SaveTriggerApiRequestResp, z.SelectRetrievalTask,
+		z.SelectTriggerActionToExec,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }

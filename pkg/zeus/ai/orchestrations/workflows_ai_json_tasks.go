@@ -18,13 +18,14 @@ const (
 )
 
 type TaskToExecute struct {
-	WfID string                                           `json:"wfID"`
-	Ou   org_users.OrgUser                                `json:"ou"`
-	Ec   artemis_orchestrations.EvalContext               `json:"ec"`
-	Tc   TaskContext                                      `json:"taskContext"`
-	Wft  artemis_orchestrations.WorkflowTemplateData      `json:"wft"`
-	Sg   *hera_search.SearchResultGroup                   `json:"sg"`
-	Wr   *artemis_orchestrations.AIWorkflowAnalysisResult `json:"wr"`
+	WfID        string                                           `json:"wfID"`
+	Ou          org_users.OrgUser                                `json:"ou"`
+	Ec          artemis_orchestrations.EvalContext               `json:"ec"`
+	Tc          TaskContext                                      `json:"taskContext"`
+	Wft         artemis_orchestrations.WorkflowTemplateData      `json:"wft"`
+	Sg          *hera_search.SearchResultGroup                   `json:"sg"`
+	Wr          *artemis_orchestrations.AIWorkflowAnalysisResult `json:"wr"`
+	RetryPolicy *temporal.RetryPolicy                            `json:"retryPolicy"`
 }
 
 type TaskContext struct {
@@ -35,7 +36,7 @@ type TaskContext struct {
 	TaskID         int    `json:"taskID"`
 	EvalID         int    `json:"evalID,omitempty"`
 	//TriggerActionsApproval             artemis_orchestrations.TriggerActionsApproval `json:"triggerActionsApproval,omitempty"`
-	AIWorkflowTriggerResultApiResponse artemis_orchestrations.AIWorkflowTriggerResultApiResponse
+	AIWorkflowTriggerResultApiResponse artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse
 	Schemas                            []*artemis_orchestrations.JsonSchemaDefinition
 }
 

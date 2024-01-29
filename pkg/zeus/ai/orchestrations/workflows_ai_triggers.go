@@ -1,10 +1,10 @@
 package ai_platform_service_orchestrations
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -34,24 +34,23 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			MaximumAttempts:    5,
 		},
 	}
-
-	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-	var triggerActions []artemis_orchestrations.TriggerAction
 	tq := artemis_orchestrations.TriggersWorkflowQueryParams{
 		Ou:                 tar.Mb.Ou,
-		EvalID:             tar.Emr.EvalContext.EvalID,
+		EvalID:             tar.Cpe.TaskToExecute.Tc.EvalID,
 		TaskID:             tar.Cpe.TaskToExecute.Tc.TaskID,
 		WorkflowTemplateID: tar.Mb.WfExecParams.WorkflowTemplate.WorkflowTemplateID,
 	}
 	if !tq.ValidateEvalTaskQp() {
 		return nil
 	}
+
+	var triggerActions []artemis_orchestrations.TriggerAction
+	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tq).Get(triggerEvalsLookupCtx, &triggerActions)
 	if err != nil {
 		logger.Error("failed to get eval trigger info", "Error", err)
 		return err
 	}
-
 	// if there are no trigger actions to execute, check if conditions are met for execution
 	for _, ta := range triggerActions {
 		var taps []artemis_orchestrations.TriggerActionsApproval
@@ -64,64 +63,33 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		if taps == nil {
 			continue
 		}
-
-		if tar.Mb.AnalysisEvalActionParams == nil && ta.TriggerAction == apiApproval {
-			return nil
-		}
-
-		var cr *ChatCompletionQueryResponse
-		if tar.Mb.AnalysisEvalActionParams != nil && tar.Mb.AnalysisEvalActionParams.SearchResultGroup != nil {
+		for _, tap := range taps {
 			switch ta.TriggerAction {
 			case apiApproval:
-				for _, ret := range ta.TriggerRetrievals {
-					if ret.RetrievalID == nil || aws.ToInt(ret.RetrievalID) == 0 {
-						continue
+				var echoReqs []echo.Map
+				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(tar.Cpe.TaskToExecute.Ec.JsonResponseResults)
+				for _, m := range payloadMaps {
+					echoMap := echo.Map{}
+					for k, v := range m {
+						echoMap[k] = v
 					}
-					retWfID := tar.Mb.Oj.OrchestrationName + "-trigger-eval-api-ret-" + strconv.Itoa(tar.Mb.RunCycle) + "-chunk-" +
-						strconv.Itoa(tar.Mb.WorkflowResult.ChunkOffset) + "-iter-" + strconv.Itoa(tar.Mb.WorkflowResult.IterationCount)
-					for _, v := range taps {
-						tte := TaskToExecute{
-							WfID: retWfID,
-							Ou:   tar.Mb.Ou,
-							Sg:   tar.Mb.AnalysisEvalActionParams.SearchResultGroup,
-							Wft:  tar.Mb.AnalysisEvalActionParams.WorkflowTemplateData,
-							Tc: TaskContext{
-								AIWorkflowTriggerResultApiResponse: artemis_orchestrations.AIWorkflowTriggerResultApiResponse{
-									ApprovalID:  v.ApprovalID,
-									TriggerID:   ta.TriggerID,
-									RetrievalID: aws.ToInt(ret.RetrievalID),
-								},
-							},
-						}
-						tte.Wft.RetrievalPlatform = apiApproval
-						tte.Wft.RetrievalID = ret.RetrievalID
-						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-							WorkflowID:               retWfID,
-							WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-						}
-						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tar.Mb.AnalysisEvalActionParams.SearchResultGroup)
-						if err != nil {
-							logger.Error("failed to execute child api retrieval workflow", "Error", err)
-							return err
-						}
-					}
+					echoReqs = append(echoReqs, echoMap)
 				}
-			case socialMediaEngagementResponseFormat:
-				smApiEvalFormatCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				err = workflow.ExecuteActivity(smApiEvalFormatCtx, z.EvalFormatForApi, tar.Mb.Ou, ta).Get(smApiEvalFormatCtx, &cr)
-				if err != nil {
-					logger.Error("failed to check eval trigger condition", "Error", err)
-					return err
+				for _, ret := range ta.TriggerRetrievals {
+					trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
+						ApprovalID:  tap.ApprovalID,
+						TriggerID:   ta.TriggerID,
+						RetrievalID: aws.ToInt(ret.RetrievalID),
+						ReqPayloads: echoReqs,
+					}
+					recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+					err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tar.Mb.Ou, tap, trrr).Get(recordTriggerCondCtx, nil)
+					if err != nil {
+						logger.Error("failed to create or update trigger action approval for api", "Error", err)
+						return err
+					}
 				}
 			}
-		}
-		// if conditions are met, create or update the trigger action
-		recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionToExec, tar.Mb, ta).Get(recordTriggerCondCtx, nil)
-		if err != nil {
-			logger.Error("failed to create or update trigger action", "Error", err)
-			return err
 		}
 	}
 	return nil

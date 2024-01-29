@@ -31,7 +31,7 @@ CREATE TABLE public.ai_trigger_actions_evals(
 CREATE INDEX ai_trigger_actions_evals_indx ON public.ai_trigger_actions_evals("eval_id");
 CREATE INDEX ai_trigger_actions_trg_indx ON public.ai_trigger_actions_evals("trigger_id");
 
-CREATE TABLE public.ai_trigger_actions_approval(
+CREATE TABLE public.ai_trigger_actions_approvals(
     approval_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
     eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),
     trigger_id BIGINT NOT NULL REFERENCES ai_trigger_actions(trigger_id),
@@ -40,15 +40,14 @@ CREATE TABLE public.ai_trigger_actions_approval(
     request_summary text NOT NULL,
     updated_at timestamptz  NOT NULL DEFAULT NOW()
 );
-CREATE INDEX ai_trigger_actions_approval_eval_source ON public.ai_trigger_actions_approval("eval_id");
-CREATE INDEX ai_trigger_actions_approval_trigger_id ON public.ai_trigger_actions_approval("trigger_id");
-CREATE INDEX ai_trigger_actions_approval_trigger_state ON public.ai_trigger_actions_approval("approval_state");
-
-CREATE INDEX ai_trigger_actions_approval_wf_analysis_source ON public.ai_trigger_actions_approval("workflow_result_id");
-ALTER TABLE public.ai_trigger_actions_approval
-    ADD CONSTRAINT unique_eval_triggers_actions UNIQUE (eval_id, trigger_id, workflow_result_id);
+CREATE INDEX ai_trigger_actions_approval_eval_source ON public.ai_trigger_actions_approvals("eval_id");
+CREATE INDEX ai_trigger_actions_approval_trigger_id ON public.ai_trigger_actions_approvals("trigger_id");
+CREATE INDEX ai_trigger_actions_approval_trigger_state ON public.ai_trigger_actions_approvals("approval_state");
+CREATE INDEX ai_trigger_actions_approval_wf_analysis_source ON public.ai_trigger_actions_approvals("workflow_result_id");
+ALTER TABLE public.ai_trigger_actions_approvals
+    ADD CONSTRAINT unique_eval_triggers_actions UNIQUE (approval_id, eval_id, trigger_id, workflow_result_id);
 
 CREATE TRIGGER set_timestamp_on_trigger_actions_approval
-BEFORE UPDATE ON ai_trigger_actions_approval
+BEFORE UPDATE ON ai_trigger_actions_approvals
 FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();

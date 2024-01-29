@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
@@ -22,18 +23,22 @@ func (z *ZeusAiPlatformActivities) LookupEvalTriggerConditions(ctx context.Conte
 	return ta, nil
 }
 
-func (z *ZeusAiPlatformActivities) CreateOrUpdateTriggerActionToExec(ctx context.Context, mb *MbChildSubProcessParams, act *artemis_orchestrations.TriggerAction) error {
-	if act == nil || mb == nil {
-		return nil
-	}
-	for _, tra := range act.TriggerActionsApprovals {
-		err := artemis_orchestrations.CreateOrUpdateTriggerActionApproval(ctx, mb.Ou, &tra)
-		if err != nil {
-			log.Err(err).Msg("CreateOrUpdateTriggerActionToExec: failed to create or update trigger action approval")
-			return err
-		}
+func (z *ZeusAiPlatformActivities) CreateOrUpdateTriggerActionToExec(ctx context.Context, ou org_users.OrgUser, act artemis_orchestrations.TriggerActionsApproval) error {
+	err := artemis_orchestrations.CreateOrUpdateTriggerActionApproval(ctx, ou, act)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Msg("CreateOrUpdateTriggerActionToExec: failed to create or update trigger action approval")
+		return err
 	}
 	return nil
+}
+
+func (z *ZeusAiPlatformActivities) SelectTriggerActionToExec(ctx context.Context, ou org_users.OrgUser, approvalID int) ([]artemis_orchestrations.TriggerActionsApproval, error) {
+	ap, err := artemis_orchestrations.SelectTriggerActionApproval(ctx, ou, "pending", approvalID)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Msg("CreateOrUpdateTriggerActionToExec: failed to create or update trigger action approval")
+		return nil, err
+	}
+	return ap, nil
 }
 
 const (
@@ -92,7 +97,7 @@ func (z *ZeusAiPlatformActivities) SaveTriggerResponseOutput(ctx context.Context
 	return nil
 }
 
-func (z *ZeusAiPlatformActivities) SaveTriggerApiResponseOutput(ctx context.Context, trrr *artemis_orchestrations.AIWorkflowTriggerResultApiResponse) (*artemis_orchestrations.AIWorkflowTriggerResultApiResponse, error) {
+func (z *ZeusAiPlatformActivities) SaveTriggerApiRequestResp(ctx context.Context, trrr *artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse) (*artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse, error) {
 	err := artemis_orchestrations.InsertOrUpdateAIWorkflowTriggerResultApiResponse(ctx, trrr)
 	if err != nil {
 		log.Err(err).Interface("responseID", trrr.ResponseID).Interface("trrr", trrr).Msg("SaveTriggerApiResponseOutput: failed")
@@ -100,6 +105,18 @@ func (z *ZeusAiPlatformActivities) SaveTriggerApiResponseOutput(ctx context.Cont
 	}
 	return trrr, nil
 }
+
+func (z *ZeusAiPlatformActivities) CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_users.OrgUser,
+	approval artemis_orchestrations.TriggerActionsApproval, wtrr artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse) error {
+	err := artemis_orchestrations.CreateOrUpdateTriggerActionApprovalWithApiReq(ctx, ou, approval, wtrr)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Interface("approval", approval).Interface("wtrr", wtrr).Msg("CreateOrUpdateTriggerActionApprovalWithApiReq: failed")
+		return err
+	}
+	return nil
+}
+
+// CreateOrUpdateTriggerActionApprovalWithApiReq
 
 const (
 	allPass     = "all-pass"

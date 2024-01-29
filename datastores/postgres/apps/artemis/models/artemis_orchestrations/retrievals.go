@@ -138,12 +138,14 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalIte
 					log.Err(err).Msg("failed to unmarshal retrieval instructions")
 					return nil, err
 				}
-				retrieval.RetrievalItemInstruction.Instructions.Bytes = retrieval.Instructions.Bytes
+				retrieval.RetrievalItemInstruction.Instructions = pgtype.JSONB{
+					Bytes:  nil,
+					Status: pgtype.Null,
+				}
 			}
 		}
 		retrievals = append(retrievals, retrieval)
 	}
-	// Check for errors from iterating over rows
 	if err = rows.Err(); err != nil {
 		log.Err(err).Msg("error iterating retrieval rows")
 		return nil, err

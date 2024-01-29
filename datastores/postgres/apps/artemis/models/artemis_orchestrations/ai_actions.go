@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jackc/pgtype"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -218,7 +219,10 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 					log.Err(err).Msg("failed to unmarshal retrieval instructions")
 					return nil, err
 				}
-				triggerAction.TriggerRetrievals[ri].RetrievalItemInstruction.Instructions.Bytes = triggerAction.TriggerRetrievals[ri].Instructions.Bytes
+				triggerAction.TriggerRetrievals[ri].RetrievalItemInstruction.Instructions = pgtype.JSONB{
+					Bytes:  nil,
+					Status: pgtype.Null,
+				}
 			}
 		}
 		triggerActions = append(triggerActions, triggerAction)

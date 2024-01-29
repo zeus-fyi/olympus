@@ -44,36 +44,35 @@ func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval() {
 
 	// Create a TriggerActions instance
 	triggerAction := TriggerAction{
-		TriggerStrID:  "",
-		TriggerID:     0,
+		TriggerStrID:  "1705438732527176000",
+		TriggerID:     1705438732527176000,
 		OrgID:         ou.OrgID,
 		UserID:        ou.UserID,
-		TriggerName:   "TestTrigger",
-		TriggerGroup:  "TestGroup",
-		TriggerAction: "",
+		TriggerName:   "social-media-approvals",
+		TriggerGroup:  "social-media",
+		TriggerAction: "social-media-engagement",
 		TriggerRetrievals: []RetrievalItem{
 			{
-				RetrievalStrID: aws.String("1703922045959259000"),
-				RetrievalID:    aws.Int(1703922045959259000),
+				RetrievalStrID: aws.String("1702098054592167000"),
+				RetrievalID:    aws.Int(1702098054592167000),
 				RetrievalName:  "test",
 				RetrievalGroup: "test",
 				RetrievalItemInstruction: RetrievalItemInstruction{
-					RetrievalPlatform:         "",
-					RetrievalPrompt:           nil,
-					RetrievalPlatformGroups:   nil,
-					RetrievalKeywords:         nil,
-					RetrievalNegativeKeywords: nil,
-					RetrievalUsernames:        nil,
-					DiscordFilters:            nil,
-					WebFilters:                nil,
-					Instructions:              nil,
+					RetrievalPlatform: "web",
+					WebFilters: &WebFilters{
+						RoutingGroup:       aws.String("routeGroupTestName"),
+						LbStrategy:         aws.String("RoundRobin"),
+						MaxRetries:         aws.Int(10),
+						BackoffCoefficient: aws.Float64(2),
+						EndpointRoutePath:  aws.String("/health"),
+						EndpointREST:       aws.String("GET"),
+					},
 				},
 			},
 		},
 		EvalTriggerAction: EvalTriggerActions{},
 		EvalTriggerActions: []EvalTriggerActions{
 			{
-				EvalID:               1703922045959259000, // Use an appropriate EvalID
 				EvalTriggerState:     "info",
 				EvalResultsTriggerOn: "all-pass",
 			},

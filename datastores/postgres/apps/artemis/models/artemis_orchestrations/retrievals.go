@@ -123,6 +123,9 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalIte
 			return nil, err
 		}
 
+		if retrieval.RetrievalID != nil {
+			retrieval.RetrievalStrID = aws.String(fmt.Sprintf("%d", *retrieval.RetrievalID))
+		}
 		if instructions.Bytes != nil {
 			copy(retrieval.Instructions, instructions.Bytes)
 			err = json.Unmarshal(instructions.Bytes, &retrieval.RetrievalItemInstruction)

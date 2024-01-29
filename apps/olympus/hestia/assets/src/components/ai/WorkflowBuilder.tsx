@@ -135,6 +135,7 @@ function WorkflowEngineBuilder(props: any) {
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
     const [tasks, setTasks] = useState(allTasks && allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
     const retrievals = useSelector((state: RootState) => state.ai.retrievals);
+    const [retrievalsApi, setRetrievalsApi] = useState<Retrieval[]>(retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction.retrievalPlatform === 'web'));
     const workflowBuilderTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderTaskMap);
     const workflowAnalysisRetrievalsMap = useSelector((state: RootState) => state.ai.workflowAnalysisRetrievalsMap);
     const workflowBuilderEvalsTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderEvalsTaskMap);
@@ -583,8 +584,7 @@ function WorkflowEngineBuilder(props: any) {
         } else if (addTriggerRetrievalView) {
             const selectedRetrievals: Retrieval[] = Object.keys(selected)
                 .filter(key => selected[Number(key)])
-                .map(key => retrievals[Number(key)]);
-            // TODO - filter out non-web retrievals
+                .map(key => retrievalsApi[Number(key)]);
             dispatch(setTriggerAction({
                 ...action,
                 triggerRetrievals: selectedRetrievals
@@ -1181,9 +1181,9 @@ function WorkflowEngineBuilder(props: any) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
         } else if (newValue === 5) {
+            setRetrievalsApi(retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction.retrievalPlatform === 'web'));
             dispatch(setSelectedWorkflows([]));
             setSelected({});
-            // TODO: filter retrievals to web only for now
         } else if (newValue === 6) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
@@ -1247,8 +1247,14 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = event.target.checked;
-        if ((addRetrievalView || selectedMainTabBuilder === 3 && !addSchemasView) || (addTriggerRetrievalView && selectedMainTabBuilder === 5 && !addSchemasView) ) {
-            const newSelection = retrievals.reduce((acc: { [key: number]: boolean }, task: any, index: number) => {
+        if ((addRetrievalView || selectedMainTabBuilder === 3 && !addSchemasView)) {
+            const newSelection = retrievals.reduce((acc: { [key: number]: boolean }, ret: any, index: number) => {
+                acc[index] = isChecked;
+                return acc;
+            }, {});
+            setSelected(newSelection);
+        } else if (addTriggerRetrievalView && selectedMainTabBuilder === 5){
+            const newSelection = retrievalsApi.reduce((acc: { [key: number]: boolean }, ret: any, index: number) => {
                 acc[index] = isChecked;
                 return acc;
             }, {});
@@ -4218,19 +4224,26 @@ function WorkflowEngineBuilder(props: any) {
                         </div>
                     }
                     { (selectedMainTabBuilder === 3 ||selectedMainTabBuilder === 5) && (addRetrievalView || addTriggerRetrievalView) &&
-                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4,  ml: 2 }}>
-                            <Box sx={{ mb: 2 }}>
-                                <span>({Object.values(selected).filter(value => value).length} Selected Retrievals)</span>
-                                <Button variant="outlined" color="secondary" onClick={handleAddTasksToWorkflow} style={{marginLeft: '10px'}}>
-                                    Add Retrievals
-                                </Button>
-                            </Box>
-                        </Container>
-                    }
-                    { (selectedMainTabBuilder === 3 ||selectedMainTabBuilder === 5) && (addRetrievalView || addTriggerRetrievalView) &&
                         <div>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                                <RetrievalsTable retrievals={retrievals} selected={selected} handleSelectAllClick={handleSelectAllClick} handleClick={handleClick} />
+                                <Box sx={{ mb: 2 }}>
+                                    <span>({Object.values(selected).filter(value => value).length} Selected Retrievals)</span>
+                                    <Button variant="outlined" color="secondary" onClick={handleAddTasksToWorkflow} style={{marginLeft: '10px'}}>
+                                        Add Retrievals
+                                    </Button>
+                                </Box>
+                            </Container>
+                        </div>
+                    }
+                    { (selectedMainTabBuilder === 3 || addRetrievalView || (addTriggerRetrievalView && selectedMainTabBuilder === 5)) &&
+                        <div>
+                            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                <RetrievalsTable
+                                    retrievals={selectedMainTabBuilder === 5 ? retrievalsApi : retrievals}
+                                    selected={selected}
+                                    handleSelectAllClick={handleSelectAllClick}
+                                    handleClick={handleClick}
+                                />
                             </Container>
                         </div>
                     }

@@ -2,15 +2,16 @@ package ai_platform_service_orchestrations
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 func (t *ZeusWorkerTestSuite) TestTriggerActions() {
 	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)
 
-	ou := org_users.OrgUser{}
-	ou.OrgID = t.Tc.ProductionLocalTemporalOrgID
-	ou.UserID = t.Tc.ProductionLocalTemporalUserID
-
+	//ou := t.Ou
 	//act := NewZeusAiPlatformActivities()}
+
+	// TODO test trigger API calls
+
+	// TOOD: update
+	// Eval Results: 1706135988888304000, needs to use result id for unique key
 }

@@ -370,7 +370,7 @@ func CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_u
 				request_summary = EXCLUDED.request_summary,
 				approval_state = EXCLUDED.approval_state
 			RETURNING approval_id
-		) INSERT INTO ai_trigger_actions_api_responses(response_id, approval_id, trigger_id, retrieval_id, req_payload, resp_payload)
+		) INSERT INTO ai_trigger_actions_api_reqs_responses(response_id, approval_id, trigger_id, retrieval_id, req_payload, resp_payload)
 		  SELECT $7, cte_create_approval.approval_id, $8, $9, $10, $11
 		  FROM cte_create_approval
 		  ON CONFLICT (response_id, approval_id, trigger_id, retrieval_id)	 

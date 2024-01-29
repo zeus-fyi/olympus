@@ -1,6 +1,7 @@
 package artemis_orchestrations
 
 import (
+	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -30,4 +31,27 @@ func (s *OrchestrationsTestSuite) TestSelectTriggerActionApproval() {
 	ap, err := SelectTriggerActionApproval(ctx, s.Ou, "pending", 1706559169680858000)
 	s.Require().Nil(err)
 	s.Require().NotNil(ap)
+}
+
+func (s *OrchestrationsTestSuite) TestCreateOrUpdateTriggerActionApprovalWithApiReq() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	tap := TriggerActionsApproval{
+		EvalID:           1704066747085827000,
+		TriggerID:        1706487755984811000,
+		WorkflowResultID: 1705953610460614000,
+		ApprovalID:       1706566091973007000,
+		ApprovalState:    "pending",
+	}
+	wtr := AIWorkflowTriggerResultApiReqResponse{
+		ResponseID:  1706566091973014000,
+		RetrievalID: 1706487709357339000,
+		ReqPayloads: []echo.Map{
+			{
+				"key": "value1",
+			},
+		},
+	}
+	// Call the function to test
+	err := CreateOrUpdateTriggerActionApprovalWithApiReq(ctx, s.Ou, tap, wtr)
+	s.Require().Nil(err)
 }

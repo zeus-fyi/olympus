@@ -54,7 +54,7 @@ type AIWorkflowTriggerResultApiReqResponse struct {
 
 func InsertOrUpdateAIWorkflowTriggerResultApiResponse(ctx context.Context, wtrr *AIWorkflowTriggerResultApiReqResponse) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO ai_trigger_actions_api_responses(response_id, approval_id, trigger_id, retrieval_id, req_payload, resp_payload)
+	q.RawQuery = `INSERT INTO ai_trigger_actions_api_reqs_responses(response_id, approval_id, trigger_id, retrieval_id, req_payload, resp_payload)
                   VALUES ($1, $2, $3, $4, $5, $6)
                   ON CONFLICT (response_id, approval_id, trigger_id, retrieval_id)	 
                   DO UPDATE SET 

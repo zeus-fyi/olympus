@@ -15,15 +15,18 @@ func (s *OrchestrationsTestSuite) TestSelectTriggerActions() {
 	s.Require().Nil(err)
 	s.Require().NotNil(res)
 
+}
+
+func (s *OrchestrationsTestSuite) TestSelectTriggerActionsProd() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	qp = TriggersWorkflowQueryParams{Ou: ou, EvalID: 0}
+	qp := TriggersWorkflowQueryParams{Ou: s.Ou, EvalID: 0}
 	res2, err := SelectTriggerActionsByOrgAndOptParams(ctx, qp)
 	s.Require().Nil(err)
 	s.Require().NotNil(res2)
 }
 
 func (s *OrchestrationsTestSuite) TestSelectActionApprovals() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID

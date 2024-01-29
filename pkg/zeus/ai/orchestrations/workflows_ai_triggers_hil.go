@@ -38,11 +38,11 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 		},
 	}
 
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(approvalTaskGroup.Ou.OrgID, approvalTaskGroup.WfID, "ZeusAiPlatformServiceWorkflows", "RunApprovedTriggerActionsWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(approvalTaskGroup.Ou.OrgID, approvalTaskGroup.WfID, "ZeusAiPlatformServiceWorkflows", "TriggerActionsWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
-		logger.Error("failed to update ai orch services", "Error", err)
+		logger.Error("failed to update ai trigger hil action", "Error", err)
 		return err
 	}
 
@@ -61,7 +61,6 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 		}
 		switch ta.TriggerAction {
 		case apiApproval:
-
 			//childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 			//	WorkflowID: approvalTaskGroup.WfID,
 			//	//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,

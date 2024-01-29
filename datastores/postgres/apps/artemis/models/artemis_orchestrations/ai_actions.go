@@ -94,7 +94,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 	// Updated query to include TriggerActionsApproval
 	q.RawQuery = q1 + `
 			cte_trigger_action_evals AS (
-				SELECT ta.trigger_id, COALESCE(tae.eval_id, 0) as eval_id, taee.eval_trigger_state, taee.eval_results_trigger_on
+				SELECT ta.trigger_id, ta.trigger_action, COALESCE(tae.eval_id, 0) as eval_id, taee.eval_trigger_state, taee.eval_results_trigger_on
 				FROM cte_trigger_acts ta
 				LEFT JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
 				LEFT JOIN public.ai_trigger_eval taee ON ta.trigger_id = taee.trigger_id

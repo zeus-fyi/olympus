@@ -70,6 +70,8 @@ func AiActionsApprovalHandler(c echo.Context) error {
 	return UpdateActionApproval(c, request)
 }
 
+// TODO: update this for batch approvals
+
 func UpdateActionApproval(c echo.Context, act *ActionApprovalRequest) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {

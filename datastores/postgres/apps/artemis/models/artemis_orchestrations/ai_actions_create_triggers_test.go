@@ -88,3 +88,11 @@ func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval() {
 	s.Require().Nil(err)
 	s.Require().NotNil(res2)
 }
+
+func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval1() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	res2, err := SelectTriggerActionsByOrgAndOptParams(ctx, s.Ou, 0)
+	s.Require().Nil(err)
+	s.Require().NotNil(res2)
+}

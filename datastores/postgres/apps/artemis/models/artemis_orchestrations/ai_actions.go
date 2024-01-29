@@ -21,27 +21,29 @@ type TriggerAction struct {
 	TriggerGroup            string                   `db:"trigger_group" json:"triggerGroup"`
 	TriggerAction           string                   `db:"trigger_action" json:"triggerAction"`
 	TriggerRetrievals       []RetrievalItem          `json:"triggerRetrievals,omitempty"`
-	EvalTriggerAction       EvalTriggerActions       `db:"eval_trigger_actions" json:"evalTriggerAction,omitempty"`
+	EvalTriggerAction       EvalTriggerActions       `db:"eval_trigger_action" json:"evalTriggerAction,omitempty"`
 	EvalTriggerActions      []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions,omitempty"`
 	TriggerActionsApprovals []TriggerActionsApproval `json:"triggerActionsApprovals,omitempty"`
 }
 
 type TriggerActionsApproval struct {
-	ApprovalStrID    string    `json:"approvalStrID,omitempty"`
-	ApprovalID       int       `db:"approval_id" json:"approvalID"`
-	EvalID           int       `db:"eval_id" json:"evalID"`
-	TriggerID        int       `db:"trigger_id" json:"triggerID"`
-	WorkflowResultID int       `db:"workflow_result_id" json:"workflowResultID"`
-	ApprovalState    string    `db:"approval_state" json:"approvalState"`
-	RequestSummary   string    `db:"request_summary" json:"requestSummary"`
-	UpdatedAt        time.Time `db:"updated_at" json:"updatedAt"`
+	ApprovalStrID       string    `json:"approvalStrID,omitempty"`
+	ApprovalID          int       `db:"approval_id" json:"approvalID"`
+	EvalID              int       `db:"eval_id" json:"evalID"`
+	TriggerID           int       `db:"trigger_id" json:"triggerID"`
+	TriggerStrID        string    `db:"trigger_id" json:"triggerStrID"`
+	WorkflowResultID    int       `db:"workflow_result_id" json:"workflowResultID"`
+	WorkflowResultStrID string    `json:"workflowResultStrID"`
+	ApprovalState       string    `db:"approval_state" json:"approvalState"`
+	RequestSummary      string    `db:"request_summary" json:"requestSummary"`
+	UpdatedAt           time.Time `db:"updated_at" json:"updatedAt"`
 }
 
 type EvalTriggerActions struct {
 	EvalID               int    `db:"eval_id" json:"evalID,omitempty"`
-	EvalStrID            string `json:"evalStrID,omitempty"`
+	EvalStrID            string `db:"eval_str_id" json:"evalStrID,omitempty"`
 	TriggerID            int    `db:"trigger_id" json:"triggerID,omitempty"`
-	TriggerStrID         string `json:"triggerStrID,omitempty"`
+	TriggerStrID         string `db:"trigger_str_id" json:"triggerStrID,omitempty"`
 	EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"` // eg. info, filter, etc
 	EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"`
 }
@@ -113,27 +115,50 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 			cte_trigger_action_approvals AS (
 				SELECT 
 					ta.trigger_id,
+					ataa.workflow_result_id,
+					ataa.eval_id,
+					ataa.trigger_id AS approval_trigger_id,
+					ataa.approval_id,
+					ataa.approval_state,
+					ataa.request_summary,
+					ataa.updated_at
+				FROM cte_trigger_action_evals ta
+				JOIN public.ai_trigger_actions_approval ataa ON ta.trigger_id = ataa.trigger_id
+					GROUP BY ta.trigger_id,
+					ataa.workflow_result_id,
+					ataa.eval_id,
+					ataa.trigger_id,
+					ataa.approval_id,
+					ataa.approval_state,
+					ataa.request_summary,
+					ataa.updated_at
+			), cte_trigger_action_approvals_agg AS (
+				SELECT 
+					trigger_id,
 					COALESCE(JSONB_AGG(
 						JSONB_BUILD_OBJECT(
-							'workflowResultID', ataa.workflow_result_id,
-							'evalID', ataa.eval_id,
-							'triggerID', ataa.trigger_id,
-							'approvalID', ataa.approval_id,
-							'approvalState', ataa.approval_state,
-							'requestSummary', ataa.request_summary,
-							'updatedAt', ataa.updated_at
-						) ORDER BY CASE WHEN ataa.approval_state = 'pending' THEN 0 ELSE 1 END, ataa.approval_id DESC
-					) FILTER (WHERE ataa.approval_id IS NOT NULL), '[]'::jsonb) AS approvals
-				FROM cte_trigger_action_evals ta
-				LEFT JOIN public.ai_trigger_actions_approval ataa ON ta.trigger_id = ataa.trigger_id
-				GROUP BY ta.trigger_id
+							'workflowResultStrID', workflow_result_id::text,
+							'workflowResultID', workflow_result_id,
+							'evalID', eval_id,
+							'evalStrID', eval_id::text,
+							'triggerID', trigger_id,
+							'triggerStrID', trigger_id::text,
+							'approvalID', approval_id,
+							'approvalStrID', approval_id::text,
+							'approvalState', approval_state,
+							'requestSummary', request_summary,
+							'updatedAt', updated_at
+						) ORDER BY CASE WHEN approval_state = 'pending' THEN 0 ELSE 1 END, approval_id DESC
+					) FILTER (WHERE approval_id IS NOT NULL), '[]'::jsonb) AS approvals
+				FROM cte_trigger_action_approvals
+				GROUP BY trigger_id, approval_trigger_id
 			), cte_agg_eval_trgs AS (
 				SELECT ce.trigger_id, 
 				 COALESCE(JSONB_AGG(
 						JSONB_BUILD_OBJECT(
 							'evalID', ce.eval_id,
 							'triggerID', ce.trigger_id,
- 							'evalStrID', ce.eval_id::text,
+							'evalStrID', ce.eval_id::text,
 							'triggerStrID', ce.trigger_id::text,
 							'evalTriggerState', ce.eval_trigger_state,
 							'evalResultsTriggerOn', ce.eval_results_trigger_on
@@ -144,17 +169,17 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 			)
 			SELECT 
 				acts.trigger_id,
-				acts.trigger_id::text AS trigger_str_id,
+				acts.trigger_id::text,
 				acts.trigger_name,
 				acts.trigger_group,
 				acts.trigger_action,
-				COALESCE(eval_triggers, '[]'::jsonb) AS eval_trigger_actions,
-				COALESCE(api_rets.retrievals, '[]'::jsonb) AS retrievals,
-				COALESCE(action_approvals.approvals, '[]'::jsonb) AS approvals
+				eval_triggers,
+				api_rets.retrievals,
+				agg.approvals
 			FROM cte_trigger_acts acts
 			LEFT JOIN cte_agg_eval_trgs evals ON acts.trigger_id = evals.trigger_id
 			LEFT JOIN cte_trigger_api_rets api_rets ON acts.trigger_id = api_rets.trigger_id
-			LEFT JOIN cte_trigger_action_approvals action_approvals ON acts.trigger_id = action_approvals.trigger_id`
+			LEFT JOIN cte_trigger_action_approvals_agg agg ON acts.trigger_id = agg.trigger_id`
 
 	// Executing the query
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)

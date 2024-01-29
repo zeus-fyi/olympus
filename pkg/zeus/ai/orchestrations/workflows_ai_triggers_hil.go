@@ -23,7 +23,7 @@ type ApprovalTaskGroup struct {
 	Taps []artemis_orchestrations.TriggerActionsApproval `json:"taps"`
 }
 
-func (z *ZeusAiPlatformServiceWorkflows) RunApprovedTriggerActionsWorkflow(ctx workflow.Context, approvalTaskGroup ApprovalTaskGroup) error {
+func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Context, approvalTaskGroup ApprovalTaskGroup) error {
 	if len(approvalTaskGroup.Taps) == 0 {
 		return nil
 	}

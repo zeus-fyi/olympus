@@ -97,7 +97,7 @@ func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalI
 
 func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalItem, error) {
 	query := `
-        SELECT retrieval_id, retrieval_name, retrieval_group, retrieval_platform, instructions
+        SELECT retrieval_id, retrieval_id::text AS retrieval_id_str, retrieval_name, retrieval_group, retrieval_platform, instructions
         FROM public.ai_retrieval_library
         WHERE org_id = $1
         ORDER BY retrieval_id DESC;`
@@ -111,14 +111,13 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalIte
 		return nil, err
 	}
 	defer rows.Close()
-
 	var retrievals []RetrievalItem
 
 	// Iterating over the result set
 	for rows.Next() {
 		var retrieval RetrievalItem
-		var instructions pgtype.JSONB
-		err = rows.Scan(&retrieval.RetrievalID, &retrieval.RetrievalName, &retrieval.RetrievalGroup, &retrieval.RetrievalPlatform, &instructions)
+		err = rows.Scan(&retrieval.RetrievalID, &retrieval.RetrievalStrID, &retrieval.RetrievalName,
+			&retrieval.RetrievalGroup, &retrieval.RetrievalPlatform, &retrieval.Instructions)
 		if err != nil {
 			log.Err(err).Msg("failed to scan retrieval")
 			return nil, err
@@ -127,22 +126,21 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser) ([]RetrievalIte
 		if retrieval.RetrievalID != nil {
 			retrieval.RetrievalStrID = aws.String(fmt.Sprintf("%d", *retrieval.RetrievalID))
 		}
-		if instructions.Bytes != nil {
-			copy(retrieval.Instructions.Bytes, instructions.Bytes)
-			err = json.Unmarshal(instructions.Bytes, &retrieval.RetrievalItemInstruction)
-			if err != nil {
-				log.Err(err).Msg("failed to unmarshal retrieval instructions")
-				return nil, err
+		if retrieval.Instructions.Bytes != nil {
+			b, berr := retrieval.Instructions.MarshalJSON()
+			if berr != nil {
+				log.Err(berr).Msg("unmarshal error")
+				return nil, berr
 			}
-			retrieval.RetrievalItemInstruction.Instructions.Bytes = instructions.Bytes
+			if b != nil {
+				err = json.Unmarshal(b, &retrieval.RetrievalItemInstruction)
+				if err != nil {
+					log.Err(err).Msg("failed to unmarshal retrieval instructions")
+					return nil, err
+				}
+				retrieval.RetrievalItemInstruction.Instructions.Bytes = retrieval.Instructions.Bytes
+			}
 		}
-		//inst, rerr := json.Marshal(retrieval.RetrievalItemInstruction)
-		//if rerr != nil {
-		//	log.Err(rerr).Msg("failed to marshal retrieval instructions")
-		//	return nil, rerr
-		//}
-		//retrieval.Instructions = inst
-		retrieval.RetrievalStrID = aws.String(fmt.Sprintf("%d", retrieval.RetrievalID))
 		retrievals = append(retrievals, retrieval)
 	}
 	// Check for errors from iterating over rows

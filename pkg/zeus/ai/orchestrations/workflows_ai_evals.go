@@ -175,16 +175,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		}
 		suffix := strings.Split(uuid.New().String(), "-")[0]
 		wfID := mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + suffix
-		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               wfID,
-			WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-		}
-		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		tar := TriggerActionsWorkflowParams{
 			Emr: emr,
 			Mb:  mb,
 			Cpe: cpe,
 		}
+		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+			WorkflowID:               wfID,
+			WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+		}
+		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, tar).Get(childAnalysisCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute child run trigger actions workflow", "Error", err)

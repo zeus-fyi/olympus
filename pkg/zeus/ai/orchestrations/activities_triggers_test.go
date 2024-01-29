@@ -61,27 +61,18 @@ func (t *ZeusWorkerTestSuite) TestCheckEvalTriggerCondition() {
 		EvalMetricsResults: []*artemis_orchestrations.EvalMetric{
 			{
 				EvalMetricResult: &artemis_orchestrations.EvalMetricResult{
-					EvalMetricResultStrID:     nil,
-					EvalMetricResultID:        nil,
-					EvalResultOutcomeBool:     aws.Bool(true),
-					EvalResultOutcomeStateStr: nil,
-					RunningCycleNumber:        nil,
-					EvalIterationCount:        nil,
-					SearchWindowUnixStart:     nil,
-					SearchWindowUnixEnd:       nil,
-					EvalMetadata:              nil,
+					EvalResultOutcomeBool: aws.Bool(true),
 				},
+				EvalState: infoState,
 			},
 		},
 	}
-	tao, err := act.CheckEvalTriggerCondition(ctx, ta, emr)
-	t.Require().NotNil(tao)
+	taps, err := act.CheckEvalTriggerCondition(ctx, ta, emr)
+	t.Require().NotNil(taps)
 	t.Require().Nil(err)
-	t.Require().NotNil(tao.TriggerActionsApprovals)
 
 	emr.EvalMetricsResults[0].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(false)
-	tao, err = act.CheckEvalTriggerCondition(ctx, ta, emr)
-	t.Require().NotNil(tao)
-	t.Require().Nil(tao.TriggerActionsApprovals)
+	taps, err = act.CheckEvalTriggerCondition(ctx, ta, emr)
+	t.Require().Nil(taps)
 	t.Require().Nil(err)
 }

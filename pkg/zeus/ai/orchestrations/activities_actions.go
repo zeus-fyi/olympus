@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 // SendTriggerActionRequestForApproval sends the action request to the user for human in-the-loop approval
@@ -40,13 +41,17 @@ const (
 	pendingStatus = "pending"
 )
 
-func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context, act *artemis_orchestrations.TriggerAction, emr *artemis_orchestrations.EvalMetricsResults) (*artemis_orchestrations.TriggerAction, error) {
+func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context, act *artemis_orchestrations.TriggerAction, emr *artemis_orchestrations.EvalMetricsResults) ([]artemis_orchestrations.TriggerActionsApproval, error) {
 	if act == nil || emr == nil || emr.EvalMetricsResults == nil {
-		return act, nil
+		return nil, nil
 	}
+	var taps []artemis_orchestrations.TriggerActionsApproval
 	m := make(map[string][]bool)
 
 	for _, er := range emr.EvalMetricsResults {
+		if er.EvalState == "" {
+			continue
+		}
 		if _, ok := m[er.EvalState]; !ok {
 			m[er.EvalState] = []bool{}
 		}
@@ -55,6 +60,8 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 		}
 		m[er.EvalState] = append(m[er.EvalState], *er.EvalMetricResult.EvalResultOutcomeBool)
 	}
+
+	ch := chronos.Chronos{}
 	// gets the eval results by state, eg. info, trigger, etc.
 	for _, tr := range act.EvalTriggerActions {
 		results := m[tr.EvalTriggerState]
@@ -64,15 +71,16 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 		// when the trigger on eval results condition is met, create a trigger action for approval
 		if checkTriggerOnEvalResults(tr.EvalResultsTriggerOn, results) {
 			tap := artemis_orchestrations.TriggerActionsApproval{
+				ApprovalID:       ch.UnixTimeStampNow(),
 				WorkflowResultID: emr.EvalContext.AIWorkflowAnalysisResult.WorkflowResultID,
 				EvalID:           tr.EvalID,
 				TriggerID:        tr.TriggerID,
 				ApprovalState:    pendingStatus,
 			}
-			act.TriggerActionsApprovals = append(act.TriggerActionsApprovals, tap)
+			taps = append(taps, tap)
 		}
 	}
-	return act, nil
+	return taps, nil
 }
 
 func (z *ZeusAiPlatformActivities) SaveTriggerResponseOutput(ctx context.Context, trrr artemis_orchestrations.AIWorkflowTriggerResultResponse) error {

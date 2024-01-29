@@ -13,7 +13,7 @@ import (
 type TriggerActionsWorkflowParams struct {
 	Emr *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
 	Mb  *MbChildSubProcessParams                   `json:"mb,omitempty"`
-	Cpe *EvalActionParams
+	Cpe *EvalActionParams                          `json:"cpe,omitempty"`
 }
 
 const (
@@ -53,16 +53,15 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 	}
 
 	// if there are no trigger actions to execute, check if conditions are met for execution
-	for _, triggerAction := range triggerActions {
-		var ta *artemis_orchestrations.TriggerAction
+	for _, ta := range triggerActions {
+		var taps []artemis_orchestrations.TriggerActionsApproval
 		checkTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(checkTriggerCondCtx, z.CheckEvalTriggerCondition, &triggerAction, tar.Emr).Get(checkTriggerCondCtx, &ta)
+		err = workflow.ExecuteActivity(checkTriggerCondCtx, z.CheckEvalTriggerCondition, &ta, tar.Emr).Get(checkTriggerCondCtx, &taps)
 		if err != nil {
 			logger.Error("failed to check eval trigger condition", "Error", err)
 			return err
 		}
-
-		if ta == nil && ta.TriggerID == 0 {
+		if taps == nil {
 			continue
 		}
 
@@ -78,13 +77,12 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 					if ret.RetrievalID == nil || aws.ToInt(ret.RetrievalID) == 0 {
 						continue
 					}
-					// TODO: for each approval, call??
 					retWfID := tar.Mb.Oj.OrchestrationName + "-trigger-eval-api-ret-" + strconv.Itoa(tar.Mb.RunCycle) + "-chunk-" +
 						strconv.Itoa(tar.Mb.WorkflowResult.ChunkOffset) + "-iter-" + strconv.Itoa(tar.Mb.WorkflowResult.IterationCount)
-					for _, v := range ta.TriggerActionsApprovals {
+					for _, v := range taps {
 						tte := TaskToExecute{
 							WfID: retWfID,
-							Ou:   ou,
+							Ou:   tar.Mb.Ou,
 							Sg:   tar.Mb.AnalysisEvalActionParams.SearchResultGroup,
 							Wft:  tar.Mb.AnalysisEvalActionParams.WorkflowTemplateData,
 							Tc: TaskContext{
@@ -97,7 +95,6 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 						}
 						tte.Wft.RetrievalPlatform = apiApproval
 						tte.Wft.RetrievalID = ret.RetrievalID
-
 						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 							WorkflowID:               retWfID,
 							WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
@@ -117,26 +114,6 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 					logger.Error("failed to check eval trigger condition", "Error", err)
 					return err
 				}
-			}
-		}
-		if cr != nil {
-			var triggerCompletionID int
-			triggerCompletionResponseCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err = workflow.ExecuteActivity(triggerCompletionResponseCtx, z.RecordCompletionResponse, tar.Mb.Ou, cr).Get(triggerCompletionResponseCtx, &triggerCompletionID)
-			if err != nil {
-				logger.Error("failed to get completion response", "Error", err)
-				return err
-			}
-			trr := artemis_orchestrations.AIWorkflowTriggerResultResponse{
-				WorkflowResultID: tar.Mb.WorkflowResult.WorkflowResultID,
-				TriggerID:        ta.TriggerID,
-				ResponseID:       triggerCompletionID,
-			}
-			saveCompletionResponseCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err = workflow.ExecuteActivity(saveCompletionResponseCtx, z.SaveTriggerResponseOutput, trr).Get(saveCompletionResponseCtx, nil)
-			if err != nil {
-				logger.Error("failed to save trigger response", "Error", err)
-				return err
 			}
 		}
 		// if conditions are met, create or update the trigger action

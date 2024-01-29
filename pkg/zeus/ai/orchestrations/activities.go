@@ -58,7 +58,8 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.EvalFormatForApi, z.SaveTriggerResponseOutput, z.SaveEvalResponseOutput,
 		z.SelectTaskDefinition, z.ExtractTweets, z.TokenOverflowReduction,
 		z.AnalyzeEngagementTweets, z.SaveTriggerApiRequestResp, z.SelectRetrievalTask,
-		z.SelectTriggerActionToExec,
+		z.SelectTriggerActionToExec, z.SelectTriggerActionApiApprovalWithReqResponses,
+		z.CreateOrUpdateTriggerActionApprovalWithApiReq,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }

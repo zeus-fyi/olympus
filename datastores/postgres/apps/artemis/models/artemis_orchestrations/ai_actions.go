@@ -360,6 +360,12 @@ func SelectTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, stat
 }
 
 // TODO
+/*
+
+1. get api reqs/resps
+2. get retrieval item
+
+*/
 
 func SelectTriggerActionApprovalWithReqResponses(ctx context.Context, ou org_users.OrgUser, state string, approvalID int) ([]TriggerActionsApproval, error) {
 	if approvalID <= 0 {

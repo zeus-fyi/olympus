@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -62,6 +63,35 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 				log.Err(err).Msg("failed to insert eval trigger action")
 				return err
 			}
+		}
+	}
+	var rids []int
+	for _, retrieval := range trigger.TriggerRetrievals {
+		if retrieval.RetrievalID == nil {
+			continue
+		}
+		rids = append(rids, *retrieval.RetrievalID)
+		q.RawQuery = `
+			INSERT INTO public.ai_trigger_actions_api(trigger_id, retrieval_id)
+			VALUES ($1, $2)
+		 	ON CONFLICT (trigger_id, retrieval_id)
+			DO NOTHING;`
+		_, err = tx.Exec(ctx, q.RawQuery, trigger.TriggerID, retrieval.RetrievalID)
+		if err != nil {
+			log.Err(err).Msg("failed to insert eval trigger action")
+			return err
+		}
+	}
+	if len(rids) > 0 {
+		// Building a query string with placeholder for array
+		query := `
+				DELETE FROM public.ai_trigger_actions_api
+				WHERE trigger_id = $1 AND retrieval_id NOT IN (SELECT UNNEST($2::bigint[]));`
+		// Execute the delete query
+		_, err = tx.Exec(ctx, query, trigger.TriggerID, pq.Array(rids))
+		if err != nil {
+			log.Err(err).Msg("failed to delete unwanted eval trigger actions")
+			return err
 		}
 	}
 	err = tx.Commit(ctx)

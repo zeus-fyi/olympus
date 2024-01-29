@@ -39,7 +39,7 @@ func (t *ZeusWorkerTestSuite) TestJsonAggJoins() {
 	t.Require().NotNil(tv)
 	t.Require().NotNil(tv.Schemas)
 
-	fd := artemis_orchestrations.ConvertToFuncDef(socialMediaEngagementResponseFormat, tv.Schemas)
+	fd := artemis_orchestrations.ConvertToFuncDef(tv.Schemas)
 	t.Require().NotNil(fd)
 	t.Require().NotNil(fd.Name)
 	t.Require().NotNil(fd.Parameters)

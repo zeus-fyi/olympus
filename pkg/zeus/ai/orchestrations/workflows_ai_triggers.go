@@ -71,7 +71,8 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 						continue
 					}
 					// TODO: for each approval, call??
-					retWfID := tar.Mb.Oj.OrchestrationName + "-trigger-eval-api-ret-" + strconv.Itoa(tar.Mb.RunCycle) + "-chunk-" + strconv.Itoa(tar.Mb.WorkflowResult.ChunkOffset) + "-iter-" + strconv.Itoa(tar.Mb.WorkflowResult.IterationCount)
+					retWfID := tar.Mb.Oj.OrchestrationName + "-trigger-eval-api-ret-" + strconv.Itoa(tar.Mb.RunCycle) + "-chunk-" +
+						strconv.Itoa(tar.Mb.WorkflowResult.ChunkOffset) + "-iter-" + strconv.Itoa(tar.Mb.WorkflowResult.IterationCount)
 					for _, v := range ta.TriggerActionsApprovals {
 						tte := TaskToExecute{
 							WfID: retWfID,

@@ -86,23 +86,31 @@ func (z *ZeusAiPlatformActivities) SaveTriggerApiResponseOutput(ctx context.Cont
 	return trrr, nil
 }
 
+const (
+	allPass     = "all-pass"
+	anyPass     = "any-pass"
+	allFail     = "all-fail"
+	anyFail     = "any-fail"
+	mixedStatus = "mixed-status"
+)
+
 func checkTriggerOnEvalResults(value string, results []bool) bool {
 	switch value {
-	case "all-pass":
+	case allPass:
 		for _, result := range results {
 			if !result {
 				return false
 			}
 		}
 		return true
-	case "any-pass":
+	case anyPass:
 		for _, result := range results {
 			if result {
 				return true
 			}
 		}
 		return false
-	case "all-fail":
+	case allFail:
 		// Return true if all values in results are false
 		for _, result := range results {
 			if result {
@@ -110,7 +118,7 @@ func checkTriggerOnEvalResults(value string, results []bool) bool {
 			}
 		}
 		return true
-	case "any-fail":
+	case anyFail:
 		// Return true if any value in results is false
 		for _, result := range results {
 			if !result {
@@ -118,7 +126,7 @@ func checkTriggerOnEvalResults(value string, results []bool) bool {
 			}
 		}
 		return false
-	case "mixed-status":
+	case mixedStatus:
 		// Return true if there is a mix of true and false in results
 		hasTrue := false
 		hasFalse := false
@@ -131,6 +139,7 @@ func checkTriggerOnEvalResults(value string, results []bool) bool {
 		}
 		return hasTrue && hasFalse
 	default:
+		log.Warn().Str("value", value).Msg("checkTriggerOnEvalResults: unknown value")
 		return false
 	}
 }

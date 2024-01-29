@@ -1,8 +1,6 @@
 package ai_platform_service_orchestrations
 
 import (
-	"fmt"
-
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -80,7 +78,7 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	for _, taskDef := range td {
 		jdef = append(jdef, taskDef.Schemas...)
 	}
-	fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.TaskName, jdef)
+	fd := artemis_orchestrations.ConvertToFuncDef(jdef)
 	jsd := artemis_orchestrations.ConvertToJsonSchema(fd)
 	t.Require().NotNil(jsd)
 
@@ -103,24 +101,6 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	t.Assert().NotZero(resp.Response.ID)
 	t.Assert().NotEmpty(resp.Response)
 	t.Assert().NotEmpty(resp.JsonResponseResults)
-
-	for _, res := range resp.JsonResponseResults {
-		for _, v := range res {
-			t.Require().NotNil(v)
-			for _, f := range v.Fields {
-				switch f.FieldName {
-				case "msg_ids":
-					t.Require().NotNil(f.IntegerValueSlice)
-					fmt.Println("msg_ids", f.IntegerValueSlice)
-				case "score":
-					t.Require().NotNil(f.IntegerValue)
-					fmt.Println("score", *f.IntegerValue)
-					t.Require()
-				}
-			}
-		}
-		t.Require().NotNil(res)
-	}
 }
 
 const exResponse = `

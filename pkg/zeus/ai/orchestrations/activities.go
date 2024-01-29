@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/cvcio/twitter"
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -48,7 +48,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.CreateDiscordJob, z.SelectDiscordSearchQuery, z.InsertIncomingDiscordDataFromSearch,
 		z.UpsertAiOrchestration, z.AiAnalysisTask, z.AiRetrievalTask,
 		z.AiAggregateTask, z.AiAggregateAnalysisRetrievalTask, z.SaveTaskOutput, z.RecordCompletionResponse,
-		z.AiWebRetrievalGetRoutesTask, z.AiWebRetrievalTask, z.CreateRedditJob,
+		z.AiWebRetrievalGetRoutesTask, z.ApiCallRequestTask, z.CreateRedditJob,
 		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob, z.CancelRun, z.PlatformIndexerGroupStatusUpdate,
 		z.SelectDiscordSearchQueryByGuildChannel, z.CreateJsonOutputModelResponse, z.EvalLookup,
 		z.SendResponseToApiForScoresInJson, z.EvalModelScoredJsonOutput, z.SaveEvalMetricResults,
@@ -254,9 +254,16 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Conte
 
 }
 
-func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, r iris_models.RouteInfo) (*hera_search.SearchResult, error) {
+type RouteTask struct {
+	Ou          org_users.OrgUser                  `json:"orgUser"`
+	RetrievalDB artemis_orchestrations.RetrievalDB `json:"retrievalDB"`
+	RouteInfo   iris_models.RouteInfo              `json:"routeInfo"`
+	Payload     echo.Map                           `json:"payload"`
+}
+
+func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r RouteTask) (*hera_search.SearchResult, error) {
 	retInst := artemis_orchestrations.RetrievalItemInstruction{}
-	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &retInst)
+	jerr := json.Unmarshal(r.RetrievalDB.RetrievalInstructions, &retInst)
 	if jerr != nil {
 		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
 		return nil, jerr
@@ -264,19 +271,29 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
 		return nil, jerr
 	}
+	restMethod := http.MethodGet
+	if retInst.WebFilters.EndpointREST != nil {
+		restMethod = *retInst.WebFilters.EndpointREST
+	}
+	var routeExt string
+	if retInst.WebFilters.EndpointREST != nil {
+		routeExt = *retInst.WebFilters.EndpointRoutePath
+	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:             r.RoutePath,
-		PayloadTypeREST: "GET",
-		Timeout:         1 * time.Minute,
-		StatusCode:      http.StatusOK,
+		Url:             r.RouteInfo.RoutePath,
+		OrgID:           r.Ou.OrgID,
+		UserID:          r.Ou.UserID,
+		ExtRoutePath:    routeExt,
+		Payload:         r.Payload,
+		PayloadTypeREST: restMethod,
 	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, fmt.Sprintf("web-%s", *retInst.WebFilters.RoutingGroup))
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup))
 	if err == nil && ps != nil {
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")
 		}
-		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
+		log.Err(err).Msg("AiWebRetrievalTask: failed to get mockingbird secrets")
 		if ps != nil && ps.ApiKey != "" {
 			req.Bearer = ps.ApiKey
 		}
@@ -286,10 +303,11 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {
-		log.Err(rrerr).Msg("AiRetrievalTask: failed to request")
+		log.Err(rrerr).Msg("AiWebRetrievalTask: failed to request")
 		return nil, rrerr
 	}
 	wr := hera_search.WebResponse{
+		WebFilters: retInst.WebFilters,
 		Body:       rr.Response,
 		RawMessage: rr.RawResponse,
 	}
@@ -297,7 +315,7 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 	if wr.Body != nil {
 		b, jer := json.Marshal(wr.Body)
 		if jer != nil {
-			log.Err(jer).Msg("AiRetrievalTask: failed to marshal")
+			log.Err(jer).Msg("AiWebRetrievalTask: failed to marshal")
 			return nil, jer
 		}
 		value = fmt.Sprintf("%s", b)
@@ -305,14 +323,12 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalTask(ctx context.Context, ou or
 	if wr.RawMessage != nil && wr.Body == nil {
 		value = fmt.Sprintf("%s", wr.RawMessage)
 	}
-
 	sres := &hera_search.SearchResult{
 		Source:      rr.Url,
 		Value:       value,
 		Group:       aws.StringValue(retInst.WebFilters.RoutingGroup),
 		WebResponse: wr,
 	}
-
 	return sres, nil
 }
 

@@ -278,9 +278,9 @@ func SelectAllOrgRoutes(ctx context.Context) (OrgRoutesGroup, error) {
 }
 
 type RouteInfo struct {
-	RoutePath     string
-	Referrers     []string
-	PriorityScore *float64
+	RoutePath     string   `json:"routePath"`
+	Referrers     []string `json:"referrers"`
+	PriorityScore *float64 `json:"priorityScore,omitempty"`
 }
 
 func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (map[string][]RouteInfo, error) {

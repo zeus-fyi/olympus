@@ -40,7 +40,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunApprovedTriggerActions(ctx workflow.
 		return err
 	}
 	switch ta.TriggerAction {
-	case "social-media-engagement":
+	case socialMediaEngagementResponseFormat:
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 			//WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + suffix,
 			//WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,

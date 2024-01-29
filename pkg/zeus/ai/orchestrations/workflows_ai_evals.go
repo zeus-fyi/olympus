@@ -111,7 +111,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			cpe.TaskToExecute.Tc.Schemas = evalFnsAgg[evFnIndex].Schemas
 			cpe.TaskToExecute.Tc.Model = aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
 			cpe.ParentOutputToEval = &ChatCompletionQueryResponse{}
-
 			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 			err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cpe.ParentOutputToEval)
 			if err != nil {
@@ -127,7 +126,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				logger.Error("failed to get score eval", "Error", err)
 				return err
 			}
-			emr.EvalContext = evCtx
+			// TODO, can filter failing results here
+			evCtx.JsonResponseResults = cpe.ParentOutputToEval.JsonResponseResults
 		case "api":
 			// TODO, complete this, should attach a retrieval option? use that for the scoring?
 			//retrievalCtx := workflow.WithActivityOptions(ctx, ao)

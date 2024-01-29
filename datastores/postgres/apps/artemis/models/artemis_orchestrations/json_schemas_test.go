@@ -7,6 +7,50 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
+func (s *OrchestrationsTestSuite) TestConvertToMapInterface() {
+	stringValue := "unique-id"
+	numberValue := 123.45
+	schema := JsonSchemaDefinition{
+		SchemaName: "messages",
+		IsObjArray: true,
+		Fields: []JsonSchemaField{
+			{FieldName: "id", DataType: "string", FieldDescription: "id", FieldValue: FieldValue{
+				StringValue: &stringValue,
+				IsValidated: true,
+			}},
+			{FieldName: "values", DataType: "number", FieldDescription: "values", FieldValue: FieldValue{
+				NumberValue: &numberValue,
+				IsValidated: true,
+			}},
+		},
+	}
+	stringValue2 := "unique-id-2"
+	numberValue2 := 999.45
+	schema2 := JsonSchemaDefinition{
+		SchemaName: "messages",
+		IsObjArray: true,
+		Fields: []JsonSchemaField{
+			{FieldName: "id", DataType: "string", FieldDescription: "id", FieldValue: FieldValue{
+				StringValue: &stringValue2,
+				IsValidated: true,
+			}},
+			{FieldName: "values", DataType: "number", FieldDescription: "values", FieldValue: FieldValue{
+				NumberValue: &numberValue2,
+				IsValidated: true,
+			}},
+		},
+	}
+
+	resp := CreateMapInterfaceFromAssignedSchemaFields([]JsonSchemaDefinition{schema, schema2})
+	s.Require().NotNil(resp, "Failed to convert JSON schema to map interface")
+
+	for _, mv := range resp {
+		for _, v := range mv {
+			fmt.Println(v)
+		}
+	}
+}
+
 func (s *OrchestrationsTestSuite) TestConvertToFuncDef3() {
 	schema := &JsonSchemaDefinition{
 		SchemaName: "messages",

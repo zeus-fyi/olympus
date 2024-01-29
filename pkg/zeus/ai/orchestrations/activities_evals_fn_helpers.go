@@ -339,21 +339,6 @@ func copyMatchingFieldValues(tasksSchemaMap, schemasMap map[string]*artemis_orch
 	}
 }
 
-func copyMatchingJsonResponsesFieldValuesFromResp(respJsonResults [][]*artemis_orchestrations.JsonSchemaDefinition, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) bool {
-	for trsi, _ := range respJsonResults {
-		for si, _ := range respJsonResults[trsi] {
-			if respJsonResults[trsi][si].SchemaID == 0 || len(respJsonResults[trsi][si].Fields) <= 0 {
-				continue
-			}
-			isRespPrePopulatedForEvalScores := copyMatchingFieldValuesFromResp(respJsonResults[trsi][si], schemasMap)
-			if !isRespPrePopulatedForEvalScores {
-				return false
-			}
-		}
-	}
-	return true
-}
-
 func copyMatchingFieldValuesFromResp(respJsonResults *artemis_orchestrations.JsonSchemaDefinition, schemasMap map[string]*artemis_orchestrations.JsonSchemaDefinition) bool {
 	if schemasMap == nil || respJsonResults == nil {
 		return false // Handle nil maps

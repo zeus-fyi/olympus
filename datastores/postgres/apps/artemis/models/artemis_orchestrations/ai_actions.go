@@ -54,18 +54,24 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 	q := sql_query_templates.QueryParams{}
 	params := []interface{}{ou.OrgID}
 
-	additionalQuery := ""
-	if evalID != 0 {
-		additionalQuery = "AND eval_id = $2"
-		params = append(params, evalID)
-	}
-	// Updated query to include TriggerActionsApproval
-	q.RawQuery = `
-			WITH cte_trigger_acts AS (
+	q1 := `	WITH cte_trigger_acts AS (
 				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action
 				FROM public.ai_trigger_actions ta
-				WHERE ta.org_id = $1 ` + additionalQuery + `
-			),
+				WHERE ta.org_id = $1
+			),`
+
+	if evalID != 0 {
+		q1 = `	WITH cte_trigger_acts AS (
+				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action
+				FROM public.ai_trigger_actions ta
+				JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
+				WHERE ta.org_id = $1 AND eval_id = $2
+			),`
+		params = append(params, evalID)
+	}
+
+	// Updated query to include TriggerActionsApproval
+	q.RawQuery = q1 + `
 			cte_trigger_action_evals AS (
 				SELECT ta.trigger_id, COALESCE(tae.eval_id, 0) as eval_id, taee.eval_trigger_state, taee.eval_results_trigger_on
 				FROM cte_trigger_acts ta

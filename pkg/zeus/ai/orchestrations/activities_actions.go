@@ -36,6 +36,11 @@ func (z *ZeusAiPlatformActivities) CreateOrUpdateTriggerActionToExec(ctx context
 	return nil
 }
 
+const (
+	infoState     = "info"
+	pendingStatus = "pending"
+)
+
 func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context, act *artemis_orchestrations.TriggerAction, emr *artemis_orchestrations.EvalMetricsResults) (*artemis_orchestrations.TriggerAction, error) {
 	if act == nil || emr == nil || emr.EvalMetricsResults == nil {
 		return act, nil
@@ -54,13 +59,16 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 	// gets the eval results by state, eg. info, trigger, etc.
 	for _, tr := range act.EvalTriggerActions {
 		results := m[tr.EvalTriggerState]
+		if len(results) <= 0 {
+			continue
+		}
 		// when the trigger on eval results condition is met, create a trigger action for approval
 		if checkTriggerOnEvalResults(tr.EvalResultsTriggerOn, results) {
 			tap := artemis_orchestrations.TriggerActionsApproval{
 				WorkflowResultID: emr.EvalContext.AIWorkflowAnalysisResult.WorkflowResultID,
 				EvalID:           tr.EvalID,
 				TriggerID:        tr.TriggerID,
-				ApprovalState:    "pending",
+				ApprovalState:    pendingStatus,
 			}
 			act.TriggerActionsApprovals = append(act.TriggerActionsApprovals, tap)
 		}

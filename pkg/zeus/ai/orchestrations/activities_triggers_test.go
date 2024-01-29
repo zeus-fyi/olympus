@@ -6,6 +6,17 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
 
+func (t *ZeusWorkerTestSuite) TestLookupEvalTriggerConditions() {
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	evalID := 1704066747085827000
+
+	act := NewZeusAiPlatformActivities()
+	ta, err := act.LookupEvalTriggerConditions(ctx, t.Ou, evalID)
+	t.Require().Nil(err)
+	t.Require().NotNil(ta)
+
+}
+
 func (t *ZeusWorkerTestSuite) TestCheckEvalTriggerCondition() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 
@@ -17,7 +28,7 @@ func (t *ZeusWorkerTestSuite) TestCheckEvalTriggerCondition() {
 			{
 				EvalID:               evalID,
 				TriggerID:            1706487755984811000,
-				EvalTriggerState:     "info",
+				EvalTriggerState:     infoState,
 				EvalResultsTriggerOn: allPass,
 			},
 		},
@@ -36,7 +47,15 @@ func (t *ZeusWorkerTestSuite) TestCheckEvalTriggerCondition() {
 		EvalMetricsResults: []*artemis_orchestrations.EvalMetric{
 			{
 				EvalMetricResult: &artemis_orchestrations.EvalMetricResult{
-					EvalResultOutcomeBool: aws.Bool(true),
+					EvalMetricResultStrID:     nil,
+					EvalMetricResultID:        nil,
+					EvalResultOutcomeBool:     aws.Bool(true),
+					EvalResultOutcomeStateStr: nil,
+					RunningCycleNumber:        nil,
+					EvalIterationCount:        nil,
+					SearchWindowUnixStart:     nil,
+					SearchWindowUnixEnd:       nil,
+					EvalMetadata:              nil,
 				},
 			},
 		},
@@ -45,4 +64,10 @@ func (t *ZeusWorkerTestSuite) TestCheckEvalTriggerCondition() {
 	t.Require().NotNil(tao)
 	t.Require().Nil(err)
 	t.Require().NotNil(tao.TriggerActionsApprovals)
+
+	emr.EvalMetricsResults[0].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(false)
+	tao, err = act.CheckEvalTriggerCondition(ctx, ta, emr)
+	t.Require().NotNil(tao)
+	t.Require().Nil(tao.TriggerActionsApprovals)
+	t.Require().Nil(err)
 }

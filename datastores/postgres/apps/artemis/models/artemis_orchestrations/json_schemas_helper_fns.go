@@ -469,3 +469,49 @@ func interfaceSliceToStringSlice(interfaceSlice []interface{}) ([]string, error)
 	}
 	return stringSlice, nil
 }
+
+func CreateMapInterfaceFromAssignedSchemaFields(schemas []JsonSchemaDefinition) []map[string]interface{} {
+	var resp []map[string]interface{}
+
+	for _, schema := range schemas {
+		fieldMap := make(map[string]interface{})
+		for _, field := range schema.Fields {
+			switch field.DataType {
+			case "string":
+				if field.StringValue != nil {
+					fieldMap[field.FieldName] = *field.StringValue
+				}
+			case "number":
+				if field.NumberValue != nil {
+					fieldMap[field.FieldName] = *field.NumberValue
+				}
+			case "integer":
+				if field.IntegerValue != nil {
+					fieldMap[field.FieldName] = *field.IntegerValue
+				}
+			case "boolean":
+				if field.BooleanValue != nil {
+					fieldMap[field.FieldName] = *field.BooleanValue
+				}
+			case "array[number]":
+				if field.NumberValueSlice != nil {
+					fieldMap[field.FieldName] = field.NumberValueSlice
+				}
+			case "array[string]":
+				if field.StringValueSlice != nil {
+					fieldMap[field.FieldName] = field.StringValueSlice
+				}
+			case "array[boolean]":
+				if field.BooleanValueSlice != nil {
+					fieldMap[field.FieldName] = field.BooleanValueSlice
+				}
+			case "array[integer]":
+				if field.IntegerValueSlice != nil {
+					fieldMap[field.FieldName] = field.IntegerValueSlice
+				}
+			}
+		}
+		resp = append(resp, fieldMap)
+	}
+	return resp
+}

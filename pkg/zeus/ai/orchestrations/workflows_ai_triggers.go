@@ -13,6 +13,7 @@ import (
 type TriggerActionsWorkflowParams struct {
 	Emr *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
 	Mb  *MbChildSubProcessParams                   `json:"mb,omitempty"`
+	Cpe *EvalActionParams
 }
 
 const (
@@ -20,7 +21,7 @@ const (
 )
 
 func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workflow.Context, tar TriggerActionsWorkflowParams) error {
-	if tar.Emr == nil || tar.Mb == nil {
+	if tar.Emr == nil || tar.Mb == nil || tar.Cpe == nil {
 		return nil
 	}
 	logger := workflow.GetLogger(ctx)
@@ -34,13 +35,20 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		},
 	}
 
-	ou := tar.Mb.Ou
 	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 	var triggerActions []artemis_orchestrations.TriggerAction
-	// looks up if there are any trigger actions to execute by eval id
-	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, ou, tar.Emr.EvalContext.EvalID).Get(triggerEvalsLookupCtx, &triggerActions)
+	tq := artemis_orchestrations.TriggersWorkflowQueryParams{
+		Ou:                 tar.Mb.Ou,
+		EvalID:             tar.Emr.EvalContext.EvalID,
+		TaskID:             tar.Cpe.TaskToExecute.Tc.TaskID,
+		WorkflowTemplateID: tar.Mb.WfExecParams.WorkflowTemplate.WorkflowTemplateID,
+	}
+	if !tq.ValidateEvalTaskQp() {
+		return nil
+	}
+	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tq).Get(triggerEvalsLookupCtx, &triggerActions)
 	if err != nil {
-		logger.Error("failed to get eval info", "Error", err)
+		logger.Error("failed to get eval trigger info", "Error", err)
 		return err
 	}
 
@@ -104,7 +112,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				}
 			case socialMediaEngagementResponseFormat:
 				smApiEvalFormatCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				err = workflow.ExecuteActivity(smApiEvalFormatCtx, z.EvalFormatForApi, ou, ta).Get(smApiEvalFormatCtx, &cr)
+				err = workflow.ExecuteActivity(smApiEvalFormatCtx, z.EvalFormatForApi, tar.Mb.Ou, ta).Get(smApiEvalFormatCtx, &cr)
 				if err != nil {
 					logger.Error("failed to check eval trigger condition", "Error", err)
 					return err
@@ -114,7 +122,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		if cr != nil {
 			var triggerCompletionID int
 			triggerCompletionResponseCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err = workflow.ExecuteActivity(triggerCompletionResponseCtx, z.RecordCompletionResponse, ou, cr).Get(triggerCompletionResponseCtx, &triggerCompletionID)
+			err = workflow.ExecuteActivity(triggerCompletionResponseCtx, z.RecordCompletionResponse, tar.Mb.Ou, cr).Get(triggerCompletionResponseCtx, &triggerCompletionID)
 			if err != nil {
 				logger.Error("failed to get completion response", "Error", err)
 				return err

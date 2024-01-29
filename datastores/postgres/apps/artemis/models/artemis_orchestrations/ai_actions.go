@@ -56,6 +56,13 @@ type TriggersWorkflowQueryParams struct {
 	WorkflowTemplateID int               `json:"workflowTemplateID,omitempty"`
 }
 
+func (tq *TriggersWorkflowQueryParams) ValidateEvalTaskQp() bool {
+	if tq.Ou.OrgID == 0 || tq.EvalID == 0 || tq.TaskID == 0 || tq.WorkflowTemplateID == 0 {
+		return false
+	}
+	return true
+}
+
 func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkflowQueryParams) ([]TriggerAction, error) {
 	if tq.Ou.OrgID == 0 {
 		return nil, errors.New("orgID cannot be 0")

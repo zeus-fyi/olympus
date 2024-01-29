@@ -19,8 +19,6 @@ export function RetrievalsRow(props: { row: Retrieval, index: number, handleClic
     const dispatch = useDispatch();
     const handleEditRetrieval = async (e: any, ret: Retrieval) => {
         e.preventDefault();
-
-        console.log(ret)
         dispatch(setRetrieval(ret))
     }
     return (
@@ -105,21 +103,5 @@ export const prettyPrintJSON = (json: any): string => {
     } catch (error) {
         console.error('Error parsing or formatting JSON:', error);
         return ''; // Return an empty string in case of error
-    }
-};
-
-export const prettyPrintJSONFromBytes = (byteArrayString: string | undefined): string => {
-    if (byteArrayString === undefined || byteArrayString === '') {
-        return '';
-    }
-    try {
-        // Assuming byteArrayString is a base64 encoded string of the byte array
-        const decodedString = atob(byteArrayString);
-        let jsonObject = JSON.parse(decodedString);
-        delete(jsonObject['instructions'])
-        return JSON.stringify(jsonObject, null, 2); // Pretty print with 2 spaces indentation
-    } catch (error) {
-        console.error('Error parsing JSON:', error);
-        return byteArrayString; // Fallback to original string in case of error
     }
 };

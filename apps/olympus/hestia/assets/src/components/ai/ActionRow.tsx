@@ -19,7 +19,6 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
     const { row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
     const dispatch = useDispatch();
-
     const handleEditTriggerAction = async (e: any, ta: TriggerAction) => {
         e.preventDefault();
         dispatch(setTriggerAction(ta))
@@ -62,23 +61,31 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
-                        {row.evalTriggerActions && row.evalTriggerActions.length > 0 && (
+                        {row.triggerRetrievals && row.triggerRetrievals.length > 0 && (
                             <Box sx={{ margin: 1 }}>
                                 <Typography variant="h6" gutterBottom component="div">
-                                    Eval Triggers Details
+                                    Eval Trigger API Details
                                 </Typography>
                                 <Table size="small" aria-label="sub-analysis">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Eval State</TableCell>
-                                            <TableCell>Trigger On</TableCell>
+                                            <TableCell>Retrieval ID</TableCell>
+                                            <TableCell>Group</TableCell>
+                                            <TableCell>Name</TableCell>
+                                            <TableCell>Platform</TableCell>
+                                            <TableCell>Details</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {row.evalTriggerActions && row.evalTriggerActions.map((data, dataIndex) => (
+                                        {row.triggerRetrievals && row.triggerRetrievals.map((data, dataIndex) => (
                                                 <TableRow key={dataIndex}>
-                                                    <TableCell>{data.evalTriggerState}</TableCell>
-                                                    <TableCell>{data.evalResultsTriggerOn}</TableCell>
+                                                    <TableCell>{data.retrievalStrID}</TableCell>
+                                                    <TableCell>{data.retrievalGroup}</TableCell>
+                                                    <TableCell>{data.retrievalName}</TableCell>
+                                                    <TableCell>{data.retrievalItemInstruction && data.retrievalItemInstruction.retrievalPlatform ? data.retrievalItemInstruction.retrievalPlatform  :''}</TableCell>
+                                                    <TableCell component="th" scope="row" style={{ width: '50%', whiteSpace: 'pre-wrap' }}>
+                                                        {JSON.stringify(data.retrievalItemInstruction, null, 2)}
+                                                    </TableCell>
                                                 </TableRow>
                                         ))}
                                     </TableBody>

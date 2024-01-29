@@ -34,7 +34,9 @@ type TaskContext struct {
 	Model          string `json:"model"`
 	TaskID         int    `json:"taskID"`
 	EvalID         int    `json:"evalID,omitempty"`
-	Schemas        []*artemis_orchestrations.JsonSchemaDefinition
+	//TriggerActionsApproval             artemis_orchestrations.TriggerActionsApproval `json:"triggerActionsApproval,omitempty"`
+	AIWorkflowTriggerResultApiResponse artemis_orchestrations.AIWorkflowTriggerResultApiResponse
+	Schemas                            []*artemis_orchestrations.JsonSchemaDefinition
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {

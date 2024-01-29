@@ -33,7 +33,19 @@ func (s *OrchestrationsTestSuite) TestSelectRetrievals() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	// Step 2: Call InsertRetrieval
-	res, err := SelectRetrievals(ctx, ou)
+	res, err := SelectRetrievals(ctx, ou, 0)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(res)
+}
+
+func (s *OrchestrationsTestSuite) TestSelectRetrieval() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	// Step 2: Call InsertRetrieval
+	res, err := SelectRetrievals(ctx, ou, 1706487709357339000)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)
 }

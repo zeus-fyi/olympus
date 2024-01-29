@@ -70,6 +70,7 @@ type SearchResultGroup struct {
 	Model                          string                                            `json:"model,omitempty"`
 	ResponseFormat                 string                                            `json:"responseFormat,omitempty"`
 	BodyPrompt                     string                                            `json:"bodyPrompt,omitempty"`
+	ApiResponseResults             []SearchResult                                    `json:"apiResponseResults,omitempty"`
 	SearchResults                  []SearchResult                                    `json:"searchResults"`
 	FilteredSearchResults          []SearchResult                                    `json:"filteredSearchResults,omitempty"`
 	FilteredSearchResultMap        map[int]*SearchResult                             `json:"filteredSearchResultsMap"`

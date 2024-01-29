@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -53,7 +54,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			return err
 		}
 
-		if ta == nil {
+		if ta == nil && ta.TriggerID == 0 {
 			continue
 		}
 
@@ -65,35 +66,41 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		if tar.Mb.AnalysisEvalActionParams != nil && tar.Mb.AnalysisEvalActionParams.SearchResultGroup != nil {
 			switch ta.TriggerAction {
 			case apiApproval:
-				retWfID := tar.Mb.Oj.OrchestrationName + "-trigger-eval-api-ret-" + strconv.Itoa(tar.Mb.RunCycle) + "-chunk-" + strconv.Itoa(tar.Mb.WorkflowResult.ChunkOffset) + "-iter-" + strconv.Itoa(tar.Mb.WorkflowResult.IterationCount)
-				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               retWfID,
-					WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+				for _, ret := range ta.TriggerRetrievals {
+					if ret.RetrievalID == nil || aws.ToInt(ret.RetrievalID) == 0 {
+						continue
+					}
+					// TODO: for each approval, call??
+					retWfID := tar.Mb.Oj.OrchestrationName + "-trigger-eval-api-ret-" + strconv.Itoa(tar.Mb.RunCycle) + "-chunk-" + strconv.Itoa(tar.Mb.WorkflowResult.ChunkOffset) + "-iter-" + strconv.Itoa(tar.Mb.WorkflowResult.IterationCount)
+					for _, v := range ta.TriggerActionsApprovals {
+						tte := TaskToExecute{
+							WfID: retWfID,
+							Ou:   ou,
+							Sg:   tar.Mb.AnalysisEvalActionParams.SearchResultGroup,
+							Wft:  tar.Mb.AnalysisEvalActionParams.WorkflowTemplateData,
+							Tc: TaskContext{
+								AIWorkflowTriggerResultApiResponse: artemis_orchestrations.AIWorkflowTriggerResultApiResponse{
+									ApprovalID:  v.ApprovalID,
+									TriggerID:   ta.TriggerID,
+									RetrievalID: aws.ToInt(ret.RetrievalID),
+								},
+							},
+						}
+						tte.Wft.RetrievalPlatform = apiApproval
+						tte.Wft.RetrievalID = ret.RetrievalID
+
+						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+							WorkflowID:               retWfID,
+							WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+						}
+						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tar.Mb.AnalysisEvalActionParams.SearchResultGroup)
+						if err != nil {
+							logger.Error("failed to execute child api retrieval workflow", "Error", err)
+							return err
+						}
+					}
 				}
-				tte := TaskToExecute{
-					WfID: retWfID,
-					Ou:   ou,
-					Sg:   tar.Mb.AnalysisEvalActionParams.SearchResultGroup,
-					Wft:  tar.Mb.AnalysisEvalActionParams.WorkflowTemplateData,
-				}
-				tte.Wft.RetrievalPlatform = apiApproval
-				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tar.Mb.AnalysisEvalActionParams.SearchResultGroup)
-				if err != nil {
-					logger.Error("failed to execute child api retrieval workflow", "Error", err)
-					return err
-				}
-				//// TODO, save trigger metadata
-				//trr := artemis_orchestrations.AIWorkflowTriggerResultResponse{
-				//	WorkflowResultID: tar.Mb.WorkflowResult.WorkflowResultID,
-				//	TriggerID:        ta.TriggerID,
-				//}
-				//saveCompletionResponseCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				//err = workflow.ExecuteActivity(saveCompletionResponseCtx, z.SaveTriggerResponseOutput, trr).Get(saveCompletionResponseCtx, nil)
-				//if err != nil {
-				//	logger.Error("failed to save trigger response", "Error", err)
-				//	return err
-				//}
 			case socialMediaEngagementResponseFormat:
 				smApiEvalFormatCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(smApiEvalFormatCtx, z.EvalFormatForApi, ou, ta).Get(smApiEvalFormatCtx, &cr)

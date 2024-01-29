@@ -49,10 +49,20 @@ type EvalTriggerActions struct {
 	EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"`
 }
 
-func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.OrgUser, evalID int) ([]TriggerAction, error) {
+type TriggersWorkflowQueryParams struct {
+	Ou                 org_users.OrgUser `json:"ou,omitempty"`
+	EvalID             int               `json:"evalID,omitempty"`
+	TaskID             int               `json:"taskID,omitempty"`
+	WorkflowTemplateID int               `json:"workflowTemplateID,omitempty"`
+}
+
+func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkflowQueryParams) ([]TriggerAction, error) {
+	if tq.Ou.OrgID == 0 {
+		return nil, errors.New("orgID cannot be 0")
+	}
 	var triggerActions []TriggerAction
 	q := sql_query_templates.QueryParams{}
-	params := []interface{}{ou.OrgID}
+	params := []interface{}{tq.Ou.OrgID}
 
 	q1 := `	WITH cte_trigger_acts AS (
 				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action
@@ -60,14 +70,15 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, ou org_users.Org
 				WHERE ta.org_id = $1
 			),`
 
-	if evalID != 0 {
+	if tq.EvalID != 0 && tq.TaskID != 0 && tq.WorkflowTemplateID != 0 {
 		q1 = `	WITH cte_trigger_acts AS (
 				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action
 				FROM public.ai_trigger_actions ta
 				JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
-				WHERE ta.org_id = $1 AND eval_id = $2
+				JOIN public.ai_workflow_template_eval_task_relationships trrr ON trrr.eval_id = tae.eval_id
+				WHERE ta.org_id = $1 AND tae.eval_id = $2 AND trrr.task_id = $3 AND trrr.workflow_template_id = $4
 			),`
-		params = append(params, evalID)
+		params = append(params, tq.EvalID, tq.TaskID, tq.WorkflowTemplateID)
 	}
 
 	// Updated query to include TriggerActionsApproval

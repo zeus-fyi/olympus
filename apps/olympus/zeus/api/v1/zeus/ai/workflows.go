@@ -54,7 +54,9 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get search indexers")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	actions, err := artemis_orchestrations.SelectTriggerActionsByOrgAndOptParams(c.Request().Context(), ou, 0)
+
+	tp := artemis_orchestrations.TriggersWorkflowQueryParams{Ou: ou}
+	actions, err := artemis_orchestrations.SelectTriggerActionsByOrgAndOptParams(c.Request().Context(), tp)
 	if err != nil {
 		log.Err(err).Msg("failed to get actions")
 		return c.JSON(http.StatusInternalServerError, nil)

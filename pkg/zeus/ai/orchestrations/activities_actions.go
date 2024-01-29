@@ -5,7 +5,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 // SendTriggerActionRequestForApproval sends the action request to the user for human in-the-loop approval
@@ -13,8 +12,8 @@ func (z *ZeusAiPlatformActivities) SendTriggerActionRequestForApproval(ctx conte
 	return nil
 }
 
-func (z *ZeusAiPlatformActivities) LookupEvalTriggerConditions(ctx context.Context, ou org_users.OrgUser, evalID int) ([]artemis_orchestrations.TriggerAction, error) {
-	ta, err := artemis_orchestrations.SelectTriggerActionsByOrgAndOptParams(ctx, ou, evalID)
+func (z *ZeusAiPlatformActivities) LookupEvalTriggerConditions(ctx context.Context, tq artemis_orchestrations.TriggersWorkflowQueryParams) ([]artemis_orchestrations.TriggerAction, error) {
+	ta, err := artemis_orchestrations.SelectTriggerActionsByOrgAndOptParams(ctx, tq)
 	if err != nil {
 		log.Err(err).Msg("LookupEvalTriggerConditions: failed to lookup trigger actions")
 		return nil, err

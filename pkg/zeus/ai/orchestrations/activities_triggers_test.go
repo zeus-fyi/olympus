@@ -9,12 +9,26 @@ import (
 func (t *ZeusWorkerTestSuite) TestLookupEvalTriggerConditions() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	evalID := 1704066747085827000
-
+	taskID := 1704001441781394000
+	workflowTemplateID := 1704067291708542000
 	act := NewZeusAiPlatformActivities()
-	ta, err := act.LookupEvalTriggerConditions(ctx, t.Ou, evalID)
+
+	// MbChildSubProcessParams.WfExecParams.WorkflowTemplate.WorkflowTemplateID
+
+	tq := artemis_orchestrations.TriggersWorkflowQueryParams{
+		Ou:                 t.Ou,
+		EvalID:             evalID,
+		TaskID:             taskID,
+		WorkflowTemplateID: workflowTemplateID,
+	}
+	ta, err := act.LookupEvalTriggerConditions(ctx, tq)
 	t.Require().Nil(err)
 	t.Require().NotNil(ta)
 
+	tq.WorkflowTemplateID = 1704083131758512000
+	ta, err = act.LookupEvalTriggerConditions(ctx, tq)
+	t.Require().Nil(err)
+	t.Require().Nil(ta)
 }
 
 func (t *ZeusWorkerTestSuite) TestCheckEvalTriggerCondition() {

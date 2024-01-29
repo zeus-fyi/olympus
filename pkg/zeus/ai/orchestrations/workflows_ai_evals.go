@@ -184,6 +184,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			Emr: emr,
 			Mb:  mb,
 		}
+
+		// needs task_id, workflow_id, eval_id
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, tar).Get(childAnalysisCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute child run trigger actions workflow", "Error", err)

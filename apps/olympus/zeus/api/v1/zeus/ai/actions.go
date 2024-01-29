@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
+	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
 func AiActionsHandler(c echo.Context) error {
@@ -69,6 +70,8 @@ func AiActionsApprovalHandler(c echo.Context) error {
 	return UpdateActionApproval(c, request)
 }
 
+// TODO: update this for batch approvals
+
 func UpdateActionApproval(c echo.Context, act *ActionApprovalRequest) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
@@ -82,12 +85,17 @@ func UpdateActionApproval(c echo.Context, act *ActionApprovalRequest) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-
 	aptr := &act.TriggerActionsApproval
 	aptr.ApprovalState = act.RequestedState
-	err := artemis_orchestrations.CreateOrUpdateTriggerActionApproval(c.Request().Context(), ou, aptr)
+	approvalTaskGroup := ai_platform_service_orchestrations.ApprovalTaskGroup{
+		Ou: ou,
+		Taps: []artemis_orchestrations.TriggerActionsApproval{
+			*aptr,
+		},
+	}
+	err := ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteTriggerActionsWorkflow(c.Request().Context(), approvalTaskGroup)
 	if err != nil {
-		log.Err(err).Msg("failed to insert action")
+		log.Err(err).Interface("ou", ou).Interface("approvalTaskGroup", approvalTaskGroup).Msg("UpdateActionApproval: ExecuteTriggerActionsWorkflow failed")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, aptr)

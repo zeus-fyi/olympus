@@ -139,8 +139,9 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 }
 
 type ChatCompletionQueryResponse struct {
-	Prompt                      map[string]string `json:"prompt"`
-	Params                      hera_openai.OpenAIParams
+	Prompt                      map[string]string                             `json:"prompt"`
+	Params                      hera_openai.OpenAIParams                      `json:"params"`
+	EvalResultID                int                                           `json:"evalResultID,omitempty"`
 	WorkflowResultID            int                                           `json:"workflowResultID,omitempty"`
 	Response                    openai.ChatCompletionResponse                 `json:"response"`
 	ResponseTaskID              int                                           `json:"responseTaskID,omitempty"`

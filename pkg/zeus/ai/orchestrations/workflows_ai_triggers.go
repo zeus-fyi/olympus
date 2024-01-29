@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -12,6 +13,10 @@ type TriggerActionsWorkflowParams struct {
 	Emr *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
 	Mb  *MbChildSubProcessParams                   `json:"mb,omitempty"`
 }
+
+const (
+	apiApproval = "api"
+)
 
 func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workflow.Context, tar TriggerActionsWorkflowParams) error {
 	if tar.Emr == nil || tar.Mb == nil {
@@ -51,11 +56,44 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		if ta == nil {
 			continue
 		}
+
+		if tar.Mb.AnalysisEvalActionParams == nil && ta.TriggerAction == apiApproval {
+			return nil
+		}
+
 		var cr *ChatCompletionQueryResponse
 		if tar.Mb.AnalysisEvalActionParams != nil && tar.Mb.AnalysisEvalActionParams.SearchResultGroup != nil {
-			// TODO - add retrieval item instructions and API calls
-			//ta.TriggerPlatformReference.PlatformReferenceName = tar.Mb.AnalysisEvalActionParams.SearchResultGroup.PlatformName
 			switch ta.TriggerAction {
+			case apiApproval:
+				retWfID := tar.Mb.Oj.OrchestrationName + "-trigger-eval-api-ret-" + strconv.Itoa(tar.Mb.RunCycle) + "-chunk-" + strconv.Itoa(tar.Mb.WorkflowResult.ChunkOffset) + "-iter-" + strconv.Itoa(tar.Mb.WorkflowResult.IterationCount)
+				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+					WorkflowID:               retWfID,
+					WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+				}
+				tte := TaskToExecute{
+					WfID: retWfID,
+					Ou:   ou,
+					Sg:   tar.Mb.AnalysisEvalActionParams.SearchResultGroup,
+					Wft:  tar.Mb.AnalysisEvalActionParams.WorkflowTemplateData,
+				}
+				tte.Wft.RetrievalPlatform = apiApproval
+				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tar.Mb.AnalysisEvalActionParams.SearchResultGroup)
+				if err != nil {
+					logger.Error("failed to execute child api retrieval workflow", "Error", err)
+					return err
+				}
+				//// TODO, save trigger metadata
+				//trr := artemis_orchestrations.AIWorkflowTriggerResultResponse{
+				//	WorkflowResultID: tar.Mb.WorkflowResult.WorkflowResultID,
+				//	TriggerID:        ta.TriggerID,
+				//}
+				//saveCompletionResponseCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				//err = workflow.ExecuteActivity(saveCompletionResponseCtx, z.SaveTriggerResponseOutput, trr).Get(saveCompletionResponseCtx, nil)
+				//if err != nil {
+				//	logger.Error("failed to save trigger response", "Error", err)
+				//	return err
+				//}
 			case socialMediaEngagementResponseFormat:
 				smApiEvalFormatCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(smApiEvalFormatCtx, z.EvalFormatForApi, ou, ta).Get(smApiEvalFormatCtx, &cr)

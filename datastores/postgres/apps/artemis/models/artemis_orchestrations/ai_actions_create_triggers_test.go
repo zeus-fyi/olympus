@@ -43,6 +43,7 @@ func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	// Create a TriggerActions instance
+	// round-robin
 	triggerAction := TriggerAction{
 		TriggerStrID:  "1705438732527176000",
 		TriggerID:     1705438732527176000,
@@ -61,7 +62,7 @@ func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval() {
 					RetrievalPlatform: "web",
 					WebFilters: &WebFilters{
 						RoutingGroup:       aws.String("routeGroupTestName"),
-						LbStrategy:         aws.String("RoundRobin"),
+						LbStrategy:         aws.String("poll-table"),
 						MaxRetries:         aws.Int(10),
 						BackoffCoefficient: aws.Float64(2),
 						EndpointRoutePath:  aws.String("/health"),

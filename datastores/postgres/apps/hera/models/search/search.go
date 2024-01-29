@@ -134,8 +134,9 @@ type SearchResult struct {
 }
 
 type WebResponse struct {
-	Body       echo.Map `json:"body"`
-	RawMessage []byte   `json:"rawMessage"`
+	WebFilters *artemis_orchestrations.WebFilters `json:"webFilters,omitempty"`
+	Body       echo.Map                           `json:"body"`
+	RawMessage []byte                             `json:"rawMessage"`
 }
 
 type ByTimestamp []SearchResult

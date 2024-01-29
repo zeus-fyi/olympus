@@ -126,7 +126,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				logger.Error("failed to get score eval", "Error", err)
 				return err
 			}
-			emr.EvalContext = evCtx
+			// TODO, can filter failing results here
+			evCtx.JsonResponseResults = cpe.ParentOutputToEval.JsonResponseResults
 		case "api":
 			// TODO, complete this, should attach a retrieval option? use that for the scoring?
 			//retrievalCtx := workflow.WithActivityOptions(ctx, ao)

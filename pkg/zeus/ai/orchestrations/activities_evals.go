@@ -34,13 +34,13 @@ func (z *ZeusAiPlatformActivities) SaveEvalMetricResults(ctx context.Context, em
 	return nil
 }
 
-func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, errr artemis_orchestrations.AIWorkflowEvalResultResponse) error {
+func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, errr artemis_orchestrations.AIWorkflowEvalResultResponse) (int, error) {
 	respID, err := artemis_orchestrations.InsertOrUpdateAiWorkflowEvalResultResponse(ctx, errr)
 	if err != nil {
 		log.Err(err).Interface("respID", respID).Interface("errr", errr).Msg("SaveTaskOutput: failed")
-		return err
+		return -1, err
 	}
-	return nil
+	return respID, nil
 }
 
 //

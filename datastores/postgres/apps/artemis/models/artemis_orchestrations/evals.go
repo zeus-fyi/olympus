@@ -139,9 +139,11 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 }
 
 type EvalContext struct {
-	EvalID                   int                      `json:"evalID,omitempty"`
-	EvalIterationCount       int                      `json:"evalIterationCount"`
-	AIWorkflowAnalysisResult AIWorkflowAnalysisResult `json:"aiWorkflowAnalysisResult"`
+	EvalID                       int                          `json:"evalID,omitempty"`
+	EvalIterationCount           int                          `json:"evalIterationCount"`
+	AIWorkflowAnalysisResult     AIWorkflowAnalysisResult     `json:"aiWorkflowAnalysisResult"`
+	AIWorkflowEvalResultResponse AIWorkflowEvalResultResponse `json:"aiWorkflowEvalResultResponse"`
+	JsonResponseResults          []JsonSchemaDefinition       `json:"jsonResponseResults,omitempty"`
 }
 
 type EvalMetricsResults struct {

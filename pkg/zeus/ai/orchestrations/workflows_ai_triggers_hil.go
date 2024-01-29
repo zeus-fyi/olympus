@@ -18,9 +18,10 @@ import (
 */
 
 type ApprovalTaskGroup struct {
-	WfID string                                          `json:"wfID"`
-	Ou   org_users.OrgUser                               `json:"ou"`
-	Taps []artemis_orchestrations.TriggerActionsApproval `json:"taps"`
+	WfID           string                                          `json:"wfID"`
+	RequestedState string                                          `json:"requestedState"`
+	Ou             org_users.OrgUser                               `json:"ou"`
+	Taps           []artemis_orchestrations.TriggerActionsApproval `json:"taps"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Context, approvalTaskGroup ApprovalTaskGroup) error {

@@ -77,6 +77,21 @@ func UpdateActionApproval(c echo.Context, act *ActionApprovalRequest) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	if act == nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if act.TriggerActionsApproval.ApprovalID == 0 && act.TriggerActionsApproval.ApprovalStrID == "" {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if act.TriggerActionsApproval.ApprovalStrID != "" {
+		apID, err := strconv.Atoi(act.TriggerActionsApproval.ApprovalStrID)
+		if err != nil {
+			log.Err(err).Interface("ou", ou).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		act.TriggerActionsApproval.ApprovalID = apID
+	}
+
 	isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
 	if berr != nil {
 		log.Error().Err(berr).Msg("failed to check if user has billing method")
@@ -88,7 +103,8 @@ func UpdateActionApproval(c echo.Context, act *ActionApprovalRequest) error {
 	aptr := &act.TriggerActionsApproval
 	aptr.ApprovalState = act.RequestedState
 	approvalTaskGroup := ai_platform_service_orchestrations.ApprovalTaskGroup{
-		Ou: ou,
+		RequestedState: act.RequestedState,
+		Ou:             ou,
 		Taps: []artemis_orchestrations.TriggerActionsApproval{
 			*aptr,
 		},

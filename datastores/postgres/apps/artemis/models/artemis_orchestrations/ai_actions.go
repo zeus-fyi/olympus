@@ -359,6 +359,57 @@ func SelectTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, stat
 	return approvals, nil
 }
 
+// TODO
+
+func SelectTriggerActionApprovalWithReqResponses(ctx context.Context, ou org_users.OrgUser, state string, approvalID int) ([]TriggerActionsApproval, error) {
+	if approvalID <= 0 {
+		return nil, nil
+	}
+	var approvals []TriggerActionsApproval
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+        SELECT a.approval_id, a.approval_id::text,
+               a.eval_id, a.eval_id::text,
+               a.trigger_id, a.trigger_id::text,
+               a.workflow_result_id, a.workflow_result_id::text, 
+               a.approval_state, a.request_summary, a.updated_at,
+               t.trigger_action
+        FROM public.ai_trigger_actions_approvals a
+        JOIN public.ai_trigger_actions t ON a.trigger_id = t.trigger_id
+        WHERE t.org_id = $1 AND a.approval_state = $2 AND a.approval_id = $3
+        ORDER BY a.approval_id DESC;`
+
+	// Executing the query
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, state, approvalID)
+	if err != nil {
+		log.Err(err).Msg("failed to execute query for trigger action approvals")
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterating through the query results
+	for rows.Next() {
+		var approval TriggerActionsApproval
+		err = rows.Scan(&approval.ApprovalID, &approval.ApprovalStrID,
+			&approval.EvalID, &approval.EvalStrID,
+			&approval.TriggerID, &approval.TriggerStrID,
+			&approval.WorkflowResultID, &approval.WorkflowResultStrID,
+			&approval.ApprovalState, &approval.RequestSummary, &approval.UpdatedAt,
+			&approval.TriggerAction)
+		if err != nil {
+			log.Err(err).Msg("failed to scan trigger action approval")
+			return nil, err
+		}
+		approvals = append(approvals, approval)
+	}
+	// Check for any error encountered during iteration
+	if err = rows.Err(); err != nil {
+		log.Err(err).Msg("error encountered during rows iteration")
+		return nil, err
+	}
+	return approvals, nil
+}
+
 func CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_users.OrgUser, approval TriggerActionsApproval, wtrr AIWorkflowTriggerResultApiReqResponse) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `

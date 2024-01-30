@@ -48,7 +48,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		RetryPolicy: &temporal.RetryPolicy{
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 10,
-			MaximumAttempts:    50,
+			MaximumAttempts:    25,
 		},
 	}
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(tte.Ou.OrgID, tte.WfID, "ZeusAiPlatformServiceWorkflows", "JsonOutputTaskWorkflow")

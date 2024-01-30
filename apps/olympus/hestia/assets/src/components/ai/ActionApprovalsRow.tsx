@@ -77,10 +77,14 @@ export function ActionApprovalsRow(props: any) {
                                                     <TableCell>{data.workflowResultStrID}</TableCell>
                                                     <TableCell>{data.approvalStrID}</TableCell>
                                                     <TableCell>{capitalizeFirstLetter(data.approvalState)}</TableCell>
-                                                    <TableCell>{data.requestSummary}</TableCell>
+                                                    <TableCell sx={{
+                                                        maxWidth: '500px', // you can set a specific width limit as needed
+                                                        wordWrap: 'break-word',
+                                                        whiteSpace: 'normal'
+                                                    }}>{data.requestSummary}</TableCell>
                                                     <TableCell>{new Date(data.updatedAt).toLocaleString()}</TableCell>
-                                                    <TableCell align="left"><Button onClick={event => handleActionApprovalRequest(event,'approved', data)} fullWidth variant="contained" >{'Approve'}</Button></TableCell>
-                                                    <TableCell align="left"><Button onClick={event => handleActionApprovalRequest(event,'rejected', data)} fullWidth variant="contained" >{'Reject'}</Button></TableCell>
+                                                    <TableCell align="left"><Button onClick={event => handleActionApprovalRequest(event,'approved', data)}  variant="contained" >{'Approve'}</Button></TableCell>
+                                                    <TableCell align="left"><Button onClick={event => handleActionApprovalRequest(event,'rejected', data)}  variant="contained" >{'Reject'}</Button></TableCell>
                                                 </TableRow>
                                         ))}
                                     </TableBody>
@@ -116,7 +120,11 @@ export function ActionApprovalsRow(props: any) {
                                                     <TableCell>{data.workflowResultStrID}</TableCell>
                                                     <TableCell>{data.approvalStrID}</TableCell>
                                                     <TableCell>{capitalizeFirstLetter(data.approvalState)}</TableCell>
-                                                    <TableCell>{data.requestSummary}</TableCell>
+                                                    <TableCell sx={{
+                                                        maxWidth: '500px', // you can set a specific width limit as needed
+                                                        wordWrap: 'break-word',
+                                                        whiteSpace: 'normal'
+                                                    }}>{data.requestSummary}</TableCell>
                                                     <TableCell>{new Date(data.updatedAt).toLocaleString()}</TableCell>
                                                 </TableRow>
                                             ))}

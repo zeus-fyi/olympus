@@ -472,7 +472,7 @@ func CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_u
 				approval_state = EXCLUDED.approval_state
 			RETURNING approval_id
 		) INSERT INTO ai_trigger_actions_api_reqs_responses(response_id, approval_id, trigger_id, retrieval_id, req_payload, resp_payload)
-		  SELECT $7, cte_create_approval.approval_id, $8, $9, $10, $11
+          SELECT $7, cte_create_approval.approval_id, $8, $9, COALESCE($10, '{}'::jsonb), COALESCE($11, '{}'::jsonb)
 		  FROM cte_create_approval
 		  ON CONFLICT (response_id, approval_id, trigger_id, retrieval_id)	 
 		  DO UPDATE SET 
@@ -522,7 +522,7 @@ func CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_u
 		approval.ApprovalID, approval.EvalID, approval.TriggerID, approval.WorkflowResultID, approval.ApprovalState, approval.RequestSummary,
 		wtrr.ResponseID, approval.TriggerID, wtrr.RetrievalID, pgReqJsonB, pgRespJsonB).Scan(&wtrr.ResponseID, &returnedApprovalID)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Int("returnedApprovalID", returnedApprovalID).Int("respID", wtrr.ResponseID).Msg("failed to insert or update trigger action approval for api")
+		log.Err(err).Interface("pgReqJsonB", pgReqJsonB).Interface("ou", ou).Int("returnedApprovalID", returnedApprovalID).Int("respID", wtrr.ResponseID).Msg("failed to insert or update trigger action approval for api")
 		return err
 	}
 

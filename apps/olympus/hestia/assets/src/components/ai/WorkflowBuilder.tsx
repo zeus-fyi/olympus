@@ -2520,7 +2520,16 @@ function WorkflowEngineBuilder(props: any) {
                                                 { retrieval.retrievalItemInstruction && (retrieval.retrievalItemInstruction.retrievalPlatform === 'web' || retrieval.retrievalItemInstruction.retrievalPlatform === 'api') &&
                                                     <div>
                                                         <Typography variant="h6" color="text.secondary">
-                                                            Use a Load Balancer group for web data retrieval.
+                                                            Use a load balancer group for web data retrieval.To append a bearer token,
+                                                        </Typography>
+                                                        <Typography variant="h6" color="text.secondary">
+                                                            add a platform secret name with the key prefix <code>api-</code> and use mockingbird for the key name, and the value set to your token.
+                                                        </Typography>
+                                                        <Typography variant="h6" color="text.secondary">
+                                                             Use the following format for the API route: <code>api-{'{YOUR_ROUTING_GROUP}'}</code>.
+                                                        </Typography>
+                                                        <Typography variant="h6" color="text.secondary">
+                                                          For example if your routing group is <code>test</code>, your secret platform key would be <code>api-test</code>.
                                                         </Typography>
                                                         <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
                                                             <InputLabel key={`groupNameLabel`} id={`groupName`}>

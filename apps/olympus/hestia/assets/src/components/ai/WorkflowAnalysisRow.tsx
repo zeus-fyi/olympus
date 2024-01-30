@@ -53,7 +53,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                 <Table size="small" aria-label="eval-results">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Eval Metric ID</TableCell>
+                                            <TableCell>Eval Metric Result ID</TableCell>
                                             <TableCell>Eval Name</TableCell>
                                             <TableCell>Cycle</TableCell>
                                             <TableCell>Iteration</TableCell>
@@ -69,8 +69,8 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                     <TableBody>
                                         {row.aggregatedEvalResults && row.aggregatedEvalResults.map((evalResult, evalIndex) => {
                                             return (
-                                                <TableRow key={evalResult.evalMetricStrID}>
-                                                    <TableCell>{evalResult.evalMetricStrID}</TableCell>
+                                                <TableRow key={evalIndex}>
+                                                    <TableCell>{evalResult.evalMetricResult ? evalResult.evalMetricResult.evalMetricsResultStrID : ''}</TableCell>
                                                     <TableCell>{evalResult.evalName}</TableCell>
                                                     <TableCell>
                                                         {evalResult.evalMetricResult && evalResult.evalMetricResult.runningCycleNumber

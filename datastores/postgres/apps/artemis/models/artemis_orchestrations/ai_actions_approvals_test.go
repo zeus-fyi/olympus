@@ -35,13 +35,7 @@ func (s *OrchestrationsTestSuite) TestSelectTriggerActionApproval() {
 
 func (s *OrchestrationsTestSuite) TestCreateOrUpdateTriggerActionApprovalWithApiReq() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	tap := TriggerActionsApproval{
-		EvalID:           1704066747085827000,
-		TriggerID:        1706487755984811000,
-		WorkflowResultID: 1705953610460614000,
-		ApprovalID:       1706566091973007000,
-		ApprovalState:    "pending",
-	}
+
 	wtr := AIWorkflowTriggerResultApiReqResponse{
 		ResponseID:  1706566091973014000,
 		RetrievalID: 1706487709357339000,
@@ -54,7 +48,15 @@ func (s *OrchestrationsTestSuite) TestCreateOrUpdateTriggerActionApprovalWithApi
 			},
 		},
 	}
-	// Call the function to test
+
+	tap := TriggerActionsApproval{
+		EvalID:           1704066747085827000,
+		TriggerID:        1706487755984811000,
+		WorkflowResultID: 1705953610460614000,
+		ApprovalID:       1706566091973007000,
+		ApprovalState:    "pending",
+		RequestSummary:   "pending-summary",
+	}
 	err := CreateOrUpdateTriggerActionApprovalWithApiReq(ctx, s.Ou, tap, wtr)
 	s.Require().Nil(err)
 }

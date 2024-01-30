@@ -12,6 +12,38 @@ import (
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
+func AiActionsReaderHandler(c echo.Context) error {
+	request := new(artemis_orchestrations.TriggerAction)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	if request == nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return GetActions(c, request)
+}
+func GetActions(c echo.Context, act *artemis_orchestrations.TriggerAction) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	if berr != nil {
+		log.Error().Err(berr).Msg("failed to check if user has billing method")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if !isBillingSetup {
+		return c.JSON(http.StatusPreconditionFailed, nil)
+	}
+
+	tp := artemis_orchestrations.TriggersWorkflowQueryParams{Ou: ou}
+	actions, err := artemis_orchestrations.SelectTriggerActionsByOrgAndOptParams(c.Request().Context(), tp)
+	if err != nil {
+		log.Err(err).Msg("failed to get actions")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, actions)
+}
 func AiActionsHandler(c echo.Context) error {
 	request := new(artemis_orchestrations.TriggerAction)
 	if err := c.Bind(request); err != nil {

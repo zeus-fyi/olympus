@@ -96,6 +96,17 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
+    async getActions(): Promise<any> {
+        const url = `/v1/actions/ai`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        }
+        return await zeusApi.get(url, config)
+    }
     async updateActionApproval(params: TriggerActionApprovalPutRequest): Promise<any> {
         const url = `/v1/actions/ai`;
         const sessionID = inMemoryJWT.getToken();

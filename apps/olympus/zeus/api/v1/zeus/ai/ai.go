@@ -21,6 +21,7 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 
 	e.POST("/retrievals/ai", CreateOrUpdateRetrievalRequestHandler)
 
+	e.GET("/actions/ai", AiActionsReaderHandler)
 	e.POST("/actions/ai", AiActionsHandler)
 	e.PUT("/actions/ai", AiActionsApprovalHandler)
 

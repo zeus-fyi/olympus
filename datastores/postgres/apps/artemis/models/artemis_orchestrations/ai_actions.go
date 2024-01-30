@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -238,22 +239,16 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 			return nil, err
 		}
 		for ri, _ := range triggerAction.TriggerRetrievals {
-			b, berr := triggerAction.TriggerRetrievals[ri].Instructions.MarshalJSON()
-			if berr != nil {
-				log.Err(berr).Msg("unmarshal error")
-				return nil, berr
-			}
+			b := triggerAction.TriggerRetrievals[ri].InstructionsBytes
+			fmt.Println("b", b)
 			if b != nil {
 				err = json.Unmarshal(b, &triggerAction.TriggerRetrievals[ri].RetrievalItemInstruction)
 				if err != nil {
 					log.Err(err).Msg("failed to unmarshal retrieval instructions")
 					return nil, err
 				}
-				triggerAction.TriggerRetrievals[ri].RetrievalItemInstruction.Instructions = pgtype.JSONB{
-					Bytes:  nil,
-					Status: pgtype.Null,
-				}
 			}
+			triggerAction.TriggerRetrievals[ri].InstructionsBytes = nil
 		}
 		triggerActions = append(triggerActions, triggerAction)
 	}

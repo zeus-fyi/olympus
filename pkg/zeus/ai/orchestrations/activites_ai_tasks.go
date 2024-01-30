@@ -73,7 +73,7 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 	if taskInst.AnalysisMaxTokensPerTask > 0 {
 		cr.MaxTokens = taskInst.AnalysisMaxTokensPerTask
 	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 	if err != nil || ps == nil || ps.ApiKey == "" {
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")
@@ -83,7 +83,6 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 	}
 	prompt := make(map[string]string)
 	prompt["prompt"] = taskInst.AnalysisPrompt
-	prompt["content"] = content
 	if ps.ApiKey == "" {
 		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed, using backup and deleting secret cache for org")
 		cres, cerr := hera_openai.HeraOpenAI.CreateChatCompletion(
@@ -114,7 +113,7 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 	} else {
 		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
 		aws_secrets.ClearOrgSecretCache(ou)
-		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "openai")
+		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 		if err != nil || ps == nil || ps.ApiKey == "" {
 			if err == nil {
 				err = fmt.Errorf("failed to get mockingbird secrets")

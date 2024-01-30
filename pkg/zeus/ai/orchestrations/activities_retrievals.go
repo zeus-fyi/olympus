@@ -11,7 +11,7 @@ import (
 func (z *ZeusAiPlatformActivities) SelectRetrievalTask(ctx context.Context, ou org_users.OrgUser, retID int) ([]artemis_orchestrations.RetrievalItem, error) {
 	resp, err := artemis_orchestrations.SelectRetrievals(ctx, ou, retID)
 	if err != nil {
-		log.Err(err).Interface("resp", resp).Int("retID", retID).Msg("SaveTaskOutput: failed")
+		log.Err(err).Interface("resp", resp).Int("retID", retID).Msg("SelectRetrievalTask: failed")
 		return resp, err
 	}
 	return resp, nil

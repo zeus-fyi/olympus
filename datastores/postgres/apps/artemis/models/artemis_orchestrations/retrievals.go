@@ -33,7 +33,7 @@ type RetrievalItemInstruction struct {
 	DiscordFilters            *DiscordFilters `json:"discordFilters,omitempty"`            // Discord filters for the retrieval
 	WebFilters                *WebFilters     `json:"webFilters,omitempty"`                // Web filters for the retrieval
 
-	Instructions pgtype.JSONB `json:"instructions,omitempty"` // Instructions for the retrieval
+	Instructions pgtype.JSONB `json:"-,omitempty"` // Instructions for the retrieval
 }
 
 func (r *RetrievalItemInstruction) GetNegativeKeywords() {

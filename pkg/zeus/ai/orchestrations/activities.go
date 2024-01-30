@@ -255,21 +255,29 @@ type RouteTask struct {
 	Retrieval artemis_orchestrations.RetrievalItem `json:"retrieval"`
 	RouteInfo iris_models.RouteInfo                `json:"routeInfo"`
 	Payload   echo.Map                             `json:"payload"`
+	Headers   http.Header                          `json:"headers"`
 }
 
 func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r RouteTask) (*hera_search.SearchResult, error) {
-	retInst := artemis_orchestrations.RetrievalItemInstruction{}
-	jerr := json.Unmarshal(r.Retrieval.RetrievalItemInstruction.Instructions.Bytes, &retInst)
-	if jerr != nil {
-		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
-		return nil, jerr
-	}
+	retInst := r.Retrieval
 	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
-		return nil, jerr
+		return nil, nil
 	}
 	restMethod := http.MethodGet
 	if retInst.WebFilters.EndpointREST != nil {
 		restMethod = *retInst.WebFilters.EndpointREST
+		switch restMethod {
+		case "post":
+			restMethod = http.MethodPost
+		case "put":
+			restMethod = http.MethodPut
+		case "delete":
+			restMethod = http.MethodDelete
+		case "patch":
+			restMethod = http.MethodPatch
+		case "get":
+			restMethod = http.MethodGet
+		}
 	}
 	var routeExt string
 	if retInst.WebFilters.EndpointREST != nil {
@@ -283,13 +291,14 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		ExtRoutePath:    routeExt,
 		Payload:         r.Payload,
 		PayloadTypeREST: restMethod,
+		RequestHeaders:  r.Headers,
 	}
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup))
 	if err == nil && ps != nil {
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")
 		}
-		log.Err(err).Msg("AiWebRetrievalTask: failed to get mockingbird secrets")
+		log.Err(err).Msg("ApiCallRequestTask: failed to get mockingbird secrets")
 		if ps != nil && ps.ApiKey != "" {
 			req.Bearer = ps.ApiKey
 		}
@@ -299,7 +308,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {
-		log.Err(rrerr).Msg("AiWebRetrievalTask: failed to request")
+		log.Err(rrerr).Msg("ApiCallRequestTask: failed to request")
 		return nil, rrerr
 	}
 	wr := hera_search.WebResponse{
@@ -311,7 +320,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if wr.Body != nil {
 		b, jer := json.Marshal(wr.Body)
 		if jer != nil {
-			log.Err(jer).Msg("AiWebRetrievalTask: failed to marshal")
+			log.Err(jer).Msg("ApiCallRequestTask: failed to marshal")
 			return nil, jer
 		}
 		value = fmt.Sprintf("%s", b)

@@ -73,14 +73,13 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 	}
 
 	for _, v := range approvalTaskGroup.Taps {
-		var ta artemis_orchestrations.TriggerAction
-		switch ta.TriggerAction {
+		switch v.TriggerAction {
 		case apiApproval:
 			var apiApprovalReqs []artemis_orchestrations.ApprovalApiReqResp
 			// if conditions are met, create or update the trigger action
 			recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			v.ApprovalState = approvalTaskGroup.RequestedState
-			err = workflow.ExecuteActivity(recordTriggerCondCtx, z.SelectTriggerActionApiApprovalWithReqResponses, approvalTaskGroup.Ou, approvalTaskGroup.RequestedState, v.ApprovalID).Get(recordTriggerCondCtx, &apiApprovalReqs)
+			err = workflow.ExecuteActivity(recordTriggerCondCtx, z.SelectTriggerActionApiApprovalWithReqResponses, approvalTaskGroup.Ou, "pending", v.ApprovalID).Get(recordTriggerCondCtx, &apiApprovalReqs)
 			if err != nil {
 				logger.Error("failed to create or update trigger action", "Error", err)
 				return err

@@ -460,7 +460,7 @@ func CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_u
 		WITH cte_create_approval AS (
 			INSERT INTO ai_trigger_actions_approvals(approval_id, eval_id, trigger_id, workflow_result_id, approval_state, request_summary)
 			VALUES ($1, $2, $3, $4, $5, $6)
-			ON CONFLICT (approval_id, eval_id, trigger_id, workflow_result_id)
+			ON CONFLICT (approval_id)
 			DO UPDATE SET 
 				request_summary = EXCLUDED.request_summary,
 				approval_state = EXCLUDED.approval_state

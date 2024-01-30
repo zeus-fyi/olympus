@@ -1,9 +1,11 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
@@ -36,7 +38,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		logger.Error("failed to update ai orch services", "Error", err)
 		return nil, err
 	}
-	switch tte.Wft.RetrievalPlatform {
+	switch tte.Tc.Retrieval.RetrievalPlatform {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, tte.Ou, tte.Tc.Retrieval, tte.Sg.Window).Get(retrievalCtx, &tte.Sg)
@@ -48,7 +50,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	case webPlatform:
 		var routes []iris_models.RouteInfo
 		retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tte.Ou.OrgID, tte.Tc.Retrieval).Get(retrievalWebCtx, &routes)
+		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tte.Ou, tte.Tc.Retrieval).Get(retrievalWebCtx, &routes)
 		if err != nil {
 			logger.Error("failed to run get retrieval routes", "Error", err)
 			return nil, err
@@ -60,8 +62,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				RouteInfo: route,
 			}
 			fetchedResult := &hera_search.SearchResult{}
-			retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.ApiCallRequestTask, rt).Get(retrievalWebTaskCtx, &fetchedResult)
+			apiCallCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt).Get(apiCallCtx, &fetchedResult)
 			if err != nil {
 				logger.Error("failed to run api call request task retrieval", "Error", err)
 				return nil, err
@@ -78,44 +80,70 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	case apiApproval:
 		var routes []iris_models.RouteInfo
 		retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tte.Ou.OrgID, tte.Wft).Get(retrievalWebCtx, &routes)
+		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tte.Ou, tte.Tc.Retrieval).Get(retrievalWebCtx, &routes)
 		if err != nil {
 			logger.Error("failed to run retrieval", "Error", err)
 			return nil, err
 		}
-		for _, route := range routes {
-			rt := RouteTask{
-				Ou:        tte.Ou,
-				Retrieval: tte.Tc.Retrieval,
-				RouteInfo: route,
+
+		count := len(tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads)
+		if count <= 0 {
+			count = 1
+		}
+		for i := 0; i < count; i++ {
+			var payload echo.Map
+			if i < len(tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads) {
+				payload = tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads[i]
 			}
-			fetchedResult := &hera_search.SearchResult{}
-			retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.ApiCallRequestTask, rt).Get(retrievalWebTaskCtx, &fetchedResult)
-			if err != nil {
-				logger.Error("failed to run api call request task retrieval", "Error", err)
-				return nil, err
-			}
-			if fetchedResult != nil && len(fetchedResult.WebResponse.Body) > 0 {
-				tte.Sg.ApiResponseResults = append(tte.Sg.ApiResponseResults, *fetchedResult)
-				trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
-					ApprovalID:  tte.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
-					TriggerID:   tte.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
-					RetrievalID: aws.ToInt(tte.Tc.Retrieval.RetrievalID),
-					ResponseID:  tte.Tc.AIWorkflowTriggerResultApiResponse.ResponseID,
-					ReqPayloads: tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads,
+			for _, route := range routes {
+				rt := RouteTask{
+					Ou:        tte.Ou,
+					Retrieval: tte.Tc.Retrieval,
+					RouteInfo: route,
+					Payload:   payload,
 				}
-				saveApiRespCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, trrr).Get(saveApiRespCtx, &trrr)
+				fetchedResult := &hera_search.SearchResult{}
+				apiCallCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt).Get(apiCallCtx, &fetchedResult)
 				if err != nil {
-					logger.Error("failed to save trigger response retrieval", "Error", err)
+					logger.Error("failed to run api call request task retrieval", "Error", err)
 					return nil, err
 				}
-			}
-			if fetchedResult != nil && fetchedResult.WebResponse.WebFilters != nil &&
-				fetchedResult.WebResponse.WebFilters.LbStrategy != nil &&
-				*fetchedResult.WebResponse.WebFilters.LbStrategy != lbStrategyPollTable {
-				break
+				if fetchedResult != nil && len(fetchedResult.WebResponse.Body) > 0 {
+					tte.Sg.ApiResponseResults = append(tte.Sg.ApiResponseResults, *fetchedResult)
+					var arrs []echo.Map
+					for _, apv := range tte.Sg.ApiResponseResults {
+						arrs = append(arrs, apv.WebResponse.Body)
+					}
+					trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
+						ApprovalID:   tte.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
+						TriggerID:    tte.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
+						RetrievalID:  aws.ToInt(tte.Tc.Retrieval.RetrievalID),
+						ResponseID:   tte.Tc.AIWorkflowTriggerResultApiResponse.ResponseID,
+						ReqPayloads:  tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads,
+						RespPayloads: arrs,
+					}
+					approval := artemis_orchestrations.TriggerActionsApproval{
+						TriggerAction:    apiApproval,
+						ApprovalID:       tte.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
+						EvalID:           tte.Tc.EvalID,
+						TriggerID:        tte.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
+						WorkflowResultID: tte.Tc.TriggerActionsApproval.WorkflowResultID,
+						ApprovalState:    "finished",
+						RequestSummary:   "Done with api call request " + fmt.Sprintf("%v", arrs),
+					}
+					saveApiRespCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(saveApiRespCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tte.Ou, approval, trrr).Get(saveApiRespCtx, &trrr)
+					if err != nil {
+						logger.Error("failed to save trigger response retrieval", "Error", err)
+						return nil, err
+					}
+				}
+				if fetchedResult != nil && fetchedResult.WebResponse.WebFilters != nil &&
+					fetchedResult.WebResponse.WebFilters.LbStrategy != nil &&
+					*fetchedResult.WebResponse.WebFilters.LbStrategy != lbStrategyPollTable {
+					break
+				}
 			}
 		}
 	}

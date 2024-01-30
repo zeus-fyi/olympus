@@ -34,4 +34,7 @@ func (s *OrchestrationsTestSuite) TestSelectActionApprovals() {
 	res, err := SelectTriggerActionApprovals(ctx, ou, "pending")
 	s.Require().Nil(err)
 	s.Require().NotNil(res)
+
+	res, err = SelectTriggerActionApproval(ctx, ou, "pending", 1706565893816218000)
+	s.Require().Nil(err)
 }

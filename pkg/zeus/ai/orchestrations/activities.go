@@ -255,6 +255,7 @@ type RouteTask struct {
 	Retrieval artemis_orchestrations.RetrievalItem `json:"retrieval"`
 	RouteInfo iris_models.RouteInfo                `json:"routeInfo"`
 	Payload   echo.Map                             `json:"payload"`
+	Payloads  []echo.Map                           `json:"payloads"`
 	Headers   http.Header                          `json:"headers"`
 }
 

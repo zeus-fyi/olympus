@@ -92,7 +92,6 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 				continue
 			}
 			for i, ar := range apiApprovalReqs {
-				ar.RetrievalItem.RetrievalPlatform = apiApproval
 				tte := TaskToExecute{
 					WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID + "-" + strconv.Itoa(i),
 					Ou:   approvalTaskGroup.Ou,
@@ -111,6 +110,7 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 					RetryPolicy: aoAiAct.RetryPolicy,
 					//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
+				tte.Tc.Retrieval.RetrievalPlatform = apiApproval
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tte.Sg)
 				if err != nil {

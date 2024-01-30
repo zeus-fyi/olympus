@@ -38,7 +38,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		logger.Error("failed to update ai orch services", "Error", err)
 		return nil, err
 	}
-	switch tte.Tc.Retrieval.RetrievalPlatform {
+	platform := tte.Tc.Retrieval.RetrievalPlatform
+	if tte.Tc.TriggerActionsApproval.TriggerAction == apiApproval {
+		platform = apiApproval
+	}
+
+	switch platform {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, tte.Ou, tte.Tc.Retrieval, tte.Sg.Window).Get(retrievalCtx, &tte.Sg)

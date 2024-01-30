@@ -33,8 +33,7 @@ type RetrievalItemInstruction struct {
 	DiscordFilters            *DiscordFilters `json:"discordFilters,omitempty"`            // Discord filters for the retrieval
 	WebFilters                *WebFilters     `json:"webFilters,omitempty"`                // Web filters for the retrieval
 
-	Instructions      pgtype.JSONB    `json:"-,omitempty"`  // Instructions for the retrieval
-	InstructionsBytes json.RawMessage `json:"instructions"` // Instructions for the retrieval
+	Instructions json.RawMessage `json:"instructions"` // Instructions for the retrieval
 }
 
 func (r *RetrievalItemInstruction) GetNegativeKeywords() {
@@ -62,7 +61,7 @@ func SetInstructions(r *RetrievalItem) error {
 		log.Err(err).Msg("failed to marshal retrieval instructions")
 		return err
 	}
-	r.Instructions.Bytes = b
+	r.Instructions = b
 	return nil
 }
 
@@ -73,7 +72,7 @@ func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalI
 		log.Err(err).Msg("failed to set retrieval instructions")
 		return err
 	}
-	if item.Instructions.Bytes == nil {
+	if item.Instructions == nil {
 		return errors.New("instructions cannot be nil")
 	}
 	q.RawQuery = `
@@ -88,7 +87,7 @@ func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalI
         RETURNING retrieval_id;`
 	// Executing the query
 	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, item.RetrievalName, item.RetrievalGroup, item.RetrievalPlatform,
-		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(item.Instructions.Bytes), Status: IsNull(item.Instructions.Bytes)}).Scan(&item.RetrievalID)
+		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(item.Instructions), Status: IsNull(item.Instructions)}).Scan(&item.RetrievalID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert retrieval")
 		return err
@@ -129,8 +128,8 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser, retID int) ([]R
 		if retrieval.RetrievalID != nil {
 			retrieval.RetrievalStrID = aws.String(fmt.Sprintf("%d", *retrieval.RetrievalID))
 		}
-		if retrieval.Instructions.Bytes != nil {
-			b := retrieval.InstructionsBytes
+		if retrieval.Instructions != nil {
+			b := retrieval.Instructions
 			if b != nil {
 				err = json.Unmarshal(b, &retrieval.RetrievalItemInstruction)
 				if err != nil {
@@ -138,7 +137,7 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser, retID int) ([]R
 					return nil, err
 				}
 			}
-			retrieval.Instructions.Bytes = nil
+			retrieval.Instructions = nil
 		}
 		retrievals = append(retrievals, retrieval)
 	}

@@ -238,7 +238,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 			return nil, err
 		}
 		for ri, _ := range triggerAction.TriggerRetrievals {
-			b := triggerAction.TriggerRetrievals[ri].InstructionsBytes
+			b := triggerAction.TriggerRetrievals[ri].Instructions
 			if b != nil {
 				err = json.Unmarshal(b, &triggerAction.TriggerRetrievals[ri].RetrievalItemInstruction)
 				if err != nil {
@@ -246,7 +246,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 					return nil, err
 				}
 			}
-			triggerAction.TriggerRetrievals[ri].InstructionsBytes = nil
+			triggerAction.TriggerRetrievals[ri].Instructions = nil
 		}
 		triggerActions = append(triggerActions, triggerAction)
 	}
@@ -412,23 +412,14 @@ func SelectTriggerActionApprovalWithReqResponses(ctx context.Context, ou org_use
 		}
 
 		retrieval.RetrievalID = aws.Int(resp.RetrievalID)
-		if retrieval.Instructions.Bytes != nil {
-			b, berr := retrieval.Instructions.MarshalJSON()
-			if berr != nil {
-				log.Err(berr).Msg("unmarshal error")
-				return nil, berr
+		b := retrieval.Instructions
+		if b != nil {
+			err = json.Unmarshal(b, &retrieval.RetrievalItemInstruction)
+			if err != nil {
+				log.Err(err).Msg("failed to unmarshal retrieval instructions")
+				return nil, err
 			}
-			if b != nil {
-				err = json.Unmarshal(b, &retrieval.RetrievalItemInstruction)
-				if err != nil {
-					log.Err(err).Msg("failed to unmarshal retrieval instructions")
-					return nil, err
-				}
-				retrieval.RetrievalItemInstruction.Instructions = pgtype.JSONB{
-					Bytes:  nil,
-					Status: pgtype.Null,
-				}
-			}
+			retrieval.Instructions = nil
 		}
 		resp.ApprovalID = approval.ApprovalID
 		resp.TriggerID = approval.TriggerID

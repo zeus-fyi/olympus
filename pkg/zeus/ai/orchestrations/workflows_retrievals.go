@@ -114,7 +114,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					logger.Error("failed to run api call request task retrieval", "Error", err)
 					return nil, err
 				}
-				if fetchedResult != nil && len(fetchedResult.WebResponse.Body) > 0 {
+				if fetchedResult != nil {
 					tte.Sg.ApiResponseResults = append(tte.Sg.ApiResponseResults, *fetchedResult)
 					var arrs []echo.Map
 					for _, apv := range tte.Sg.ApiResponseResults {

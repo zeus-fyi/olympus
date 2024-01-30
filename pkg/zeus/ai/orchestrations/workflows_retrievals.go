@@ -2,7 +2,6 @@ package ai_platform_service_orchestrations
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -109,7 +108,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					RouteInfo: route,
 					Payload:   payload,
 				}
-				fmt.Println("rt", rt)
+				//fmt.Println("rt", rt)
 				fetchedResult := &hera_search.SearchResult{}
 				apiCallCtx := workflow.WithActivityOptions(ctx, ao)
 				err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt).Get(apiCallCtx, &fetchedResult)

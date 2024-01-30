@@ -126,6 +126,15 @@ func (z *ZeusAiPlatformActivities) SelectTriggerActionApiApprovalWithReqResponse
 	return resp, nil
 }
 
+func (z *ZeusAiPlatformActivities) UpdateTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, approval artemis_orchestrations.TriggerActionsApproval) error {
+	err := artemis_orchestrations.UpdateTriggerActionApproval(ctx, ou, approval)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Interface("approval", approval).Msg("UpdateTriggerActionApproval: failed")
+		return err
+	}
+	return nil
+}
+
 const (
 	allPass     = "all-pass"
 	anyPass     = "any-pass"

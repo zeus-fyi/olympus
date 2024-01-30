@@ -438,6 +438,28 @@ func SelectTriggerActionApprovalWithReqResponses(ctx context.Context, ou org_use
 	return approvals, nil
 }
 
+func UpdateTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, approval TriggerActionsApproval) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+        UPDATE public.ai_trigger_actions_approvals
+		SET approval_state = $1, request_summary = $2
+		WHERE approval_id = $3;`
+
+	if approval.ApprovalState == "" {
+		approval.ApprovalState = "pending"
+	}
+	if approval.RequestSummary == "" {
+		approval.RequestSummary = "Requesting approval for trigger action"
+	}
+	// Executing the query
+	ro, err := apps.Pg.Exec(ctx, q.RawQuery, approval.ApprovalState, approval.RequestSummary, approval.ApprovalID)
+	if err != nil {
+		log.Err(err).Interface("ro", ro.RowsAffected()).Msg("failed to insert or update trigger action approval")
+		return err
+	}
+	return nil
+}
+
 func CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_users.OrgUser, approval TriggerActionsApproval, wtrr AIWorkflowTriggerResultApiReqResponse) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `

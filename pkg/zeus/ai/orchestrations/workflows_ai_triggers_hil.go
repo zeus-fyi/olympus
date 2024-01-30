@@ -25,6 +25,11 @@ type ApprovalTaskGroup struct {
 	Taps           []artemis_orchestrations.TriggerActionsApproval `json:"taps"`
 }
 
+const (
+	requestApprovedState = "approved"
+	requestRejectedState = "rejected"
+)
+
 func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Context, approvalTaskGroup ApprovalTaskGroup) error {
 	if len(approvalTaskGroup.Taps) == 0 {
 		return nil
@@ -48,6 +53,22 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 		return err
 	}
 
+	if approvalTaskGroup.RequestedState == requestRejectedState {
+		recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		err = workflow.ExecuteActivity(recordTriggerCondCtx, z.UpdateTriggerActionApproval, approvalTaskGroup.Ou, approvalTaskGroup).Get(recordTriggerCondCtx, nil)
+		if err != nil {
+			logger.Error("failed to create or update trigger action", "Error", err)
+			return err
+		}
+		finishedCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+		if err != nil {
+			logger.Error("failed to update cache for qn services", "Error", err)
+			return err
+		}
+		return nil
+	}
+
 	for _, v := range approvalTaskGroup.Taps {
 		var ta artemis_orchestrations.TriggerAction
 		switch ta.TriggerAction {
@@ -60,6 +81,10 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 				logger.Error("failed to create or update trigger action", "Error", err)
 				return err
 			}
+			if approvalTaskGroup.RequestedState != requestApprovedState {
+				continue
+			}
+
 			if len(apiApprovalReqs) <= 0 {
 				continue
 			}
@@ -101,6 +126,13 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 			//	return err
 			//}
 		}
+	}
+
+	finishedCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	if err != nil {
+		logger.Error("failed to update cache for qn services", "Error", err)
+		return err
 	}
 	return nil
 }

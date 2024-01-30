@@ -92,6 +92,16 @@ func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval() {
 	s.Require().NotNil(res2)
 }
 
+func (s *OrchestrationsTestSuite) TestSelectAll() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	qp := TriggersWorkflowQueryParams{Ou: s.Ou}
+
+	res2, err := SelectTriggerActionsByOrgAndOptParams(ctx, qp)
+	s.Require().Nil(err)
+	s.Require().NotNil(res2)
+
+}
+
 func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval1() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	qp := TriggersWorkflowQueryParams{Ou: s.Ou}

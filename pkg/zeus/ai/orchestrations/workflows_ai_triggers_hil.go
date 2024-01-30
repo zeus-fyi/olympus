@@ -1,7 +1,6 @@
 package ai_platform_service_orchestrations
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -91,31 +90,30 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 			if len(apiApprovalReqs) <= 0 {
 				continue
 			}
-			for i, ar := range apiApprovalReqs {
-				tte := TaskToExecute{
-					WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID + "-" + strconv.Itoa(i),
-					Ou:   approvalTaskGroup.Ou,
-					Ec:   artemis_orchestrations.EvalContext{},
-					Tc: TaskContext{
-						TriggerActionsApproval:             ar.TriggerActionsApproval,
-						EvalID:                             ar.TriggerActionsApproval.EvalID,
-						Retrieval:                          ar.RetrievalItem,
-						AIWorkflowTriggerResultApiResponse: ar.AIWorkflowTriggerResultApiReqResponse,
-					},
-					Sg:          &hera_search.SearchResultGroup{},
-					RetryPolicy: GetRetryPolicy(ar.RetrievalItem, 5*time.Minute),
-				}
-				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:  tte.WfID,
-					RetryPolicy: aoAiAct.RetryPolicy,
-					//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-				}
-				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tte.Sg)
-				if err != nil {
-					logger.Error("failed to execute child api retrieval workflow", "Error", err)
-					return err
-				}
+			ar := apiApprovalReqs[0]
+			tte := TaskToExecute{
+				WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID,
+				Ou:   approvalTaskGroup.Ou,
+				Ec:   artemis_orchestrations.EvalContext{},
+				Tc: TaskContext{
+					TriggerActionsApproval:             ar.TriggerActionsApproval,
+					EvalID:                             ar.TriggerActionsApproval.EvalID,
+					Retrieval:                          ar.RetrievalItem,
+					AIWorkflowTriggerResultApiResponse: ar.AIWorkflowTriggerResultApiReqResponse,
+				},
+				Sg:          &hera_search.SearchResultGroup{},
+				RetryPolicy: GetRetryPolicy(ar.RetrievalItem, 5*time.Minute),
+			}
+			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+				WorkflowID:  tte.WfID,
+				RetryPolicy: aoAiAct.RetryPolicy,
+				//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+			}
+			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tte.Sg)
+			if err != nil {
+				logger.Error("failed to execute child api retrieval workflow", "Error", err)
+				return err
 			}
 		case socialMediaEngagementResponseFormat:
 			//childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{

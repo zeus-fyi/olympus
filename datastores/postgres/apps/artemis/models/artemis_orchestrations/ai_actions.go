@@ -199,7 +199,6 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 		), cte_1 AS (
 			SELECT 
 				agg.trigger_id,
-				agg.approval_id,
 				JSONB_AGG(
 					JSONB_BUILD_OBJECT(
 						'triggerAction', x.approval->'triggerAction',
@@ -221,7 +220,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 			FROM cte_trigger_action_approvals_agg agg
 			CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(agg.approvals) AS x(approval)
 			LEFT JOIN cte_11 c11 ON agg.approval_id = c11.approval_id AND agg.trigger_id = c11.trigger_id
-			GROUP BY agg.trigger_id, agg.approval_id
+			GROUP BY agg.trigger_id
 			), cte_agg_eval_trgs AS (
 				SELECT ce.trigger_id, 
 				 COALESCE(JSONB_AGG(

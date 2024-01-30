@@ -80,6 +80,7 @@ func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context
 				WorkflowResultID: emr.EvalContext.AIWorkflowAnalysisResult.WorkflowResultID,
 				EvalID:           tr.EvalID,
 				TriggerID:        tr.TriggerID,
+				TriggerAction:    apiApproval,
 				ApprovalState:    pendingStatus,
 			}
 			taps = append(taps, tap)

@@ -44,11 +44,11 @@ type TaskContext struct {
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			BackoffCoefficient: 2.0,
-			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    10,
+			MaximumInterval:    time.Minute * 10,
+			MaximumAttempts:    50,
 		},
 	}
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(tte.Ou.OrgID, tte.WfID, "ZeusAiPlatformServiceWorkflows", "JsonOutputTaskWorkflow")

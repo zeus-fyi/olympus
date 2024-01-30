@@ -54,7 +54,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    10,
+			MaximumAttempts:    25,
 		},
 	}
 

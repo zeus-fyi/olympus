@@ -7,6 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -14,6 +15,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Second * 5,
+			BackoffCoefficient: 2.0,
+			MaximumInterval:    time.Minute * 15,
+			MaximumAttempts:    25,
+		},
 	}
 	timer := UpdatableTimer{}
 	err := workflow.SetQueryHandler(ctx, QueryType, func() (time.Time, error) {

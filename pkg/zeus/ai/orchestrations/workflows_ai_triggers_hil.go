@@ -42,7 +42,7 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    5,
+			MaximumAttempts:    25,
 		},
 	}
 

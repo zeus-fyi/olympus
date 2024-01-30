@@ -28,7 +28,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    5,
+			MaximumAttempts:    25,
 		},
 	}
 	i := runCycle

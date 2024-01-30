@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -90,9 +91,9 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 			if len(apiApprovalReqs) <= 0 {
 				continue
 			}
-			for _, ar := range apiApprovalReqs {
+			for i, ar := range apiApprovalReqs {
 				tte := TaskToExecute{
-					WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID,
+					WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID + "-" + strconv.Itoa(i),
 					Ou:   approvalTaskGroup.Ou,
 					Ec:   artemis_orchestrations.EvalContext{},
 					Tc: TaskContext{
@@ -104,7 +105,6 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 					Sg:          &hera_search.SearchResultGroup{},
 					RetryPolicy: GetRetryPolicy(ar.RetrievalItem, 5*time.Minute),
 				}
-
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 					WorkflowID:  tte.WfID,
 					RetryPolicy: aoAiAct.RetryPolicy,

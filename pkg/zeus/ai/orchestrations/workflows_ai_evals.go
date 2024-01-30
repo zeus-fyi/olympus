@@ -93,6 +93,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 				WorkflowID:               wfID,
 				WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+				RetryPolicy:              aoAiAct.RetryPolicy,
 			}
 			if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 				continue

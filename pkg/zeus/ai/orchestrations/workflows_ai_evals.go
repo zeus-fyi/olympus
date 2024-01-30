@@ -101,7 +101,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			cpe.TaskToExecute.Tc.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
 			cpe.TaskToExecute.Tc.Schemas = evalFnsAgg[evFnIndex].Schemas
 			cpe.TaskToExecute.Tc.Model = aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
-			cpe.ParentOutputToEval = &ChatCompletionQueryResponse{}
 			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 			err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cpe.ParentOutputToEval)
 			if err != nil {

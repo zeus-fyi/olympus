@@ -120,7 +120,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				}
 				tte.Ec.AIWorkflowEvalResultResponse = evrr
 				recordEvalResCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordEvalResCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResCtx, aiResp.EvalResultID)
+				err = workflow.ExecuteActivity(recordEvalResCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResCtx, &aiResp.EvalResultID)
 				if err != nil {
 					logger.Error("failed to save eval resp id", "Error", err)
 					return nil, err
@@ -143,7 +143,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				EvalIterationCount: wr.IterationCount,
 			}
 			recordEvalResCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(recordEvalResCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResCtx, aiResp.EvalResultID)
+			err = workflow.ExecuteActivity(recordEvalResCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResCtx, &aiResp.EvalResultID)
 			if err != nil {
 				logger.Error("failed to save eval resp id", "Error", err)
 				return nil, err

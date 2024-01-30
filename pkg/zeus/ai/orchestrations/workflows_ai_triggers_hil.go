@@ -54,18 +54,23 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 	}
 
 	if approvalTaskGroup.RequestedState == requestRejectedState {
-		recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(recordTriggerCondCtx, z.UpdateTriggerActionApproval, approvalTaskGroup.Ou, approvalTaskGroup).Get(recordTriggerCondCtx, nil)
-		if err != nil {
-			logger.Error("failed to create or update trigger action", "Error", err)
-			return err
+
+		for _, v := range approvalTaskGroup.Taps {
+			recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			v.ApprovalState = requestRejectedState
+			err = workflow.ExecuteActivity(recordTriggerCondCtx, z.UpdateTriggerActionApproval, approvalTaskGroup.Ou, v).Get(recordTriggerCondCtx, nil)
+			if err != nil {
+				logger.Error("failed to create or update trigger action", "Error", err)
+				return err
+			}
+			finishedCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+			if err != nil {
+				logger.Error("failed to update cache for qn services", "Error", err)
+				return err
+			}
 		}
-		finishedCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
-		if err != nil {
-			logger.Error("failed to update cache for qn services", "Error", err)
-			return err
-		}
+
 		return nil
 	}
 
@@ -76,6 +81,7 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 			var apiApprovalReqs []artemis_orchestrations.ApprovalApiReqResp
 			// if conditions are met, create or update the trigger action
 			recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			v.ApprovalState = approvalTaskGroup.RequestedState
 			err = workflow.ExecuteActivity(recordTriggerCondCtx, z.SelectTriggerActionApiApprovalWithReqResponses, approvalTaskGroup.Ou, approvalTaskGroup.RequestedState, v.ApprovalID).Get(recordTriggerCondCtx, &apiApprovalReqs)
 			if err != nil {
 				logger.Error("failed to create or update trigger action", "Error", err)

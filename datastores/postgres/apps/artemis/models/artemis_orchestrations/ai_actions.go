@@ -472,7 +472,7 @@ func CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_u
 				approval_state = EXCLUDED.approval_state
 			RETURNING approval_id
 		) INSERT INTO ai_trigger_actions_api_reqs_responses(response_id, approval_id, trigger_id, retrieval_id, req_payload, resp_payload)
-          SELECT $7, cte_create_approval.approval_id, $8, $9, COALESCE($10, '{}'::jsonb), COALESCE($11, '{}'::jsonb)
+          SELECT $7, cte_create_approval.approval_id, $8, $9, COALESCE($10, '[]'::jsonb), COALESCE($11, '[]'::jsonb)
 		  FROM cte_create_approval
 		  ON CONFLICT (response_id, approval_id, trigger_id, retrieval_id)	 
 		  DO UPDATE SET 
@@ -494,35 +494,24 @@ func CreateOrUpdateTriggerActionApprovalWithApiReq(ctx context.Context, ou org_u
 		ch := chronos.Chronos{}
 		wtrr.ResponseID = ch.UnixTimeStampNow()
 	}
-	var pgReqJsonB, pgRespJsonB pgtype.JSONB
-	if len(wtrr.ReqPayloads) > 0 {
-		b, err := json.Marshal(wtrr.ReqPayloads)
-		if err != nil {
-			log.Err(err).Msg("failed to marshal req payload")
-			return err
-		}
-		pgReqJsonB.Bytes = sanitizeBytesUTF8(b)
-		pgReqJsonB.Status = pgtype.Present
-	} else {
-		pgReqJsonB.Status = pgtype.Null
+	breq, err := json.Marshal(wtrr.ReqPayloads)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal req payload")
+		return err
 	}
-	if len(wtrr.RespPayloads) > 0 {
-		b, err := json.Marshal(wtrr.RespPayloads)
-		if err != nil {
-			log.Err(err).Msg("failed to marshal resp payload")
-			return err
-		}
-		pgRespJsonB.Bytes = sanitizeBytesUTF8(b)
-		pgRespJsonB.Status = pgtype.Present
-	} else {
-		pgRespJsonB.Status = pgtype.Null
+	bresp, err := json.Marshal(wtrr.RespPayloads)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal resp payload")
+		return err
 	}
 	var returnedApprovalID int
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery,
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery,
 		approval.ApprovalID, approval.EvalID, approval.TriggerID, approval.WorkflowResultID, approval.ApprovalState, approval.RequestSummary,
-		wtrr.ResponseID, approval.TriggerID, wtrr.RetrievalID, pgReqJsonB, pgRespJsonB).Scan(&wtrr.ResponseID, &returnedApprovalID)
+		wtrr.ResponseID, approval.TriggerID, wtrr.RetrievalID,
+		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(breq), Status: IsNull(sanitizeBytesUTF8(breq))},
+		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(bresp), Status: IsNull(sanitizeBytesUTF8(bresp))}).Scan(&wtrr.ResponseID, &returnedApprovalID)
 	if err != nil {
-		log.Err(err).Interface("pgReqJsonB", pgReqJsonB).Interface("ou", ou).Int("returnedApprovalID", returnedApprovalID).Int("respID", wtrr.ResponseID).Msg("failed to insert or update trigger action approval for api")
+		log.Err(err).Interface("breq", breq).Interface("bresp", bresp).Interface("ou", ou).Int("returnedApprovalID", returnedApprovalID).Int("respID", wtrr.ResponseID).Msg("failed to insert or update trigger action approval for api")
 		return err
 	}
 

@@ -49,6 +49,9 @@ func (s *OrchestrationsTestSuite) TestCreateOrUpdateTriggerActionApprovalWithApi
 			{
 				"key": "value1",
 			},
+			{
+				"key": "value2",
+			},
 		},
 	}
 	// Call the function to test

@@ -109,7 +109,7 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, wfID s
 
 func (h *HestiaQuickNodeWorkflow) DeleteSessionCacheWorkflow(ctx workflow.Context, sessionID string) error {
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: defaultTimeout,
+		StartToCloseTimeout: time.Minute * 15,
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    1 * time.Minute,
 			BackoffCoefficient: 2,

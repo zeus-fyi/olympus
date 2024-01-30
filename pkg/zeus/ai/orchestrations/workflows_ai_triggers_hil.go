@@ -69,6 +69,7 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 				Ou:   approvalTaskGroup.Ou,
 				Ec:   artemis_orchestrations.EvalContext{},
 				Tc: TaskContext{
+					TriggerActionsApproval:             ar.TriggerActionsApproval,
 					EvalID:                             ar.TriggerActionsApproval.EvalID,
 					Retrieval:                          ar.RetrievalItem,
 					AIWorkflowTriggerResultApiResponse: ar.AIWorkflowTriggerResultApiReqResponse,

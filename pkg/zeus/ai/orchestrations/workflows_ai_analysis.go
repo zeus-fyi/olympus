@@ -69,7 +69,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if len(rets) <= 0 {
 					continue
 				}
-
 				fmt.Println("rets", rets)
 				tte := TaskToExecute{
 					WfID: retWfID,

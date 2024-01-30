@@ -57,9 +57,8 @@ func (s *OrchestrationsTestSuite) TestCreateOrUpdateTriggerActionApprovalWithApi
 }
 func (s *OrchestrationsTestSuite) TestSelectTriggerActionApprovalWithApiReqResp() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	// TODO, update to select api req resp + retrieval
 
-	ap, err := SelectTriggerActionApprovalWithReqResponses(ctx, s.Ou, "pending", 1706559169680858000)
+	ap, err := SelectTriggerActionApprovalWithReqResponses(ctx, s.Ou, "pending", 1706566091973007000)
 	s.Require().Nil(err)
 	s.Require().NotNil(ap)
 }

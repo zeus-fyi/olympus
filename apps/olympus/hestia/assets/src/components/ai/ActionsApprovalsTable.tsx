@@ -23,8 +23,6 @@ export function ActionsApprovalsTable(props: any) {
             try {
                 setIsLoading(true); // Set loading to true
                 const response = await aiApiGateway.getActions();
-                console.log("response", response.data)
-
                 dispatch(setTriggerActions(response.data));
             } catch (error) {
                 console.log("error", error);

@@ -118,6 +118,7 @@ export function ActionApprovalsRow(props: any) {
                                     <TableBody>
                                         {row.triggerActionsApprovals && row.triggerActionsApprovals
                                             .filter((data: TriggerActionsApproval) => data.approvalState !== 'pending')
+                                            .reverse()
                                             .map((data: TriggerActionsApproval, dataIndex: number) => (
                                                 <TableRow key={dataIndex}>
                                                     {/*<TableCell>{data.workflowResultStrID}</TableCell>*/}

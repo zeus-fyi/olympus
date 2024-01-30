@@ -2996,7 +2996,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 ))}
                                                             </Box>
                                                             <Box flexGrow={1} sx={{ mb: 2, mt: 2, ml: 0 }}>
-                                                                <Button  variant="contained" onClick={() => addTriggerRetrievalStageView()} >{addTriggerRetrievalView ? 'Done Adding': 'Add Retrieval Stages'}</Button>
+                                                                <Button  variant="contained" onClick={() => addTriggerRetrievalStageView()} >{addTriggerRetrievalView ? 'Done Adding': 'Add API Stages'}</Button>
                                                             </Box>
                                                         </div>
                                                     }

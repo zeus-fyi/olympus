@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -240,7 +239,6 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 		}
 		for ri, _ := range triggerAction.TriggerRetrievals {
 			b := triggerAction.TriggerRetrievals[ri].InstructionsBytes
-			fmt.Println("b", b)
 			if b != nil {
 				err = json.Unmarshal(b, &triggerAction.TriggerRetrievals[ri].RetrievalItemInstruction)
 				if err != nil {

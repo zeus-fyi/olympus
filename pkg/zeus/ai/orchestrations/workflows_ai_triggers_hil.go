@@ -54,7 +54,6 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 	}
 
 	if approvalTaskGroup.RequestedState == requestRejectedState {
-
 		for _, v := range approvalTaskGroup.Taps {
 			recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			v.ApprovalState = requestRejectedState
@@ -70,7 +69,6 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 				return err
 			}
 		}
-
 		return nil
 	}
 

@@ -29,12 +29,13 @@ type TaskToExecute struct {
 }
 
 type TaskContext struct {
-	TaskName       string `json:"taskName"`
-	TaskType       string `json:"taskType"`
-	ResponseFormat string `json:"responseFormat"`
-	Model          string `json:"model"`
-	TaskID         int    `json:"taskID"`
-	EvalID         int    `json:"evalID,omitempty"`
+	TaskName       string                               `json:"taskName"`
+	TaskType       string                               `json:"taskType"`
+	ResponseFormat string                               `json:"responseFormat"`
+	Model          string                               `json:"model"`
+	TaskID         int                                  `json:"taskID"`
+	EvalID         int                                  `json:"evalID,omitempty"`
+	Retrieval      artemis_orchestrations.RetrievalItem `json:"retrieval,omitempty"`
 	//TriggerActionsApproval             artemis_orchestrations.TriggerActionsApproval `json:"triggerActionsApproval,omitempty"`
 	AIWorkflowTriggerResultApiResponse artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse
 	Schemas                            []*artemis_orchestrations.JsonSchemaDefinition

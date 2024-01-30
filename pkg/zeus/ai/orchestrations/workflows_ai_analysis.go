@@ -58,14 +58,32 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					WorkflowID:               retWfID,
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
+
+				var rets []artemis_orchestrations.RetrievalItem
+				chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
+				err := workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, ou, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
+				if err != nil {
+					logger.Error("failed to run analysis json", "Error", err)
+					return nil, err
+				}
+				if len(rets) <= 0 {
+					continue
+				}
+
+				fmt.Println("rets", rets)
 				tte := TaskToExecute{
 					WfID: retWfID,
 					Ou:   ou,
 					Wft:  analysisInst,
 					Sg:   sg,
+					Tc: TaskContext{
+						Model:     analysisInst.AnalysisModel,
+						TaskID:    analysisInst.AnalysisTaskID,
+						Retrieval: rets[0],
+					},
 				}
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &sg)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &sg)
 				if err != nil {
 					logger.Error("failed to execute child retrieval workflow", "Error", err)
 					return nil, err

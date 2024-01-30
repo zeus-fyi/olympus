@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -49,34 +50,46 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 
 	for _, v := range approvalTaskGroup.Taps {
 		var ta artemis_orchestrations.TriggerAction
-		// if conditions are met, create or update the trigger action
-		var tapsChecked []artemis_orchestrations.TriggerActionsApproval
-		recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(recordTriggerCondCtx, z.SelectTriggerActionToExec, approvalTaskGroup.Ou, v.ApprovalID).Get(recordTriggerCondCtx, tapsChecked)
-		if err != nil {
-			logger.Error("failed to create or update trigger action", "Error", err)
-			return err
-		}
-		if len(tapsChecked) <= 0 {
-			continue
-		}
 		switch ta.TriggerAction {
 		case apiApproval:
-			//childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			//	WorkflowID: approvalTaskGroup.WfID,
-			//	//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-			//}
-			//childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			//var sg *hera_search.SearchResultGroup
-			///*
-			//   1. tte.Ec.JsonResponseResults
-			//*/
-			//
-			//err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &sg)
-			//if err != nil {
-			//	logger.Error("failed to execute child api retrieval workflow", "Error", err)
-			//	return err
-			//}
+
+			var apiApprovalReqs []artemis_orchestrations.ApprovalApiReqResp
+			// if conditions are met, create or update the trigger action
+			recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+			err = workflow.ExecuteActivity(recordTriggerCondCtx, z.SelectTriggerActionApiApprovalWithReqResponses, approvalTaskGroup.Ou, approvalTaskGroup.RequestedState, v.ApprovalID).Get(recordTriggerCondCtx, &apiApprovalReqs)
+			if err != nil {
+				logger.Error("failed to create or update trigger action", "Error", err)
+				return err
+			}
+			if len(apiApprovalReqs) <= 0 {
+				continue
+			}
+			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+				WorkflowID: approvalTaskGroup.WfID,
+				//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+			}
+			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+			var sg *hera_search.SearchResultGroup
+			/*
+			  1. tte.Ec.JsonResponseResults
+			*/
+
+			tte := TaskToExecute{
+				WfID:        "",
+				Ou:          org_users.OrgUser{},
+				Ec:          artemis_orchestrations.EvalContext{},
+				Tc:          TaskContext{},
+				Wft:         artemis_orchestrations.WorkflowTemplateData{},
+				Sg:          nil,
+				Wr:          nil,
+				RetryPolicy: nil,
+			}
+
+			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &sg)
+			if err != nil {
+				logger.Error("failed to execute child api retrieval workflow", "Error", err)
+				return err
+			}
 
 		case socialMediaEngagementResponseFormat:
 			//childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{

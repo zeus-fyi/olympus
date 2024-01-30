@@ -2488,7 +2488,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 dispatch(setRetrieval(updatedRetrieval));
                                                             }}
                                                         >
-                                                            <MenuItem value="web">Web</MenuItem>
+                                                            <MenuItem value="api">API</MenuItem>
                                                             <MenuItem value="reddit">Reddit</MenuItem>
                                                             <MenuItem value="twitter">Twitter</MenuItem>
                                                             <MenuItem value="discord">Discord</MenuItem>
@@ -2496,7 +2496,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                     </Box>
-                                                { retrieval.retrievalItemInstruction !== undefined && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
+                                                { retrieval.retrievalItemInstruction !== undefined && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' && retrieval.retrievalItemInstruction.retrievalPlatform !== 'api' &&
                                                     <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                         <TextField
                                                             fullWidth
@@ -2517,7 +2517,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         />
                                                     </Box>
                                                 }
-                                                { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'web' &&
+                                                { retrieval.retrievalItemInstruction && (retrieval.retrievalItemInstruction.retrievalPlatform === 'web' || retrieval.retrievalItemInstruction.retrievalPlatform === 'api') &&
                                                     <div>
                                                         <Typography variant="h6" color="text.secondary">
                                                             Use a Load Balancer group for web data retrieval.
@@ -2749,7 +2749,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 {/*            style={{ resize: "both", width: "100%" }}*/}
                                                 {/*        />*/}
                                                 {/*    </Box>*/}
-                                                {  retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
+                                                {  retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' && retrieval.retrievalItemInstruction.retrievalPlatform !== 'api' &&
                                                     <div>
                                                     <Typography variant="h5" color="text.secondary">
                                                             Optionally add search keywords using comma separated values below.

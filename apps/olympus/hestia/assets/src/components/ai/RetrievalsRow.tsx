@@ -43,7 +43,13 @@ export function RetrievalsRow(props: { row: Retrieval, index: number, handleClic
                 <TableCell align="left">{row.retrievalID? row.retrievalID : 0}</TableCell>
                 <TableCell align="left">{row.retrievalGroup}</TableCell>
                 <TableCell align="left">{row.retrievalName}</TableCell>
-                <TableCell align="left">{row.retrievalItemInstruction && row.retrievalItemInstruction.retrievalPlatform ? row.retrievalItemInstruction.retrievalPlatform  :''}</TableCell>
+                <TableCell align="left">
+                    {
+                        row.retrievalItemInstruction && row.retrievalItemInstruction.retrievalPlatform
+                            ? (row.retrievalItemInstruction.retrievalPlatform === 'web' ? 'api' : row.retrievalItemInstruction.retrievalPlatform)
+                            : ''
+                    }
+                </TableCell>
                 <TableCell align="left">
                     <Button
                         fullWidth

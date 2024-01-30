@@ -52,7 +52,6 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 		var ta artemis_orchestrations.TriggerAction
 		switch ta.TriggerAction {
 		case apiApproval:
-
 			var apiApprovalReqs []artemis_orchestrations.ApprovalApiReqResp
 			// if conditions are met, create or update the trigger action
 			recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
@@ -64,33 +63,30 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 			if len(apiApprovalReqs) <= 0 {
 				continue
 			}
+			ar := apiApprovalReqs[0]
+			tte := TaskToExecute{
+				WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID,
+				Ou:   approvalTaskGroup.Ou,
+				Ec:   artemis_orchestrations.EvalContext{},
+				Tc: TaskContext{
+					EvalID:                             ar.TriggerActionsApproval.EvalID,
+					Retrieval:                          ar.RetrievalItem,
+					AIWorkflowTriggerResultApiResponse: ar.AIWorkflowTriggerResultApiReqResponse,
+				},
+				Sg:          &hera_search.SearchResultGroup{},
+				RetryPolicy: GetRetryPolicy(ar.RetrievalItem, 5*time.Minute),
+			}
+
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 				WorkflowID: approvalTaskGroup.WfID,
 				//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			}
 			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			var sg *hera_search.SearchResultGroup
-			/*
-			  1. tte.Ec.JsonResponseResults
-			*/
-
-			tte := TaskToExecute{
-				WfID:        "",
-				Ou:          org_users.OrgUser{},
-				Ec:          artemis_orchestrations.EvalContext{},
-				Tc:          TaskContext{},
-				Wft:         artemis_orchestrations.WorkflowTemplateData{},
-				Sg:          nil,
-				Wr:          nil,
-				RetryPolicy: nil,
-			}
-
-			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &sg)
+			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tte.Sg)
 			if err != nil {
 				logger.Error("failed to execute child api retrieval workflow", "Error", err)
 				return err
 			}
-
 		case socialMediaEngagementResponseFormat:
 			//childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 			//	//WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + suffix,

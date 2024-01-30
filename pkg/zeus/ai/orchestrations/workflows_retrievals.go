@@ -26,6 +26,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			MaximumAttempts:    10,
 		},
 	}
+	if tte.RetryPolicy != nil {
+		ao.RetryPolicy = tte.RetryPolicy
+	}
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(tte.Ou.OrgID, tte.WfID, "ZeusAiPlatformServiceWorkflows", "RetrievalsWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
@@ -33,7 +36,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		logger.Error("failed to update ai orch services", "Error", err)
 		return nil, err
 	}
-
 	switch tte.Wft.RetrievalPlatform {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		retrievalCtx := workflow.WithActivityOptions(ctx, ao)
@@ -99,7 +101,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
 					ApprovalID:  tte.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
 					TriggerID:   tte.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
-					RetrievalID: aws.ToInt(tte.Wft.RetrievalID),
+					RetrievalID: aws.ToInt(tte.Tc.Retrieval.RetrievalID),
 					ResponseID:  tte.Tc.AIWorkflowTriggerResultApiResponse.ResponseID,
 					ReqPayloads: tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads,
 				}

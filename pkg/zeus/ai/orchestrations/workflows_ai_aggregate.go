@@ -122,6 +122,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 						WorkflowID:               oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i),
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+						RetryPolicy:              ao.RetryPolicy,
 					}
 					var fullTaskDef []artemis_orchestrations.AITaskLibrary
 					selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
@@ -197,6 +198,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			evalWfID := oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i)
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 				WorkflowID:               oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i),
+				RetryPolicy:              ao.RetryPolicy,
 				WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			}
 			cp.Window = window

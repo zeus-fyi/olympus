@@ -71,6 +71,7 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 		return err
 	}
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
+		RetryPolicy:       ao.RetryPolicy,
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)

@@ -39,6 +39,7 @@ func (k *KronosWorkflow) Monitor(ctx workflow.Context, oj *artemis_orchestration
 			childWorkflowOptions := workflow.ChildWorkflowOptions{
 				TaskQueue:         KronosHelixTaskQueue,
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+				RetryPolicy:       ao.RetryPolicy,
 			}
 			childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
 			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "OrchestrationChildProcessReset", &oj, mi)

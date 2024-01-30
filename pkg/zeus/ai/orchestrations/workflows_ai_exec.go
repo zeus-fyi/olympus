@@ -66,6 +66,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 			WorkflowID:               childParams.WfID,
 			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+			RetryPolicy:              ao.RetryPolicy,
 		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiChildAnalysisProcessWorkflow, childParams).Get(childAnalysisCtx, &childParams)
@@ -78,6 +79,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			WorkflowID:               oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i),
 			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
+			RetryPolicy:              ao.RetryPolicy,
 		}
 		childAggAnalysisCtx := workflow.WithChildOptions(ctx, childAggAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAggAnalysisCtx, z.RunAiChildAggAnalysisProcessWorkflow, childParams).Get(childAggAnalysisCtx, nil)

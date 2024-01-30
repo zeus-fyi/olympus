@@ -153,6 +153,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		TaskQueue:         ActiveMainnetMEVTaskQueue,
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+		RetryPolicy:       ao.RetryPolicy,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "GetTxReceipts")

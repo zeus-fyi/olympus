@@ -151,6 +151,7 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 			}
 			childWorkflowOptions := workflow.ChildWorkflowOptions{
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+				RetryPolicy:       ao.RetryPolicy,
 			}
 			for _, topID := range wfParams.TopologyIDs {
 				var infraConfig *topology_workloads.TopologyBaseInfraWorkload

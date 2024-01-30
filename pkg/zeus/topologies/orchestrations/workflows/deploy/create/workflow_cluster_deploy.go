@@ -65,6 +65,7 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 		}
 		deployChildWorkflowOptions := workflow.ChildWorkflowOptions{
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+			RetryPolicy:       ao.RetryPolicy,
 		}
 		topWfReq := base_deploy_params.TopologyWorkflowRequest{
 			TopologyDeployRequest: topParams,

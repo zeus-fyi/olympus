@@ -57,6 +57,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 					WorkflowID:               retWfID,
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+					RetryPolicy:              ao.RetryPolicy,
 				}
 
 				var rets []artemis_orchestrations.RetrievalItem
@@ -211,6 +212,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 					WorkflowID:               oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i),
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+					RetryPolicy:              ao.RetryPolicy,
 				}
 				cp.Window = window
 				cp.WfID = childAnalysisWorkflowOptions.WorkflowID

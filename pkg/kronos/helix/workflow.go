@@ -89,6 +89,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 				}
 				childWorkflowOptions := workflow.ChildWorkflowOptions{
 					TaskQueue:         KronosHelixTaskQueue,
+					RetryPolicy:       ao.RetryPolicy,
 					ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 				}
 				childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
@@ -103,6 +104,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 			childWorkflowOptions := workflow.ChildWorkflowOptions{
 				TaskQueue:         KronosHelixTaskQueue,
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+				RetryPolicy:       ao.RetryPolicy,
 			}
 			childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
 			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "Monitor", &oj, inst, CalculatePollCycles(kronosLoopInterval, inst.Monitors.PollInterval))
@@ -115,6 +117,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 			childWorkflowOptions := workflow.ChildWorkflowOptions{
 				TaskQueue:         KronosHelixTaskQueue,
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+				RetryPolicy:       ao.RetryPolicy,
 			}
 			childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
 			childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "KronosCronJob", inst, CalculatePollCycles(kronosLoopInterval, inst.CronJob.PollInterval))
@@ -128,6 +131,7 @@ func (k *KronosWorkflow) Yin(ctx workflow.Context) error {
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		TaskQueue:         KronosHelixTaskQueue,
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+		RetryPolicy:       ao.RetryPolicy,
 	}
 	childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
 	childWfFuture := workflow.ExecuteChildWorkflow(childCtx, "Yang", kronosLoopInterval)

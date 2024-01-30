@@ -79,7 +79,8 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 			}
 
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-				WorkflowID: approvalTaskGroup.WfID,
+				WorkflowID:  approvalTaskGroup.WfID,
+				RetryPolicy: aoAiAct.RetryPolicy,
 				//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			}
 			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)

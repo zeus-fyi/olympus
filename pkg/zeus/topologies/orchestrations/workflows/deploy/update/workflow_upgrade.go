@@ -64,6 +64,7 @@ func (t *FleetUpgradeWorkflow) UpgradeFleetWorkflow(ctx workflow.Context, params
 			continue
 		}
 		childWorkflowOptions := workflow.ChildWorkflowOptions{
+			RetryPolicy:       ao.RetryPolicy,
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
 		childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)

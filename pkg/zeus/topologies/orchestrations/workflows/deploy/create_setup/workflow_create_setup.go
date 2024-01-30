@@ -224,6 +224,7 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		}
 		childWorkflowOptions := workflow.ChildWorkflowOptions{
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+			RetryPolicy:       deployRetryPolicy,
 		}
 		wfChildCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
 		childWorkflowFuture := workflow.ExecuteChildWorkflow(wfChildCtx, "DeployTopologyWorkflow", wfID, desWf)
@@ -234,6 +235,7 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		}
 	}
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
+		RetryPolicy:       retryPolicy,
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)

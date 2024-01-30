@@ -1,11 +1,13 @@
 package ai_platform_service_orchestrations
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
@@ -107,6 +109,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					RouteInfo: route,
 					Payload:   payload,
 				}
+				fmt.Println("rt", rt)
 				fetchedResult := &hera_search.SearchResult{}
 				apiCallCtx := workflow.WithActivityOptions(ctx, ao)
 				err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt).Get(apiCallCtx, &fetchedResult)
@@ -128,14 +131,20 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 						ReqPayloads:  tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads,
 						RespPayloads: arrs,
 					}
+					bresp, berr := json.MarshalIndent(arrs, "", "  ")
+					if berr != nil {
+						log.Err(berr).Msg("failed to marshal resp payload")
+						return nil, berr
+					}
+
 					approval := artemis_orchestrations.TriggerActionsApproval{
 						TriggerAction:    apiApproval,
 						ApprovalID:       tte.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
 						EvalID:           tte.Tc.EvalID,
 						TriggerID:        tte.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
 						WorkflowResultID: tte.Tc.TriggerActionsApproval.WorkflowResultID,
-						ApprovalState:    "finished",
-						RequestSummary:   "Done with api call request " + fmt.Sprintf("%v", arrs),
+						ApprovalState:    finishedStatus,
+						RequestSummary:   "Done with api call request: \n" + string(bresp),
 					}
 					saveApiRespCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(saveApiRespCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tte.Ou, approval, trrr).Get(saveApiRespCtx, &trrr)

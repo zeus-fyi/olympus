@@ -3,8 +3,10 @@ package artemis_orchestrations
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -23,12 +25,14 @@ func SelectTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, stat
                a.trigger_id, a.trigger_id::text,
                a.workflow_result_id, a.workflow_result_id::text, 
                a.approval_state, a.request_summary, a.updated_at,
-               t.trigger_action
+               t.trigger_action,  r.req_payload, r.resp_payload
         FROM public.ai_trigger_actions_approvals a
         JOIN public.ai_trigger_actions t ON a.trigger_id = t.trigger_id
+        LEFT JOIN public.ai_trigger_actions_api_reqs_responses r ON r.approval_id = a.approval_id
         WHERE t.org_id = $1 AND a.approval_state = $2 AND a.approval_id = $3
         ORDER BY a.approval_id DESC;`
 
+	var resp AIWorkflowTriggerResultApiReqResponse
 	// Executing the query
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, state, approvalID)
 	if err != nil {
@@ -45,11 +49,53 @@ func SelectTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, stat
 			&approval.TriggerID, &approval.TriggerStrID,
 			&approval.WorkflowResultID, &approval.WorkflowResultStrID,
 			&approval.ApprovalState, &approval.RequestSummary, &approval.UpdatedAt,
-			&approval.TriggerAction)
+			&approval.TriggerAction, &resp.ReqPayloads, &resp.RespPayloads)
 		if err != nil {
 			log.Err(err).Msg("failed to scan trigger action approval")
 			return nil, err
 		}
+		var reqPayl []echo.Map
+		for _, v := range resp.ReqPayloads {
+			if v == nil {
+				continue
+			}
+			reqPayl = append(reqPayl, v)
+		}
+		var respPayl []echo.Map
+		for _, v := range resp.RespPayloads {
+			if v == nil {
+				continue
+			}
+			respPayl = append(respPayl, v)
+		}
+
+		breq, berr := json.MarshalIndent(reqPayl, "", "  ")
+		if berr != nil {
+			log.Err(berr).Msg("failed to marshal req payload")
+			return nil, berr
+		}
+		bresp, berr := json.MarshalIndent(respPayl, "", "  ")
+		if err != nil {
+			log.Err(berr).Msg("failed to marshal resp payload")
+			return nil, berr
+		}
+
+		if approval.ApprovalState == "" {
+			approval.ApprovalState = pendingState
+		}
+		if approval.ApprovalState == pendingState {
+			approval.RequestSummary = "Requesting approval for trigger action\n"
+			if breq != nil && string(breq) != "null" {
+				approval.RequestSummary = "Requesting approval for trigger action\n" + string(breq)
+			}
+		}
+		if approval.ApprovalState == finishedState {
+			approval.RequestSummary = "Finished approval for trigger action\n"
+			if bresp != nil && string(bresp) != "null" {
+				approval.RequestSummary = "Finished approval for trigger action\n" + string(bresp)
+			}
+		}
+		fmt.Println("resp.ReqPayloads", resp.RespPayloads)
 		approvals = append(approvals, approval)
 	}
 	// Check for any error encountered during iteration

@@ -28,7 +28,7 @@ func (s *OrchestrationsTestSuite) TestTriggerActionsApprovals() {
 func (s *OrchestrationsTestSuite) TestSelectTriggerActionApproval() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
-	ap, err := SelectTriggerActionApproval(ctx, s.Ou, "pending", 1706559169680858000)
+	ap, err := SelectTriggerActionApproval(ctx, s.Ou, "finished", 1706641322204777000)
 	s.Require().Nil(err)
 	s.Require().NotNil(ap)
 }

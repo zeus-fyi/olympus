@@ -42,8 +42,9 @@ func (z *ZeusAiPlatformActivities) SelectTriggerActionToExec(ctx context.Context
 }
 
 const (
-	infoState     = "info"
-	pendingStatus = "pending"
+	infoState      = "info"
+	pendingStatus  = "pending"
+	finishedStatus = "finished"
 )
 
 func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context, act *artemis_orchestrations.TriggerAction, emr *artemis_orchestrations.EvalMetricsResults) ([]artemis_orchestrations.TriggerActionsApproval, error) {

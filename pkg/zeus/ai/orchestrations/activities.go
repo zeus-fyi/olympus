@@ -58,7 +58,8 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.EvalFormatForApi, z.SaveTriggerResponseOutput, z.SaveEvalResponseOutput,
 		z.SelectTaskDefinition, z.ExtractTweets, z.TokenOverflowReduction,
 		z.AnalyzeEngagementTweets, z.SaveTriggerApiRequestResp, z.SelectRetrievalTask,
-		z.SelectTriggerActionToExec,
+		z.SelectTriggerActionToExec, z.SelectTriggerActionApiApprovalWithReqResponses,
+		z.CreateOrUpdateTriggerActionApprovalWithApiReq,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -236,17 +237,11 @@ func (z *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, 
 	return tweets, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData) ([]iris_models.RouteInfo, error) {
-	retInst := artemis_orchestrations.RetrievalItemInstruction{}
-	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &retInst)
-	if jerr != nil {
-		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
-		return nil, jerr
+func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Context, ou org_users.OrgUser, retrieval artemis_orchestrations.RetrievalItem) ([]iris_models.RouteInfo, error) {
+	if retrieval.WebFilters == nil || retrieval.WebFilters.RoutingGroup == nil || len(*retrieval.WebFilters.RoutingGroup) <= 0 {
+		return nil, nil
 	}
-	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
-		return nil, jerr
-	}
-	ogr, rerr := iris_models.SelectOrgGroupRoutes(ctx, ou.OrgID, *retInst.WebFilters.RoutingGroup)
+	ogr, rerr := iris_models.SelectOrgGroupRoutes(ctx, ou.OrgID, *retrieval.WebFilters.RoutingGroup)
 	if rerr != nil {
 		log.Err(rerr).Msg("AiRetrievalTask: failed to select org routes")
 		return nil, rerr
@@ -256,15 +251,15 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Conte
 }
 
 type RouteTask struct {
-	Ou          org_users.OrgUser                  `json:"orgUser"`
-	RetrievalDB artemis_orchestrations.RetrievalDB `json:"retrievalDB"`
-	RouteInfo   iris_models.RouteInfo              `json:"routeInfo"`
-	Payload     echo.Map                           `json:"payload"`
+	Ou        org_users.OrgUser                    `json:"orgUser"`
+	Retrieval artemis_orchestrations.RetrievalItem `json:"retrieval"`
+	RouteInfo iris_models.RouteInfo                `json:"routeInfo"`
+	Payload   echo.Map                             `json:"payload"`
 }
 
 func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r RouteTask) (*hera_search.SearchResult, error) {
 	retInst := artemis_orchestrations.RetrievalItemInstruction{}
-	jerr := json.Unmarshal(r.RetrievalDB.RetrievalInstructions, &retInst)
+	jerr := json.Unmarshal(r.Retrieval.RetrievalItemInstruction.Instructions.Bytes, &retInst)
 	if jerr != nil {
 		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
 		return nil, jerr
@@ -334,26 +329,20 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 }
 
 func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_users.OrgUser,
-	taskInst artemis_orchestrations.WorkflowTemplateData, window artemis_orchestrations.Window) (*hera_search.SearchResultGroup, error) {
-	if taskInst.RetrievalPlatform == "" || taskInst.RetrievalName == "" || taskInst.RetrievalInstructions == nil {
+	retrieval artemis_orchestrations.RetrievalItem, window artemis_orchestrations.Window) (*hera_search.SearchResultGroup, error) {
+	if retrieval.RetrievalPlatform == "" || retrieval.RetrievalName == "" {
 		return nil, nil
 	}
 	sg := &hera_search.SearchResultGroup{
-		PlatformName: taskInst.RetrievalPlatform,
-	}
-	retInst := artemis_orchestrations.RetrievalItemInstruction{}
-	jerr := json.Unmarshal(taskInst.RetrievalInstructions, &retInst)
-	if jerr != nil {
-		log.Err(jerr).Msg("AiRetrievalTask: failed to unmarshal")
-		return nil, jerr
+		PlatformName: retrieval.RetrievalPlatform,
 	}
 	sp := hera_search.AiSearchParams{
 		Retrieval: artemis_orchestrations.RetrievalItem{
-			RetrievalItemInstruction: retInst,
+			RetrievalItemInstruction: retrieval.RetrievalItemInstruction,
 		},
 		Window: window,
 	}
-	if ou.OrgID == 7138983863666903883 && taskInst.RetrievalName == "twitter-test" {
+	if ou.OrgID == 7138983863666903883 && retrieval.RetrievalName == "twitter-test" {
 		aiSp := hera_search.AiSearchParams{
 			TimeRange: "30 days",
 		}
@@ -372,7 +361,7 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 
 	var resp []hera_search.SearchResult
 	var err error
-	switch taskInst.RetrievalPlatform {
+	switch retrieval.RetrievalPlatform {
 	case twitterPlatform:
 		resp, err = hera_search.SearchTwitter(ctx, ou, sp)
 	case redditPlatform:

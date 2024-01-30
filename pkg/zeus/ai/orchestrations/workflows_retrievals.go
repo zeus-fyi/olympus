@@ -101,10 +101,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					Retrieval: tte.Tc.Retrieval,
 					RouteInfo: route,
 					Payload:   payload,
-					Headers: map[string][]string{
-						"X-Sim-Response-Size":   []string{"1"},
-						"X-Sim-Response-Format": []string{"json"},
-					},
 				}
 				fetchedResult := &hera_search.SearchResult{}
 				apiCallCtx := workflow.WithActivityOptions(ctx, ao)

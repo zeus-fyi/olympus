@@ -92,6 +92,7 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 				continue
 			}
 			for i, ar := range apiApprovalReqs {
+				ar.RetrievalItem.RetrievalPlatform = apiApproval
 				tte := TaskToExecute{
 					WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID + "-" + strconv.Itoa(i),
 					Ou:   approvalTaskGroup.Ou,

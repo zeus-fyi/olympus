@@ -132,22 +132,15 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser, retID int) ([]R
 			retrieval.RetrievalStrID = aws.String(fmt.Sprintf("%d", *retrieval.RetrievalID))
 		}
 		if retrieval.Instructions.Bytes != nil {
-			b, berr := retrieval.Instructions.MarshalJSON()
-			if berr != nil {
-				log.Err(berr).Msg("unmarshal error")
-				return nil, berr
-			}
+			b := retrieval.InstructionsBytes
 			if b != nil {
 				err = json.Unmarshal(b, &retrieval.RetrievalItemInstruction)
 				if err != nil {
 					log.Err(err).Msg("failed to unmarshal retrieval instructions")
 					return nil, err
 				}
-				retrieval.RetrievalItemInstruction.Instructions = pgtype.JSONB{
-					Bytes:  nil,
-					Status: pgtype.Null,
-				}
 			}
+			retrieval.Instructions.Bytes = nil
 		}
 		retrievals = append(retrievals, retrieval)
 	}

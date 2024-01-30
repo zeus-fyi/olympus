@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
@@ -20,9 +21,15 @@ func (t *ZeusWorkerTestSuite) TestApiCallRequestTask() {
 		Ou:        t.Ou,
 		Retrieval: ret,
 		RouteInfo: iris_models.RouteInfo{
-			RoutePath: "",
+			RoutePath: "https://load-simulator-fe4852b9.zeus.fyi",
 		},
-		Payload: nil,
+		Headers: map[string][]string{
+			"X-Sim-Response-Size":   []string{"1"},
+			"X-Sim-Response-Format": []string{"json"},
+		},
+		Payload: echo.Map{
+			"foo": "bar",
+		},
 	}
 	td, err := act.ApiCallRequestTask(ctx, r)
 	t.Require().Nil(err)

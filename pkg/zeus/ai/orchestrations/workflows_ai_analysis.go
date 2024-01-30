@@ -151,6 +151,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 						WorkflowID:               tte.WfID,
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+						RetryPolicy:              ao.RetryPolicy,
 					}
 					tte.Tc = TaskContext{
 						TaskName:       analysisInst.AnalysisTaskName,

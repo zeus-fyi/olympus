@@ -30,4 +30,6 @@ export type TriggerActionsApproval = {
     approvalState: string;
     requestSummary: string;
     updatedAt: Date;
+    requests: string
+    responses: string
 };

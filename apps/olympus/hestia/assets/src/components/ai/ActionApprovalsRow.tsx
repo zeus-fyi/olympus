@@ -11,6 +11,7 @@ import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import Button from "@mui/material/Button";
 import {TriggerActionsApproval} from "../../redux/ai/ai.types.triggers";
+import {prettyPrintJSON} from "./RetrievalsRow";
 
 // handleClick: any, checked: boolean
 export function ActionApprovalsRow(props: any) {
@@ -105,11 +106,13 @@ export function ActionApprovalsRow(props: any) {
                                 <Table size="small" aria-label="sub-analysis">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Workflow Result ID</TableCell>
+                                            {/*<TableCell>Workflow Result ID</TableCell>*/}
                                             <TableCell>Approval ID</TableCell>
-                                            <TableCell>Final State</TableCell>
                                             <TableCell>Request Summary</TableCell>
+                                            <TableCell>Final State</TableCell>
                                             <TableCell>Updated At</TableCell>
+                                            <TableCell>Requests</TableCell>
+                                            <TableCell>Responses</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -117,15 +120,42 @@ export function ActionApprovalsRow(props: any) {
                                             .filter((data: TriggerActionsApproval) => data.approvalState !== 'pending')
                                             .map((data: TriggerActionsApproval, dataIndex: number) => (
                                                 <TableRow key={dataIndex}>
-                                                    <TableCell>{data.workflowResultStrID}</TableCell>
+                                                    {/*<TableCell>{data.workflowResultStrID}</TableCell>*/}
                                                     <TableCell>{data.approvalStrID}</TableCell>
-                                                    <TableCell>{capitalizeFirstLetter(data.approvalState)}</TableCell>
                                                     <TableCell sx={{
-                                                        maxWidth: '500px', // you can set a specific width limit as needed
+                                                        minWidth: '200px', // you can set a specific width limit as needed
+                                                        maxWidth: '400px', // you can set a specific width limit as needed
                                                         wordWrap: 'break-word',
                                                         whiteSpace: 'normal'
                                                     }}>{data.requestSummary}</TableCell>
-                                                    <TableCell>{new Date(data.updatedAt).toLocaleString()}</TableCell>
+                                                    <TableCell sx={{
+                                                        minWidth: '200px', // you can set a specific width limit as needed
+                                                        maxWidth: '400px', // you can set a specific width limit as needed
+                                                        wordWrap: 'break-word',
+                                                        whiteSpace: 'normal'
+                                                    }}>{capitalizeFirstLetter(data.approvalState)}</TableCell>
+                                                    <TableCell sx={{
+                                                        minWidth: '200px', // you can set a specific width limit as needed
+                                                        maxWidth: '400px', // you can set a specific width limit as needed
+                                                        wordWrap: 'break-word',
+                                                        whiteSpace: 'normal'
+                                                    }}>{new Date(data.updatedAt).toLocaleString()}</TableCell>
+                                                    <TableCell sx={{
+                                                        minWidth: '200px', // you can set a specific width limit as needed
+                                                        maxWidth: '400px', // you can set a specific width limit as needed
+                                                        wordWrap: 'break-word',
+                                                        whiteSpace: 'normal'
+                                                    }}>
+                                                        {prettyPrintJSON(data.requests)}
+                                                    </TableCell>
+                                                    <TableCell sx={{
+                                                        minWidth: '200px', // you can set a specific width limit as needed
+                                                        maxWidth: '400px', // you can set a specific width limit as needed
+                                                        wordWrap: 'break-word',
+                                                        whiteSpace: 'normal'
+                                                    }}>
+                                                        {prettyPrintJSON(data.responses)}
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                     </TableBody>

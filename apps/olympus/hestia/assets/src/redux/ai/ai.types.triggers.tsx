@@ -23,10 +23,10 @@ export interface TriggerActionApprovalPutRequest {
     triggerApproval: TriggerActionsApproval;
 }
 export type TriggerActionsApproval = {
-    approvalStrID: number;
-    evalStrID: number;
-    triggerStrID: number;
-    workflowResultStrID: number;
+    approvalStrID: string;
+    evalStrID: string;
+    triggerStrID: string;
+    workflowResultStrID: string;
     approvalState: string;
     requestSummary: string;
     updatedAt: Date;

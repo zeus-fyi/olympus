@@ -79,7 +79,7 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 			// if conditions are met, create or update the trigger action
 			recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 			v.ApprovalState = approvalTaskGroup.RequestedState
-			err = workflow.ExecuteActivity(recordTriggerCondCtx, z.SelectTriggerActionApiApprovalWithReqResponses, approvalTaskGroup.Ou, "pending", v.ApprovalID).Get(recordTriggerCondCtx, &apiApprovalReqs)
+			err = workflow.ExecuteActivity(recordTriggerCondCtx, z.SelectTriggerActionApiApprovalWithReqResponses, approvalTaskGroup.Ou, "pending", v.ApprovalID, v.WorkflowResultID).Get(recordTriggerCondCtx, &apiApprovalReqs)
 			if err != nil {
 				logger.Error("failed to create or update trigger action", "Error", err)
 				return err
@@ -87,35 +87,35 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 			if approvalTaskGroup.RequestedState != requestApprovedState {
 				continue
 			}
-
 			if len(apiApprovalReqs) <= 0 {
 				continue
 			}
-			ar := apiApprovalReqs[0]
-			tte := TaskToExecute{
-				WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID,
-				Ou:   approvalTaskGroup.Ou,
-				Ec:   artemis_orchestrations.EvalContext{},
-				Tc: TaskContext{
-					TriggerActionsApproval:             ar.TriggerActionsApproval,
-					EvalID:                             ar.TriggerActionsApproval.EvalID,
-					Retrieval:                          ar.RetrievalItem,
-					AIWorkflowTriggerResultApiResponse: ar.AIWorkflowTriggerResultApiReqResponse,
-				},
-				Sg:          &hera_search.SearchResultGroup{},
-				RetryPolicy: GetRetryPolicy(ar.RetrievalItem, 5*time.Minute),
-			}
+			for _, ar := range apiApprovalReqs {
+				tte := TaskToExecute{
+					WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID,
+					Ou:   approvalTaskGroup.Ou,
+					Ec:   artemis_orchestrations.EvalContext{},
+					Tc: TaskContext{
+						TriggerActionsApproval:             ar.TriggerActionsApproval,
+						EvalID:                             ar.TriggerActionsApproval.EvalID,
+						Retrieval:                          ar.RetrievalItem,
+						AIWorkflowTriggerResultApiResponse: ar.AIWorkflowTriggerResultApiReqResponse,
+					},
+					Sg:          &hera_search.SearchResultGroup{},
+					RetryPolicy: GetRetryPolicy(ar.RetrievalItem, 5*time.Minute),
+				}
 
-			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-				WorkflowID:  approvalTaskGroup.WfID,
-				RetryPolicy: aoAiAct.RetryPolicy,
-				//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-			}
-			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tte.Sg)
-			if err != nil {
-				logger.Error("failed to execute child api retrieval workflow", "Error", err)
-				return err
+				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+					WorkflowID:  approvalTaskGroup.WfID,
+					RetryPolicy: aoAiAct.RetryPolicy,
+					//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+				}
+				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tte.Sg)
+				if err != nil {
+					logger.Error("failed to execute child api retrieval workflow", "Error", err)
+					return err
+				}
 			}
 		case socialMediaEngagementResponseFormat:
 			//childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{

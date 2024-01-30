@@ -100,13 +100,44 @@ func UpdateActionApproval(c echo.Context, act *ActionApprovalRequest) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-	aptr := &act.TriggerActionsApproval
-	aptr.ApprovalState = act.RequestedState
+	if act.TriggerActionsApproval.ApprovalStrID != "" {
+		aID, err := strconv.Atoi(act.TriggerActionsApproval.ApprovalStrID)
+		if err != nil {
+			log.Err(err).Interface("ou", ou).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		act.TriggerActionsApproval.ApprovalID = aID
+	}
+	if act.TriggerActionsApproval.TriggerStrID != "" {
+		trID, err := strconv.Atoi(act.TriggerActionsApproval.TriggerStrID)
+		if err != nil {
+			log.Err(err).Interface("ou", ou).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		act.TriggerActionsApproval.TriggerID = trID
+	}
+	if act.TriggerActionsApproval.EvalStrID != "" {
+		eID, err := strconv.Atoi(act.TriggerActionsApproval.EvalStrID)
+		if err != nil {
+			log.Err(err).Interface("ou", ou).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		act.TriggerActionsApproval.EvalID = eID
+	}
+	if act.TriggerActionsApproval.WorkflowResultStrID != "" {
+		wrID, err := strconv.Atoi(act.TriggerActionsApproval.WorkflowResultStrID)
+		if err != nil {
+			log.Err(err).Interface("ou", ou).Msg("failed to parse int")
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		act.TriggerActionsApproval.WorkflowResultID = wrID
+	}
+	act.TriggerActionsApproval.ApprovalState = act.RequestedState
 	approvalTaskGroup := ai_platform_service_orchestrations.ApprovalTaskGroup{
 		RequestedState: act.RequestedState,
 		Ou:             ou,
 		Taps: []artemis_orchestrations.TriggerActionsApproval{
-			*aptr,
+			act.TriggerActionsApproval,
 		},
 	}
 	err := ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteTriggerActionsWorkflow(c.Request().Context(), approvalTaskGroup)
@@ -114,5 +145,5 @@ func UpdateActionApproval(c echo.Context, act *ActionApprovalRequest) error {
 		log.Err(err).Interface("ou", ou).Interface("approvalTaskGroup", approvalTaskGroup).Msg("UpdateActionApproval: ExecuteTriggerActionsWorkflow failed")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, aptr)
+	return c.JSON(http.StatusOK, act)
 }

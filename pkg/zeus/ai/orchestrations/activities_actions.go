@@ -117,8 +117,8 @@ func (z *ZeusAiPlatformActivities) CreateOrUpdateTriggerActionApprovalWithApiReq
 	return nil
 }
 
-func (z *ZeusAiPlatformActivities) SelectTriggerActionApiApprovalWithReqResponses(ctx context.Context, ou org_users.OrgUser, state string, approvalID int) ([]artemis_orchestrations.ApprovalApiReqResp, error) {
-	resp, err := artemis_orchestrations.SelectTriggerActionApprovalWithReqResponses(ctx, ou, state, approvalID)
+func (z *ZeusAiPlatformActivities) SelectTriggerActionApiApprovalWithReqResponses(ctx context.Context, ou org_users.OrgUser, state string, approvalID, workflowResultID int) ([]artemis_orchestrations.ApprovalApiReqResp, error) {
+	resp, err := artemis_orchestrations.SelectTriggerActionApprovalWithReqResponses(ctx, ou, state, approvalID, workflowResultID)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Interface("state", state).Interface("approvalID", approvalID).Msg("SelectTriggerActionApprovalWithReqResponses: failed")
 		return nil, err

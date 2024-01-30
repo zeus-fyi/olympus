@@ -359,7 +359,7 @@ type ApprovalApiReqResp struct {
 	AIWorkflowTriggerResultApiReqResponse AIWorkflowTriggerResultApiReqResponse `json:"aiWorkflowTriggerResultApiReqResponse"`
 }
 
-func SelectTriggerActionApprovalWithReqResponses(ctx context.Context, ou org_users.OrgUser, state string, approvalID int) ([]ApprovalApiReqResp, error) {
+func SelectTriggerActionApprovalWithReqResponses(ctx context.Context, ou org_users.OrgUser, state string, approvalID, workflowResultID int) ([]ApprovalApiReqResp, error) {
 	if approvalID <= 0 {
 		return nil, nil
 	}
@@ -379,11 +379,11 @@ func SelectTriggerActionApprovalWithReqResponses(ctx context.Context, ou org_use
         JOIN public.ai_trigger_actions t ON a.trigger_id = t.trigger_id
 		JOIN public.ai_trigger_actions_api_reqs_responses r ON r.approval_id = a.approval_id
         JOIN public.ai_retrieval_library rl ON rl.retrieval_id = r.retrieval_id
-        WHERE t.org_id = $1 AND a.approval_state = $2 AND a.approval_id = $3
+        WHERE t.org_id = $1 AND a.approval_state = $2 AND a.approval_id = $3 AND a.workflow_result_id = $4
         ORDER BY a.approval_id DESC;`
 
 	// Executing the query
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, state, approvalID)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID, state, approvalID, workflowResultID)
 	if err != nil {
 		log.Err(err).Msg("failed to execute query for trigger action approvals")
 		return nil, err

@@ -117,7 +117,6 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser, retID int) ([]R
 	}
 	defer rows.Close()
 	var retrievals []RetrievalItem
-
 	// Iterating over the result set
 	for rows.Next() {
 		var retrieval RetrievalItem
@@ -127,7 +126,6 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser, retID int) ([]R
 			log.Err(err).Msg("failed to scan retrieval")
 			return nil, err
 		}
-
 		if retrieval.RetrievalID != nil {
 			retrieval.RetrievalStrID = aws.String(fmt.Sprintf("%d", *retrieval.RetrievalID))
 		}
@@ -148,6 +146,5 @@ func SelectRetrievals(ctx context.Context, ou org_users.OrgUser, retID int) ([]R
 		log.Err(err).Msg("error iterating retrieval rows")
 		return nil, err
 	}
-
 	return retrievals, nil
 }

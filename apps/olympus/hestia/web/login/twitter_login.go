@@ -22,7 +22,10 @@ var Providers = ProviderIndex{
 
 func CallbackHandler(c echo.Context) error {
 	// Complete the authentication process
-	ctxWithProvider := context.WithValue(c.Request().Context(), "provider", c.Param("provider"))
+	providerName := c.Param("provider")
+	fmt.Println("providerName", providerName)
+
+	ctxWithProvider := context.WithValue(c.Request().Context(), "provider", providerName)
 	reqWithProvider := c.Request().WithContext(ctxWithProvider)
 
 	fmt.Println("reqWithProvider", reqWithProvider)

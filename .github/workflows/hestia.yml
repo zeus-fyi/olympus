@@ -12,7 +12,6 @@ on:
       - .github/workflows/hestia.yml
     branches:
       - main
-      - iris-updates
 
 permissions:
   contents: read

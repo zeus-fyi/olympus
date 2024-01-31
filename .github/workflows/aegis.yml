@@ -10,7 +10,6 @@ on:
       - .github/workflows/aegis.yml
     branches:
       - main
-      - iris-updates
 
 permissions:
   contents: read

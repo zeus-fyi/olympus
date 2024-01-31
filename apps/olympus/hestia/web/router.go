@@ -26,11 +26,15 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.POST("/discord/login", hestia_login.DiscordLoginHandler)
 	e.GET("/reddit/callback", hestia_login.RedditLoginHandler)
 	e.GET("/discord/callback", hestia_login.DiscordCallbackHandler)
-	e.GET("/twitter/callback", hestia_login.TwitterCallbackHandler)
+
 	e.POST("/google/login", hestia_login.GoogleLoginHandler)
 	e.POST("/signup", hestia_signup.SignUpHandler)
 	e.GET("/logout/:token", Logout)
 	e.GET("/v1/users/services", hestia_login.UsersServicesRequestHandler)
+
+	e.GET("/auth/twitter/callback", hestia_login.TwitterCallbackHandler)
+	e.GET("/logout/twitter", hestia_login.TwitterLogoutHandler)
+	e.GET("/auth/twitter", hestia_login.TwitterAuthHandler)
 
 	e.GET("/verify/email/:token", hestia_signup.VerifyEmailHandler)
 	hestia_quicknode_dashboard.InitQuickNodeDashboardRoutes(e)

@@ -1,6 +1,10 @@
 package hera_twitter
 
 import (
+	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -54,5 +58,37 @@ func (s *TwitterTestSuite) TestOauth() {
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, s.Ou, "twitter")
 	s.Require().NoError(err)
 	s.Require().NotNil(ps)
+
+	tx, err := InitTwitterClient(ctx, ps.ConsumerPublic, ps.ConsumerSecret, ps.AccessTokenPublic, ps.AccessTokenSecret)
+	s.Require().NoError(err)
+	s.Require().NotNil(tx)
+
+	veri, err := tx.V2Client.VerifyCredentials()
+	s.Require().NoError(err)
+	s.Require().NotNil(veri)
+
+	urlWithParams := "https://api.twitter.com/2/users/me/bookmarks"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlWithParams, nil)
+	s.Assert().NoError(err)
+	resp, err := tx.V2Client.GetClient().Do(req)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(resp)
+	bodyBytes, err := io.ReadAll(resp.Body)
+	s.Assert().NoError(err)
+	fmt.Println(string(bodyBytes))
+
+	//urlWithParams := "https://api.twitter.com/2/tweets/search/recent?" + vals.Encode()
+	//
+	//req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlWithParams, nil)
+	//s.Assert().NoError(err)
+	//resp, err := s.tw.V2alt.Client.Do(req)
+	//s.Assert().NoError(err)
+	//s.Assert().NotNil(resp)
+	//bodyBytes, err := io.ReadAll(resp.Body)
+	//s.Assert().NoError(err)
+	//fmt.Println(string(bodyBytes))
+	//
+	//resp.Body.Close()
 
 }

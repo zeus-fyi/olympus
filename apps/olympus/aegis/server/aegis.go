@@ -43,8 +43,10 @@ func Aegis() {
 		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
 		hera_openai.InitHeraOpenAI(sw.OpenAIToken)
+		kronos_helix.InitPagerDutyAlertClient(sw.PagerDutyApiKey)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
+		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		temporalAuthConfigKronos = tc.DevTemporalAuth
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
@@ -52,6 +54,7 @@ func Aegis() {
 		dataDir.DirOut = "../"
 	case "local":
 		tc := configs.InitLocalTestConfigs()
+		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)
 		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 		temporalAuthConfigKronos = tc.DevTemporalAuth
 		authKeysCfg = tc.DevAuthKeysCfg

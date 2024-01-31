@@ -1,7 +1,6 @@
 package hera_twitter
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -102,10 +101,7 @@ func (s *TwitterTestSuite) TestProvider() {
 	s.Require().Equal("twitterv2", pn)
 
 }
-func setProviderToContext(req *http.Request, provider string) *http.Request {
-	ctxv := context.WithValue(req.Context(), "provider", provider)
-	return req.WithContext(ctxv)
-}
+
 func getProviderName(req *http.Request) (string, error) {
 
 	// try to get it from the url param "provider"

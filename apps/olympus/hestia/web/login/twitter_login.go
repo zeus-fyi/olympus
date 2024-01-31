@@ -1,7 +1,6 @@
 package hestia_login
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -25,14 +24,10 @@ func CallbackHandler(c echo.Context) error {
 	providerName := c.Param("provider")
 	fmt.Println("providerName", providerName)
 
-	ctxWithProvider := context.WithValue(c.Request().Context(), "provider", providerName)
-	reqWithProvider := c.Request().WithContext(ctxWithProvider)
-
-	fmt.Println("reqWithProvider", reqWithProvider)
-
-	user, err := gothic.CompleteUserAuth(c.Response().Writer, reqWithProvider)
+	c.Set("provider", providerName)
+	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
 	if err != nil {
-		log.Err(err).Msg("TwitterCallbackHandler: gothic.CompleteUserAuth")
+		log.Err(err).Interface("provider", providerName).Msg("CallbackHandler: gothic.CompleteUserAuth")
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	// Return user's data as JSON

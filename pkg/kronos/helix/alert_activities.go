@@ -47,7 +47,7 @@ func (k *KronosActivities) ExecuteTriggeredAlert(ctx context.Context, pdEvent *p
 
 	resp, err := PdAlertClient.SendAlert(ctx, *pdEvent)
 	if err != nil {
-		log.Err(err).Interface("resp", resp).Msg("ExecuteTriggeredAlert: SendAlert failed")
+		log.Err(err).Interface("resp", resp).Interface("pdEvent", pdEvent).Msg("ExecuteTriggeredAlert: SendAlert failed")
 		return err
 	}
 	return err

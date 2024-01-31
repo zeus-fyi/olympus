@@ -1,6 +1,8 @@
 package hestia_login
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -20,7 +22,12 @@ var Providers = ProviderIndex{
 
 func CallbackHandler(c echo.Context) error {
 	// Complete the authentication process
-	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
+	ctxWithProvider := context.WithValue(c.Request().Context(), "provider", c.Param("provider"))
+	reqWithProvider := c.Request().WithContext(ctxWithProvider)
+
+	fmt.Println("reqWithProvider", reqWithProvider)
+
+	user, err := gothic.CompleteUserAuth(c.Response().Writer, reqWithProvider)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: gothic.CompleteUserAuth")
 		return c.String(http.StatusInternalServerError, err.Error())

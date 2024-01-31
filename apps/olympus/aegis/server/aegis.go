@@ -53,7 +53,6 @@ func Aegis() {
 			log.Fatal().Msg("Aegis: PagerDutyRoutingKey is empty")
 			misc.DelayedPanic(errors.New("aegis: PagerDutyRoutingKey is empty"))
 		}
-
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)

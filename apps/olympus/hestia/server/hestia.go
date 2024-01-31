@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 
+	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/twitter"
 	"github.com/markbates/goth/providers/twitterv2"
 	"github.com/rs/zerolog/log"
@@ -109,6 +111,16 @@ func Hestia() {
 			twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
 			twitterv2.New(sw.TwitterMbClientID, sw.TwitterMbClientSecret, "http://localhost:9002/auth/twitterv2/callback"),
 		)
+
+		maxAge := 86400 * 30 // 30 days
+		store := sessions.NewCookieStore([]byte(sw.HestiaSessionKey))
+		store.MaxAge(maxAge)
+		store.Options.Path = "/"
+		store.Options.Domain = "zeus.fyi"
+		store.Options.HttpOnly = true // HttpOnly should always be enabled
+		store.Options.Secure = true
+		gothic.Store = store
+
 		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword
 		if len(hestia_quiknode_v1_routes.QuickNodePassword) <= 0 {

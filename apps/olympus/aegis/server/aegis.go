@@ -2,6 +2,7 @@ package aegis_server
 
 import (
 	"context"
+	"errors"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -43,10 +44,16 @@ func Aegis() {
 		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
 		hera_openai.InitHeraOpenAI(sw.OpenAIToken)
-		kronos_helix.InitPagerDutyAlertClient(sw.PagerDutyApiKey)
 		if (sw.PagerDutyApiKey == "") || (sw.PagerDutyRoutingKey == "") {
 			panic("PAGERDUTY_API_KEY or PAGERDUTY_ROUTING_KEY is empty")
 		}
+		kronos_helix.InitPagerDutyAlertClient(sw.PagerDutyApiKey)
+		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = sw.PagerDutyRoutingKey
+		if len(kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey) <= 0 {
+			log.Fatal().Msg("Aegis: PagerDutyRoutingKey is empty")
+			misc.DelayedPanic(errors.New("aegis: PagerDutyRoutingKey is empty"))
+		}
+
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)

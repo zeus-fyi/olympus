@@ -7,12 +7,6 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
-//func TwitterLoginHandler(c echo.Context) error {
-//	return c.Redirect(http.StatusTemporaryRedirect, Conf.AuthCodeURL(state))
-//}
-
-//ps, err := aws_secrets.GetMockingbirdPlatformSecrets(c.Request().Context(), s.Ou, "twitter")
-
 func TwitterCallbackHandler(c echo.Context) error {
 	// Complete the authentication process
 	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())

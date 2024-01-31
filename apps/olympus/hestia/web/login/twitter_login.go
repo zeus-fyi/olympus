@@ -17,11 +17,13 @@ func CallbackHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Set("provider", providerName)
 	c.Request().URL.RawQuery = q.Encode()
+
 	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
 	if err != nil {
 		log.Err(err).Interface("provider", providerName).Msg("CallbackHandler: gothic.CompleteUserAuth")
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+
 	// Return user's data as JSON
 	return c.JSON(http.StatusOK, user)
 }
@@ -34,6 +36,7 @@ func LogoutHandler(c echo.Context) error {
 }
 
 func AuthHandler(c echo.Context) error {
+	log.Info().Msg("AuthHandler")
 	// Try to complete the user authentication
 	if gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request()); err == nil {
 		// User is authenticated, return JSON

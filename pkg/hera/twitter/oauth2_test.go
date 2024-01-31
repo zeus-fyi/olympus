@@ -6,13 +6,17 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/twitter"
 	"github.com/markbates/goth/providers/twitterv2"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
+	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
@@ -100,6 +104,25 @@ func (s *TwitterTestSuite) TestProvider() {
 	s.Require().NoError(err)
 	s.Require().Equal("twitterv2", pn)
 
+	req = httptest.NewRequest("GET", "http://localhost:9002/auth/twitter?provider=twitterv2", nil)
+
+	sessionID := "191cc05e23d2b941ad16555fad5a403a2464987e134549f01b099b2d081c8e05"
+	// Configure the cookie store for session management
+	cookie := &http.Cookie{
+		Name:     aegis_sessions.SessionIDNickname,
+		Value:    sessionID,
+		HttpOnly: true,
+		Secure:   true,
+		Domain:   "zeus.fyi",
+		SameSite: http.SameSiteNoneMode,
+		Expires:  time.Now().Add(24 * time.Hour),
+		Path:     "/",
+	}
+	s.Assert().NotNil(cookie)
+	// Attempt to retrieve session value
+	ress, err := gothic.GetFromSession("twitterv2", req)
+	s.Require().NoError(err)
+	s.Require().NotNil(ress)
 }
 
 func getProviderName(req *http.Request) (string, error) {

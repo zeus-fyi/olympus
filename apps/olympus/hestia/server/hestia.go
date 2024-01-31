@@ -117,8 +117,8 @@ func Hestia() {
 		store.Options.HttpOnly = true
 		gothic.Store = store
 		m := make(map[string]string)
-		m["twitter"] = "Twitter"
-		m["twitterv2"] = "Twitter"
+		m["twitter"] = "twitter"
+		m["twitterv2"] = "twitter"
 		var keys []string
 		for k := range m {
 			keys = append(keys, k)

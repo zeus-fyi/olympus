@@ -5,13 +5,24 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/markbates/goth/gothic"
+	"github.com/rs/zerolog/log"
 )
+
+type ProviderIndex struct {
+	Providers    []string
+	ProvidersMap map[string]string
+}
+
+var Providers = ProviderIndex{
+	Providers:    []string{},
+	ProvidersMap: make(map[string]string),
+}
 
 func TwitterCallbackHandler(c echo.Context) error {
 	// Complete the authentication process
 	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
 	if err != nil {
-		// Handle the error
+		log.Err(err).Msg("TwitterCallbackHandler: gothic.CompleteUserAuth")
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	// Return user's data as JSON
@@ -21,7 +32,6 @@ func TwitterCallbackHandler(c echo.Context) error {
 func TwitterLogoutHandler(c echo.Context) error {
 	// Perform the logout using Goth
 	gothic.Logout(c.Response().Writer, c.Request())
-
 	// Redirect to the home page
 	return c.Redirect(http.StatusTemporaryRedirect, "/")
 }

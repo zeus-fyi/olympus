@@ -3,11 +3,13 @@ package hestia_server
 import (
 	"context"
 	"errors"
+	"sort"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/twitter"
+	"github.com/markbates/goth/providers/twitterv2"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -83,6 +85,11 @@ const (
 	AdaptiveMetricsKey         = "X-Adaptive-Metrics-Key"
 )
 
+type ProviderIndex struct {
+	Providers    []string
+	ProvidersMap map[string]string
+}
+
 func Hestia() {
 	cfg.Host = "0.0.0.0"
 	srv := NewHestiaServer(cfg)
@@ -96,9 +103,25 @@ func Hestia() {
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
 		sw.SESAuthAWS.Region = awsRegion
+		if len(sw.TwitterMbClientID) <= 0 || len(sw.TwitterMbClientSecret) <= 0 {
+			log.Warn().Msg("Hestia: TwitterClientID or TwitterClientSecret is empty")
+		}
 		goth.UseProviders(
-			twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientSecret, "http://localhost:9002/auth/twitter/callback"),
+			//twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
+			twitterv2.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
 		)
+		m := make(map[string]string)
+		//m["twitter"] = "Twitter"
+		m["twitterv2"] = "Twitter"
+		var keys []string
+		for k := range m {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		hestia_login.Providers.ProvidersMap = m
+		hestia_login.Providers.Providers = keys
+
 		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword
 		if len(hestia_quiknode_v1_routes.QuickNodePassword) <= 0 {
@@ -131,10 +154,6 @@ func Hestia() {
 		//DiscordRedirectURI
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
-
-		goth.UseProviders(
-			twitter.New(tc.TwitterClientID, tc.TwitterClientSecret, "http://localhost:9002/auth/twitter/callback"),
-		)
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		temporalAuthConfig = tc.DevTemporalAuth
 		temporalAuthConfigHestia = tc.DevTemporalAuth

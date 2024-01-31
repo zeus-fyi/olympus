@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/PagerDuty/go-pagerduty"
 	"github.com/go-resty/resty/v2"
@@ -42,9 +41,10 @@ func (pd *PagerDutyClient) SendAlert(ctx context.Context, event pagerduty.V2Even
 		Post("/")
 
 	if err != nil || resp.StatusCode() >= 400 {
-		log.Ctx(ctx).Err(err).Msg("PagerDutyClient: SendAlert")
-		if resp.StatusCode() == http.StatusBadRequest {
-			err = errors.New("bad request")
+		log.Err(err).Msg("PagerDutyClient: SendAlert")
+		if resp.StatusCode() >= 400 {
+			err = errors.New(fmt.Sprintf("bad request: code: %d", resp.StatusCode()))
+			log.Err(err).Interface("event", event).Msg("PagerDutyClient: SendAlert")
 		}
 		if err == nil {
 			err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())

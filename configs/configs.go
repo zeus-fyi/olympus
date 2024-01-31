@@ -50,11 +50,13 @@ type TestContainer struct {
 	InfraCostAPIKey             string
 	GcpAuthJson                 []byte
 	GmailAuthJson               []byte
+	TwitterClientSecret         string
 	TwitterAccessToken          string
 	TwitterAccessTokenSecret    string
 	TwitterBearerToken          string
 	TwitterConsumerPublicAPIKey string
 	TwitterConsumerSecretAPIKey string
+	TwitterClientID             string
 	RedditUsername              string
 	RedditPassword              string
 	RedditSecretOAuth2          string
@@ -354,6 +356,8 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.ProdLocalTemporalAuthHestia.ClientCertPath = certPath
 	testCont.ProdLocalTemporalAuthHestia.ClientPEMKeyPath = pemPath
 
+	testCont.TwitterClientSecret = viper.GetString("TWITTER_CLIENT_SECRET")
+	testCont.TwitterClientID = viper.GetString("TWITTER_CLIENT_ID")
 	// temporal poseidon
 	testCont.ProdLocalTemporalAuthPoseidon = testCont.DevTemporalAuth
 	testCont.ProdLocalTemporalAuthPoseidon.Namespace = viper.GetString("PROD_LOCAL_POSEIDON_TEMPORAL_NS")

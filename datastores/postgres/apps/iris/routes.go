@@ -187,6 +187,7 @@ func InsertOrgRoutesGroups(ctx context.Context, ors iris_autogen_bases.OrgRoutes
 				  VALUES ($1, $2)`
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, ors.RouteGroupID, ors.RouteID)
 	if err != nil {
+		log.Err(err).Interface("ors", ors).Msg(q.LogHeader("InsertOrgRoutesGroups"))
 		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutesGroups"))
@@ -210,7 +211,7 @@ func SelectOrgRoutes(ctx context.Context, orgID int) (iris_autogen_bases.OrgRout
 			&route.RouteID, &route.OrgID, &route.RoutePath,
 		)
 		if rowErr != nil {
-			log.Err(rowErr).Msg(q.LogHeader("SelectOrgRoutes"))
+			log.Err(rowErr).Int("orgID", orgID).Msg(q.LogHeader("SelectOrgRoutes"))
 			return nil, rowErr
 		}
 		routes = append(routes, route)
@@ -536,6 +537,7 @@ const (
 	LiteGroupTables        = 25
 	StandardGroupTables    = 50
 	PerformanceGroupTables = 250
+	EnterpriseGroupTables  = 500
 )
 
 func (t *TableUsageAndUserSettings) CheckEndpointLimits() error {

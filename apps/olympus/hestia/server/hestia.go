@@ -111,6 +111,10 @@ func Hestia() {
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 		kronos_helix.InitPagerDutyAlertClient(sw.PagerDutyApiKey)
 		kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey = sw.PagerDutyRoutingKey
+		if len(kronos_helix.PdAlertGenericWfIssuesEvent.RoutingKey) <= 0 {
+			log.Fatal().Msg("Hestia: PagerDutyRoutingKey is empty")
+			misc.DelayedPanic(errors.New("hestia: PagerDutyRoutingKey is empty"))
+		}
 		hestia_login.GoogleOAuthConfig.ClientID = sw.GoogClientID
 		hestia_login.GoogleOAuthConfig.ClientSecret = sw.GoogClientSecret
 		//hestia_analytics.GtagApiSecret = sw.GoogGtagSecret

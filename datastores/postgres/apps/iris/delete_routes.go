@@ -7,7 +7,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -19,13 +18,17 @@ func DeleteOrgRoutesFromGroup(ctx context.Context, orgID int, groupName string, 
 				  AND orgg.route_group_id = ogs.route_group_id
 				  AND orr.org_id = $1
 				  AND orgg.route_group_name = $2
-				  AND orr.route_path = ANY($3::text[])`
+				  AND orr.route_path IN (SELECT UNNEST($3::bigint[]))`
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, groupName, pq.Array(routePaths))
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("No new routes to insert")
 		return nil
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRouteGroup"))
+	if err != nil {
+		log.Err(err).Int("orgID", orgID).Str("groupName", groupName).Interface("routes", routePaths).Msg("DeleteOrgRoutesFromGroup")
+		return err
+	}
+	return err
 }
 
 func DeleteOrgRoutingGroup(ctx context.Context, orgID int, groupName string) error {
@@ -38,15 +41,19 @@ func DeleteOrgRoutingGroup(ctx context.Context, orgID int, groupName string) err
 			  AND orgg.route_group_id = ogs.route_group_id
 			  AND orr.org_id = $1
 			  AND orgg.route_group_name = $2
-		) DELETE FROM org_route_groups
- 		  WHERE route_group_name = $2`
+		) DELETE FROM org_route_groups 
+ 		  WHERE route_group_name = $2 AND org_id = $1`
 
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, groupName)
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("no routes to delete")
 		return nil
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRouteGroup"))
+	if err != nil {
+		log.Err(err).Int("orgID", orgID).Str("groupName", groupName).Msg("DeleteOrgRoutingGroup")
+		return err
+	}
+	return err
 }
 
 func DeleteOrgRoutes(ctx context.Context, orgID int, routes []string) error {
@@ -63,7 +70,11 @@ func DeleteOrgRoutes(ctx context.Context, orgID int, routes []string) error {
 		log.Warn().Msg("No routes to delete")
 		return nil
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("DeleteOrgRoutes"))
+	if err != nil {
+		log.Err(err).Int("orgID", orgID).Interface("routes", routes).Msg("DeleteOrgRoutes")
+		return err
+	}
+	return err
 }
 
 func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string) ([]string, error) {
@@ -82,6 +93,8 @@ func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string
 
 	maxCount := 1
 	switch plan {
+	case "enterprise":
+		maxCount = EnterpriseGroupTables
 	case "performance":
 		maxCount = PerformanceGroupTables
 	case "standard":
@@ -95,10 +108,10 @@ func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string
 	}
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, quickNodeID)
-	if returnErr := misc.ReturnIfErr(err, q.LogHeader("OrgGroupTablesToRemove")); returnErr != nil {
+	if err != nil {
+		log.Err(err).Str("quickNodeID", quickNodeID).Interface("plan", plan).Msg("OrgGroupTablesToRemove")
 		return nil, err
 	}
-
 	var ogToDelete []string
 	count := 0
 	defer rows.Close()
@@ -110,7 +123,7 @@ func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string
 			&routeGroupID, &routeGroupName,
 		)
 		if rowErr != nil {
-			log.Err(rowErr).Msg(q.LogHeader("OrgGroupTablesToRemove"))
+			log.Err(rowErr).Str("quickNodeID", quickNodeID).Interface("plan", plan).Msg("OrgGroupTablesToRemove")
 			return nil, rowErr
 		}
 		if count >= maxCount {
@@ -118,7 +131,11 @@ func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string
 		}
 		count += 1
 	}
-	return ogToDelete, misc.ReturnIfErr(err, q.LogHeader("OrgGroupTablesToRemove"))
+	if err != nil {
+		log.Err(err).Str("quickNodeID", quickNodeID).Interface("plan", plan).Msg("OrgGroupTablesToRemove")
+		return nil, err
+	}
+	return ogToDelete, err
 }
 
 //func DeleteOrgGroupAndRoutes(ctx context.Context, orgID int, routeGroupName string) error {

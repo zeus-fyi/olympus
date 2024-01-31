@@ -3,7 +3,6 @@ package artemis_orchestrations
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
@@ -68,34 +67,15 @@ func SelectTriggerActionApproval(ctx context.Context, ou org_users.OrgUser, stat
 			}
 			respPayl = append(respPayl, v)
 		}
-
-		breq, berr := json.MarshalIndent(reqPayl, "", "  ")
-		if berr != nil {
-			log.Err(berr).Msg("failed to marshal req payload")
-			return nil, berr
-		}
-		bresp, berr := json.MarshalIndent(respPayl, "", "  ")
-		if err != nil {
-			log.Err(berr).Msg("failed to marshal resp payload")
-			return nil, berr
-		}
-
 		if approval.ApprovalState == "" {
 			approval.ApprovalState = pendingState
 		}
 		if approval.ApprovalState == pendingState {
-			approval.RequestSummary = "Requesting approval for trigger action\n"
-			if breq != nil && string(breq) != "null" {
-				approval.RequestSummary = "Requesting approval for trigger action\n" + string(breq)
-			}
+			approval.RequestSummary = "Requesting approval for trigger action"
 		}
 		if approval.ApprovalState == finishedState {
-			approval.RequestSummary = "Finished approval for trigger action\n"
-			if bresp != nil && string(bresp) != "null" {
-				approval.RequestSummary = "Finished approval for trigger action\n" + string(bresp)
-			}
+			approval.RequestSummary = "Finished approval for trigger action"
 		}
-		fmt.Println("resp.ReqPayloads", resp.RespPayloads)
 		approvals = append(approvals, approval)
 	}
 	// Check for any error encountered during iteration

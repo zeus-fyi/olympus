@@ -12,6 +12,7 @@ on:
       - .github/workflows/hestia.yml
     branches:
       - main
+      - iris-updates
 
 permissions:
   contents: read
@@ -82,5 +83,4 @@ jobs:
           --token ${{ secrets.DEPOT_TOKEN }} \
           --provenance=false \
           -f docker/hestia/Dockerfile . --push
-
 

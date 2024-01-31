@@ -202,6 +202,8 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
+	sw.PagerDutyApiKey = sw.MustReadSecret(ctx, inMemSecrets, pagerDutySecret)
+	sw.PagerDutyRoutingKey = sw.MustReadSecret(ctx, inMemSecrets, pagerDutyRoutingKey)
 	sw.DoctlToken = sw.MustReadSecret(ctx, inMemSecrets, doctlSecret)
 	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	sw.StripeSecretKey = sw.MustReadSecret(ctx, inMemSecrets, stripeSecretKey)

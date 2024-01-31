@@ -6,6 +6,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/providers/twitter"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -94,9 +96,9 @@ func Hestia() {
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
 		sw.SESAuthAWS.Region = awsRegion
-		hestia_login.TwitterClientID = sw.TwitterMbClientID
-		hestia_login.TwitterSecret = sw.TwitterMbClientSecret
-
+		goth.UseProviders(
+			twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientSecret, "http://localhost:9002/auth/twitter/callback"),
+		)
 		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword
 		if len(hestia_quiknode_v1_routes.QuickNodePassword) <= 0 {
@@ -125,9 +127,10 @@ func Hestia() {
 		//DiscordRedirectURI
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
-		hestia_login.TwitterClientID = tc.TwitterClientID
-		hestia_login.TwitterSecret = tc.TwitterClientSecret
 
+		goth.UseProviders(
+			twitter.New(tc.TwitterClientID, tc.TwitterClientSecret, "http://localhost:9002/auth/twitter/callback"),
+		)
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		temporalAuthConfig = tc.DevTemporalAuth
 		temporalAuthConfigHestia = tc.DevTemporalAuth
@@ -159,8 +162,10 @@ func Hestia() {
 		hestia_login.SetConf(tc.DiscordClientID, tc.DiscordClientSecret)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
-		hestia_login.TwitterClientID = tc.TwitterClientID
-		hestia_login.TwitterSecret = tc.TwitterClientSecret
+
+		goth.UseProviders(
+			twitter.New(tc.TwitterClientID, tc.TwitterClientSecret, "http://localhost:9002/auth/twitter/callback"),
+		)
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthConfig = tc.DevTemporalAuth
 		temporalAuthConfigHestia = tc.DevTemporalAuth

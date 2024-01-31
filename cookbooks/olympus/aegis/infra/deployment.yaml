@@ -17,6 +17,13 @@ spec:
         app.kubernetes.io/name: "aegis"
         app.kubernetes.io/instance: "aegis"
     spec:
+      initContainers:
+        - name: init-aegis-secrets
+          image: registry.digitalocean.com/zeus-fyi/aegis-secrets:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: "/secrets"
+              name: "secrets"
       containers:
         - name: "aegis"
           image: "registry.digitalocean.com/zeus-fyi/aegis:latest"
@@ -69,6 +76,9 @@ spec:
           configMap:
             name: cm-aegis
             defaultMode: 0744
+        - name: secrets
+          emptyDir:
+            medium: Memory
       nodeSelector:
         {}
       affinity:

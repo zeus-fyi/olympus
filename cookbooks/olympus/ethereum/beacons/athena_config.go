@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
-	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/zeus/workload_config_drivers"
+	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/zeus/workload_config_drivers/config_overrides"
 	v1 "k8s.io/api/core/v1"
 )
 

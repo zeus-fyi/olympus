@@ -26,6 +26,7 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.POST("/discord/login", hestia_login.DiscordLoginHandler)
 	e.GET("/reddit/callback", hestia_login.RedditLoginHandler)
 	e.GET("/discord/callback", hestia_login.DiscordCallbackHandler)
+	e.GET("/twitter/callback", hestia_login.TwitterCallbackHandler)
 	e.POST("/google/login", hestia_login.GoogleLoginHandler)
 	e.POST("/signup", hestia_signup.SignUpHandler)
 	e.GET("/logout/:token", Logout)

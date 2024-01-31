@@ -59,12 +59,22 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	sw.OpenAIToken = sw.MustReadSecret(ctx, inMemSecrets, heraOpenAIAuth)
 	sw.GmailAuthJsonBytes = sw.ReadSecretBytes(ctx, inMemSecrets, gmailAuthJson)
 
+	_, err := sw.ReadSecret(ctx, inMemSecrets, twitterClientID)
+	if err != nil {
+		log.Err(err).Msg("error reading twitter client id")
+		err = nil
+	}
+	_, err = sw.ReadSecret(ctx, inMemSecrets, twitterClientSecret)
+	if err != nil {
+		log.Err(err).Msg("error reading twitter client id")
+		err = nil
+	}
 	hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
 
 	da := DiscordAuthConfig{}
 	sb := sw.ReadSecretBytes(ctx, inMemSecrets, discordSecretsJson)
-	err := json.Unmarshal(sb, &da)
+	err = json.Unmarshal(sb, &da)
 	if err != nil {
 		panic(err)
 	}

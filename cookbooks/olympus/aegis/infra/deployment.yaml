@@ -30,6 +30,8 @@ spec:
           volumeMounts:
             - mountPath: "/scripts"
               name: "cm-aegis"
+            - mountPath: "/secrets"
+              name: "secrets"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]

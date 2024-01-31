@@ -8,15 +8,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/twitter"
 	"github.com/markbates/goth/providers/twitterv2"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
-	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
@@ -80,21 +79,20 @@ func (s *TwitterTestSuite) TestProvider() {
 	p, err := goth.GetProvider("twitterv2")
 	s.Require().NoError(err)
 	s.Require().NotNil(p)
+	//cookie := &http.Cookie{
+	//	Name:     aegis_sessions.SessionIDNickname,
+	//	Value:    sessionID,
+	//	HttpOnly: true,
+	//	Secure:   true,
+	//	Domain:   "zeus.fyi",
+	//	SameSite: http.SameSiteNoneMode,
+	//	Expires:  time.Now().Add(24 * time.Hour),
+	//	Path:     "/",
+	//}
 
+	//s.Assert().NotNil(cookie)
 	req := &http.Request{
-		URL: &url.URL{
-			Scheme:      "",
-			Opaque:      "",
-			User:        nil,
-			Host:        "",
-			Path:        "",
-			RawPath:     "",
-			OmitHost:    false,
-			ForceQuery:  false,
-			RawQuery:    "",
-			Fragment:    "",
-			RawFragment: "",
-		},
+		URL: &url.URL{},
 	}
 	q := req.URL.Query()
 	q.Set("provider", "twitterv2")
@@ -108,21 +106,35 @@ func (s *TwitterTestSuite) TestProvider() {
 
 	sessionID := "191cc05e23d2b941ad16555fad5a403a2464987e134549f01b099b2d081c8e05"
 	// Configure the cookie store for session management
-	cookie := &http.Cookie{
-		Name:     aegis_sessions.SessionIDNickname,
-		Value:    sessionID,
-		HttpOnly: true,
-		Secure:   true,
-		Domain:   "zeus.fyi",
-		SameSite: http.SameSiteNoneMode,
-		Expires:  time.Now().Add(24 * time.Hour),
-		Path:     "/",
-	}
-	s.Assert().NotNil(cookie)
+
+	maxAge := 86400 * 30 // 30 days
+	storeV := sessions.NewCookieStore([]byte(sessionID))
+	storeV.MaxAge(maxAge)
+	storeV.Options.Path = "/"
+	storeV.Options.Domain = "zeus.fyi"
+	storeV.Options.HttpOnly = true // HttpOnly should always be enabled
+	storeV.Options.Secure = true
+
+	gothic.Store = storeV
+
+	// Prepare the request and response recorder
+	req, _ = http.NewRequest("GET", "/", nil)
+	res := httptest.NewRecorder()
+
+	// Set a value in the session
+	key := "provider"
+	value := "github" // Example provider name
+	err = gothic.StoreInSession(key, value, req, res)
+	s.NoError(err)
+
+	// Now, simulate the client sending the response cookies as request cookies
+	req.Header.Add("Cookie", res.Header().Get("Set-Cookie"))
+
 	// Attempt to retrieve session value
-	ress, err := gothic.GetFromSession("twitterv2", req)
-	s.Require().NoError(err)
-	s.Require().NotNil(ress)
+	retrievedValue, err := gothic.GetFromSession(key, req)
+	s.NoError(err)
+	s.NotNil(retrievedValue)
+	s.Equal(value, retrievedValue, "Retrieved session value should match the stored value")
 }
 
 func getProviderName(req *http.Request) (string, error) {

@@ -17,13 +17,17 @@ func CallbackHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Set("provider", providerName)
 	c.Request().URL.RawQuery = q.Encode()
+	err := gothic.StoreInSession("provider", providerName, c.Request(), c.Response().Writer)
+	if err != nil {
+		log.Err(err).Interface("provider", providerName).Msg("CallbackHandler: gothic.StoreInSession")
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
 
 	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
 	if err != nil {
 		log.Err(err).Interface("provider", providerName).Msg("CallbackHandler: gothic.CompleteUserAuth")
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-
 	// Return user's data as JSON
 	return c.JSON(http.StatusOK, user)
 }

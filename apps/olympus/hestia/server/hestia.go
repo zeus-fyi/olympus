@@ -94,6 +94,9 @@ func Hestia() {
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
 		sw.SESAuthAWS.Region = awsRegion
+		hestia_login.TwitterClientID = sw.TwitterMbClientID
+		hestia_login.TwitterSecret = sw.TwitterMbClientSecret
+
 		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword
 		if len(hestia_quiknode_v1_routes.QuickNodePassword) <= 0 {
@@ -122,6 +125,9 @@ func Hestia() {
 		//DiscordRedirectURI
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
+		hestia_login.TwitterClientID = tc.TwitterClientID
+		hestia_login.TwitterSecret = tc.TwitterClientSecret
+
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		temporalAuthConfig = tc.DevTemporalAuth
 		temporalAuthConfigHestia = tc.DevTemporalAuth
@@ -153,6 +159,8 @@ func Hestia() {
 		hestia_login.SetConf(tc.DiscordClientID, tc.DiscordClientSecret)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
+		hestia_login.TwitterClientID = tc.TwitterClientID
+		hestia_login.TwitterSecret = tc.TwitterClientSecret
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthConfig = tc.DevTemporalAuth
 		temporalAuthConfigHestia = tc.DevTemporalAuth

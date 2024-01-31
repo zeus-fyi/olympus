@@ -61,6 +61,8 @@ type SecretsWrapper struct {
 	TwitterConsumerSecretAPIKey string
 	TwitterAccessToken          string
 	TwitterAccessTokenSecret    string
+	TwitterMbClientID           string
+	TwitterMbClientSecret       string
 
 	OvhAppKey              string
 	OvhSecretKey           string

@@ -13,6 +13,9 @@ import (
 //	return c.Redirect(http.StatusTemporaryRedirect, Conf.AuthCodeURL(state))
 //}
 
+var TwitterClientID string
+var TwitterSecret string
+
 func TwitterCallbackHandler(c echo.Context) error {
 
 	//ps, err := aws_secrets.GetMockingbirdPlatformSecrets(c.Request().Context(), s.Ou, "twitter")

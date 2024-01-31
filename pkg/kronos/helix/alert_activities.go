@@ -16,7 +16,7 @@ const (
 func (k *KronosActivities) GetAlertAssignmentFromInstructions(ctx context.Context, ins Instructions) (*pagerduty.V2Event, error) {
 	ojs, err := artemis_orchestrations.SelectActiveOrchestrationsWithInstructionsUsingTimeWindow(ctx, internalOrgID, ins.Type, ins.GroupName, ins.Trigger.AlertAfterTime)
 	if err != nil {
-		log.Err(err).Interface("ojs", ojs).Msg("GetAlertAssignmentFromInstructions failed")
+		log.Err(err).Interface("ojs", ojs).Interface("inst", ins).Msg("GetAlertAssignmentFromInstructions failed")
 		return nil, err
 	}
 	if len(ojs) == 0 {
@@ -41,9 +41,15 @@ func (k *KronosActivities) ExecuteTriggeredAlert(ctx context.Context, pdEvent *p
 	if pdEvent == nil {
 		return nil
 	}
+	if PdAlertClient.Client == nil {
+		panic("PdAlertClient is not initialized")
+	}
+	if pdEvent.RoutingKey == "" {
+		panic("pdEvent.RoutingKey is empty")
+	}
 	resp, err := PdAlertClient.SendAlert(ctx, *pdEvent)
 	if err != nil {
-		log.Err(err).Interface("resp", resp).Msg("ExecuteTriggeredAlert: SendAlert failed")
+		log.Err(err).Interface("resp", resp).Interface("pdEvent", pdEvent).Msg("ExecuteTriggeredAlert: SendAlert failed")
 		return err
 	}
 	return err

@@ -7,7 +7,7 @@ import (
 	olympus_ethereum_mev_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/mev"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/zeus/cluster_config_drivers"
-	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/zeus/workload_config_drivers"
+	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/zeus/workload_config_drivers/config_overrides"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

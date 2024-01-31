@@ -44,6 +44,9 @@ func Aegis() {
 		cfg.PGConnStr = sw.PostgresAuth
 		hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 		kronos_helix.InitPagerDutyAlertClient(sw.PagerDutyApiKey)
+		if (sw.PagerDutyApiKey == "") || (sw.PagerDutyRoutingKey == "") {
+			panic("PAGERDUTY_API_KEY or PAGERDUTY_ROUTING_KEY is empty")
+		}
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		kronos_helix.InitPagerDutyAlertClient(tc.PagerDutyApiKey)

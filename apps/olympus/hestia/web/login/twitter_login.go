@@ -22,7 +22,7 @@ func CallbackHandler(c echo.Context) error {
 		log.Err(err).Interface("provider", providerName).Msg("CallbackHandler: gothic.StoreInSession")
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-
+	c.Request().Header.Add("Cookie", c.Response().Header().Get("Set-Cookie"))
 	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
 	if err != nil {
 		log.Err(err).Interface("provider", providerName).Msg("CallbackHandler: gothic.CompleteUserAuth")

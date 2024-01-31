@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -97,6 +98,15 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 			if mkeyName == fmt.Sprintf("%s-api-key", platform) {
 				op.ApiKey = svItem.Value
 			}
+			if strings.HasSuffix(mkeyName, "client-id") {
+				op.ClientID = svItem.Value
+			}
+			if strings.HasSuffix(mkeyName, "consumer-secret") {
+				op.ConsumerSecret = svItem.Value
+			}
+			if strings.HasSuffix(mkeyName, "consumer-key") {
+				op.ConsumerPublic = svItem.Value
+			}
 		}
 	}
 	return op, nil
@@ -104,19 +114,25 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 
 func MockingBirdPlatformNames(platform string) map[string]string {
 	return map[string]string{
-		fmt.Sprintf("%s-oauth2-public", platform): "mockingbird",
-		fmt.Sprintf("%s-oauth2-secret", platform): "mockingbird",
-		fmt.Sprintf("%s-username", platform):      "mockingbird",
-		fmt.Sprintf("%s-password", platform):      "mockingbird",
-		fmt.Sprintf("%s-api-key", platform):       "mockingbird",
+		fmt.Sprintf("%s-oauth2-public", platform):   "mockingbird",
+		fmt.Sprintf("%s-oauth2-secret", platform):   "mockingbird",
+		fmt.Sprintf("%s-username", platform):        "mockingbird",
+		fmt.Sprintf("%s-password", platform):        "mockingbird",
+		fmt.Sprintf("%s-api-key", platform):         "mockingbird",
+		fmt.Sprintf("%s-consumer-key", platform):    "mockingbird",
+		fmt.Sprintf("%s-consumer-secret", platform): "mockingbird",
+		fmt.Sprintf("%s-client-id", platform):       "mockingbird",
 	}
 }
 
 type OAuth2PlatformSecret struct {
-	Platform     string `json:"platform"`
-	OAuth2Public string `json:"oauth2Public"`
-	OAuth2Secret string `json:"oauth2Secret"`
-	Username     string `json:"username,omitempty"`
-	Password     string `json:"password,omitempty"`
-	ApiKey       string `json:"apiKey,omitempty"`
+	ConsumerPublic string `json:"consumerPublic"`
+	ConsumerSecret string `json:"consumerSecret"`
+	Platform       string `json:"platform"`
+	ClientID       string `json:"clientID"`
+	OAuth2Public   string `json:"oauth2Public"`
+	OAuth2Secret   string `json:"oauth2Secret"`
+	Username       string `json:"username,omitempty"`
+	Password       string `json:"password,omitempty"`
+	ApiKey         string `json:"apiKey,omitempty"`
 }

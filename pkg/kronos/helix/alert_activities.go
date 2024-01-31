@@ -41,6 +41,10 @@ func (k *KronosActivities) ExecuteTriggeredAlert(ctx context.Context, pdEvent *p
 	if pdEvent == nil {
 		return nil
 	}
+	if PdAlertClient.Client == nil {
+		panic("PdAlertClient is not initialized")
+	}
+
 	resp, err := PdAlertClient.SendAlert(ctx, *pdEvent)
 	if err != nil {
 		log.Err(err).Interface("resp", resp).Msg("ExecuteTriggeredAlert: SendAlert failed")

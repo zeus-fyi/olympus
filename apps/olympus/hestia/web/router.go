@@ -32,9 +32,9 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.GET("/logout/:token", Logout)
 	e.GET("/v1/users/services", hestia_login.UsersServicesRequestHandler)
 
-	e.GET("/auth/twitter/callback", hestia_login.TwitterCallbackHandler)
-	e.GET("/logout/twitter", hestia_login.TwitterLogoutHandler)
-	e.GET("/auth/twitter", hestia_login.TwitterAuthHandler)
+	e.GET("/auth/:provider/callback", hestia_login.CallbackHandler)
+	e.GET("/logout/:provider", hestia_login.LogoutHandler)
+	e.GET("/auth/:provider", hestia_login.AuthHandler)
 
 	e.GET("/verify/email/:token", hestia_signup.VerifyEmailHandler)
 	hestia_quicknode_dashboard.InitQuickNodeDashboardRoutes(e)

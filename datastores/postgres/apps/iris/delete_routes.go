@@ -41,8 +41,8 @@ func DeleteOrgRoutingGroup(ctx context.Context, orgID int, groupName string) err
 			  AND orgg.route_group_id = ogs.route_group_id
 			  AND orr.org_id = $1
 			  AND orgg.route_group_name = $2
-		) DELETE FROM org_route_groups
- 		  WHERE route_group_name = $2`
+		) DELETE FROM org_route_groups 
+ 		  WHERE route_group_name = $2 AND org_id = $1`
 
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, groupName)
 	if err == pgx.ErrNoRows {

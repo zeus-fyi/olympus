@@ -123,7 +123,7 @@ func (s *TwitterTestSuite) TestProvider() {
 
 	// Set a value in the session
 	key := "provider"
-	value := "github" // Example provider name
+	value := "twitterv2" // Example provider name
 	err = gothic.StoreInSession(key, value, req, res)
 	s.NoError(err)
 

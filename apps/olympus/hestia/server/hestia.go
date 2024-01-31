@@ -5,9 +5,11 @@ import (
 	"errors"
 	"sort"
 
+	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/twitter"
 	"github.com/markbates/goth/providers/twitterv2"
 	"github.com/rs/zerolog/log"
@@ -110,6 +112,10 @@ func Hestia() {
 			//twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
 			twitterv2.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
 		)
+		store := sessions.NewCookieStore([]byte(sw.HestiaSessionKey))
+		store.Options.Secure = true
+		store.Options.HttpOnly = true
+		gothic.Store = store
 		m := make(map[string]string)
 		//m["twitter"] = "Twitter"
 		m["twitterv2"] = "Twitter"

@@ -1,8 +1,10 @@
 package hera_twitter
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
@@ -47,7 +49,19 @@ import (
 //	if err != nil {
 //		panic(err)
 //	}
+
+func generateSecretKey(length int) (string, error) {
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
 func (s *TwitterTestSuite) TestOauth() {
+	fmt.Println(generateSecretKey(32))
+
 	awsAuthCfg := aegis_aws_auth.AuthAWS{
 		AccountNumber: "",
 		Region:        "us-west-1",

@@ -54,6 +54,8 @@ const (
 
 	redditSecretsJson  = "secrets/reddit.api.keys.json"
 	discordSecretsJson = "secrets/discord.auth.json"
+
+	hestiaSessionKey = "secrets/hestia.session.key.txt"
 )
 
 type SecretsWrapper struct {
@@ -84,6 +86,8 @@ type SecretsWrapper struct {
 	GoogClientID     string
 	GoogClientSecret string
 	GoogGtagSecret   string
+
+	HestiaSessionKey string
 
 	QuickNodePassword string
 	QuickNodeBearer   string

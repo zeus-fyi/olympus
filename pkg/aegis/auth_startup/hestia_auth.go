@@ -33,6 +33,13 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
+	sk, err := sw.ReadSecret(ctx, inMemSecrets, hestiaSessionKey)
+	if err != nil {
+		log.Err(err).Msg("error reading session key")
+		err = nil
+	} else {
+		sw.HestiaSessionKey = sk
+	}
 	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	sw.BearerToken = sw.MustReadSecret(ctx, inMemSecrets, temporalBearerSecret)
 	sw.SecretsManagerAuthAWS.AccessKey = sw.MustReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)

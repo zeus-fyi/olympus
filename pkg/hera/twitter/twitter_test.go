@@ -16,7 +16,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
-	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 var ctx = context.Background()
@@ -161,52 +160,6 @@ func (s *TwitterTestSuite) TestApiGets() {
 	fmt.Println(string(bodyBytes))
 
 	resp.Body.Close()
-	//c (api *Twitter) GetUserFollowers(id string, v url.Values, options ...QueueOption) (chan *Data, chan error)
-	//resChan, errChan := s.tw.V2Client.GetUserFollowers("OpenAI", nil, twitter2.WithAuto(false))
-
-	// Handle channels and timeout
-	//var response *twitter2.Data
-	//timeout := 10 * time.Second
-	//var data []*twitter2.Tweet
-	//
-	//select {
-	//case res := <-resChan:
-	//	response = res
-	//	b, err := json.Marshal(response.Data)
-	//	s.Require().NoError(err)
-	//	err = json.Unmarshal(b, &data)
-	//	s.Require().NoError(err)
-	//case err := <-errChan:
-	//	fmt.Println("Error:", err)
-	//	s.Require().NoError(err)
-	//case <-time.After(timeout):
-	//	fmt.Println("Error: Request timed out.")
-	//	return
-	//}
-	//s.Assert().NotEmpty(data)
-	//for _, tweet := range data {
-	//	fmt.Printf("TweetID %s: AuthorID %s, Text: %s \n", tweet.ID, tweet.AuthorID, tweet.Text)
-	//}
-}
-
-// 1590980065185058816
-
-func (s *TwitterTestSuite) TestReadUserMe() {
-
-	//userID := "1520852589067194373"
-
-	r := resty_base.GetBaseRestyClient("https://api.twitter.com", addToken(consumerKey, consumerSecret))
-
-	resp, err := r.R().Get("/2/users/me")
-	s.Assert().NoError(err)
-	s.Assert().NotNil(resp)
-	bodyBytes, err := io.ReadAll(resp.RawBody())
-	s.Assert().NoError(err)
-	fmt.Println(string(bodyBytes))
-
-	//// Close the response body
-	//resp.Body.Close()
-	//// 1520852589067194373
 
 }
 
@@ -228,9 +181,3 @@ func (s *TwitterTestSuite) TestReadUserTweets() {
 func TestTwitterTestSuite(t *testing.T) {
 	suite.Run(t, new(TwitterTestSuite))
 }
-
-/*
-
-query := `(("Kubernetes" OR "k8s" OR "#kube" OR "container orchestration") -is:retweet (has:links OR has:media OR has:mentions) (lang:en OR lang:es))`
-id
-*/

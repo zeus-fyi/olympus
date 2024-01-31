@@ -3,7 +3,6 @@ package hestia_server
 import (
 	"context"
 	"errors"
-	"sort"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
@@ -109,24 +108,13 @@ func Hestia() {
 			log.Warn().Msg("Hestia: TwitterClientID or TwitterClientSecret is empty")
 		}
 		goth.UseProviders(
-			//twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
-			twitterv2.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
+			twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
+			twitterv2.New(sw.TwitterMbClientID, sw.TwitterMbClientSecret, "http://localhost:9002/auth/twitter/callback"),
 		)
 		store := sessions.NewCookieStore([]byte(sw.HestiaSessionKey))
 		store.Options.Secure = true
 		store.Options.HttpOnly = true
 		gothic.Store = store
-		m := make(map[string]string)
-		m["twitter"] = "twitter"
-		m["twitterv2"] = "twitter"
-		var keys []string
-		for k := range m {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		hestia_login.Providers.ProvidersMap = m
-		hestia_login.Providers.Providers = keys
 
 		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword

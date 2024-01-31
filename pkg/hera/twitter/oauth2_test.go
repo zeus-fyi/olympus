@@ -1,12 +1,18 @@
 package hera_twitter
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
+	"net/url"
 
+	"github.com/gorilla/mux"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/providers/twitter"
+	"github.com/markbates/goth/providers/twitterv2"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -57,6 +63,72 @@ func generateSecretKey(length int) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+func (s *TwitterTestSuite) TestProvider() {
+	goth.UseProviders(
+		twitter.New(s.Tc.TwitterClientID, s.Tc.TwitterClientSecret, "http://localhost:9002/auth/twitter/callback"),
+		twitterv2.New(s.Tc.TwitterClientID, s.Tc.TwitterClientSecret, "http://localhost:9002/auth/twitter/callback"),
+	)
+
+	ps := goth.GetProviders()
+	s.Require().NotNil(ps)
+
+	p, err := goth.GetProvider("twitterv2")
+	s.Require().NoError(err)
+	s.Require().NotNil(p)
+
+	req := &http.Request{
+		URL: &url.URL{
+			Scheme:      "",
+			Opaque:      "",
+			User:        nil,
+			Host:        "",
+			Path:        "",
+			RawPath:     "",
+			OmitHost:    false,
+			ForceQuery:  false,
+			RawQuery:    "",
+			Fragment:    "",
+			RawFragment: "",
+		},
+	}
+	q := req.URL.Query()
+	q.Set("provider", "twitterv2")
+	req.URL.RawQuery = q.Encode()
+
+	pn, err := getProviderName(req)
+	s.Require().NoError(err)
+	s.Require().Equal("twitterv2", pn)
+
+}
+func setProviderToContext(req *http.Request, provider string) *http.Request {
+	ctxv := context.WithValue(req.Context(), "provider", provider)
+	return req.WithContext(ctxv)
+}
+func getProviderName(req *http.Request) (string, error) {
+
+	// try to get it from the url param "provider"
+	if p := req.URL.Query().Get("provider"); p != "" {
+		return p, nil
+	}
+
+	// try to get it from the url param ":provider"
+	if p := req.URL.Query().Get(":provider"); p != "" {
+		return p, nil
+	}
+
+	// try to get it from the context's value of "provider" key
+	if p, ok := mux.Vars(req)["provider"]; ok {
+		return p, nil
+	}
+
+	//  try to get it from the go-context's value of "provider" key
+	if p, ok := req.Context().Value("provider").(string); ok {
+		return p, nil
+	}
+
+	return "", fmt.Errorf("could not find provider name")
 }
 
 func (s *TwitterTestSuite) TestOauth() {

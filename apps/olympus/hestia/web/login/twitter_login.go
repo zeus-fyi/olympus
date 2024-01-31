@@ -1,7 +1,6 @@
 package hestia_login
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -9,22 +8,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type ProviderIndex struct {
-	Providers    []string
-	ProvidersMap map[string]string
-}
-
-var Providers = ProviderIndex{
-	Providers:    []string{},
-	ProvidersMap: make(map[string]string),
-}
-
 func CallbackHandler(c echo.Context) error {
 	// Complete the authentication process
 	providerName := c.Param("provider")
-	fmt.Println("providerName", providerName)
-
-	c.Set("provider", providerName)
+	if providerName == "twitter" {
+		providerName = "twitterv2"
+	}
+	q := c.Request().URL.Query()
+	q.Set("provider", providerName)
+	c.Request().URL.RawQuery = q.Encode()
 	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
 	if err != nil {
 		log.Err(err).Interface("provider", providerName).Msg("CallbackHandler: gothic.CompleteUserAuth")

@@ -537,6 +537,7 @@ const (
 	LiteGroupTables        = 25
 	StandardGroupTables    = 50
 	PerformanceGroupTables = 250
+	EnterpriseGroupTables  = 500
 )
 
 func (t *TableUsageAndUserSettings) CheckEndpointLimits() error {

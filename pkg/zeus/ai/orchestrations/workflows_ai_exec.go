@@ -43,11 +43,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		logger.Error("failed to set query handler", "Error", err)
 		return err
 	}
-
-	err = timer.SleepUntil(ctx, wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start, workflow.GetSignalChannel(ctx, SignalType))
-	if err != nil {
-		logger.Error("failed to sleep until", "Error", err)
-		return err
+	if !wfExecParams.WorkflowExecTimekeepingParams.RunWindow.IsCycleStepped {
+		err = timer.SleepUntil(ctx, wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start, workflow.GetSignalChannel(ctx, SignalType))
+		if err != nil {
+			logger.Error("failed to sleep until", "Error", err)
+			return err
+		}
 	}
 	//startCtx := workflow.WithActivityOptions(ctx, ao)
 	//err = workflow.ExecuteActivity(startCtx, "UpdateAndMarkOrchestrationActive", oj).Get(startCtx, nil)
@@ -55,7 +56,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 	//	logger.Error("failed to UpdateAndMarkOrchestrationActive", "Error", err)
 	//	return err
 	//}
-
 	for i := 1; i < wfExecParams.WorkflowExecTimekeepingParams.RunCycles+1; i++ {
 		startTime := wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start.Add(time.Duration(i) * wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 		if time.Now().Before(startTime) && !wfExecParams.WorkflowExecTimekeepingParams.RunWindow.IsCycleStepped {

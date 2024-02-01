@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -96,6 +97,16 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			IsCycleStepped: isCycleStepped,
 			UnixStartTime:  w.UnixStartTime,
 			UnixEndTime:    endTime,
+		}
+		for wfi, _ := range w.Workflows {
+			if w.Workflows[wfi].WorkflowTemplateStrID != "" {
+				wid, werr := strconv.Atoi(w.Workflows[wfi].WorkflowTemplateStrID)
+				if werr != nil {
+					log.Err(werr).Msg("failed to parse int")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
+				w.Workflows[wfi].WorkflowTemplateID = wid
+			}
 		}
 		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, &window, w.Workflows)
 		if rerr != nil {

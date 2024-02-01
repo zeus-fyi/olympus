@@ -295,18 +295,12 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		RequestHeaders:  r.Headers,
 	}
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup))
-	if err == nil && ps != nil {
-		if err == nil {
-			err = fmt.Errorf("failed to get mockingbird secrets")
-		}
+	if ps != nil && ps.ApiKey != "" {
+		req.Bearer = ps.ApiKey
+	} else if err != nil {
 		log.Err(err).Msg("ApiCallRequestTask: failed to get mockingbird secrets")
-		if ps != nil && ps.ApiKey != "" {
-			req.Bearer = ps.ApiKey
-		}
-	} else {
-		err = nil
+		return nil, err
 	}
-
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {
 		log.Err(rrerr).Msg("ApiCallRequestTask: failed to request")

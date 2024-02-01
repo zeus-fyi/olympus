@@ -64,6 +64,9 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			continue
 		}
 		for _, tap := range taps {
+			if tap.ApprovalID == 0 {
+				continue
+			}
 			switch ta.TriggerAction {
 			case apiApproval:
 				var echoReqs []echo.Map

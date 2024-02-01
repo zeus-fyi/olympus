@@ -287,7 +287,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	var bearer string
 
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup))
-	if ps != nil && ps.ApiKey != "" {
+	if ps != nil && ps.BearerToken != "" {
 		bearer = ps.BearerToken
 	} else if err != nil {
 		log.Err(err).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get mockingbird secrets")

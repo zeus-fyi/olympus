@@ -172,7 +172,8 @@ func (s *TwitterTestSuite) TestOauth() {
 		SecretKey:     s.Tc.AwsSecretKeySecretManager,
 	}
 	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, s.Ou, "twitter")
+
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, s.Ou, "api-twitter-bookmarks")
 	s.Require().NoError(err)
 	s.Require().NotNil(ps)
 

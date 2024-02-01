@@ -284,6 +284,16 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if retInst.WebFilters.EndpointREST != nil {
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 	}
+	var bearer string
+
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup))
+	if ps != nil && ps.ApiKey != "" {
+		bearer = ps.BearerToken
+	} else if err != nil {
+		log.Err(err).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get mockingbird secrets")
+		return nil, err
+	}
+
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             r.RouteInfo.RoutePath,
@@ -292,18 +302,12 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		ExtRoutePath:    routeExt,
 		Payload:         r.Payload,
 		PayloadTypeREST: restMethod,
+		Bearer:          bearer,
 		RequestHeaders:  r.Headers,
-	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup))
-	if ps != nil && ps.ApiKey != "" {
-		req.Bearer = ps.ApiKey
-	} else if err != nil {
-		log.Err(err).Msg("ApiCallRequestTask: failed to get mockingbird secrets")
-		return nil, err
 	}
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {
-		log.Err(rrerr).Msg("ApiCallRequestTask: failed to request")
+		log.Err(rrerr).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
 		return nil, rrerr
 	}
 	wr := hera_search.WebResponse{

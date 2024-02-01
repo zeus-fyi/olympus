@@ -30,9 +30,8 @@ func (t *LoginTestSuite) TestLogin() {
 		ClientSecret: t.Tc.TwitterClientSecret,
 		Scopes:       []string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:   authorizeURL,
-			TokenURL:  tokenURL,
-			AuthStyle: oauth2.AuthStyleInParams,
+			AuthURL:  authorizeURL,
+			TokenURL: tokenURL,
 		},
 	}
 	TwitterOAuthConfig = conf

@@ -7,6 +7,7 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -54,13 +55,14 @@ func GenerateAccessToken(code string, verifier string) (*oauth2.Token, error) {
 func TwitterCallbackHandler(c echo.Context) error {
 	log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
 
+	code := c.QueryParam("code")
+	log.Info().Msgf("TwitterCallbackHandler: code=%s", code)
 	token, err := FetchToken(c.QueryParam("code"), verifier)
 	//token, err := GenerateAccessToken(c.QueryParam("code"), verifier)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
 		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
 	}
-
 	return c.JSON(http.StatusOK, token)
 }
 
@@ -112,6 +114,7 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 		"code_verifier": []string{codeVerifier},
 	}
 
+	fmt.Println(values)
 	// If the client_secret is not empty, include it in the request
 	if TwitterOAuthConfig.ClientSecret != "" {
 		values.Set("client_secret", TwitterOAuthConfig.ClientSecret)
@@ -120,6 +123,7 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 	// Create a request to send to the token endpoint
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, TwitterOAuthConfig.Endpoint.TokenURL, strings.NewReader(values.Encode()))
 	if err != nil {
+		log.Err(err).Msg("oauth2: cannot create request")
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -134,6 +138,7 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 
 	// Check if the response status code indicates success
 	if resp.StatusCode != http.StatusOK {
+		log.Warn().Interface("resp.Body", resp.Body).Msg("oauth2: server response indicates failure")
 		return nil, errors.New("oauth2: server response indicates failure")
 	}
 

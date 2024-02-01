@@ -59,7 +59,7 @@ func (t *LoginTestSuite) TestFetchToken() {
 	}
 	TwitterOAuthConfig = conf
 
-	to, err := FetchToken("bjZFdERlckJOX3I4WlMyWm1wZlZxU1RFc1JhWml1Q1VzQkMzd2RTSHVuckRoOjE3MDY3NjM2OTEwOTg6MTowOmFjOjE", "uvpjg4pN0ZphNPdsKUZahPCtfMnkGblvhT0M_Srp_-VZnTBAxXAPQ0ZynGRMAZfRTsIXpkTp1l9c7sI0c8FhA0q52efN0RM7DBUCMSSXz1y1-LkQ4LMi7f-jm_aFz7DzgtOfm1lcG_mKoXwPH4ss9j45RSfndb27JFjwDcy3Y2Y")
+	to, err := FetchToken("N1ctek9XbGpkZWs2aW5vSmV5Z2ZxdzR0Qm4wcEVleDQwVWhwWUozT2RMTWp4OjE3MDY3NjM5NTc2ODk6MTowOmFjOjE", "_S_An_a_VEh3atLl7hfAaiYtTm4IZIXqF_aY5P3yJi8tICGmNaO2mXei-uqqhdWvyTCm2PeBp8OoiEWQq7jCELoSsefhnU0c4fKh_3tu_ZFqOSan9FTxN9Qc_LXW0H3gs3kp9KgFG2J8ZrICNfzqVCoXJ4OM0_rVOt14XxcCA7Y")
 	t.Require().NoError(err)
 	t.Require().NotNil(to)
 }

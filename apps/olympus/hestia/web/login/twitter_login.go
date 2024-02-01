@@ -57,7 +57,7 @@ func TwitterCallbackHandler(c echo.Context) error {
 	code := c.QueryParam("code")
 	log.Info().Msgf("TwitterCallbackHandler: code=%s", code)
 	//token, err := GenerateAccessToken(code, verifier)
-	token, err := FetchToken(c.QueryParam("code"), verifier)
+	token, err := FetchToken(code, verifier)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
 		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")

@@ -2,7 +2,9 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -54,6 +56,11 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+
+	if w.WorkflowName == "" || len(w.Models) == 0 {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+
 	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to check if user has billing method")
@@ -92,6 +99,15 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				if evm, tok := w.EvalTasksMap[m.TaskID]; tok {
 					for k, v := range evm {
 						if v {
+							mappedEval := w.EvalsMap[k]
+							if mappedEval.EvalStrID != nil && *mappedEval.EvalStrID != "" {
+								eid, serr := strconv.Atoi(*mappedEval.EvalStrID)
+								if serr != nil {
+									log.Err(serr).Msg("failed to parse int")
+									return c.JSON(http.StatusBadRequest, nil)
+								}
+								mappedEval.EvalID = aws.Int(eid)
+							}
 							agt.EvalFns = append(agt.EvalFns, w.EvalsMap[k])
 						}
 					}
@@ -111,6 +127,15 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 								if evm, tok := w.EvalTasksMap[at]; tok {
 									for ke, ve := range evm {
 										if ve {
+											mappedEval := w.EvalsMap[ke]
+											if mappedEval.EvalStrID != nil && *mappedEval.EvalStrID != "" {
+												eid, serr := strconv.Atoi(*mappedEval.EvalStrID)
+												if serr != nil {
+													log.Err(serr).Msg("failed to parse int")
+													return c.JSON(http.StatusBadRequest, nil)
+												}
+												mappedEval.EvalID = aws.Int(eid)
+											}
 											agt.EvalFns = append(agt.EvalFns, w.EvalsMap[ke])
 										}
 									}

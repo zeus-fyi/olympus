@@ -867,7 +867,7 @@ function WorkflowEngineBuilder(props: any) {
                 evalsMap: evalMap,
                 evalTasksMap: workflowBuilderEvalsTaskMap
             }
-            console.log(payload, 'payload')
+            // console.log(payload, 'payload')
             setIsLoading(true)
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
             const statusCode = response.status

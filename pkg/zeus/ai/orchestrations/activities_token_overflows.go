@@ -127,7 +127,6 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		compressedSearchStr = hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
 	} else {
 		compressedSearchStr = hera_search.FormatSearchResultsV3(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
-
 	}
 	model := pr.PromptReductionSearchResults.InSearchGroup.Model
 	needsReduction, tokenEstimate, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)

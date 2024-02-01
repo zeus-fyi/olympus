@@ -238,23 +238,25 @@ func GetStringEvalComparisonResult(operator string, actual, expected string) boo
 	case "length-eq":
 		expectedLen := len(expected)
 		comparedLengthLimit, err := strconv.Atoi(expected)
-		if err != nil {
+		if err == nil {
 			expectedLen = comparedLengthLimit
 		}
-		return len(actual) == expectedLen
+		actualLen := len(actual)
+		return actualLen == expectedLen
 	case "length-less-than":
 		expectedLen := len(expected)
 		comparedLengthLimit, err := strconv.Atoi(expected)
-		if err != nil {
+		if err == nil {
 			expectedLen = comparedLengthLimit
 		}
-		if len(actual) < expectedLen {
+		actualLen := len(actual)
+		if actualLen < expectedLen {
 			return true
 		}
 	case "length-less-than-eq":
 		expectedLen := len(expected)
 		comparedLengthLimit, err := strconv.Atoi(expected)
-		if err != nil {
+		if err == nil {
 			expectedLen = comparedLengthLimit
 		}
 		if len(actual) <= expectedLen {
@@ -263,7 +265,7 @@ func GetStringEvalComparisonResult(operator string, actual, expected string) boo
 	case "length-greater-than":
 		expectedLen := len(expected)
 		comparedLengthLimit, err := strconv.Atoi(expected)
-		if err != nil {
+		if err == nil {
 			expectedLen = comparedLengthLimit
 		}
 		if len(actual) > expectedLen {
@@ -272,7 +274,7 @@ func GetStringEvalComparisonResult(operator string, actual, expected string) boo
 	case "length-greater-than-eq":
 		expectedLen := len(expected)
 		comparedLengthLimit, err := strconv.Atoi(expected)
-		if err != nil {
+		if err == nil {
 			expectedLen = comparedLengthLimit
 		}
 		if len(actual) >= expectedLen {

@@ -58,6 +58,7 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		if w.UnixStartTime == 0 {
 			w.UnixStartTime = int(time.Now().Unix())
 		}
+		isCycleStepped := false
 		endTime := 0
 		switch w.DurationUnit {
 		case "minutes", "minute":
@@ -88,10 +89,13 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 				w.Duration = -1 * w.Duration
 			}
 			endTime = w.UnixStartTime + int(weeks.Seconds())*w.Duration
+		case "cycles":
+			isCycleStepped = true
 		}
 		window := artemis_orchestrations.Window{
-			UnixStartTime: w.UnixStartTime,
-			UnixEndTime:   endTime,
+			IsCycleStepped: isCycleStepped,
+			UnixStartTime:  w.UnixStartTime,
+			UnixEndTime:    endTime,
 		}
 		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, &window, w.Workflows)
 		if rerr != nil {

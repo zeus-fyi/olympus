@@ -22,17 +22,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			MaximumAttempts:    25,
 		},
 	}
-	timer := UpdatableTimer{}
-	err := workflow.SetQueryHandler(ctx, QueryType, func() (time.Time, error) {
-		return timer.GetWakeUpTime(), nil
-	})
-	if err != nil {
-		logger.Error("failed to set query handler", "Error", err)
-		return err
-	}
+
 	ojCtx := workflow.WithActivityOptions(ctx, ao)
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, wfExecParams.WorkflowTemplate.WorkflowGroup, wfExecParams.WorkflowTemplate.WorkflowName)
-	err = workflow.ExecuteActivity(ojCtx, z.UpsertAiOrchestration, ou, wfID, wfExecParams).Get(ojCtx, &oj.OrchestrationID)
+	err := workflow.ExecuteActivity(ojCtx, z.UpsertAiOrchestration, ou, wfID, wfExecParams).Get(ojCtx, &oj.OrchestrationID)
 	if err != nil {
 		logger.Error("failed to UpsertAiOrchestration", "Error", err)
 		return err
@@ -41,21 +34,31 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		logger.Error("failed to UpsertAiOrchestration", "Error", err)
 		return err
 	}
+
+	timer := UpdatableTimer{}
+	err = workflow.SetQueryHandler(ctx, QueryType, func() (time.Time, error) {
+		return timer.GetWakeUpTime(), nil
+	})
+	if err != nil {
+		logger.Error("failed to set query handler", "Error", err)
+		return err
+	}
+
 	err = timer.SleepUntil(ctx, wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start, workflow.GetSignalChannel(ctx, SignalType))
 	if err != nil {
 		logger.Error("failed to sleep until", "Error", err)
 		return err
 	}
-	startCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(startCtx, "UpdateAndMarkOrchestrationActive", oj).Get(startCtx, nil)
-	if err != nil {
-		logger.Error("failed to UpdateAndMarkOrchestrationActive", "Error", err)
-		return err
-	}
+	//startCtx := workflow.WithActivityOptions(ctx, ao)
+	//err = workflow.ExecuteActivity(startCtx, "UpdateAndMarkOrchestrationActive", oj).Get(startCtx, nil)
+	//if err != nil {
+	//	logger.Error("failed to UpdateAndMarkOrchestrationActive", "Error", err)
+	//	return err
+	//}
 
 	for i := 1; i < wfExecParams.WorkflowExecTimekeepingParams.RunCycles+1; i++ {
 		startTime := wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start.Add(time.Duration(i) * wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
-		if time.Now().Before(startTime) {
+		if time.Now().Before(startTime) && !wfExecParams.WorkflowExecTimekeepingParams.RunWindow.IsCycleStepped {
 			err = workflow.Sleep(ctx, startTime.Sub(time.Now()))
 			if err != nil {
 				logger.Error("failed to sleep", "Error", err)

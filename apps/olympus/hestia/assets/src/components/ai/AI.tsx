@@ -1001,6 +1001,8 @@ function AiWorkflowsDashboardContent(props: any) {
                                     <Typography variant="body2" color="text.secondary">
                                         Press Start to schedule a workflow that will run the analysis on the time intervals you've defined. It will
                                         process the data that gets generated from your search query, and then aggregate the results into over a rolling window.
+                                        Using the time unit of cycles will run the workflow without waiting for the next time interval to start, only until
+                                        the previous cycle has completed. This is useful for running workflows that are not time dependent.
                                     </Typography>
                                 </Box>
                                     <Stack direction="row" spacing={2} sx={{ ml: 2, mr: 2, mt: 4, mb: 2 }}>

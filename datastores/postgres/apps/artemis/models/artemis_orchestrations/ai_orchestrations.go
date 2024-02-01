@@ -48,10 +48,11 @@ type CycleCountTaskRelative struct {
 }
 
 type Window struct {
-	Start         time.Time `json:"start,omitempty"`
-	End           time.Time `json:"end,omitempty"`
-	UnixStartTime int       `json:"unixStartTime,omitempty"`
-	UnixEndTime   int       `json:"unixEndTime,omitempty"`
+	IsCycleStepped bool      `json:"isCycleStepped,omitempty"`
+	Start          time.Time `json:"start,omitempty"`
+	End            time.Time `json:"end,omitempty"`
+	UnixStartTime  int       `json:"unixStartTime,omitempty"`
+	UnixEndTime    int       `json:"unixEndTime,omitempty"`
 }
 
 func (ti *Window) IsWindowEmpty() bool {

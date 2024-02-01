@@ -62,6 +62,10 @@ func (a *SecretsRequest) CreateOrUpdateSecret(c echo.Context, isDelete bool) err
 		log.Info().Msgf("Hestia: CreateValidatorServiceRequest: Unexpected Error: %s", err.Error())
 		return c.JSON(http.StatusBadRequest, nil)
 	}
+	a.Name = strings.TrimSpace(a.Name)
+	a.Key = strings.TrimSpace(a.Key)
+	a.Value = strings.TrimSpace(a.Value)
+
 	ctx := context.Background()
 	exists := artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.DoesSecretExist(ctx, aws_secrets.FormatSecret(ou.OrgID))
 	if exists {

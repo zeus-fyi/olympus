@@ -113,8 +113,9 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-		for _, v := range resp {
-			err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, v)
+		for ri, _ := range resp {
+			resp[ri].WorkflowExecTimekeepingParams.RunWindow.IsCycleStepped = isCycleStepped
+			err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")
 				return c.JSON(http.StatusInternalServerError, nil)

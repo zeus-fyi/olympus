@@ -15,6 +15,7 @@ on:
       - .github/workflows/zeus.yml
     branches:
       - main
+      - ai-triggers
 
 # Configure a trust relationship on your Depot project for your git repository so you can use OIDC token auth between GHA and your Depot project.
 permissions:

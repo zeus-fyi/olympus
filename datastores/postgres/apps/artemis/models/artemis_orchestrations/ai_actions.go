@@ -275,6 +275,10 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 			log.Err(err).Msg("failed to scan trigger action")
 			return nil, err
 		}
+		if len(triggerAction.EvalTriggerActions) > 0 {
+			triggerAction.EvalTriggerAction = triggerAction.EvalTriggerActions[0]
+		}
+
 		for ri, _ := range triggerAction.TriggerRetrievals {
 			b := triggerAction.TriggerRetrievals[ri].Instructions
 			if b != nil {

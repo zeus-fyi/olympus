@@ -109,7 +109,7 @@ func Hestia() {
 		authorizeURL := "https://api.twitter.com/oauth2/authorize"
 		tokenURL := "https://api.twitter.com/2/oauth2/token"
 		conf := &oauth2.Config{
-			RedirectURL:  "https://hestia.zeus.fyi/auth/twitter/callback",
+			RedirectURL:  "https://hestia.zeus.fyi/twitter/callback",
 			ClientID:     sw.TwitterMbClientID,
 			ClientSecret: sw.TwitterMbClientSecret,
 			Scopes:       []string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},

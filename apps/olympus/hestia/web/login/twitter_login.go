@@ -18,7 +18,7 @@ var TwitterOAuthConfig = &oauth2.Config{
 		AuthURL:  "https://twitter.com/i/oauth2/authorize",
 		TokenURL: "https://api.twitter.com/2/oauth2/token",
 	},
-	RedirectURL: "http://localhost:9002/twitter/callback",
+	RedirectURL: "https://hestia.zeus.fyi/twitter/callback",
 }
 
 func CallbackHandler(c echo.Context) error {

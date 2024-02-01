@@ -45,7 +45,8 @@ func CallbackHandler(c echo.Context) error {
 func TwitterCallbackHandler(c echo.Context) error {
 	log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
 	code := c.QueryParam("code")
-	verifier, found := ch.Get(state)
+	stateNonce := c.QueryParam("state")
+	verifier, found := ch.Get(stateNonce)
 	if !found {
 		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")
 		return c.JSON(http.StatusInternalServerError, "Failed to retrieve verifier")

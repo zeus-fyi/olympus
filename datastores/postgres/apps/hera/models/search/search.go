@@ -93,12 +93,12 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 		return sg.BodyPrompt
 	}
 	if len(sg.ApiResponseResults) > 0 {
-		return SearchResultSliceToString(sg.ApiResponseResults)
+		return FormatApiSearchResultSliceToString(sg.ApiResponseResults)
 	}
 	return FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
 }
 
-func SearchResultSliceToString(results []SearchResult) string {
+func FormatApiSearchResultSliceToString(results []SearchResult) string {
 	var sb strings.Builder
 
 	for _, result := range results {

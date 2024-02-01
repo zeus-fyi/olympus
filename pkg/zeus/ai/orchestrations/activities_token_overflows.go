@@ -118,7 +118,13 @@ func TruncateSearchResults(ctx context.Context, pr *PromptReduction) error {
 
 func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	marginBuffer := validateMarginBufferLimits(pr.MarginBuffer)
-	compressedSearchStr := hera_search.FormatSearchResultsV3(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
+	var compressedSearchStr string
+	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
+		compressedSearchStr = hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
+	} else {
+		compressedSearchStr = hera_search.FormatSearchResultsV3(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
+
+	}
 	model := pr.PromptReductionSearchResults.InSearchGroup.Model
 	needsReduction, tokenEstimate, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)
 	if err != nil {

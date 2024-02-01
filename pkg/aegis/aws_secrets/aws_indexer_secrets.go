@@ -116,6 +116,9 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 			if strings.HasSuffix(mkeyName, "access-token-public") {
 				op.AccessTokenPublic = svItem.Value
 			}
+			if strings.HasSuffix(mkeyName, platform) {
+				op.BearerToken = svItem.Value
+			}
 		}
 	}
 	return op, nil
@@ -133,6 +136,8 @@ func MockingBirdPlatformNames(platform string) map[string]string {
 		fmt.Sprintf("%s-client-id", platform):           "mockingbird",
 		fmt.Sprintf("%s-access-token-secret", platform): "mockingbird",
 		fmt.Sprintf("%s-access-token-public", platform): "mockingbird",
+		fmt.Sprintf("%s-access-token-public", platform): "mockingbird",
+		fmt.Sprintf("%s", platform):                     "mockingbird",
 	}
 }
 
@@ -148,4 +153,5 @@ type OAuth2PlatformSecret struct {
 	ApiKey            string `json:"apiKey,omitempty"`
 	AccessTokenPublic string `json:"accessTokenPublic,omitempty"`
 	AccessTokenSecret string `json:"accessTokenSecret,omitempty"`
+	BearerToken       string `json:"bearerToken,omitempty"`
 }

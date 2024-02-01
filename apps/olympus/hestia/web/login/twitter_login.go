@@ -17,21 +17,14 @@ func CallbackHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Set("provider", providerName)
 	c.Request().URL.RawQuery = q.Encode()
-
-	key := "provider"
-	err := gothic.StoreInSession(key, providerName, c.Request(), c.Response())
-	if err != nil {
-		log.Err(err).Msg("CallbackHandler: gothic.StoreInSession")
-		return c.String(http.StatusInternalServerError, err.Error())
+	if gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request()); err == nil {
+		// User is authenticated, return JSON
+		return c.JSON(http.StatusOK, gothUser)
+	} else {
+		// Begin a new authentication process
+		gothic.BeginAuthHandler(c.Response().Writer, c.Request())
+		return nil
 	}
-
-	user, err := CompleteUserAuth(c)
-	if err != nil {
-		log.Err(err).Interface("user", user).Msg("CallbackHandler: gothic.CompleteUserAuth")
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	// Return user's data as JSON
-	return c.JSON(http.StatusOK, user)
 }
 
 func LogoutHandler(c echo.Context) error {
@@ -44,11 +37,12 @@ func LogoutHandler(c echo.Context) error {
 func AuthHandler(c echo.Context) error {
 	log.Info().Msg("AuthHandler")
 	// Try to complete the user authentication
-	if gothUser, err := CompleteUserAuth(c); err == nil {
+	if gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request()); err == nil {
 		// User is authenticated, return JSON
 		return c.JSON(http.StatusOK, gothUser)
 	} else {
 		// Begin a new authentication process
-		return BeginAuthHandler(c)
+		gothic.BeginAuthHandler(c.Response().Writer, c.Request())
+		return nil
 	}
 }

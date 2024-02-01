@@ -45,6 +45,7 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		Model:    taskInst.AnalysisModel,
 		Messages: []openai.ChatCompletionMessage{},
 	}
+
 	content := hera_search.FormatSearchResultsV2(sr)
 	if len(content) > 0 {
 		systemMessage := openai.ChatCompletionMessage{

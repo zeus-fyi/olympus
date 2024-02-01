@@ -378,7 +378,15 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		if result.Value != "" {
 			parts = append(parts, escapeString(result.Value))
 		}
-
+		if result.WebResponse.WebFilters != nil && result.WebResponse.Body != nil {
+			bodyString, err := json.Marshal(result.WebResponse.Body)
+			if err != nil {
+				log.Err(err).Msg("FormatSearchResultsV2: Error marshalling web response body")
+				// Handle error, maybe log it or use a default error message in place of the body
+				continue // or handle it differently
+			}
+			parts = append(parts, escapeString(string(bodyString)))
+		}
 		// Join the parts with " | " and add a newline at the end
 		line := strings.Join(parts, " | ") + "\n"
 		builder.WriteString(line)

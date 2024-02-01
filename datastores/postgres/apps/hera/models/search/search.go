@@ -89,10 +89,33 @@ func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
 }
 
 func (sg *SearchResultGroup) GetPromptBody() string {
-	if len(sg.SearchResults) == 0 {
+	if len(sg.SearchResults) == 0 || len(sg.ApiResponseResults) == 0 {
 		return sg.BodyPrompt
 	}
+	if len(sg.ApiResponseResults) > 0 {
+		return SearchResultSliceToString(sg.ApiResponseResults)
+	}
 	return FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
+}
+
+func SearchResultSliceToString(results []SearchResult) string {
+	var sb strings.Builder
+
+	for _, result := range results {
+		if result.WebResponse.Body == nil {
+			continue
+		}
+		bodyString, err := json.Marshal(result.WebResponse.Body)
+		if err != nil {
+			// Handle error, maybe log it or use a default error message in place of the body
+			continue // or handle it differently
+		}
+
+		sb.WriteString(string(bodyString))
+		sb.WriteString("\n") // Add a newline after each result's body
+	}
+
+	return sb.String()
 }
 
 func FormatSearchResultsV4(filteredMap map[int]*SearchResult, results []SearchResult) string {

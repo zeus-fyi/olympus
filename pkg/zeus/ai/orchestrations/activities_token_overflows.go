@@ -58,6 +58,8 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 	if pr == nil {
 		return nil, nil
 	}
+	log.Info().Interface("pr", pr).Msg("TokenOverflowReduction")
+
 	if pr.DataInAnalysisAggregation != nil && len(pr.DataInAnalysisAggregation) > 0 {
 		crs, err := artemis_orchestrations.GetRawMessagesFromAiWorkflowAnalysisResults(pr.DataInAnalysisAggregation)
 		if err != nil {
@@ -79,6 +81,9 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowString")
 		return nil, err
 	}
+
+	log.Info().Interface("pr", pr).Msg("TokenOverflowReductioDone")
+
 	return pr, nil
 }
 

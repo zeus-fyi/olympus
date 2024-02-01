@@ -190,8 +190,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						sg.FilteredSearchResults = aiResp.FilteredSearchResults
 					}
 				default:
+					inGroup := sg.SearchResults
+					if len(sg.ApiResponseResults) > 0 {
+						inGroup = sg.ApiResponseResults
+					}
+
 					analysisCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, sg.SearchResults).Get(analysisCtx, &aiResp)
+					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, inGroup).Get(analysisCtx, &aiResp)
 					if err != nil {
 						logger.Error("failed to run analysis", "Error", err)
 						return nil, err

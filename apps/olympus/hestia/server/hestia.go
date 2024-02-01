@@ -109,7 +109,7 @@ func Hestia() {
 		}
 		goth.UseProviders(
 			//twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
-			twitterv2.New(sw.TwitterMbClientID, sw.TwitterMbClientSecret, "http://localhost:9002/auth/twitterv2/callback"),
+			twitterv2.New(sw.TwitterMbClientID, sw.TwitterMbClientSecret, "https://hestia.zeus.fyi/auth/twitter/callback"),
 		)
 
 		maxAge := 86400 * 30 // 30 days

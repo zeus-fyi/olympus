@@ -120,6 +120,7 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 		values.Set("client_secret", TwitterOAuthConfig.ClientSecret)
 	}
 
+	log.Info().Msgf("FetchToken: values=%v", values)
 	// Create a request to send to the token endpoint
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, TwitterOAuthConfig.Endpoint.TokenURL, strings.NewReader(values.Encode()))
 	if err != nil {

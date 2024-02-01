@@ -40,7 +40,7 @@ export function RetrievalsRow(props: { row: Retrieval, index: number, handleClic
                         color="primary"
                     />
                 </TableCell>
-                <TableCell align="left">{row.retrievalID? row.retrievalID : 0}</TableCell>
+                <TableCell align="left">{row.retrievalStrID? row.retrievalStrID : ''}</TableCell>
                 <TableCell align="left">{row.retrievalGroup}</TableCell>
                 <TableCell align="left">{row.retrievalName}</TableCell>
                 <TableCell align="left">

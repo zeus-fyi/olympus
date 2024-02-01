@@ -40,7 +40,6 @@ export interface WebFilters {
 }
 
 export interface Retrieval {
-    retrievalID?: number;
     retrievalStrID?: string;
     retrievalName: string;
     retrievalGroup: string;

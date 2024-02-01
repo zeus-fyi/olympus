@@ -405,7 +405,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     };
     const handleRemoveRetrievalFromWorkflow = async (event: any, retrievalRemove: Retrieval) => {
-        dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalID !== retrievalRemove.retrievalID)));
+        dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalStrID !== retrievalRemove.retrievalStrID)));
     }
     const handleRemoveRetrievalFromTrigger = async (event: any, retrievalRemove: Retrieval) => {
         dispatch(setTriggerAction({
@@ -413,7 +413,6 @@ function WorkflowEngineBuilder(props: any) {
             triggerRetrievals: action.triggerRetrievals.filter((ret: Retrieval) => ret.retrievalStrID !== retrievalRemove.retrievalStrID)
         }))
     }
-
     const handleRemoveTriggerFromEvalFn = async (event: any, triggerRemove: TriggerAction) => {
         const newTriggerFunctions = evalFn.triggerFunctions.filter((trigger: TriggerAction) => trigger.triggerStrID !== triggerRemove.triggerStrID);
         dispatch(setEvalFn({
@@ -1181,7 +1180,7 @@ function WorkflowEngineBuilder(props: any) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
         } else if (newValue === 5) {
-            setRetrievalsApi(retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction.retrievalPlatform === 'web'));
+            setRetrievalsApi(retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction.retrievalPlatform === 'web' ||  ret.retrievalItemInstruction.retrievalPlatform === 'api'));
             dispatch(setSelectedWorkflows([]));
             setSelected({});
         } else if (newValue === 6) {
@@ -1634,7 +1633,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     onChange={(event) => setSelectedRetrievalForAnalysis(event.target.value)} // Update the state on change
                                                                 >
                                                                     {retrieval && retrievalStages.map((ret, subIndex) => (
-                                                                        <MenuItem key={subIndex} value={ret.retrievalID || 0}>{ret.retrievalName}</MenuItem>
+                                                                        <MenuItem key={subIndex} value={ret.retrievalName}>{ret.retrievalName}</MenuItem>
                                                                     ))}
                                                                 </Select>
                                                             </FormControl>

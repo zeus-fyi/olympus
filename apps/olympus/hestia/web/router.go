@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/markbates/goth/gothic"
@@ -27,7 +28,7 @@ var Store = sessions.NewCookieStore([]byte(""))
 
 func WebRoutes(e *echo.Echo) *echo.Echo {
 	gothic.Store = Store
-	e.Use(sessionMiddleware(Store))
+	e.Use(session.Middleware(Store))
 	e.POST("/login", hestia_login.LoginHandler)
 	e.POST("/discord/login", hestia_login.DiscordLoginHandler)
 	e.GET("/reddit/callback", hestia_login.RedditLoginHandler)
@@ -47,26 +48,6 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	InitV1Routes(e)
 	InitV1InternalRoutes(e)
 	return e
-}
-
-func sessionMiddleware(store *sessions.CookieStore) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			session, _ := store.Get(c.Request(), "_gothic_session")
-			c.Set("_gothic_session", session)
-			err := next(c)
-			if err != nil {
-				log.Err(err).Msg("sessionMiddleware: session.Save")
-				return err
-			}
-			err = session.Save(c.Request(), c.Response().Writer)
-			if err != nil {
-				log.Err(err).Msg("sessionMiddleware: session.Save")
-				return err
-			}
-			return err
-		}
-	}
 }
 
 const (

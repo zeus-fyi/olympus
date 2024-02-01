@@ -127,6 +127,7 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	log.Printf("Handling Twitter FetchToken: Method=%s, URL=%s", req.Method, req.URL)
 
 	// Make the request using the http.Client
 	client := &http.Client{}

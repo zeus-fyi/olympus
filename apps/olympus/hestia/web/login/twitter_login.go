@@ -9,7 +9,6 @@ import (
 )
 
 func CallbackHandler(c echo.Context) error {
-	// Complete the authentication process
 	providerName := c.Param("provider")
 	if providerName == "twitter" {
 		providerName = "twitterv2"
@@ -17,19 +16,23 @@ func CallbackHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Set("provider", providerName)
 	c.Request().URL.RawQuery = q.Encode()
+
+	// Attempt to complete the user authentication process
 	if gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request()); err == nil {
 		// User is authenticated, return JSON
-		log.Info().Interface("gothUser", gothUser).Msg("CallbackHandler")
+		log.Info().Interface("gothUser", gothUser).Msg("CallbackHandler: User authenticated")
 		return c.JSON(http.StatusOK, gothUser)
+	} else {
+		// Log detailed error if authentication fails
+		log.Error().Err(err).Msg("CallbackHandler: Authentication failed")
+		url, authErr := gothic.GetAuthURL(c.Response().Writer, c.Request())
+		if authErr != nil {
+			log.Err(authErr).Interface("url", url).Msg("CallbackHandlerError: Failed to get auth URL")
+			return c.JSON(http.StatusInternalServerError, authErr.Error())
+		}
+		log.Info().Interface("url", url).Msg("CallbackHandler: Redirecting to auth URL")
+		return c.Redirect(http.StatusTemporaryRedirect, url)
 	}
-	url, err := gothic.GetAuthURL(c.Response().Writer, c.Request())
-	if err != nil {
-		log.Err(err).Interface("url", url).Msg("CallbackHandlerError")
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	log.Info().Interface("url", url).Msg("CallbackHandlerGetAuthURL")
-	return c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func LogoutHandler(c echo.Context) error {

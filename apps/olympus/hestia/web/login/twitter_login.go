@@ -41,7 +41,6 @@ func AuthHandler(c echo.Context) error {
 		return c.JSON(http.StatusOK, gothUser)
 	} else {
 		// Begin a new authentication process
-		gothic.BeginAuthHandler(c.Response().Writer, c.Request())
-		return nil
+		return BeginAuthHandler(c)
 	}
 }

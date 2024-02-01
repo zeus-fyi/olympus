@@ -17,13 +17,14 @@ func CallbackHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Set("provider", providerName)
 	c.Request().URL.RawQuery = q.Encode()
+	gothic.BeginAuthHandler(c.Response().Writer, c.Request())
 	if gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request()); err == nil {
 		// User is authenticated, return JSON
+		log.Info().Interface("gothUser", gothUser).Msg("CallbackHandler")
 		return c.JSON(http.StatusOK, gothUser)
 	} else {
 		// Begin a new authentication process
-		gothic.BeginAuthHandler(c.Response().Writer, c.Request())
-		return nil
+		return c.JSON(http.StatusUnauthorized, nil)
 	}
 }
 
@@ -36,9 +37,14 @@ func LogoutHandler(c echo.Context) error {
 
 func AuthHandler(c echo.Context) error {
 	log.Info().Msg("AuthHandler")
+	providerName := c.Param("provider")
+	if providerName == "twitter" {
+		providerName = "twitterv2"
+	}
 	// Try to complete the user authentication
 	if gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request()); err == nil {
 		// User is authenticated, return JSON
+		log.Info().Interface("gothUser", gothUser).Msg("CallbackHandler")
 		return c.JSON(http.StatusOK, gothUser)
 	} else {
 		// Begin a new authentication process

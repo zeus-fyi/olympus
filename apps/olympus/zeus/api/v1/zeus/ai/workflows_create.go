@@ -108,7 +108,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 								}
 								mappedEval.EvalID = aws.Int(eid)
 							}
-							agt.EvalFns = append(agt.EvalFns, w.EvalsMap[k])
+							agt.EvalFns = append(agt.EvalFns, mappedEval)
 						}
 					}
 				}
@@ -136,7 +136,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 												}
 												mappedEval.EvalID = aws.Int(eid)
 											}
-											agt.EvalFns = append(agt.EvalFns, w.EvalsMap[ke])
+											agt.EvalFns = append(agt.EvalFns, mappedEval)
 										}
 									}
 								}
@@ -167,7 +167,16 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				if evm, tok := w.EvalTasksMap[m.TaskID]; tok {
 					for ke, ve := range evm {
 						if ve {
-							at.EvalFns = append(at.EvalFns, w.EvalsMap[ke])
+							mappedEval := w.EvalsMap[ke]
+							if mappedEval.EvalStrID != nil && *mappedEval.EvalStrID != "" {
+								eid, serr := strconv.Atoi(*mappedEval.EvalStrID)
+								if serr != nil {
+									log.Err(serr).Msg("failed to parse int")
+									return c.JSON(http.StatusBadRequest, nil)
+								}
+								mappedEval.EvalID = aws.Int(eid)
+							}
+							at.EvalFns = append(at.EvalFns, mappedEval)
 						}
 					}
 				}

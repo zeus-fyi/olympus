@@ -28,10 +28,10 @@ func CallbackHandler(c echo.Context) error {
 		log.Err(err).Interface("retrievedValue", retrievedValue).Msg("CallbackHandler: gothic.GetFromSession")
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	log.Info().Interface("provider", providerName).Msg("CallbackHandler: Set-Cookie")
+	log.Info().Interface("provider", retrievedValue).Msg("CallbackHandler: Set-Cookie")
 	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
 	if err != nil {
-		log.Err(err).Interface("provider", providerName).Msg("CallbackHandler: gothic.CompleteUserAuth")
+		log.Err(err).Interface("user", user).Msg("CallbackHandler: gothic.CompleteUserAuth")
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	// Return user's data as JSON

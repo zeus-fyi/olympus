@@ -56,8 +56,8 @@ func TwitterCallbackHandler(c echo.Context) error {
 
 	code := c.QueryParam("code")
 	log.Info().Msgf("TwitterCallbackHandler: code=%s", code)
-	token, err := FetchToken(c.QueryParam("code"), verifier)
-	//token, err := GenerateAccessToken(c.QueryParam("code"), verifier)
+	//token, err := FetchToken(c.QueryParam("code"), verifier)
+	token, err := GenerateAccessToken(code, verifier)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
 		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
@@ -130,10 +130,9 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 	credentials := b64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
 
 	// The "Authorization" header value should be "Basic " followed by the encoded credentials
-	authorizationHeader := "Basic " + credentials
 	// Make the request using the Resty client
 	resp, err := client.R().
-		SetHeader("Authorization", authorizationHeader).
+		SetBasicAuth("", credentials).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetBody(values.Encode()).
 		SetResult(&token).

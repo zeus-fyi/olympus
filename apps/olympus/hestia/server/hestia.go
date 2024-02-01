@@ -4,13 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/twitter"
-	"github.com/markbates/goth/providers/twitterv2"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,6 +38,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	artemis_client "github.com/zeus-fyi/zeus/pkg/artemis/client"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -107,21 +105,20 @@ func Hestia() {
 		if len(sw.TwitterMbClientID) <= 0 || len(sw.TwitterMbClientSecret) <= 0 {
 			log.Warn().Msg("Hestia: TwitterClientID or TwitterClientSecret is empty")
 		}
-		goth.UseProviders(
-			//twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
-			twitterv2.New(sw.TwitterMbClientID, sw.TwitterMbClientSecret, "https://hestia.zeus.fyi/auth/twitter/callback"),
-		)
 
-		maxAge := 86400 * 30 // 30 days
-		storeV := sessions.NewCookieStore([]byte(sw.HestiaSessionKey))
-		storeV.MaxAge(maxAge)
-		storeV.Options.Path = "/"
-		storeV.Options.Domain = "zeus.fyi"
-		storeV.Options.HttpOnly = true // HttpOnly should always be enabled
-		storeV.Options.Secure = true
-		hestia_web_router.Store = storeV
-		gothic.Store = storeV
-
+		authorizeURL := "https://api.twitter.com/oauth/authorize"
+		tokenURL := "https://api.twitter.com/oauth/access_token"
+		conf := &oauth2.Config{
+			RedirectURL:  "https://hestia.zeus.fyi/auth/twitter/callback",
+			ClientID:     sw.TwitterMbClientID,
+			ClientSecret: sw.TwitterMbClientSecret,
+			Scopes:       []string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  authorizeURL,
+				TokenURL: tokenURL,
+			},
+		}
+		hestia_login.TwitterOAuthConfig = conf
 		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword
 		if len(hestia_quiknode_v1_routes.QuickNodePassword) <= 0 {

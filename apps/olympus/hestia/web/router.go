@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
@@ -23,10 +21,7 @@ import (
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 )
 
-var Store = sessions.NewCookieStore([]byte("your-secret-key"))
-
 func WebRoutes(e *echo.Echo) *echo.Echo {
-	e.Use(session.Middleware(Store))
 
 	e.POST("/login", hestia_login.LoginHandler)
 	e.POST("/discord/login", hestia_login.DiscordLoginHandler)
@@ -39,8 +34,8 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.GET("/v1/users/services", hestia_login.UsersServicesRequestHandler)
 
 	e.GET("/auth/:provider/callback", hestia_login.CallbackHandler)
-	e.GET("/logout/:provider", hestia_login.LogoutHandler)
-	e.GET("/auth/:provider", hestia_login.AuthHandler)
+	//e.GET("/logout/:provider", hestia_login.LogoutHandler)
+	//e.GET("/auth/:provider", hestia_login.AuthHandler)
 
 	e.GET("/verify/email/:token", hestia_signup.VerifyEmailHandler)
 	hestia_quicknode_dashboard.InitQuickNodeDashboardRoutes(e)

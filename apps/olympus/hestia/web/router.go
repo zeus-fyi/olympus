@@ -33,6 +33,8 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.GET("/logout/:token", Logout)
 	e.GET("/v1/users/services", hestia_login.UsersServicesRequestHandler)
 
+	e.GET("/twitter/callback", hestia_login.TwitterCallbackHandler)
+
 	e.GET("/auth/:provider/callback", hestia_login.CallbackHandler)
 	//e.GET("/logout/:provider", hestia_login.LogoutHandler)
 	//e.GET("/auth/:provider", hestia_login.AuthHandler)

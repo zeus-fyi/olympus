@@ -106,7 +106,7 @@ func Hestia() {
 			log.Warn().Msg("Hestia: TwitterClientID or TwitterClientSecret is empty")
 		}
 
-		authorizeURL := "https://api.twitter.com/oauth2/authorize"
+		authorizeURL := "https://twitter.com/i/oauth2/authorize"
 		tokenURL := "https://api.twitter.com/2/oauth2/token"
 		conf := &oauth2.Config{
 			RedirectURL:  "https://hestia.zeus.fyi/twitter/callback",

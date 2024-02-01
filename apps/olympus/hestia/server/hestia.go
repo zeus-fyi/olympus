@@ -119,6 +119,7 @@ func Hestia() {
 		storeV.Options.Domain = "zeus.fyi"
 		storeV.Options.HttpOnly = true // HttpOnly should always be enabled
 		storeV.Options.Secure = true
+		hestia_web_router.Store = storeV
 		gothic.Store = storeV
 
 		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT

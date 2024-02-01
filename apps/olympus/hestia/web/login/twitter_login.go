@@ -28,6 +28,7 @@ func CallbackHandler(c echo.Context) error {
 		log.Error().Err(err).Msg("CallbackHandler: Authentication failed")
 		url, authErr := gothic.GetAuthURL(c.Response().Writer, c.Request())
 		if authErr != nil {
+			log.Info().Interface("url", url).Msg("CallbackHandler: Redirecting to auth URL")
 			errorMessage := fmt.Sprintf("Authentication failed: %s", authErr.Error())
 			log.Err(authErr).Interface("url", url).Msg("CallbackHandlerError: Failed to get auth URL")
 			// Consider redirecting to an error page or passing the error message to the frontend

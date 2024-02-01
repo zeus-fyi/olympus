@@ -226,8 +226,8 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 				 COALESCE(JSONB_AGG(
 						JSONB_BUILD_OBJECT(
 							'evalID', ce.eval_id,
-							'triggerID', ce.trigger_id,
 							'evalStrID', ce.eval_id::text,
+							'triggerID', ce.trigger_id,
 							'triggerStrID', ce.trigger_id::text,
 							'evalTriggerState', ce.eval_trigger_state,
 							'evalResultsTriggerOn', ce.eval_results_trigger_on

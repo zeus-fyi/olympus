@@ -17,6 +17,14 @@ func CallbackHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Set("provider", providerName)
 	c.Request().URL.RawQuery = q.Encode()
+
+	key := "provider"
+	err := gothic.StoreInSession(key, providerName, c.Request(), c.Response())
+	if err != nil {
+		log.Err(err).Msg("CallbackHandler: gothic.StoreInSession")
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
 	user, err := CompleteUserAuth(c)
 	if err != nil {
 		log.Err(err).Interface("user", user).Msg("CallbackHandler: gothic.CompleteUserAuth")

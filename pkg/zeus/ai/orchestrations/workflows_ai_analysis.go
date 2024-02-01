@@ -101,6 +101,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					InPromptBody:  analysisInst.AnalysisPrompt,
 					InSearchGroup: sg,
 				}
+			} else if sg != nil && len(sg.ApiResponseResults) > 0 {
+				pr.PromptReductionSearchResults = &PromptReductionSearchResults{
+					InPromptBody:  analysisInst.AnalysisPrompt,
+					InSearchGroup: sg,
+				}
 			} else {
 				pr.PromptReductionText = &PromptReductionText{
 					InPromptBody: analysisInst.AnalysisPrompt,

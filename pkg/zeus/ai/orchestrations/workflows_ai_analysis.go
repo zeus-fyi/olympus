@@ -196,7 +196,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					if len(sg.ApiResponseResults) > 0 {
 						inGroup = sg.ApiResponseResults
 					}
-
+					tte.Tc = TaskContext{
+						TaskName:       analysisInst.AnalysisTaskName,
+						TaskType:       AnalysisTask,
+						ResponseFormat: analysisInst.AnalysisResponseFormat,
+						Model:          analysisInst.AnalysisModel,
+						TaskID:         analysisInst.AnalysisTaskID,
+					}
 					analysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, inGroup).Get(analysisCtx, &aiResp)
 					if err != nil {
@@ -238,9 +244,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					SearchResultGroup:    sg,
 					TaskToExecute:        tte,
 				}
-				if analysisInst.AggTaskID != nil {
-					ea.EvalFns = analysisInst.AggAnalysisEvalFns
-				}
+				//if analysisInst.AggTaskID != nil {
+				//	ea.EvalFns = analysisInst.AggAnalysisEvalFns
+				//}
 
 				// TODO, run in parallel
 				for _, evalFn := range ea.EvalFns {

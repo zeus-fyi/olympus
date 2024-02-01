@@ -21,14 +21,20 @@ var TwitterOAuthConfig = &oauth2.Config{
 	RedirectURL: "https://hestia.zeus.fyi/twitter/callback",
 }
 
+// this is used to generate the URL to redirect the user to Twitter's OAuth2 login page
+
+var verifier = GenerateCodeVerifier(128)
+
 func CallbackHandler(c echo.Context) error {
 	stateNonce := GenerateNonce()
-	verifier := GenerateCodeVerifier(128)
+	//verifier := GenerateCodeVerifier(128)
 	challengeOpt := oauth2.SetAuthURLParam("code_challenge", PkCEChallengeWithSHA256(verifier))
 	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "s256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
 	return c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
+
+// this is used to generate the access token from the code returned by Twitter's OAuth2 login page
 
 func GenerateAccessToken(code string, verifier string) (*oauth2.Token, error) {
 	ctx := context.Background()
@@ -45,7 +51,7 @@ func TwitterCallbackHandler(c echo.Context) error {
 	token, err := GenerateAccessToken(c.QueryParam("code"), c.QueryParam("verifier"))
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
-		return err
+		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
 	}
 	return c.JSON(http.StatusOK, token)
 }

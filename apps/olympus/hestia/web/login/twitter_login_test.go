@@ -2,11 +2,13 @@ package hestia_login
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hesta_base_test "github.com/zeus-fyi/olympus/hestia/api/test"
+	"golang.org/x/oauth2"
 )
 
 type LoginTestSuite struct {
@@ -18,22 +20,27 @@ var ctx = context.Background()
 func (t *LoginTestSuite) TestLogin() {
 	t.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)
-	//t.E.POST(DemoUsersCreateRoute, CreateDemoUserHandler)
-	//start := make(chan struct{}, 1)
-	//go func() {
-	//	close(start)
-	//	_ = t.E.Start(":9002")
-	//}()
-	//<-start
-	//defer t.E.Shutdown(ctx)
-	//userDemoReq := CreateDemoUserRequest{
-	//	Keyname:   "userDemoKey",
-	//	Metadata:  `{"name": "username"}`,
-	//	ServiceID: create_org_users.EthereumEphemeryServiceID,
-	//}
-	//resp, err := t.PostRequest(ctx, DemoUsersCreateRoute, userDemoReq)
-	//t.Require().Nil(err)
-	//fmt.Println(resp)
+
+	authorizeURL := "https://twitter.com/i/oauth2/authorize"
+	tokenURL := "https://api.twitter.com/2/oauth2/token"
+	conf := &oauth2.Config{
+		RedirectURL:  "https://hestia.zeus.fyi/twitter/callback",
+		ClientID:     t.Tc.TwitterClientID,
+		ClientSecret: t.Tc.TwitterClientSecret,
+		Scopes:       []string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:   authorizeURL,
+			TokenURL:  tokenURL,
+			AuthStyle: oauth2.AuthStyleInParams,
+		},
+	}
+	TwitterOAuthConfig = conf
+	stateNonce := GenerateNonce()
+	verifier := GenerateCodeVerifier(128)
+	challengeOpt := oauth2.SetAuthURLParam("code_challenge", PkCEChallengeWithSHA256(verifier))
+	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "s256")
+	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
+	fmt.Println(redirectURL)
 }
 
 func TestLoginTestSuite(t *testing.T) {

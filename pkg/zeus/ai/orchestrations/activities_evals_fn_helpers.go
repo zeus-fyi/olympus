@@ -235,6 +235,13 @@ func GetStringEvalComparisonResult(operator string, actual, expected string) boo
 		return strings_filter.FilterStringWithOpts(actual, fs)
 	case "equals":
 		return actual == expected
+	case "length-eq":
+		expectedLen := len(expected)
+		comparedLengthLimit, err := strconv.Atoi(expected)
+		if err != nil {
+			expectedLen = comparedLengthLimit
+		}
+		return len(actual) == expectedLen
 	case "length-less-than":
 		expectedLen := len(expected)
 		comparedLengthLimit, err := strconv.Atoi(expected)

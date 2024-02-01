@@ -23,6 +23,11 @@ func CallbackHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	c.Request().Header.Add("Cookie", c.Response().Header().Get("Set-Cookie"))
+	retrievedValue, err := gothic.GetFromSession("provider", c.Request())
+	if err != nil {
+		log.Err(err).Interface("retrievedValue", retrievedValue).Msg("CallbackHandler: gothic.GetFromSession")
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
 	log.Info().Interface("provider", providerName).Msg("CallbackHandler: Set-Cookie")
 	user, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
 	if err != nil {

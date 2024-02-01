@@ -113,13 +113,13 @@ func Hestia() {
 		)
 
 		maxAge := 86400 * 30 // 30 days
-		store := sessions.NewCookieStore([]byte(sw.HestiaSessionKey))
-		store.MaxAge(maxAge)
-		store.Options.Path = "/"
-		store.Options.Domain = "zeus.fyi"
-		store.Options.HttpOnly = true // HttpOnly should always be enabled
-		store.Options.Secure = true
-		gothic.Store = store
+		storeV := sessions.NewCookieStore([]byte(sw.HestiaSessionKey))
+		storeV.MaxAge(maxAge)
+		storeV.Options.Path = "/"
+		storeV.Options.Domain = "zeus.fyi"
+		storeV.Options.HttpOnly = true // HttpOnly should always be enabled
+		storeV.Options.Secure = true
+		gothic.Store = storeV
 
 		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword

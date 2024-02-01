@@ -5,14 +5,12 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	b64 "encoding/base64"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
@@ -23,6 +21,7 @@ var TwitterOAuthConfig = &oauth2.Config{
 		AuthURL:  "https://twitter.com/i/oauth2/authorize",
 		TokenURL: "https://api.twitter.com/2/oauth2/token",
 	},
+	Scopes:      []string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},
 	RedirectURL: "https://hestia.zeus.fyi/twitter/callback",
 }
 
@@ -34,7 +33,7 @@ func CallbackHandler(c echo.Context) error {
 	stateNonce := GenerateNonce()
 	//verifier := GenerateCodeVerifier(128)
 	challengeOpt := oauth2.SetAuthURLParam("code_challenge", PkCEChallengeWithSHA256(verifier))
-	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "s256")
+	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "S256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
 	return c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
@@ -103,50 +102,44 @@ func LogoutHandler(c echo.Context) error {
 	return nil
 }
 func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
-	ctx := context.Background()
 
 	// Prepare the URL values for the POST request body
 	values := url.Values{
-		"code":          []string{code},
-		"grant_type":    []string{"authorization_code"},
-		"redirect_uri":  []string{TwitterOAuthConfig.RedirectURL},
-		"client_id":     []string{TwitterOAuthConfig.ClientID},
-		"code_verifier": []string{codeVerifier},
+		"code":          {code},
+		"grant_type":    {"authorization_code"},
+		"redirect_uri":  {TwitterOAuthConfig.RedirectURL},
+		"client_id":     {TwitterOAuthConfig.ClientID},
+		"code_verifier": {codeVerifier},
 	}
 
-	fmt.Println(values)
 	// If the client_secret is not empty, include it in the request
-	if TwitterOAuthConfig.ClientSecret != "" {
-		values.Set("client_secret", TwitterOAuthConfig.ClientSecret)
-	}
+	//if TwitterOAuthConfig.ClientSecret != "" {
+	//	values.Set("client_secret", TwitterOAuthConfig.ClientSecret)
+	//}
 
-	log.Info().Msgf("FetchToken: values=%v", values)
-	// Create a request to send to the token endpoint
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, TwitterOAuthConfig.Endpoint.TokenURL, strings.NewReader(values.Encode()))
-	if err != nil {
-		log.Err(err).Msg("oauth2: cannot create request")
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	log.Printf("Handling Twitter FetchToken: Method=%s, URL=%s", req.Method, req.URL)
+	// Log the values being sent in the request (ensure this does not log sensitive information in production)
+	fmt.Printf("FetchToken: values=%v\n", values)
 
-	// Make the request using the http.Client
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Check if the response status code indicates success
-	if resp.StatusCode != http.StatusOK {
-		log.Warn().Interface("resp.Body", resp.Body).Msg("oauth2: server response indicates failure")
-		return nil, errors.New("oauth2: server response indicates failure")
-	}
-
-	// Parse the response body to extract the token
+	// Create a Resty client
+	client := resty.New()
 	var token *oauth2.Token
-	err = json.NewDecoder(resp.Body).Decode(&token)
+	clientID := TwitterOAuthConfig.ClientID
+	clientSecret := TwitterOAuthConfig.ClientSecret
+
+	// Encode the client credentials using Base64
+	credentials := b64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
+
+	// The "Authorization" header value should be "Basic " followed by the encoded credentials
+	authorizationHeader := "Basic " + credentials
+	// Make the request using the Resty client
+	resp, err := client.R().
+		SetHeader("Authorization", authorizationHeader).
+		SetHeader("Content-Type", "application/x-www-form-urlencoded").
+		SetBody(values.Encode()).
+		SetResult(&token).
+		Post(TwitterOAuthConfig.Endpoint.TokenURL)
+
+	fmt.Println(resp)
 	if err != nil {
 		return nil, err
 	}

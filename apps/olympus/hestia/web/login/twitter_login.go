@@ -33,6 +33,7 @@ func CallbackHandler(c echo.Context) error {
 	stateNonce := GenerateNonce()
 	verifier := GenerateCodeVerifier(128)
 	codeChallenge := PkCEChallengeWithSHA256(verifier)
+	log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 
 	// Store the verifier using stateNonce as the key
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
@@ -46,6 +47,7 @@ func TwitterCallbackHandler(c echo.Context) error {
 	//log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
 	code := c.QueryParam("code")
 	stateNonce := c.QueryParam("state")
+	log.Info().Str("code", code).Str("state", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 	verifier, found := ch.Get(stateNonce)
 	if !found {
 		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")

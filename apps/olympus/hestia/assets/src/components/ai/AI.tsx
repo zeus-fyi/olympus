@@ -79,7 +79,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const [code, setCode] = useState('');
     const [unixStartTime, setUnixStartTime] = useState(0);
     const [stepSize, setStepSize] = useState(1);
-    const [stepSizeUnit, setStepSizeUnit] = useState('hours');
+    const [stepSizeUnit, setStepSizeUnit] = useState('cycles');
     const retrieval = useSelector((state: RootState) => state.ai.retrieval);
     const [analyzeNext, setAnalyzeNext] = useState(true);
     const [customBasePeriod, setCustomBasePeriod] = useState(false);
@@ -535,7 +535,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             dispatch(setRetrieval(updatedRetrieval));
                                                         }}
                                                     >
-                                                        <MenuItem value="web">Web</MenuItem>
+                                                        {/*<MenuItem value="api">API</MenuItem>*/}
                                                         <MenuItem value="reddit">Reddit</MenuItem>
                                                         <MenuItem value="twitter">Twitter</MenuItem>
                                                         <MenuItem value="discord">Discord</MenuItem>
@@ -545,6 +545,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                             </Box>
 
                                             { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
+                                                retrieval.retrievalItemInstruction.retrievalPlatform !== 'api' &&
                                                 <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                     <TextField
                                                         fullWidth
@@ -565,7 +566,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     />
                                                 </Box>
                                             }
-                                            { retrieval.retrievalItemInstruction.retrievalPlatform === 'web' &&
+                                            { (retrieval.retrievalItemInstruction.retrievalPlatform === 'web' || retrieval.retrievalItemInstruction.retrievalPlatform === 'api') &&
                                                 <div>
                                                     <Typography variant="h6" color="text.secondary">
                                                         Use a Load Balancer group for web data retrieval.
@@ -1000,6 +1001,8 @@ function AiWorkflowsDashboardContent(props: any) {
                                     <Typography variant="body2" color="text.secondary">
                                         Press Start to schedule a workflow that will run the analysis on the time intervals you've defined. It will
                                         process the data that gets generated from your search query, and then aggregate the results into over a rolling window.
+                                        Using the time unit of cycles will run the workflow without waiting for the next time interval to start, only until
+                                        the previous cycle has completed. This is useful for running workflows that are not time dependent.
                                     </Typography>
                                 </Box>
                                     <Stack direction="row" spacing={2} sx={{ ml: 2, mr: 2, mt: 4, mb: 2 }}>
@@ -1024,6 +1027,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     label="Time Unit"
                                                     onChange={(e) => setStepSizeUnit(e.target.value)}
                                                 >
+                                                    <MenuItem value="cycles">Cycles</MenuItem>
                                                     <MenuItem value="minutes">Minutes</MenuItem>
                                                     <MenuItem value="hours">Hours</MenuItem>
                                                     <MenuItem value="days">Days</MenuItem>

@@ -405,7 +405,7 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     };
     const handleRemoveRetrievalFromWorkflow = async (event: any, retrievalRemove: Retrieval) => {
-        dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalID !== retrievalRemove.retrievalID)));
+        dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalStrID !== retrievalRemove.retrievalStrID)));
     }
     const handleRemoveRetrievalFromTrigger = async (event: any, retrievalRemove: Retrieval) => {
         dispatch(setTriggerAction({
@@ -413,7 +413,6 @@ function WorkflowEngineBuilder(props: any) {
             triggerRetrievals: action.triggerRetrievals.filter((ret: Retrieval) => ret.retrievalStrID !== retrievalRemove.retrievalStrID)
         }))
     }
-
     const handleRemoveTriggerFromEvalFn = async (event: any, triggerRemove: TriggerAction) => {
         const newTriggerFunctions = evalFn.triggerFunctions.filter((trigger: TriggerAction) => trigger.triggerStrID !== triggerRemove.triggerStrID);
         dispatch(setEvalFn({
@@ -802,7 +801,7 @@ function WorkflowEngineBuilder(props: any) {
 
     const createOrUpdateWorkflow = async () => {
         try {
-            console.log('createOrUpdateWorkflow', workflowBuilderTaskMap)
+            // console.log('createOrUpdateWorkflow', workflowBuilderTaskMap)
             const allMappedRetrievalIDs: Set<number> = new Set();
             Object.entries(workflowAnalysisRetrievalsMap).forEach(([retrievalID, innerMap])=> {
                 Object.entries(innerMap).forEach(([analysisID, isAdded], subInd) => {
@@ -868,7 +867,7 @@ function WorkflowEngineBuilder(props: any) {
                 evalsMap: evalMap,
                 evalTasksMap: workflowBuilderEvalsTaskMap
             }
-            console.log(payload, 'payload')
+            // console.log(payload, 'payload')
             setIsLoading(true)
             const response = await aiApiGateway.createAiWorkflowRequest(payload);
             const statusCode = response.status
@@ -1181,7 +1180,7 @@ function WorkflowEngineBuilder(props: any) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
         } else if (newValue === 5) {
-            setRetrievalsApi(retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction.retrievalPlatform === 'web'));
+            setRetrievalsApi(retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction.retrievalPlatform === 'web' ||  ret.retrievalItemInstruction.retrievalPlatform === 'api'));
             dispatch(setSelectedWorkflows([]));
             setSelected({});
         } else if (newValue === 6) {
@@ -1634,7 +1633,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     onChange={(event) => setSelectedRetrievalForAnalysis(event.target.value)} // Update the state on change
                                                                 >
                                                                     {retrieval && retrievalStages.map((ret, subIndex) => (
-                                                                        <MenuItem key={subIndex} value={ret.retrievalID || 0}>{ret.retrievalName}</MenuItem>
+                                                                        <MenuItem key={subIndex} value={ret.retrievalName}>{ret.retrievalName}</MenuItem>
                                                                     ))}
                                                                 </Select>
                                                             </FormControl>
@@ -2190,8 +2189,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Analysis Model"
                                                                 onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, model: event.target.value }))}
                                                             >
+                                                                <MenuItem value="gpt-3.5-turbo-0125">gpt-3.5-turbo-0125</MenuItem>
                                                                 <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
                                                                 <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                                <MenuItem value="gpt-4-0125-preview">gpt-4-0125-preview</MenuItem>
                                                             </Select>
                                                         </FormControl>
                                                     </Box>
@@ -2206,6 +2207,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Analysis Model"
                                                                 onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, model: event.target.value }))}
                                                             >
+                                                                <MenuItem value="gpt-3.5-turbo-0125">gpt-3.5-turbo-0125</MenuItem>
                                                                 <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
                                                                 <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
                                                                 <MenuItem value="gpt-4">gpt-4</MenuItem>
@@ -2213,6 +2215,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
                                                                 <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
                                                                 <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                                <MenuItem value="gpt-4-0125-preview">gpt-4-0125-preview</MenuItem>
                                                             </Select>
                                                         </FormControl>
                                                     </Box>
@@ -2333,8 +2336,10 @@ function WorkflowEngineBuilder(props: any) {
                                                             label="Aggregation Model"
                                                             onChange={(event) => handleEditAggregateTaskModel(event)}
                                                         >
+                                                            <MenuItem value="gpt-3.5-turbo-0125">gpt-3.5-turbo-0125</MenuItem>
                                                             <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
                                                             <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                            <MenuItem value="gpt-4-0125-preview">gpt-4-0125-preview</MenuItem>
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
@@ -2349,6 +2354,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 label="Aggregation Model"
                                                                 onChange={(event) => handleEditAggregateTaskModel(event)}
                                                             >
+                                                                <MenuItem value="gpt-3.5-turbo-0125">gpt-3.5-turbo-0125</MenuItem>
                                                                 <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
                                                                 <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
                                                                 <MenuItem value="gpt-4">gpt-4</MenuItem>
@@ -2356,6 +2362,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                 <MenuItem value="gpt-4-32k-0613">gpt-4-32k-0613</MenuItem>
                                                                 <MenuItem value="gpt-4-0613">gpt-4-0613</MenuItem>
                                                                 <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                                <MenuItem value="gpt-4-0125-preview">gpt-4-0125-preview</MenuItem>
                                                             </Select>
                                                         </FormControl>
                                                     </Box>
@@ -2895,7 +2902,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="api">API Approval</MenuItem>
-                                                                    <MenuItem value="social-media-engagement">Social Media Engagement Approval</MenuItem>
+                                                                    {/*<MenuItem value="social-media-engagement">Social Media Engagement Approval</MenuItem>*/}
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
                                                                 </Select>
@@ -3399,8 +3406,10 @@ function WorkflowEngineBuilder(props: any) {
                                                                         evalModel: e.target.value // Update the actionName
                                                                     }))}
                                                                 >
+                                                                    <MenuItem value="gpt-3.5-turbo-0125">gpt-3.5-turbo-0125</MenuItem>
                                                                     <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
                                                                     <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                                                                    <MenuItem value="gpt-4-0125-preview">gpt-4-0125-preview</MenuItem>
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
@@ -4116,8 +4125,6 @@ function WorkflowEngineBuilder(props: any) {
                                                         onChange={(e) => handleEditAggTaskResponseFormat(e)}
                                                     >
                                                         <MenuItem value="text">text</MenuItem>
-                                                        <MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>
-                                                        <MenuItem value="social-media-engagement">social-media-engagement</MenuItem>
                                                         <MenuItem value="json">json</MenuItem>
                                                     </Select>
                                                 </FormControl>

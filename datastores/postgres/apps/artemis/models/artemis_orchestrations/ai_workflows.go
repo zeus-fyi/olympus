@@ -2,7 +2,9 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -120,6 +122,15 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 			if ef.EvalCycleCount < 1 {
 				ef.EvalCycleCount = 1
 			}
+			if ef.EvalStrID != nil && *ef.EvalStrID != "" {
+				eid, eerr := strconv.Atoi(*ef.EvalStrID)
+				if eerr != nil {
+					log.Err(eerr).Msg("failed to parse int")
+					return eerr
+				}
+				ef.EvalID = aws.Int(eid)
+			}
+
 			var taskEvalID int
 			ts := chronos.Chronos{}
 			err = tx.QueryRow(ctx, `INSERT INTO public.ai_workflow_template_eval_task_relationships(task_eval_id, workflow_template_id, task_id, cycle_count, eval_id)

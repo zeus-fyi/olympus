@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -58,6 +59,7 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		if w.UnixStartTime == 0 {
 			w.UnixStartTime = int(time.Now().Unix())
 		}
+		isCycleStepped := false
 		endTime := 0
 		switch w.DurationUnit {
 		case "minutes", "minute":
@@ -88,18 +90,32 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 				w.Duration = -1 * w.Duration
 			}
 			endTime = w.UnixStartTime + int(weeks.Seconds())*w.Duration
+		case "cycles":
+			isCycleStepped = true
 		}
 		window := artemis_orchestrations.Window{
-			UnixStartTime: w.UnixStartTime,
-			UnixEndTime:   endTime,
+			IsCycleStepped: isCycleStepped,
+			UnixStartTime:  w.UnixStartTime,
+			UnixEndTime:    endTime,
+		}
+		for wfi, _ := range w.Workflows {
+			if w.Workflows[wfi].WorkflowTemplateStrID != "" {
+				wid, werr := strconv.Atoi(w.Workflows[wfi].WorkflowTemplateStrID)
+				if werr != nil {
+					log.Err(werr).Msg("failed to parse int")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
+				w.Workflows[wfi].WorkflowTemplateID = wid
+			}
 		}
 		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, &window, w.Workflows)
 		if rerr != nil {
 			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-		for _, v := range resp {
-			err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, v)
+		for ri, _ := range resp {
+			resp[ri].WorkflowExecTimekeepingParams.RunWindow.IsCycleStepped = isCycleStepped
+			err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")
 				return c.JSON(http.StatusInternalServerError, nil)

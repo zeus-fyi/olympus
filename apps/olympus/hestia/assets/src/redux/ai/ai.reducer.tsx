@@ -158,7 +158,7 @@ const initialState: AiState = {
     editAggregateTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
         tokenOverflowStrategy: 'deduce', cycleCount: 1, taskStrID: '', maxTokens: 0, responseFormat: 'text'},
     editRetrieval:  {
-        retrievalID: undefined, // Optional field set to undefined
+        retrievalStrID: undefined, // Optional field set to undefined
         retrievalName: '',
         retrievalGroup: '',
         retrievalItemInstruction: {
@@ -400,8 +400,8 @@ const aiSlice = createSlice({
             state.addedRetrievals = action.payload;
             for (let i = 0; i < state.addedRetrievals.length; i++) {
                 const retrieval  = state.addedRetrievals[i]
-                if (retrieval && retrieval.retrievalID) {
-                    state.retrievalsMap[retrieval.retrievalID] = retrieval;
+                if (retrieval && retrieval.retrievalStrID) {
+                    state.retrievalsMap[retrieval.retrievalStrID] = retrieval;
                 }
             }
         },

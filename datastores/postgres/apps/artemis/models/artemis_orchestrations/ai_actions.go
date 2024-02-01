@@ -226,8 +226,8 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 				 COALESCE(JSONB_AGG(
 						JSONB_BUILD_OBJECT(
 							'evalID', ce.eval_id,
-							'triggerID', ce.trigger_id,
 							'evalStrID', ce.eval_id::text,
+							'triggerID', ce.trigger_id,
 							'triggerStrID', ce.trigger_id::text,
 							'evalTriggerState', ce.eval_trigger_state,
 							'evalResultsTriggerOn', ce.eval_results_trigger_on
@@ -275,6 +275,10 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 			log.Err(err).Msg("failed to scan trigger action")
 			return nil, err
 		}
+		if len(triggerAction.EvalTriggerActions) > 0 && triggerAction.EvalTriggerActions[0].EvalID > 0 {
+			triggerAction.EvalTriggerAction = triggerAction.EvalTriggerActions[0]
+		}
+
 		for ri, _ := range triggerAction.TriggerRetrievals {
 			b := triggerAction.TriggerRetrievals[ri].Instructions
 			if b != nil {

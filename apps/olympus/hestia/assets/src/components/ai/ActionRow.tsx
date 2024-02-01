@@ -21,7 +21,7 @@ export function ActionRow(props: { row: TriggerAction, index: number, handleClic
     const dispatch = useDispatch();
     const handleEditTriggerAction = async (e: any, ta: TriggerAction) => {
         e.preventDefault();
-     console.log(ta)
+     // console.log(ta)
         dispatch(setTriggerAction(ta))
     }
     return (

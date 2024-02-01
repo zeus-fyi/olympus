@@ -17,7 +17,6 @@ func CallbackHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Set("provider", providerName)
 	c.Request().URL.RawQuery = q.Encode()
-	gothic.BeginAuthHandler(c.Response().Writer, c.Request())
 	if gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request()); err == nil {
 		// User is authenticated, return JSON
 		log.Info().Interface("gothUser", gothUser).Msg("CallbackHandler")
@@ -25,11 +24,11 @@ func CallbackHandler(c echo.Context) error {
 	}
 	url, err := gothic.GetAuthURL(c.Response().Writer, c.Request())
 	if err != nil {
-		log.Err(err).Interface("url", url).Msg("CallbackHandler")
-		return err
+		log.Err(err).Interface("url", url).Msg("CallbackHandlerError")
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	log.Info().Interface("url", url).Msg("CallbackHandler")
+	log.Info().Interface("url", url).Msg("CallbackHandlerGetAuthURL")
 	return c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
@@ -41,6 +40,7 @@ func LogoutHandler(c echo.Context) error {
 }
 
 func AuthHandler(c echo.Context) error {
+	log.Info().Msg("AuthHandler")
 	providerName := c.Param("provider")
 	if providerName == "twitter" {
 		providerName = "twitterv2"
@@ -48,7 +48,6 @@ func AuthHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Set("provider", providerName)
 	c.Request().URL.RawQuery = q.Encode()
-	gothic.BeginAuthHandler(c.Response().Writer, c.Request())
 	if gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request()); err == nil {
 		// User is authenticated, return JSON
 		log.Info().Interface("gothUser", gothUser).Msg("CallbackHandler")
@@ -57,9 +56,8 @@ func AuthHandler(c echo.Context) error {
 	url, err := gothic.GetAuthURL(c.Response().Writer, c.Request())
 	if err != nil {
 		log.Err(err).Interface("url", url).Msg("CallbackHandler")
-		return err
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-
 	log.Info().Interface("url", url).Msg("CallbackHandler")
 	return c.Redirect(http.StatusTemporaryRedirect, url)
 }

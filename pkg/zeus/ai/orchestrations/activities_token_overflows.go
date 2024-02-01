@@ -83,7 +83,6 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 	}
 
 	log.Info().Interface("pr", pr).Msg("TokenOverflowReductioDone")
-
 	return pr, nil
 }
 
@@ -125,7 +124,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	marginBuffer := validateMarginBufferLimits(pr.MarginBuffer)
 	var compressedSearchStr string
 	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
-		compressedSearchStr = hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
+		compressedSearchStr = hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
 	} else {
 		compressedSearchStr = hera_search.FormatSearchResultsV3(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
 

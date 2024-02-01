@@ -70,7 +70,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if len(rets) <= 0 {
 					continue
 				}
-				fmt.Println("rets", rets)
 				tte := TaskToExecute{
 					WfID: retWfID,
 					Ou:   ou,
@@ -89,7 +88,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					return nil, err
 				}
 				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] = false
-				if len(sg.SearchResults) == 0 {
+				if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) <= 0 {
 					continue
 				}
 			}

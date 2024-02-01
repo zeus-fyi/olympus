@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
@@ -21,7 +22,10 @@ import (
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 )
 
+var Store = sessions.NewCookieStore([]byte(""))
+
 func WebRoutes(e *echo.Echo) *echo.Echo {
+	e.Use(sessionMiddleware(Store))
 	e.POST("/login", hestia_login.LoginHandler)
 	e.POST("/discord/login", hestia_login.DiscordLoginHandler)
 	e.GET("/reddit/callback", hestia_login.RedditLoginHandler)
@@ -41,6 +45,18 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	InitV1Routes(e)
 	InitV1InternalRoutes(e)
 	return e
+}
+
+func sessionMiddleware(store *sessions.CookieStore) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			session, _ := store.Get(c.Request(), "_gothic_session")
+			c.Set("_gothic_session", session)
+			err := next(c)
+			session.Save(c.Request(), c.Response().Writer)
+			return err
+		}
+	}
 }
 
 const (

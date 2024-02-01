@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/twitter"
 	"github.com/markbates/goth/providers/twitterv2"
 	"github.com/rs/zerolog/log"
@@ -119,7 +118,7 @@ func Hestia() {
 		storeV.Options.Domain = "zeus.fyi"
 		storeV.Options.HttpOnly = true // HttpOnly should always be enabled
 		storeV.Options.Secure = true
-		gothic.Store = storeV
+		hestia_web_router.Store = storeV
 
 		hestia_iris_dashboard.JWTAuthSecret = sw.QuickNodeJWT
 		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword

@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -235,19 +236,39 @@ func GetStringEvalComparisonResult(operator string, actual, expected string) boo
 	case "equals":
 		return actual == expected
 	case "length-less-than":
-		if len(actual) < len(expected) {
+		expectedLen := len(expected)
+		comparedLengthLimit, err := strconv.Atoi(expected)
+		if err != nil {
+			expectedLen = comparedLengthLimit
+		}
+		if len(actual) < expectedLen {
 			return true
 		}
 	case "length-less-than-eq":
-		if len(actual) <= len(expected) {
+		expectedLen := len(expected)
+		comparedLengthLimit, err := strconv.Atoi(expected)
+		if err != nil {
+			expectedLen = comparedLengthLimit
+		}
+		if len(actual) <= expectedLen {
 			return true
 		}
 	case "length-greater-than":
-		if len(actual) > len(expected) {
+		expectedLen := len(expected)
+		comparedLengthLimit, err := strconv.Atoi(expected)
+		if err != nil {
+			expectedLen = comparedLengthLimit
+		}
+		if len(actual) > expectedLen {
 			return true
 		}
 	case "length-greater-than-eq":
-		if len(actual) >= len(expected) {
+		expectedLen := len(expected)
+		comparedLengthLimit, err := strconv.Atoi(expected)
+		if err != nil {
+			expectedLen = comparedLengthLimit
+		}
+		if len(actual) >= expectedLen {
 			return true
 		}
 	}

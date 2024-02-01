@@ -319,7 +319,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if wr.Body != nil {
 		b, jer := json.Marshal(wr.Body)
 		if jer != nil {
-			log.Err(jer).Msg("ApiCallRequestTask: failed to marshal")
+			log.Err(jer).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
 			return nil, jer
 		}
 		value = fmt.Sprintf("%s", b)

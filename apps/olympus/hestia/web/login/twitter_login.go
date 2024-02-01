@@ -35,6 +35,7 @@ func GenerateAccessToken(code string, verifier string) (*oauth2.Token, error) {
 	verifierOpt := oauth2.SetAuthURLParam("code_verifier", verifier)
 	token, err := TwitterOAuthConfig.Exchange(ctx, code, verifierOpt)
 	if err != nil {
+		log.Err(err).Msg("GenerateAccessToken: Failed to exchange code for access token")
 		return nil, err
 	}
 	return token, nil

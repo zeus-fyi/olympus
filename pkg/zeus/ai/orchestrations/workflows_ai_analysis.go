@@ -123,11 +123,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && chunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
 					sg = pr.PromptReductionSearchResults.OutSearchGroups[chunkOffset]
 					sg.Model = analysisInst.AnalysisModel
+					sg.ResponseFormat = analysisInst.AnalysisResponseFormat
 				} else {
 					sg = &hera_search.SearchResultGroup{
-						Model:         analysisInst.AnalysisModel,
-						BodyPrompt:    pr.PromptReductionText.OutPromptChunks[chunkOffset],
-						SearchResults: []hera_search.SearchResult{},
+						Model:          analysisInst.AnalysisModel,
+						ResponseFormat: analysisInst.AnalysisResponseFormat,
+						BodyPrompt:     pr.PromptReductionText.OutPromptChunks[chunkOffset],
+						SearchResults:  []hera_search.SearchResult{},
 					}
 				}
 				wr := &artemis_orchestrations.AIWorkflowAnalysisResult{

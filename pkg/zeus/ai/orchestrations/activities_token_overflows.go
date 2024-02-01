@@ -12,6 +12,7 @@ import (
 
 const (
 	modelGpt4              = "gpt-4"
+	modelGpt4JanPreview    = "gpt-4-0125-preview"
 	modelGpt4TurboPreview  = "gpt-4-1106-preview"
 	modelGpt4Vision        = "gpt-4-vision-preview"
 	modelGpt432k           = "gpt-4-32k"
@@ -24,6 +25,7 @@ const (
 	modelGpt35Turbo0613    = "gpt-3.5-turbo-0613"
 	modelGpt35Turbo16k0613 = "gpt-3.5-turbo-16k-0613"
 	modelGpt35Turbo0301    = "gpt-3.5-turbo-0301"
+	modelGpt35JanPreview   = "gpt-3.5-turbo-0125"
 )
 
 type PromptReduction struct {
@@ -122,13 +124,13 @@ func TruncateSearchResults(ctx context.Context, pr *PromptReduction) error {
 
 func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	marginBuffer := validateMarginBufferLimits(pr.MarginBuffer)
+	model := pr.Model
 	var compressedSearchStr string
 	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
 		compressedSearchStr = hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
 	} else {
 		compressedSearchStr = hera_search.FormatSearchResultsV3(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
 	}
-	model := pr.PromptReductionSearchResults.InSearchGroup.Model
 	needsReduction, tokenEstimate, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)
 	if err != nil {
 		log.Err(err).Interface("tokenEstimate", tokenEstimate).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
@@ -359,6 +361,6 @@ func GetModelTokenContextLimit(m string) int {
 	case modelGpt35Turbo, modelGpt35TurboInstr, modelGpt35Turbo0613, modelGpt35Turbo0301:
 		return 4096
 	default:
-		return 0 // or some default value if model not listed
+		return 4096 // or some default value if model not listed
 	}
 }

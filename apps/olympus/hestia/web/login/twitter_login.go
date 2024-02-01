@@ -1,7 +1,6 @@
 package hestia_login
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	b64 "encoding/base64"
@@ -9,9 +8,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 )
@@ -26,43 +27,77 @@ var TwitterOAuthConfig = &oauth2.Config{
 }
 
 // this is used to generate the URL to redirect the user to Twitter's OAuth2 login page
-
-var verifier = GenerateCodeVerifier(128)
+var ch = cache.New(5*time.Minute, 10*time.Minute)
 
 func CallbackHandler(c echo.Context) error {
 	stateNonce := GenerateNonce()
-	//verifier := GenerateCodeVerifier(128)
-	challengeOpt := oauth2.SetAuthURLParam("code_challenge", PkCEChallengeWithSHA256(verifier))
+	verifier := GenerateCodeVerifier(128)
+	codeChallenge := PkCEChallengeWithSHA256(verifier)
+
+	// Store the verifier using stateNonce as the key
+	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
+	challengeOpt := oauth2.SetAuthURLParam("code_challenge", codeChallenge)
 	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "S256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
 	return c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
-// this is used to generate the access token from the code returned by Twitter's OAuth2 login page
-
-func GenerateAccessToken(code string, verifier string) (*oauth2.Token, error) {
-	ctx := context.Background()
-	verifierOpt := oauth2.SetAuthURLParam("code_verifier", verifier)
-	token, err := TwitterOAuthConfig.Exchange(ctx, code, verifierOpt)
-	if err != nil {
-		log.Err(err).Msg("GenerateAccessToken: Failed to exchange code for access token")
-		return nil, err
-	}
-	return token, nil
-}
-
 func TwitterCallbackHandler(c echo.Context) error {
 	log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
-
 	code := c.QueryParam("code")
-	log.Info().Msgf("TwitterCallbackHandler: code=%s", code)
-	//token, err := GenerateAccessToken(code, verifier)
-	token, err := FetchToken(code, verifier)
+	verifier, found := ch.Get(state)
+	if !found {
+		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")
+		return c.JSON(http.StatusInternalServerError, "Failed to retrieve verifier")
+	}
+	verifierStr, ok := verifier.(string)
+	if !ok {
+		log.Err(fmt.Errorf("TwitterCallbackHandler: Failed to cast verifier to string")).Msg("TwitterCallbackHandler: Failed to cast verifier to string")
+		return c.JSON(http.StatusInternalServerError, "Failed to cast verifier to string")
+	}
+	token, err := FetchToken(code, verifierStr)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
 		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
 	}
 	return c.JSON(http.StatusOK, token)
+}
+
+func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
+	// Prepare the URL values for the POST request body
+	values := url.Values{
+		"code":          {code},
+		"grant_type":    {"authorization_code"},
+		"redirect_uri":  {TwitterOAuthConfig.RedirectURL},
+		"client_id":     {TwitterOAuthConfig.ClientID},
+		"code_verifier": {codeVerifier},
+	}
+
+	// Create a Resty client
+	client := resty.New()
+	var token *oauth2.Token
+	clientID := TwitterOAuthConfig.ClientID
+	clientSecret := TwitterOAuthConfig.ClientSecret
+	encodedCredentials := b64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
+
+	// Encode the client credentials using Base64
+	authorizationHeaderValue := "Basic " + encodedCredentials
+
+	// The "Authorization" header value should be "Basic " followed by the encoded credentials
+	// Make the request using the Resty client
+	resp, err := client.R().
+		SetHeader("Authorization", authorizationHeaderValue). // Correctly set the Authorization header
+		SetHeader("Content-Type", "application/x-www-form-urlencoded").
+		SetBody(values.Encode()).
+		SetResult(&token).
+		Post(TwitterOAuthConfig.Endpoint.TokenURL)
+
+	fmt.Println(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
 }
 
 // PkCEChallengeWithSHA256 base64-URL-encoded SHA256 hash of verifier, per rfc 7636
@@ -100,44 +135,4 @@ func randStringBytes(n int) string {
 
 func LogoutHandler(c echo.Context) error {
 	return nil
-}
-func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
-
-	// Prepare the URL values for the POST request body
-	values := url.Values{
-		"code":          {code},
-		"grant_type":    {"authorization_code"},
-		"redirect_uri":  {TwitterOAuthConfig.RedirectURL},
-		"client_id":     {TwitterOAuthConfig.ClientID},
-		"code_verifier": {codeVerifier},
-	}
-
-	// Log the values being sent in the request (ensure this does not log sensitive information in production)
-	fmt.Printf("FetchToken: values=%v\n", values)
-
-	// Create a Resty client
-	client := resty.New()
-	var token *oauth2.Token
-	clientID := TwitterOAuthConfig.ClientID
-	clientSecret := TwitterOAuthConfig.ClientSecret
-	encodedCredentials := b64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
-
-	// Encode the client credentials using Base64
-	authorizationHeaderValue := "Basic " + encodedCredentials
-
-	// The "Authorization" header value should be "Basic " followed by the encoded credentials
-	// Make the request using the Resty client
-	resp, err := client.R().
-		SetHeader("Authorization", authorizationHeaderValue). // Correctly set the Authorization header
-		SetHeader("Content-Type", "application/x-www-form-urlencoded").
-		SetBody(values.Encode()).
-		SetResult(&token).
-		Post(TwitterOAuthConfig.Endpoint.TokenURL)
-
-	fmt.Println(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return token, nil
 }

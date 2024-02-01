@@ -43,7 +43,7 @@ func CallbackHandler(c echo.Context) error {
 }
 
 func TwitterCallbackHandler(c echo.Context) error {
-	log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
+	//log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
 	code := c.QueryParam("code")
 	stateNonce := c.QueryParam("state")
 	verifier, found := ch.Get(stateNonce)
@@ -93,12 +93,16 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 		SetResult(&token).
 		Post(TwitterOAuthConfig.Endpoint.TokenURL)
 
-	fmt.Println(resp)
 	if err != nil {
+		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("FetchToken: Failed to fetch token")
 		return nil, err
 	}
 
 	return token, nil
+}
+
+func LogoutHandler(c echo.Context) error {
+	return nil
 }
 
 // PkCEChallengeWithSHA256 base64-URL-encoded SHA256 hash of verifier, per rfc 7636
@@ -132,8 +136,4 @@ func randStringBytes(n int) string {
 		return ""
 	}
 	return b64.RawURLEncoding.EncodeToString(b[:])
-}
-
-func LogoutHandler(c echo.Context) error {
-	return nil
 }

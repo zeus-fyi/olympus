@@ -21,6 +21,7 @@ func (t *LoginTestSuite) TestLogin() {
 	t.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)
 
+	// https://hestia.zeus.fyi/auth/twitter/callback
 	authorizeURL := "https://twitter.com/i/oauth2/authorize"
 	tokenURL := "https://api.twitter.com/2/oauth2/token"
 	conf := &oauth2.Config{

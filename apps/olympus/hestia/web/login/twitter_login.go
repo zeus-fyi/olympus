@@ -5,8 +5,12 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	b64 "encoding/base64"
+	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -50,11 +54,13 @@ func GenerateAccessToken(code string, verifier string) (*oauth2.Token, error) {
 func TwitterCallbackHandler(c echo.Context) error {
 	log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
 
-	token, err := GenerateAccessToken(c.QueryParam("code"), verifier)
+	token, err := FetchToken(c.QueryParam("code"), verifier)
+	//token, err := GenerateAccessToken(c.QueryParam("code"), verifier)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
 		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
 	}
+
 	return c.JSON(http.StatusOK, token)
 }
 
@@ -93,4 +99,50 @@ func randStringBytes(n int) string {
 
 func LogoutHandler(c echo.Context) error {
 	return nil
+}
+func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
+	ctx := context.Background()
+
+	// Prepare the URL values for the POST request body
+	values := url.Values{
+		"code":          []string{code},
+		"grant_type":    []string{"authorization_code"},
+		"redirect_uri":  []string{TwitterOAuthConfig.RedirectURL},
+		"client_id":     []string{TwitterOAuthConfig.ClientID},
+		"code_verifier": []string{codeVerifier},
+	}
+
+	// If the client_secret is not empty, include it in the request
+	if TwitterOAuthConfig.ClientSecret != "" {
+		values.Set("client_secret", TwitterOAuthConfig.ClientSecret)
+	}
+
+	// Create a request to send to the token endpoint
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, TwitterOAuthConfig.Endpoint.TokenURL, strings.NewReader(values.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Make the request using the http.Client
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Check if the response status code indicates success
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("oauth2: server response indicates failure")
+	}
+
+	// Parse the response body to extract the token
+	var token *oauth2.Token
+	err = json.NewDecoder(resp.Body).Decode(&token)
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
 }

@@ -56,8 +56,8 @@ func TwitterCallbackHandler(c echo.Context) error {
 
 	code := c.QueryParam("code")
 	log.Info().Msgf("TwitterCallbackHandler: code=%s", code)
-	//token, err := FetchToken(c.QueryParam("code"), verifier)
-	token, err := GenerateAccessToken(code, verifier)
+	//token, err := GenerateAccessToken(code, verifier)
+	token, err := FetchToken(c.QueryParam("code"), verifier)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
 		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
@@ -112,11 +112,6 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 		"code_verifier": {codeVerifier},
 	}
 
-	// If the client_secret is not empty, include it in the request
-	//if TwitterOAuthConfig.ClientSecret != "" {
-	//	values.Set("client_secret", TwitterOAuthConfig.ClientSecret)
-	//}
-
 	// Log the values being sent in the request (ensure this does not log sensitive information in production)
 	fmt.Printf("FetchToken: values=%v\n", values)
 
@@ -125,14 +120,15 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 	var token *oauth2.Token
 	clientID := TwitterOAuthConfig.ClientID
 	clientSecret := TwitterOAuthConfig.ClientSecret
+	encodedCredentials := b64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
 
 	// Encode the client credentials using Base64
-	credentials := b64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
+	authorizationHeaderValue := "Basic " + encodedCredentials
 
 	// The "Authorization" header value should be "Basic " followed by the encoded credentials
 	// Make the request using the Resty client
 	resp, err := client.R().
-		SetBasicAuth("", credentials).
+		SetHeader("Authorization", authorizationHeaderValue). // Correctly set the Authorization header
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetBody(values.Encode()).
 		SetResult(&token).

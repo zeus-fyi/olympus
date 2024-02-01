@@ -27,7 +27,9 @@ const (
 	pagerDutyRoutingKey  = "secrets/pagerduty.routing.key.txt"
 	gcpAuthJson          = "secrets/zeusfyi-23264580e41d.json"
 
-	gmailAuthJson = "secrets/zgmail.json"
+	twitterClientID     = "secrets/twitter.client.id.txt"
+	twitterClientSecret = "secrets/twitter.client.secret.txt"
+	gmailAuthJson       = "secrets/zgmail.json"
 
 	eksAccessKey = "secrets/aws.eks.access.key.txt"
 	eksSecretKey = "secrets/aws.eks.secret.key.txt"
@@ -52,6 +54,8 @@ const (
 
 	redditSecretsJson  = "secrets/reddit.api.keys.json"
 	discordSecretsJson = "secrets/discord.auth.json"
+
+	hestiaSessionKey = "secrets/hestia.session.key.txt"
 )
 
 type SecretsWrapper struct {
@@ -59,6 +63,8 @@ type SecretsWrapper struct {
 	TwitterConsumerSecretAPIKey string
 	TwitterAccessToken          string
 	TwitterAccessTokenSecret    string
+	TwitterMbClientID           string
+	TwitterMbClientSecret       string
 
 	OvhAppKey              string
 	OvhSecretKey           string
@@ -80,6 +86,8 @@ type SecretsWrapper struct {
 	GoogClientID     string
 	GoogClientSecret string
 	GoogGtagSecret   string
+
+	HestiaSessionKey string
 
 	QuickNodePassword string
 	QuickNodeBearer   string

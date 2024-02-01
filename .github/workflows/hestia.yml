@@ -12,6 +12,7 @@ on:
       - .github/workflows/hestia.yml
     branches:
       - main
+      - ai-triggers
 
 permissions:
   contents: read

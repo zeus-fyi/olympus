@@ -1,10 +1,20 @@
 package hera_twitter
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
 
+	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/twitter"
+	"github.com/markbates/goth/providers/twitterv2"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -47,7 +57,114 @@ import (
 //	if err != nil {
 //		panic(err)
 //	}
+
+func generateSecretKey(length int) (string, error) {
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
+func (s *TwitterTestSuite) TestProvider() {
+	goth.UseProviders(
+		twitter.New(s.Tc.TwitterClientID, s.Tc.TwitterClientSecret, "http://localhost:9002/auth/twitter/callback"),
+		twitterv2.New(s.Tc.TwitterClientID, s.Tc.TwitterClientSecret, "http://localhost:9002/auth/twitter/callback"),
+	)
+
+	ps := goth.GetProviders()
+	s.Require().NotNil(ps)
+
+	p, err := goth.GetProvider("twitterv2")
+	s.Require().NoError(err)
+	s.Require().NotNil(p)
+	//cookie := &http.Cookie{
+	//	Name:     aegis_sessions.SessionIDNickname,
+	//	Value:    sessionID,
+	//	HttpOnly: true,
+	//	Secure:   true,
+	//	Domain:   "zeus.fyi",
+	//	SameSite: http.SameSiteNoneMode,
+	//	Expires:  time.Now().Add(24 * time.Hour),
+	//	Path:     "/",
+	//}
+
+	//s.Assert().NotNil(cookie)
+	req := &http.Request{
+		URL: &url.URL{},
+	}
+	q := req.URL.Query()
+	q.Set("provider", "twitterv2")
+	req.URL.RawQuery = q.Encode()
+
+	pn, err := getProviderName(req)
+	s.Require().NoError(err)
+	s.Require().Equal("twitterv2", pn)
+
+	req = httptest.NewRequest("GET", "http://localhost:9002/auth/twitter?provider=twitterv2", nil)
+
+	sessionID := "191cc05e23d2b941ad16555fad5a403a2464987e134549f01b099b2d081c8e05"
+	// Configure the cookie store for session management
+
+	maxAge := 86400 * 30 // 30 days
+	storeV := sessions.NewCookieStore([]byte(sessionID))
+	storeV.MaxAge(maxAge)
+	storeV.Options.Path = "/"
+	storeV.Options.Domain = "zeus.fyi"
+	storeV.Options.HttpOnly = true // HttpOnly should always be enabled
+	storeV.Options.Secure = true
+
+	gothic.Store = storeV
+
+	// Prepare the request and response recorder
+	req, _ = http.NewRequest("GET", "/", nil)
+	res := httptest.NewRecorder()
+
+	// Set a value in the session
+	key := "provider"
+	value := "twitterv2" // Example provider name
+	err = gothic.StoreInSession(key, value, req, res)
+	s.NoError(err)
+
+	// Now, simulate the client sending the response cookies as request cookies
+	req.Header.Add("Cookie", res.Header().Get("Set-Cookie"))
+
+	// Attempt to retrieve session value
+	retrievedValue, err := gothic.GetFromSession(key, req)
+	s.NoError(err)
+	s.NotNil(retrievedValue)
+	s.Equal(value, retrievedValue, "Retrieved session value should match the stored value")
+}
+
+func getProviderName(req *http.Request) (string, error) {
+
+	// try to get it from the url param "provider"
+	if p := req.URL.Query().Get("provider"); p != "" {
+		return p, nil
+	}
+
+	// try to get it from the url param ":provider"
+	if p := req.URL.Query().Get(":provider"); p != "" {
+		return p, nil
+	}
+
+	// try to get it from the context's value of "provider" key
+	if p, ok := mux.Vars(req)["provider"]; ok {
+		return p, nil
+	}
+
+	//  try to get it from the go-context's value of "provider" key
+	if p, ok := req.Context().Value("provider").(string); ok {
+		return p, nil
+	}
+
+	return "", fmt.Errorf("could not find provider name")
+}
+
 func (s *TwitterTestSuite) TestOauth() {
+	fmt.Println(generateSecretKey(32))
+
 	awsAuthCfg := aegis_aws_auth.AuthAWS{
 		AccountNumber: "",
 		Region:        "us-west-1",

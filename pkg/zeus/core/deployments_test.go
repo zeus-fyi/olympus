@@ -46,13 +46,15 @@ func (d *DeploymentsTestSuite) TestRolloutRestartDeploymentHestia() {
 	d.Require().Nil(err)
 	d.Require().NotEmpty(dep)
 
-	dep, err = d.K.RolloutRestartDeployment(ctx, kns, "zeus-cloud", nil)
-	d.Require().Nil(err)
-	d.Require().NotEmpty(dep)
-
 	kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "hestia"}
 	dep, err = d.K.RolloutRestartDeployment(ctx, kns, "hestia", nil)
 	d.Require().Nil(err)
+}
+func (d *DeploymentsTestSuite) TestRolloutRestartDeploymentHestiaZeusCloud() {
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "hestia"}
+	dep, err := d.K.RolloutRestartDeployment(ctx, kns, "zeus-cloud", nil)
+	d.Require().Nil(err)
+	d.Require().NotEmpty(dep)
 }
 
 func (d *DeploymentsTestSuite) TestRolloutRestartDeploymentIris() {

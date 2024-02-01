@@ -22,14 +22,21 @@ import (
 )
 
 func WebRoutes(e *echo.Echo) *echo.Echo {
+
 	e.POST("/login", hestia_login.LoginHandler)
 	e.POST("/discord/login", hestia_login.DiscordLoginHandler)
 	e.GET("/reddit/callback", hestia_login.RedditLoginHandler)
 	e.GET("/discord/callback", hestia_login.DiscordCallbackHandler)
+
 	e.POST("/google/login", hestia_login.GoogleLoginHandler)
 	e.POST("/signup", hestia_signup.SignUpHandler)
 	e.GET("/logout/:token", Logout)
 	e.GET("/v1/users/services", hestia_login.UsersServicesRequestHandler)
+
+	e.GET("/auth/:provider/callback", hestia_login.CallbackHandler)
+	e.GET("/twitter/callback", hestia_login.TwitterCallbackHandler)
+	//e.GET("/logout/:provider", hestia_login.LogoutHandler)
+	//e.GET("/auth/:provider", hestia_login.AuthHandler)
 
 	e.GET("/verify/email/:token", hestia_signup.VerifyEmailHandler)
 	hestia_quicknode_dashboard.InitQuickNodeDashboardRoutes(e)

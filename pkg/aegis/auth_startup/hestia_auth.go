@@ -33,6 +33,13 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
+	sk, err := sw.ReadSecret(ctx, inMemSecrets, hestiaSessionKey)
+	if err != nil {
+		log.Err(err).Msg("error reading session key")
+		err = nil
+	} else {
+		sw.HestiaSessionKey = sk
+	}
 	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	sw.BearerToken = sw.MustReadSecret(ctx, inMemSecrets, temporalBearerSecret)
 	sw.SecretsManagerAuthAWS.AccessKey = sw.MustReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)
@@ -59,12 +66,26 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	sw.OpenAIToken = sw.MustReadSecret(ctx, inMemSecrets, heraOpenAIAuth)
 	sw.GmailAuthJsonBytes = sw.ReadSecretBytes(ctx, inMemSecrets, gmailAuthJson)
 
+	cid, err := sw.ReadSecret(ctx, inMemSecrets, twitterClientID)
+	if err != nil {
+		log.Err(err).Msg("error reading twitter client id")
+		err = nil
+	} else {
+		sw.TwitterMbClientID = cid
+	}
+	cs, err := sw.ReadSecret(ctx, inMemSecrets, twitterClientSecret)
+	if err != nil {
+		log.Err(err).Msg("error reading twitter client id")
+		err = nil
+	} else {
+		sw.TwitterMbClientSecret = cs
+	}
 	hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
 
 	da := DiscordAuthConfig{}
 	sb := sw.ReadSecretBytes(ctx, inMemSecrets, discordSecretsJson)
-	err := json.Unmarshal(sb, &da)
+	err = json.Unmarshal(sb, &da)
 	if err != nil {
 		panic(err)
 	}

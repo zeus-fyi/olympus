@@ -44,6 +44,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		platform = apiApproval
 	}
 
+	if tte.Tc.EvalID <= 0 || tte.Tc.TriggerActionsApproval.ApprovalID <= 0 {
+		platform = webPlatform
+	}
 	switch platform {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		retrievalCtx := workflow.WithActivityOptions(ctx, ao)

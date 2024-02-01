@@ -108,7 +108,7 @@ func Hestia() {
 			log.Warn().Msg("Hestia: TwitterClientID or TwitterClientSecret is empty")
 		}
 		goth.UseProviders(
-			twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
+			//twitter.New(sw.TwitterMbClientID, sw.TwitterMbClientID, "http://localhost:9002/auth/twitter/callback"),
 			twitterv2.New(sw.TwitterMbClientID, sw.TwitterMbClientSecret, "http://localhost:9002/auth/twitterv2/callback"),
 		)
 

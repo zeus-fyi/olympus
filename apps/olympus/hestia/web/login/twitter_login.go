@@ -22,10 +22,15 @@ func CallbackHandler(c echo.Context) error {
 		// User is authenticated, return JSON
 		log.Info().Interface("gothUser", gothUser).Msg("CallbackHandler")
 		return c.JSON(http.StatusOK, gothUser)
-	} else {
-		// Begin a new authentication process
-		return c.JSON(http.StatusUnauthorized, nil)
 	}
+	url, err := gothic.GetAuthURL(c.Response().Writer, c.Request())
+	if err != nil {
+		log.Err(err).Interface("url", url).Msg("CallbackHandler")
+		return err
+	}
+
+	log.Info().Interface("url", url).Msg("CallbackHandler")
+	return c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func LogoutHandler(c echo.Context) error {

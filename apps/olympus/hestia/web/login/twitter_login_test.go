@@ -36,7 +36,7 @@ func (t *LoginTestSuite) TestLogin() {
 	}
 	TwitterOAuthConfig = conf
 	stateNonce := GenerateNonce()
-	verifier := GenerateCodeVerifier(128)
+	//verifier := GenerateCodeVerifier(128)
 	challengeOpt := oauth2.SetAuthURLParam("code_challenge", PkCEChallengeWithSHA256(verifier))
 	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "s256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)

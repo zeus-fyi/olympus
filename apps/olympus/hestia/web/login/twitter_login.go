@@ -48,6 +48,8 @@ func GenerateAccessToken(code string, verifier string) (*oauth2.Token, error) {
 }
 
 func TwitterCallbackHandler(c echo.Context) error {
+	log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
+
 	token, err := GenerateAccessToken(c.QueryParam("code"), c.QueryParam("verifier"))
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")

@@ -1,6 +1,7 @@
 package hestia_login
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -23,15 +24,18 @@ func CallbackHandler(c echo.Context) error {
 		log.Info().Interface("gothUser", gothUser).Msg("CallbackHandler: User authenticated")
 		return c.JSON(http.StatusOK, gothUser)
 	} else {
-		// Log detailed error if authentication fails
+		// If authentication fails, log the error and redirect with an error message
 		log.Error().Err(err).Msg("CallbackHandler: Authentication failed")
 		url, authErr := gothic.GetAuthURL(c.Response().Writer, c.Request())
 		if authErr != nil {
+			errorMessage := fmt.Sprintf("Authentication failed: %s", authErr.Error())
 			log.Err(authErr).Interface("url", url).Msg("CallbackHandlerError: Failed to get auth URL")
-			return c.JSON(http.StatusInternalServerError, authErr.Error())
+			// Consider redirecting to an error page or passing the error message to the frontend
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": errorMessage})
 		}
 		log.Info().Interface("url", url).Msg("CallbackHandler: Redirecting to auth URL")
-		return c.Redirect(http.StatusTemporaryRedirect, url)
+		// Optionally, append a query parameter to the URL with an error message
+		return c.Redirect(http.StatusTemporaryRedirect, url+"?error=authentication_failed")
 	}
 }
 
@@ -51,16 +55,10 @@ func AuthHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Set("provider", providerName)
 	c.Request().URL.RawQuery = q.Encode()
-	if gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request()); err == nil {
-		// User is authenticated, return JSON
-		log.Info().Interface("gothUser", gothUser).Msg("CallbackHandler")
-		return c.JSON(http.StatusOK, gothUser)
-	}
-	url, err := gothic.GetAuthURL(c.Response().Writer, c.Request())
+	gothUser, err := gothic.CompleteUserAuth(c.Response().Writer, c.Request())
 	if err != nil {
-		log.Err(err).Interface("url", url).Msg("CallbackHandler")
+		log.Error().Err(err).Msg("AuthHandler: Error completing user authentication")
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	log.Info().Interface("url", url).Msg("CallbackHandler")
-	return c.Redirect(http.StatusTemporaryRedirect, url)
+	return c.JSON(http.StatusOK, gothUser)
 }

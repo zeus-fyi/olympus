@@ -139,7 +139,8 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 				GROUP BY em.eval_id
 			)
 			SELECT 
-				em.eval_id, 
+								em.eval_id,
+								em.eval_id::TEXT AS eval_str_id,
 								em.eval_name, 
 								em.eval_type, 
 								em.eval_group_name, 
@@ -166,6 +167,7 @@ func SelectEvalFnsByOrgIDAndID(ctx context.Context, ou org_users.OrgUser, evalFn
 		var dbTriggersHelper []DbJsonTriggerField
 		err = rows.Scan(
 			&ef.EvalID,
+			&ef.EvalStrID,
 			&ef.EvalName,
 			&ef.EvalType,
 			&ef.EvalGroupName,

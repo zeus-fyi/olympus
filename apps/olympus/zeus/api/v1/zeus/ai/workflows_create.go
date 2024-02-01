@@ -63,7 +63,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 
 	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to check if user has billing method")
+		log.Err(err).Msg("failed to check if user has billing method")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	if !isBillingSetup {

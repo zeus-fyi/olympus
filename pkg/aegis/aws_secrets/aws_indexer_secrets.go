@@ -137,6 +137,7 @@ func MockingBirdPlatformNames(platform string) map[string]string {
 		fmt.Sprintf("%s-access-token-secret", platform): "mockingbird",
 		fmt.Sprintf("%s-access-token-public", platform): "mockingbird",
 		fmt.Sprintf("%s-access-token-public", platform): "mockingbird",
+		fmt.Sprintf("%s", platform):                     "mockingbird",
 	}
 }
 

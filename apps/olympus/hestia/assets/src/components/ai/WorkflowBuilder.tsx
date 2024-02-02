@@ -370,10 +370,10 @@ function WorkflowEngineBuilder(props: any) {
     //     // dispatch(updateActionMetrics(updatedMetrics));
     // };
 
-    const handleRemoveRetrievalRelationshipFromWorkflow = async (event: any, keystr: string, value: string) => {
+    const handleRemoveRetrievalRelationshipFromWorkflow = async (event: any, taskStrID: string, retrievalStrID: string) => {
         const payload = {
-            key: keystr,
-            subKey: value,
+            key: taskStrID, // taskID
+            subKey: retrievalStrID, // retrievalID
             value: false
         };
         dispatch(setAnalysisRetrievalsMap(payload));
@@ -1594,26 +1594,16 @@ function WorkflowEngineBuilder(props: any) {
                                                     { workflowAnalysisRetrievalsMap &&
                                                         <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
                                                             <Box >
-                                                                {Object.entries(workflowAnalysisRetrievalsMap).map(([key, value], index) => {
-                                                                    const retrievalNameForKey= retrievalsMap[(key)]?.retrievalName || '';
-                                                                    if (!retrievalNameForKey || retrievalNameForKey.length <= 0) {
-                                                                        return null;
-                                                                    }
-                                                                    return Object.entries(value).map(([subKey, subValue], subIndex) => {
-                                                                        const subTask = taskMap[subKey]
-                                                                        const subTaskName = subTask?.taskName || '';
-                                                                        if (!subValue || subKey.length <= 0) {
-                                                                            return null;
-                                                                        }
-                                                                        if (subTaskName.length <= 0) {
-                                                                            return null;
-                                                                        }
+                                                                {Object.entries(workflowAnalysisRetrievalsMap).map(([analysisTaskIdStr, value], index) => {
+                                                                    const analysisTask = taskMap[analysisTaskIdStr]
+                                                                    return Object.entries(value).map(([retrievalStrID, subValue], subIndex) => {
+                                                                        const ret = retrievalsMap[retrievalStrID]
                                                                         return (
-                                                                            <Stack direction={"row"} key={`${key}-${subKey}`}>
+                                                                            <Stack direction={"row"} key={`${index}-${subIndex}`}>
                                                                                 <React.Fragment key={subIndex}>
                                                                                     <TextField
                                                                                         label={`Retrieval`}
-                                                                                        value={retrievalNameForKey || ''}
+                                                                                        value={ret.retrievalName || ''}
                                                                                         InputProps={{ readOnly: true }}
                                                                                         variant="outlined"
                                                                                         fullWidth
@@ -1624,14 +1614,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                                     </Box>
                                                                                     <TextField
                                                                                         label={`Analysis`}
-                                                                                        value={subTaskName || ''}
+                                                                                        value={analysisTask.taskName || ''}
                                                                                         InputProps={{ readOnly: true }}
                                                                                         variant="outlined"
                                                                                         fullWidth
                                                                                         margin="normal"
                                                                                     />
                                                                                     <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
-                                                                                        <Button variant="contained" onClick={(event) => handleRemoveRetrievalRelationshipFromWorkflow(event, key, subKey)}>Remove</Button>
+                                                                                        <Button variant="contained" onClick={(event) => handleRemoveRetrievalRelationshipFromWorkflow(event, analysisTaskIdStr, retrievalStrID)}>Remove</Button>
                                                                                     </Box>
                                                                                 </React.Fragment>
                                                                             </Stack>

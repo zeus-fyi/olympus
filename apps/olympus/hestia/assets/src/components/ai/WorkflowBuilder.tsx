@@ -498,7 +498,7 @@ function WorkflowEngineBuilder(props: any) {
                 dispatch(setEndpoints(response.data.routes));
                 dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));
             } catch (error) {
-                console.log("error", error);
+                // console.log("error", error);
             } finally {
                 setIsLoading(false); // Set loading to false regardless of success or failure.
             }
@@ -801,7 +801,7 @@ function WorkflowEngineBuilder(props: any) {
 
     const createOrUpdateWorkflow = async () => {
 
-        console.log(workflowAnalysisRetrievalsMap, 'workflowAnalysisRetrievalsMap')
+        // console.log(workflowAnalysisRetrievalsMap, 'workflowAnalysisRetrievalsMap')
         try {
             // console.log('createOrUpdateWorkflow', workflowBuilderTaskMap)
             const allMappedRetrievalIDs: Set<number> = new Set();

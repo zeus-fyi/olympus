@@ -14,7 +14,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
-	hestia_access_keygen "github.com/zeus-fyi/olympus/hestia/web/access"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 	"golang.org/x/oauth2"
 )
@@ -108,7 +107,7 @@ func TwitterCallbackHandler(c echo.Context) error {
 
 	log.Info().Interface("tm", tm).Msg("TwitterCallbackHandler: TwitterMe")
 	// username is the unique handle identifier for the user
-	sr := hestia_access_keygen.SecretsRequest{
+	sr := SecretsRequest{
 		Name:  fmt.Sprintf("twitter-%s", tm.Data.Username),
 		Key:   "mockingbird",
 		Value: token.AccessToken,

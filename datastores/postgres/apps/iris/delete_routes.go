@@ -18,7 +18,7 @@ func DeleteOrgRoutesFromGroup(ctx context.Context, orgID int, groupName string, 
 				  AND orgg.route_group_id = ogs.route_group_id
 				  AND orr.org_id = $1
 				  AND orgg.route_group_name = $2
-				  AND orr.route_path IN (SELECT UNNEST($3::bigint[]))`
+				  AND orr.route_path IN (SELECT UNNEST($3::text[]))`
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, groupName, pq.Array(routePaths))
 	if err == pgx.ErrNoRows {
 		log.Warn().Msg("No new routes to insert")

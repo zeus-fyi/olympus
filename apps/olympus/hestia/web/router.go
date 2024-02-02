@@ -33,8 +33,6 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.GET("/logout/:token", Logout)
 	e.GET("/v1/users/services", hestia_login.UsersServicesRequestHandler)
 
-	e.GET("/auth/:provider/callback", hestia_login.CallbackHandler)
-	e.GET("/twitter/callback", hestia_login.TwitterCallbackHandler)
 	//e.GET("/logout/:provider", hestia_login.LogoutHandler)
 	//e.GET("/auth/:provider", hestia_login.AuthHandler)
 
@@ -42,6 +40,7 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	hestia_quicknode_dashboard.InitQuickNodeDashboardRoutes(e)
 	InitV1Routes(e)
 	InitV1InternalRoutes(e)
+	InitV1SocialRoutes(e)
 	return e
 }
 
@@ -49,6 +48,36 @@ const (
 	QuickNodeMarketPlace        = "quickNodeMarketPlace"
 	IrisQuickNodeTutorialToggle = "/quicknode/tutorial"
 )
+
+func InitV1SocialRoutes(e *echo.Echo) {
+	eg := e.Group("/social/v1")
+	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(token string, c echo.Context) (bool, error) {
+			ctx := context.Background()
+			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+			if err == nil && cookie != nil {
+				log.Info().Msg("InitV1SocialRoutes: Cookie found")
+				token = cookie.Value
+
+			}
+			key := read_keys.NewKeyReader()
+			services, _, err := key.QueryUserAuthedServices(ctx, token)
+			if err != nil {
+				log.Err(err).Msg("InitV1SocialRoutes: QueryUserAuthedServices error")
+				return false, err
+			}
+			c.Set("servicePlans", key.Services)
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("orgUser", ou)
+			c.Set("bearer", key.PublicKey)
+			return len(services) > 0, nil
+		},
+	}))
+
+	eg.GET("/auth/:provider/callback", hestia_login.CallbackHandler)
+	eg.GET("/twitter/callback", hestia_login.TwitterCallbackHandler)
+}
 
 func InitV1Routes(e *echo.Echo) {
 	eg := e.Group("/v1")

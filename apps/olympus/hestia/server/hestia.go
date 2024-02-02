@@ -331,7 +331,10 @@ func Hestia() {
 	if env == "local" || env == "production-local" {
 		irisHost := "http://localhost:8080"
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins: []string{"http://localhost:3000", irisHost, "https://accounts.google.com", "https://oauth2.googleapis.com"},
+			AllowOrigins: []string{"http://localhost:3000", irisHost, "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.twitter.com/2/oauth2",
+				"http://promql.promql-edc89f30.svc.cluster.local", "https://twitter.com/i/oauth2/authorize", "https://api.twitter.com/2/oauth2/token",
+				"https://twitter.com/", "http://localhost:9002",
+			},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",
@@ -344,9 +347,10 @@ func Hestia() {
 		v1_ethereum_aws.LambdaBaseDirIn = "/"
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi",
-				"https://iris.zeus.fyi", "https://quicknode.com", "https://accounts.google.com", "https://oauth2.googleapis.com",
-				"http://promql.promql-edc89f30.svc.cluster.local"},
+			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://twitter.com/",
+				"https://iris.zeus.fyi", "https://quicknode.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.twitter.com/2/oauth2",
+				"http://promql.promql-edc89f30.svc.cluster.local", "https://twitter.com/i/oauth2/authorize", "https://api.twitter.com/2/oauth2/token",
+			},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",

@@ -62,6 +62,7 @@ import {SearchIndexersTable} from "./SearchIndexersTable";
 import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {ActionsApprovalsTable} from "./ActionsApprovalsTable";
 import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../redux/ai/ai.types.triggers";
+import {accessApiGateway} from "../../gateway/access";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -348,7 +349,34 @@ function AiWorkflowsDashboardContent(props: any) {
         return new Date(ms).toLocaleTimeString([], { hour: 'numeric', hour12: true });
     };
 
-    const handleSubmitIndexer = async (event: any) => {
+    const handleStartTwitterAuthFlow = async (event: any) => {
+        try {
+            setIsLoading(true)
+            const params =  {
+                searchIndexer,
+                platformSecretReference
+            }
+            const response = await accessApiGateway.startPlatformAuthFlow('twitter');
+            const statusCode = response.status;
+            if (statusCode < 400) {
+                const data = response.data;
+                setRequestIndexerStatus('Auth information: ' + data)
+                setRequestIndexerStatusError('success')
+            }
+        } catch (error: any) {
+            const status: number = await error?.response?.status || 500;
+            if (status === 412) {
+                setRequestIndexerStatus('Billing setup required. Please configure your billing information to continue using this service.');
+                setRequestIndexerStatusError('error')
+            } else {
+                setRequestIndexerStatus('Auth setup failed.');
+                setRequestIndexerStatusError('error')
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }
+        const handleSubmitIndexer = async (event: any) => {
         if (searchIndexer.platform.length === 0) {
             setRequestIndexerStatus('Search platform name cannot be empty.')
             setRequestIndexerStatusError('error')
@@ -981,6 +1009,41 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
                                                     <Button fullWidth variant="outlined"  onClick={(e) => handleSubmitIndexer(e)}>Start Indexing</Button>
                                                 </Box>
+                                                }
+
+                                                { searchIndexer.platform === 'twitter' &&
+                                                    <div>
+                                                        <Box flexGrow={1} sx={{ mt: 2}}>
+                                                            <Typography variant="h6" color="text.secondary">
+                                                               Automated Twitter Auth & Routing Table Setup
+                                                            </Typography>
+                                                            <Typography variant="subtitle2" color="text.secondary">
+                                                                Select an existing table to connect your bearer token to your API group for twitter. If you
+                                                                select none, it will create a table for you called 'twitter' and generate a bearer token for you
+                                                                that it saves in the platform secret manager as 'api-twitter'. Otherwise it will use the existing
+                                                                table you select and save the bearer token to the platform secret manager as {'api-{routing-table}'}.
+                                                            </Typography>
+                                                            <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
+                                                                <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                                                    Routing Group
+                                                                </InputLabel>
+                                                                <Select
+                                                                    labelId={`groupNameLabel`}
+                                                                    id={`groupName`}
+                                                                    name="groupName"
+                                                                    value={retrieval.retrievalItemInstruction.webFilters?.routingGroup || 'twitter'}
+                                                                    onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
+                                                                    label="Routing Group"
+                                                                >
+                                                                    <MenuItem key={'twitter'} value={'twitter'}>{'twitter'}</MenuItem>
+                                                                    {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                                                </Select>
+                                                            </FormControl>
+                                                        </Box>
+                                                        <Box flexGrow={2} sx={{ mb: 2, mr: 2, mt: 2}}>
+                                                            <Button fullWidth variant="outlined"  onClick={(e) => handleStartTwitterAuthFlow(e)}>Connect Twitter</Button>
+                                                        </Box>
+                                                    </div>
                                                 }
                                             </Stack>
                                         </div>

@@ -45,6 +45,10 @@ var TwitterOAuthConfig = &oauth2.Config{
 	RedirectURL: "https://hestia.zeus.fyi/twitter/callback",
 }
 
+const (
+	RedirectBackPlatform = "https://cloud.zeus.fyi/ai"
+)
+
 //	[]string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},
 //
 // this is used to generate the URL to redirect the user to Twitter's OAuth2 login page
@@ -54,7 +58,7 @@ func CallbackHandler(c echo.Context) error {
 	stateNonce := GenerateNonce()
 	verifier := GenerateCodeVerifier(128)
 	codeChallenge := PkCEChallengeWithSHA256(verifier)
-	//log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("TwitterCallbackHandler: Handling Twitter Callback")
+	log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 
 	// Store the verifier using stateNonce as the key
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
@@ -65,10 +69,10 @@ func CallbackHandler(c echo.Context) error {
 }
 
 func TwitterCallbackHandler(c echo.Context) error {
-	//log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
+	log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
 	code := c.QueryParam("code")
 	stateNonce := c.QueryParam("state")
-	//log.Info().Str("code", code).Str("state", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
+	log.Info().Str("code", code).Str("state", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 	verifier, found := ch.Get(stateNonce)
 	if !found {
 		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")
@@ -84,6 +88,8 @@ func TwitterCallbackHandler(c echo.Context) error {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
 		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
 	}
+	log.Info().Interface("token", token).Msg("TwitterCallbackHandler: Successfully generated access token")
+	//return c.Redirect(http.StatusTemporaryRedirect, "https://cloud.zeus.fyi/ai")
 	return c.JSON(http.StatusOK, token)
 }
 
@@ -92,7 +98,7 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 	values := url.Values{
 		"code":          {code},
 		"grant_type":    {"authorization_code"},
-		"redirect_uri":  {TwitterOAuthConfig.RedirectURL},
+		"redirect_uri":  {RedirectBackPlatform},
 		"client_id":     {TwitterOAuthConfig.ClientID},
 		"code_verifier": {codeVerifier},
 	}

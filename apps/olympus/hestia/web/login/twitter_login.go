@@ -59,7 +59,7 @@ func CallbackHandler(c echo.Context) error {
 	stateNonce := GenerateNonce()
 	verifier := GenerateCodeVerifier(128)
 	codeChallenge := PkCEChallengeWithSHA256(verifier)
-	log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("TwitterCallbackHandler: Handling Twitter Callback")
+	log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("START CallbackHandler: Callback")
 
 	// Store the verifier using stateNonce as the key
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
@@ -70,7 +70,7 @@ func CallbackHandler(c echo.Context) error {
 }
 
 func TwitterCallbackHandler(c echo.Context) error {
-	log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
+	log.Printf("TwitterCallbackHandler Method=%s, URL=%s", c.Request().Method, c.Request().URL)
 	code := c.QueryParam("code")
 	stateNonce := c.QueryParam("state")
 	log.Info().Interface("stateNonce", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")

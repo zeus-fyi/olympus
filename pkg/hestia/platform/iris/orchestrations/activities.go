@@ -42,7 +42,7 @@ func (h *HestiaPlatformActivities) DeleteOrgRoutes(ctx context.Context, pr IrisP
 	}
 	err := iris_models.DeleteOrgRoutes(context.Background(), pr.Ou.OrgID, pr.Routes)
 	if err != nil {
-		log.Err(err).Msg("DeleteOrgRoutes: DeleteOrgRoutes")
+		log.Err(err).Interface("pr", pr).Msg("HestiaPlatformActivities: DeleteOrgRoutes")
 		return err
 	}
 	return nil
@@ -58,7 +58,7 @@ func (h *HestiaPlatformActivities) DeleteOrgRoutesFromGroup(ctx context.Context,
 
 	err := iris_models.DeleteOrgRoutesFromGroup(context.Background(), pr.Ou.OrgID, pr.OrgGroupName, pr.Routes)
 	if err != nil {
-		log.Err(err).Msg("DeleteOrgRoutes: DeleteOrgRoutes")
+		log.Err(err).Interface("pr", pr).Msg("HestiaPlatformActivities: DeleteOrgRoutesFromGroup")
 		return err
 	}
 	return nil
@@ -71,7 +71,7 @@ func (h *HestiaPlatformActivities) DeleteOrgRoutingGroup(ctx context.Context, pr
 
 	err := iris_models.DeleteOrgRoutingGroup(context.Background(), pr.Ou.OrgID, pr.OrgGroupName)
 	if err != nil {
-		log.Err(err).Msg("DeleteOrgRoutes: DeleteOrgRoutes")
+		log.Err(err).Interface("pr", pr).Msg("HestiaPlatformActivities: DeleteOrgRoutingGroup")
 		return err
 	}
 	return nil
@@ -86,7 +86,7 @@ func (h *HestiaPlatformActivities) UpdateDatabaseOrgRoutingTables(ctx context.Co
 	}
 	err := iris_models.InsertOrgRoutes(context.Background(), pr.Ou.OrgID, routes)
 	if err != nil {
-		log.Err(err).Msg("UpdateDatabaseOrgRoutingTables")
+		log.Err(err).Interface("pr", pr).Msg("HestiaPlatformActivities: UpdateDatabaseOrgRoutingTables")
 		return err
 	}
 	return nil

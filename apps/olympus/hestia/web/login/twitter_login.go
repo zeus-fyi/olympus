@@ -198,7 +198,7 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("FetchToken: Failed to fetch token")
 		return nil, err
 	}
-
+	log.Info().Interface("resp", resp.Body()).Msg("FetchToken: Successfully fetched token")
 	return token, nil
 }
 

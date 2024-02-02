@@ -89,6 +89,7 @@ func TwitterCallbackHandler(c echo.Context) error {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
 		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
 	}
+	fmt.Println(token)
 	log.Info().Interface("token", token).Msg("TwitterCallbackHandler: Successfully generated access token")
 	if token == nil {
 		log.Warn().Msg("TwitterCallbackHandler: Token is nil")
@@ -99,7 +100,6 @@ func TwitterCallbackHandler(c echo.Context) error {
 	//return c.Redirect(http.StatusTemporaryRedirect, "https://cloud.zeus.fyi/ai")
 
 	r := resty_base.GetBaseRestyClient("https://api.twitter.com", token.AccessToken)
-
 	tm := TwitterMe{}
 	resp, err := r.R().SetResult(&tm).Get("/2/users/me")
 	if err != nil {

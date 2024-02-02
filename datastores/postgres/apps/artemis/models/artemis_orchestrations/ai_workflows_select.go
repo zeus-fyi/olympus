@@ -3,6 +3,7 @@ package artemis_orchestrations
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -349,6 +350,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 		var taskVals []Task
 		for _, at := range results.WorkflowTemplatesMap[i].AnalysisTasksSlice {
 			ta := Task{
+				TaskStrID:         fmt.Sprintf("%d", at.AnalysisTaskID),
 				TaskID:            at.AnalysisTaskID,
 				TaskName:          at.AnalysisTaskName,
 				TaskType:          at.AnalysisTaskType,
@@ -376,6 +378,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 				rn = agat.AnalysisTaskName
 			}
 			ta := Task{
+				TaskStrID:         fmt.Sprintf("%d", aggTask.AggTaskId),
 				TaskID:            aggTask.AggTaskId,
 				TaskName:          aggTask.AggTaskName,
 				TaskType:          aggTask.AggTaskType,

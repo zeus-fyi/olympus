@@ -19,6 +19,43 @@ const initialState: AiState = {
         rowIndex: 0,
         open: false
     },
+    selectedRetrievalForAnalysis: {
+        retrievalStrID: '',
+        retrievalName: '',
+        retrievalGroup: '',
+        retrievalItemInstruction: {
+            retrievalPlatform: '',
+            retrievalPrompt: '',
+            retrievalPlatformGroups: '',
+            retrievalKeywords: '',
+            retrievalUsernames: '',
+            discordFilters: {
+                categoryTopic: '',
+                categoryName: '',
+                category: '',
+            },
+            webFilters: {
+                routingGroup: '',
+                lbStrategy: '',
+                endpointREST: 'GET',
+                endpointRoutePath: '',
+            },
+            instructions: '',
+        }
+    },
+    selectedAnalysisForRetrieval: {
+        taskStrID: '',
+        taskName: '',
+        taskType: '',
+        taskGroup: '',
+        model: '',
+        prompt: '',
+        schemas: [],
+        tokenOverflowStrategy: 'deduce',
+        cycleCount: 1,
+        maxTokens: 0,
+        responseFormat: '',
+        },
     addSchemasView: false,
     schemas: [],
     schema: {
@@ -190,6 +227,12 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setSelectedAnalysisForRetrieval: (state, action: PayloadAction<TaskModelInstructions>) => {
+            state.selectedAnalysisForRetrieval = action.payload;
+        },
+        setSelectedRetrievalForAnalysis: (state, action: PayloadAction<Retrieval>) => {
+            state.selectedRetrievalForAnalysis = action.payload;
+        },
         setOpenActionApprovalRow(state, action: PayloadAction<RowIndexOpen>) {
             state.openActionApprovalRow = action.payload;
         },
@@ -555,6 +598,9 @@ export const {
     setTriggerAction,
     // updateActionMetrics,
     // setActionMetric,
+    //
+    setSelectedAnalysisForRetrieval,
+    setSelectedRetrievalForAnalysis,
     setEvalMetric,
     setEvalFn,
     updateEvalMetrics,

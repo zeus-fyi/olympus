@@ -37,6 +37,8 @@ export interface AiState {
     addTriggersToEvalFnView: boolean;
     addTriggerActionsView: boolean;
     addedEvalFns: EvalFn[];
+    selectedAnalysisForRetrieval: TaskModelInstructions;
+    selectedRetrievalForAnalysis: Retrieval;
     addedAnalysisTasks: TaskModelInstructions[];
     addedAggregateTasks: TaskModelInstructions[];
     addedRetrievals: Retrieval[];

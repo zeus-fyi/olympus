@@ -91,8 +91,8 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 					WorkflowResultID: tar.Emr.EvalContext.AIWorkflowAnalysisResult.WorkflowResultID,
 					ApprovalState:    pendingStatus,
 					RequestSummary:   "Requesting approval for trigger action",
-					Responses:        nil,
 				}
+
 				recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tar.Mb.Ou, tap, trrr).Get(recordTriggerCondCtx, nil)
 				if err != nil {

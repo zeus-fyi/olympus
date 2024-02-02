@@ -49,7 +49,7 @@ var TwitterOAuthConfig = &oauth2.Config{
 }
 
 const (
-	RedirectBackPlatform = "https://cloud.zeus.fyi/ai"
+	RedirectBackPlatform = "https://cloud.zeus.fyi/social/v1/twitter/callback"
 )
 
 //	[]string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},

@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -71,8 +72,10 @@ func CallbackHandler(c echo.Context) error {
 
 	// Store the verifier using stateNonce as the key
 	log.Info().Interface("orgUser", ou).Str("stateNonce", stateNonce).Msg("BEGIN: Storing stateNonce in cache")
+
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
-	chOrg.Set(stateNonce, ou.OrgID, cache.DefaultExpiration)
+	chOrg.Set(stateNonce, fmt.Sprintf("%d", ou.OrgID), cache.DefaultExpiration)
+
 	challengeOpt := oauth2.SetAuthURLParam("code_challenge", codeChallenge)
 	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "S256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
@@ -97,23 +100,30 @@ func TwitterCallbackHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "Failed to cast verifier to string")
 	}
 
-	orgID, found := chOrg.Get(stateNonce)
+	orgStrID, found := chOrg.Get(stateNonce)
 	if !found {
 		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")
 		return c.JSON(http.StatusInternalServerError, "Failed to retrieve verifier")
 	}
-	log.Info().Interface("orgID", orgID).Msg("TwitterCallbackHandler: orgID from cache")
-	log.Info().Interface("chOrg", chOrg).Msg("TwitterCallbackHandler: org cache")
-	ou := org_users.OrgUser{}
-	ouid, ok := orgID.(int)
-	if ok {
-		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve orgID from cache")
-		return c.JSON(http.StatusInternalServerError, nil)
+
+	orgStrIDFromCache, ok := orgStrID.(string)
+	if !ok {
+		log.Info().Interface("orgStrID", orgStrID).Msg("TwitterCallbackHandler: orgID from cache")
+		return c.JSON(http.StatusInternalServerError, "Failed to cast orgID to string")
 	}
+
+	log.Info().Interface("orgStrIDFromCache", orgStrIDFromCache).Msg("TwitterCallbackHandler: orgID from cache")
+	log.Info().Interface("chOrg", chOrg).Msg("TwitterCallbackHandler: org cache")
+	ouid, err := strconv.Atoi(orgStrIDFromCache)
+	if err != nil {
+		log.Err(err).Msg("TwitterCallbackHandler: Failed to cast orgID to int")
+		return c.JSON(http.StatusInternalServerError, "Failed to cast orgID to int")
+	}
+	ou := org_users.OrgUser{}
 	ou.OrgID = ouid
-	log.Info().Interface("orgUser", ou).Msg("TwitterCallbackHandler: Successfully retrieved orgID from cache")
 	c.Set("orgUser", ou)
 
+	log.Info().Interface("orgUser", ou).Msg("TwitterCallbackHandler: Successfully retrieved orgID from cache")
 	token, err := FetchToken(code, verifierStr)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")

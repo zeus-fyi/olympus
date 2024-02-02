@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 	"golang.org/x/oauth2"
 )
@@ -56,6 +57,10 @@ const (
 var ch = cache.New(5*time.Minute, 10*time.Minute)
 
 func CallbackHandler(c echo.Context) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 	stateNonce := GenerateNonce()
 	verifier := GenerateCodeVerifier(128)
 	codeChallenge := PkCEChallengeWithSHA256(verifier)
@@ -63,6 +68,7 @@ func CallbackHandler(c echo.Context) error {
 
 	// Store the verifier using stateNonce as the key
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
+	ch.Set(fmt.Sprintf("%s-org", stateNonce), ou.OrgID, cache.DefaultExpiration)
 	challengeOpt := oauth2.SetAuthURLParam("code_challenge", codeChallenge)
 	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "S256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
@@ -70,9 +76,25 @@ func CallbackHandler(c echo.Context) error {
 }
 
 func TwitterCallbackHandler(c echo.Context) error {
-	log.Printf("TwitterCallbackHandler Method=%s, URL=%s", c.Request().Method, c.Request().URL)
+	log.Printf("TwitterCallbackHandler Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
 	code := c.QueryParam("code")
 	stateNonce := c.QueryParam("state")
+
+	orgID, found := ch.Get(fmt.Sprintf("%s-org", stateNonce))
+	if !found {
+		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve orgID from cache")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	ou := org_users.OrgUser{}
+	ouid, ok := orgID.(int)
+	if ok {
+		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve orgID from cache")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	ou.OrgID = ouid
+	log.Info().Interface("orgUser", ou).Msg("TwitterCallbackHandler: Successfully retrieved orgID from cache")
+	c.Set("orgUser", ou)
+
 	log.Info().Interface("stateNonce", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 	log.Info().Str("code", code).Str("state", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 	verifier, found := ch.Get(stateNonce)

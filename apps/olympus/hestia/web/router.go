@@ -35,6 +35,7 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 
 	//e.GET("/logout/:provider", hestia_login.LogoutHandler)
 	//e.GET("/auth/:provider", hestia_login.AuthHandler)
+	e.GET("/twitter/callback", hestia_login.TwitterCallbackHandler)
 
 	e.GET("/verify/email/:token", hestia_signup.VerifyEmailHandler)
 	hestia_quicknode_dashboard.InitQuickNodeDashboardRoutes(e)
@@ -76,7 +77,6 @@ func InitV1SocialRoutes(e *echo.Echo) {
 	}))
 
 	eg.GET("/auth/:provider/callback", hestia_login.CallbackHandler)
-	eg.GET("/twitter/callback", hestia_login.TwitterCallbackHandler)
 }
 
 func InitV1Routes(e *echo.Echo) {

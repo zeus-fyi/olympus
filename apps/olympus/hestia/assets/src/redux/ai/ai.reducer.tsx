@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     AiState,
     PlatformSecretReference,
+    RowIndexOpen,
     SearchIndexerParams,
     TaskModelInstructions,
     UpdateTaskCycleCountPayload,
@@ -14,6 +15,47 @@ import {OrchestrationsAnalysis} from "./ai.types.runs";
 import {TriggerAction} from "./ai.types.triggers";
 
 const initialState: AiState = {
+    openActionApprovalRow: {
+        rowIndex: 0,
+        open: false
+    },
+    selectedRetrievalForAnalysis: {
+        retrievalStrID: '',
+        retrievalName: '',
+        retrievalGroup: '',
+        retrievalItemInstruction: {
+            retrievalPlatform: '',
+            retrievalPrompt: '',
+            retrievalPlatformGroups: '',
+            retrievalKeywords: '',
+            retrievalUsernames: '',
+            discordFilters: {
+                categoryTopic: '',
+                categoryName: '',
+                category: '',
+            },
+            webFilters: {
+                routingGroup: '',
+                lbStrategy: '',
+                endpointREST: 'GET',
+                endpointRoutePath: '',
+            },
+            instructions: '',
+        }
+    },
+    selectedAnalysisForRetrieval: {
+        taskStrID: '',
+        taskName: '',
+        taskType: '',
+        taskGroup: '',
+        model: '',
+        prompt: '',
+        schemas: [],
+        tokenOverflowStrategy: 'deduce',
+        cycleCount: 1,
+        maxTokens: 0,
+        responseFormat: '',
+        },
     addSchemasView: false,
     schemas: [],
     schema: {
@@ -185,6 +227,15 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setSelectedAnalysisForRetrieval: (state, action: PayloadAction<TaskModelInstructions>) => {
+            state.selectedAnalysisForRetrieval = action.payload;
+        },
+        setSelectedRetrievalForAnalysis: (state, action: PayloadAction<Retrieval>) => {
+            state.selectedRetrievalForAnalysis = action.payload;
+        },
+        setOpenActionApprovalRow(state, action: PayloadAction<RowIndexOpen>) {
+            state.openActionApprovalRow = action.payload;
+        },
         setAddSchemasView: (state, action: PayloadAction<boolean>) => {
             state.addSchemasView = action.payload;
         },
@@ -547,6 +598,9 @@ export const {
     setTriggerAction,
     // updateActionMetrics,
     // setActionMetric,
+    //
+    setSelectedAnalysisForRetrieval,
+    setSelectedRetrievalForAnalysis,
     setEvalMetric,
     setEvalFn,
     updateEvalMetrics,
@@ -567,6 +621,7 @@ export const {
     setSchemas,
     setSchemaField,
     setAddSchemasView,
+    setOpenActionApprovalRow,
     setAddTriggerRetrievalView
 } = aiSlice.actions;
 export default aiSlice.reducer;

@@ -8,15 +8,21 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {ActionApprovalsRow} from "./ActionApprovalsRow";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {aiApiGateway} from "../../gateway/ai";
-import {setTriggerActions} from "../../redux/ai/ai.reducer";
+import {setOpenActionApprovalRow, setTriggerActions} from "../../redux/ai/ai.reducer";
+import {RootState} from "../../redux/store";
+import {TriggerActionsApproval} from "../../redux/ai/ai.types.triggers";
 
 export function ActionsApprovalsTable(props: any) {
     const {selected, actions, handleClick, handleSelectAllClick, handleActionApprovalRequest} = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
+    const { open, rowIndex } = useSelector((state: RootState) => state.ai.openActionApprovalRow);
+    const handleToggle = (indexIn: number) => {
+        dispatch(setOpenActionApprovalRow({rowIndex: indexIn, open: !open }));
+    };
     const dispatch = useDispatch();
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -83,12 +89,15 @@ export function ActionsApprovalsTable(props: any) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rowsPerPage > 0 && actions && actions.map((row: any, index: number) => (
+                    {rowsPerPage > 0 && actions && actions.map((row: TriggerActionsApproval, index: number) => (
                         <ActionApprovalsRow
                             handleActionApprovalRequest={handleActionApprovalRequest}
                             key={index}
                             row={row}
                             index={index}
+                            open={open && rowIndex === index}
+                            rowIndex={rowIndex}
+                            handleToggle={handleToggle}
                             // handleClick={handleClick}
                             // checked={selected[index] || false}
                         />

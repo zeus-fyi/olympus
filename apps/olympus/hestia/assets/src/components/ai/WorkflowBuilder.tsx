@@ -65,7 +65,9 @@ import {
     setRetrievals,
     setSchema,
     setSchemas,
+    setSelectedAnalysisForRetrieval,
     setSelectedMainTabBuilder,
+    setSelectedRetrievalForAnalysis,
     setSelectedWorkflows,
     setTaskMap,
     setTriggerAction,
@@ -120,8 +122,6 @@ function WorkflowEngineBuilder(props: any) {
     const retrievalStages = useSelector((state: RootState) => state.ai.addedRetrievals);
     const [taskType, setTaskType] = useState('analysis');
     const analysisStages = useSelector((state: RootState) => state.ai.addedAnalysisTasks);
-    const [selectedRetrievalForAnalysis, setSelectedRetrievalForAnalysis] = useState('');
-    const [selectedAnalysisStageForRetrieval, setSelectedAnalysisStageForRetrieval] = useState('');
     const [selectedAnalysisStageForAggregation, setSelectedAnalysisStageForAggregation] = useState('');
     const [selectedAggregationStageForAnalysis, setSelectedAggregationStageForAnalysis] = useState('');
     const [selectedAnalysisStageForEval, setSelectedAnalysisStageForEval] = useState('');
@@ -160,7 +160,35 @@ function WorkflowEngineBuilder(props: any) {
     const [toggleEvalToTaskType, setToggleEvalToTaskType] = useState<boolean>(false); // Or use an object/array for multiple sections
     const editAnalysisTask = useSelector((state: any) => state.ai.editAnalysisTask);
     const editAggregateTask = useSelector((state: any) => state.ai.editAggregateTask);
+    const selectedAnalysisForRetrieval = useSelector((state: any) => state.ai.selectedAnalysisForRetrieval);
+    const selectedRetrievalForAnalysis = useSelector((state: any) => state.ai.selectedRetrievalForAnalysis);
+    const handleRetrievalChange = (event: any) => {
+        // Set the selected retrieval ID for analysis
+        const selectedRet = retrievalStages.find(ret => ret.retrievalStrID === event.target.value);
+        if (selectedRet) {
+            dispatch(setSelectedRetrievalForAnalysis(selectedRet));
+        }
+    };
 
+// Handler for when the analysis stage is changed
+    const handleAnalysisStageChange = (event: any) => {
+        // Set the selected analysis stage ID for retrieval
+        const selectedStage = analysisStages.find(stage => stage.taskStrID === event.target.value);
+        if (selectedStage) {
+            dispatch(setSelectedAnalysisForRetrieval(selectedStage));
+        }
+    };
+
+    const handleAddRetrievalToAnalysis = () => {
+        if (selectedAnalysisForRetrieval && selectedAnalysisForRetrieval.taskStrID && selectedRetrievalForAnalysis && selectedRetrievalForAnalysis.retrievalStrID) {
+            const payload = {
+                key: selectedAnalysisForRetrieval.taskStrID, // taskStrID as the main key
+                subKey: selectedRetrievalForAnalysis.retrievalStrID, // retrievalStrID as the inner key
+                value: true
+            };
+            dispatch(setAnalysisRetrievalsMap(payload));
+        }
+    };
     const dispatchUpdateField = (dataIndex: number, fieldIndex: number, evalMetricIndex: number, updatedEvalMetric: EvalMetric) => {
         const updatedSchemas = evalFn.schemas.map((schema: JsonSchemaDefinition, idx: number) => {
             if (idx === dataIndex) {
@@ -341,21 +369,11 @@ function WorkflowEngineBuilder(props: any) {
     //     const updatedMetrics = [...action.actionMetrics,actionMetric];
     //     // dispatch(updateActionMetrics(updatedMetrics));
     // };
-    const handleAddRetrievalToAnalysis = () => {
-        if (selectedRetrievalForAnalysis.length <= 0 || selectedRetrievalForAnalysis.length <= 0) {
-            return;
-        }
+
+    const handleRemoveRetrievalRelationshipFromWorkflow = async (event: any, taskStrID: string, retrievalStrID: string) => {
         const payload = {
-            key: selectedRetrievalForAnalysis,
-            subKey: selectedAnalysisStageForRetrieval,
-            value: true
-        };
-        dispatch(setAnalysisRetrievalsMap(payload));
-    };
-    const handleRemoveRetrievalRelationshipFromWorkflow = async (event: any, keystr: string, value: string) => {
-        const payload = {
-            key: keystr,
-            subKey: value,
+            key: taskStrID, // taskID
+            subKey: retrievalStrID, // retrievalID
             value: false
         };
         dispatch(setAnalysisRetrievalsMap(payload));
@@ -1576,26 +1594,16 @@ function WorkflowEngineBuilder(props: any) {
                                                     { workflowAnalysisRetrievalsMap &&
                                                         <Box sx={{ mt:2,  ml: 2, mr: 2 }} >
                                                             <Box >
-                                                                {Object.entries(workflowAnalysisRetrievalsMap).map(([key, value], index) => {
-                                                                    const retrievalNameForKey= retrievalsMap[(key)]?.retrievalName || '';
-                                                                    if (!retrievalNameForKey || retrievalNameForKey.length <= 0) {
-                                                                        return null;
-                                                                    }
-                                                                    return Object.entries(value).map(([subKey, subValue], subIndex) => {
-                                                                        const subTask = taskMap[subKey]
-                                                                        const subTaskName = subTask?.taskName || '';
-                                                                        if (!subValue || subKey.length <= 0) {
-                                                                            return null;
-                                                                        }
-                                                                        if (subTaskName.length <= 0) {
-                                                                            return null;
-                                                                        }
+                                                                {Object.entries(workflowAnalysisRetrievalsMap).map(([analysisTaskIdStr, value], index) => {
+                                                                    const analysisTask = taskMap[analysisTaskIdStr]
+                                                                    return Object.entries(value).map(([retrievalStrID, subValue], subIndex) => {
+                                                                        const ret = retrievalsMap[retrievalStrID]
                                                                         return (
-                                                                            <Stack direction={"row"} key={`${key}-${subKey}`}>
+                                                                            <Stack direction={"row"} key={`${index}-${subIndex}`}>
                                                                                 <React.Fragment key={subIndex}>
                                                                                     <TextField
                                                                                         label={`Retrieval`}
-                                                                                        value={retrievalNameForKey || ''}
+                                                                                        value={ret.retrievalName || ''}
                                                                                         InputProps={{ readOnly: true }}
                                                                                         variant="outlined"
                                                                                         fullWidth
@@ -1606,14 +1614,14 @@ function WorkflowEngineBuilder(props: any) {
                                                                                     </Box>
                                                                                     <TextField
                                                                                         label={`Analysis`}
-                                                                                        value={subTaskName || ''}
+                                                                                        value={analysisTask.taskName || ''}
                                                                                         InputProps={{ readOnly: true }}
                                                                                         variant="outlined"
                                                                                         fullWidth
                                                                                         margin="normal"
                                                                                     />
                                                                                     <Box flexGrow={1} sx={{mt: 3, ml: 2}}>
-                                                                                        <Button variant="contained" onClick={(event) => handleRemoveRetrievalRelationshipFromWorkflow(event, key, subKey)}>Remove</Button>
+                                                                                        <Button variant="contained" onClick={(event) => handleRemoveRetrievalRelationshipFromWorkflow(event, analysisTaskIdStr, retrievalStrID)}>Remove</Button>
                                                                                     </Box>
                                                                                 </React.Fragment>
                                                                             </Stack>
@@ -1626,32 +1634,32 @@ function WorkflowEngineBuilder(props: any) {
                                                     <Stack direction={"row"} sx={{ mt: 2 }}>
                                                         <Box flexGrow={3} sx={{ml: 2, mt: 2}}>
                                                             <FormControl fullWidth>
-                                                                <InputLabel id={`retrieval-stage-select-label-${1}`}>Retrieval</InputLabel>
+                                                                <InputLabel id="retrieval-stage-select-label">Retrieval</InputLabel>
                                                                 <Select
-                                                                    labelId={`retrieval-stage-select-label-${1}`}
-                                                                    id={`retrieval-stage-select-${1}`}
-                                                                    value={selectedRetrievalForAnalysis} // Use the state for the selected value
+                                                                    labelId="retrieval-stage-select-label"
+                                                                    id="retrieval-stage-select"
                                                                     label="Retrieval Source"
-                                                                    onChange={(event) => setSelectedRetrievalForAnalysis(event.target.value)} // Update the state on change
+                                                                    value={selectedRetrievalForAnalysis && selectedRetrievalForAnalysis.retrievalStrID}
+                                                                    onChange={handleRetrievalChange}
                                                                 >
-                                                                    {retrieval && retrievalStages.map((ret, subIndex) => (
-                                                                        <MenuItem key={subIndex} value={ret.retrievalName}>{ret.retrievalName}</MenuItem>
+                                                                    {retrievalStages.map((ret, index) => (
+                                                                        <MenuItem key={index} value={ret.retrievalStrID}>{ret.retrievalName}</MenuItem>
                                                                     ))}
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
                                                         <Box flexGrow={3} sx={{mt: 2, ml: 2, mr: 2}}>
                                                             <FormControl fullWidth>
-                                                                <InputLabel id={`ret-analysis-stage-select-label-${1}`}>Analysis</InputLabel>
+                                                                <InputLabel id="ret-analysis-stage-select-label">Analysis</InputLabel>
                                                                 <Select
-                                                                    labelId={`ret-analysis-stage-select-label-${1}`}
-                                                                    id={`ret-analysis-stage-select-${1}`}
-                                                                    value={selectedAnalysisStageForRetrieval} // Use the state for the selected value
+                                                                    labelId="ret-analysis-stage-select-label"
+                                                                    id="ret-analysis-stage-select"
                                                                     label="Analysis Source"
-                                                                    onChange={(event) => setSelectedAnalysisStageForRetrieval(event.target.value)} // Update the state on change
+                                                                    value={selectedAnalysisForRetrieval && selectedAnalysisForRetrieval.taskStrID}
+                                                                    onChange={handleAnalysisStageChange}
                                                                 >
-                                                                    {analysisStages && analysisStages.map((stage, subIndex) => (
-                                                                        <MenuItem key={subIndex} value={stage.taskStrID}>{stage.taskName}</MenuItem>
+                                                                    {analysisStages.map((stage, index) => (
+                                                                        <MenuItem key={index} value={stage.taskStrID}>{stage.taskName}</MenuItem>
                                                                     ))}
                                                                 </Select>
                                                             </FormControl>

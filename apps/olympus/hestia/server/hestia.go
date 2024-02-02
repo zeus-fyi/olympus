@@ -109,7 +109,7 @@ func Hestia() {
 		conf := &oauth2.Config{
 
 			// "https://hestia.zeus.fyi/social/v1/auth/twitter/callback"
-			RedirectURL:  "https://cloud.zeus.fyi/social/v1/twitter/callback",
+			RedirectURL:  "https://cloud.zeus.fyi/ai",
 			ClientID:     sw.TwitterMbClientID,
 			ClientSecret: sw.TwitterMbClientSecret,
 			Scopes: []string{

@@ -70,6 +70,7 @@ type SearchResultGroup struct {
 	Model                          string                                            `json:"model,omitempty"`
 	ResponseFormat                 string                                            `json:"responseFormat,omitempty"`
 	BodyPrompt                     string                                            `json:"bodyPrompt,omitempty"`
+	ResponseBody                   string                                            `json:"responseBody,omitempty"`
 	ApiResponseResults             []SearchResult                                    `json:"apiResponseResults,omitempty"`
 	SearchResults                  []SearchResult                                    `json:"searchResults"`
 	FilteredSearchResults          []SearchResult                                    `json:"filteredSearchResults,omitempty"`
@@ -90,7 +91,7 @@ func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
 
 func (sg *SearchResultGroup) GetPromptBody() string {
 	if len(sg.SearchResults) == 0 || len(sg.ApiResponseResults) == 0 {
-		return sg.BodyPrompt
+		return sg.BodyPrompt + "\n" + sg.ResponseBody
 	}
 	if len(sg.ApiResponseResults) > 0 {
 		return FormatApiSearchResultSliceToString(sg.ApiResponseResults)

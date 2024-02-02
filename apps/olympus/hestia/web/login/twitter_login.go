@@ -150,7 +150,7 @@ func TwitterCallbackHandler(c echo.Context) error {
 	log.Info().Interface("tm", tm).Msg("TwitterCallbackHandler: TwitterMe")
 	// username is the unique handle identifier for the user
 	sr := SecretsRequest{
-		Name:  fmt.Sprintf("twitter-%s", tm.Data.Username),
+		Name:  fmt.Sprintf("api-twitter-%s", tm.Data.Username),
 		Key:   "mockingbird",
 		Value: token.AccessToken,
 	}

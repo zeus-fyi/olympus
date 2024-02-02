@@ -6,8 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/providers/twitter"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -109,7 +107,9 @@ func Hestia() {
 		authorizeURL := "https://twitter.com/i/oauth2/authorize"
 		tokenURL := "https://api.twitter.com/2/oauth2/token"
 		conf := &oauth2.Config{
-			RedirectURL:  "https://hestia.zeus.fyi/twitter/callback",
+
+			// "https://hestia.zeus.fyi/social/v1/auth/twitter/callback"
+			RedirectURL:  "https://cloud.zeus.fyi/social/v1/twitter/callback",
 			ClientID:     sw.TwitterMbClientID,
 			ClientSecret: sw.TwitterMbClientSecret,
 			Scopes: []string{
@@ -200,10 +200,6 @@ func Hestia() {
 		hestia_login.SetConf(tc.DiscordClientID, tc.DiscordClientSecret)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
-
-		goth.UseProviders(
-			twitter.New(tc.TwitterClientID, tc.TwitterClientSecret, "http://localhost:9002/auth/twitter/callback"),
-		)
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthConfig = tc.DevTemporalAuth
 		temporalAuthConfigHestia = tc.DevTemporalAuth
@@ -331,7 +327,12 @@ func Hestia() {
 	if env == "local" || env == "production-local" {
 		irisHost := "http://localhost:8080"
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins: []string{"http://localhost:3000", irisHost, "https://accounts.google.com", "https://oauth2.googleapis.com"},
+			AllowOrigins: []string{"http://localhost:3000", "http://localhost:9002", irisHost, "http://promql.promql-edc89f30.svc.cluster.local",
+				"https://accounts.google.com", "https://oauth2.googleapis.com",
+				"https://twitter.com/", "https://twitter.com/i/oauth2/authorize",
+				"https://api.twitter.com/2/oauth2", "https://api.twitter.com/2/oauth2/token",
+				"https://hestia.zeus.fyi/social/v1/auth/twitter/callback", "https://cloud.zeus.fyi/social/v1/twitter/callback",
+			},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",
@@ -345,8 +346,15 @@ func Hestia() {
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi",
-				"https://iris.zeus.fyi", "https://quicknode.com", "https://accounts.google.com", "https://oauth2.googleapis.com",
-				"http://promql.promql-edc89f30.svc.cluster.local"},
+				"https://hestia.zeus.fyi/social/v1/auth/twitter/callback", "https://hestia.zeus.fyi/social/v1/twitter/callback",
+				"https://cloud.zeus.fyi/social/v1/auth/twitter/callback", "https://cloud.zeus.fyi/social/v1/twitter/callback",
+				"https://api.twitter.com/2/oauth2/token",
+				"https://twitter.com/", "https://twitter.com/i/oauth2", "https://twitter.com/i/oauth2/authorize",
+				"https://iris.zeus.fyi",
+				"https://quicknode.com",
+				"https://accounts.google.com", "https://oauth2.googleapis.com",
+				"http://promql.promql-edc89f30.svc.cluster.local",
+			},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
 				echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding",

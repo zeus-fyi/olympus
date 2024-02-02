@@ -29,6 +29,7 @@ import SearchDashboard from "../components/compute/search/SearchNodes";
 import AiWorkflowsDashboard from "../components/ai/AI";
 import Secrets from "../components/secrets/Secrets";
 import AiWorkflowsEngineBuilderDashboard from "../components/ai/WorkflowBuilder";
+import {TwitterLogin} from "../components/login/TwitterLogin";
 
 export const App = () => {
     ReactGA.initialize([
@@ -44,6 +45,7 @@ export const App = () => {
                 <BrowserRouter>
                     <Routes>
                             <Route path="/" element={<HomeLayout />} />
+                            <Route path="/social/v1/twitter/callback" element={<TwitterLogin />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/signup" element={<SignUp />} />
                         <Route path="/quicknode/dashboard" element={<VerifyQuickNodeLoginJWT />} />

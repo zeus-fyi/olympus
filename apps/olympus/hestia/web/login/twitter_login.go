@@ -8,12 +8,15 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 	"golang.org/x/oauth2"
 )
 
@@ -42,49 +45,120 @@ var TwitterOAuthConfig = &oauth2.Config{
 		"block.read",
 		"block.write",
 	},
-	RedirectURL: "https://hestia.zeus.fyi/twitter/callback",
+	RedirectURL: "https://cloud.zeus.fyi/social/v1/twitter/callback",
 }
+
+const (
+	RedirectBackPlatform = "https://cloud.zeus.fyi/social/v1/twitter/callback"
+)
 
 //	[]string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},
 //
 // this is used to generate the URL to redirect the user to Twitter's OAuth2 login page
-var ch = cache.New(5*time.Minute, 10*time.Minute)
+var (
+	ch    = cache.New(5*time.Minute, 10*time.Minute)
+	chOrg = cache.New(5*time.Minute, 10*time.Minute)
+)
 
 func CallbackHandler(c echo.Context) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 	stateNonce := GenerateNonce()
 	verifier := GenerateCodeVerifier(128)
 	codeChallenge := PkCEChallengeWithSHA256(verifier)
-	//log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("TwitterCallbackHandler: Handling Twitter Callback")
-
+	//log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("START CallbackHandler: Callback")
 	// Store the verifier using stateNonce as the key
+	//log.Info().Interface("orgUser", ou).Str("stateNonce", stateNonce).Msg("BEGIN: Storing stateNonce in cache")
+
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
+	chOrg.Set(stateNonce, fmt.Sprintf("%d", ou.OrgID), cache.DefaultExpiration)
+
 	challengeOpt := oauth2.SetAuthURLParam("code_challenge", codeChallenge)
 	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "S256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
-	return c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+	return c.JSON(http.StatusOK, redirectURL)
 }
 
 func TwitterCallbackHandler(c echo.Context) error {
-	//log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
+	//log.Printf("START TwitterCallbackHandler Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
+
 	code := c.QueryParam("code")
 	stateNonce := c.QueryParam("state")
+	//log.Info().Interface("stateNonce", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 	//log.Info().Str("code", code).Str("state", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 	verifier, found := ch.Get(stateNonce)
 	if !found {
 		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")
-		return c.JSON(http.StatusInternalServerError, "Failed to retrieve verifier")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	verifierStr, ok := verifier.(string)
 	if !ok {
 		log.Err(fmt.Errorf("TwitterCallbackHandler: Failed to cast verifier to string")).Msg("TwitterCallbackHandler: Failed to cast verifier to string")
-		return c.JSON(http.StatusInternalServerError, "Failed to cast verifier to string")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
+
+	orgStrID, found := chOrg.Get(stateNonce)
+	if !found {
+		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	orgStrIDFromCache, ok := orgStrID.(string)
+	if !ok {
+		log.Info().Interface("orgStrID", orgStrID).Msg("TwitterCallbackHandler: orgID from cache")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	log.Info().Interface("orgStrIDFromCache", orgStrIDFromCache).Msg("TwitterCallbackHandler: orgID from cache")
+	log.Info().Interface("chOrg", chOrg).Msg("TwitterCallbackHandler: org cache")
+	ouid, err := strconv.Atoi(orgStrIDFromCache)
+	if err != nil {
+		log.Err(err).Msg("TwitterCallbackHandler: Failed to cast orgID to int")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	ou := org_users.OrgUser{}
+	ou.OrgID = ouid
+	c.Set("orgUser", ou)
+	log.Info().Interface("orgUser", ou).Msg("TwitterCallbackHandler: Successfully retrieved orgID from cache")
 	token, err := FetchToken(code, verifierStr)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")
-		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, token)
+	log.Info().Interface("token", token).Msg("TwitterCallbackHandler: Successfully generated access token")
+	if token == nil {
+		log.Warn().Msg("TwitterCallbackHandler: Token is nil")
+		//return c.JSON(http.StatusInternalServerError, "Token is nil")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	//log.Info().Interface("token", token).Msg("TwitterCallbackHandler: Successfully generated access token")
+	//return c.Redirect(http.StatusTemporaryRedirect, "https://cloud.zeus.fyi/ai")
+	r := resty_base.GetBaseRestyClient("https://api.twitter.com", token.AccessToken)
+	tm := TwitterMe{}
+	resp, err := r.R().SetResult(&tm).Get("/2/users/me")
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Interface("tm", tm).Msg("TwitterCallbackHandler: Failed to fetch user data")
+		return c.JSON(http.StatusInternalServerError, "Failed to fetch user data")
+	}
+	log.Info().Interface("tm", tm).Msg("TwitterCallbackHandler: TwitterMe")
+	// username is the unique handle identifier for the user
+	sr := SecretsRequest{
+		Name:  fmt.Sprintf("api-twitter-%s", tm.Data.Username),
+		Key:   "mockingbird",
+		Value: token.AccessToken,
+	}
+	return sr.CreateOrUpdateSecret(c, false)
+}
+
+type TwitterMe struct {
+	Data struct {
+		Id       string `json:"id"`
+		Name     string `json:"name"`
+		Username string `json:"username"`
+	} `json:"data"`
 }
 
 func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
@@ -92,7 +166,7 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 	values := url.Values{
 		"code":          {code},
 		"grant_type":    {"authorization_code"},
-		"redirect_uri":  {TwitterOAuthConfig.RedirectURL},
+		"redirect_uri":  {RedirectBackPlatform},
 		"client_id":     {TwitterOAuthConfig.ClientID},
 		"code_verifier": {codeVerifier},
 	}
@@ -120,7 +194,7 @@ func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {
 		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("FetchToken: Failed to fetch token")
 		return nil, err
 	}
-
+	//log.Info().Interface("resp", resp.Body()).Msg("FetchToken: Successfully fetched token")
 	return token, nil
 }
 

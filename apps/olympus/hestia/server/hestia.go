@@ -6,8 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/providers/twitter"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -109,7 +107,7 @@ func Hestia() {
 		authorizeURL := "https://twitter.com/i/oauth2/authorize"
 		tokenURL := "https://api.twitter.com/2/oauth2/token"
 		conf := &oauth2.Config{
-			RedirectURL:  "https://hestia.zeus.fyi/twitter/callback",
+			RedirectURL:  "https://cloud.zeus.fyi/twitter/callback",
 			ClientID:     sw.TwitterMbClientID,
 			ClientSecret: sw.TwitterMbClientSecret,
 			Scopes: []string{
@@ -200,10 +198,6 @@ func Hestia() {
 		hestia_login.SetConf(tc.DiscordClientID, tc.DiscordClientSecret)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
-
-		goth.UseProviders(
-			twitter.New(tc.TwitterClientID, tc.TwitterClientSecret, "http://localhost:9002/auth/twitter/callback"),
-		)
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthConfig = tc.DevTemporalAuth
 		temporalAuthConfigHestia = tc.DevTemporalAuth
@@ -333,7 +327,7 @@ func Hestia() {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"http://localhost:3000", irisHost, "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.twitter.com/2/oauth2",
 				"http://promql.promql-edc89f30.svc.cluster.local", "https://twitter.com/i/oauth2/authorize", "https://api.twitter.com/2/oauth2/token",
-				"https://twitter.com/", "http://localhost:9002",
+				"https://twitter.com/", "http://localhost:9002", "https://hestia.zeus.fyi/social/v1/auth/twitter/callback",
 			},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,
@@ -347,9 +341,10 @@ func Hestia() {
 		v1_ethereum_aws.LambdaBaseDirIn = "/"
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://twitter.com/",
-				"https://iris.zeus.fyi", "https://quicknode.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.twitter.com/2/oauth2",
-				"http://promql.promql-edc89f30.svc.cluster.local", "https://twitter.com/i/oauth2/authorize", "https://api.twitter.com/2/oauth2/token",
+			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi",
+				"https://hestia.zeus.fyi/social/v1/auth/twitter/callback", "https://twitter.com/", "https://twitter.com/i/oauth2/authorize", "https://api.twitter.com/2/oauth2/token",
+				"https://iris.zeus.fyi", "https://quicknode.com", "https://accounts.google.com", "https://oauth2.googleapis.com",
+				"http://promql.promql-edc89f30.svc.cluster.local",
 			},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization,

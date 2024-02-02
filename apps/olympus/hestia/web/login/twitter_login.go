@@ -73,6 +73,7 @@ func TwitterCallbackHandler(c echo.Context) error {
 	log.Printf("Handling Twitter Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
 	code := c.QueryParam("code")
 	stateNonce := c.QueryParam("state")
+	log.Info().Interface("stateNonce", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 	log.Info().Str("code", code).Str("state", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
 	verifier, found := ch.Get(stateNonce)
 	if !found {

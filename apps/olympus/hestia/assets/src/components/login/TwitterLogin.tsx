@@ -17,6 +17,7 @@ export const TwitterLogin = () => {
                 const code = queryParams.get('code');
                 const state = queryParams.get('state');
 
+                console.log("TwitterLogin", 'code', code, 'state', state)
                 if (code && state) {
                     // Assuming accessApiGateway.callbackPlatformAuthFlow has been updated to accept code and state
                     const response = await accessApiGateway.callbackPlatformAuthFlow('twitter', code, state);

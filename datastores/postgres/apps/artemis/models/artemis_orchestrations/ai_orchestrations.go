@@ -272,13 +272,21 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 
 func UpsertAiOrchestration(ctx context.Context, ou org_users.OrgUser, wfParentID string, wfExec WorkflowExecParams) (int, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO orchestrations(org_id, orchestration_name, group_name, type, active, instructions)
-              VALUES ($1, $2, $3, $4, $5, $6)
-              ON CONFLICT (org_id, orchestration_name) 
-			  DO UPDATE SET 
-				  instructions = EXCLUDED.instructions,
-				  active = EXCLUDED.active
-			  RETURNING orchestration_id;`
+	q.RawQuery = `
+			  WITH cte_orchestrations AS (
+				  INSERT INTO orchestrations(org_id, orchestration_name, group_name, type, active, instructions)
+				  VALUES ($1, $2, $3, $4, $5, $6)
+				  ON CONFLICT (org_id, orchestration_name) 
+				  DO UPDATE SET 
+					  instructions = EXCLUDED.instructions,
+					  active = EXCLUDED.active
+				  RETURNING orchestration_id
+			), cte_ai_runs AS (
+				INSERT INTO ai_workflow_runs (workflow_run_id, orchestration_id)
+				SELECT o.orchestration_id, o.orchestration_id
+				FROM cte_orchestrations o
+				ON CONFLICT (workflow_run_id) DO NOTHING
+			) SELECT orchestration_id FROM cte_orchestrations;`
 
 	var id int
 	b, err := json.Marshal(wfExec)

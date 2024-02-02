@@ -800,6 +800,8 @@ function WorkflowEngineBuilder(props: any) {
     const [requestStatusSchemaError, setRequestStatusSchemaError] = useState('');
 
     const createOrUpdateWorkflow = async () => {
+
+        console.log(workflowAnalysisRetrievalsMap, 'workflowAnalysisRetrievalsMap')
         try {
             // console.log('createOrUpdateWorkflow', workflowBuilderTaskMap)
             const allMappedRetrievalIDs: Set<number> = new Set();

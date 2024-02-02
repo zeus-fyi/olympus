@@ -43,7 +43,7 @@ var TwitterOAuthConfig = &oauth2.Config{
 		"block.read",
 		"block.write",
 	},
-	RedirectURL: "https://hestia.zeus.fyi/twitter/callback",
+	RedirectURL: "https://cloud.zeus.fyi/twitter/callback",
 }
 
 const (

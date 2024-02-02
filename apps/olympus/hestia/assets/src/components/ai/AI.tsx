@@ -356,6 +356,7 @@ function AiWorkflowsDashboardContent(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
+                window.location.href = data; // Redirect the user to the OAuth sign-in page
                 setRequestIndexerStatus('Auth information: ' + data)
                 setRequestIndexerStatusError('success')
             }

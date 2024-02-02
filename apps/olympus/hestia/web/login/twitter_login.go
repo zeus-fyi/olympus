@@ -66,7 +66,7 @@ func CallbackHandler(c echo.Context) error {
 	challengeOpt := oauth2.SetAuthURLParam("code_challenge", codeChallenge)
 	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "S256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
-	return c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+	return c.JSON(http.StatusOK, redirectURL)
 }
 
 func TwitterCallbackHandler(c echo.Context) error {

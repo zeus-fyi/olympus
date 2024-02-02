@@ -43,7 +43,7 @@ class AccessApiGateway {
     }
 
     async callbackPlatformAuthFlow(platformName: string, code: string, state: string) {
-        const url = `/social/v1/${platformName}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+        const url = `/${platformName}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
         // const sessionID = inMemoryJWT.getToken();
         // let config = {
         //     headers: {

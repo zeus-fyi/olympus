@@ -84,20 +84,14 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 					RetrievalID: aws.ToInt(ret.RetrievalID),
 					ReqPayloads: echoReqs,
 				}
-
 				tap := artemis_orchestrations.TriggerActionsApproval{
-					TriggerAction:       "pending",
-					EvalID:              0,
-					EvalStrID:           "",
-					TriggerID:           0,
-					TriggerStrID:        "",
-					WorkflowResultID:    0,
-					WorkflowResultStrID: "",
-					ApprovalState:       "",
-					RequestSummary:      "",
-					UpdatedAt:           time.Time{},
-					Requests:            nil,
-					Responses:           nil,
+					TriggerAction:    apiApproval,
+					EvalID:           tq.EvalID,
+					TriggerID:        ta.TriggerID,
+					WorkflowResultID: tar.Emr.EvalContext.AIWorkflowAnalysisResult.WorkflowResultID,
+					ApprovalState:    pendingStatus,
+					RequestSummary:   "Requesting approval for trigger action",
+					Responses:        nil,
 				}
 				recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tar.Mb.Ou, tap, trrr).Get(recordTriggerCondCtx, nil)

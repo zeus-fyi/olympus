@@ -54,7 +54,10 @@ const (
 //	[]string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},
 //
 // this is used to generate the URL to redirect the user to Twitter's OAuth2 login page
-var ch = cache.New(5*time.Minute, 10*time.Minute)
+var (
+	ch    = cache.New(5*time.Minute, 10*time.Minute)
+	chOrg = cache.New(5*time.Minute, 10*time.Minute)
+)
 
 func CallbackHandler(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
@@ -69,8 +72,7 @@ func CallbackHandler(c echo.Context) error {
 	// Store the verifier using stateNonce as the key
 	log.Info().Interface("orgUser", ou).Str("stateNonce", stateNonce).Msg("BEGIN: Storing stateNonce in cache")
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
-	orgKey := fmt.Sprintf("%s-org", stateNonce)
-	ch.Set(orgKey, ou.OrgID, cache.DefaultExpiration)
+	chOrg.Set(stateNonce, ou.OrgID, cache.DefaultExpiration)
 	challengeOpt := oauth2.SetAuthURLParam("code_challenge", codeChallenge)
 	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "S256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
@@ -95,12 +97,13 @@ func TwitterCallbackHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "Failed to cast verifier to string")
 	}
 
-	orgKey := fmt.Sprintf("%s-org", stateNonce)
-	orgID, found := ch.Get(orgKey)
+	orgID, found := chOrg.Get(stateNonce)
 	if !found {
-		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve orgID from cache")
-		return c.JSON(http.StatusInternalServerError, nil)
+		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")
+		return c.JSON(http.StatusInternalServerError, "Failed to retrieve verifier")
 	}
+	log.Info().Interface("orgID", orgID).Msg("TwitterCallbackHandler: orgID from cache")
+	log.Info().Interface("chOrg", chOrg).Msg("TwitterCallbackHandler: org cache")
 	ou := org_users.OrgUser{}
 	ouid, ok := orgID.(int)
 	if ok {

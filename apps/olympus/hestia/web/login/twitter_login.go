@@ -1,6 +1,7 @@
 package hestia_login
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	b64 "encoding/base64"
@@ -16,6 +17,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 	"golang.org/x/oauth2"
 )
@@ -149,6 +151,17 @@ func TwitterCallbackHandler(c echo.Context) error {
 		Name:  fmt.Sprintf("api-twitter-%s", tm.Data.Username),
 		Key:   "mockingbird",
 		Value: token.AccessToken,
+	}
+	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
+		Ou:           ou,
+		OrgGroupName: fmt.Sprintf("twitter-%s", tm.Data.Username),
+		Routes:       []string{"https://api.twitter.com/2/"},
+	}
+	ctx := context.Background()
+	err = platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisPlatformSetupRequestWorkflow(ctx, ipr)
+	if err != nil {
+		log.Err(err).Msg("TwitterCallbackHandler: CreateOrgGroupRoutesRequest")
+		return err
 	}
 	return sr.CreateOrUpdateSecret(c, false)
 }

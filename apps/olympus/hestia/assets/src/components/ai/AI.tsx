@@ -1008,10 +1008,8 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                Automated Twitter Auth & Routing Table Setup
                                                             </Typography>
                                                             <Typography variant="subtitle2" color="text.secondary">
-                                                                Select an existing table to connect your bearer token to your API group for twitter. If you
-                                                                select none, it will create a table for you called 'twitter' and generate a bearer token for you
-                                                                that it saves in the platform secret manager as 'api-twitter'. Otherwise it will use the existing
-                                                                table you select and save the bearer token to the platform secret manager as {'api-{routing-table}'}.
+                                                                This will create a routing table for you called {'twitter-{YOUR_TWITTER_@HANDLE}'} and generate a bearer token for you
+                                                                that it saves in the platform secret manager as {'api-twitter-{YOUR_TWITTER_@HANDLE}'}.
                                                             </Typography>
                                                             <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
                                                                 <InputLabel key={`groupNameLabel`} id={`groupName`}>
@@ -1021,12 +1019,12 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                     labelId={`groupNameLabel`}
                                                                     id={`groupName`}
                                                                     name="groupName"
-                                                                    value={retrieval.retrievalItemInstruction.webFilters?.routingGroup || 'twitter'}
-                                                                    onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
+                                                                    value={retrieval.retrievalItemInstruction.webFilters?.routingGroup || 'twitter-{YOUR_TWITTER_@HANDLE}'}
+                                                                    // onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
                                                                     label="Routing Group"
                                                                 >
-                                                                    <MenuItem key={'twitter'} value={'twitter'}>{'twitter'}</MenuItem>
-                                                                    {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                                                    <MenuItem key={'twitter'} value={'twitter'}>{'twitter-{YOUR_TWITTER_@HANDLE}'}</MenuItem>
+                                                                    {/*{Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}*/}
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>

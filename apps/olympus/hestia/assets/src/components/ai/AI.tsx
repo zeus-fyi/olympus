@@ -356,7 +356,7 @@ function AiWorkflowsDashboardContent(props: any) {
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
-                window.location.href = data; // Redirect the user to the OAuth sign-in page
+                window.location.replace(data);
                 setRequestIndexerStatus('Auth information: ' + data)
                 setRequestIndexerStatusError('success')
             }
@@ -995,13 +995,6 @@ function AiWorkflowsDashboardContent(props: any) {
                                                         }
                                                     </div>
 
-                                                {requestIndexerStatus != '' && (
-                                                    <Container sx={{  mt: 2}}>
-                                                        <Typography variant="h6" color={requestIndexerStatusError}>
-                                                            {requestIndexerStatus}
-                                                        </Typography>
-                                                    </Container>
-                                                )}
                                                 { searchIndexer.platform != 'openai' &&
                                                 <Box flexGrow={2} sx={{ mb: 2, mr: 2}}>
                                                     <Button fullWidth variant="outlined"  onClick={(e) => handleSubmitIndexer(e)}>Start Indexing</Button>
@@ -1042,6 +1035,14 @@ function AiWorkflowsDashboardContent(props: any) {
                                                         </Box>
                                                     </div>
                                                 }
+
+                                                {requestIndexerStatus != '' && (
+                                                    <Container sx={{  mt: 2}}>
+                                                        <Typography variant="h6" color={requestIndexerStatusError}>
+                                                            {requestIndexerStatus}
+                                                        </Typography>
+                                                    </Container>
+                                                )}
                                             </Stack>
                                         </div>
                                     </CardContent>

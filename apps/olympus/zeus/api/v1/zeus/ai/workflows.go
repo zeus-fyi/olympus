@@ -77,12 +77,12 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		al, lerr := oc.ListAssistants(c.Request().Context(), nil, nil, nil, nil)
 		if lerr != nil {
 			log.Err(lerr).Msg("failed to get assistants")
-			return c.JSON(http.StatusInternalServerError, nil)
-		}
-		for _, a := range al.Assistants {
-			assistants = append(assistants, artemis_orchestrations.AiAssistant{
-				Assistant: a,
-			})
+		} else {
+			for _, a := range al.Assistants {
+				assistants = append(assistants, artemis_orchestrations.AiAssistant{
+					Assistant: a,
+				})
+			}
 		}
 	}
 	//

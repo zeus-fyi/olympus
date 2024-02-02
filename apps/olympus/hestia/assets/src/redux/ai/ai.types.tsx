@@ -4,7 +4,13 @@ import {EvalFn, EvalFnMap, EvalMap, EvalMetric} from "./ai.types.evals";
 import {OrchestrationsAnalysis} from "./ai.types.runs";
 import {TriggerAction} from "./ai.types.triggers";
 
+
+export interface RowIndexOpen {
+    rowIndex: number;
+    open: boolean;
+}
 export interface AiState {
+    openActionApprovalRow: RowIndexOpen;
     addSchemasView: boolean;
     schema: JsonSchemaDefinition;
     schemas: JsonSchemaDefinition[];

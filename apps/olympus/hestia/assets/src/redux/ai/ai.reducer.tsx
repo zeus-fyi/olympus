@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     AiState,
     PlatformSecretReference,
+    RowIndexOpen,
     SearchIndexerParams,
     TaskModelInstructions,
     UpdateTaskCycleCountPayload,
@@ -14,6 +15,10 @@ import {OrchestrationsAnalysis} from "./ai.types.runs";
 import {TriggerAction} from "./ai.types.triggers";
 
 const initialState: AiState = {
+    openActionApprovalRow: {
+        rowIndex: 0,
+        open: false
+    },
     addSchemasView: false,
     schemas: [],
     schema: {
@@ -185,6 +190,9 @@ const aiSlice = createSlice({
     name: 'ai',
     initialState,
     reducers: {
+        setOpenActionApprovalRow(state, action: PayloadAction<RowIndexOpen>) {
+            state.openActionApprovalRow = action.payload;
+        },
         setAddSchemasView: (state, action: PayloadAction<boolean>) => {
             state.addSchemasView = action.payload;
         },
@@ -567,6 +575,7 @@ export const {
     setSchemas,
     setSchemaField,
     setAddSchemasView,
+    setOpenActionApprovalRow,
     setAddTriggerRetrievalView
 } = aiSlice.actions;
 export default aiSlice.reducer;

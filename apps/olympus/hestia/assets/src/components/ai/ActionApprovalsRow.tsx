@@ -1,4 +1,5 @@
 import * as React from "react";
+import {useEffect} from "react";
 import {Collapse, TableRow} from "@mui/material";
 import TableCell from "@mui/material/TableCell";
 import IconButton from "@mui/material/IconButton";
@@ -12,11 +13,16 @@ import TableBody from "@mui/material/TableBody";
 import Button from "@mui/material/Button";
 import {TriggerActionsApproval} from "../../redux/ai/ai.types.triggers";
 import {prettyPrintJSON} from "./RetrievalsRow";
+import {useDispatch} from "react-redux";
 
 // handleClick: any, checked: boolean
 export function ActionApprovalsRow(props: any) {
-    const { row, handleActionApprovalRequest, index} = props;
-    const [open, setOpen] = React.useState(false);
+    const { row, handleActionApprovalRequest,open, index, rowIndex, handleToggle} = props;
+    const dispatch = useDispatch();
+    useEffect(() => {
+
+    }, [open,rowIndex]); // Dependency array includes addSchemasView
+
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -24,9 +30,9 @@ export function ActionApprovalsRow(props: any) {
                     <IconButton
                         aria-label="expand row"
                         size="small"
-                        onClick={() => setOpen(!open)}
+                        onClick={() => handleToggle(index)}
                     >
-                        {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                        {open && rowIndex === index ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>
                 </TableCell>
                 {/*<TableCell align="center" >*/}

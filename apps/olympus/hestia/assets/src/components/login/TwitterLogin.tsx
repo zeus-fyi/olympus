@@ -19,6 +19,9 @@ export const TwitterLogin = () => {
                 if (code && state) {
                     // Assuming accessApiGateway.callbackPlatformAuthFlow has been updated to accept code and state
                     const response = await accessApiGateway.callbackPlatformAuthFlow('twitter', code, state);
+                    console.log("response", response);
+                    console.log("response.data", response.data);
+
                     setRequestStatus('success'); // Update request status to success
                 }
             } catch (error) {
@@ -37,7 +40,10 @@ export const TwitterLogin = () => {
         if (requestStatus === 'success') {
             navigate('/ai');
         }
-    }, [requestStatus, navigate]);
+    }, [requestStatus, navigate, isLoading]);
 
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
     return <div>Redirecting</div>
 }

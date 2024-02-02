@@ -22,10 +22,31 @@ var TwitterOAuthConfig = &oauth2.Config{
 		AuthURL:  "https://twitter.com/i/oauth2/authorize",
 		TokenURL: "https://api.twitter.com/2/oauth2/token",
 	},
-	Scopes:      []string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},
+	Scopes: []string{
+		"bookmark.write",
+		"bookmark.read",
+		"tweet.read",
+		"tweet.write",
+		"tweet.moderate.write",
+		"users.read",
+		"follows.read",
+		"follows.write",
+		"offline.access",
+		"space.read",
+		"mute.read",
+		"mute.write",
+		"like.read",
+		"like.write",
+		"list.read",
+		"list.write",
+		"block.read",
+		"block.write",
+	},
 	RedirectURL: "https://hestia.zeus.fyi/twitter/callback",
 }
 
+//	[]string{"bookmark.write", "bookmark.read", "tweet.read", "users.read", "offline.access", "follows.read"},
+//
 // this is used to generate the URL to redirect the user to Twitter's OAuth2 login page
 var ch = cache.New(5*time.Minute, 10*time.Minute)
 

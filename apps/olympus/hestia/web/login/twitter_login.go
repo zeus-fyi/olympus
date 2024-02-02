@@ -43,7 +43,7 @@ var TwitterOAuthConfig = &oauth2.Config{
 		"block.read",
 		"block.write",
 	},
-	RedirectURL: "https://cloud.zeus.fyi/twitter/callback",
+	RedirectURL: "https://cloud.zeus.fyi/social/v1/twitter/callback",
 }
 
 const (
@@ -92,8 +92,10 @@ func TwitterCallbackHandler(c echo.Context) error {
 	log.Info().Interface("token", token).Msg("TwitterCallbackHandler: Successfully generated access token")
 	if token == nil {
 		log.Warn().Msg("TwitterCallbackHandler: Token is nil")
-		return c.JSON(http.StatusInternalServerError, "Token is nil")
+		//return c.JSON(http.StatusInternalServerError, "Token is nil")
 	}
+
+	log.Info().Interface("token", token).Msg("TwitterCallbackHandler: Successfully generated access token")
 	//return c.Redirect(http.StatusTemporaryRedirect, "https://cloud.zeus.fyi/ai")
 
 	r := resty_base.GetBaseRestyClient("https://api.twitter.com", token.AccessToken)

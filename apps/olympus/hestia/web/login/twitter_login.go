@@ -67,8 +67,10 @@ func CallbackHandler(c echo.Context) error {
 	//log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("START CallbackHandler: Callback")
 
 	// Store the verifier using stateNonce as the key
+	log.Info().Interface("orgUser", ou).Str("stateNonce", stateNonce).Msg("BEGIN: Storing stateNonce in cache")
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
-	ch.Set(fmt.Sprintf("%s-org", stateNonce), ou.OrgID, cache.DefaultExpiration)
+	orgKey := fmt.Sprintf("%s-org", stateNonce)
+	ch.Set(orgKey, ou.OrgID, cache.DefaultExpiration)
 	challengeOpt := oauth2.SetAuthURLParam("code_challenge", codeChallenge)
 	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "S256")
 	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
@@ -93,7 +95,8 @@ func TwitterCallbackHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "Failed to cast verifier to string")
 	}
 
-	orgID, found := ch.Get(fmt.Sprintf("%s-org", stateNonce))
+	orgKey := fmt.Sprintf("%s-org", stateNonce)
+	orgID, found := ch.Get(orgKey)
 	if !found {
 		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve orgID from cache")
 		return c.JSON(http.StatusInternalServerError, nil)

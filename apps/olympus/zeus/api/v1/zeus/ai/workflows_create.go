@@ -1,6 +1,7 @@
 package zeus_v1_ai
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -13,21 +14,21 @@ import (
 )
 
 type PostWorkflowsRequest struct {
-	WorkflowName          string                                `json:"workflowName"`
-	WorkflowGroupName     string                                `json:"workflowGroupName"`
-	StepSize              int                                   `json:"stepSize"`
-	StepSizeUnit          string                                `json:"stepSizeUnit"`
-	Models                TaskMap                               `json:"models"`
-	EvalsMap              map[int]artemis_orchestrations.EvalFn `json:"evalsMap,omitempty"`
-	EvalTasksMap          TaskEvalsMap                          `json:"evalTasksMap,omitempty"`
-	AggregateSubTasksMap  AggregateSubTasksMap                  `json:"aggregateSubTasksMap,omitempty"`
-	AnalysisRetrievalsMap AnalysisRetrievalsMap                 `json:"analysisRetrievalsMap"`
+	WorkflowName          string                                   `json:"workflowName"`
+	WorkflowGroupName     string                                   `json:"workflowGroupName"`
+	StepSize              int                                      `json:"stepSize"`
+	StepSizeUnit          string                                   `json:"stepSizeUnit"`
+	Models                TaskMap                                  `json:"models"`
+	EvalsMap              map[string]artemis_orchestrations.EvalFn `json:"evalsMap,omitempty"`
+	EvalTasksMap          TaskEvalsMap                             `json:"evalTasksMap,omitempty"`
+	AggregateSubTasksMap  AggregateSubTasksMap                     `json:"aggregateSubTasksMap,omitempty"`
+	AnalysisRetrievalsMap AnalysisRetrievalsMap                    `json:"analysisRetrievalsMap"`
 }
 
-type TaskEvalsMap map[int]map[int]bool
-type AnalysisRetrievalsMap map[int]map[int]bool
-type AggregateSubTasksMap map[int]map[int]bool
-type TaskMap map[int]TaskModelInstructions
+type TaskEvalsMap map[string]map[string]bool
+type AnalysisRetrievalsMap map[string]map[string]bool
+type AggregateSubTasksMap map[string]map[string]bool
+type TaskMap map[string]TaskModelInstructions
 
 // TaskModelInstructions represents the equivalent of the TypeScript interface TaskModelInstructions
 type TaskModelInstructions struct {
@@ -83,7 +84,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 		AnalysisOnlyTasks: []artemis_orchestrations.AITaskLibrary{},
 	}
 
-	ms := make(map[int]int)
+	ms := make(map[string]string)
 	for _, m := range w.Models {
 		if m.CycleCount < 1 {
 			m.CycleCount = 1
@@ -96,10 +97,10 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				Tasks:      []artemis_orchestrations.AITaskLibrary{},
 			}
 			if w.EvalTasksMap != nil {
-				if evm, tok := w.EvalTasksMap[m.TaskID]; tok {
+				if evm, tok := w.EvalTasksMap[fmt.Sprintf("%d", m.TaskID)]; tok {
 					for k, v := range evm {
 						if v {
-							mappedEval := w.EvalsMap[k]
+							mappedEval := w.EvalsMap[fmt.Sprintf("%d", k)]
 							if mappedEval.EvalStrID != nil && *mappedEval.EvalStrID != "" {
 								eid, serr := strconv.Atoi(*mappedEval.EvalStrID)
 								if serr != nil {
@@ -114,13 +115,18 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				}
 			}
 			for k, v := range w.AggregateSubTasksMap {
-				if k == m.TaskID {
+				if k == fmt.Sprintf("%d", m.TaskID) {
 					for at, isTrue := range v {
 						if isTrue {
-							ms[at] = m.TaskID
-
+							ms[at] = fmt.Sprintf("%d", m.TaskID)
+							ait, zerr := strconv.Atoi(at)
+							if zerr != nil {
+								log.Err(zerr).Msg("failed to parse int")
+								return c.JSON(http.StatusBadRequest, nil)
+							}
 							ta := artemis_orchestrations.AITaskLibrary{
-								TaskID:     at,
+								TaskStrID:  at,
+								TaskID:     ait,
 								CycleCount: m.CycleCount,
 							}
 							if w.EvalTasksMap != nil {
@@ -164,7 +170,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 			}
 
 			if w.EvalTasksMap != nil {
-				if evm, tok := w.EvalTasksMap[m.TaskID]; tok {
+				if evm, tok := w.EvalTasksMap[fmt.Sprintf("%d", m.TaskID)]; tok {
 					for ke, ve := range evm {
 						if ve {
 							mappedEval := w.EvalsMap[ke]
@@ -181,11 +187,16 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 					}
 				}
 			}
-			for k, v := range w.AnalysisRetrievalsMap {
+			for _, v := range w.AnalysisRetrievalsMap {
 				for rt, isTrue := range v {
-					if isTrue && rt == m.TaskID && k > 0 {
+					if isTrue {
+						rid, rerr := strconv.Atoi(rt)
+						if rerr != nil {
+							log.Err(rerr).Msg("failed to parse int")
+							return c.JSON(http.StatusBadRequest, nil)
+						}
 						at.RetrievalDependencies = append(at.RetrievalDependencies, artemis_orchestrations.RetrievalItem{
-							RetrievalID: &k,
+							RetrievalID: &rid,
 						})
 					}
 				}

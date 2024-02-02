@@ -203,6 +203,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						Model:          analysisInst.AnalysisModel,
 						TaskID:         analysisInst.AnalysisTaskID,
 					}
+
 					analysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, inGroup).Get(analysisCtx, &aiResp)
 					if err != nil {
@@ -222,6 +223,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						logger.Error("failed to save analysis", "Error", err)
 						return nil, err
 					}
+					if aiResp != nil && aiResp.Prompt != nil {
+						sg.ResponseBody = aiResp.Prompt["response"]
+					}
+					sg.BodyPrompt = hera_search.FormatSearchResultsV2(inGroup)
 				}
 				if aiResp == nil || len(aiResp.Response.Choices) == 0 {
 					continue

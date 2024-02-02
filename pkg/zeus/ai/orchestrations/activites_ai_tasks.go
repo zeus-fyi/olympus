@@ -2,6 +2,7 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -84,12 +85,19 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 	}
 	prompt := make(map[string]string)
 	prompt["prompt"] = taskInst.AnalysisPrompt
+	prompt["content"] = content
 	if ps.ApiKey == "" {
 		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed, using backup and deleting secret cache for org")
 		cres, cerr := hera_openai.HeraOpenAI.CreateChatCompletion(
 			ctx, cr,
 		)
 		if cerr == nil {
+			b, rerr := json.Marshal(cres.Choices)
+			if rerr != nil {
+				log.Err(rerr).Msg("AiAnalysisTask: CreateChatCompletion Marshal failed")
+				return nil, rerr
+			}
+			prompt["response"] = string(b)
 			return &ChatCompletionQueryResponse{
 				Prompt:         prompt,
 				ResponseTaskID: taskInst.AnalysisTaskID,
@@ -106,6 +114,12 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		ctx, cr,
 	)
 	if err == nil {
+		b, rerr := json.Marshal(resp.Choices)
+		if rerr != nil {
+			log.Err(rerr).Msg("AiAnalysisTask: CreateChatCompletion Marshal failed")
+			return nil, rerr
+		}
+		prompt["response"] = string(b)
 		return &ChatCompletionQueryResponse{
 			Prompt:         prompt,
 			ResponseTaskID: taskInst.AnalysisTaskID,
@@ -131,6 +145,12 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed")
 		return nil, err
 	}
+	b, rerr := json.Marshal(resp.Choices)
+	if rerr != nil {
+		log.Err(rerr).Msg("AiAnalysisTask: CreateChatCompletion Marshal failed")
+		return nil, rerr
+	}
+	prompt["response"] = string(b)
 	return &ChatCompletionQueryResponse{
 		Prompt:         prompt,
 		ResponseTaskID: taskInst.AnalysisTaskID,

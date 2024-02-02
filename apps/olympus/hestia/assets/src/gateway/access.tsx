@@ -31,10 +31,7 @@ class AccessApiGateway {
         return await hestiaApi.get(url, config)
     }
     async startPlatformAuthFlow(platformName: string): Promise<any> {
-        //const url = `/social/v1/auth/${platformName}/callback`;
-        const url = `/social/v1/auth/twitter/callback`;
-        console.log('startPlatformAuthFlow url', url)
-
+        const url = `/social/v1/auth/${platformName}/callback`;
         const sessionID = inMemoryJWT.getToken();
         let config = {
             headers: {

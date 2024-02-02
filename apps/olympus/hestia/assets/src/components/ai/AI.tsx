@@ -352,10 +352,6 @@ function AiWorkflowsDashboardContent(props: any) {
     const handleStartTwitterAuthFlow = async (event: any) => {
         try {
             setIsLoading(true)
-            const params =  {
-                searchIndexer,
-                platformSecretReference
-            }
             const response = await accessApiGateway.startPlatformAuthFlow('twitter');
             const statusCode = response.status;
             if (statusCode < 400) {

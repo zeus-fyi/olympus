@@ -41,6 +41,18 @@ class AccessApiGateway {
         }
         return await hestiaApi.get(url, config)
     }
+
+    async callbackPlatformAuthFlow(platformName: string, code: string, state: string) {
+        const url = `/social/v1/${platformName}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        }
+        return await hestiaApi.get(url, config);
+    }
 }
 export const accessApiGateway = new AccessApiGateway();
 

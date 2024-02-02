@@ -1,42 +1,44 @@
-import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
+import {useLocation, useNavigate} from "react-router-dom";
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {CircularProgress} from "@mui/material";
+import {accessApiGateway} from "../../gateway/access";
 
 export const TwitterLogin = () => {
-    let navigate = useNavigate();
-    const dispatch = useDispatch();
-    let buttonLabel;
-    let buttonDisabled;
-    let statusMessage;
+    const [isLoading, setIsLoading] = useState(false);
     const [requestStatus, setRequestStatus] = useState('');
-    const [loading, setLoading] = useState(false);
-    switch (requestStatus) {
-        case 'pending':
-            buttonLabel = <CircularProgress size={20}/>;
-            buttonDisabled = true;
-            break;
-        case 'success':
-            buttonLabel = 'Logged in successfully';
-            buttonDisabled = true;
-            statusMessage = 'Logged in successfully!';
-            break;
-        case 'error':
-            buttonLabel = 'Retry';
-            buttonDisabled = false;
-            statusMessage = 'An error occurred while logging in, please try again. If you continue having issues please email support@zeus.fyi';
-            break;
-        default:
-            buttonLabel = 'Login';
-            buttonDisabled = false;
-            break;
-    }
+    const location = useLocation();
+    const navigate = useNavigate();
+
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setIsLoading(true); // Set loading to true
+                const queryParams = new URLSearchParams(location.search);
+                const code = queryParams.get('code');
+                const state = queryParams.get('state');
+
+                if (code && state) {
+                    // Assuming accessApiGateway.callbackPlatformAuthFlow has been updated to accept code and state
+                    const response = await accessApiGateway.callbackPlatformAuthFlow('twitter', code, state);
+                    setRequestStatus('success'); // Update request status to success
+                }
+            } catch (error) {
+                console.log("error", error);
+                setRequestStatus('error'); // Update request status to error
+            } finally {
+                setIsLoading(false); // Set loading to false regardless of success or failure.
+            }
+        };
+
+        fetchData();
+    }, [location]);
+
+    useEffect(() => {
+        // This separate useEffect watches for changes in requestStatus and navigates accordingly
         if (requestStatus === 'success') {
             navigate('/ai');
         }
-    }, [requestStatus]);
+    }, [requestStatus, navigate]);
 
     return <div>Redirecting</div>
 }

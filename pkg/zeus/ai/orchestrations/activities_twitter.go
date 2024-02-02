@@ -97,6 +97,24 @@ func UnmarshallOpenAiJsonInterface(fn string, cr *ChatCompletionQueryResponse) (
 				log.Err(err).Interface("tool_calls", cho.Message.ToolCalls).Interface("cho.Message.Content", cho.Message.Content).Msg("failed to unmarshal json")
 				return nil, err
 			}
+			for k, v := range m {
+				if k == "tool_uses" {
+					toolUses := v.([]interface{})
+					for _, tu := range toolUses {
+						tuMap := tu.(map[string]interface{})
+						for k1, v1 := range tuMap {
+							if k1 == "parameters" {
+								tool, ok := v1.(map[string]interface{})
+								if ok {
+									return tool, nil
+								}
+								log.Info().Interface("tool", tool).Msg("tool")
+							}
+						}
+					}
+				}
+			}
+
 		}
 		for _, tvr := range cho.Message.ToolCalls {
 			if tvr.Function.Name == fn {
@@ -121,7 +139,23 @@ func UnmarshallOpenAiJsonInterfaceSlice(fn string, cr *ChatCompletionQueryRespon
 				log.Err(err).Interface("tool_calls", cho.Message.ToolCalls).Interface("cho.Message.Content", cho.Message.Content).Msg("failed to unmarshal json")
 				return nil, err
 			}
-			results = append(results, m)
+			for k, v := range m {
+				if k == "tool_uses" {
+					toolUses := v.([]interface{})
+					for _, tu := range toolUses {
+						tuMap := tu.(map[string]interface{})
+						for k1, v1 := range tuMap {
+							if k1 == "parameters" {
+								tool, ok := v1.(map[string]interface{})
+								if ok {
+									results = append(results, m)
+								}
+								log.Info().Interface("tool", tool).Msg("tool")
+							}
+						}
+					}
+				}
+			}
 		}
 		for _, tvr := range cho.Message.ToolCalls {
 			if tvr.Function.Name == fn {

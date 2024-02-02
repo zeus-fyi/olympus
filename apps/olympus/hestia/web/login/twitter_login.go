@@ -64,7 +64,7 @@ func CallbackHandler(c echo.Context) error {
 	stateNonce := GenerateNonce()
 	verifier := GenerateCodeVerifier(128)
 	codeChallenge := PkCEChallengeWithSHA256(verifier)
-	log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("START CallbackHandler: Callback")
+	//log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("START CallbackHandler: Callback")
 
 	// Store the verifier using stateNonce as the key
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
@@ -76,9 +76,22 @@ func CallbackHandler(c echo.Context) error {
 }
 
 func TwitterCallbackHandler(c echo.Context) error {
-	log.Printf("TwitterCallbackHandler Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
+	log.Printf("START TwitterCallbackHandler Callback: Method=%s, URL=%s", c.Request().Method, c.Request().URL)
+
 	code := c.QueryParam("code")
 	stateNonce := c.QueryParam("state")
+	log.Info().Interface("stateNonce", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
+	log.Info().Str("code", code).Str("state", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
+	verifier, found := ch.Get(stateNonce)
+	if !found {
+		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")
+		return c.JSON(http.StatusInternalServerError, "Failed to retrieve verifier")
+	}
+	verifierStr, ok := verifier.(string)
+	if !ok {
+		log.Err(fmt.Errorf("TwitterCallbackHandler: Failed to cast verifier to string")).Msg("TwitterCallbackHandler: Failed to cast verifier to string")
+		return c.JSON(http.StatusInternalServerError, "Failed to cast verifier to string")
+	}
 
 	orgID, found := ch.Get(fmt.Sprintf("%s-org", stateNonce))
 	if !found {
@@ -95,18 +108,6 @@ func TwitterCallbackHandler(c echo.Context) error {
 	log.Info().Interface("orgUser", ou).Msg("TwitterCallbackHandler: Successfully retrieved orgID from cache")
 	c.Set("orgUser", ou)
 
-	log.Info().Interface("stateNonce", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
-	log.Info().Str("code", code).Str("state", stateNonce).Msg("TwitterCallbackHandler: Handling Twitter Callback")
-	verifier, found := ch.Get(stateNonce)
-	if !found {
-		log.Warn().Msg("TwitterCallbackHandler: Failed to retrieve verifier from cache")
-		return c.JSON(http.StatusInternalServerError, "Failed to retrieve verifier")
-	}
-	verifierStr, ok := verifier.(string)
-	if !ok {
-		log.Err(fmt.Errorf("TwitterCallbackHandler: Failed to cast verifier to string")).Msg("TwitterCallbackHandler: Failed to cast verifier to string")
-		return c.JSON(http.StatusInternalServerError, "Failed to cast verifier to string")
-	}
 	token, err := FetchToken(code, verifierStr)
 	if err != nil {
 		log.Err(err).Msg("TwitterCallbackHandler: Failed to generate access token")

@@ -88,8 +88,16 @@ func UnmarshallTwitterFromAiJson(fn string, cr *ChatCompletionQueryResponse) (*t
 }
 
 func UnmarshallOpenAiJsonInterface(fn string, cr *ChatCompletionQueryResponse) (map[string]interface{}, error) {
+
 	m := make(map[string]interface{})
 	for _, cho := range cr.Response.Choices {
+		if cho.Message.ToolCalls == nil && cho.Message.Content != "" {
+			err := json.Unmarshal([]byte(cho.Message.Content), &m)
+			if err != nil {
+				log.Err(err).Interface("tool_calls", cho.Message.ToolCalls).Interface("cho.Message.Content", cho.Message.Content).Msg("failed to unmarshal json")
+				return nil, err
+			}
+		}
 		for _, tvr := range cho.Message.ToolCalls {
 			if tvr.Function.Name == fn {
 				err := json.Unmarshal([]byte(tvr.Function.Arguments), &m)
@@ -106,6 +114,15 @@ func UnmarshallOpenAiJsonInterface(fn string, cr *ChatCompletionQueryResponse) (
 func UnmarshallOpenAiJsonInterfaceSlice(fn string, cr *ChatCompletionQueryResponse) ([]map[string]interface{}, error) {
 	var results []map[string]interface{}
 	for _, cho := range cr.Response.Choices {
+		if cho.Message.ToolCalls == nil && cho.Message.Content != "" {
+			m := make(map[string]interface{})
+			err := json.Unmarshal([]byte(cho.Message.Content), &m)
+			if err != nil {
+				log.Err(err).Interface("tool_calls", cho.Message.ToolCalls).Interface("cho.Message.Content", cho.Message.Content).Msg("failed to unmarshal json")
+				return nil, err
+			}
+			results = append(results, m)
+		}
 		for _, tvr := range cho.Message.ToolCalls {
 			if tvr.Function.Name == fn {
 				m := make(map[string]interface{})

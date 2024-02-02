@@ -133,11 +133,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			continue
 		}
 
-		/*
-				if m == nil || len(tmpResp) == 0 {
-				continue
-			}
-		*/
 		if tte.Tc.EvalID > 0 {
 			evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
 				EvalID:             tte.Tc.EvalID,

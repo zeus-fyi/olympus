@@ -14,6 +14,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
+	hestia_access_keygen "github.com/zeus-fyi/olympus/hestia/web/access"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 	"golang.org/x/oauth2"
 )
 
@@ -89,8 +91,37 @@ func TwitterCallbackHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "Failed to generate access token")
 	}
 	log.Info().Interface("token", token).Msg("TwitterCallbackHandler: Successfully generated access token")
+	if token == nil {
+		log.Warn().Msg("TwitterCallbackHandler: Token is nil")
+		return c.JSON(http.StatusInternalServerError, "Token is nil")
+	}
 	//return c.Redirect(http.StatusTemporaryRedirect, "https://cloud.zeus.fyi/ai")
-	return c.JSON(http.StatusOK, token)
+
+	r := resty_base.GetBaseRestyClient("https://api.twitter.com", token.AccessToken)
+
+	tm := TwitterMe{}
+	resp, err := r.R().SetResult(&tm).Get("/2/users/me")
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Interface("tm", tm).Msg("TwitterCallbackHandler: Failed to fetch user data")
+		return c.JSON(http.StatusInternalServerError, "Failed to fetch user data")
+	}
+
+	log.Info().Interface("tm", tm).Msg("TwitterCallbackHandler: TwitterMe")
+	// username is the unique handle identifier for the user
+	sr := hestia_access_keygen.SecretsRequest{
+		Name:  fmt.Sprintf("twitter-%s", tm.Data.Username),
+		Key:   "mockingbird",
+		Value: token.AccessToken,
+	}
+	return sr.CreateOrUpdateSecret(c, false)
+}
+
+type TwitterMe struct {
+	Data struct {
+		Id       string `json:"id"`
+		Name     string `json:"name"`
+		Username string `json:"username"`
+	} `json:"data"`
 }
 
 func FetchToken(code string, codeVerifier string) (*oauth2.Token, error) {

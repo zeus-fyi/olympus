@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
@@ -158,6 +159,22 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 	if pr.ExtRoutePath != "" {
 		ext = pr.ExtRoutePath
 	}
+
+	log.Info().Interface("pr.Url", pr.Url).Interface("pr.ExtRoutePath", pr.ExtRoutePath).Msg("sendRequest: sending request")
+	if strings.HasPrefix(pr.Url, "https://api.twitter.com/2") {
+		if strings.Contains(ext, "tweets") {
+			if pr.Payload != nil && pr.Payload["in_reply_to_tweet_id"] != nil {
+				newPayload := echo.Map{
+					"reply": echo.Map{
+						"in_reply_to_tweet_id": pr.Payload["in_reply_to_tweet_id"],
+					},
+					"text": pr.Payload["text"],
+				}
+				pr.Payload = newPayload
+			}
+		}
+	}
+
 	if pr.Payload != nil {
 		switch method {
 		case "GET":
@@ -186,7 +203,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		}
 	}
 	if err != nil {
-		log.Err(err).Msg("sendRequest: failed to relay api request")
+		log.Err(err).Interface("resp", resp.String()).Interface("url", pr.Url).Interface("pr.ExtRoutePath", ext).Msg("sendRequest: failed to relay api request")
 		return nil, fmt.Errorf("failed to relay api request")
 	}
 

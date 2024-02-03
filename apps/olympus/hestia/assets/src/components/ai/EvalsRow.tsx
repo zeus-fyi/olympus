@@ -97,7 +97,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                         <TableCell>{schema.schemaName}</TableCell>
                                                     </TableRow>
                                                     {schema.fields && schema.fields.map((field, fieldIndex) => (
-                                                        field.evalMetrics && field.evalMetrics.length > 0 ? (
+                                                        field.evalMetrics !== undefined && field.evalMetrics.length > 0 ? (
                                                             field.evalMetrics.map((evalMetric, evalMetricIndex) => (
                                                                 <TableRow key={`${fieldIndex}-${evalMetricIndex}`}>
                                                                     <TableCell>{schema.schemaStrID}</TableCell>

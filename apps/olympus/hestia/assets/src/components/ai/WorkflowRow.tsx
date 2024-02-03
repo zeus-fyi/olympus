@@ -205,14 +205,7 @@ function hasEvalFns(tasks: any[]): boolean {
         task.evalFns &&
         Array.isArray(task.evalFns) &&
         task.evalFns.length > 0 &&
-        task.evalFns.some((evalFn: { evalName: string | null; evalGroupName: string | null; } | null) =>
-                evalFn != null &&
-                // Add any other conditions to check for non-default struct assignments
-                // For example, checking for non-empty string if it's a string field
-                (evalFn.evalName != null && evalFn.evalName !== '') &&
-                (evalFn.evalGroupName != null && evalFn.evalGroupName !== '') &&
-            // ... add checks for other fields if necessary
-            true
+        task.evalFns.some((evalFn: any) => evalFn !== undefined
         )
     );
 }

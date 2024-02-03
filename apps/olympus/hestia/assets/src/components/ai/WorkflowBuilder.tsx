@@ -2264,7 +2264,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         type={'number'}
                                                         inputProps={{ min: 0.2, max: 0.8, step: 0.1 }} // Added step: 0.1 here
                                                         value={editAnalysisTask.marginBuffer ? editAnalysisTask.marginBuffer : 0.5}
-                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, marginBuffer: event.target.value }))}
+                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, marginBuffer: Number(event.target.value) }))}
                                                         fullWidth
                                                     />
                                                 </Box>
@@ -2424,7 +2424,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         type={'number'}
                                                         inputProps={{ min: 0.2, max: 0.8, step: 0.1 }} // Added step: 0.1 here
                                                         value={editAggregateTask.marginBuffer ? editAggregateTask.marginBuffer : 0.5}
-                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAggregateTask, marginBuffer: event.target.value }))}
+                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAggregateTask, marginBuffer: Number(event.target.value) }))}
                                                         fullWidth
                                                     />
                                                 </Box>

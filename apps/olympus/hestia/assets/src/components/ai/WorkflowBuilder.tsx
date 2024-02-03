@@ -423,11 +423,8 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     };
     const handleRemoveRetrievalFromWorkflow = async (event: any, retrievalRemove: Retrieval) => {
-        dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) =>
-            ret.retrievalStrID !== undefined && retrievalRemove.retrievalStrID !== undefined &&
-            ret.retrievalStrID !== retrievalRemove.retrievalStrID
-        )));
-    };
+        dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalStrID !== retrievalRemove.retrievalStrID)));
+    }
     const handleRemoveRetrievalFromTrigger = async (event: any, retrievalRemove: Retrieval) => {
         dispatch(setTriggerAction({
             ...action,
@@ -1190,12 +1187,16 @@ function WorkflowEngineBuilder(props: any) {
             setSelected({});
             setTaskType('analysis');
             dispatch(setSelectedWorkflows([]));
-            setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'analysis'));
+            if (allTasks) {
+                setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'analysis'));
+            }
         } else if (newValue === 2) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
             setTaskType('aggregation');
-            setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'aggregation'));
+            if (allTasks) {
+                setTasks(allTasks && allTasks.filter((task: any) => task.taskType === 'aggregation'));
+            }
         } else if (newValue === 3) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
@@ -1203,7 +1204,11 @@ function WorkflowEngineBuilder(props: any) {
             dispatch(setSelectedWorkflows([]));
             setSelected({});
         } else if (newValue === 5) {
-            setRetrievalsApi(retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction.retrievalPlatform === 'web' ||  ret.retrievalItemInstruction.retrievalPlatform === 'api'));
+            if (retrievals) {
+                setRetrievalsApi(retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction && (ret.retrievalItemInstruction.retrievalPlatform === 'web' || ret.retrievalItemInstruction.retrievalPlatform === 'api')));
+            } else {
+                setRetrievalsApi([]);
+            }
             dispatch(setSelectedWorkflows([]));
             setSelected({});
         } else if (newValue === 6) {
@@ -1458,7 +1463,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             <TextField
                                                                 key={subIndex}
                                                                 label={`Retrieval Name`}
-                                                                value={ret?.retrievalName || ''}
+                                                                value={ret && ret?.retrievalName || ''}
                                                                 InputProps={{
                                                                     readOnly: true,
                                                                 }}
@@ -1471,7 +1476,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             <TextField
                                                                 key={subIndex}
                                                                 label={`Retrieval Group`}
-                                                                value={ret?.retrievalGroup || ''}
+                                                                value={ret && ret?.retrievalGroup || ''}
                                                                 InputProps={{
                                                                     readOnly: true,
                                                                 }}
@@ -1484,7 +1489,7 @@ function WorkflowEngineBuilder(props: any) {
                                                             <TextField
                                                                 key={subIndex}
                                                                 label={`Platform`}
-                                                                value={ret?.retrievalItemInstruction.retrievalPlatform || ''}
+                                                                value={ret && ret?.retrievalItemInstruction.retrievalPlatform || ''}
                                                                 InputProps={{
                                                                     readOnly: true,
                                                                 }}

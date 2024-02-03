@@ -34,6 +34,9 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get workflows")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	if ojs.WorkflowTemplateSlice == nil {
+		ojs.WorkflowTemplateSlice = []artemis_orchestrations.WorkflowTemplateValue{}
+	}
 	ret, err := artemis_orchestrations.SelectRetrievals(c.Request().Context(), ou, 0)
 	if err != nil {
 		log.Err(err).Msg("failed to get retrievals")

@@ -130,7 +130,7 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                 </TableBody>
                             </Table>
                             {
-                                row.tasks && hasEvalFns(row.tasks) && (
+                                row.tasks && (
                                     <Box>
                                             <Box sx={{ margin: 1 }}>
                                                 <Typography variant="h6" gutterBottom component="div" >
@@ -174,7 +174,7 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                             </TableHead>
                                             <TableBody>
                                                 {row.tasks.map((task, taskIndex) => (
-                                                    task.evalFns && task.evalFns
+                                                    (task.evalFns || []) // Provide an empty array as fallback
                                                         .filter(evalFn => evalFn.evalName) // Filter out objects where evalName is empty
                                                         .map((evalFn, evalFnIndex) => (
                                                             <TableRow key={evalFnIndex}>
@@ -197,22 +197,5 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                 </TableCell>
             </TableRow>
         </React.Fragment>
-    );
-}
-
-function hasEvalFns(tasks: any[]): boolean {
-    return tasks.some(task =>
-        task.evalFns &&
-        Array.isArray(task.evalFns) &&
-        task.evalFns.length > 0 &&
-        task.evalFns.some((evalFn: { evalName: string | null; evalGroupName: string | null; } | null) =>
-                evalFn != null &&
-                // Add any other conditions to check for non-default struct assignments
-                // For example, checking for non-empty string if it's a string field
-                (evalFn.evalName != null && evalFn.evalName !== '') &&
-                (evalFn.evalGroupName != null && evalFn.evalGroupName !== '') &&
-            // ... add checks for other fields if necessary
-            true
-        )
     );
 }

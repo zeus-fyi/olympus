@@ -1774,15 +1774,15 @@ function WorkflowEngineBuilder(props: any) {
                                                                                 {Object.entries(workflowBuilderTaskMap).map(([key, value], index) => {
                                                                                     const taskNameForKey = taskMap[key]?.taskName || '';
                                                                                     if (!taskNameForKey) {
-                                                                                        return null;
+                                                                                        return <div></div>;
                                                                                     }
                                                                                     return Object.entries(value).map(([subKey, subValue], subIndex) => {
                                                                                         if (!subValue) {
-                                                                                            return null;
+                                                                                            return <div></div>;
                                                                                         }
                                                                                         const subTaskName = taskMap[subKey]?.taskName || '';
                                                                                         if (!subTaskName) {
-                                                                                            return null;
+                                                                                            return <div></div>;
                                                                                         }
                                                                                         return (
                                                                                             <Stack direction={"row"} key={`${key}-${subKey}`}>
@@ -1962,26 +1962,26 @@ function WorkflowEngineBuilder(props: any) {
                                                                 {Object.entries(workflowBuilderEvalsTaskMap).map(([key, value], index) => {
                                                                     // these are the tasks
                                                                     if (key === undefined){
-                                                                        return null;
+                                                                        return <div></div>;
                                                                     }
                                                                     const taskNameForKey= taskMap[(key)]?.taskName || '';
                                                                     if (!taskNameForKey || taskNameForKey.length <= 0) {
-                                                                        return null;
+                                                                        return <div></div>;
                                                                     }
                                                                     return Object.entries(value).map(([subKey, subValue], subIndex) => {
                                                                         // these are evals
                                                                         if (subKey === undefined){
-                                                                            return null;
+                                                                            return <div></div>;
                                                                         }
                                                                         const evalID = subKey;
                                                                         const evalFn = evalMap[(evalID)]
                                                                         const subTaskName = evalFn?.evalName || '';
 
                                                                         if (!subValue || subKey.length <= 0) {
-                                                                            return null;
+                                                                            return <div></div>;
                                                                         }
                                                                         if (subTaskName.length <= 0) {
-                                                                            return null;
+                                                                            return <div></div>;
                                                                         }
                                                                         return (
                                                                             <Stack direction={"row"} key={`${key}-${subKey}`}>

@@ -44,7 +44,7 @@ export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
                         requestStatusZipGen={requestStatusZipGen}
                     />
                 </React.Fragment> :
-                null
+                <div></div>
                 }
         </Stack>
     );
@@ -87,19 +87,21 @@ export function GenerateValidatorsParams(props: any) {
                     </Box>
                 </Container>
             </div>
-            {pageView ? null : (
-                <div>
-                <CardActions sx={{ justifyContent: 'center' }}>
-                    <Button onClick={onGenerateValidatorDepositsAndZip} size="small" disabled={buttonDisabledVd}>
-                        {buttonLabelVd}
-                    </Button>
-                </CardActions>
-                    {statusMessageVd && (
-                    <Typography variant="body2" color={requestStatusVd === 'error' ? 'error' : 'success'}>
-                        {statusMessageVd}
-                    </Typography>
-                    )}
-                </div>)
+            {pageView ? <div></div>
+                : (
+                    <div>
+                        <CardActions sx={{justifyContent: 'center'}}>
+                            <Button onClick={onGenerateValidatorDepositsAndZip} size="small"
+                                    disabled={buttonDisabledVd}>
+                                {buttonLabelVd}
+                            </Button>
+                        </CardActions>
+                        {statusMessageVd && (
+                            <Typography variant="body2" color={requestStatusVd === 'error' ? 'error' : 'success'}>
+                                {statusMessageVd}
+                            </Typography>
+                        )}
+                    </div>)
             }
         </Card>
         </div>

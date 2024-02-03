@@ -101,7 +101,7 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                             field.evalMetrics.map((evalMetric, evalMetricIndex) => (
                                                                 <TableRow key={`${fieldIndex}-${evalMetricIndex}`}>
                                                                     <TableCell>{schema.schemaStrID}</TableCell>
-                                                                    <TableCell>{evalMetric.evalMetricStrID !== undefined ? evalMetric.evalMetricStrID  : ''}</TableCell>
+                                                                    <TableCell>{evalMetric.evalMetricStrID !== undefined ? evalMetric.evalMetricStrID : ''}</TableCell>
                                                                     <TableCell>{field.fieldName}</TableCell>
                                                                     <TableCell>{field.fieldDescription}</TableCell>
                                                                     <TableCell>{field.dataType}</TableCell>
@@ -110,10 +110,10 @@ export function EvalRow(props: { row: EvalFn, index: number, handleClick: any, c
                                                                     <TableCell>{evalMetric.evalExpectedResultState}</TableCell>
                                                                 </TableRow>
                                                             ))
-                                                        ) : null
+                                                        ) : <div></div>
                                                     ))}
                                                 </React.Fragment>
-                                            )) : null
+                                            )) : <div></div>
                                     }
 
                                 </TableBody>

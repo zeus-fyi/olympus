@@ -44,7 +44,7 @@ export const ProtectedLayout = (props: any) => {
         );
     }, []);
     if (loading) {
-        return null;
+        return <div>Loading...</div>;
     }
     if (!sessionAuthed) {
         return <Navigate to="/login" />;

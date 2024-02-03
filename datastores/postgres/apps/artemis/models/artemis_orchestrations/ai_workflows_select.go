@@ -39,6 +39,8 @@ type WorkflowTemplateData struct {
 	AggResponseFormat        *string    `json:"aggResponseFormat,omitempty"`
 	AggPrompt                *string    `json:"aggPrompt,omitempty"`
 	AggModel                 *string    `json:"aggModel,omitempty"`
+	AggTemperature           *float64   `json:"aggTemperature,omitempty"`
+	AggMarginBuffer          *float64   `json:"aggMarginBuffer,omitempty"`
 	AggTokenOverflowStrategy *string    `json:"aggTokenOverflowStrategy,omitempty"`
 	AggMaxTokensPerTask      *int       `json:"aggMaxTokensPerTask,omitempty"`
 	AggAnalysisEvalFns       []EvalFnDB `json:"aggAnalysisEvalFns,omitempty"`
@@ -52,6 +54,8 @@ type AggTaskDb struct {
 	AggTaskName              string     `json:"aggTaskName"`
 	AggResponseFormat        string     `json:"aggResponseFormat"`
 	AggTaskType              string     `json:"aggTaskType"`
+	AggTemperature           float64    `json:"aggTemperature"`
+	AggMarginBuffer          float64    `json:"aggMarginBuffer"`
 	AggCycleCount            int        `json:"aggCycleCount"`
 	AggAnalysisTaskId        int        `json:"aggAnalysisTaskId"` // Assuming IDs are large numbers
 	AggMaxTokensPerTask      int        `json:"aggMaxTokensPerTask"`
@@ -73,15 +77,17 @@ type EvalFnDB struct {
 }
 
 type AnalysisTaskDB struct {
-	AnalysisModel                 string `json:"analysisModel"`
-	AnalysisCycleCount            int    `json:"analysisCycleCount"`
-	AnalysisPrompt                string `json:"analysisPrompt"`
-	AnalysisTaskID                int    `json:"analysisTaskID"`
-	AnalysisTaskName              string `json:"analysisTaskName"`
-	AnalysisResponseFormat        string `json:"analysisResponseFormat"`
-	AnalysisTaskType              string `json:"analysisTaskType"`
-	AnalysisMaxTokensPerTask      int    `json:"analysisMaxTokensPerTask"`
-	AnalysisTokenOverflowStrategy string `json:"analysisTokenOverflowStrategy"`
+	AnalysisModel                 string  `json:"analysisModel"`
+	AnalysisCycleCount            int     `json:"analysisCycleCount"`
+	AnalysisPrompt                string  `json:"analysisPrompt"`
+	AnalysisTaskID                int     `json:"analysisTaskID"`
+	AnalysisTemperature           float64 `json:"analysisTemperature"`
+	AnalysisMarginBuffer          float64 `json:"analysisMarginBuffer"`
+	AnalysisTaskName              string  `json:"analysisTaskName"`
+	AnalysisResponseFormat        string  `json:"analysisResponseFormat"`
+	AnalysisTaskType              string  `json:"analysisTaskType"`
+	AnalysisMaxTokensPerTask      int     `json:"analysisMaxTokensPerTask"`
+	AnalysisTokenOverflowStrategy string  `json:"analysisTokenOverflowStrategy"`
 	RetrievalDB
 	AnalysisEvalFns []EvalFnDB `json:"analysisEvalFns,omitempty"`
 }
@@ -150,6 +156,8 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 							'analysisTaskType', ait.task_type,
 							'analysisPrompt', ait.prompt,
 							'analysisModel', ait.model,
+							'analysisMarginBuffer', ait.margin_buffer,
+							'analysisTemperature', ait.temperature,
 							'analysisTokenOverflowStrategy', ait.token_overflow_strategy,
 							'analysisMaxTokensPerTask', ait.max_tokens_per_task,
 							'analysisResponseFormat', ait.response_format,
@@ -164,7 +172,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 					JOIN public.ai_task_library ait ON ait.task_id = cte_0.analysis_task_id
 					LEFT JOIN ai_retrieval_library art ON art.retrieval_id = cte_0.retrieval_id
 					LEFT JOIN cte_wf_evals ON cte_wf_evals.workflow_template_id = cte_0.workflow_template_id AND cte_wf_evals.task_id = cte_0.analysis_task_id
-					GROUP BY cte_0.workflow_template_id, cte_0.analysis_task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, ait.token_overflow_strategy,
+					GROUP BY cte_0.workflow_template_id, cte_0.analysis_task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, ait.token_overflow_strategy, ait.temperature, ait.margin_buffer,
 						ait.max_tokens_per_task, ait.response_format, art.retrieval_id, art.retrieval_name, art.retrieval_group, art.retrieval_platform, art.instructions, cte_0.analysis_cycle_count
 				),
 				cte_1a AS (
@@ -195,6 +203,8 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 				'aggModel', ait.model,
 				'aggResponseFormat', ait.response_format,
 				'aggTokenOverflowStrategy', ait.token_overflow_strategy,
+				'aggMarginBuffer', ait.margin_buffer,
+				'aggTemperature', ait.temperature,
 				'aggMaxTokensPerTask', ait.max_tokens_per_task,
 				'aggCycleCount', awtat.cycle_count,
 				'evalFns', COALESCE(ue.eval_fns_data_agg, '[]'::jsonb),
@@ -209,7 +219,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 		LEFT JOIN unique_evals ue ON ue.workflow_template_id = wate.workflow_template_id AND ue.task_id = ait.task_id
 		LEFT JOIN unique_evals ue1 ON ue1.workflow_template_id = wate.workflow_template_id AND ue1.task_id = ait1.task_id
    	 	WHERE wate.org_id = $1 ` + additionalCondition + `
-    	GROUP BY wate.workflow_template_id, ait.task_id, ait1.task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, 
+    	GROUP BY wate.workflow_template_id, ait.task_id, ait1.task_id, ait.task_name, ait.task_type, ait.prompt, ait.model, ait.temperature, ait.margin_buffer,
              ait.token_overflow_strategy, ait.max_tokens_per_task, ait.response_format, awtat.cycle_count, ue.eval_fns_data_agg, ue1.eval_fns_data_agg, awtat1.cycle_count
 				), cte_2a AS (
 						SELECT 
@@ -357,6 +367,8 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 				ResponseFormat:    at.AnalysisResponseFormat,
 				Model:             at.AnalysisModel,
 				Prompt:            at.AnalysisPrompt,
+				Temperature:       at.AnalysisTemperature,
+				MarginBuffer:      at.AnalysisMarginBuffer,
 				CycleCount:        at.AnalysisCycleCount,
 				RetrievalName:     at.RetrievalName,
 				RetrievalPlatform: at.RetrievalPlatform,
@@ -382,6 +394,8 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 				TaskID:            aggTask.AggTaskId,
 				TaskName:          aggTask.AggTaskName,
 				TaskType:          aggTask.AggTaskType,
+				Temperature:       aggTask.AggTemperature,
+				MarginBuffer:      aggTask.AggMarginBuffer,
 				ResponseFormat:    aggTask.AggResponseFormat,
 				Model:             aggTask.AggModel,
 				Prompt:            aggTask.AggPrompt,

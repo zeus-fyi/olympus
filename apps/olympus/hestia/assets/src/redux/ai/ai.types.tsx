@@ -99,6 +99,8 @@ export interface TaskModelInstructions {
     prompt: string;
     cycleCount: number;
     responseFormat: string;
+    temperature?: number;
+    marginBuffer: number;
     retrievals?: AnalysisRetrievalsMap;
     schemas: JsonSchemaDefinition[];
 }

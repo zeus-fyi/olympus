@@ -1058,6 +1058,8 @@ function WorkflowEngineBuilder(props: any) {
             }
             const task: TaskModelInstructions = {
                 taskStrID: (taskType === 'analysis' ? editAnalysisTask.taskStrID : editAggregateTask.taskStrID),
+                temperature: (taskType === 'analysis' ? editAnalysisTask.temperature : editAggregateTask.temperature),
+                marginBuffer: (taskType === 'analysis' ? editAnalysisTask.marginBuffer : editAggregateTask.marginBuffer),
                 taskType: taskType,
                 taskGroup:taskGn,
                 taskName: tn,
@@ -2174,6 +2176,8 @@ function WorkflowEngineBuilder(props: any) {
                                                 Token overflow strategy will determine how the AI will handle requests that are projected to exceed the maximum token length for the model you select, or has returned a result with that error.
                                                 Deduce will chunk your analysis into smaller pieces and aggregate them into a final analysis result. Truncate will simply truncate the request
                                                 to the maximum token length it can support. If you set the max tokens field greater than 0, it becomes the maximum number of tokens to spend per task request.
+                                                For deduce: The margin buffer is the percentage of the token length that will be used to determine the chunk size. If you set the margin buffer to 0.5,
+                                                it will use up to 50% of the token context window input to determine the chunk size. You can set this between 0.2-0.8.
                                             </Typography>
                                             <Stack direction="row" >
                                                 <Box flexGrow={3} sx={{ width: '50%', mb: 0, mt: 2, mr: 1 }}>
@@ -2253,6 +2257,17 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
+                                                    <Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>
+                                                    <TextField
+                                                        label={`Token Context Window Buffer`}
+                                                        variant="outlined"
+                                                        type={'number'}
+                                                        inputProps={{ min: 0.2, max: 0.8, step: 0.1 }} // Added step: 0.1 here
+                                                        value={editAnalysisTask.marginBuffer ? editAnalysisTask.marginBuffer : 0.5}
+                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, marginBuffer: Number(event.target.value) }))}
+                                                        fullWidth
+                                                    />
+                                                </Box>
                                             </Stack>
                                             { editAnalysisTask.responseFormat === 'json' ?
                                                 <div>
@@ -2321,6 +2336,8 @@ function WorkflowEngineBuilder(props: any) {
                                             <Typography variant="body2" color="text.secondary">
                                                 Use this to tell the AI how to aggregate the results of your analysis chunks into a rolling aggregation window. If aggregating on a single analysis, the aggregation cycle count sets how many
                                                 base analysis cycles to aggregate on. If aggregating on multiple analysis, it will aggregate whenever the the underlying analysis is run.
+                                                For deduce: The margin buffer is the percentage of the token length that will be used to determine the chunk size. If you set the margin buffer to 0.5,
+                                                it will use up to 50% of the token context window input to determine the chunk size. You can set this between 0.2-0.8.
                                             </Typography>
                                             <Stack direction="row" >
                                                 <Box flexGrow={3} sx={{ width: '50%', mb: 0, mt: 2, mr: 1 }}>
@@ -2400,7 +2417,17 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
-
+                                                <Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>
+                                                    <TextField
+                                                        label={`Token Context Window Buffer`}
+                                                        variant="outlined"
+                                                        type={'number'}
+                                                        inputProps={{ min: 0.2, max: 0.8, step: 0.1 }} // Added step: 0.1 here
+                                                        value={editAggregateTask.marginBuffer ? editAggregateTask.marginBuffer : 0.5}
+                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAggregateTask, marginBuffer: Number(event.target.value) }))}
+                                                        fullWidth
+                                                    />
+                                                </Box>
                                             </Stack>
                                             { editAggregateTask.responseFormat === 'json' || editAggregateTask.responseFormat === 'social-media-engagement'?
                                                 <div>
@@ -4116,6 +4143,20 @@ function WorkflowEngineBuilder(props: any) {
                                                         fullWidth
                                                     />
                                                 </Box>
+                                                <Box sx={{ width: '10%', mb: 4, mt: 4 }}>
+                                                    <TextField
+                                                        type="number"
+                                                        label={`Temperature`}
+                                                        variant="outlined"
+                                                        inputProps={{ min: 0, max: 2, step: 0.1 }} // Added step: 0.1 here
+                                                       value={editAnalysisTask && editAnalysisTask.temperature || 1}
+                                                        onChange={(e) => dispatch(setEditAnalysisTask({
+                                                            ...editAnalysisTask, // Spread the existing action properties
+                                                            temperature: Number(e.target.value)
+                                                        }))}
+                                                        fullWidth
+                                                    />
+                                                </Box>
                                             </Stack>
                                             {requestAnalysisStatus != '' && (
                                                 <Container sx={{ mb: 2, mt: -2}}>
@@ -4132,35 +4173,49 @@ function WorkflowEngineBuilder(props: any) {
                                     {  !addAnalysisView && !addAggregateView && selectedMainTabBuilder === 2 && !loading && !addRetrievalView && !addEvalsView && !addTriggerActionsView && !addAssistantsView &&
                                         <div>
                                             <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                                            <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
-                                                <FormControl fullWidth>
-                                                    <InputLabel id="response-format-label">Response Format</InputLabel>
-                                                    <Select
-                                                        labelId="response-format-label"
-                                                        id="response-format-label"
-                                                        value={editAggregateTask.responseFormat}
-                                                        label="Response Format"
-                                                        onChange={(e) => handleEditAggTaskResponseFormat(e)}
-                                                    >
-                                                        <MenuItem value="text">text</MenuItem>
-                                                        <MenuItem value="json">json</MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                            </Box>
-                                            <Box sx={{ width: '50%', mb: 4, mt: 4 }}>
-                                                <TextField
-                                                    type="number"
-                                                    label={`Max Aggregation Token Usage`}
-                                                    variant="outlined"
-                                                    value={editAggregateTask && editAggregateTask.maxTokens || 0}
-                                                    onChange={(e) => dispatch(setEditAggregateTask({
-                                                        ...editAggregateTask, // Spread the existing action properties
-                                                        maxTokens: Number(e.target.value)
-                                                    }))}
-                                                    inputProps={{ min: 0 }}
-                                                    fullWidth
-                                                />
-                                            </Box>
+                                                <Box flexGrow={2} sx={{ mb: 2, mt: 4, ml:2 }}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel id="response-format-label">Response Format</InputLabel>
+                                                        <Select
+                                                            labelId="response-format-label"
+                                                            id="response-format-label"
+                                                            value={editAggregateTask.responseFormat}
+                                                            label="Response Format"
+                                                            onChange={(e) => handleEditAggTaskResponseFormat(e)}
+                                                        >
+                                                            <MenuItem value="text">text</MenuItem>
+                                                            <MenuItem value="json">json</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Box>
+                                                <Box sx={{ width: '33%', mb: 4, mt: 4 }}>
+                                                    <TextField
+                                                        type="number"
+                                                        label={`Max Aggregation Token Usage`}
+                                                        variant="outlined"
+                                                        value={editAggregateTask && editAggregateTask.maxTokens || 0}
+                                                        onChange={(e) => dispatch(setEditAggregateTask({
+                                                            ...editAggregateTask, // Spread the existing action properties
+                                                            maxTokens: Number(e.target.value)
+                                                        }))}
+                                                        inputProps={{ min: 0 }}
+                                                        fullWidth
+                                                    />
+                                                </Box>
+                                                <Box sx={{ width: '33%', mb: 4, mt: 4 }}>
+                                                    <TextField
+                                                        type="number"
+                                                        label={`Temperature`}
+                                                        variant="outlined"
+                                                        inputProps={{ min: 0, max: 2 }}
+                                                        value={editAggregateTask && editAggregateTask.temperature || 1}
+                                                        onChange={(e) => dispatch(setEditAggregateTask({
+                                                            ...editAggregateTask, // Spread the existing action properties
+                                                            temperature: Number(e.target.value)
+                                                        }))}
+                                                        fullWidth
+                                                    />
+                                                </Box>
                                             </Stack>
                                             {requestAggStatus != '' && (
                                                 <Container sx={{ mb: 2, mt: -2}}>

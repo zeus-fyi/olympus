@@ -35,6 +35,8 @@ type TaskModelInstructions struct {
 	TaskID                int                             `json:"taskID"`
 	Model                 string                          `json:"model"`
 	TaskType              string                          `json:"taskType"`
+	Temperature           float64                         `json:"temperature,omitempty"`
+	MarginBuffer          float64                         `json:"marginBuffer,omitempty"`
 	TaskGroup             string                          `json:"taskGroup"`
 	TaskName              string                          `json:"taskName"`
 	MaxTokens             int                             `json:"maxTokens"`
@@ -168,7 +170,6 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				CycleCount:            m.CycleCount,
 				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
 			}
-
 			if w.EvalTasksMap != nil {
 				if evm, tok := w.EvalTasksMap[fmt.Sprintf("%d", m.TaskID)]; tok {
 					for ke, ve := range evm {

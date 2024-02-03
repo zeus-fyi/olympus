@@ -54,6 +54,8 @@ const initialState: AiState = {
         tokenOverflowStrategy: 'deduce',
         cycleCount: 1,
         maxTokens: 0,
+        marginBuffer: 0.5,
+        temperature: 1.0,
         responseFormat: '',
         },
     addSchemasView: false,
@@ -195,9 +197,11 @@ const initialState: AiState = {
 
     evalFns: [],
     editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
+        marginBuffer: 0.5, temperature: 1.0,
         tokenOverflowStrategy: 'deduce', cycleCount: 1, taskStrID: '', maxTokens: 0, responseFormat: 'text',
     },
     editAggregateTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
+        marginBuffer: 0.5, temperature: 1.0,
         tokenOverflowStrategy: 'deduce', cycleCount: 1, taskStrID: '', maxTokens: 0, responseFormat: 'text'},
     editRetrieval:  {
         retrievalStrID: undefined, // Optional field set to undefined

@@ -43,10 +43,10 @@ func (z *ZeusAiPlatformActivities) SelectTaskDefinition(ctx context.Context, ou 
 
 func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
 	cr := openai.ChatCompletionRequest{
-		Model:    taskInst.AnalysisModel,
-		Messages: []openai.ChatCompletionMessage{},
+		Model:       taskInst.AnalysisModel,
+		Temperature: float32(taskInst.AnalysisTemperature),
+		Messages:    []openai.ChatCompletionMessage{},
 	}
-
 	content := hera_search.FormatSearchResultsV2(sr)
 	if len(content) > 0 {
 		systemMessage := openai.ChatCompletionMessage{
@@ -183,6 +183,11 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	if len(*aggInst.AggPrompt) <= 0 {
 		return nil, nil
 	}
+
+	temp := 1.0
+	if aggInst.AggTemperature != nil {
+		temp = *aggInst.AggTemperature
+	}
 	prompt := make(map[string]string)
 	prompt["prompt"] = *aggInst.AggPrompt
 	prompt["content"] = content
@@ -192,7 +197,8 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 	}
 	cr := openai.ChatCompletionRequest{
-		Model: *aggInst.AggModel,
+		Model:       *aggInst.AggModel,
+		Temperature: float32(temp),
 		Messages: []openai.ChatCompletionMessage{
 			systemMessage,
 			{

@@ -83,6 +83,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			pr := &PromptReduction{
 				Model:                     aws.StringValue(aggInst.AggModel),
 				TokenOverflowStrategy:     aws.StringValue(aggInst.AggTokenOverflowStrategy),
+				MarginBuffer:              aws.Float64Value(aggInst.AggMarginBuffer),
 				DataInAnalysisAggregation: dataIn,
 				PromptReductionSearchResults: &PromptReductionSearchResults{
 					InPromptBody:  aws.StringValue(aggInst.AggPrompt),
@@ -139,6 +140,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						jdef = append(jdef, taskDef.Schemas...)
 					}
 					tte.Tc.Schemas = jdef
+
+					if aggInst.AggTemperature != nil {
+						tte.Tc.Temperature = float32(*aggInst.AggTemperature)
+					} else {
+						tte.Tc.Temperature = 0.5
+					}
+
 					childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, tte).Get(childAggWfCtx, &aiAggResp)
 					if err != nil {

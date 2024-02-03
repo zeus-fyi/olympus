@@ -4188,7 +4188,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
-                                                <Box sx={{ width: '50%', mb: 4, mt: 4 }}>
+                                                <Box sx={{ width: '33%', mb: 4, mt: 4 }}>
                                                     <TextField
                                                         type="number"
                                                         label={`Max Aggregation Token Usage`}
@@ -4202,7 +4202,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         fullWidth
                                                     />
                                                 </Box>
-                                                <Box sx={{ width: '50%', mb: 4, mt: 4 }}>
+                                                <Box sx={{ width: '33%', mb: 4, mt: 4 }}>
                                                     <TextField
                                                         type="number"
                                                         label={`Temperature`}

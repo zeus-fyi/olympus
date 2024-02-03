@@ -72,7 +72,9 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 				token_overflow_strategy = EXCLUDED.token_overflow_strategy,
 				model = EXCLUDED.model,
 				response_format = EXCLUDED.response_format,
-				prompt = EXCLUDED.prompt
+				prompt = EXCLUDED.prompt,
+				temperature = EXCLUDED.temperature,
+				margin_buffer = EXCLUDED.margin_buffer	
 			RETURNING task_id
 		), cte_cleanup_json_schema AS (
 			DELETE FROM public.ai_task_schemas

@@ -130,7 +130,7 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                 </TableBody>
                             </Table>
                             {
-                                row.tasks && hasEvalFns(row.tasks) && (
+                                row.tasks && (
                                     <Box>
                                             <Box sx={{ margin: 1 }}>
                                                 <Typography variant="h6" gutterBottom component="div" >
@@ -197,15 +197,5 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                 </TableCell>
             </TableRow>
         </React.Fragment>
-    );
-}
-
-function hasEvalFns(tasks: any[]): boolean {
-    return tasks.some(task =>
-        task.evalFns &&
-        Array.isArray(task.evalFns) &&
-        task.evalFns.length > 0 &&
-        task.evalFns.some((evalFn: any) => evalFn !== undefined
-        )
     );
 }

@@ -98,6 +98,10 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			UnixStartTime:  w.UnixStartTime,
 			UnixEndTime:    endTime,
 		}
+		if isCycleStepped && w.DurationUnit == "cycles" {
+			window.RunCycles = w.Duration
+		}
+
 		for wfi, _ := range w.Workflows {
 			if w.Workflows[wfi].WorkflowTemplateStrID != "" {
 				wid, werr := strconv.Atoi(w.Workflows[wfi].WorkflowTemplateStrID)
@@ -115,6 +119,9 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		}
 		for ri, _ := range resp {
 			resp[ri].WorkflowExecTimekeepingParams.RunWindow.IsCycleStepped = isCycleStepped
+			if isCycleStepped {
+				resp[ri].WorkflowExecTimekeepingParams.RunWindow.RunCycles = w.Duration
+			}
 			err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")

@@ -45,7 +45,7 @@ func GetTelegramToken(ctx context.Context, orgID int) (string, error) {
 }
 
 var (
-	SecretCache = cache.New(time.Hour*24*3, cache.DefaultExpiration)
+	SecretCache = cache.New(time.Hour*1, cache.DefaultExpiration)
 )
 
 func ClearOrgSecretCache(ou org_users.OrgUser) {

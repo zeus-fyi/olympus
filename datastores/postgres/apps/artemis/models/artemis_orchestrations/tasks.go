@@ -22,6 +22,8 @@ type AITaskLibrary struct {
 	TaskGroup             string                           `db:"task_group" json:"taskGroup"`
 	TokenOverflowStrategy string                           `db:"token_overflow_strategy" json:"tokenOverflowStrategy"`
 	Model                 string                           `db:"model" json:"model"`
+	Temperature           float64                          `db:"temperature" json:"temperature"`
+	MarginBuffer          float64                          `db:"margin_buffer" json:"marginBuffer"`
 	Prompt                string                           `db:"prompt" json:"prompt"`
 	Schemas               []*JsonSchemaDefinition          `json:"schemas,omitempty"`
 	SchemasMap            map[string]*JsonSchemaDefinition `json:"schemasMap,omitempty"`
@@ -61,9 +63,9 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 	query := `
 		WITH cte_task_wrapper AS (
 			INSERT INTO public.ai_task_library 
-				(org_id, user_id, max_tokens_per_task, task_type, task_name, task_group, token_overflow_strategy, model, prompt, response_format)
+				(org_id, user_id, max_tokens_per_task, task_type, task_name, task_group, token_overflow_strategy, model, prompt, response_format, temperature, margin_buffer)
 			VALUES 
-				($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+				($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (org_id, task_group, task_name) 
 			DO UPDATE SET 
 				max_tokens_per_task = EXCLUDED.max_tokens_per_task,
@@ -74,13 +76,17 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 			RETURNING task_id
 		), cte_cleanup_json_schema AS (
 			DELETE FROM public.ai_task_schemas
-			WHERE task_id IN (SELECT task_id FROM cte_task_wrapper) AND schema_id != ANY($11)
+			WHERE task_id IN (SELECT task_id FROM cte_task_wrapper) AND schema_id != ANY($13)
 		), cte_insert_json_schema AS (
 			` + opt1 + `
 		) SELECT task_id FROM cte_task_wrapper;`
 
 	err := apps.Pg.QueryRowWArgs(ctx, query,
-		task.OrgID, task.UserID, task.MaxTokensPerTask, task.TaskType, task.TaskName, task.TaskGroup, task.TokenOverflowStrategy, task.Model, task.Prompt, task.ResponseFormat, pq.Array(sids)).
+		task.OrgID, task.UserID, task.MaxTokensPerTask, task.TaskType,
+		task.TaskName, task.TaskGroup, task.TokenOverflowStrategy,
+		task.Model, task.Prompt, task.ResponseFormat,
+		task.Temperature, task.MarginBuffer,
+		pq.Array(sids)).
 		Scan(&task.TaskID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert task")
@@ -113,7 +119,9 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					tl.token_overflow_strategy, 
 					tl.model, 
 					tl.prompt, 
-					tl.response_format
+					tl.response_format,
+					tl.temperature,
+					tl.margin_buffer
 				FROM 
 					public.ai_task_library tl
         		WHERE 
@@ -130,13 +138,15 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					tl.model, 
 					tl.prompt, 
 					tl.response_format,
+					tl.temperature,
+					tl.margin_buffer,
 					ate.eval_id
 				FROM  
 					cte_tasks tl
 				LEFT JOIN ai_workflow_template_eval_task_relationships ate ON tl.task_id = ate.task_id
 				GROUP BY 
 					tl.task_id, tl.max_tokens_per_task, tl.task_type, tl.task_name, tl.task_group,
-					tl.token_overflow_strategy, tl.model, tl.prompt, tl.response_format, ate.eval_id
+					tl.token_overflow_strategy, tl.temperature, tl.margin_buffer, tl.model, tl.prompt, tl.response_format, ate.eval_id
 			),
 			cte_1 AS (
 				SELECT 
@@ -149,6 +159,8 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					tl.model, 
 					tl.prompt, 
 					tl.response_format,
+					tl.temperature,
+					tl.margin_buffer,
 					tl.eval_id,
 					af.field_id,
 					jsd.schema_id,
@@ -174,6 +186,8 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 					tl.model,
 					tl.response_format,
 					tl.prompt,
+					tl.temperature,
+					tl.margin_buffer,
 					tl.eval_id,
 					jsd.schema_id, jsd.schema_name, jsd.schema_group, jsd.is_obj_array, jsd.schema_description,
 					af.field_id
@@ -337,6 +351,8 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 				ct.model, 
 				ct.prompt, 
 				ct.response_format,
+				ct.temperature,
+				ct.margin_buffer,
 				COALESCE(css.task_schemas_jsonb, '[]'::jsonb) AS task_schemas, 
 				COALESCE(cefs.eval_fn_metrics_jsonb, '[]'::jsonb) AS eval_fns
 			FROM 
@@ -363,7 +379,8 @@ func SelectTask(ctx context.Context, ou org_users.OrgUser, taskID int) ([]AITask
 		err = rows.Scan(
 			&task.TaskID, &task.MaxTokensPerTask, &task.TaskType, &task.TaskName,
 			&task.TaskGroup, &task.TokenOverflowStrategy, &task.Model,
-			&task.Prompt, &task.ResponseFormat, &task.Schemas, &task.EvalFns, // Scan into a string
+			&task.Prompt, &task.ResponseFormat, &task.Temperature, &task.MarginBuffer,
+			&task.Schemas, &task.EvalFns, // Scan into a string
 		)
 		if err != nil {
 			log.Err(err).Msg("failed to scan task")

@@ -9,7 +9,9 @@ CREATE TABLE public.ai_task_library (
     token_overflow_strategy TEXT NOT NULL DEFAULT 'deduce',
     model TEXT NOT NULL,
     prompt TEXT NOT NULL,
-    response_format text NOT NULL DEFAULT 'text'
+    response_format text NOT NULL DEFAULT 'text',
+    temperature float8 NOT NULL DEFAULT 1.0,
+    margin_buffer float8 NOT NULL DEFAULT 0.5
 );
 
 ALTER TABLE "public"."ai_task_library" ADD CONSTRAINT "ai_task_library_org_task_group_name_uniq" UNIQUE ("org_id", "task_group", "task_name");

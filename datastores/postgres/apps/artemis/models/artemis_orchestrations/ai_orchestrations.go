@@ -26,6 +26,7 @@ type WorkflowExecTimekeepingParams struct {
 	CurrentCycleCount                           int           `json:"currentCycleCount"`
 	RunWindow                                   Window        `json:"runWindow"`
 	RunTimeDuration                             time.Duration `json:"runTimeDuration"`
+	IsCycleStepped                              bool          `json:"isCycleStepped"`
 	RunCycles                                   int           `json:"runCycles"`
 	TimeStepSize                                time.Duration `json:"unixTimeStepSize"`
 	TotalCyclesPerOneCompleteWorkflow           int           `json:"totalCyclesPerOneCompleteWorkflow"`
@@ -48,12 +49,10 @@ type CycleCountTaskRelative struct {
 }
 
 type Window struct {
-	RunCycles      int       `json:"runCycles,omitempty"`
-	IsCycleStepped bool      `json:"isCycleStepped,omitempty"`
-	Start          time.Time `json:"start,omitempty"`
-	End            time.Time `json:"end,omitempty"`
-	UnixStartTime  int       `json:"unixStartTime,omitempty"`
-	UnixEndTime    int       `json:"unixEndTime,omitempty"`
+	Start         time.Time `json:"start,omitempty"`
+	End           time.Time `json:"end,omitempty"`
+	UnixStartTime int       `json:"unixStartTime,omitempty"`
+	UnixEndTime   int       `json:"unixEndTime,omitempty"`
 }
 
 func (ti *Window) IsWindowEmpty() bool {
@@ -121,10 +120,6 @@ func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, window 
 		}
 
 		wfTimeParams.WorkflowTemplate = wf
-		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.IsCycleStepped = window.IsCycleStepped
-		if window.IsCycleStepped {
-			wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.RunCycles = window.RunCycles
-		}
 		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime = window.UnixStartTime
 		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.Start = time.Unix(int64(window.UnixStartTime), 0)
 		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.UnixEndTime = window.UnixEndTime

@@ -1019,11 +1019,11 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                     labelId={`groupNameLabel`}
                                                                     id={`groupName`}
                                                                     name="groupName"
-                                                                    value={retrieval.retrievalItemInstruction.webFilters?.routingGroup || 'twitter-{YOUR_TWITTER_@HANDLE}'}
+                                                                    value={'twitter-{YOUR_TWITTER_@HANDLE}'}
                                                                     // onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
                                                                     label="Routing Group"
                                                                 >
-                                                                    <MenuItem key={'twitter'} value={'twitter'}>{'twitter-{YOUR_TWITTER_@HANDLE}'}</MenuItem>
+                                                                    <MenuItem key={'twitter'} value={'twitter-{YOUR_TWITTER_@HANDLE}'}>{'twitter-{YOUR_TWITTER_@HANDLE}'}</MenuItem>
                                                                     {/*{Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}*/}
                                                                 </Select>
                                                             </FormControl>

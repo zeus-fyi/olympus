@@ -162,11 +162,11 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 
 	log.Info().Interface("pr.Url", pr.Url).Interface("pr.ExtRoutePath", pr.ExtRoutePath).Msg("sendRequest: sending request")
 	if strings.HasPrefix(pr.Url, "https://api.twitter.com/2") {
-		if strings.Contains(ext, "tweet") {
-			if pr.Payload != nil && pr.Payload["in_reply_to_tweet"] != nil {
+		if strings.Contains(ext, "tweets") {
+			if pr.Payload != nil && pr.Payload["in_reply_to_tweet_id"] != nil {
 				newPayload := echo.Map{
 					"reply": echo.Map{
-						"in_reply_to_tweet_id": pr.Payload["in_reply_to_tweet"],
+						"in_reply_to_tweet_id": pr.Payload["in_reply_to_tweet_id"],
 					},
 					"text": pr.Payload["text"],
 				}

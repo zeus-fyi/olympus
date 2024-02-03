@@ -38,6 +38,7 @@ func (d *DeploymentsTestSuite) TestRolloutRestartDeploymentZeus() {
 	kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "zeus"}
 	dep, err = d.K.RolloutRestartDeployment(ctx, kns, "zeus", nil)
 	d.Require().Nil(err)
+	d.Require().NotEmpty(dep)
 }
 
 func (d *DeploymentsTestSuite) TestRolloutRestartDeploymentWebApp() {

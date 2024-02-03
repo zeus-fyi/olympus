@@ -174,7 +174,7 @@ export function WorkflowRow(props: { row: WorkflowTemplate, index: number, handl
                                             </TableHead>
                                             <TableBody>
                                                 {row.tasks.map((task, taskIndex) => (
-                                                    task.evalFns && task.evalFns
+                                                    (task.evalFns || []) // Provide an empty array as fallback
                                                         .filter(evalFn => evalFn.evalName) // Filter out objects where evalName is empty
                                                         .map((evalFn, evalFnIndex) => (
                                                             <TableRow key={evalFnIndex}>

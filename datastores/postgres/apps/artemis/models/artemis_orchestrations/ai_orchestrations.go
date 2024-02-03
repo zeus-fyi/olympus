@@ -186,6 +186,8 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 				AggTokenOverflowStrategy: &aggAnalysisTask.AggTokenOverflowStrategy,
 				AggMaxTokensPerTask:      &aggAnalysisTask.AggMaxTokensPerTask,
 				AggEvalFns:               aggAnalysisTask.EvalFns,
+				AggTemperature:           &aggAnalysisTask.AggTemperature,
+				AggMarginBuffer:          &aggAnalysisTask.AggMarginBuffer,
 				AggAnalysisEvalFns:       aggAnalysisTask.AnalysisAggEvalFns,
 			}
 			ev = append(ev, aggAnalysisTask.EvalFns...)

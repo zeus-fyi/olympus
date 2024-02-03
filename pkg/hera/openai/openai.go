@@ -38,6 +38,7 @@ type OpenAIParams struct {
 	Model                string                    `json:"model"`
 	MaxTokens            int                       `json:"maxTokens"`
 	Prompt               string                    `json:"prompt"`
+	Temperature          float32                   `json:"temperature,omitempty"`
 	SystemPromptOverride string                    `json:"systemPromptOverride,omitempty"`
 	SystemPromptExt      string                    `json:"systemPromptExt,omitempty"`
 	FunctionDefinition   openai.FunctionDefinition `json:"functionDefinition,omitempty"`

@@ -95,6 +95,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			pr := &PromptReduction{
 				TokenOverflowStrategy: analysisInst.AnalysisTokenOverflowStrategy,
 				Model:                 analysisInst.AnalysisModel,
+				MarginBuffer:          analysisInst.AnalysisMarginBuffer,
 			}
 			if sg != nil && len(sg.SearchResults) > 0 {
 				pr.PromptReductionSearchResults = &PromptReductionSearchResults{
@@ -199,6 +200,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					tte.Tc = TaskContext{
 						TaskName:       analysisInst.AnalysisTaskName,
 						TaskType:       AnalysisTask,
+						Temperature:    float32(analysisInst.AnalysisTemperature),
 						ResponseFormat: analysisInst.AnalysisResponseFormat,
 						Model:          analysisInst.AnalysisModel,
 						TaskID:         analysisInst.AnalysisTaskID,

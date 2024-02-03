@@ -31,6 +31,7 @@ type TaskToExecute struct {
 type TaskContext struct {
 	TaskName                           string                                        `json:"taskName"`
 	TaskType                           string                                        `json:"taskType"`
+	Temperature                        float32                                       `json:"temperature"`
 	ResponseFormat                     string                                        `json:"responseFormat"`
 	Model                              string                                        `json:"model"`
 	TaskID                             int                                           `json:"taskID"`
@@ -69,6 +70,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			Model:              tte.Tc.Model,
 			Prompt:             tte.Sg.GetPromptBody(),
 			FunctionDefinition: fd,
+			Temperature:        tte.Tc.Temperature,
 		}
 		jsd := tte.Tc.Schemas
 		tte.Wr.IterationCount = attempt

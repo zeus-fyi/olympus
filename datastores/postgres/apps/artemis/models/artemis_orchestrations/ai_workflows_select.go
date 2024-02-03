@@ -39,6 +39,8 @@ type WorkflowTemplateData struct {
 	AggResponseFormat        *string    `json:"aggResponseFormat,omitempty"`
 	AggPrompt                *string    `json:"aggPrompt,omitempty"`
 	AggModel                 *string    `json:"aggModel,omitempty"`
+	AggTemperature           *float64   `json:"aggTemperature,omitempty"`
+	AggMarginBuffer          *float64   `json:"aggMarginBuffer,omitempty"`
 	AggTokenOverflowStrategy *string    `json:"aggTokenOverflowStrategy,omitempty"`
 	AggMaxTokensPerTask      *int       `json:"aggMaxTokensPerTask,omitempty"`
 	AggAnalysisEvalFns       []EvalFnDB `json:"aggAnalysisEvalFns,omitempty"`

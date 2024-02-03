@@ -100,7 +100,7 @@ export interface TaskModelInstructions {
     cycleCount: number;
     responseFormat: string;
     temperature?: number;
-    marginBuffer?: number;
+    marginBuffer: number;
     retrievals?: AnalysisRetrievalsMap;
     schemas: JsonSchemaDefinition[];
 }

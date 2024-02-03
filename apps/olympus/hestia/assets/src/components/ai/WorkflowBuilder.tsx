@@ -1058,6 +1058,8 @@ function WorkflowEngineBuilder(props: any) {
             }
             const task: TaskModelInstructions = {
                 taskStrID: (taskType === 'analysis' ? editAnalysisTask.taskStrID : editAggregateTask.taskStrID),
+                temperature: (taskType === 'analysis' ? editAnalysisTask.temperature : editAggregateTask.temperature),
+                marginBuffer: (taskType === 'analysis' ? editAnalysisTask.marginBuffer : editAggregateTask.marginBuffer),
                 taskType: taskType,
                 taskGroup:taskGn,
                 taskName: tn,
@@ -2255,7 +2257,6 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
-                                                { editAnalysisTask.tokenOverflowStrategy === 'deduce' &&
                                                     <Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>
                                                     <TextField
                                                         label={`Token Context Window Buffer`}
@@ -2267,7 +2268,6 @@ function WorkflowEngineBuilder(props: any) {
                                                         fullWidth
                                                     />
                                                 </Box>
-                                                }
                                             </Stack>
                                             { editAnalysisTask.responseFormat === 'json' ?
                                                 <div>
@@ -2417,19 +2417,17 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Select>
                                                     </FormControl>
                                                 </Box>
-                                                { editAggregateTask.tokenOverflowStrategy === 'deduce' &&
-                                                    <Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>
-                                                        <TextField
-                                                            label={`Token Context Window Buffer`}
-                                                            variant="outlined"
-                                                            type={'number'}
-                                                            inputProps={{ min: 0.2, max: 0.8, step: 0.1 }} // Added step: 0.1 here
-                                                            value={editAggregateTask.marginBuffer ? editAggregateTask.marginBuffer : 0.5}
-                                                            onChange={(event) => dispatch(setEditAnalysisTask({ ...editAggregateTask, marginBuffer: event.target.value }))}
-                                                            fullWidth
-                                                        />
-                                                    </Box>
-                                                }
+                                                <Box flexGrow={1} sx={{ mb: 4, mt: 4, ml:2 }}>
+                                                    <TextField
+                                                        label={`Token Context Window Buffer`}
+                                                        variant="outlined"
+                                                        type={'number'}
+                                                        inputProps={{ min: 0.2, max: 0.8, step: 0.1 }} // Added step: 0.1 here
+                                                        value={editAggregateTask.marginBuffer ? editAggregateTask.marginBuffer : 0.5}
+                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAggregateTask, marginBuffer: event.target.value }))}
+                                                        fullWidth
+                                                    />
+                                                </Box>
                                             </Stack>
                                             { editAggregateTask.responseFormat === 'json' || editAggregateTask.responseFormat === 'social-media-engagement'?
                                                 <div>

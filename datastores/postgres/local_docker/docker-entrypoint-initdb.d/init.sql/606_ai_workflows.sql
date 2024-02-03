@@ -10,8 +10,10 @@ CREATE TABLE public.ai_task_library (
     model TEXT NOT NULL,
     prompt TEXT NOT NULL,
     response_format text NOT NULL DEFAULT 'text',
-    temperature float8 NOT NULL DEFAULT 1.0,
-    margin_buffer float8 NOT NULL DEFAULT 0.5
+    temperature FLOAT8 NOT NULL DEFAULT 1.0,
+    margin_buffer FLOAT8 NOT NULL DEFAULT 0.5,
+    CONSTRAINT temperature_range CHECK (temperature >= 0 AND temperature <= 2),
+    CONSTRAINT margin_buffer_range CHECK (margin_buffer >= 0.2 AND margin_buffer <= 0.8)
 );
 
 ALTER TABLE "public"."ai_task_library" ADD CONSTRAINT "ai_task_library_org_task_group_name_uniq" UNIQUE ("org_id", "task_group", "task_name");

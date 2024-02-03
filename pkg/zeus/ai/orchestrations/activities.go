@@ -308,6 +308,11 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	}
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {
+		if req.StatusCode == 401 {
+			// clear the cache
+			log.Warn().Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: clearing org secret cache")
+			aws_secrets.ClearOrgSecretCache(r.Ou)
+		}
 		log.Err(rrerr).Interface("payload", r.Payload).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
 		return nil, rrerr
 	}

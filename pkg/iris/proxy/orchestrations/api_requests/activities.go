@@ -211,11 +211,13 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		if pr.PayloadSizeMeter == nil {
 			pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 		}
+
 		pr.PayloadSizeMeter.Add(resp.Size())
 		pr.StatusCode = resp.StatusCode()
 		if resp.StatusCode() >= 400 || pr.Response == nil {
 			pr.RawResponse = resp.Body()
 		}
+		pr.StatusCode = resp.StatusCode()
 		pr.ResponseHeaders = filterHeaders(resp.RawResponse.Header)
 		pr.ReceivedAt = resp.ReceivedAt()
 		pr.Latency = resp.Time()

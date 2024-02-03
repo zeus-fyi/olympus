@@ -135,7 +135,7 @@ function WorkflowEngineBuilder(props: any) {
     const aggregationStages = useSelector((state: RootState) => state.ai.addedAggregateTasks);
     const [tasks, setTasks] = useState(allTasks && allTasks.filter((task: TaskModelInstructions) => task.taskType === taskType));
     const retrievals = useSelector((state: RootState) => state.ai.retrievals);
-    const [retrievalsApi, setRetrievalsApi] = useState<Retrieval[]>(retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction.retrievalPlatform === 'web' || ret.retrievalItemInstruction.retrievalPlatform === 'api'));
+    const [retrievalsApi, setRetrievalsApi] = useState<Retrieval[]>(retrievals ? retrievals.filter((ret: Retrieval) => ret.retrievalItemInstruction.retrievalPlatform === 'web' || ret.retrievalItemInstruction.retrievalPlatform === 'api') : []);
     const workflowBuilderTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderTaskMap);
     const workflowAnalysisRetrievalsMap = useSelector((state: RootState) => state.ai.workflowAnalysisRetrievalsMap);
     const workflowBuilderEvalsTaskMap = useSelector((state: RootState) => state.ai.workflowBuilderEvalsTaskMap);
@@ -423,8 +423,11 @@ function WorkflowEngineBuilder(props: any) {
         dispatch(setWorkflowBuilderTaskMap(payload));
     };
     const handleRemoveRetrievalFromWorkflow = async (event: any, retrievalRemove: Retrieval) => {
-        dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) => ret.retrievalStrID !== retrievalRemove.retrievalStrID)));
-    }
+        dispatch(setAddRetrievalTasks(retrievalStages.filter((ret: Retrieval) =>
+            ret.retrievalStrID !== undefined && retrievalRemove.retrievalStrID !== undefined &&
+            ret.retrievalStrID !== retrievalRemove.retrievalStrID
+        )));
+    };
     const handleRemoveRetrievalFromTrigger = async (event: any, retrievalRemove: Retrieval) => {
         dispatch(setTriggerAction({
             ...action,

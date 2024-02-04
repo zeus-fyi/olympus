@@ -349,15 +349,15 @@ function AiWorkflowsDashboardContent(props: any) {
         return new Date(ms).toLocaleTimeString([], { hour: 'numeric', hour12: true });
     };
 
-    const handleStartTwitterAuthFlow = async (event: any) => {
+    const handleStartPlatformAuthFlow = async (event: any, platform: string) => {
         try {
             setIsLoading(true)
-            const response = await accessApiGateway.startPlatformAuthFlow('twitter');
+            const response = await accessApiGateway.startPlatformAuthFlow(platform);
             const statusCode = response.status;
             if (statusCode < 400) {
                 const data = response.data;
                 window.location.replace(data);
-                setRequestIndexerStatus('Auth information: ' + data)
+                setRequestIndexerStatus('platform auth flow started successfully')
                 setRequestIndexerStatusError('success')
             }
         } catch (error: any) {
@@ -1000,16 +1000,16 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     <Button fullWidth variant="outlined"  onClick={(e) => handleSubmitIndexer(e)}>Start Indexing</Button>
                                                 </Box>
                                                 }
-
-                                                { searchIndexer.platform === 'twitter' &&
+                                                {
+                                                    (searchIndexer.platform === 'twitter' || searchIndexer.platform === 'reddit') &&
                                                     <div>
                                                         <Box flexGrow={1} sx={{ mt: 2}}>
                                                             <Typography variant="h6" color="text.secondary">
-                                                               Automated Twitter Auth & Routing Table Setup
+                                                                Automated {searchIndexer.platform.charAt(0).toUpperCase() + searchIndexer.platform.slice(1)} Auth & Routing Table Setup
                                                             </Typography>
                                                             <Typography variant="subtitle2" color="text.secondary">
-                                                                This will create a routing table for you called {'twitter-{YOUR_TWITTER_@HANDLE}'} and generate a bearer token for you
-                                                                that it saves in the platform secret manager as {'api-twitter-{YOUR_TWITTER_@HANDLE}'}.
+                                                                This will create a routing table for you called {'{platform}-{YOUR_TWITTER_@HANDLE}'} and generate a bearer token for you
+                                                                that it saves in the platform secret manager as {'api-{platform}-{YOUR_TWITTER_@HANDLE}'}.
                                                             </Typography>
                                                             <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
                                                                 <InputLabel key={`groupNameLabel`} id={`groupName`}>
@@ -1019,17 +1019,17 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                     labelId={`groupNameLabel`}
                                                                     id={`groupName`}
                                                                     name="groupName"
-                                                                    value={'twitter-{YOUR_TWITTER_@HANDLE}'}
+                                                                    value={`${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`}
                                                                     // onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
                                                                     label="Routing Group"
                                                                 >
-                                                                    <MenuItem key={'twitter'} value={'twitter-{YOUR_TWITTER_@HANDLE}'}>{'twitter-{YOUR_TWITTER_@HANDLE}'}</MenuItem>
+                                                                    <MenuItem key={searchIndexer.platform} value={`${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`}>{`${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`}</MenuItem>
                                                                     {/*{Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}*/}
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
                                                         <Box flexGrow={2} sx={{ mb: 2, mr: 2, mt: 2}}>
-                                                            <Button fullWidth variant="outlined"  onClick={(e) => handleStartTwitterAuthFlow(e)}>Connect Twitter</Button>
+                                                            <Button fullWidth variant="outlined" onClick={(e) => handleStartPlatformAuthFlow(e, searchIndexer.platform)}>Connect {searchIndexer.platform.charAt(0).toUpperCase() + searchIndexer.platform.slice(1)}</Button>
                                                         </Box>
                                                     </div>
                                                 }

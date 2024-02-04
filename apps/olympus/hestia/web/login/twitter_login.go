@@ -67,13 +67,23 @@ func CallbackHandler(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
+
+	provider := c.Param("provider")
+	fmt.Println("provider", provider)
+
+	switch provider {
+
+	case "reddit":
+		return c.JSON(http.StatusOK, "ok")
+	case "twitter":
+
+	}
 	stateNonce := GenerateNonce()
 	verifier := GenerateCodeVerifier(128)
 	codeChallenge := PkCEChallengeWithSHA256(verifier)
 	//log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("START CallbackHandler: Callback")
 	// Store the verifier using stateNonce as the key
 	//log.Info().Interface("orgUser", ou).Str("stateNonce", stateNonce).Msg("BEGIN: Storing stateNonce in cache")
-
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
 	chOrg.Set(stateNonce, fmt.Sprintf("%d", ou.OrgID), cache.DefaultExpiration)
 

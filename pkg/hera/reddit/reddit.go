@@ -132,6 +132,27 @@ func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.
 	return posts, nil
 }
 
+func (r *Reddit) GetLastLikedPostV2(ctx context.Context, username string) ([]*reddit.Post, error) {
+	path := fmt.Sprintf("user/%s/upvoted?limit=1", username)
+	ua := createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	r.Resty.SetHeader("User-Agent", ua)
+	var s RedditResponse
+	resp, err := r.Resty.R().SetResult(&s).Get(path)
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, fmt.Errorf("error getting new posts")
+	}
+	var posts []*reddit.Post
+	for _, c := range s.Data.Children {
+		posts = append(posts, c.Data)
+	}
+	return posts, nil
+}
+
 func (r *Reddit) GetLastLikedPost(ctx context.Context, userName string) ([]*reddit.Post, error) {
 	// Assuming you have a method to set up OAuth2 and headers
 	//path := fmt.Sprintf("/user/%s/liked?limit=1", userName) // Replace {username} with your actual username

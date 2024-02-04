@@ -315,9 +315,15 @@ function AiWorkflowsDashboardContent(props: any) {
                     setCode(result);
                     const data = response.data;
                     dispatch(setSearchResults(data));
+                    setRequestStatus('Successfully sent request')
+                    setRequestStatusError('success')
+                } else {
+                    setCode('No data returned');
                 }
             }
         } catch (error) {
+            setRequestStatus('Request had an error ' + error)
+            setRequestStatusError('error')
             console.log("error", error);
         } finally {
             setIsLoading(false);

@@ -1,15 +1,16 @@
 package hestia_login
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
+	"context"
+	"fmt"
 	"net/http"
-	"net/url"
-	"time"
 
 	"github.com/labstack/echo/v4"
-	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
+	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
+	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
+	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 )
 
 func RedditLoginHandler(c echo.Context) error {
@@ -17,58 +18,44 @@ func RedditLoginHandler(c echo.Context) error {
 }
 
 func RedditCallbackHandler(c echo.Context) error {
-	code := c.QueryParam("code")
-	if code == "" {
-		return c.JSON(http.StatusBadRequest, "Missing code")
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, nil)
 	}
-	// Prepare the request
-	data := url.Values{}
-	data.Set("client_id", DiscordClientID)
-	data.Set("client_secret", DiscordClientSecret)
-	data.Set("grant_type", "authorization_code")
-	data.Set("code", code)
-	data.Set("redirect_uri", DiscordRedirectURI)
-	// Exchange code for a token here
-	// Implement the logic to get the token using the code
-	req, err := http.NewRequest("POST", "https://discord.com/api/oauth2/token", bytes.NewBufferString(data.Encode()))
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(c.Request().Context(), ou, "reddit")
 	if err != nil {
-		return err
-	}
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	// Make the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	// Unmarshal the response
-	var tokenResponse map[string]interface{}
-	err = json.Unmarshal(body, &tokenResponse)
-	if err != nil {
-		return err
-	}
-	// Check if the response contains the access token
-	if token, ok := tokenResponse["access_token"]; ok {
-		ts, aok := token.(string)
-		if !aok {
-			return c.JSON(http.StatusInternalServerError, "Failed to get access token")
-		}
-		nk := create_keys.NewCreateKey(internalOrgID, ts)
-		nk.PublicKeyVerified = true
-		nk.PublicKeyName = "discord"
-		nk.CreatedAt = time.Now()
-		nk.UserID = 7138958574876245567
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, nil)
-		}
-		return c.JSON(http.StatusOK, "ok")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 
-	return c.JSON(http.StatusInternalServerError, nil)
+	rc, err := hera_reddit.InitOrgRedditClient(c.Request().Context(), ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 
+	meInfo, err := rc.GetMe(c.Request().Context())
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if meInfo == nil || meInfo.Name == "" {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	sr := SecretsRequest{
+		Name:  fmt.Sprintf("api-reddit-%s", meInfo.Name),
+		Key:   "mockingbird",
+		Value: rc.AccessToken,
+	}
+	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
+		Ou:           ou,
+		OrgGroupName: fmt.Sprintf("reddit-%s", meInfo.Name),
+		Routes:       []string{"https://oauth.reddit.com"},
+	}
+	ctx := context.Background()
+	err = platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisPlatformSetupRequestWorkflow(ctx, ipr)
+	if err != nil {
+		log.Err(err).Msg("TwitterCallbackHandler: CreateOrgGroupRoutesRequest")
+		return err
+	}
+	c.Set("orgUser", ou)
+	return sr.CreateOrUpdateSecret(c, false)
 }

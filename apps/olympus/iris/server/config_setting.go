@@ -12,10 +12,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	proxy_anvil "github.com/zeus-fyi/olympus/pkg/iris/proxy/anvil"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_serverless "github.com/zeus-fyi/olympus/pkg/iris/serverless"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 var (
@@ -26,6 +28,12 @@ var (
 		HostPort:         "production-iris.ngb72.tmprl.cloud:7233",
 	}
 	dynamoDBCreds = dynamodb_client.DynamoDBCredentials{}
+	awsRegion     = "us-west-1"
+	awsAuthCfg    = aegis_aws_auth.AuthAWS{
+		Region:    awsRegion,
+		AccessKey: "",
+		SecretKey: "",
+	}
 )
 
 func SetConfigByEnv(ctx context.Context, env string) {
@@ -35,13 +43,18 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		log.Info().Msg("Iris: production auth procedure starting")
 		temporalAuthCfg = temporalProdAuthConfig
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		inMemSecrets, sw := auth_startup.RunIrisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
+		log.Info().Msg("Iris: AWS Secrets Manager connection starting")
+		awsAuthCfg = sw.SecretsManagerAuthAWS
+		awsAuthCfg.Region = awsRegion
+		log.Info().Msg("Iris: AWS Secrets Manager connected")
 		iris_redis.InitProductionBackupRedisIrisCache(ctx)
 		//iris_redis.InitProductionRedisIrisCache(ctx)
+		artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
 	case "production-local":
 		auth_startup.Ksp.DirIn = "../configs"
 		auth_startup.Sp.DirIn = "../configs"
@@ -49,11 +62,15 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
 		temporalAuthCfg = tc.DevTemporalAuth
-		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		inMemSecrets, sw := auth_startup.RunIrisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 		iris_redis.InitLocalTestProductionRedisIrisCache(ctx)
+
+		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
+		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
+		artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
 	case "local":
 		auth_startup.Ksp.DirIn = "../configs"
 		auth_startup.Sp.DirIn = "../configs"
@@ -64,9 +81,14 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessSecret = tc.AwsSecretKeyDynamoDB
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 		iris_redis.InitLocalTestRedisIrisCache(ctx)
+		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
+		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
+		artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
+
 	default:
 		iris_redis.InitLocalTestRedisIrisCache(ctx)
 	}
+
 	//dynamoDBCreds.Region = "us-west-1"
 	//
 	//log.Info().Msg("Artemis: DynamoDB connection starting")

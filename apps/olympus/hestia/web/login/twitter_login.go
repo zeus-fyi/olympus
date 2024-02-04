@@ -63,6 +63,12 @@ var (
 )
 
 func CallbackHandler(c echo.Context) error {
+	provider := c.Param("provider")
+	switch provider {
+	case "reddit":
+		return RedditCallbackHandler(c)
+	case "twitter":
+	}
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusUnauthorized, nil)
@@ -73,7 +79,6 @@ func CallbackHandler(c echo.Context) error {
 	//log.Info().Str("codeChallenge", codeChallenge).Interface("stateNonce", stateNonce).Interface("verifier", verifier).Msg("START CallbackHandler: Callback")
 	// Store the verifier using stateNonce as the key
 	//log.Info().Interface("orgUser", ou).Str("stateNonce", stateNonce).Msg("BEGIN: Storing stateNonce in cache")
-
 	ch.Set(stateNonce, verifier, cache.DefaultExpiration)
 	chOrg.Set(stateNonce, fmt.Sprintf("%d", ou.OrgID), cache.DefaultExpiration)
 

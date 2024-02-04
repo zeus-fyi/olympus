@@ -285,8 +285,13 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 	}
 	var bearer string
+	var username string
 
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup))
+	secretNameRefApi := fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)
+	if strings.HasPrefix(secretNameRefApi, "api-reddit") {
+		username = strings.TrimPrefix(secretNameRefApi, "api-reddit-")
+	}
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, secretNameRefApi)
 	if ps != nil && ps.BearerToken != "" {
 		bearer = ps.BearerToken
 		log.Info().Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: using mockingbird secrets")
@@ -305,6 +310,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		PayloadTypeREST: restMethod,
 		Bearer:          bearer,
 		RequestHeaders:  r.Headers,
+		Username:        username,
 	}
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {

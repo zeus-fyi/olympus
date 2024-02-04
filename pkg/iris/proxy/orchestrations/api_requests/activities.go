@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
@@ -79,6 +80,12 @@ func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context
 }
 
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	if pr.Url == "" {
+		err := fmt.Errorf("error: URL is required")
+		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
+		return pr, err
+	}
+
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
 	if pr.MaxTries > 0 {
@@ -173,6 +180,14 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 				pr.Payload = newPayload
 			}
 		}
+	}
+
+	if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
+		ua := hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
+		if pr.Username != "" {
+			ua = hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", pr.Username)
+		}
+		request.SetHeader("User-Agent", ua)
 	}
 
 	if pr.Payload != nil {

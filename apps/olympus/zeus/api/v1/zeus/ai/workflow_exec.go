@@ -94,12 +94,8 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			isCycleStepped = true
 		}
 		window := artemis_orchestrations.Window{
-			IsCycleStepped: isCycleStepped,
-			UnixStartTime:  w.UnixStartTime,
-			UnixEndTime:    endTime,
-		}
-		if isCycleStepped && w.DurationUnit == "cycles" {
-			window.RunCycles = w.Duration
+			UnixStartTime: w.UnixStartTime,
+			UnixEndTime:   endTime,
 		}
 
 		for wfi, _ := range w.Workflows {
@@ -118,9 +114,9 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		for ri, _ := range resp {
-			resp[ri].WorkflowExecTimekeepingParams.RunWindow.IsCycleStepped = isCycleStepped
+			resp[ri].WorkflowExecTimekeepingParams.IsCycleStepped = isCycleStepped
 			if isCycleStepped {
-				resp[ri].WorkflowExecTimekeepingParams.RunWindow.RunCycles = w.Duration
+				resp[ri].WorkflowExecTimekeepingParams.RunCycles = w.Duration
 			}
 			err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {

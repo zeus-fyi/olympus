@@ -19,8 +19,7 @@ export default function ClusterConfig() {
             setIsLoading(true);
             try {
                 const response = await clustersApiGateway.getExtClustersConfigs();
-                console.log("clusterConfigs", response.data)
-
+                // console.log("clusterConfigs", response.data)
                 dispatch(setExtClustersConfigs(response.data));
             } catch (error) {
                 console.log("error", error);

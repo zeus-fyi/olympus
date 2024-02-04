@@ -10,7 +10,6 @@ import (
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	iris_programmable_proxy_v1_beta "github.com/zeus-fyi/zeus/zeus/iris_programmable_proxy/v1beta"
-	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -65,7 +64,7 @@ type ApiProxyRequest struct {
 	Procedure            iris_programmable_proxy_v1_beta.IrisRoutingProcedure
 	PayloadSizeMeter     *iris_usage_meters.PayloadSizeMeter
 	Username             string
-	Resty                *resty_base.Resty
+	SecretNameRef        string
 }
 
 func (i *IrisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {

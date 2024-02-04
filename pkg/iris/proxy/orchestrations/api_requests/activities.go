@@ -86,12 +86,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		return pr, err
 	}
 	var r *resty.Client
-	if pr.Resty == nil {
-		r = resty.New()
-	} else {
-		r = pr.Resty.Client
-	}
-
+	r = resty.New()
 	r.SetBaseURL(pr.Url)
 	if pr.MaxTries > 0 {
 		r.SetRetryCount(pr.MaxTries)
@@ -145,11 +140,9 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		if pr.Username != "" {
 			ua = hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", pr.Username)
 		}
-		r.SetHeader("User-Agent", ua)
+		r.R().SetHeader("User-Agent", ua)
 		log.Info().Interface("ua", ua).Msg("ExtLoadBalancerRequest: setting user agent")
-
 	}
-
 	var resp *resty.Response
 	switch pr.PayloadTypeREST {
 	case "GET":

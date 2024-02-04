@@ -299,8 +299,9 @@ function AiWorkflowsDashboardContent(props: any) {
             setIsLoading(true)
             const restCode = retrieval.retrievalItemInstruction.webFilters.endpointREST
             if (restCode === 'get') {
+                // console.log("routingGroup", retrieval.retrievalItemInstruction.webFilters.routingGroup)
                 const response = await IrisApiGateway.sendIrisGetRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code, "free",  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
-
+                // console.log("response", response)
                 if (response.data != null) {
                     const result = JSON.stringify(response.data, null, 2);
                     setCode(result);
@@ -730,20 +731,21 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             <Select
                                                                 id="endpoint-rest-trigger"
                                                                 label="REST Trigger"
-                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
-                                                                && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {
-                                                                const updatedRetrieval = {
-                                                                    ...retrieval,
-                                                                    retrievalItemInstruction: {
-                                                                        ...retrieval.retrievalItemInstruction,
-                                                                        webFilters: {
-                                                                            ...retrieval.retrievalItemInstruction.webFilters,
-                                                                            endpointREST: e.target.value, // Correctly update the routingGroup field
-                                                                        }
-                                                                    }
-                                                                }
-                                                                dispatch(setRetrieval(updatedRetrieval));
-                                                            }}
+                                                                value={'get'}
+                                                            //     value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                            //     && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {
+                                                            //     const updatedRetrieval = {
+                                                            //         ...retrieval,
+                                                            //         retrievalItemInstruction: {
+                                                            //             ...retrieval.retrievalItemInstruction,
+                                                            //             webFilters: {
+                                                            //                 ...retrieval.retrievalItemInstruction.webFilters,
+                                                            //                 endpointREST: e.target.value, // Correctly update the routingGroup field
+                                                            //             }
+                                                            //         }
+                                                            //     }
+                                                            //     dispatch(setRetrieval(updatedRetrieval));
+                                                            // }}
                                                             >
                                                                 {/*<MenuItem value="post">{'POST'}</MenuItem>*/}
                                                                 <MenuItem value="get">{'GET'}</MenuItem>
@@ -1106,8 +1108,8 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                 Automated {searchIndexer.platform.charAt(0).toUpperCase() + searchIndexer.platform.slice(1)} Auth & Routing Table Setup
                                                             </Typography>
                                                             <Typography variant="subtitle2" color="text.secondary">
-                                                                This will create a routing table for you called {'{platform}-{YOUR_TWITTER_@HANDLE}'} and generate a bearer token for you
-                                                                that it saves in the platform secret manager as {'api-{platform}-{YOUR_TWITTER_@HANDLE}'}.
+                                                                This will create a routing table for you called {`${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`} and generate a bearer token for you
+                                                                that it saves in the platform secret manager as {`api-${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`}.
                                                             </Typography>
                                                             <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
                                                                 <InputLabel key={`groupNameLabel`} id={`groupName`}>

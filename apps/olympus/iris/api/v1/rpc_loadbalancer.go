@@ -6,14 +6,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
-	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
@@ -223,22 +221,8 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		}
 		headers[k] = v // Assuming there's at least one value
 	}
-	var bearer string
-	var username string
-
 	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
-	if strings.HasPrefix(secretNameRefApi, "api-reddit") {
-		username = strings.TrimPrefix(secretNameRefApi, "api-reddit-")
-		log.Info().Interface("routingTable", fmt.Sprintf("api-%s", routeGroup)).Msg("ProcessRpcLoadBalancerRequest: using reddit secrets")
-	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), ou, secretNameRefApi)
-	if ps != nil && ps.BearerToken != "" {
-		bearer = ps.BearerToken
-		log.Info().Interface("routingTable", fmt.Sprintf("api-%s", routeGroup)).Msg("ProcessRpcLoadBalancerRequest: using mockingbird secrets")
-	} else if err != nil {
-		log.Err(err).Interface("routingTable", fmt.Sprintf("api-%s", routeGroup)).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
+
 	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
@@ -253,8 +237,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		Timeout:          2 * time.Minute,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
-		Username:         username,
-		Bearer:           bearer,
+		SecretNameRef:    secretNameRefApi,
 	}
 	sfx := c.Get("capturedPath")
 	if sfx != nil {
@@ -266,9 +249,9 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
-		usingBearer := len(bearer) > 0
+		usingBearer := len(req.Bearer) > 0
 		if resp != nil {
-			log.Err(err).Interface("resp", resp.RawResponse).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+			log.Err(err).Interface("resp", string(resp.RawResponse)).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
 		} else {
 			log.Err(err).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
 		}

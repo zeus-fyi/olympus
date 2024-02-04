@@ -85,14 +85,15 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
 		return pr, err
 	}
-
-	r := resty.New()
+	var r *resty.Client
+	r = resty.New()
 	r.SetBaseURL(pr.Url)
 	if pr.MaxTries > 0 {
 		r.SetRetryCount(pr.MaxTries)
 	}
 	if len(pr.Bearer) > 0 {
 		r.SetAuthToken(pr.Bearer)
+		log.Info().Msg("ExtLoadBalancerRequest: setting bearer token")
 	}
 
 	parsedURL, err := url.Parse(pr.Url)
@@ -133,6 +134,14 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 
 	if pr.PayloadSizeMeter == nil {
 		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
+	}
+	if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
+		ua := hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
+		if pr.Username != "" {
+			ua = hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", pr.Username)
+		}
+		r.R().SetHeader("User-Agent", ua)
+		log.Info().Interface("ua", ua).Msg("ExtLoadBalancerRequest: setting user agent")
 	}
 	var resp *resty.Response
 	switch pr.PayloadTypeREST {
@@ -182,14 +191,6 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 				pr.Payload = newPayload
 			}
 		}
-	}
-
-	if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
-		ua := hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
-		if pr.Username != "" {
-			ua = hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", pr.Username)
-		}
-		request.SetHeader("User-Agent", ua)
 	}
 
 	if pr.Payload != nil {

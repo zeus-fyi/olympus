@@ -64,6 +64,7 @@ type ApiProxyRequest struct {
 	Procedure            iris_programmable_proxy_v1_beta.IrisRoutingProcedure
 	PayloadSizeMeter     *iris_usage_meters.PayloadSizeMeter
 	Username             string
+	SecretNameRef        string
 }
 
 func (i *IrisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {

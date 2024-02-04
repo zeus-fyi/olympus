@@ -237,6 +237,11 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	if strings.HasPrefix(secretNameRefApi, "api-reddit") {
+		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), ou, "reddit")
+		if err != nil {
+			log.Err(err).Msg("ProcessRpcLoadBalancerRequest: GetMockingbirdPlatformSecrets")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
 		rc, rerr := hera_reddit.InitOrgRedditClient(context.Background(), ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
 		if rerr != nil {
 			log.Err(rerr).Msg("ProcessRpcLoadBalancerRequest: InitOrgRedditClient")

@@ -64,6 +64,13 @@ func (s *RedditTestSuite) TestInitOrgRedditClient() {
 	s.Require().Nil(err)
 }
 
+func (s *RedditTestSuite) TestGetLastLikedPost() {
+
+	posts, err := s.rc.GetLastLikedPost(ctx, "zeus-fyi")
+	s.Require().Nil(err)
+	s.Assert().NotZero(posts)
+}
+
 func (s *RedditTestSuite) TestReadPosts() {
 	lpo := &reddit.ListOptions{
 		Limit:  10,

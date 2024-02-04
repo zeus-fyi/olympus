@@ -132,6 +132,22 @@ func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.
 	return posts, nil
 }
 
+func (r *Reddit) GetLastLikedPost(ctx context.Context, userName string) ([]*reddit.Post, error) {
+	// Assuming you have a method to set up OAuth2 and headers
+	//path := fmt.Sprintf("/user/%s/liked?limit=1", userName) // Replace {username} with your actual username
+	opt := &reddit.ListUserOverviewOptions{
+		ListOptions: reddit.ListOptions{
+			Limit: 1,
+		},
+	}
+	resp, _, err := r.FullClient.User.UpvotedOf(ctx, userName, opt)
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Msg("Error getting liked posts")
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (r *Reddit) GetTopPosts(ctx context.Context, subreddit string, lpo *reddit.ListPostOptions) ([]*reddit.Post, *reddit.Response, error) {
 	posts, resp, err := r.FullClient.Subreddit.TopPosts(ctx, subreddit, lpo)
 	if err != nil {

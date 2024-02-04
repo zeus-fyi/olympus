@@ -268,7 +268,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if err != nil {
 		usingBearer := len(bearer) > 0
 		if resp != nil {
-			log.Err(err).Interface("resp", resp.RawResponse).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+			log.Err(err).Interface("resp", string(resp.RawResponse)).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
 		} else {
 			log.Err(err).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
 		}

@@ -148,6 +148,15 @@ func (r *Reddit) GetLastLikedPost(ctx context.Context, userName string) ([]*redd
 	return resp, nil
 }
 
+func (r *Reddit) PostComment(ctx context.Context, parentID, textReply string) (*reddit.Comment, error) {
+	resp, _, err := r.FullClient.Comment.Submit(ctx, parentID, textReply)
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Msg("Error getting liked posts")
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (r *Reddit) GetTopPosts(ctx context.Context, subreddit string, lpo *reddit.ListPostOptions) ([]*reddit.Post, *reddit.Response, error) {
 	posts, resp, err := r.FullClient.Subreddit.TopPosts(ctx, subreddit, lpo)
 	if err != nil {

@@ -27,7 +27,7 @@ func (k *K8Util) DeleteNamespace(ctx context.Context, kns zeus_common_types.Clou
 		return nil
 	}
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("kns", kns).Msg("DeleteNamespace: error")
+		log.Err(err).Interface("kns", kns).Msg("DeleteNamespace: error")
 		return err
 	}
 	return err

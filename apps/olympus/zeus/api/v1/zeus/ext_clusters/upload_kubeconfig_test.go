@@ -34,14 +34,12 @@ func (t *KubeConfigRequestTestSuite) TestKubeConfigUpload() {
 	err := ZipKubeConfigChartToPath(&fp)
 	t.Require().Nil(err)
 
-	//resp, err := t.ZeusClient.R().
-	//	SetFormData(map[string]string{
-	//		"kubeconfig": "kubeconfig.yaml",
-	//	}).
-	//	SetFile("chart", fp.FileOutPath()).
-	//	Post("/kubeconfig")
-	//t.Require().Nil(err)
-	//t.Require().Equal(200, resp.StatusCode())
+	resp, err := t.ZeusClient.R().
+		SetFormData(map[string]string{}).
+		SetFile("kubeconfig", fp.FileOutPath()).
+		Post("/kubeconfig")
+	t.Require().Nil(err)
+	t.Require().Equal(200, resp.StatusCode())
 }
 
 func ZipKubeConfigChartToPath(p *filepaths.Path) error {

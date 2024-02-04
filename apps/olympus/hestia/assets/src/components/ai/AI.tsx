@@ -300,7 +300,7 @@ function AiWorkflowsDashboardContent(props: any) {
                 // console.log("routingGroup", retrieval.retrievalItemInstruction.webFilters.routingGroup)
                 const response = await IrisApiGateway.sendIrisGetRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code, "free",  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
                 // console.log("response", response)
-                if (response.data) {
+                if (response && response.data) {
                     const result = JSON.stringify(response.data, null, 2);
                     setCode(result);
                     const data = response.data;

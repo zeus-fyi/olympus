@@ -64,6 +64,7 @@ import {ActionsApprovalsTable} from "./ActionsApprovalsTable";
 import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../redux/ai/ai.types.triggers";
 import {accessApiGateway} from "../../gateway/access";
 import {IrisApiGateway} from "../../gateway/iris";
+import axios from 'axios';
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -115,6 +116,8 @@ function AiWorkflowsDashboardContent(props: any) {
         }
         fetchData({});
     }, []);
+
+    useEffect(() => {}, [retrieval]);
     const dispatch = useDispatch();
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);
@@ -292,24 +295,50 @@ function AiWorkflowsDashboardContent(props: any) {
         if (retrieval.retrievalItemInstruction.webFilters.endpointRoutePath === undefined) {
             retrieval.retrievalItemInstruction.webFilters.endpointRoutePath = ''
         }
-        if (retrieval.retrievalItemInstruction.webFilters.endpointREST === undefined){
-            retrieval.retrievalItemInstruction.webFilters.endpointREST = 'get'
-        }
         try {
             setIsLoading(true)
-            const restCode = retrieval.retrievalItemInstruction.webFilters.endpointREST
-            if (restCode === 'get') {
+                // console.log("routingGroup", retrieval.retrievalItemInstruction.webFilters.routingGroup)
                 const response = await IrisApiGateway.sendIrisGetRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code, "free",  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
-
-                if (response.data != null) {
+                // console.log("response", response)
+                if (response && response.data) {
                     const result = JSON.stringify(response.data, null, 2);
                     setCode(result);
                     const data = response.data;
                     dispatch(setSearchResults(data));
+                    setRequestStatus('Successfully sent request')
+                    setRequestStatusError('success')
+                } else {
+                    setCode('No data returned');
                 }
+        } catch (error: unknown) {
+            let message = 'Request had an error';
+            let statusCode = '';
+
+            if (error instanceof Error) {
+                if (axios.isAxiosError(error)) {
+                    // The request was made and the server responded with a status code
+                    // that falls out of the range of 2xx
+                    if (error.response) {
+                        message += `: ${error.response.data.message || error.message}`;
+                        statusCode = error.response.status.toString(); // Convert number to string
+                    } else {
+                        // The request was made but no response was received
+                        message += ': No response was received';
+                        statusCode = 'No response';
+                    }
+                } else {
+                    // Something happened in setting up the request that triggered an Error
+                    message += ': ' + error.message;
+                    statusCode = 'Request setup error';
+                }
+            } else {
+                // Error is not an instance of Error, cannot determine the content
+                message += ': Unknown error type';
+                statusCode = 'Unknown';
             }
-        } catch (error) {
-            console.log("error", error);
+
+            setRequestStatus(`${message} (status code: ${statusCode})`);
+            setRequestStatusError('error');
         } finally {
             setIsLoading(false);
         }
@@ -387,8 +416,10 @@ function AiWorkflowsDashboardContent(props: any) {
             const response = await accessApiGateway.startPlatformAuthFlow(platform);
             const statusCode = response.status;
             if (statusCode < 400) {
-                const data = response.data;
-                window.location.replace(data);
+                if (platform === 'twitter') {
+                    const data = response.data;
+                    window.location.replace(data);
+                }
                 setRequestIndexerStatus('platform auth flow started successfully')
                 setRequestIndexerStatusError('success')
             }
@@ -667,7 +698,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             label="Load Balancing"
                                                         >
                                                             <MenuItem value="round-robin">Round Robin</MenuItem>
-                                                            <MenuItem value="poll-table">Poll Table</MenuItem>
+                                                            {/*<MenuItem value="poll-table">Poll Table</MenuItem>*/}
                                                         </Select>
                                                     </FormControl>
                                                 </div>
@@ -728,20 +759,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             <Select
                                                                 id="endpoint-rest-trigger"
                                                                 label="REST Trigger"
-                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
-                                                                && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {
-                                                                const updatedRetrieval = {
-                                                                    ...retrieval,
-                                                                    retrievalItemInstruction: {
-                                                                        ...retrieval.retrievalItemInstruction,
-                                                                        webFilters: {
-                                                                            ...retrieval.retrievalItemInstruction.webFilters,
-                                                                            endpointREST: e.target.value, // Correctly update the routingGroup field
-                                                                        }
-                                                                    }
-                                                                }
-                                                                dispatch(setRetrieval(updatedRetrieval));
-                                                            }}
+                                                                value={'get'}
                                                             >
                                                                 {/*<MenuItem value="post">{'POST'}</MenuItem>*/}
                                                                 <MenuItem value="get">{'GET'}</MenuItem>
@@ -1104,8 +1122,8 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                 Automated {searchIndexer.platform.charAt(0).toUpperCase() + searchIndexer.platform.slice(1)} Auth & Routing Table Setup
                                                             </Typography>
                                                             <Typography variant="subtitle2" color="text.secondary">
-                                                                This will create a routing table for you called {'{platform}-{YOUR_TWITTER_@HANDLE}'} and generate a bearer token for you
-                                                                that it saves in the platform secret manager as {'api-{platform}-{YOUR_TWITTER_@HANDLE}'}.
+                                                                This will create a routing table for you called {`${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`} and generate a bearer token for you
+                                                                that it saves in the platform secret manager as {`api-${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`}.
                                                             </Typography>
                                                             <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
                                                                 <InputLabel key={`groupNameLabel`} id={`groupName`}>

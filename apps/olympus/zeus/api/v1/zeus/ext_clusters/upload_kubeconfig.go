@@ -28,6 +28,8 @@ func CreateOrUpdateKubeConfigsHandler(c echo.Context) error {
 	return request.CreateOrUpdateKubeConfig(c)
 }
 
+var AgeEnc = encryption.Age{}
+
 func (t *CreateOrUpdateKubeConfigsRequest) CreateOrUpdateKubeConfig(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	if ou.OrgID == 0 {
@@ -38,7 +40,7 @@ func (t *CreateOrUpdateKubeConfigsRequest) CreateOrUpdateKubeConfig(c echo.Conte
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: DecompressUserKubeConfigsWorkload")
 		return err
 	}
-	err = EncAndUpload(c.Request().Context(), fileResp, encryption.Age{})
+	err = EncAndUpload(c.Request().Context(), fileResp, AgeEnc)
 	if err != nil {
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: EncAndUpload")
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -47,13 +49,17 @@ func (t *CreateOrUpdateKubeConfigsRequest) CreateOrUpdateKubeConfig(c echo.Conte
 }
 
 func EncAndUpload(ctx context.Context, in bytes.Buffer, ageEnc encryption.Age) error {
-	fn := "kube-temp.tar.gz.age"
+	fn := ".kube.tar.gz"
 	bucketName := "zeus-fyi"
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fn),
 	}
-	p := filepaths.Path{}
+	p := filepaths.Path{
+		DirIn:  "",
+		DirOut: "kubeconfig",
+		FnOut:  fn,
+	}
 	inMemFsEnc := memfs.NewMemFs()
 	err := ageEnc.EncryptItem(inMemFsEnc, &p, in.Bytes())
 	if err != nil {
@@ -61,7 +67,7 @@ func EncAndUpload(ctx context.Context, in bytes.Buffer, ageEnc encryption.Age) e
 		return err
 	}
 	uploader := s3uploader.NewS3ClientUploader(athena.AthenaS3Manager)
-	err = uploader.Upload(ctx, p, input)
+	err = uploader.UploadFromInMemFs(ctx, p, input, inMemFsEnc)
 	if err != nil {
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: Upload")
 		return err

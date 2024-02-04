@@ -38,7 +38,7 @@ func (s *S3ClientUploader) Upload(ctx context.Context, p filepaths.Path, s3KeyVa
 		u.LeavePartsOnError = true // Don't delete the parts if the upload fails.
 	})
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("S3ClientUploader: uploader.Upload(ctx, s3KeyValue)")
+		log.Err(err).Msg("S3ClientUploader: uploader.Upload(ctx, s3KeyValue)")
 		return err
 	}
 	return err

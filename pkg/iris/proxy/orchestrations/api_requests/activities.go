@@ -142,6 +142,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		}
 		r.SetHeader("User-Agent", ua)
 		log.Info().Interface("ua", ua).Msg("ExtLoadBalancerRequest: setting user agent")
+
 	}
 
 	var resp *resty.Response

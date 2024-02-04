@@ -14,6 +14,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
+	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
@@ -227,10 +228,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	var username string
 
 	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
-	if strings.HasPrefix(secretNameRefApi, "api-reddit") {
-		username = strings.TrimPrefix(secretNameRefApi, "api-reddit-")
-		log.Info().Interface("routingTable", fmt.Sprintf("api-%s", routeGroup)).Msg("ProcessRpcLoadBalancerRequest: using reddit secrets")
-	}
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), ou, secretNameRefApi)
 	if ps != nil && ps.BearerToken != "" {
 		bearer = ps.BearerToken
@@ -239,6 +236,21 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		log.Err(err).Interface("routingTable", fmt.Sprintf("api-%s", routeGroup)).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	if strings.HasPrefix(secretNameRefApi, "api-reddit") {
+		rc, rerr := hera_reddit.InitOrgRedditClient(context.Background(), ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
+		if rerr != nil {
+			log.Err(rerr).Msg("ProcessRpcLoadBalancerRequest: InitOrgRedditClient")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		user, perr := rc.GetMe(context.Background())
+		if perr != nil {
+			log.Err(perr).Msg("ProcessRpcLoadBalancerRequest: GetLastLikedPost")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		log.Info().Interface("user", user).Msg("ProcessRpcLoadBalancerRequest: GetMe")
+		bearer = rc.AccessToken
+	}
+
 	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,

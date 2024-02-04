@@ -252,7 +252,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 			log.Err(rerr).Msg("ProcessRpcLoadBalancerRequest: InitOrgRedditClient")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-		rec = rc.Resty
+		bearer = rc.AccessToken
 	}
 
 	qps := c.QueryParams()

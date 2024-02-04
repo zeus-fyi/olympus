@@ -63,20 +63,15 @@ var (
 )
 
 func CallbackHandler(c echo.Context) error {
+	provider := c.Param("provider")
+	switch provider {
+	case "reddit":
+		return RedditCallbackHandler(c)
+	case "twitter":
+	}
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusUnauthorized, nil)
-	}
-
-	provider := c.Param("provider")
-	fmt.Println("provider", provider)
-
-	switch provider {
-
-	case "reddit":
-		return c.JSON(http.StatusOK, "ok")
-	case "twitter":
-
 	}
 	stateNonce := GenerateNonce()
 	verifier := GenerateCodeVerifier(128)

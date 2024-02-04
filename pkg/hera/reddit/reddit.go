@@ -14,18 +14,19 @@ type Reddit struct {
 	ReadOnly   *reddit.Client
 	FullClient *reddit.Client
 
-	Resty resty_base.Resty
+	Resty       resty_base.Resty
+	AccessToken string
 }
 
 var RedditClient Reddit
 
-func createFormattedString(platform, appID, versionString, redditUsername string) string {
+func CreateFormattedStringRedditUA(platform, appID, versionString, redditUsername string) string {
 	return fmt.Sprintf("%s:%s:%s (by /u/%s)", platform, appID, versionString, redditUsername)
 }
 
 func InitRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, error) {
 	r := Reddit{}
-	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent(createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")))
+	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent(CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")))
 	if err != nil {
 		log.Err(err).Msg("Error initializing reddit client")
 		return Reddit{}, err
@@ -45,7 +46,7 @@ func InitRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, er
 
 func InitOrgRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit, error) {
 	r := Reddit{}
-	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent(createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")))
+	ro, err := reddit.NewReadonlyClient(reddit.WithUserAgent(CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")))
 	if err != nil {
 		log.Err(err).Msg("Error initializing reddit client")
 		return Reddit{}, err
@@ -81,6 +82,7 @@ func InitOrgRedditClient(ctx context.Context, id, secret, u, pw string) (Reddit,
 	rb.SetBaseURL("https://oauth.reddit.com")
 	rb.SetAuthToken(respToken.AccessToken)
 	r.Resty = resty_base.GetBaseRestyClient("https://oauth.reddit.com", respToken.AccessToken)
+	r.AccessToken = respToken.AccessToken
 	return r, err
 }
 
@@ -101,6 +103,23 @@ type Child struct {
 	Data *reddit.Post `json:"data"`
 }
 
+func (r *Reddit) GetMe(ctx context.Context) (*reddit.User, error) {
+	path := fmt.Sprintf("/api/v1/me")
+	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	r.Resty.SetHeader("User-Agent", ua)
+	user := &reddit.User{}
+	resp, err := r.Resty.R().SetResult(&user).Get(path)
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, fmt.Errorf("error getting new posts")
+	}
+	return user, nil
+}
+
 func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.ListOptions) ([]*reddit.Post, error) {
 	if lpo == nil {
 		lpo = &reddit.ListOptions{
@@ -113,7 +132,7 @@ func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.
 	if lpo.After == "" {
 		path = fmt.Sprintf("/r/%s/new.json?limit=100", subreddit)
 	}
-	ua := createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
 	r.Resty.SetHeader("User-Agent", ua)
 	var s RedditResponse
 	resp, err := r.Resty.R().SetResult(&s).Get(path)
@@ -134,7 +153,7 @@ func (r *Reddit) GetNewPosts(ctx context.Context, subreddit string, lpo *reddit.
 
 func (r *Reddit) GetLastLikedPostV2(ctx context.Context, username string) ([]*reddit.Post, error) {
 	path := fmt.Sprintf("user/%s/upvoted?limit=1", username)
-	ua := createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
 	r.Resty.SetHeader("User-Agent", ua)
 	var s RedditResponse
 	resp, err := r.Resty.R().SetResult(&s).Get(path)

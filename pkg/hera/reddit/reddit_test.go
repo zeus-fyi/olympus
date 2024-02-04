@@ -59,7 +59,7 @@ func (s *RedditTestSuite) TestInitOrgRedditClient() {
 		After:  "1829cc6",
 		Before: "",
 	}
-	ua := createFormattedString("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
 	fmt.Println(ua)
 
 	posts, err := rc.GetNewPosts(ctx, "mlops", lpo)
@@ -80,6 +80,12 @@ func (s *RedditTestSuite) TestGetLastLikedPostManual() {
 	posts, err := s.rc.GetLastLikedPostV2(ctx, "zeus-fyi")
 	s.Require().Nil(err)
 	s.Assert().NotZero(posts)
+}
+
+func (s *RedditTestSuite) TestGetMe() {
+	meInfo, err := s.rc.GetMe(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotZero(meInfo)
 }
 
 func (s *RedditTestSuite) TestReadPosts() {

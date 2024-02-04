@@ -676,7 +676,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             label="Load Balancing"
                                                         >
                                                             <MenuItem value="round-robin">Round Robin</MenuItem>
-                                                            <MenuItem value="poll-table">Poll Table</MenuItem>
+                                                            {/*<MenuItem value="poll-table">Poll Table</MenuItem>*/}
                                                         </Select>
                                                     </FormControl>
                                                 </div>

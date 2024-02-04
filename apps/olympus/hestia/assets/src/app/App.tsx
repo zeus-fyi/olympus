@@ -30,7 +30,7 @@ import AiWorkflowsDashboard from "../components/ai/AI";
 import Secrets from "../components/secrets/Secrets";
 import AiWorkflowsEngineBuilderDashboard from "../components/ai/WorkflowBuilder";
 import {TwitterLogin} from "../components/login/TwitterLogin";
-import ClusterConfig from "../components/clusters/setup/ClustersConfig";
+import ClusterConfig from "../components/clusters/configs/ClustersConfig";
 
 export const App = () => {
     ReactGA.initialize([

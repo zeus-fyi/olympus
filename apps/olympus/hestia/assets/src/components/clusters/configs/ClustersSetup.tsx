@@ -16,10 +16,11 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
-import {Card, CardContent, Stack} from "@mui/material";
+import {Card, CardContent} from "@mui/material";
 import authProvider from '../../../redux/auth/auth.actions';
 import MainListItems from "../../dashboard/listItems";
 import {ZeusCopyright} from "../../copyright/ZeusCopyright";
+import {ClusterConfigList} from "./ClustersConfig";
 
 const drawerWidth: number = 240;
 
@@ -73,7 +74,8 @@ export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 
 
 const mdTheme = createTheme();
 
-export function ClusterSetupContent() {
+export function ClusterSetupContent(props: any) {
+    const {loading, setIsLoading} = props;
     const [open, setOpen] = useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -160,27 +162,22 @@ export function ClusterSetupContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <Card sx={{ maxWidth: 700 }}>
+                        <Card sx={{ maxWidth: 1000 }}>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="div">
                                     Cluster Config
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
                                     Set your uploaded private kubeconfig regions, cluster, names, and other settings here.
+                                    TAR.GZ ZIP YOUR KUBECONFIG FOLDER AND
+                                    POST to https://api.zeus.fyi/ext/v1/kubeconfig
+                                    ADD API KEY AS BEARER TOKEN
                                 </Typography>
                             </CardContent>
                             <CardContent>
-                                <Stack spacing={2}>
-
-                                </Stack>
-                                <Stack direction="row"  sx={{ flex: 1, mt: 2 }}>
-                                    <Button fullWidth variant="contained" >Update</Button>
-                                </Stack>
+                                    <ClusterConfigList loading={loading} setIsLoading={setIsLoading} />
                             </CardContent>
-
                         </Card>
-                    </Container>
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

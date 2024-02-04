@@ -1,5 +1,15 @@
 
 
+export interface ClustersConfigsState {
+    clusterConfigs: ExtClusterConfig[];
+}
+
+
 export interface ExtClusterConfig{
-    CloudProvider: string;
+    extConfigStrID: string,
+    cloudProvider: string,
+    region: string,
+    context: string,
+    contextAlias: string
+    env: string,
 }

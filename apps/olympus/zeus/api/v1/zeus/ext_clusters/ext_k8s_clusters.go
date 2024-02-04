@@ -5,6 +5,8 @@ import (
 )
 
 func ExternalDeployRoutes(e *echo.Group) *echo.Group {
+	e.GET("/clusters", ReadExtKubeConfigsHandler)
+	e.PUT("/clusters", UpdateExtClustersRequestHandler)
 	e.POST("/kubeconfig", CreateOrUpdateKubeConfigsHandler)
 	return nil
 }

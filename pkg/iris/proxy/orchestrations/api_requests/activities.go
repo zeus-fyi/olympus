@@ -179,7 +179,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 	if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
 		ua := hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
 		if pr.Username != "" {
-			ua = hera_reddit.CreateFormattedStringRedditUA("web", pr.Username, "0.0.1", pr.Username)
+			ua = hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", pr.Username)
 		}
 		request.SetHeader("User-Agent", ua)
 	}

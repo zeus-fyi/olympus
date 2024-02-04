@@ -115,6 +115,8 @@ function AiWorkflowsDashboardContent(props: any) {
         }
         fetchData({});
     }, []);
+
+    useEffect(() => {}, [retrieval]);
     const dispatch = useDispatch();
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);

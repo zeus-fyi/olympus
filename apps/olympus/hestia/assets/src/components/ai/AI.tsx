@@ -308,6 +308,10 @@ function AiWorkflowsDashboardContent(props: any) {
                     setRequestStatus('Successfully sent request')
                     setRequestStatusError('success')
                 } else {
+                    if (response && response.message) {
+                        setRequestStatus(response.message)
+                        setRequestStatusError('error');
+                    }
                     setCode('No data returned');
                 }
         } catch (error: unknown) {

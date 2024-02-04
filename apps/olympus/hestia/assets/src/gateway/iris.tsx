@@ -43,9 +43,10 @@ class IrisLoadBalancingApiGateway {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`,
                     'X-Route-Group': `${routeGroup}`,
+                    'X-Load-Balancing-Strategy': 'RoundRobin',
                     // 'X-Load-Balancing-Strategy': 'Adaptive',
                     // 'X-Adaptive-Metrics-Key': 'JSON-RPC',
-                    'Content-Type': 'application/json'
+                    // 'Content-Type': 'application/json'
                 },
                 withCredentials: true,
             }
@@ -55,7 +56,7 @@ class IrisLoadBalancingApiGateway {
                         'Authorization': `Bearer ${sessionID}`,
                         'X-Route-Group': `${routeGroup}`,
                         'X-Load-Balancing-Strategy': 'RoundRobin',
-                        'Content-Type': 'application/json'
+                        // 'Content-Type': 'application/json'
                     },
                     withCredentials: true,
                 }

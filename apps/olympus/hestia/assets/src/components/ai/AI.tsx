@@ -285,6 +285,7 @@ function AiWorkflowsDashboardContent(props: any) {
     }
 
     const onSubmitPayload = async () => {
+
         if (retrieval.retrievalItemInstruction.webFilters === undefined || retrieval.retrievalItemInstruction.webFilters.routingGroup === undefined) {
             return
         }
@@ -292,7 +293,12 @@ function AiWorkflowsDashboardContent(props: any) {
         if (retrieval.retrievalItemInstruction.webFilters.endpointRoutePath === undefined) {
             retrieval.retrievalItemInstruction.webFilters.endpointRoutePath = ''
         }
+
         if (retrieval.retrievalItemInstruction.webFilters.endpointREST === undefined){
+            retrieval.retrievalItemInstruction.webFilters.endpointREST = 'get'
+        }
+
+        if (retrieval.retrievalItemInstruction.webFilters.endpointREST === 'post'){
             retrieval.retrievalItemInstruction.webFilters.endpointREST = 'get'
         }
         try {
@@ -302,7 +308,7 @@ function AiWorkflowsDashboardContent(props: any) {
                 // console.log("routingGroup", retrieval.retrievalItemInstruction.webFilters.routingGroup)
                 const response = await IrisApiGateway.sendIrisGetRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code, "free",  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
                 // console.log("response", response)
-                if (response.data != null) {
+                if (response.data) {
                     const result = JSON.stringify(response.data, null, 2);
                     setCode(result);
                     const data = response.data;
@@ -731,21 +737,20 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             <Select
                                                                 id="endpoint-rest-trigger"
                                                                 label="REST Trigger"
-                                                                value={'get'}
-                                                            //     value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
-                                                            //     && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {
-                                                            //     const updatedRetrieval = {
-                                                            //         ...retrieval,
-                                                            //         retrievalItemInstruction: {
-                                                            //             ...retrieval.retrievalItemInstruction,
-                                                            //             webFilters: {
-                                                            //                 ...retrieval.retrievalItemInstruction.webFilters,
-                                                            //                 endpointREST: e.target.value, // Correctly update the routingGroup field
-                                                            //             }
-                                                            //         }
-                                                            //     }
-                                                            //     dispatch(setRetrieval(updatedRetrieval));
-                                                            // }}
+                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        webFilters: {
+                                                                            ...retrieval.retrievalItemInstruction.webFilters,
+                                                                            endpointREST: e.target.value, // Correctly update the routingGroup field
+                                                                        }
+                                                                    }
+                                                                }
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
                                                             >
                                                                 {/*<MenuItem value="post">{'POST'}</MenuItem>*/}
                                                                 <MenuItem value="get">{'GET'}</MenuItem>

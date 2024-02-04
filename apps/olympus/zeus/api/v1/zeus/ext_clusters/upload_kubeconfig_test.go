@@ -1,7 +1,6 @@
 package zeus_v1_clusters_api
 
 import (
-	"context"
 	"testing"
 
 	"github.com/rs/zerolog/log"
@@ -10,8 +9,6 @@ import (
 	"github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/compression"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
-
-var ctx = context.Background()
 
 type KubeConfigRequestTestSuite struct {
 	test.TopologyActionRequestTestSuite
@@ -27,9 +24,9 @@ func (t *KubeConfigRequestTestSuite) TestKubeConfigUpload() {
 	}()
 
 	fp := filepaths.Path{
-		DirIn:  "/Users/alex/go/Olympus/olympus/apps/olympus/zeus/api/v1/zeus/clusters",
-		DirOut: "/Users/alex/go/Olympus/olympus/apps/olympus/zeus/api/v1/zeus/clusters",
-		FnIn:   ".kube",
+		DirIn:  "/Users/alex/go/Olympus/olympus/apps/olympus/zeus/api/v1/zeus/ext_clusters/.kube",
+		DirOut: "/Users/alex/go/Olympus/olympus/apps/olympus/zeus/api/v1/zeus/ext_clusters/",
+		FnIn:   "kube",
 	}
 	err := ZipKubeConfigChartToPath(&fp)
 	t.Require().Nil(err)
@@ -37,7 +34,7 @@ func (t *KubeConfigRequestTestSuite) TestKubeConfigUpload() {
 	resp, err := t.ZeusClient.R().
 		SetFormData(map[string]string{}).
 		SetFile("kubeconfig", fp.FileOutPath()).
-		Post("/kubeconfig")
+		Post("/v1/kubeconfig")
 	t.Require().Nil(err)
 	t.Require().Equal(200, resp.StatusCode())
 }

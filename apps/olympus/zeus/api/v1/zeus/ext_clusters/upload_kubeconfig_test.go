@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/rs/zerolog/log"
@@ -88,6 +89,35 @@ func (t *KubeConfigRequestTestSuite) TestKubeConfigAccess() {
 	inMemFs := auth_startup.ExtClustersRunDigitalOceanS3BucketObjAuthProcedure(context.Background(), t.Tc.ProductionLocalTemporalOrgID, authCfg)
 	k := zeus_core.K8Util{}
 	k.ConnectToK8sFromInMemFsCfgPath(inMemFs)
+
+	rawCfg, err := k.GetRawConfigs()
+	t.Require().Nil(err)
+	t.Require().NotEmpty(rawCfg)
+
+	m := make(map[string]string)
+
+	for ctxName, ai := range rawCfg.Clusters {
+		if strings.Contains(ai.Server, "aws") {
+			m[ctxName] = "aws"
+			fmt.Println("aws command found")
+			continue
+		}
+		if strings.Contains(ai.Server, "digtalocean") {
+			m[ctxName] = "do"
+			fmt.Println("digital ocean command found")
+			continue
+		}
+		if strings.Contains(ai.Server, "ovh") {
+			fmt.Println("ovh server found")
+			m[ctxName] = "ovh"
+			continue
+		}
+		if strings.Contains(ai.Server, "gke") || strings.Contains(ctxName, "gke") || strings.Contains(ctxName, "gcp") {
+			m[ctxName] = "gcp"
+			fmt.Println("gcp command found")
+			continue
+		}
+	}
 
 	ctxNames, err := k.GetContexts()
 	t.Require().Nil(err)

@@ -93,6 +93,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	}
 	if len(pr.Bearer) > 0 {
 		r.SetAuthToken(pr.Bearer)
+		log.Info().Msg("ExtLoadBalancerRequest: setting bearer token")
 	}
 
 	parsedURL, err := url.Parse(pr.Url)

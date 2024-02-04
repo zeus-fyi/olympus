@@ -3,6 +3,7 @@ package zeus_v1_clusters_api
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/rs/zerolog/log"
@@ -10,6 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
+	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 	"github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/compression"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
@@ -74,6 +76,25 @@ func (t *KubeConfigRequestTestSuite) TestS3EncUploader() {
 	in.Write(tmp)
 	err := EncAndUpload(ctx, t.Tc.ProductionLocalTemporalOrgID, in, ageEnc)
 	t.Require().Nil(err)
+}
+
+func (t *KubeConfigRequestTestSuite) TestKubeConfigAccess() {
+	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, t.Tc.ProdLocalAuthKeysCfg)
+	t.Tc.ProdLocalAuthKeysCfg.AgePrivKey = t.Tc.LocalAgePkey
+	t.Tc.ProdLocalAuthKeysCfg.AgePubKey = t.Tc.LocalAgePubkey
+	authCfg := auth_startup.NewExtClustersAuthClient(ctx, t.Tc.ProductionLocalTemporalOrgID, t.Tc.ProdLocalAuthKeysCfg)
+	t.Require().NotEmpty(authCfg)
+
+	inMemFs := auth_startup.ExtClustersRunDigitalOceanS3BucketObjAuthProcedure(context.Background(), t.Tc.ProductionLocalTemporalOrgID, authCfg)
+	k := zeus_core.K8Util{}
+	k.ConnectToK8sFromInMemFsCfgPath(inMemFs)
+
+	ctxNames, err := k.GetContexts()
+	t.Require().Nil(err)
+	t.Require().NotEmpty(ctxNames)
+	for ctxName, _ := range ctxNames {
+		fmt.Println(ctxName)
+	}
 }
 
 func TestKubeConfigRequestTestSuite(t *testing.T) {

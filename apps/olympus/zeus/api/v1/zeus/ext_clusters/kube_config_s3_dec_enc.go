@@ -25,24 +25,5 @@ func DecompressAndEncryptUserKubeConfigsWorkload(c echo.Context) (bytes.Buffer, 
 		log.Err(err).Msg("DecompressUserKubeConfigsWorkload: Copy")
 		return in, err
 	}
-	//log.Info().Int("bytes", in.Len()).Msg("DecompressUserKubeConfigsWorkload: Copy")
 	return in, err
 }
-
-//func UnGzipKubeConfig(in *bytes.Buffer) ([]byte, error) {
-//	p := filepaths.Path{DirIn: "/tmp", DirOut: "/tmp", FnIn: "kubeconfig.tar.gz"}
-//	m := memfs.NewMemFs()
-//	err := m.MakeFileIn(&p, in.Bytes())
-//	if err != nil {
-//		return nil, err
-//	}
-//	p.DirOut = "/kubeconfig"
-//	comp := compression.NewCompression()
-//	err = comp.UnGzipFromInMemFsOutToInMemFS(&p, m)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	p.DirIn = "/kubeconfig"
-//	return nil, err
-//}

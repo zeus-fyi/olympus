@@ -169,9 +169,19 @@ export function ClusterSetupContent(props: any) {
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
                                     Set your uploaded private kubeconfig regions, cluster, names, and other settings here.
-                                    TAR.GZ ZIP YOUR KUBECONFIG FOLDER AND
-                                    POST to https://api.zeus.fyi/ext/v1/kubeconfig
-                                    ADD API KEY AS BEARER TOKEN
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    ZIP tar.gz your .kube folder and
+                                    with the following headers:
+                                    </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Authorization: Bearer API_Key
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    POST to <b>https://api.zeus.fyi/ext/v1/kubeconfig</b>
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    And we'll store an encrypted version of your kubeconfig in our vault for handling your orchestration requests.
                                 </Typography>
                             </CardContent>
                             <CardContent>

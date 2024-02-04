@@ -64,6 +64,7 @@ import {ActionsApprovalsTable} from "./ActionsApprovalsTable";
 import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../redux/ai/ai.types.triggers";
 import {accessApiGateway} from "../../gateway/access";
 import {IrisApiGateway} from "../../gateway/iris";
+import axios from 'axios';
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -309,10 +310,35 @@ function AiWorkflowsDashboardContent(props: any) {
                 } else {
                     setCode('No data returned');
                 }
-        } catch (error) {
-            setRequestStatus('Request had an error ' + error)
-            setRequestStatusError('error')
-            console.log("error", error);
+        } catch (error: unknown) {
+            let message = 'Request had an error';
+            let statusCode = '';
+
+            if (error instanceof Error) {
+                if (axios.isAxiosError(error)) {
+                    // The request was made and the server responded with a status code
+                    // that falls out of the range of 2xx
+                    if (error.response) {
+                        message += `: ${error.response.data.message || error.message}`;
+                        statusCode = error.response.status.toString(); // Convert number to string
+                    } else {
+                        // The request was made but no response was received
+                        message += ': No response was received';
+                        statusCode = 'No response';
+                    }
+                } else {
+                    // Something happened in setting up the request that triggered an Error
+                    message += ': ' + error.message;
+                    statusCode = 'Request setup error';
+                }
+            } else {
+                // Error is not an instance of Error, cannot determine the content
+                message += ': Unknown error type';
+                statusCode = 'Unknown';
+            }
+
+            setRequestStatus(`${message} (status code: ${statusCode})`);
+            setRequestStatusError('error');
         } finally {
             setIsLoading(false);
         }

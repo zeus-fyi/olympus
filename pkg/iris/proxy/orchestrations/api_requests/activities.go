@@ -140,7 +140,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		if pr.Username != "" {
 			ua = hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", pr.Username)
 		}
-		r.R().SetHeader("User-Agent", ua)
+		r.SetHeader("User-Agent", ua)
 		log.Info().Interface("ua", ua).Msg("ExtLoadBalancerRequest: setting user agent")
 	}
 	var resp *resty.Response

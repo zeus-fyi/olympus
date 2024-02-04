@@ -3,6 +3,7 @@ package zeus_v1_clusters_api
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -40,7 +41,7 @@ func (t *CreateOrUpdateKubeConfigsRequest) CreateOrUpdateKubeConfig(c echo.Conte
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: DecompressUserKubeConfigsWorkload")
 		return err
 	}
-	err = EncAndUpload(c.Request().Context(), fileResp, AgeEnc)
+	err = EncAndUpload(c.Request().Context(), ou.OrgID, fileResp, AgeEnc)
 	if err != nil {
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: EncAndUpload")
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -48,8 +49,8 @@ func (t *CreateOrUpdateKubeConfigsRequest) CreateOrUpdateKubeConfig(c echo.Conte
 	return c.JSON(http.StatusOK, "ok")
 }
 
-func EncAndUpload(ctx context.Context, in bytes.Buffer, ageEnc encryption.Age) error {
-	fn := ".kube.tar.gz"
+func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryption.Age) error {
+	fn := fmt.Sprintf("%d.kube.tar.gz", orgID)
 	bucketName := "zeus-fyi"
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),

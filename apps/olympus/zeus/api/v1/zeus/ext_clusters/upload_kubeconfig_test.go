@@ -72,7 +72,7 @@ func (t *KubeConfigRequestTestSuite) TestS3EncUploader() {
 	in := bytes.Buffer{}
 	tmp := []byte("test")
 	in.Write(tmp)
-	err := EncAndUpload(ctx, in, ageEnc)
+	err := EncAndUpload(ctx, t.Tc.ProductionLocalTemporalOrgID, in, ageEnc)
 	t.Require().Nil(err)
 }
 

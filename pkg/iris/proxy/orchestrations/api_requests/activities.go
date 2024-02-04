@@ -218,7 +218,11 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		}
 	}
 	if err != nil {
-		log.Err(err).Interface("resp", resp.String()).Interface("url", pr.Url).Interface("pr.ExtRoutePath", ext).Msg("sendRequest: failed to relay api request")
+		if resp != nil {
+			log.Err(err).Int("statusCode", resp.StatusCode()).Interface("resp", resp.String()).Interface("url", pr.Url).Interface("pr.ExtRoutePath", ext).Msg("sendRequest: failed to relay api request")
+		} else {
+			log.Err(err).Interface("url", pr.Url).Interface("pr.ExtRoutePath", ext).Msg("sendRequest: failed to relay api request")
+		}
 		return nil, fmt.Errorf("failed to relay api request")
 	}
 

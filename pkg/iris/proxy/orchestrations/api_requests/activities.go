@@ -85,8 +85,13 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
 		return pr, err
 	}
+	var r *resty.Client
+	if pr.Resty == nil {
+		r = resty.New()
+	} else {
+		r = pr.Resty.Client
+	}
 
-	r := resty.New()
 	r.SetBaseURL(pr.Url)
 	if pr.MaxTries > 0 {
 		r.SetRetryCount(pr.MaxTries)

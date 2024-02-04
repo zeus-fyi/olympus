@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -17,6 +18,7 @@ import (
 	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 const (
@@ -227,6 +229,9 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	var bearer string
 	var username string
 
+	rec := resty_base.Resty{
+		Client: resty.New(),
+	}
 	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), ou, secretNameRefApi)
 	if ps != nil && ps.BearerToken != "" {
@@ -247,13 +252,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 			log.Err(rerr).Msg("ProcessRpcLoadBalancerRequest: InitOrgRedditClient")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-		user, perr := rc.GetMe(context.Background())
-		if perr != nil {
-			log.Err(perr).Msg("ProcessRpcLoadBalancerRequest: GetLastLikedPost")
-			return c.JSON(http.StatusInternalServerError, nil)
-		}
-		log.Info().Interface("user", user).Msg("ProcessRpcLoadBalancerRequest: GetMe")
-		bearer = rc.AccessToken
+		rec = rc.Resty
 	}
 
 	qps := c.QueryParams()
@@ -272,6 +271,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		PayloadSizeMeter: payloadSizingMeter,
 		Username:         username,
 		Bearer:           bearer,
+		Resty:            &rec,
 	}
 	sfx := c.Get("capturedPath")
 	if sfx != nil {

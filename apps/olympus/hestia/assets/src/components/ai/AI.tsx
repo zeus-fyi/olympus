@@ -387,8 +387,10 @@ function AiWorkflowsDashboardContent(props: any) {
             const response = await accessApiGateway.startPlatformAuthFlow(platform);
             const statusCode = response.status;
             if (statusCode < 400) {
-                const data = response.data;
-                window.location.replace(data);
+                if (platform === 'twitter') {
+                    const data = response.data;
+                    window.location.replace(data);
+                }
                 setRequestIndexerStatus('platform auth flow started successfully')
                 setRequestIndexerStatusError('success')
             }

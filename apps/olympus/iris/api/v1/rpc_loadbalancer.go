@@ -49,10 +49,11 @@ type Response struct {
 }
 
 var (
-	RpcLoadBalancerGETRequestHandler    = RpcLoadBalancerRequestHandler("GET")
-	RpcLoadBalancerPOSTRequestHandler   = RpcLoadBalancerRequestHandler("POST")
-	RpcLoadBalancerPUTRequestHandler    = RpcLoadBalancerRequestHandler("PUT")
-	RpcLoadBalancerDELETERequestHandler = RpcLoadBalancerRequestHandler("DELETE")
+	RpcLoadBalancerOPTIONSRequestHandler = RpcLoadBalancerRequestHandler("OPTIONS")
+	RpcLoadBalancerGETRequestHandler     = RpcLoadBalancerRequestHandler("GET")
+	RpcLoadBalancerPOSTRequestHandler    = RpcLoadBalancerRequestHandler("POST")
+	RpcLoadBalancerPUTRequestHandler     = RpcLoadBalancerRequestHandler("PUT")
+	RpcLoadBalancerDELETERequestHandler  = RpcLoadBalancerRequestHandler("DELETE")
 )
 
 func GetDefaultLB(plan string) string {
@@ -228,6 +229,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
 	if strings.HasPrefix(secretNameRefApi, "api-reddit") {
 		username = strings.TrimPrefix(secretNameRefApi, "api-reddit-")
+		log.Info().Interface("routingTable", fmt.Sprintf("api-%s", routeGroup)).Msg("ProcessRpcLoadBalancerRequest: using reddit secrets")
 	}
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), ou, secretNameRefApi)
 	if ps != nil && ps.BearerToken != "" {
@@ -264,7 +266,12 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		usingBearer := len(bearer) > 0
+		if resp != nil {
+			log.Err(err).Interface("resp", resp.RawResponse).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		} else {
+			log.Err(err).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		}
 		for key, values := range resp.ResponseHeaders {
 			for _, value := range values {
 				c.Response().Header().Add(key, value)

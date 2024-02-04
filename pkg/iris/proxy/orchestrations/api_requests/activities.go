@@ -144,6 +144,8 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		resp, err = sendRequest(r.R(), pr, "DELETE")
 	case "POST":
 		resp, err = sendRequest(r.R(), pr, "POST")
+	case "OPTIONS":
+		resp, err = sendRequest(r.R(), pr, "OPTIONS")
 	default:
 		resp, err = sendRequest(r.R(), pr, "POST")
 	}
@@ -194,6 +196,8 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		switch method {
 		case "GET":
 			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(ext)
+		case "OPTIONS":
+			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Options(ext)
 		case "PUT":
 			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Put(ext)
 		case "DELETE":
@@ -205,6 +209,8 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		}
 	} else {
 		switch method {
+		case "OPTIONS":
+			resp, err = request.SetResult(&pr.Response).Options(ext)
 		case "GET":
 			resp, err = request.SetResult(&pr.Response).Get(ext)
 		case "PUT":

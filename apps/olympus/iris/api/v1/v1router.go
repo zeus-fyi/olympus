@@ -96,6 +96,9 @@ func AddIrisRouter(eg *echo.Group) {
 	eg.POST("/router", RpcLoadBalancerPOSTRequestHandler)
 	eg.POST("/router/*", wrapHandlerWithCapture(RpcLoadBalancerPOSTRequestHandler))
 
+	eg.OPTIONS("/router", RpcLoadBalancerOPTIONSRequestHandler)
+	eg.OPTIONS("/router/*", wrapHandlerWithCapture(RpcLoadBalancerOPTIONSRequestHandler))
+
 	eg.GET("/router", RpcLoadBalancerGETRequestHandler)
 	eg.GET("/router/*", wrapHandlerWithCapture(RpcLoadBalancerGETRequestHandler))
 

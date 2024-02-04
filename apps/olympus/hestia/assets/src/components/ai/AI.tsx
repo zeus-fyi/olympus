@@ -63,6 +63,7 @@ import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {ActionsApprovalsTable} from "./ActionsApprovalsTable";
 import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../redux/ai/ai.types.triggers";
 import {accessApiGateway} from "../../gateway/access";
+import {IrisApiGateway} from "../../gateway/iris";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -282,6 +283,37 @@ function AiWorkflowsDashboardContent(props: any) {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+
+    const onSubmitPayload = async () => {
+        if (retrieval.retrievalItemInstruction.webFilters === undefined || retrieval.retrievalItemInstruction.webFilters.routingGroup === undefined) {
+            return
+        }
+
+        if (retrieval.retrievalItemInstruction.webFilters.endpointRoutePath === undefined) {
+            retrieval.retrievalItemInstruction.webFilters.endpointRoutePath = ''
+        }
+        if (retrieval.retrievalItemInstruction.webFilters.endpointREST === undefined){
+            retrieval.retrievalItemInstruction.webFilters.endpointREST = 'get'
+        }
+        try {
+            setIsLoading(true)
+            const restCode = retrieval.retrievalItemInstruction.webFilters.endpointREST
+            if (restCode === 'get') {
+                const response = await IrisApiGateway.sendIrisGetRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code, "free",  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
+
+                if (response.data != null) {
+                    const result = JSON.stringify(response.data, null, 2);
+                    setCode(result);
+                    const data = response.data;
+                    dispatch(setSearchResults(data));
+                }
+            }
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleSearchRequest = async (timeRange: '1 hour'| '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
         try {
@@ -559,7 +591,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             dispatch(setRetrieval(updatedRetrieval));
                                                         }}
                                                     >
-                                                        {/*<MenuItem value="api">API</MenuItem>*/}
+                                                        <MenuItem value="api">API</MenuItem>
                                                         <MenuItem value="reddit">Reddit</MenuItem>
                                                         <MenuItem value="twitter">Twitter</MenuItem>
                                                         <MenuItem value="discord">Discord</MenuItem>
@@ -664,47 +696,111 @@ function AiWorkflowsDashboardContent(props: any) {
                                             {/*    />*/}
                                             {/*</Box>*/}
                                             {/*}*/}
-                                            <Typography variant="h6" color="text.secondary">
-                                                Search keywords using comma separated values below.
-                                            </Typography>
-                                            <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
-                                                <TextField
-                                                    fullWidth
-                                                    id="keywords-input"
-                                                    label="Positive Keywords"
-                                                    variant="outlined"
-                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
-                                                    onChange={(e) => {
-                                                        const updatedRetrieval = {
-                                                            ...retrieval,
-                                                            retrievalItemInstruction: {
-                                                                ...retrieval.retrievalItemInstruction,
-                                                                retrievalKeywords: e.target.value
-                                                            }
-                                                        };
-                                                        dispatch(setRetrieval(updatedRetrieval));
-                                                    }}
-                                                />
-                                            </Box>
-                                            <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
-                                                <TextField
-                                                    fullWidth
-                                                    id="negative-keywords-input"
-                                                    label="Negative Keywords"
-                                                    variant="outlined"
-                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalNegativeKeywords ? retrieval.retrievalItemInstruction.retrievalNegativeKeywords : ''}
-                                                    onChange={(e) => {
-                                                        const updatedRetrieval = {
-                                                            ...retrieval,
-                                                            retrievalItemInstruction: {
-                                                                ...retrieval.retrievalItemInstruction,
-                                                                retrievalNegativeKeywords: e.target.value
-                                                            }
-                                                        };
-                                                        dispatch(setRetrieval(updatedRetrieval));
-                                                    }}
-                                                />
-                                            </Box>
+                                            { retrieval.retrievalItemInstruction.retrievalPlatform === 'api' &&
+                                            <div>
+                                                <Stack direction="row">
+                                                    <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="endpoint-route-input"
+                                                            label="Route Path"
+                                                            variant="outlined"
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                            && retrieval.retrievalItemInstruction.webFilters.endpointRoutePath ? retrieval.retrievalItemInstruction.webFilters.endpointRoutePath : ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        webFilters: {
+                                                                            ...retrieval.retrievalItemInstruction.webFilters,
+                                                                            endpointRoutePath: e.target.value, // Correctly update the routingGroup field
+                                                                        }
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                    <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
+                                                        <FormControl fullWidth>
+                                                            <InputLabel id="endpoint-rest-trigger">REST</InputLabel>
+                                                            <Select
+                                                                id="endpoint-rest-trigger"
+                                                                label="REST Trigger"
+                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}                                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        webFilters: {
+                                                                            ...retrieval.retrievalItemInstruction.webFilters,
+                                                                            endpointREST: e.target.value, // Correctly update the routingGroup field
+                                                                        }
+                                                                    }
+                                                                }
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                            >
+                                                                {/*<MenuItem value="post">{'POST'}</MenuItem>*/}
+                                                                <MenuItem value="get">{'GET'}</MenuItem>
+                                                                {/*<MenuItem value="put">{'PUT'}</MenuItem>*/}
+                                                                {/*<MenuItem value="delete">{'DELETE'}</MenuItem>*/}
+                                                            </Select>
+                                                        </FormControl>
+                                                    </Box>
+                                                </Stack>
+                                                <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
+                                                    <Button fullWidth variant="contained" onClick={() => onSubmitPayload()} >Send Request</Button>
+                                                </Box>
+                                            </div>
+                                            }
+                                            { retrieval.retrievalItemInstruction.retrievalPlatform !== 'api' &&
+                                                <div>
+                                                    <Typography variant="h6" color="text.secondary">
+                                                    Search keywords using comma separated values below.
+                                                    </Typography>
+                                                    <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="keywords-input"
+                                                            label="Positive Keywords"
+                                                            variant="outlined"
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        retrievalKeywords: e.target.value
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                    <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="negative-keywords-input"
+                                                            label="Negative Keywords"
+                                                            variant="outlined"
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalNegativeKeywords ? retrieval.retrievalItemInstruction.retrievalNegativeKeywords : ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        retrievalNegativeKeywords: e.target.value
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                </div>
+                                        }
                                             {/*<Typography variant="h6" color="text.secondary">*/}
                                             {/*    Optionally describe what you're looking for, and the AI will analyze your returned search data.*/}
                                             {/*</Typography>*/}

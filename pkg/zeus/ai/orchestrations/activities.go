@@ -289,9 +289,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 
 	secretNameRefApi := fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)
 	if strings.HasPrefix(secretNameRefApi, "api-reddit") {
-		usernameSplit := strings.SplitAfter(secretNameRefApi, "-")
-		username = usernameSplit[len(usernameSplit)-1]
-		fmt.Println("username", username)
+		username = strings.TrimPrefix(secretNameRefApi, "api-reddit-")
 	}
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, secretNameRefApi)
 	if ps != nil && ps.BearerToken != "" {

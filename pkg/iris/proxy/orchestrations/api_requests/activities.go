@@ -80,6 +80,12 @@ func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context
 }
 
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	if pr.Url == "" {
+		err := fmt.Errorf("error: URL is required")
+		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
+		return pr, err
+	}
+
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
 	if pr.MaxTries > 0 {

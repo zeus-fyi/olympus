@@ -2,15 +2,10 @@ package ext_clusters
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
-	"github.com/zeus-fyi/olympus/pkg/utils/misc"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 const Sn = "extClusterConfigs"
@@ -25,46 +20,33 @@ type ExtClusterConfig struct {
 	Env            string `json:"env,omitempty"`
 }
 
-func InsertOrUpdateExtClusterConfigs(ctx context.Context, ou org_users.OrgUser, extClusterConfigs []ExtClusterConfig) error {
-	q := sql_query_templates.NewQueryParam("InsertOrUpdateExtClusterConfigs", "nodes", "where", 1000, []string{})
-	cte := sql_query_templates.CTE{Name: "InsertOrUpdateExtClusterConfigs"}
-	cte.SubCTEs = []sql_query_templates.SubCTE{}
-	cte.Params = []interface{}{}
-	ts := chronos.Chronos{}
-	for _, cc := range extClusterConfigs {
-		if cc.ExtConfigStrID == "" {
-			cc.ExtConfigID = ts.UnixTimeStampNow()
-		} else {
-			excID, err := strconv.Atoi(cc.ExtConfigStrID)
-			if err != nil {
-				log.Err(err).Msg("")
-			}
-			cc.ExtConfigID = excID
-		}
-		queryName := fmt.Sprintf("cc_insert_%d", ts.UnixTimeStampNow())
-		scte := sql_query_templates.NewSubInsertCTE(queryName)
-		scte.TableName = "ext_cluster_configs"
-		cte.OnConflicts = []string{"org_id", "cloud_provider", "region", "context"}
-		cte.OnConflictsUpdateColumns = []string{"context_alias", "env", "region"}
-		scte.Columns = []string{"ext_config_id", "org_id", "cloud_provider", "region", "context", "context_alias", "env"}
-		pgValues := apps.RowValues{
-			cc.ExtConfigID,
-			ou.OrgID,
-			cc.CloudProvider,
-			cc.Region,
-			cc.Context,
-			cc.ContextAlias,
-			cc.Env,
-		}
-		scte.Values = []apps.RowValues{pgValues}
-		cte.SubCTEs = append(cte.SubCTEs, scte)
-	}
-	q.RawQuery = cte.GenerateChainedCTE()
-	r, err := apps.Pg.Exec(ctx, q.RawQuery, cte.Params...)
-	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+func InsertOrUpdateExtClusterConfigs(ctx context.Context, ou org_users.OrgUser, configs []ExtClusterConfig) error {
+	// Start a transaction
+	tx, err := apps.Pg.Begin(ctx)
+	if err != nil {
 		return err
 	}
-	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("Configs: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
-	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+	defer tx.Rollback(ctx)
+
+	// Prepare the SQL statement for inserting or updating
+	stmt := `INSERT INTO public.ext_cluster_configs (ext_config_id, org_id, cloud_provider, region, context, context_alias, env)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             ON CONFLICT (ext_config_id)
+             DO UPDATE SET 
+                 region = EXCLUDED.region, 
+                 context_alias = EXCLUDED.context_alias, 
+                 env = EXCLUDED.env
+             WHERE org_id = EXCLUDED.org_id;`
+
+	// Iterate over configs and execute the upsert operation for each
+	for _, config := range configs {
+		_, err = tx.Exec(ctx, stmt, ou.OrgID, config.CloudProvider, config.Region, config.Context, config.ContextAlias, config.Env)
+		if err != nil {
+			log.Err(err).Msg("InsertOrUpdateExtClusterConfigs: failed to insert or update ext cluster config")
+			// Roll back the transaction in case of error and return
+			return err
+		}
+	}
+	// Commit the transaction
+	return tx.Commit(ctx)
 }

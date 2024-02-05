@@ -9,6 +9,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
@@ -25,6 +26,7 @@ type KubeConfigRequestTestSuite struct {
 }
 
 func (t *KubeConfigRequestTestSuite) TestKubeConfigUpload() {
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	t.Eg.POST("/kubeconfig", CreateOrUpdateKubeConfigsHandler)
 
 	start := make(chan struct{}, 1)

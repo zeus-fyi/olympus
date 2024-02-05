@@ -11,6 +11,7 @@ on:
       - main
       - dev
       - iris-updates
+      - ai-triggers
 
 permissions:
   contents: read

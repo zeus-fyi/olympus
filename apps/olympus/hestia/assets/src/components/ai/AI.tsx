@@ -63,6 +63,8 @@ import {isValidLabel} from "../clusters/wizard/builder/AddComponentBases";
 import {ActionsApprovalsTable} from "./ActionsApprovalsTable";
 import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../redux/ai/ai.types.triggers";
 import {accessApiGateway} from "../../gateway/access";
+import {IrisApiGateway} from "../../gateway/iris";
+import axios from 'axios';
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -114,6 +116,8 @@ function AiWorkflowsDashboardContent(props: any) {
         }
         fetchData({});
     }, []);
+
+    useEffect(() => {}, [retrieval]);
     const dispatch = useDispatch();
     const getCurrentUnixTimestamp = (): number => {
         return Math.floor(Date.now() / 1000);
@@ -283,6 +287,67 @@ function AiWorkflowsDashboardContent(props: any) {
         navigate('/login');
     }
 
+    const onSubmitPayload = async () => {
+        if (retrieval.retrievalItemInstruction.webFilters === undefined || retrieval.retrievalItemInstruction.webFilters.routingGroup === undefined) {
+            return
+        }
+
+        if (retrieval.retrievalItemInstruction.webFilters.endpointRoutePath === undefined) {
+            retrieval.retrievalItemInstruction.webFilters.endpointRoutePath = ''
+        }
+        try {
+            setIsLoading(true)
+                // console.log("routingGroup", retrieval.retrievalItemInstruction.webFilters.routingGroup)
+                const response = await IrisApiGateway.sendIrisGetRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code, "free",  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
+                // console.log("response", response)
+                if (response && response.data) {
+                    const result = JSON.stringify(response.data, null, 2);
+                    setCode(result);
+                    const data = response.data;
+                    dispatch(setSearchResults(data));
+                    setRequestStatus('Successfully sent request')
+                    setRequestStatusError('success')
+                } else {
+                    if (response && response.message) {
+                        setRequestStatus(response.message)
+                        setRequestStatusError('error');
+                    }
+                    setCode('No data returned');
+                }
+        } catch (error: unknown) {
+            let message = 'Request had an error';
+            let statusCode = '';
+
+            if (error instanceof Error) {
+                if (axios.isAxiosError(error)) {
+                    // The request was made and the server responded with a status code
+                    // that falls out of the range of 2xx
+                    if (error.response) {
+                        message += `: ${error.response.data.message || error.message}`;
+                        statusCode = error.response.status.toString(); // Convert number to string
+                    } else {
+                        // The request was made but no response was received
+                        message += ': No response was received';
+                        statusCode = 'No response';
+                    }
+                } else {
+                    // Something happened in setting up the request that triggered an Error
+                    message += ': ' + error.message;
+                    statusCode = 'Request setup error';
+                }
+            } else {
+                // Error is not an instance of Error, cannot determine the content
+                message += ': Unknown error type';
+                statusCode = 'Unknown';
+            }
+
+            setRequestStatus(`${message} (status code: ${statusCode})`);
+            setRequestStatusError('error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleSearchRequest = async (timeRange: '1 hour'| '24 hours' | '7 days'| '30 days' | 'window' | 'all') => {
         try {
             setIsLoading(true)
@@ -349,15 +414,17 @@ function AiWorkflowsDashboardContent(props: any) {
         return new Date(ms).toLocaleTimeString([], { hour: 'numeric', hour12: true });
     };
 
-    const handleStartTwitterAuthFlow = async (event: any) => {
+    const handleStartPlatformAuthFlow = async (event: any, platform: string) => {
         try {
             setIsLoading(true)
-            const response = await accessApiGateway.startPlatformAuthFlow('twitter');
+            const response = await accessApiGateway.startPlatformAuthFlow(platform);
             const statusCode = response.status;
             if (statusCode < 400) {
-                const data = response.data;
-                window.location.replace(data);
-                setRequestIndexerStatus('Auth information: ' + data)
+                if (platform === 'twitter') {
+                    const data = response.data;
+                    window.location.replace(data);
+                }
+                setRequestIndexerStatus('platform auth flow started successfully')
                 setRequestIndexerStatusError('success')
             }
         } catch (error: any) {
@@ -559,7 +626,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             dispatch(setRetrieval(updatedRetrieval));
                                                         }}
                                                     >
-                                                        {/*<MenuItem value="api">API</MenuItem>*/}
+                                                        <MenuItem value="api">API</MenuItem>
                                                         <MenuItem value="reddit">Reddit</MenuItem>
                                                         <MenuItem value="twitter">Twitter</MenuItem>
                                                         <MenuItem value="discord">Discord</MenuItem>
@@ -635,7 +702,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             label="Load Balancing"
                                                         >
                                                             <MenuItem value="round-robin">Round Robin</MenuItem>
-                                                            <MenuItem value="poll-table">Poll Table</MenuItem>
+                                                            {/*<MenuItem value="poll-table">Poll Table</MenuItem>*/}
                                                         </Select>
                                                     </FormControl>
                                                 </div>
@@ -664,47 +731,98 @@ function AiWorkflowsDashboardContent(props: any) {
                                             {/*    />*/}
                                             {/*</Box>*/}
                                             {/*}*/}
-                                            <Typography variant="h6" color="text.secondary">
-                                                Search keywords using comma separated values below.
-                                            </Typography>
-                                            <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
-                                                <TextField
-                                                    fullWidth
-                                                    id="keywords-input"
-                                                    label="Positive Keywords"
-                                                    variant="outlined"
-                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
-                                                    onChange={(e) => {
-                                                        const updatedRetrieval = {
-                                                            ...retrieval,
-                                                            retrievalItemInstruction: {
-                                                                ...retrieval.retrievalItemInstruction,
-                                                                retrievalKeywords: e.target.value
-                                                            }
-                                                        };
-                                                        dispatch(setRetrieval(updatedRetrieval));
-                                                    }}
-                                                />
-                                            </Box>
-                                            <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
-                                                <TextField
-                                                    fullWidth
-                                                    id="negative-keywords-input"
-                                                    label="Negative Keywords"
-                                                    variant="outlined"
-                                                    value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalNegativeKeywords ? retrieval.retrievalItemInstruction.retrievalNegativeKeywords : ''}
-                                                    onChange={(e) => {
-                                                        const updatedRetrieval = {
-                                                            ...retrieval,
-                                                            retrievalItemInstruction: {
-                                                                ...retrieval.retrievalItemInstruction,
-                                                                retrievalNegativeKeywords: e.target.value
-                                                            }
-                                                        };
-                                                        dispatch(setRetrieval(updatedRetrieval));
-                                                    }}
-                                                />
-                                            </Box>
+                                            { retrieval.retrievalItemInstruction.retrievalPlatform === 'api' &&
+                                            <div>
+                                                <Stack direction="row">
+                                                    <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 2, mt: 2}}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="endpoint-route-input"
+                                                            label="Route Path"
+                                                            variant="outlined"
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                            && retrieval.retrievalItemInstruction.webFilters.endpointRoutePath ? retrieval.retrievalItemInstruction.webFilters.endpointRoutePath : ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        webFilters: {
+                                                                            ...retrieval.retrievalItemInstruction.webFilters,
+                                                                            endpointRoutePath: e.target.value, // Correctly update the routingGroup field
+                                                                        }
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                    <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
+                                                        <FormControl fullWidth>
+                                                            <InputLabel id="endpoint-rest-trigger">REST</InputLabel>
+                                                            <Select
+                                                                id="endpoint-rest-trigger"
+                                                                label="REST Trigger"
+                                                                value={'get'}
+                                                            >
+                                                                {/*<MenuItem value="post">{'POST'}</MenuItem>*/}
+                                                                <MenuItem value="get">{'GET'}</MenuItem>
+                                                                {/*<MenuItem value="put">{'PUT'}</MenuItem>*/}
+                                                                {/*<MenuItem value="delete">{'DELETE'}</MenuItem>*/}
+                                                            </Select>
+                                                        </FormControl>
+                                                    </Box>
+                                                </Stack>
+                                                <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
+                                                    <Button fullWidth variant="contained" onClick={() => onSubmitPayload()} >Send Request</Button>
+                                                </Box>
+                                            </div>
+                                            }
+                                            { retrieval.retrievalItemInstruction.retrievalPlatform !== 'api' &&
+                                                <div>
+                                                    <Typography variant="h6" color="text.secondary">
+                                                    Search keywords using comma separated values below.
+                                                    </Typography>
+                                                    <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="keywords-input"
+                                                            label="Positive Keywords"
+                                                            variant="outlined"
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalKeywords ? retrieval.retrievalItemInstruction.retrievalKeywords : ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        retrievalKeywords: e.target.value
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                    <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="negative-keywords-input"
+                                                            label="Negative Keywords"
+                                                            variant="outlined"
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalNegativeKeywords ? retrieval.retrievalItemInstruction.retrievalNegativeKeywords : ''}
+                                                            onChange={(e) => {
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        retrievalNegativeKeywords: e.target.value
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                </div>
+                                        }
                                             {/*<Typography variant="h6" color="text.secondary">*/}
                                             {/*    Optionally describe what you're looking for, and the AI will analyze your returned search data.*/}
                                             {/*</Typography>*/}
@@ -1000,16 +1118,16 @@ function AiWorkflowsDashboardContent(props: any) {
                                                     <Button fullWidth variant="outlined"  onClick={(e) => handleSubmitIndexer(e)}>Start Indexing</Button>
                                                 </Box>
                                                 }
-
-                                                { searchIndexer.platform === 'twitter' &&
+                                                {
+                                                    (searchIndexer.platform === 'twitter' || searchIndexer.platform === 'reddit') &&
                                                     <div>
                                                         <Box flexGrow={1} sx={{ mt: 2}}>
                                                             <Typography variant="h6" color="text.secondary">
-                                                               Automated Twitter Auth & Routing Table Setup
+                                                                Automated {searchIndexer.platform.charAt(0).toUpperCase() + searchIndexer.platform.slice(1)} Auth & Routing Table Setup
                                                             </Typography>
                                                             <Typography variant="subtitle2" color="text.secondary">
-                                                                This will create a routing table for you called {'twitter-{YOUR_TWITTER_@HANDLE}'} and generate a bearer token for you
-                                                                that it saves in the platform secret manager as {'api-twitter-{YOUR_TWITTER_@HANDLE}'}.
+                                                                This will create a routing table for you called {`${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`} and generate a bearer token for you
+                                                                that it saves in the platform secret manager as {`api-${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`}.
                                                             </Typography>
                                                             <FormControl sx={{ mt: 3 }} fullWidth variant="outlined">
                                                                 <InputLabel key={`groupNameLabel`} id={`groupName`}>
@@ -1019,17 +1137,17 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                     labelId={`groupNameLabel`}
                                                                     id={`groupName`}
                                                                     name="groupName"
-                                                                    value={'twitter-{YOUR_TWITTER_@HANDLE}'}
+                                                                    value={`${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`}
                                                                     // onChange={(e) => dispatch(setWebRoutingGroup(e.target.value))}
                                                                     label="Routing Group"
                                                                 >
-                                                                    <MenuItem key={'twitter'} value={'twitter-{YOUR_TWITTER_@HANDLE}'}>{'twitter-{YOUR_TWITTER_@HANDLE}'}</MenuItem>
+                                                                    <MenuItem key={searchIndexer.platform} value={`${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`}>{`${searchIndexer.platform}-{YOUR_${searchIndexer.platform.toUpperCase()}_@HANDLE}`}</MenuItem>
                                                                     {/*{Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}*/}
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
                                                         <Box flexGrow={2} sx={{ mb: 2, mr: 2, mt: 2}}>
-                                                            <Button fullWidth variant="outlined"  onClick={(e) => handleStartTwitterAuthFlow(e)}>Connect Twitter</Button>
+                                                            <Button fullWidth variant="outlined" onClick={(e) => handleStartPlatformAuthFlow(e, searchIndexer.platform)}>Connect {searchIndexer.platform.charAt(0).toUpperCase() + searchIndexer.platform.slice(1)}</Button>
                                                         </Box>
                                                     </div>
                                                 }

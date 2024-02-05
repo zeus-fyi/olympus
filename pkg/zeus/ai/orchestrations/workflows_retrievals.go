@@ -2,6 +2,7 @@ package ai_platform_service_orchestrations
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -105,6 +106,17 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				payload = tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads[i]
 			}
 			for _, route := range routes {
+				if strings.HasPrefix(route.RoutePath, "https://api.twitter.com/2") {
+					if payload != nil && payload["in_reply_to_tweet_id"] != nil {
+						newPayload := echo.Map{
+							"reply": echo.Map{
+								"in_reply_to_tweet_id": payload["in_reply_to_tweet_id"],
+							},
+							"text": payload["text"],
+						}
+						payload = newPayload
+					}
+				}
 				rt := RouteTask{
 					Ou:        tte.Ou,
 					Retrieval: tte.Tc.Retrieval,

@@ -18,7 +18,9 @@ import (
 	hestia_mev "github.com/zeus-fyi/olympus/hestia/web/mev"
 	hestia_resources "github.com/zeus-fyi/olympus/hestia/web/resources"
 	hestia_signup "github.com/zeus-fyi/olympus/hestia/web/signup"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
+	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 )
 
 func WebRoutes(e *echo.Echo) *echo.Echo {
@@ -75,8 +77,30 @@ func InitV1SocialRoutes(e *echo.Echo) {
 			return len(services) > 0, nil
 		},
 	}))
-
+	eg.GET("/reddit/me", RedditMeHandler)
 	eg.GET("/auth/:provider/callback", hestia_login.CallbackHandler)
+}
+
+func RedditMeHandler(c echo.Context) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(c.Request().Context(), ou, "reddit")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	rc, err := hera_reddit.InitOrgRedditClient(c.Request().Context(), ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	user, err := rc.GetMe(c.Request().Context())
+	if err != nil {
+		log.Err(err).Msg("RedditMeHandler: GetMe")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, user)
 }
 
 func InitV1Routes(e *echo.Echo) {

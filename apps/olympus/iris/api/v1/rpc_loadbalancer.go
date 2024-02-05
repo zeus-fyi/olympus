@@ -47,10 +47,11 @@ type Response struct {
 }
 
 var (
-	RpcLoadBalancerGETRequestHandler    = RpcLoadBalancerRequestHandler("GET")
-	RpcLoadBalancerPOSTRequestHandler   = RpcLoadBalancerRequestHandler("POST")
-	RpcLoadBalancerPUTRequestHandler    = RpcLoadBalancerRequestHandler("PUT")
-	RpcLoadBalancerDELETERequestHandler = RpcLoadBalancerRequestHandler("DELETE")
+	RpcLoadBalancerOPTIONSRequestHandler = RpcLoadBalancerRequestHandler("OPTIONS")
+	RpcLoadBalancerGETRequestHandler     = RpcLoadBalancerRequestHandler("GET")
+	RpcLoadBalancerPOSTRequestHandler    = RpcLoadBalancerRequestHandler("POST")
+	RpcLoadBalancerPUTRequestHandler     = RpcLoadBalancerRequestHandler("PUT")
+	RpcLoadBalancerDELETERequestHandler  = RpcLoadBalancerRequestHandler("DELETE")
 )
 
 func GetDefaultLB(plan string) string {
@@ -220,6 +221,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		}
 		headers[k] = v // Assuming there's at least one value
 	}
+	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
 	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
@@ -231,9 +233,10 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		Payload:          p.Body,
 		QueryParams:      qps,
 		IsInternal:       false,
-		Timeout:          1 * time.Minute,
+		Timeout:          2 * time.Minute,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
+		SecretNameRef:    secretNameRefApi,
 	}
 	sfx := c.Get("capturedPath")
 	if sfx != nil {
@@ -245,7 +248,11 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("route", path).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		if resp != nil {
+			log.Err(err).Interface("resp", string(resp.RawResponse)).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		} else {
+			log.Err(err).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		}
 		for key, values := range resp.ResponseHeaders {
 			for _, value := range values {
 				c.Response().Header().Add(key, value)

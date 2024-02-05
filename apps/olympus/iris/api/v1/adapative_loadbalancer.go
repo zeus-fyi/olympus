@@ -87,6 +87,8 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		}
 		headers[k] = v // Assuming there's at least one value
 	}
+
+	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
 	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
@@ -99,9 +101,10 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		Payload:          p.Body,
 		QueryParams:      qps,
 		IsInternal:       false,
-		Timeout:          1 * time.Minute,
+		Timeout:          2 * time.Minute,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
+		SecretNameRef:    secretNameRefApi,
 	}
 	sfx := c.Get("capturedPath")
 	if sfx != nil {

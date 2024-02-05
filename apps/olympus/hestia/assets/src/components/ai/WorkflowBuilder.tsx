@@ -4123,8 +4123,8 @@ function WorkflowEngineBuilder(props: any) {
 
                                                         >
                                                             <MenuItem value="text">text</MenuItem>
-                                                            <MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>
-                                                            <MenuItem value="social-media-extraction">social-media-extraction</MenuItem>
+                                                            {/*<MenuItem value="social-media-content-writer">social-media-content-writer</MenuItem>*/}
+                                                            {/*<MenuItem value="social-media-extraction">social-media-extraction</MenuItem>*/}
                                                             <MenuItem value="json">json</MenuItem>
                                                         </Select>
                                                     </FormControl>

@@ -2,15 +2,18 @@ package iris_api_requests
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
@@ -79,13 +82,76 @@ func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context
 }
 
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
-	r := resty.New()
+	if pr.Url == "" {
+		err := fmt.Errorf("error: URL is required")
+		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
+		return pr, err
+	}
+	var bearer string
+	if pr.SecretNameRef != "" {
+		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(pr.OrgID, pr.UserID), pr.SecretNameRef)
+		if ps != nil && ps.BearerToken != "" {
+			bearer = ps.BearerToken
+		} else if err != nil {
+			log.Err(err).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
+			return pr, err
+		}
+
+		if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
+			ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(pr.OrgID, pr.UserID), "reddit")
+			if err != nil {
+				log.Err(err).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
+				return pr, err
+			}
+			rc, rrr := hera_reddit.InitOrgRedditClient(ctx, ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
+			if rrr != nil {
+				log.Err(rrr).Msg("ProcessRpcLoadBalancerRequest: failed to get reddit client")
+				return pr, rrr
+			}
+			switch pr.PayloadTypeREST {
+			case "GET":
+				resp, rerr := rc.GetRedditReq(ctx, pr.ExtRoutePath, &pr.Response, pr.QueryParams)
+				if rerr != nil {
+					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to get reddit request")
+					return pr, rerr
+				}
+				return pr, nil
+			case "POST":
+				resp, rerr := rc.PostRedditReq(ctx, pr.ExtRoutePath, pr.Payload, &pr.Response)
+				if rerr != nil {
+					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to post reddit request")
+					return pr, rerr
+				}
+				return pr, nil
+			case "PUT":
+				resp, rerr := rc.PutRedditReq(ctx, pr.ExtRoutePath, pr.Payload, &pr.Response)
+				if rerr != nil {
+					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to put reddit request")
+					return pr, rerr
+				}
+				return pr, nil
+			case "DELETE":
+				resp, rerr := rc.DeleteRedditReq(ctx, pr.ExtRoutePath, pr.Payload, &pr.Response)
+				if rerr != nil {
+					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to delete reddit request")
+					return pr, rerr
+				}
+				return pr, nil
+			default:
+				return pr, errors.New("ProcessRpcLoadBalancerRequest: invalid payload type for supported reddit requests")
+			}
+		}
+	}
+
+	var r *resty.Client
+	r = resty.New()
 	r.SetBaseURL(pr.Url)
 	if pr.MaxTries > 0 {
 		r.SetRetryCount(pr.MaxTries)
 	}
-	if len(pr.Bearer) > 0 {
-		r.SetAuthToken(pr.Bearer)
+	if len(bearer) > 0 {
+		r.SetAuthToken(bearer)
+		log.Info().Msg("ExtLoadBalancerRequest: setting bearer token")
 	}
 
 	parsedURL, err := url.Parse(pr.Url)
@@ -127,6 +193,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	if pr.PayloadSizeMeter == nil {
 		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 	}
+
 	var resp *resty.Response
 	switch pr.PayloadTypeREST {
 	case "GET":
@@ -137,6 +204,8 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		resp, err = sendRequest(r.R(), pr, "DELETE")
 	case "POST":
 		resp, err = sendRequest(r.R(), pr, "POST")
+	case "OPTIONS":
+		resp, err = sendRequest(r.R(), pr, "OPTIONS")
 	default:
 		resp, err = sendRequest(r.R(), pr, "POST")
 	}
@@ -160,25 +229,12 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		ext = pr.ExtRoutePath
 	}
 
-	log.Info().Interface("pr.Url", pr.Url).Interface("pr.ExtRoutePath", pr.ExtRoutePath).Msg("sendRequest: sending request")
-	if strings.HasPrefix(pr.Url, "https://api.twitter.com/2") {
-		if strings.Contains(ext, "tweets") {
-			if pr.Payload != nil && pr.Payload["in_reply_to_tweet_id"] != nil {
-				newPayload := echo.Map{
-					"reply": echo.Map{
-						"in_reply_to_tweet_id": pr.Payload["in_reply_to_tweet_id"],
-					},
-					"text": pr.Payload["text"],
-				}
-				pr.Payload = newPayload
-			}
-		}
-	}
-
 	if pr.Payload != nil {
 		switch method {
 		case "GET":
 			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(ext)
+		case "OPTIONS":
+			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Options(ext)
 		case "PUT":
 			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Put(ext)
 		case "DELETE":
@@ -190,6 +246,8 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		}
 	} else {
 		switch method {
+		case "OPTIONS":
+			resp, err = request.SetResult(&pr.Response).Options(ext)
 		case "GET":
 			resp, err = request.SetResult(&pr.Response).Get(ext)
 		case "PUT":
@@ -203,7 +261,11 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		}
 	}
 	if err != nil {
-		log.Err(err).Interface("resp", resp.String()).Interface("url", pr.Url).Interface("pr.ExtRoutePath", ext).Msg("sendRequest: failed to relay api request")
+		if resp != nil {
+			log.Err(err).Int("statusCode", resp.StatusCode()).Interface("resp", resp.String()).Interface("url", pr.Url).Interface("pr.ExtRoutePath", ext).Msg("sendRequest: failed to relay api request")
+		} else {
+			log.Err(err).Interface("url", pr.Url).Interface("pr.ExtRoutePath", ext).Msg("sendRequest: failed to relay api request")
+		}
 		return nil, fmt.Errorf("failed to relay api request")
 	}
 

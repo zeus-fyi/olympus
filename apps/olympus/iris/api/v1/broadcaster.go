@@ -79,6 +79,8 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		}
 		headers[k] = v // Assuming there's at least one value
 	}
+
+	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
 	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
 		Procedure:        proc,
@@ -96,6 +98,7 @@ func (p *ProxyRequest) ProcessBroadcastETLRequest(c echo.Context, payloadSizingM
 		Timeout:          2 * time.Second,
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
+		SecretNameRef:    secretNameRefApi,
 	}
 
 	proc, err = BuildProcedureIfTemplateExists(procName, routeGroup, req, p.Body)

@@ -79,6 +79,16 @@ func (t *KubeConfigRequestTestSuite) TestS3EncUploader() {
 	t.Require().Nil(err)
 }
 
+func (t *KubeConfigRequestTestSuite) TestKubeConfigDownloadDec() {
+	t.InitLocalConfigs()
+	authKeysCfg := t.Tc.ProdLocalAuthKeysCfg
+	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
+	authCfg := auth_startup.NewExtClustersAuthClient(ctx, t.Tc.ProductionLocalTemporalOrgID, authKeysCfg)
+	memfsK8s := auth_startup.ExtClustersRunDigitalOceanS3BucketObjAuthProcedure(ctx, t.Tc.ProductionLocalTemporalOrgID, authCfg)
+	k := zeus_core.K8Util{}
+	k.ConnectToK8sFromInMemFsCfgPath(memfsK8s)
+}
+
 func (t *KubeConfigRequestTestSuite) TestKubeConfigAccess() {
 	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, t.Tc.ProdLocalAuthKeysCfg)
 	t.Tc.ProdLocalAuthKeysCfg.AgePrivKey = t.Tc.LocalAgePkey

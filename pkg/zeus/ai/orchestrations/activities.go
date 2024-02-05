@@ -284,9 +284,6 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if retInst.WebFilters.EndpointREST != nil {
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 	}
-	var bearer string
-	var username string
-
 	secretNameRefApi := fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	req := &iris_api_requests.ApiProxyRequest{
@@ -296,9 +293,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		ExtRoutePath:    routeExt,
 		Payload:         r.Payload,
 		PayloadTypeREST: restMethod,
-		Bearer:          bearer,
 		RequestHeaders:  r.Headers,
-		Username:        username,
 		SecretNameRef:   secretNameRefApi,
 	}
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)

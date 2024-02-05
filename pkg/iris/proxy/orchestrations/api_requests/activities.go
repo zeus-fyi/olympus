@@ -2,6 +2,7 @@ package iris_api_requests
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -98,6 +99,11 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		}
 
 		if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
+			ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(pr.OrgID, pr.UserID), "reddit")
+			if err != nil {
+				log.Err(err).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
+				return pr, err
+			}
 			rc, rrr := hera_reddit.InitOrgRedditClient(ctx, ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
 			if rrr != nil {
 				log.Err(rrr).Msg("ProcessRpcLoadBalancerRequest: failed to get reddit client")
@@ -118,6 +124,15 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 					return pr, rerr
 				}
 				return pr, nil
+			case "PUT":
+				resp, rerr := rc.PutRedditReq(ctx, pr.ExtRoutePath, pr.Payload, &pr.Response)
+				if rerr != nil {
+					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to post reddit request")
+					return pr, rerr
+				}
+				return pr, nil
+			default:
+				return pr, errors.New("ProcessRpcLoadBalancerRequest: invalid payload type for supported reddit requests")
 			}
 		}
 	}

@@ -107,7 +107,7 @@ type Child struct {
 func (r *Reddit) GetRedditReq(ctx context.Context, path string, responseMap *echo.Map) (*resty.Response, error) {
 	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
 	r.Resty.SetHeader("User-Agent", ua)
-	resp, err := r.Resty.R().Get(path)
+	resp, err := r.Resty.R().SetResult(responseMap).Get(path)
 	if err != nil {
 		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
 		return nil, err
@@ -123,6 +123,21 @@ func (r *Reddit) PostRedditReq(ctx context.Context, path string, payload echo.Ma
 	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
 	r.Resty.SetHeader("User-Agent", ua)
 	resp, err := r.Resty.R().SetBody(&payload).SetResult(responseMap).Post(path)
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, fmt.Errorf("error getting new posts")
+	}
+	return resp, nil
+}
+
+func (r *Reddit) PutRedditReq(ctx context.Context, path string, payload echo.Map, responseMap *echo.Map) (*resty.Response, error) {
+	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	r.Resty.SetHeader("User-Agent", ua)
+	resp, err := r.Resty.R().SetBody(&payload).SetResult(responseMap).Put(path)
 	if err != nil {
 		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
 		return nil, err

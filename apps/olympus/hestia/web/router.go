@@ -77,7 +77,7 @@ func InitV1SocialRoutes(e *echo.Echo) {
 			return len(services) > 0, nil
 		},
 	}))
-	e.GET("/reddit/me", RedditMeHandler)
+	eg.GET("/reddit/me", RedditMeHandler)
 	eg.GET("/auth/:provider/callback", hestia_login.CallbackHandler)
 }
 

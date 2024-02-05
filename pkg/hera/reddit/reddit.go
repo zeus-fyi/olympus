@@ -3,6 +3,7 @@ package hera_reddit
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
@@ -104,9 +105,10 @@ type Child struct {
 	Data *reddit.Post `json:"data"`
 }
 
-func (r *Reddit) GetRedditReq(ctx context.Context, path string, responseMap *echo.Map) (*resty.Response, error) {
+func (r *Reddit) GetRedditReq(ctx context.Context, path string, responseMap *echo.Map, urlVals url.Values) (*resty.Response, error) {
 	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
 	r.Resty.SetHeader("User-Agent", ua)
+	r.Resty.QueryParam = urlVals
 	resp, err := r.Resty.R().SetResult(responseMap).Get(path)
 	if err != nil {
 		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")

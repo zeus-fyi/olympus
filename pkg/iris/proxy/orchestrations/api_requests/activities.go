@@ -111,7 +111,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 			}
 			switch pr.PayloadTypeREST {
 			case "GET":
-				resp, rerr := rc.GetRedditReq(ctx, pr.ExtRoutePath, &pr.Response)
+				resp, rerr := rc.GetRedditReq(ctx, pr.ExtRoutePath, &pr.Response, pr.QueryParams)
 				if rerr != nil {
 					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to get reddit request")
 					return pr, rerr

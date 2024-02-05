@@ -95,7 +95,7 @@ func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryp
 			fmt.Println("aws command found")
 			continue
 		}
-		if strings.Contains(ai.Server, "digtalocean") {
+		if strings.Contains(ai.Server, "ondigitalocean.com") || strings.Contains(ai.Server, "do") {
 			m[ctxName] = "do"
 			fmt.Println("digital ocean command found")
 			continue
@@ -120,7 +120,7 @@ func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryp
 			Env:           "none",
 		})
 	}
-	err = ext_clusters.InsertOrUpdateExtClusterConfigs(ctx, org_users.NewOrgUserWithID(orgID, 0), kcf)
+	err = ext_clusters.InsertOrUpdateExtClusterConfigsUnique(ctx, org_users.NewOrgUserWithID(orgID, 0), kcf)
 	if err != nil {
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: InsertOrUpdateExtClusterConfigs")
 		return err

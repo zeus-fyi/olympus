@@ -7,3 +7,7 @@ CREATE TABLE ext_cluster_configs (
     context_alias     TEXT NOT NULL DEFAULT '',
     env               TEXT NOT NULL DEFAULT 'test'
 );
+
+
+ALTER TABLE ext_cluster_configs
+    ADD CONSTRAINT cloud_ctx_ns_org_uniq UNIQUE  ("org_id", "cloud_provider", "context");

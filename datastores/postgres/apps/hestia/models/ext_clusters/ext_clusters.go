@@ -37,8 +37,7 @@ func InsertOrUpdateExtClusterConfigs(ctx context.Context, ou org_users.OrgUser, 
              DO UPDATE SET 
                  region = EXCLUDED.region, 
                  context_alias = EXCLUDED.context_alias, 
-                 env = EXCLUDED.env
-             WHERE org_id = EXCLUDED.org_id;`
+                 env = EXCLUDED.env;`
 
 	// Iterate over configs and execute the upsert operation for each
 	for i, config := range configs {

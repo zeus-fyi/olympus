@@ -41,7 +41,7 @@ func InsertOrUpdateExtClusterConfigs(ctx context.Context, ou org_users.OrgUser, 
 			}
 			cc.ExtConfigID = excID
 		}
-		queryName := fmt.Sprintf("cc_insert_%s", cc.ExtConfigStrID)
+		queryName := fmt.Sprintf("cc_insert_%d", ts.UnixTimeStampNow())
 		scte := sql_query_templates.NewSubInsertCTE(queryName)
 		scte.TableName = "ext_cluster_configs"
 		cte.OnConflicts = []string{"org_id", "cloud_provider", "region", "context"}

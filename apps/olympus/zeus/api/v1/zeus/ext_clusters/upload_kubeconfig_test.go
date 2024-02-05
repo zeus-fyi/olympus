@@ -41,6 +41,8 @@ func (t *KubeConfigRequestTestSuite) TestKubeConfigUpload() {
 	err := ZipKubeConfigChartToPath(&fp)
 	t.Require().Nil(err)
 	authKeysCfg := t.Tc.ProdLocalAuthKeysCfg
+	KeysCfg = auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+
 	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 
 	pubKey := t.Tc.LocalAgePubkey

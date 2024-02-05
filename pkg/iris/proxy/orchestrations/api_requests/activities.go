@@ -137,9 +137,6 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	}
 	if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
 		ua := hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
-		if pr.Username != "" {
-			ua = hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", pr.Username)
-		}
 		r.SetHeader("User-Agent", ua)
 		log.Info().Interface("ua", ua).Msg("ExtLoadBalancerRequest: setting user agent")
 	}

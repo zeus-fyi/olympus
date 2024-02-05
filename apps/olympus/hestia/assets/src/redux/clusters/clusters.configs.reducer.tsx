@@ -13,9 +13,15 @@ const clustersConfigsSlice = createSlice({
         setExtClustersConfigs: (state, action: PayloadAction<ExtClusterConfig[]>) => {
             state.clusterConfigs = action.payload;
         },
+        updateExtClusterConfig: (state, action: PayloadAction<{ index: number; changes: Partial<ExtClusterConfig> }>) => {
+            const { index, changes } = action.payload;
+            if (state.clusterConfigs[index]) {
+                state.clusterConfigs[index] = { ...state.clusterConfigs[index], ...changes };
+            }
+        },
     },
 });
 
-export const { setExtClustersConfigs } = clustersConfigsSlice.actions;
+export const { setExtClustersConfigs, updateExtClusterConfig } = clustersConfigsSlice.actions;
 
 export default clustersConfigsSlice.reducer;

@@ -151,6 +151,21 @@ func (r *Reddit) PutRedditReq(ctx context.Context, path string, payload echo.Map
 	return resp, nil
 }
 
+func (r *Reddit) DeleteRedditReq(ctx context.Context, path string, payload echo.Map, responseMap *echo.Map) (*resty.Response, error) {
+	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	r.Resty.SetHeader("User-Agent", ua)
+	resp, err := r.Resty.R().SetBody(&payload).SetResult(responseMap).Delete(path)
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, fmt.Errorf("error getting new posts")
+	}
+	return resp, nil
+}
+
 func (r *Reddit) GetMe(ctx context.Context) (*reddit.User, error) {
 	path := fmt.Sprintf("/api/v1/me")
 	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")

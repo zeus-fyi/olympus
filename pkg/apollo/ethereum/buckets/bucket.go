@@ -55,7 +55,7 @@ func UploadBalancesAtEpoch(ctx context.Context, keyName string, balances []byte)
 	ok, err := uploader.CheckIfKeyExists(ctx, input)
 	if ok || err != nil {
 		if err != nil {
-			log.Ctx(ctx).Err(err).Msg("UploadBalancesAtEpoch")
+			log.Err(err).Msg("UploadBalancesAtEpoch")
 		}
 		return nil
 	}
@@ -63,19 +63,19 @@ func UploadBalancesAtEpoch(ctx context.Context, keyName string, balances []byte)
 	inMemFs := memfs.NewMemFs()
 	err = inMemFs.MakeFileIn(&p, balances)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("UploadBalancesAtEpoch: MakeFileIn %s", keyName)
+		log.Err(err).Msgf("UploadBalancesAtEpoch: MakeFileIn %s", keyName)
 		return err
 	}
 	comp := compression.NewCompression()
 	inMemFs, err = comp.Lz4CompressInMemFsFile(&p, inMemFs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("UploadBalancesAtEpoch: MakeFileIn %s", keyName)
+		log.Err(err).Msgf("UploadBalancesAtEpoch: MakeFileIn %s", keyName)
 		return err
 	}
 
 	err = uploader.UploadFromInMemFs(ctx, p, input, inMemFs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("UploadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
+		log.Err(err).Msgf("UploadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
 		return err
 	}
 	return err
@@ -103,7 +103,7 @@ func DownloadBalancesAtEpoch(ctx context.Context, keyName string) ([]byte, error
 	}
 	buf, err := downloader.ReadBytesNoPanic(ctx, p, input)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
+		log.Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
 		return nil, err
 	}
 	if buf.Len() <= 0 {
@@ -112,25 +112,25 @@ func DownloadBalancesAtEpoch(ctx context.Context, keyName string) ([]byte, error
 	}
 	err = inMemFs.MakeFileIn(p, buf.Bytes())
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
+		log.Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
 		return nil, err
 	}
 
 	ho, err := downloader.GetHeadObject(ctx, input)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("DownloadBalancesAtEpoch: GetHeadObject %s", keyName)
+		log.Err(err).Msgf("DownloadBalancesAtEpoch: GetHeadObject %s", keyName)
 		return nil, err
 	}
 
 	p.Metadata = ho.Metadata
 	inMemFs, err = comp.Lz4DecompressInMemFsFile(p, inMemFs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
+		log.Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
 		return nil, err
 	}
 	b, err := inMemFs.ReadFile(p.FileInPath())
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
+		log.Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
 		return nil, err
 	}
 	return b, err

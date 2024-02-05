@@ -1,7 +1,6 @@
 package zeus_core
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -13,7 +12,6 @@ type IngressTestSuite struct {
 }
 
 func (ing *IngressTestSuite) TestGetIngress() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
 
 	pods, err := ing.K.GetPodsUsingCtxNs(ctx, kns, nil, nil)

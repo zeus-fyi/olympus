@@ -35,6 +35,9 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc)
 	// external
 	InitV1ActionsRoutes(e, k8Cfg, mw)
 	InitV1RoutesUI(e, k8Cfg, mw)
+
+	// external secure
+	InitExtV1Routes(e, mw)
 	return e
 }
 
@@ -86,6 +89,31 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFun
 		},
 	}))
 	eg = zeus_v1_router.V1Routes(eg, k8Cfg)
+}
+
+func InitExtV1Routes(e *echo.Echo, mw echo.MiddlewareFunc) {
+	eg := e.Group("/ext/v1")
+	eg.Use(mw, middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(token string, c echo.Context) (bool, error) {
+			ctx := context.Background()
+			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+			if err == nil && cookie != nil {
+				log.Info().Msg("InitV1Routes: Cookie found")
+				token = cookie.Value
+			}
+			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
+			if err != nil {
+				log.Err(err).Msg("InitExtV1Routes")
+				return false, c.JSON(http.StatusUnauthorized, nil)
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("orgUser", ou)
+			c.Set("bearer", key.PublicKey)
+			return key.PublicKeyVerified, err
+		},
+	}))
+	eg = zeus_v1_router.ExtSecureIntegrationRoutes(eg)
 }
 
 func InitV1RoutesUI(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc) {

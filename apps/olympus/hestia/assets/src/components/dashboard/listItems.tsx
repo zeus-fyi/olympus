@@ -22,11 +22,17 @@ import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
-import {setOpenAiPanel, setOpenAppsPanel, setOpenComputePanel} from "../../redux/menus/menus.reducer";
+import {
+    setOpenAiPanel,
+    setOpenAppsPanel,
+    setOpenClustersPanel,
+    setOpenComputePanel
+} from "../../redux/menus/menus.reducer";
+import TuneIcon from '@mui/icons-material/Tune';
 
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(false);
-    const [openClusters, setOpenClusters] = React.useState(false);
+    const openClusters = useSelector((state: RootState) => state.menus.openClustersPanel);
     const openApps = useSelector((state: RootState) => state.menus.openAppsPanel);
     const isInternal = useSelector((state: RootState) => state.sessionState.isInternal);
     const openAiPanel = useSelector((state: RootState) => state.menus.openAiPanel);
@@ -34,6 +40,9 @@ export default function MainListItems() {
     const dispatch = useDispatch();
     const handleClickServices = () => {
         setOpenServices(!openServices);
+    };
+    const handleClickClusters = () => {
+        dispatch(setOpenClustersPanel(!openClusters));
     };
     const handleClickApps = () => {
         dispatch(setOpenAppsPanel(!openApps));
@@ -108,12 +117,23 @@ export default function MainListItems() {
                     </ListItemButton>
                 </List>
             </Collapse>
-            <ListItemButton  component={Link} to="/clusters">
+            <ListItemButton onClick={handleClickClusters} component={Link} to="/clusters">
                 <ListItemIcon>
                     <CloudIcon />
                 </ListItemIcon>
                 <ListItemText primary="Clusters"/>
+                {openClusters ? <ExpandLess onClick={handleClickClusters} /> : <ExpandMore onClick={handleClickClusters}/>}
             </ListItemButton>
+            <Collapse in={openClusters} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/clusters/config">
+                        <ListItemIcon>
+                            <TuneIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Config" />
+                    </ListItemButton>
+                </List>
+            </Collapse>
             <ListItemButton component={Link} to="/loadbalancing/dashboard">
                 <ListItemIcon>
                     <SwapCallsIcon />

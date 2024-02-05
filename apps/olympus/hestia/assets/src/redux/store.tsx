@@ -10,6 +10,7 @@ import loadbalancingReducer from "./loadbalancing/loadbalancing.reducer";
 import mevReducer from "./mev/mev.reducer";
 import aiReducer from "./ai/ai.reducer";
 import menusReducer from "./menus/menus.reducer";
+import clustersConfigsReducer from "./clusters/clusters.configs.reducer";
 
 const rootReducer = combineReducers({
     sessionState: sessionReducer,
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
     billing: billingReducer,
     ai: aiReducer,
     menus: menusReducer,
+    clustersConfigs: clustersConfigsReducer,
 });
 
 const store = configureStore({

@@ -30,6 +30,7 @@ import AiWorkflowsDashboard from "../components/ai/AI";
 import Secrets from "../components/secrets/Secrets";
 import AiWorkflowsEngineBuilderDashboard from "../components/ai/WorkflowBuilder";
 import {TwitterLogin} from "../components/login/TwitterLogin";
+import ClusterConfig from "../components/clusters/configs/ClustersConfig";
 
 export const App = () => {
     ReactGA.initialize([
@@ -69,6 +70,7 @@ export const App = () => {
                             <Route>
                                 <Route path="clusters"  element={<ProtectedLayout children={<Clusters />}/>}/>
                                 <Route path="clusters/:id" element={<ProtectedLayout children={<ClustersPage />}/>}/>
+                                <Route path="clusters/config"  element={<ProtectedLayout children={<ClusterConfig />}/>}/>
                             </Route>
                             <Route path="loadbalancing/dashboard" element={<ProtectedLayout children={<LoadBalancingDashboard />}/>}/>
                             <Route>

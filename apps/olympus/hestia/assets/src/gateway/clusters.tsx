@@ -1,5 +1,6 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
+import {ExtClusterConfig} from "../redux/clusters/clusters.configs.types";
 
 class ClustersApiGateway {
     async previewCreateCluster(params: any): Promise<any>  {
@@ -265,6 +266,43 @@ class ClustersApiGateway {
             return await zeusApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending get cluster topologies at cloud ctx ns request');
+            console.error(exc);
+            return exc
+        }
+    }
+    async getExtClustersConfigs(): Promise<any>  {
+        const url = `/ext/v1/clusters`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending cluster get request');
+            console.error(exc);
+            return exc
+        }
+    }
+    async putExtClustersConfigs(extClusters: ExtClusterConfig[]): Promise<any>  {
+        const url = `/ext/v1/clusters`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                'extClusterConfigs': extClusters
+            }
+            return await zeusApi.put(url, payload, config)
+        } catch (exc) {
+            console.error('error sending cluster get request');
             console.error(exc);
             return exc
         }

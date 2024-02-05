@@ -41,6 +41,15 @@ type FilterOpts struct {
 	DoesNotInclude []string
 }
 
+func (k *K8Util) GetRawConfigs() (clientcmdapi.Config, error) {
+	cfgs, err := k.kcCfg.RawConfig()
+	if err != nil {
+		log.Err(err).Msg("Zeus: GetRawConfigs, failed to get raw config")
+		return cfgs, err
+	}
+	return cfgs, err
+}
+
 func (k *K8Util) GetContexts() (map[string]*clientcmdapi.Context, error) {
 	cfg, err := k.kcCfg.RawConfig()
 	if err != nil {

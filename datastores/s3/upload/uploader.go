@@ -38,17 +38,17 @@ func (s *S3ClientUploader) Upload(ctx context.Context, p filepaths.Path, s3KeyVa
 		u.LeavePartsOnError = true // Don't delete the parts if the upload fails.
 	})
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("S3ClientUploader: uploader.Upload(ctx, s3KeyValue)")
+		log.Err(err).Msg("S3ClientUploader: uploader.Upload(ctx, s3KeyValue)")
 		return err
 	}
 	return err
 }
 
 func (s *S3ClientUploader) UploadFromInMemFs(ctx context.Context, p filepaths.Path, s3KeyValue *s3.PutObjectInput, inMemFs memfs.MemFS) error {
-	log.Ctx(ctx).Debug().Msg("UploadFromInMemFs")
+	log.Debug().Msg("UploadFromInMemFs")
 	f, err := inMemFs.Open(p.FileOutPath())
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("S3ClientUploader: UploadFromInMemFs: p.OpenFileInPath()")
+		log.Err(err).Msg("S3ClientUploader: UploadFromInMemFs: p.OpenFileInPath()")
 		return err
 	}
 	defer f.Close()
@@ -61,7 +61,7 @@ func (s *S3ClientUploader) UploadFromInMemFs(ctx context.Context, p filepaths.Pa
 	_, err = uploader.Upload(ctx, s3KeyValue, func(u *manager.Uploader) {
 	})
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("S3ClientUploader: UploadFromInMemFs: uploader.Upload(ctx, s3KeyValue)")
+		log.Err(err).Msg("S3ClientUploader: UploadFromInMemFs: uploader.Upload(ctx, s3KeyValue)")
 		return err
 	}
 	return err

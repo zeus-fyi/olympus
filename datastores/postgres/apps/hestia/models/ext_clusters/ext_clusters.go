@@ -2,10 +2,12 @@ package ext_clusters
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 const Sn = "extClusterConfigs"
@@ -39,8 +41,13 @@ func InsertOrUpdateExtClusterConfigs(ctx context.Context, ou org_users.OrgUser, 
              WHERE org_id = EXCLUDED.org_id;`
 
 	// Iterate over configs and execute the upsert operation for each
-	for _, config := range configs {
-		_, err = tx.Exec(ctx, stmt, ou.OrgID, config.CloudProvider, config.Region, config.Context, config.ContextAlias, config.Env)
+	for i, config := range configs {
+		ts := chronos.Chronos{}
+		if config.ExtConfigStrID == "" && config.ExtConfigID == 0 {
+			configs[i].ExtConfigID = ts.UnixTimeStampNow()
+			configs[i].ExtConfigStrID = fmt.Sprintf("%d", configs[i].ExtConfigID)
+		}
+		_, err = tx.Exec(ctx, stmt, configs[i].ExtConfigID, ou.OrgID, config.CloudProvider, config.Region, config.Context, config.ContextAlias, config.Env)
 		if err != nil {
 			log.Err(err).Msg("InsertOrUpdateExtClusterConfigs: failed to insert or update ext cluster config")
 			// Roll back the transaction in case of error and return

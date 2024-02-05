@@ -288,18 +288,6 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	var username string
 
 	secretNameRefApi := fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)
-	if strings.HasPrefix(secretNameRefApi, "api-reddit") {
-		username = strings.TrimPrefix(secretNameRefApi, "api-reddit-")
-	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, r.Ou, secretNameRefApi)
-	if ps != nil && ps.BearerToken != "" {
-		bearer = ps.BearerToken
-		log.Info().Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: using mockingbird secrets")
-	} else if err != nil {
-		log.Err(err).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get mockingbird secrets")
-		return nil, err
-	}
-
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             r.RouteInfo.RoutePath,
@@ -311,6 +299,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		Bearer:          bearer,
 		RequestHeaders:  r.Headers,
 		Username:        username,
+		SecretNameRef:   secretNameRefApi,
 	}
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {

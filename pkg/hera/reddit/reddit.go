@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
@@ -101,6 +102,36 @@ type RedditResponse struct {
 
 type Child struct {
 	Data *reddit.Post `json:"data"`
+}
+
+func (r *Reddit) GetRedditReq(ctx context.Context, path string, responseMap *echo.Map) (*resty.Response, error) {
+	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	r.Resty.SetHeader("User-Agent", ua)
+	resp, err := r.Resty.R().Get(path)
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, fmt.Errorf("error getting new posts")
+	}
+	return resp, nil
+}
+
+func (r *Reddit) PostRedditReq(ctx context.Context, path string, payload echo.Map, responseMap *echo.Map) (*resty.Response, error) {
+	ua := CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
+	r.Resty.SetHeader("User-Agent", ua)
+	resp, err := r.Resty.R().SetBody(&payload).SetResult(responseMap).Post(path)
+	if err != nil {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("resp", resp).Msg("Error getting new posts")
+		return nil, fmt.Errorf("error getting new posts")
+	}
+	return resp, nil
 }
 
 func (r *Reddit) GetMe(ctx context.Context) (*reddit.User, error) {

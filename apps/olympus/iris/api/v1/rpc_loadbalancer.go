@@ -12,7 +12,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
-	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
@@ -222,16 +221,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		}
 		headers[k] = v // Assuming there's at least one value
 	}
-	var bearer string
 	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), ou, secretNameRefApi)
-	if ps != nil && ps.BearerToken != "" {
-		bearer = ps.BearerToken
-		log.Info().Interface("routingTable", fmt.Sprintf("api-%s", routeGroup)).Msg("ProcessRpcLoadBalancerRequest: using mockingbird secrets")
-	} else if err != nil {
-		log.Err(err).Interface("routingTable", fmt.Sprintf("api-%s", routeGroup)).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
 	qps := c.QueryParams()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
@@ -247,7 +237,6 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		StatusCode:       http.StatusOK, // default
 		PayloadSizeMeter: payloadSizingMeter,
 		SecretNameRef:    secretNameRefApi,
-		Bearer:           bearer,
 	}
 	sfx := c.Get("capturedPath")
 	if sfx != nil {
@@ -259,11 +248,10 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(context.Background(), req)
 	if err != nil {
-		usingBearer := len(req.Bearer) > 0
 		if resp != nil {
-			log.Err(err).Interface("resp", string(resp.RawResponse)).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+			log.Err(err).Interface("resp", string(resp.RawResponse)).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
 		} else {
-			log.Err(err).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Interface("usingBearer", usingBearer).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+			log.Err(err).Interface("ou", ou).Str("route", path).Interface("extPath", req.ExtRoutePath).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
 		}
 		for key, values := range resp.ResponseHeaders {
 			for _, value := range values {

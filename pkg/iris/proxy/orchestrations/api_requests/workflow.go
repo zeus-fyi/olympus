@@ -40,7 +40,6 @@ type ApiProxyRequest struct {
 	Url                  string
 	OrgID                int
 	UserID               int
-	Bearer               string
 	Routes               []iris_models.RouteInfo
 	AdaptiveKeyName      string
 	MetricName           string
@@ -63,7 +62,6 @@ type ApiProxyRequest struct {
 	Latency              time.Duration
 	Procedure            iris_programmable_proxy_v1_beta.IrisRoutingProcedure
 	PayloadSizeMeter     *iris_usage_meters.PayloadSizeMeter
-	Username             string
 	SecretNameRef        string
 }
 

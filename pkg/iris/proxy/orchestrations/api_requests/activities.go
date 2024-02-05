@@ -10,6 +10,8 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
@@ -85,14 +87,49 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
 		return pr, err
 	}
+	var bearer string
+	if pr.SecretNameRef != "" {
+		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(pr.OrgID, pr.UserID), pr.SecretNameRef)
+		if ps != nil && ps.BearerToken != "" {
+			bearer = ps.BearerToken
+		} else if err != nil {
+			log.Err(err).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
+			return pr, err
+		}
+
+		if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
+			rc, rrr := hera_reddit.InitOrgRedditClient(ctx, ps.OAuth2Public, ps.OAuth2Secret, ps.Username, ps.Password)
+			if rrr != nil {
+				log.Err(rrr).Msg("ProcessRpcLoadBalancerRequest: failed to get reddit client")
+				return pr, rrr
+			}
+			switch pr.PayloadTypeREST {
+			case "GET":
+				resp, rerr := rc.GetRedditReq(ctx, pr.ExtRoutePath, &pr.Response)
+				if rerr != nil {
+					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to get reddit request")
+					return pr, rerr
+				}
+				return pr, nil
+			case "POST":
+				resp, rerr := rc.PostRedditReq(ctx, pr.ExtRoutePath, pr.Payload, &pr.Response)
+				if rerr != nil {
+					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to post reddit request")
+					return pr, rerr
+				}
+				return pr, nil
+			}
+		}
+	}
+
 	var r *resty.Client
 	r = resty.New()
 	r.SetBaseURL(pr.Url)
 	if pr.MaxTries > 0 {
 		r.SetRetryCount(pr.MaxTries)
 	}
-	if len(pr.Bearer) > 0 {
-		r.SetAuthToken(pr.Bearer)
+	if len(bearer) > 0 {
+		r.SetAuthToken(bearer)
 		log.Info().Msg("ExtLoadBalancerRequest: setting bearer token")
 	}
 
@@ -135,11 +172,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	if pr.PayloadSizeMeter == nil {
 		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 	}
-	if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
-		ua := hera_reddit.CreateFormattedStringRedditUA("web", "zeusfyi", "0.0.1", "zeus-fyi")
-		r.SetHeader("User-Agent", ua)
-		log.Info().Interface("ua", ua).Msg("ExtLoadBalancerRequest: setting user agent")
-	}
+
 	var resp *resty.Response
 	switch pr.PayloadTypeREST {
 	case "GET":

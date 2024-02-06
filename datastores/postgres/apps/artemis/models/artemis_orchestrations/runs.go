@@ -72,7 +72,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 							ai_res.metadata
 						FROM 
 							cte_a o 
-						LEFT JOIN
+						JOIN
 								public.ai_workflow_analysis_results ai_res ON ai_res.orchestration_id = o.orchestration_id
 						WHERE 
 							o.org_id = $1 
@@ -205,7 +205,13 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 							 LEFT JOIN cte_1 c1 ON ca.orchestration_id = c1.orchestration_id
 							 LEFT JOIN cte_00 c00 ON c00.orchestration_id = c1.orchestration_id
 							 LEFT JOIN cte_2 c2 ON c2.orchestration_id = c1.orchestration_id
-							 ORDER BY ca.orchestration_id DESC;`
+							 GROUP BY ca.orchestration_id,
+								ca.orchestration_id::text,
+								ca.orchestration_name,
+								ca.group_name,
+								ca.orchestration_type,
+								ca.active, c00.max_run_cycle, c00.total_workflow_token_usage, aggregated_data, aggregated_eval_results
+							  ORDER BY ca.orchestration_id DESC;`
 
 	log.Debug().Interface("SelectSystemOrchestrationsWithInstructionsByGroup", q.LogHeader(Orchestrations))
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID)

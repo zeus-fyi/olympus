@@ -50,54 +50,15 @@ func (s *AwsEKSTestSuite) TestGetKubeConfig() {
 		AccessKey: s.Tc.AwsZeusEksServiceAccessKey,
 		SecretKey: s.Tc.AwsZeusEksServiceSecretKey,
 	}
-	eka, err := InitAwsEKS(ctx, eksCreds)
-	s.Require().NoError(err)
 	clusterName := "zeus-eks-us-east-2"
 	// Retrieve cluster details
-	clusterInput := &eks.DescribeClusterInput{
-		Name: aws.String(clusterName),
+	eksCredsAuth := EksCredentials{
+		Creds:       eksCreds,
+		ClusterName: clusterName,
 	}
-	clusterOutput, err := eka.DescribeCluster(ctx, clusterInput)
-	s.Require().Nil(err)
-	s.Require().NotNil(clusterOutput)
 
-	clusterEndpoint := *clusterOutput.Cluster.Endpoint
-	clusterCA := *clusterOutput.Cluster.CertificateAuthority.Data
-	kubeConfig := KubeConfig{
-		APIVersion: "v1",
-		Kind:       "Config",
-		Clusters: []ClusterEntry{
-			{
-				Name: clusterName,
-				Cluster: ClusterInfo{
-					Server:                   clusterEndpoint,
-					CertificateAuthorityData: clusterCA,
-				},
-			},
-		},
-		Contexts: []ContextEntry{
-			{
-				Name: clusterName,
-				Context: ContextInfo{
-					Cluster: clusterName,
-					User:    clusterName,
-				},
-			},
-		},
-		CurrentContext: clusterName,
-		Users: []UserEntry{
-			{
-				Name: clusterName,
-				User: UserInfo{
-					Exec: ExecConfig{
-						APIVersion: "client.authentication.k8s.io/v1beta1",
-						Command:    "aws",
-						Args:       []string{"eks", "get-token", "--cluster-name", clusterName},
-					},
-				},
-			},
-		},
-	}
+	kubeConfig, err := GetKubeConfig(ctx, eksCredsAuth)
+	s.Require().NoError(err)
 
 	kubeConfigYAML, err := yaml.Marshal(&kubeConfig)
 	s.Require().Nil(err)
@@ -134,14 +95,6 @@ func (s *AwsEKSTestSuite) TestGetKubeConfig() {
 			fmt.Println(ns.Name)
 		}
 	}
-
-	// Write the kubeconfig to a file
-
-	//pathPrefix := "/Users/alex/go/Olympus/olympus/pkg/hestia/aws/"
-	//err = os.WriteFile(pathPrefix+"kubeconfig.yaml", kubeConfigYAML, 0600)
-	//s.Require().Nil(err)
-	//
-	//fmt.Println("Kubeconfig successfully written to kubeconfig.yaml")
 }
 
 func (s *AwsEKSTestSuite) TestCreateNodeGroup() {

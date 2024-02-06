@@ -33,6 +33,9 @@ type QuickNodeMarketplace struct {
 type TestContainer struct {
 	Env string
 
+	AwsZeusEksServiceAccessKey string
+	AwsZeusEksServiceSecretKey string
+
 	TelegramApiToken string
 	AwsS3AccessKey   string
 	AwsS3SecretKey   string
@@ -226,6 +229,9 @@ func InitLocalTestConfigs() TestContainer {
 	for i := 1; i < 9; i++ {
 		qn.Routes = append(qn.Routes, viper.GetString(fmt.Sprintf("QUIKNODE_%d", i)))
 	}
+	testCont.AwsZeusEksServiceAccessKey = viper.GetString("AWS_ZEUS_EKS_SERVICE_ACCESS_KEY")
+	testCont.AwsZeusEksServiceSecretKey = viper.GetString("AWS_ZEUS_EKS_SERVICE_SECRET_KEY")
+
 	testCont.DiscordBotToken = viper.GetString("DISCORD_BOT_TOKEN")
 	testCont.DiscordClientID = viper.GetString("DISCORD_CLIENT_ID")
 	testCont.DiscordClientSecret = viper.GetString("DISCORD_CLIENT_SECRET")

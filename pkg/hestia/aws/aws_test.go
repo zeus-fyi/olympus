@@ -8,10 +8,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/ghodss/yaml"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 var ctx = context.Background()
@@ -37,6 +42,106 @@ func (s *AwsEKSTestSuite) SetupTest() {
 	ecc, err := InitAwsEc2(ctx, eksCreds)
 	s.Require().NoError(err)
 	s.ecc = ecc
+}
+
+func (s *AwsEKSTestSuite) TestGetKubeConfig() {
+	eksCreds := aegis_aws_auth.AuthAWS{
+		Region:    "us-east-2",
+		AccessKey: s.Tc.AwsZeusEksServiceAccessKey,
+		SecretKey: s.Tc.AwsZeusEksServiceSecretKey,
+	}
+	eka, err := InitAwsEKS(ctx, eksCreds)
+	s.Require().NoError(err)
+	clusterName := "zeus-eks-us-east-2"
+	// Retrieve cluster details
+	clusterInput := &eks.DescribeClusterInput{
+		Name: aws.String(clusterName),
+	}
+	clusterOutput, err := eka.DescribeCluster(ctx, clusterInput)
+	s.Require().Nil(err)
+	s.Require().NotNil(clusterOutput)
+
+	clusterEndpoint := *clusterOutput.Cluster.Endpoint
+	clusterCA := *clusterOutput.Cluster.CertificateAuthority.Data
+	kubeConfig := KubeConfig{
+		APIVersion: "v1",
+		Kind:       "Config",
+		Clusters: []ClusterEntry{
+			{
+				Name: clusterName,
+				Cluster: ClusterInfo{
+					Server:                   clusterEndpoint,
+					CertificateAuthorityData: clusterCA,
+				},
+			},
+		},
+		Contexts: []ContextEntry{
+			{
+				Name: clusterName,
+				Context: ContextInfo{
+					Cluster: clusterName,
+					User:    clusterName,
+				},
+			},
+		},
+		CurrentContext: clusterName,
+		Users: []UserEntry{
+			{
+				Name: clusterName,
+				User: UserInfo{
+					Exec: ExecConfig{
+						APIVersion: "client.authentication.k8s.io/v1beta1",
+						Command:    "aws",
+						Args:       []string{"eks", "get-token", "--cluster-name", clusterName},
+					},
+				},
+			},
+		},
+	}
+
+	kubeConfigYAML, err := yaml.Marshal(&kubeConfig)
+	s.Require().Nil(err)
+
+	p := filepaths.Path{
+		PackageName: "",
+		DirIn:       "/.kube",
+		FnIn:        "config",
+	}
+
+	inMemFilestore := memfs.NewMemFs()
+	err = inMemFilestore.MakeFileIn(&p, kubeConfigYAML)
+	s.Require().Nil(err)
+
+	k := zeus_core.K8Util{}
+	k.ConnectToK8sFromInMemFsCfgPath(inMemFilestore)
+
+	ctxes, err := k.GetContexts()
+	s.Require().Nil(err)
+	s.Require().NotNil(ctxes)
+	for name, _ := range ctxes {
+		fmt.Println(name)
+
+		kctx := zeus_common_types.CloudCtxNs{
+			CloudProvider: "aws",
+			Region:        "us-east-2",
+			Context:       name,
+		}
+		nses, nerr := k.GetNamespaces(ctx, kctx)
+		s.Require().Nil(nerr)
+		s.Require().NotNil(nses)
+
+		for _, ns := range nses.Items {
+			fmt.Println(ns.Name)
+		}
+	}
+
+	// Write the kubeconfig to a file
+
+	//pathPrefix := "/Users/alex/go/Olympus/olympus/pkg/hestia/aws/"
+	//err = os.WriteFile(pathPrefix+"kubeconfig.yaml", kubeConfigYAML, 0600)
+	//s.Require().Nil(err)
+	//
+	//fmt.Println("Kubeconfig successfully written to kubeconfig.yaml")
 }
 
 func (s *AwsEKSTestSuite) TestCreateNodeGroup() {

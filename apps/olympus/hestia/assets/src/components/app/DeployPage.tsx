@@ -111,16 +111,6 @@ export function DeployPage(props: any) {
                     }
                     nodeMap[node.resourceID] = node;
                 });
-                //
-                // const disks = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.disks || [];
-                // // setDisksInCloudRegion(disks);
-                // if (disks.length > 0) {
-                //     setMonthlyPrice(disks[0].priceMonthly);
-                //     setSelectedDiskType(`${disks[0].type}-${disks[0].subType}`);
-                // } else {
-                //     setMonthlyPrice(0);
-                //     setSelectedDiskType('');
-                // }
                 return response;
             } catch (e) {
             }

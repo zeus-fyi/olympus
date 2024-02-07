@@ -64,7 +64,7 @@ export function ClusterConfigList(props: any) {
 
     return (
         <div>
-            {clusterConfigs.map((config, index) => (
+            {clusterConfigs && clusterConfigs.map((config, index) => (
                 <Stack key={index} direction="row">
                     <Box flexGrow={3} sx={{ mb: 0, mt: 2, mr: 1 }}>
                         <TextField

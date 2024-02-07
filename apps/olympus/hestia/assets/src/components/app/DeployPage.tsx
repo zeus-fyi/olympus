@@ -53,6 +53,14 @@ export function DeployPage(props: any) {
     const [freeTrial, setFreeTrial] = useState(false);
     let filteredNodes = nodes.filter((node) => cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes[0] || [])
     const [node, setNode] = useState(filteredNodes[0]);
+
+    let disks = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.disks || [];
+
+    const [monthlyPrice, setMonthlyPrice] = useState<number>(disks.length > 0 ? disks[0].priceMonthly : 0);
+
+    const [selectedDiskType, setSelectedDiskType] = useState<string>(
+        disks.length > 0 ? `${disks[0].type}-${disks[0].subType}` : 'ssd-block-storage'
+    );
     const dispatch = useDispatch();
     const params = useParams();
 
@@ -93,7 +101,6 @@ export function DeployPage(props: any) {
                     }
                 }
                 if (response.cloudRegionResourceMap) {
-                    console.log(response.cloudRegionResourceMap)
                     dispatch(setNodes( cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || []))
                 }
                 nodes = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || [];
@@ -104,6 +111,16 @@ export function DeployPage(props: any) {
                     }
                     nodeMap[node.resourceID] = node;
                 });
+                //
+                // const disks = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.disks || [];
+                // // setDisksInCloudRegion(disks);
+                // if (disks.length > 0) {
+                //     setMonthlyPrice(disks[0].priceMonthly);
+                //     setSelectedDiskType(`${disks[0].type}-${disks[0].subType}`);
+                // } else {
+                //     setMonthlyPrice(0);
+                //     setSelectedDiskType('');
+                // }
                 return response;
             } catch (e) {
             }
@@ -143,6 +160,19 @@ export function DeployPage(props: any) {
     // Generate the MenuItem components for each region
     const regionMenuItems = Object.keys(regions).map(region => (
         <MenuItem key={region} value={region}>{region}</MenuItem>
+    ));
+
+    const handleDiskTypeChange = (event: any) => {
+        const disksInRegion = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.disks || [];
+        const selectedDisk = disksInRegion.find(disk => `${disk.type}-${disk.subType}` === event.target.value);
+        if (selectedDisk) {
+            setSelectedDiskType(event.target.value);
+            setMonthlyPrice(selectedDisk.priceMonthly); // Update state with the selected disk's monthly price
+        }
+    };
+    const disksInRegion = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.disks || [];
+    const diskCloudRegionMenuItems = disksInRegion.map(disk => (
+        <MenuItem key={disk.type+'-'+disk.subType} value={disk.type+'-'+disk.subType}>{disk.type+'-'+disk.subType}</MenuItem>
     ));
 
     const handleIncrement = () => {
@@ -252,6 +282,23 @@ export function DeployPage(props: any) {
                 setRequestStatus('error');
             }
         }};
+
+    function handleChangeSelectRegion(region: string) {
+        const regionsMap = cloudProviderRegionsResourcesMap[cloudProvider];
+        const disks = regionsMap[region]?.disks || [];
+        // Check if there are any disks available and set related states
+        if (disks.length > 0) {
+            const firstDisk = disks[0];
+            setSelectedDiskType(`${firstDisk.type}-${firstDisk.subType}`);
+            setMonthlyPrice(firstDisk.priceMonthly);
+        } else {
+            // Handle the case where no disks are available for the first region of the selected provider
+            // This could be setting to default values or handling as a special case
+            setSelectedDiskType('ssd-block-storage'); // Or any other default/fallback value
+            setMonthlyPrice(0); // Assume no cost as a fallback
+        }
+        setRegion(region);
+    }
     function handleChangeSelectCloudProvider(cloudProvider: string) {
         setCloudProvider(cloudProvider);
         const regionsMap = cloudProviderRegionsResourcesMap[cloudProvider];
@@ -260,12 +307,30 @@ export function DeployPage(props: any) {
             // Get the first region's key from the regions map
             const firstRegion = Object.keys(regionsMap)[0];
             setRegion(firstRegion);
+
+            // Assuming disks are immediately available upon selecting a region
+            // and regionsMap is structured to include disks directly under each region
+            const disks = regionsMap[firstRegion]?.disks || [];
+
+            // Check if there are any disks available and set related states
+            if (disks.length > 0) {
+                const firstDisk = disks[0];
+                setSelectedDiskType(`${firstDisk.type}-${firstDisk.subType}`);
+                setMonthlyPrice(firstDisk.priceMonthly);
+            } else {
+                // Handle the case where no disks are available for the first region of the selected provider
+                // This could be setting to default values or handling as a special case
+                setSelectedDiskType('ssd-block-storage'); // Or any other default/fallback value
+                setMonthlyPrice(0); // Assume no cost as a fallback
+            }
         } else {
-            // Handle the case where no regions are available for the selected provider
-            // This could be setting to a default value or handling as a special case
+            // Handle the case where no regions (and thus no disks) are available for the selected provider
             setRegion(''); // Clear the region or set to a default/fallback value
+            setSelectedDiskType('ssd-block-storage'); // Reset or default value for disk type
+            setMonthlyPrice(0); // Reset or default value for monthly price
         }
     }
+
     useEffect(() => {
         nodesInRegion.forEach((node) => {
             if (node.resourceID === 0) {
@@ -285,9 +350,6 @@ export function DeployPage(props: any) {
         }
     }, [cloudProvider, region, nodeMap,node]);
 
-    function handleChangeSelectRegion(region: string) {
-        setRegion(region);
-    }
 
     function handleAddNode(resourceID: number) {
         if (resourceID in nodeMap) {
@@ -296,43 +358,16 @@ export function DeployPage(props: any) {
     }
     function totalCost() {
         let totalBlockStorageCost = 0;
-        // digitalOcean block storage
-        let monthlyDiskCost = 10
-        if (cloudProvider === 'gcp') {
-            monthlyDiskCost = 17
-        }
-        if (cloudProvider === 'aws') {
-            monthlyDiskCost = 12.88
-        }
-        if (cloudProvider === 'ovh') {
-            monthlyDiskCost = 12
-        }
-        if (cloudProvider === 'do') {
-            monthlyDiskCost = 12
-        }
         for (const resource of resourceRequirements) {
-            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * monthlyDiskCost * parseInt(resource.replicas));
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * monthlyPrice * parseInt(resource.replicas));
         }
         return node.priceMonthly * count + totalBlockStorageCost;
     }
     function totalHourlyCost() {
         let totalBlockStorageCost = 0;
-        // digitalOcean block storage
-        let hourlyDiskCost = 0.0137
-        if (cloudProvider === 'do') {
-            hourlyDiskCost = 0.0137
-        }
-        if (cloudProvider === 'gcp') {
-            hourlyDiskCost = 0.02329
-        }
-        if (cloudProvider === 'aws') {
-            hourlyDiskCost = 0.01765
-        }
-        if (cloudProvider == 'ovh') {
-            hourlyDiskCost = 0.01643835616
-        }
+
         for (const resource of resourceRequirements) {
-            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * hourlyDiskCost * parseInt(resource.replicas));
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * (monthlyPrice/730) * parseInt(resource.replicas));
         }
         let roundedNum = Math.ceil(node.priceHourly * Math.pow(10, 2)) / Math.pow(10, 2);
         return roundedNum * count + (totalBlockStorageCost);
@@ -522,6 +557,47 @@ export function DeployPage(props: any) {
                                         </Stack>
                                     </div>
                                 ))}
+                                {
+                                    (
+                                        disksInRegion.length > 0 &&
+                                        <div>
+                                            <Typography variant="h6" color="text.secondary">
+                                                Disk Type and Pricing
+                                            </Typography>
+                                            <Box sx={{mt: 2, mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <Select
+                                                    labelId="disk-type-select-label"
+                                                    id="disk-type-select"
+                                                    value={selectedDiskType || disksInRegion[0].type+'-'+disksInRegion[0].subType}
+                                                    label="Disk Type"
+                                                    sx={{ width: 200, mr: 2 }}
+                                                    onChange={handleDiskTypeChange}
+                                                >
+                                                    {diskCloudRegionMenuItems}
+                                                </Select>
+                                                <TextField
+                                                    value={monthlyPrice > 0 ?  monthlyPrice.toFixed(2) : disksInRegion[0].priceMonthly.toFixed(2)}
+                                                    fullWidth
+                                                    id={`monthlyPrice-${monthlyPrice}`}
+                                                    label="Monthly Cost ($)"
+                                                    variant="outlined"
+                                                    inputProps={{ readOnly: true }}
+                                                    sx={{ flex: 1, mr: 2 }}
+                                                />
+                                                <TextField
+                                                    value={monthlyPrice > 0 ?  (monthlyPrice/730).toFixed(4) : (disksInRegion[0].priceMonthly/730).toFixed(4)}
+                                                    fullWidth
+                                                    id={`hourlyPrice-${monthlyPrice}`}
+                                                    label="Hourly Cost ($)"
+                                                    variant="outlined"
+                                                    inputProps={{ readOnly: true }}
+                                                    sx={{ flex: 1, mr: 2 }}
+                                                />
+                                            </Box>
+                                        </div>
+
+                                    )
+                                }
                                 <Divider />
                                 <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
                                     <Typography variant="h6" color="text.secondary">
@@ -542,7 +618,7 @@ export function DeployPage(props: any) {
                                         id="hourlyCost"
                                         label="Hourly Cost ($)"
                                         variant="outlined"
-                                        value={node ? totalHourlyCost().toFixed(2) : ""}
+                                        value={node ? totalHourlyCost().toFixed(4) : ""}
                                         sx={{ flex: 1, mr: 2 }}
                                     />
                                     <CardActions >

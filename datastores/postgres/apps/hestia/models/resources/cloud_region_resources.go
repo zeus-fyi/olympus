@@ -135,7 +135,8 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 		di := hestia_autogen_bases.Disks{
 			DiskUnits:     "Gi",
 			ExtCfgStrID:   node.ExtCfgStrID,
-			Type:          node.DiskType,
+			Type:          "ssd",
+			SubType:       "block-storage",
 			Region:        node.Region,
 			CloudProvider: node.CloudProvider,
 		}
@@ -143,14 +144,22 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 		var ds hestia_autogen_bases.DisksSlice
 		switch node.CloudProvider {
 		case "do":
-			di.PriceHourly = 0.0137
-			di.PriceMonthly = di.PriceMonthly * 730
+			switch node.Region {
+			case "nyc1":
+				di.ResourceStrID = fmt.Sprintf("%d", 1681408553346545000)
+				di.PriceHourly = 0.0137
+			case "sfo3":
+				di.ResourceStrID = fmt.Sprintf("%d", 1681408541855876000)
+				di.PriceHourly = 0.0137
+			}
+			di.PriceMonthly = di.PriceHourly * 730
 			node.PriceHourly *= 1.00  // Add 10% to the price
 			node.PriceMonthly *= 1.00 // Add 10% to the price
 			ds = append(ds, di)
 		case "gcp":
+			di.ResourceStrID = fmt.Sprintf("%d", 1683165785839881000)
 			di.PriceHourly = 0.02329
-			di.PriceMonthly = di.PriceMonthly * 730
+			di.PriceMonthly = di.PriceHourly * 730
 			node.PriceHourly *= 1.00  // Add 40% to the price
 			node.PriceMonthly *= 1.00 // Add 40% to the price
 			ds = append(ds, di)
@@ -160,8 +169,9 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 			ds = GetDiskTypesAWS(node.Region)
 			//diskSlice := []hestia_autogen_bases.Disks{di}
 		case "ovh":
-			di.PriceMonthly = di.PriceMonthly * 730
+			di.ResourceStrID = fmt.Sprintf("%d", 1687637679066833000)
 			di.PriceHourly = 0.01643835616
+			di.PriceMonthly = di.PriceHourly * 730
 			node.PriceHourly *= 1.00  // Add 20% to the price
 			node.PriceMonthly *= 1.00 // Add 20% to the price
 			ds = append(ds, di)

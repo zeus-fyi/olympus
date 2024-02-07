@@ -73,11 +73,13 @@ export interface Resources {
 export interface Disks {
     extCfgStrID: string;
 
-    resourceID: number;
+    resourceStrID: string;
+    // resourceID: number;
     diskUnits: string;
     priceMonthly: number;
     description: string;
     type: string;
+    subType: string;
     diskSize: number;
     priceHourly: number;
     region: string;

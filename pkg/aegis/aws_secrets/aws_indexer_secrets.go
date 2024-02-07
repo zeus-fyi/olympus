@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 func GetTelegramToken(ctx context.Context, orgID int) (string, error) {
@@ -50,6 +51,43 @@ var (
 
 func ClearOrgSecretCache(ou org_users.OrgUser) {
 	SecretCache.Delete(FormatSecret(ou.OrgID))
+}
+
+func GetServiceAccountSecrets(ctx context.Context, ou org_users.OrgUser) (ServiceAccountPlatformSecrets, error) {
+	sps := ServiceAccountPlatformSecrets{
+		AwsEksServiceMap: make(map[string]aegis_aws_auth.AuthAWS),
+	}
+	m := make(map[string]SecretsKeyValue)
+	sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, FormatSecret(ou.OrgID))
+	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+		return sps, err
+	}
+	err = json.Unmarshal(sv, &m)
+	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+		return sps, err
+	}
+	for secretName, v := range m {
+		if strings.HasPrefix(secretName, "zeus-aws-eks-") {
+			secretNameWithoutPrefixSuffix := strings.TrimPrefix(secretName, "zeus-aws-eks-")
+			if _, ok := sps.AwsEksServiceMap[v.Key]; !ok {
+				sps.AwsEksServiceMap[v.Key] = aegis_aws_auth.AuthAWS{}
+			}
+			tmp := sps.AwsEksServiceMap[v.Key]
+			if strings.HasSuffix(secretName, "-service-account-access-key") {
+				tmp.AccessKey = v.Value
+				secretNameWithoutPrefixSuffix = strings.TrimSuffix(secretNameWithoutPrefixSuffix, "-service-account-access-key")
+			}
+			if strings.HasSuffix(secretName, "-service-account-secret-key") {
+				tmp.SecretKey = v.Value
+				secretNameWithoutPrefixSuffix = strings.TrimSuffix(secretNameWithoutPrefixSuffix, "-service-account-secret-key")
+			}
+			tmp.Region = secretNameWithoutPrefixSuffix
+			sps.AwsEksServiceMap[v.Key] = tmp
+		}
+	}
+	return sps, err
 }
 
 func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, platform string) (*OAuth2PlatformSecret, error) {
@@ -154,4 +192,8 @@ type OAuth2PlatformSecret struct {
 	AccessTokenPublic string `json:"accessTokenPublic,omitempty"`
 	AccessTokenSecret string `json:"accessTokenSecret,omitempty"`
 	BearerToken       string `json:"bearerToken,omitempty"`
+}
+
+type ServiceAccountPlatformSecrets struct {
+	AwsEksServiceMap map[string]aegis_aws_auth.AuthAWS `json:"awsEksServiceMap"`
 }

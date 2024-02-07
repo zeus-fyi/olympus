@@ -32,6 +32,7 @@ const mdTheme = createTheme();
 
 export function AppPageWrapper(props: any) {
     const {app} = props
+
     const [cloudProvider, setCloudProvider] = useState('do');
     const [region, setRegion] = useState('nyc1');
     const [open, setOpen] = React.useState(true);

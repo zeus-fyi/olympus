@@ -5,12 +5,12 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/ext_clusters"
 )
 
 type UpdateExtClustersRequest struct {
-	ExtClusterConfigs []ext_clusters.ExtClusterConfig `json:"extClusterConfigs"`
+	AuthorizedClusterConfigs []authorized_clusters.K8sClusterConfig `json:"authorizedClusterConfigs"`
 }
 
 func UpdateExtClustersRequestHandler(c echo.Context) error {
@@ -26,7 +26,7 @@ func (t *UpdateExtClustersRequest) UpdateExtClusterConfigs(c echo.Context) error
 	if ou.OrgID == 0 {
 		return c.JSON(http.StatusUnauthorized, "Unauthorized")
 	}
-	err := ext_clusters.InsertOrUpdateExtClusterConfigs(c.Request().Context(), ou, t.ExtClusterConfigs)
+	err := authorized_clusters.InsertOrUpdateK8sClusterConfigs(c.Request().Context(), ou, t.AuthorizedClusterConfigs)
 	if err != nil {
 		log.Err(err).Msg("UpdateExtClusterConfigs: InsertOrUpdateExtClusterConfigs")
 		return c.JSON(http.StatusInternalServerError, nil)

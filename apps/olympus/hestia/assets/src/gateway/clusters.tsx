@@ -1,6 +1,6 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
-import {ExtClusterConfig} from "../redux/clusters/clusters.configs.types";
+import {ClusterConfig} from "../redux/clusters/clusters.configs.types";
 
 class ClustersApiGateway {
     async previewCreateCluster(params: any): Promise<any>  {
@@ -270,8 +270,8 @@ class ClustersApiGateway {
             return exc
         }
     }
-    async getExtClustersConfigs(): Promise<any>  {
-        const url = `/ext/v1/clusters`;
+    async getAuthedClustersConfigs(): Promise<any>  {
+        const url = `/ext/v1/clusters/all`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -287,8 +287,25 @@ class ClustersApiGateway {
             return exc
         }
     }
-    async putExtClustersConfigs(extClusters: ExtClusterConfig[]): Promise<any>  {
-        const url = `/ext/v1/clusters`;
+    async getPrivateAuthedClustersConfigs(): Promise<any>  {
+        const url = `/ext/v1/clusters/private`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending cluster get request');
+            console.error(exc);
+            return exc
+        }
+    }
+    async putPrivateClustersConfigs(extClusters: ClusterConfig[]): Promise<any>  {
+        const url = `/ext/v1/clusters/private`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -298,7 +315,7 @@ class ClustersApiGateway {
                 withCredentials: true,
             }
             const payload = {
-                'extClusterConfigs': extClusters
+                'authorizedClusterConfigs': extClusters
             }
             return await zeusApi.put(url, payload, config)
         } catch (exc) {

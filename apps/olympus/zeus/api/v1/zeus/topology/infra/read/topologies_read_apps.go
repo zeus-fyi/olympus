@@ -217,6 +217,7 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	nf.Ou = ou
 	resourceMap, err := hestia_compute_resources.SelectNodesV2(ctx, nf)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")

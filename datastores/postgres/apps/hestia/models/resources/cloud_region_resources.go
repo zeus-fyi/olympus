@@ -2,6 +2,7 @@ package hestia_compute_resources
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -46,6 +47,8 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 	cpuRequestsCores := float64(cpuRequestsMilli) / 1000
 
 	qa := ""
+	qorg := ""
+
 	args := []interface{}{
 		memRequestsMegaBytes,
 		cpuRequestsCores,
@@ -54,21 +57,27 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 	switch strings.ToLower(nf.DiskType) {
 	case "nvme":
 		nf.DiskType = "nvme"
-		qa = " AND disk_type = $3"
 		args = append(args, nf.DiskType)
+		qa = fmt.Sprintf(" AND disk_type = $%d", len(args))
 	case "ssd":
 		nf.DiskType = "ssd"
-		qa = " AND disk_type = $3"
 		args = append(args, nf.DiskType)
+		args = append(args, nf.DiskType)
+		qa = fmt.Sprintf(" AND disk_type = $%d", len(args))
 	default:
-		nf.DiskType = "ssd"
 	}
+	if nf.Ou.OrgID > 0 {
+		args = append(args, nf.Ou.OrgID)
+		qorg = fmt.Sprintf(" OR org_id = $%d", len(args))
+	}
+
 	// Build the SQL query
 	q := `WITH user_auth_ctxs AS (
 			SELECT
 				cloud_provider,
 				region
 			FROM authorized_cluster_configs
+			WHERE is_public = true ` + qorg + ` 
 			GROUP BY cloud_provider, region
 		  )
 		  SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, n.region, n.cloud_provider, gpus, gpu_type

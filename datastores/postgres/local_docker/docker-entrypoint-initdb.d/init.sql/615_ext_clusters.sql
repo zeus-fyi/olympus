@@ -5,7 +5,8 @@ CREATE TABLE ext_cluster_configs (
     region            TEXT NOT NULL DEFAULT '',
     context           TEXT NOT NULL,
     context_alias     TEXT NOT NULL DEFAULT '',
-    env               TEXT NOT NULL DEFAULT 'test'
+    env               TEXT NOT NULL DEFAULT 'test',
+    is_active         BOOLEAN NOT NULL DEFAULT false
 );
 
 

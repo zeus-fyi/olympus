@@ -90,19 +90,6 @@ func GetServiceAccountSecrets(ctx context.Context, ou org_users.OrgUser) (Servic
 	return sps, err
 }
 
-func getRegion(serviceKey string) string {
-	// Split the string on `-`
-	parts := strings.Split(serviceKey, "-")
-
-	// Check if the parts length is at least 3 to avoid out of range errors
-	if len(parts) < 3 {
-		return ""
-	}
-
-	// The region would be everything after the second part
-	// Join back the remaining parts in case the region itself contains `-`
-	return strings.Join(parts[2:], "-")
-}
 func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, platform string) (*OAuth2PlatformSecret, error) {
 	m := make(map[string]SecretsKeyValue)
 	svCached, ok := SecretCache.Get(FormatSecret(ou.OrgID))

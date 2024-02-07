@@ -12,4 +12,5 @@ export interface ExtClusterConfig{
     context: string,
     contextAlias: string
     env: string,
+    isActive: boolean
 }

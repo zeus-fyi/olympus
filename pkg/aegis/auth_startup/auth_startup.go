@@ -26,6 +26,10 @@ type AuthConfig struct {
 	S3KeyValue   *s3.GetObjectInput
 }
 
+func (ac *AuthConfig) GetS3BaseClient() s3base.S3Client {
+	return ac.s3BaseClient
+}
+
 func FetchTemporalAuthBearer(ctx context.Context) string {
 	key, err := auth.FetchTemporalAuthToken(ctx)
 	if err != nil {
@@ -149,13 +153,13 @@ func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthCo
 	return s3SecretsReader.MemFS
 }
 
-func ExtClustersRunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, orgID int, authCfg AuthConfig) memfs.MemFS {
+func ExtClustersRunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthConfig, s3KeyValue *s3.GetObjectInput) memfs.MemFS {
 	log.Info().Msg("Zeus: ExtClustersRunDigitalOceanS3BucketObjAuthProcedure starting")
 
 	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
 	//log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Read Bytes")
-	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
+	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, s3KeyValue)
 	//log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure Done Read Bytes")
 
 	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())

@@ -162,27 +162,27 @@ export function ClusterSetupContent(props: any) {
                 >
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <Card sx={{ maxWidth: 1000 }}>
+                        <Card sx={{ maxWidth: 1200 }}>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="div">
                                     Cluster Config
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Set your uploaded private kubeconfig regions, cluster, names, and other settings here.
+                                    Uses your service account to retrieve your kubeconfig from your cluster. Currently only supports AWS EKS.
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    ZIP tar.gz your .kube folder and
-                                    with the following headers:
-                                    </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Authorization: Bearer API_Key
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    POST to <b>https://api.zeus.fyi/ext/v1/kubeconfig</b>
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    And we'll store an encrypted version of your kubeconfig in our vault for handling your orchestration requests.
-                                </Typography>
+                                {/*<Typography variant="body2" color="text.secondary">*/}
+                                {/*    ZIP tar.gz your .kube folder and*/}
+                                {/*    with the following headers:*/}
+                                {/*    </Typography>*/}
+                                {/*<Typography variant="body2" color="text.secondary">*/}
+                                {/*    Authorization: Bearer API_Key*/}
+                                {/*</Typography>*/}
+                                {/*<Typography variant="body2" color="text.secondary">*/}
+                                {/*    POST to <b>https://api.zeus.fyi/ext/v1/kubeconfig</b>*/}
+                                {/*</Typography>*/}
+                                {/*<Typography variant="body2" color="text.secondary">*/}
+                                {/*    And we'll store an encrypted version of your kubeconfig in our vault for handling your orchestration requests.*/}
+                                {/*</Typography>*/}
                             </CardContent>
                             <CardContent>
                                     <ClusterConfigList loading={loading} setIsLoading={setIsLoading} />

@@ -5,7 +5,7 @@ import {clustersApiGateway} from "../../../gateway/clusters";
 import {useDispatch, useSelector} from "react-redux";
 import {setExtClustersConfigs, updateExtClusterConfig} from "../../../redux/clusters/clusters.configs.reducer";
 import {RootState} from "../../../redux/store";
-import {Stack} from "@mui/material";
+import {FormControlLabel, Stack, Switch} from "@mui/material";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
@@ -59,6 +59,7 @@ export function ClusterConfigList(props: any) {
     }
 
     const handleChange = (index: number, field: string, value: any) => {
+        console.log('index', index, 'field', field, 'value', value)
         dispatch(updateExtClusterConfig({ index, changes: { [field]: value } }));
     };
 
@@ -88,6 +89,17 @@ export function ClusterConfigList(props: any) {
                     </Box>
                     <Box flexGrow={3} sx={{ mb: 0, mt: 2, mr: 1 }}>
                         <TextField
+                            label="Region"
+                            variant="outlined"
+                            value={config.region}
+                            InputProps={{
+                                readOnly: true,
+                            }}
+                            onChange={(e) => handleChange(index, 'region', e.target.value)}
+                        />
+                    </Box>
+                    <Box flexGrow={3} sx={{ mb: 0, mt: 2, mr: 1 }}>
+                        <TextField
                             label="Context Name"
                             variant="outlined"
                             value={config.context}
@@ -106,18 +118,23 @@ export function ClusterConfigList(props: any) {
                     </Box>
                     <Box flexGrow={3} sx={{ mb: 0, mt: 2, mr: 1 }}>
                         <TextField
-                            label="Region"
-                            variant="outlined"
-                            value={config.region}
-                            onChange={(e) => handleChange(index, 'region', e.target.value)}
-                        />
-                    </Box>
-                    <Box flexGrow={3} sx={{ mb: 0, mt: 2, mr: 1 }}>
-                        <TextField
                             label="Environment"
                             variant="outlined"
                             value={config.env}
                             onChange={(e) => handleChange(index, 'env', e.target.value)}
+                        />
+                    </Box>
+                    <Box flexGrow={3} sx={{ mb: 0, mt: 2, mr: 1 }}>
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={config.isActive || false}
+                                    onChange={(e) => handleChange(index, 'isActive', e.target.checked)}
+                                    name="contextToggle"
+                                    color="primary"
+                                />
+                            }
+                            label="Context Active"
                         />
                     </Box>
                 </Stack>

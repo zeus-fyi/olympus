@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -15,7 +14,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/ext_clusters"
 	s3uploader "github.com/zeus-fyi/olympus/datastores/s3/upload"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
-	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
@@ -43,21 +41,22 @@ func (t *CreateOrUpdateKubeConfigsRequest) CreateOrUpdateKubeConfig(c echo.Conte
 	if ou.OrgID == 0 {
 		return c.JSON(http.StatusUnauthorized, "Unauthorized")
 	}
-	fileResp, err := DecompressAndEncryptUserKubeConfigsWorkload(c)
-	if err != nil {
-		log.Err(err).Msg("CreateOrUpdateKubeConfig: DecompressUserKubeConfigsWorkload")
-		return err
-	}
-	err = EncAndUpload(c.Request().Context(), ou.OrgID, fileResp, AgeEnc)
-	if err != nil {
-		log.Err(err).Msg("CreateOrUpdateKubeConfig: EncAndUpload")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	return c.JSON(http.StatusOK, "ok")
+
+	//fileResp, err := DecompressAndEncryptUserKubeConfigsWorkload(c)
+	//if err != nil {
+	//	log.Err(err).Msg("CreateOrUpdateKubeConfig: DecompressUserKubeConfigsWorkload")
+	//	return err
+	//}
+	//err = EncAndUpload(c.Request().Context(), ou.OrgID, fileResp, AgeEnc)
+	//if err != nil {
+	//	log.Err(err).Msg("CreateOrUpdateKubeConfig: EncAndUpload")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	return c.JSON(http.StatusNotImplemented, nil)
 }
 
-func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryption.Age) error {
-	fn := fmt.Sprintf("%d.kube.tar.gz", orgID)
+func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryption.Age, kcf ext_clusters.ExtClusterConfig) error {
+	fn := fmt.Sprintf("%s.kube.tar.gz", kcf.GetHashedKey(orgID))
 	bucketName := "zeus-fyi"
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
@@ -74,56 +73,32 @@ func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryp
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: EncryptItem")
 		return err
 	}
-	uploader := s3uploader.NewS3ClientUploader(athena.AthenaS3Manager)
+	uploader := s3uploader.NewS3ClientUploader(KeysCfg.GetS3BaseClient())
 	err = uploader.UploadFromInMemFs(ctx, p, input, inMemFsEnc)
 	if err != nil {
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: Upload")
 		return err
 	}
-	inMemFsK8sConfig := auth_startup.ExtClustersRunDigitalOceanS3BucketObjAuthProcedure(ctx, orgID, KeysCfg)
+	inKey := &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(p.FnOut),
+	}
+	inMemFsK8sConfig := auth_startup.ExtClustersRunDigitalOceanS3BucketObjAuthProcedure(ctx, KeysCfg, inKey)
 	k := zeus_core.K8Util{}
 	k.ConnectToK8sFromInMemFsCfgPath(inMemFsK8sConfig)
-	rawCfg, err := k.GetRawConfigs()
+	ctxes, err := k.GetContexts()
 	if err != nil {
-		log.Err(err).Msg("CreateOrUpdateKubeConfig: GetRawConfigs")
+		log.Err(err).Msg("CreateOrUpdateKubeConfig: GetContexts")
 		return err
 	}
-	m := make(map[string]string)
-	for ctxName, ai := range rawCfg.Clusters {
-		if strings.Contains(ai.Server, "aws") {
-			m[ctxName] = "aws"
-			fmt.Println("aws command found")
-			continue
-		}
-		if strings.Contains(ai.Server, "ondigitalocean.com") || strings.Contains(ai.Server, "do") {
-			m[ctxName] = "do"
-			fmt.Println("digital ocean command found")
-			continue
-		}
-		if strings.Contains(ai.Server, "ovh") {
-			fmt.Println("ovh server found")
-			m[ctxName] = "ovh"
-			continue
-		}
-		if strings.Contains(ai.Server, "gke") || strings.Contains(ctxName, "gke") || strings.Contains(ctxName, "gcp") {
-			m[ctxName] = "gcp"
-			fmt.Println("gcp command found")
-			continue
-		}
+	for name, _ := range ctxes {
+		log.Info().Msgf("context name: %s", name)
 	}
-	var kcf []ext_clusters.ExtClusterConfig
-	for ctxVal, cpName := range m {
-		kcf = append(kcf, ext_clusters.ExtClusterConfig{
-			CloudProvider: cpName,
-			Context:       ctxVal,
-			ContextAlias:  ctxVal,
-			Env:           "none",
-		})
-	}
-	err = ext_clusters.InsertOrUpdateExtClusterConfigsUnique(ctx, org_users.NewOrgUserWithID(orgID, 0), kcf)
+	cfgs := []ext_clusters.ExtClusterConfig{kcf}
+	err = ext_clusters.InsertOrUpdateExtClusterConfigsUnique(ctx, org_users.NewOrgUserWithID(orgID, 0), cfgs)
 	if err != nil {
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: InsertOrUpdateExtClusterConfigs")
 		return err
 	}
-	return err
+	return nil
 }

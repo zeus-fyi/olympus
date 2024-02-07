@@ -52,20 +52,18 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 		nf.DiskType = "ssd"
 	}
 	// Build the SQL query
-	q := `SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, region, cloud_provider, gpus, gpu_type
-    	  FROM nodes
+	q := `WITH user_auth_ctxs AS (
+			SELECT cloud_provider, region FROM authorized_cluster_configs GROUP BY cloud_provider, region
+		  )
+		  SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, n.region, n.cloud_provider, gpus, gpu_type
+    	  FROM nodes n
+		  JOIN user_auth_ctxs uac ON n.cloud_provider = uac.cloud_provider AND n.region = uac.region
     	  WHERE memory >= $1 AND (vcpus + .1) >= $2 AND disk_type = $3
-		  AND (
-				(cloud_provider = 'do' AND price_monthly >= 12)
-				OR
-				(cloud_provider = 'gcp')
-		      	OR 
-				(cloud_provider = 'aws')
-		      	OR 
-				(cloud_provider = 'ovh')
-			  )
-		  AND (region = 'us-central1' OR region = 'nyc1' OR region = 'us-west-1' OR region = 'us-west-or-1')
-    	AND price_monthly < 3000
+			  AND (
+					(n.cloud_provider = 'do' AND n.price_monthly >= 12)
+					OR n.cloud_provider IN ('gcp', 'aws', 'ovh')
+				  )
+			  AND n.price_monthly < 3000
 		ORDER BY cloud_provider, price_hourly ASC;`
 	args := []interface{}{
 		memRequestsMegaBytes,

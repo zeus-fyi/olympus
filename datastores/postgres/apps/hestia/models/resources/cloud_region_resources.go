@@ -68,7 +68,7 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 	}
 	if nf.Ou.OrgID > 0 {
 		args = append(args, nf.Ou.OrgID)
-		qorg = fmt.Sprintf(" OR org_id = $%d", len(args))
+		qorg = fmt.Sprintf(" OR (org_id = $%d AND is_active = true)", len(args))
 	}
 
 	// Build the SQL query
@@ -77,7 +77,7 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 				cloud_provider,
 				region
 			FROM authorized_cluster_configs
-			WHERE is_public = true ` + qorg + ` 
+			WHERE (is_public = true AND is_active = true) ` + qorg + ` 
 			GROUP BY cloud_provider, region
 		  )
 		  SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, n.region, n.cloud_provider, gpus, gpu_type

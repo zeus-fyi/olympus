@@ -27,7 +27,7 @@ func (s *CloudResourcesTestSuite) TestCloudResourcesQuery() {
 		},
 		Ou: s.Ou,
 	}
-	//nf.Ou.OrgID = 1699642242976434000
+	nf.Ou.OrgID = 1699642242976434000
 
 	cm, err := SelectNodesV2(ctx, nf)
 	s.Require().NoError(err)

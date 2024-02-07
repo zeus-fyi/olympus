@@ -31,6 +31,7 @@ func (s *CloudResourcesTestSuite) TestCloudResourcesQuery() {
 	}
 	s.Require().NotNil(cloudResources)
 }
+
 func TestCloudResourcesTestSuite(t *testing.T) {
 	suite.Run(t, new(CloudResourcesTestSuite))
 }

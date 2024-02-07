@@ -279,5 +279,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	if cr.CloudCtxNs.CheckIfEmpty() {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
+
+	// TODO: use the disk type or id vs hardcoding the resource id
+	// TODO: update this to use the new structure
 	return zeus.ExecuteCreateSetupClusterWorkflow(c, ctx, cr)
 }

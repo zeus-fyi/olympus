@@ -170,7 +170,7 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 			}
 			rsMinMax, err = zeus_core.ApplyMinMaxConstraints(rs, rsMinMax)
 			if err != nil {
-				log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: ApplyMinMaxConstraints")
+				log.Err(err).Interface("orgUser", ou).Msg("GetAppDetailsRequestLookup: ReadTopologyChart: ApplyMinMaxConstraints")
 				return c.JSON(http.StatusInternalServerError, nil)
 			}
 			sbTemplate.ResourceSums = rs
@@ -214,13 +214,13 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 	}
 	nodes, err := hestia_compute_resources.SelectNodes(ctx, nf)
 	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")
+		log.Err(err).Interface("orgUser", ou).Msg("GetAppDetailsRequestLookup: ReadTopologyChart: SelectNodes")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	nf.Ou = ou
 	resourceMap, err := hestia_compute_resources.SelectNodesV2(ctx, nf)
 	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")
+		log.Err(err).Interface("orgUser", ou).Msg("GetAppDetailsRequestLookup: ReadTopologyChart: SelectNodes")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 

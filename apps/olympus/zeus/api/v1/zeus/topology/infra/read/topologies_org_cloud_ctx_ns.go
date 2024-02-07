@@ -13,13 +13,13 @@ import (
 func (t *TopologyReadRequest) ReadTopologiesOrgCloudCtxNs(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
-		log.Err(nil).Msg("ReadClusterAppViewOrgCloudCtxNs: orgUser not found")
+		log.Err(nil).Msg("ReadTopologiesOrgCloudCtxNs: orgUser not found")
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	ctx := context.Background()
 	resp, err := read_topologies.SelectTopologiesMetadata(ctx, ou.OrgID)
 	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectTopology")
+		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologiesOrgCloudCtxNs: SelectTopologiesMetadata")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, resp)
@@ -34,7 +34,7 @@ func (t *TopologyReadRequest) ReadClusterAppViewOrgCloudCtxNs(c echo.Context) er
 	ctx := context.Background()
 	resp, err := read_topologies.SelectClusterAppView(ctx, ou.OrgID)
 	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectTopology")
+		log.Err(err).Interface("orgUser", ou).Msg("ReadClusterAppViewOrgCloudCtxNs: SelectClusterAppView")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, resp)

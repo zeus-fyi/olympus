@@ -1,6 +1,7 @@
 import {AppsState, Nodes, TopologySystemComponentsSlice} from "./apps.types";
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {Cluster, ClusterPreview, ComponentBases, Ingress, IngressPaths} from "../clusters/clusters.types";
+import {CloudProviderRegionsResourcesMap} from "../resources/resources.types";
 
 const initialState: AppsState = {
     privateOrgApps: [],
@@ -28,6 +29,7 @@ const initialState: AppsState = {
         gpus: 0,
         gpuType: 'none',
     }],
+    cloudRegionResourceMap: {} as CloudProviderRegionsResourcesMap,
 }
 
 const appsSlice = createSlice({
@@ -55,8 +57,18 @@ const appsSlice = createSlice({
         setNodes: (state, action: PayloadAction<Nodes[]>) => {
             state.nodes = action.payload;
         },
+        setCloudRegionResourceMap: (state, action: PayloadAction<CloudProviderRegionsResourcesMap>) => {
+            state.cloudRegionResourceMap = action.payload;
+        },
     }
 });
 
-export const { setPublicMatrixFamilyApps, setNodes, setPrivateOrgApps,setClusterPreview, setCluster, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
+export const { setPublicMatrixFamilyApps,
+    setNodes,
+    setPrivateOrgApps,
+    setCloudRegionResourceMap,
+    setClusterPreview,
+    setCluster,
+    setSelectedSkeletonBaseName,
+    setSelectedComponentBaseName } = appsSlice.actions;
 export default appsSlice.reducer;

@@ -228,7 +228,7 @@ func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_
 
 	cp := "do"
 	region := "nyc1"
-	diskType := "ssd"
+	diskType := ""
 	switch {
 	case strings.Contains(selectedApp.ClusterClassName, "-aws"):
 		cp = "aws"
@@ -273,6 +273,13 @@ func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_
 			}
 		}
 	}
+	nf.DiskType = ""
+	resourceMap, err := hestia_compute_resources.SelectNodesV2(ctx, nf)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodesV2")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	resp.CloudRegionResourceMap = resourceMap
 	resp.Nodes = nodes
 	return c.JSON(http.StatusOK, resp)
 }

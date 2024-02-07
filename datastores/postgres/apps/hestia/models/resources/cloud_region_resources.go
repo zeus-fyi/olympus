@@ -13,6 +13,8 @@ import (
 // Resources represents a collection of nodes.
 type Resources struct {
 	Nodes hestia_autogen_bases.NodesSlice `json:"nodes"`
+	// TODO: should use a map instead of a slice
+	Disks hestia_autogen_bases.DisksSlice `json:"disks,omitempty"`
 }
 
 // RegionResourcesMap maps region names to their corresponding Resources.
@@ -43,33 +45,43 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 	cpuRequestsMilli := cpuRequests.MilliValue()
 	cpuRequestsCores := float64(cpuRequestsMilli) / 1000
 
+	qa := ""
+	args := []interface{}{
+		memRequestsMegaBytes,
+		cpuRequestsCores,
+	}
+
 	switch strings.ToLower(nf.DiskType) {
 	case "nvme":
 		nf.DiskType = "nvme"
+		qa = " AND disk_type = $3"
+		args = append(args, nf.DiskType)
+	case "ssd":
+		nf.DiskType = "ssd"
+		qa = " AND disk_type = $3"
+		args = append(args, nf.DiskType)
 	default:
 		nf.DiskType = "ssd"
 	}
 	// Build the SQL query
-	q := `SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, region, cloud_provider, gpus, gpu_type
-    	  FROM nodes
-    	  WHERE memory >= $1 AND (vcpus + .1) >= $2 AND disk_type = $3
-		  AND (
-				(cloud_provider = 'do' AND price_monthly >= 12)
-				OR
-				(cloud_provider = 'gcp')
-		      	OR 
-				(cloud_provider = 'aws')
-		      	OR 
-				(cloud_provider = 'ovh')
-			  )
-		  AND (region = 'us-central1' OR region = 'nyc1' OR region = 'us-west-1' OR region = 'us-west-or-1')
-    	AND price_monthly < 3000
+	q := `WITH user_auth_ctxs AS (
+			SELECT
+				cloud_provider,
+				region
+			FROM authorized_cluster_configs
+			GROUP BY cloud_provider, region
+		  )
+		  SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, n.region, n.cloud_provider, gpus, gpu_type
+    	  FROM nodes n
+		  JOIN user_auth_ctxs uac ON n.cloud_provider = uac.cloud_provider AND n.region = uac.region
+    	  WHERE memory >= $1 AND (vcpus + .1) >= $2 ` + qa + `
+			  AND (
+					(n.cloud_provider = 'do' AND n.price_monthly >= 12)
+					OR n.cloud_provider IN ('gcp', 'aws', 'ovh')
+				  )
+			  AND n.price_monthly < 3000
 		ORDER BY cloud_provider, price_hourly ASC;`
-	args := []interface{}{
-		memRequestsMegaBytes,
-		cpuRequestsCores,
-		nf.DiskType,
-	}
+
 	// Execute the SQL query
 	rows, err := apps.Pg.Query(ctx, q, args...)
 	if err != nil {
@@ -110,17 +122,27 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 				continue
 			}
 		}
+		di := hestia_autogen_bases.Disks{
+			DiskUnits:     "Gi",
+			Type:          node.DiskType,
+			Region:        node.Region,
+			CloudProvider: node.CloudProvider,
+		}
 		switch node.CloudProvider {
 		case "do":
+			di.PriceMonthly = 0.0137
 			node.PriceHourly *= 1.00  // Add 10% to the price
 			node.PriceMonthly *= 1.00 // Add 10% to the price
 		case "gcp":
+			di.PriceHourly = 0.02329
 			node.PriceHourly *= 1.00  // Add 40% to the price
 			node.PriceMonthly *= 1.00 // Add 40% to the price
 		case "aws":
+			di.PriceHourly = 0.01765
 			node.PriceHourly *= 1.00  // Add 40% to the price
 			node.PriceMonthly *= 1.00 // Add 40% to the price
 		case "ovh":
+			di.PriceHourly = 0.01643835616
 			node.PriceHourly *= 1.00  // Add 20% to the price
 			node.PriceMonthly *= 1.00 // Add 20% to the price
 		}

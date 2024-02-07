@@ -198,6 +198,37 @@ func (k *K8Util) ConnectToK8sFromInMemFsCfgPath(fs memfs.MemFS) {
 	log.Info().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath complete")
 }
 
+func (k *K8Util) ConnectToK8sFromInMemFsCfgPathOrErr(fs memfs.MemFS) error {
+	log.Info().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath starting")
+	var err error
+	b, err := fs.ReadFile("/.kube/config")
+	if err != nil {
+		log.Err(err).Msg("Zeus: ConnectToK8sFromInMemFsCfgPath, failed to read inmemfs kube config")
+		return err
+	}
+	cc, err := clientcmd.NewClientConfigFromBytes(b)
+	if err != nil {
+		log.Err(err).Msg("Zeus: ConnectToK8sFromInMemFsCfgPath, failed to set context")
+		misc.DelayedPanic(err)
+	}
+	k.kcCfg = cc
+	k.cfgAccess = cc.ConfigAccess()
+	k.clientCfg, err = cc.ClientConfig()
+	if err != nil {
+		log.Err(err).Msg("Zeus: ConnectToK8sFromInMemFsCfgPath, failed to set client config")
+		misc.DelayedPanic(err)
+	}
+	k.SetClient(k.clientCfg)
+	mclient, err := monitoringclient.NewForConfig(k.clientCfg)
+	if err != nil {
+		log.Err(err).Msg("Zeus: NewForConfig, failed to set client config")
+		misc.DelayedPanic(err)
+	}
+	k.mc = mclient
+	log.Info().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath complete")
+	return nil
+}
+
 func (k *K8Util) K8Printer(v interface{}, env string) (interface{}, error) {
 	//if k.PrintOn && k.FileName != "" {
 	//	if k.PrintPath == "" && env != "" {

@@ -9,7 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	hestia_eks_aws "github.com/zeus-fyi/olympus/pkg/hestia/aws"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
@@ -68,9 +67,6 @@ func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]authoriz
 			}
 			extClusterConfigs = append(extClusterConfigs, ec)
 		}
-
-		cmp := compression.NewCompression()
-		err = cmp.GzipCompressDir(&p)
 	}
 	return extClusterConfigs, perr
 }

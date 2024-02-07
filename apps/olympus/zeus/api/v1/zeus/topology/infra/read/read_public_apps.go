@@ -274,6 +274,7 @@ func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_
 		}
 	}
 	nf.DiskType = ""
+	nf.Ou = ou
 	resourceMap, err := hestia_compute_resources.SelectNodesV2(ctx, nf)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodesV2")

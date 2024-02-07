@@ -270,8 +270,8 @@ class ClustersApiGateway {
             return exc
         }
     }
-    async getExtClustersConfigs(): Promise<any>  {
-        const url = `/ext/v1/clusters`;
+    async getPrivateAuthedClustersConfigs(): Promise<any>  {
+        const url = `/ext/v1/clusters/private`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -287,8 +287,8 @@ class ClustersApiGateway {
             return exc
         }
     }
-    async putExtClustersConfigs(extClusters: ClusterConfig[]): Promise<any>  {
-        const url = `/ext/v1/clusters`;
+    async putPrivateClustersConfigs(extClusters: ClusterConfig[]): Promise<any>  {
+        const url = `/ext/v1/clusters/private`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -298,7 +298,7 @@ class ClustersApiGateway {
                 withCredentials: true,
             }
             const payload = {
-                'extClusterConfigs': extClusters
+                'authorizedClusterConfigs': extClusters
             }
             return await zeusApi.put(url, payload, config)
         } catch (exc) {

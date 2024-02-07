@@ -18,7 +18,7 @@ export default function ClusterConfig() {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const response = await clustersApiGateway.getExtClustersConfigs();
+                const response = await clustersApiGateway.getPrivateAuthedClustersConfigs();
                 dispatch(setClustersConfigs(response.data));
             } catch (error) {
                 console.log("error", error);
@@ -42,7 +42,7 @@ export function ClusterConfigList(props: any) {
     const putExtClusterConfigChanges = async (event: any) => {
         try {
             setIsLoading(true)
-            const response = await clustersApiGateway.putExtClustersConfigs(clusterConfigs);
+            const response = await clustersApiGateway.putPrivateClustersConfigs(clusterConfigs);
             const statusCode = response.status;
             if (statusCode < 400) {
                 // const data = response.data;

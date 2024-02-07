@@ -25,9 +25,9 @@ func (t *ReadAuthorizedClustersRequest) Read(c echo.Context) error {
 	if ou.OrgID == 0 {
 		return c.JSON(http.StatusUnauthorized, "Unauthorized")
 	}
-	extCfgs, err := authorized_clusters.SelectExtClusterConfigsByOrgID(c.Request().Context(), ou)
+	extCfgs, err := authorized_clusters.SelectAuthedClusterConfigsByOrgID(c.Request().Context(), ou)
 	if err != nil {
-		log.Err(err).Msg("ReadExtKubeConfig: SelectExtClusterConfigsByOrgID")
+		log.Err(err).Msg("ReadExtKubeConfig: SelectAuthedClusterConfigsByOrgID")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, extCfgs)

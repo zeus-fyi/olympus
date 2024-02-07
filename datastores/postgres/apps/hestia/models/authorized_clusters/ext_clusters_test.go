@@ -31,10 +31,18 @@ func (s *InsertExtClusterConfigsTestSuite) TestInsertExtClusterConfigs() {
 	err := InsertOrUpdateK8sClusterConfigs(ctx, s.Ou, pyl)
 	s.Require().Nil(err)
 
-	pylSelects, err := SelectExtClusterConfigsByOrgID(ctx, s.Ou)
+	pylSelects, err := SelectAuthedAndPublicClusterConfigsByOrgID(ctx, s.Ou)
 	s.Require().Nil(err)
 	s.Require().Len(pylSelects, 2)
 }
+func (s *InsertExtClusterConfigsTestSuite) TestSelectAuthedAndPublicClusterConfigsByOrgID() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	pylSelects, err := SelectAuthedAndPublicClusterConfigsByOrgID(ctx, s.Ou)
+	s.Require().Nil(err)
+	s.Require().Len(pylSelects, 2)
+}
+
 func TestInsertExtClusterConfigsTestSuite(t *testing.T) {
 	suite.Run(t, new(InsertExtClusterConfigsTestSuite))
 }

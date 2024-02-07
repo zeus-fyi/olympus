@@ -7,7 +7,7 @@ import (
 func ClusterAccessRoutes(e *echo.Group) *echo.Group {
 	e.GET("/clusters/all", ReadAuthorizedClustersRequestHandler)
 	e.GET("/clusters/private", ReadExtKubeConfigsHandler)
-	e.PUT("/clusters", UpdateExtClustersRequestHandler)
+	e.PUT("/clusters/private", UpdateExtClustersRequestHandler)
 	e.POST("/kubeconfig", CreateOrUpdateKubeConfigsHandler)
 	return nil
 }

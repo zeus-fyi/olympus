@@ -50,7 +50,8 @@ func InsertOrUpdateK8sClusterConfigs(ctx context.Context, ou org_users.OrgUser, 
              DO UPDATE SET 
                  region = EXCLUDED.region, 
                  context_alias = EXCLUDED.context_alias, 
-                 env = EXCLUDED.env;`
+                 env = EXCLUDED.env,
+				 is_active = EXCLUDED.is_active;`
 
 	// Iterate over configs and execute the upsert operation for each
 	for i, config := range configs {

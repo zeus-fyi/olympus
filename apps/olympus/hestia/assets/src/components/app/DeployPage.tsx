@@ -96,7 +96,7 @@ export function DeployPage(props: any) {
                     dispatch(setNodes(response.nodes))
                 }
                 nodes = response.nodes
-                filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+                const filteredNodes = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || [];
                 filteredNodes.forEach((node) => {
                     if (node.resourceID === 0) {
                         return;

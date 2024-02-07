@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/ext_clusters"
 	s3uploader "github.com/zeus-fyi/olympus/datastores/s3/upload"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
@@ -55,7 +55,7 @@ func (t *CreateOrUpdateKubeConfigsRequest) CreateOrUpdateKubeConfig(c echo.Conte
 	return c.JSON(http.StatusNotImplemented, nil)
 }
 
-func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryption.Age, kcf ext_clusters.ExtClusterConfig) error {
+func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryption.Age, kcf authorized_clusters.K8sClusterConfig) error {
 	fn := fmt.Sprintf("%s.kube.tar.gz", kcf.GetHashedKey(orgID))
 	bucketName := "zeus-fyi"
 	input := &s3.PutObjectInput{
@@ -94,8 +94,8 @@ func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryp
 	for name, _ := range ctxes {
 		log.Info().Msgf("context name: %s", name)
 	}
-	cfgs := []ext_clusters.ExtClusterConfig{kcf}
-	err = ext_clusters.InsertOrUpdateExtClusterConfigsUnique(ctx, org_users.NewOrgUserWithID(orgID, 0), cfgs)
+	cfgs := []authorized_clusters.K8sClusterConfig{kcf}
+	err = authorized_clusters.InsertOrUpdateExtClusterConfigsUnique(ctx, org_users.NewOrgUserWithID(orgID, 0), cfgs)
 	if err != nil {
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: InsertOrUpdateExtClusterConfigs")
 		return err

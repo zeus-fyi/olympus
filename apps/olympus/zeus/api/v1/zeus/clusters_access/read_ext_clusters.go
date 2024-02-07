@@ -6,8 +6,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/ext_clusters"
 	hestia_cluster_configs "github.com/zeus-fyi/olympus/pkg/hestia/cluster_configs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
 )
@@ -28,12 +28,12 @@ func (t *ReadPrivateClustersRequest) ReadExtKubeConfig(c echo.Context) error {
 	if ou.OrgID == 0 {
 		return c.JSON(http.StatusUnauthorized, "Unauthorized")
 	}
-	extCfgs, err := ext_clusters.SelectExtClusterConfigsByOrgID(c.Request().Context(), ou)
+	extCfgs, err := authorized_clusters.SelectExtClusterConfigsByOrgID(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Msg("ReadExtKubeConfig: SelectExtClusterConfigsByOrgID")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	m := make(map[string]ext_clusters.ExtClusterConfig)
+	m := make(map[string]authorized_clusters.K8sClusterConfig)
 	for _, cv := range extCfgs {
 		m[fmt.Sprintf("%s-%s-%s", cv.CloudProvider, cv.Context, cv.Region)] = cv
 	}

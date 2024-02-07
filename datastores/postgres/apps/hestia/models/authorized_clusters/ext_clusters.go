@@ -1,4 +1,4 @@
-package ext_clusters
+package authorized_clusters
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 
 const Sn = "extClusterConfigs"
 
-type ExtClusterConfig struct {
+type K8sClusterConfig struct {
 	ExtConfigStrID string `json:"extConfigStrID"`
 	ExtConfigID    int    `json:"extConfigID,omitempty"`
 	CloudProvider  string `json:"cloudProvider"`
@@ -24,17 +24,18 @@ type ExtClusterConfig struct {
 	ContextAlias   string `json:"contextAlias"`
 	Env            string `json:"env,omitempty"`
 	IsActive       bool   `json:"isActive,omitempty"`
+	IsPublic       bool   `json:"isPublic,omitempty"`
 
 	Path              filepaths.Path `json:"-"`
 	InMemFsKubeConfig memfs.MemFS    `json:"-"`
 }
 
-func (ecc *ExtClusterConfig) GetHashedKey(orgID int) string {
+func (ecc *K8sClusterConfig) GetHashedKey(orgID int) string {
 	orgStr := fmt.Sprintf("%d", orgID)
 	return fmt.Sprintf("%x", util.Keccak256([]byte(orgStr+ecc.CloudProvider+ecc.Region+ecc.Context)))
 }
 
-func InsertOrUpdateExtClusterConfigs(ctx context.Context, ou org_users.OrgUser, configs []ExtClusterConfig) error {
+func InsertOrUpdateK8sClusterConfigs(ctx context.Context, ou org_users.OrgUser, configs []K8sClusterConfig) error {
 	// Start a transaction
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
@@ -43,7 +44,7 @@ func InsertOrUpdateExtClusterConfigs(ctx context.Context, ou org_users.OrgUser, 
 	defer tx.Rollback(ctx)
 
 	// Prepare the SQL statement for inserting or updating
-	stmt := `INSERT INTO public.ext_cluster_configs (ext_config_id, org_id, cloud_provider, region, context, context_alias, env, is_active)
+	stmt := `INSERT INTO public.authorized_cluster_configs (ext_config_id, org_id, cloud_provider, region, context, context_alias, env, is_active)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              ON CONFLICT (ext_config_id)
              DO UPDATE SET 
@@ -69,7 +70,7 @@ func InsertOrUpdateExtClusterConfigs(ctx context.Context, ou org_users.OrgUser, 
 	return tx.Commit(ctx)
 }
 
-func InsertOrUpdateExtClusterConfigsUnique(ctx context.Context, ou org_users.OrgUser, configs []ExtClusterConfig) error {
+func InsertOrUpdateExtClusterConfigsUnique(ctx context.Context, ou org_users.OrgUser, configs []K8sClusterConfig) error {
 	// Start a transaction
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
@@ -78,7 +79,7 @@ func InsertOrUpdateExtClusterConfigsUnique(ctx context.Context, ou org_users.Org
 	defer tx.Rollback(ctx)
 
 	// Prepare the SQL statement for inserting or updating
-	stmt := `INSERT INTO public.ext_cluster_configs (ext_config_id, org_id, cloud_provider, region, context, context_alias, env, is_active)
+	stmt := `INSERT INTO public.authorized_cluster_configs (ext_config_id, org_id, cloud_provider, region, context, context_alias, env, is_active)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              ON CONFLICT (org_id, cloud_provider, context)
              DO NOTHING 

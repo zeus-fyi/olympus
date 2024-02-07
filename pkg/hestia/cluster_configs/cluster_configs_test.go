@@ -7,8 +7,8 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/ext_clusters"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	hestia_eks_aws "github.com/zeus-fyi/olympus/pkg/hestia/aws"
@@ -45,7 +45,7 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 	s.Require().Nil(perr)
 	s.Require().NotNil(ps)
 
-	var extClusterConfigs []ext_clusters.ExtClusterConfig
+	var extClusterConfigs []authorized_clusters.K8sClusterConfig
 	for clusterName, creds := range ps.AwsEksServiceMap {
 		eksCredsAuth := hestia_eks_aws.EksCredentials{
 			Creds:       creds,
@@ -92,7 +92,7 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 			for _, ns := range nses.Items {
 				fmt.Println(ns.Name)
 			}
-			ec := ext_clusters.ExtClusterConfig{
+			ec := authorized_clusters.K8sClusterConfig{
 				CloudProvider: "aws",
 				Region:        creds.Region,
 				Context:       name,

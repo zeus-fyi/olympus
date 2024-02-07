@@ -5,8 +5,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/ext_clusters"
 )
 
 type ReadAuthorizedClustersRequest struct {
@@ -25,7 +25,7 @@ func (t *ReadAuthorizedClustersRequest) Read(c echo.Context) error {
 	if ou.OrgID == 0 {
 		return c.JSON(http.StatusUnauthorized, "Unauthorized")
 	}
-	extCfgs, err := ext_clusters.SelectExtClusterConfigsByOrgID(c.Request().Context(), ou)
+	extCfgs, err := authorized_clusters.SelectExtClusterConfigsByOrgID(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Msg("ReadExtKubeConfig: SelectExtClusterConfigsByOrgID")
 		return c.JSON(http.StatusInternalServerError, nil)

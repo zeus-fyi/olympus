@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/ext_clusters"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -62,7 +61,7 @@ func (s *AwsEKSTestSuite) TestGetServiceSecret() {
 	s.Require().Nil(perr)
 	s.Require().NotNil(ps)
 
-	var extClusterConfigs []ext_clusters.ExtClusterConfig
+	var extClusterConfigs []authorized_clusters.ExtClusterConfig
 	for clusterName, creds := range ps.AwsEksServiceMap {
 		eksCredsAuth := EksCredentials{
 			Creds:       creds,
@@ -105,7 +104,7 @@ func (s *AwsEKSTestSuite) TestGetServiceSecret() {
 			for _, ns := range nses.Items {
 				fmt.Println(ns.Name)
 			}
-			ec := ext_clusters.ExtClusterConfig{
+			ec := authorized_clusters.ExtClusterConfig{
 				CloudProvider: "aws",
 				Region:        creds.Region,
 				Context:       name,

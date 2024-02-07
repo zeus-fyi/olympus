@@ -5,8 +5,8 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/ext_clusters"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	hestia_eks_aws "github.com/zeus-fyi/olympus/pkg/hestia/aws"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
@@ -15,8 +15,8 @@ import (
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 )
 
-func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]ext_clusters.ExtClusterConfig, error) {
-	var extClusterConfigs []ext_clusters.ExtClusterConfig
+func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]authorized_clusters.K8sClusterConfig, error) {
+	var extClusterConfigs []authorized_clusters.K8sClusterConfig
 
 	ps, perr := aws_secrets.GetServiceAccountSecrets(ctx, ou)
 	if perr != nil {
@@ -56,7 +56,7 @@ func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]ext_clus
 			return nil, err
 		}
 		for name, _ := range ctxes {
-			ec := ext_clusters.ExtClusterConfig{
+			ec := authorized_clusters.K8sClusterConfig{
 				CloudProvider:     "aws",
 				Region:            creds.Region,
 				Context:           name,

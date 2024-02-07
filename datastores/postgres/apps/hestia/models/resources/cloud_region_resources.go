@@ -110,17 +110,27 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 				continue
 			}
 		}
+		di := hestia_autogen_bases.Disks{
+			DiskUnits:     "Gi",
+			Type:          node.DiskType,
+			Region:        node.Region,
+			CloudProvider: node.CloudProvider,
+		}
 		switch node.CloudProvider {
 		case "do":
+			di.PriceMonthly = 0.0137
 			node.PriceHourly *= 1.00  // Add 10% to the price
 			node.PriceMonthly *= 1.00 // Add 10% to the price
 		case "gcp":
+			di.PriceHourly = 0.02329
 			node.PriceHourly *= 1.00  // Add 40% to the price
 			node.PriceMonthly *= 1.00 // Add 40% to the price
 		case "aws":
+			di.PriceHourly = 0.01765
 			node.PriceHourly *= 1.00  // Add 40% to the price
 			node.PriceMonthly *= 1.00 // Add 40% to the price
 		case "ovh":
+			di.PriceHourly = 0.01643835616
 			node.PriceHourly *= 1.00  // Add 20% to the price
 			node.PriceMonthly *= 1.00 // Add 20% to the price
 		}

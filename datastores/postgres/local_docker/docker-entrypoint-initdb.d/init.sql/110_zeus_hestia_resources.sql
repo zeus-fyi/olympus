@@ -39,6 +39,7 @@ CREATE TABLE disks (
    resource_id int8 NOT NULL REFERENCES resources(resource_id),
    description text NOT NULL,
    type text NOT NULL,
+   sub_type text NOT NULL DEFAULT '',
    disk_units text NOT NULL,
    disk_size int NOT NULL,
    price_monthly float8 NOT NULL,

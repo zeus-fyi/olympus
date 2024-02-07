@@ -3,6 +3,8 @@ package hestia_autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type Nodes struct {
+	ExtCfgStrID string `db:"ext_cfg_id" json:"extCfgStrID"`
+
 	Memory        int     `db:"memory" json:"memory"`
 	Vcpus         float64 `db:"vcpus" json:"vcpus"`
 	Disk          int     `db:"disk" json:"disk"`

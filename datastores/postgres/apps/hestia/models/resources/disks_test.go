@@ -73,21 +73,29 @@ func (s *DisksTestSuite) TestInsertDiskAws() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	gbInGi := 107.374
-	gbInGi *= 0.12
+	gbInGi *= 0.1
 	fmt.Println(gbInGi, gbInGi/730)
 	disk := hestia_autogen_bases.Disks{
 		PriceMonthly:  gbInGi,
 		PriceHourly:   gbInGi / 730,
-		Region:        "us-west-1",
+		Region:        "us-east-2",
 		CloudProvider: "aws",
 		Description:   "EBS gp2 Block Storage SSD",
 		Type:          "ssd",
+		SubType:       "gp2",
 		DiskSize:      100,
 		DiskUnits:     "Gi",
 	}
 	err := InsertDisk(ctx, disk)
 	s.Require().NoError(err)
 }
+
+/*
+TODO
+General Purpose SSD (gp3) - IOPS	3,000 IOPS free and $0.005/provisioned IOPS-month over 3,000
+General Purpose SSD (gp3) - Throughput	125 MB/s free and $0.040/provisioned MB/s-month over 125
+*/
+
 func TestDisksTestSuite(t *testing.T) {
 	suite.Run(t, new(DisksTestSuite))
 }

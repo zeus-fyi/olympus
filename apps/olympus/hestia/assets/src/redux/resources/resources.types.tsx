@@ -41,6 +41,7 @@ export interface NodeSearchRequest {
 }
 
 export interface Node {
+    extCfgStrID: string;
     memory: number;
     vcpus: number;
     disk: number;
@@ -60,15 +61,33 @@ export interface Node {
 
 export type NodesSlice = Node[];
 
-
 export interface RegionResourcesMap {
     [region: string]: Resources;
 }
 
 export interface Resources {
     nodes: Node[];
+    disks: Disks[];
 }
+
+export interface Disks {
+    extCfgStrID: string;
+
+    resourceStrID: string;
+    // resourceID: number;
+    diskUnits: string;
+    priceMonthly: number;
+    description: string;
+    type: string;
+    subType: string;
+    diskSize: number;
+    priceHourly: number;
+    region: string;
+    cloudProvider: string;
+}
+
 
 export interface CloudProviderRegionsResourcesMap {
     [provider: string]: RegionResourcesMap;
 }
+

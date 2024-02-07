@@ -2,7 +2,8 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {ClusterConfig, ClustersConfigsState} from "./clusters.configs.types";
 
 const initialState: ClustersConfigsState = {
-   clusterConfigs: [],
+    clusterConfigs: [],
+    authedClusterConfigs: [],
 }
 
 const clustersConfigsSlice = createSlice({
@@ -10,6 +11,9 @@ const clustersConfigsSlice = createSlice({
     initialState,
     reducers: {
         // Action to set the bundles state with an array of any type
+        setAuthedClustersConfigs: (state, action: PayloadAction<ClusterConfig[]>) => {
+            state.authedClusterConfigs = action.payload;
+        },
         setClustersConfigs: (state, action: PayloadAction<ClusterConfig[]>) => {
             state.clusterConfigs = action.payload;
         },
@@ -22,6 +26,6 @@ const clustersConfigsSlice = createSlice({
     },
 });
 
-export const { setClustersConfigs, updateClusterConfigs } = clustersConfigsSlice.actions;
+export const { setClustersConfigs, updateClusterConfigs, setAuthedClustersConfigs } = clustersConfigsSlice.actions;
 
 export default clustersConfigsSlice.reducer;

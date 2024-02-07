@@ -270,6 +270,23 @@ class ClustersApiGateway {
             return exc
         }
     }
+    async getAuthedClustersConfigs(): Promise<any>  {
+        const url = `/ext/v1/clusters/all`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending cluster get request');
+            console.error(exc);
+            return exc
+        }
+    }
     async getPrivateAuthedClustersConfigs(): Promise<any>  {
         const url = `/ext/v1/clusters/private`;
         try {

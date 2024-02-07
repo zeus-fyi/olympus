@@ -1,5 +1,6 @@
 export interface ClustersConfigsState {
     clusterConfigs: ClusterConfig[];
+    authedClusterConfigs: ClusterConfig[];
 }
 
 export interface ClusterConfig{

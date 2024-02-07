@@ -59,3 +59,16 @@ export interface Node {
 }
 
 export type NodesSlice = Node[];
+
+
+export interface RegionResourcesMap {
+    [region: string]: Resources;
+}
+
+export interface Resources {
+    nodes: Node[];
+}
+
+export interface CloudProviderRegionsResourcesMap {
+    [provider: string]: RegionResourcesMap;
+}

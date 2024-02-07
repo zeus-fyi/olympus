@@ -12,4 +12,3 @@ export interface ClusterConfig{
     env: string,
     isActive: boolean
 }
-

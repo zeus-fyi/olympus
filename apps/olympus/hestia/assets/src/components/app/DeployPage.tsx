@@ -45,6 +45,7 @@ interface NodeMap {
 export function DeployPage(props: any) {
     const {app, region, setRegion, cloudProvider, setCloudProvider} = props
     const cluster = useSelector((state: RootState) => state.apps.cluster);
+    const cloudProviderRegionsResourcesMap = useSelector((state: RootState) => state.apps.cloudRegionResourceMap);
     const resourceRequirements = createDiskResourceRequirements(cluster);
     let nodes = useSelector((state: RootState) => state.apps.nodes);
     const nodeMap: NodeMap = {};
@@ -130,6 +131,18 @@ export function DeployPage(props: any) {
         }
 
     }, [params.id, nodes, filteredNodes, nodeMap, cloudProvider, region]);
+
+    // Dynamically fetch the regions for the selected cloud provider
+    const regions = cloudProviderRegionsResourcesMap[cloudProvider] || {};
+    const nodesInRegion = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || [];
+    // const isNodeInMap = (resourceID) => nodesInRegion.some(node => node.resourceID === resourceID);
+    function isNodeInMap(resourceID: number) {
+        return nodesInRegion.some(node => node.resourceID === resourceID);
+    }
+    // Generate the MenuItem components for each region
+    const regionMenuItems = Object.keys(regions).map(region => (
+        <MenuItem key={region} value={region}>{region}</MenuItem>
+    ));
 
     const handleIncrement = () => {
         setCount(count + 1);
@@ -240,56 +253,41 @@ export function DeployPage(props: any) {
         }};
     function handleChangeSelectCloudProvider(cloudProvider: string) {
         setCloudProvider(cloudProvider);
-        if (cloudProvider === 'gcp') {
-            setRegion('us-central1');
-        }
-        if (cloudProvider === 'do') {
-            setRegion('nyc1');
-        }
-        if (cloudProvider === 'aws') {
-            setRegion('us-west-1');
-        }
-        if (cloudProvider === 'ovh') {
-            setRegion('us-west-or-1');
+        const regionsMap = cloudProviderRegionsResourcesMap[cloudProvider];
+
+        if (regionsMap && Object.keys(regionsMap).length > 0) {
+            // Get the first region's key from the regions map
+            const firstRegion = Object.keys(regionsMap)[0];
+            setRegion(firstRegion);
+        } else {
+            // Handle the case where no regions are available for the selected provider
+            // This could be setting to a default value or handling as a special case
+            setRegion(''); // Clear the region or set to a default/fallback value
         }
     }
     useEffect(() => {
-        filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
-        filteredNodes.forEach((node) => {
+        nodesInRegion.forEach((node) => {
             if (node.resourceID === 0) {
                 return;
             }
             nodeMap[node.resourceID] = node;
         });
 
-        if (filteredNodes.length > 0) {
+        if (nodesInRegion.length > 0) {
             if (node) {
                 if (!isNodeInMap(node.resourceID)) {
-                    setNode(filteredNodes[0]);
+                    setNode(nodesInRegion[0]);
                 }
             } else {
-                setNode(filteredNodes[0]);
+                setNode(nodesInRegion[0]);
             }
         }
     }, [cloudProvider, region, nodeMap,node]);
 
     function handleChangeSelectRegion(region: string) {
-        if (cloudProvider === 'aws') {
-            setRegion('us-west-1');
-        } else if (cloudProvider === 'gcp') {
-            setRegion('us-central1')
-        } else if (cloudProvider == 'ovh') {
-            setRegion('us-west-or-1');
-        } else if (cloudProvider == 'do') {
-            setRegion('nyc1');
-        } else {
-            setRegion(region);
-        }
+        setRegion(region);
     }
 
-    function isNodeInMap(resourceID: number) {
-        return resourceID in nodeMap;
-    }
     function handleAddNode(resourceID: number) {
         if (resourceID in nodeMap) {
             setNode(nodeMap[resourceID]);
@@ -395,22 +393,7 @@ export function DeployPage(props: any) {
                                             onChange={(event) => handleChangeSelectRegion(event.target.value)}
                                             label="Region"
                                         >
-                                            {
-                                                (() => {
-                                                    switch (cloudProvider) {
-                                                        case 'do':
-                                                            return <MenuItem value="nyc1">nyc1</MenuItem>;
-                                                        case 'gcp':
-                                                            return <MenuItem value="us-central1">us-central1</MenuItem>;
-                                                        case 'aws':
-                                                            return <MenuItem value="us-west-1">us-west-1</MenuItem>; // Add the respective region for AWS
-                                                        case 'ovh':
-                                                            return <MenuItem value="us-west-or-1">us-west-or-1</MenuItem>;
-                                                        default:
-                                                            return <MenuItem value="nyc1">nyc1</MenuItem>; // Default is for any other provider
-                                                    }
-                                                })()
-                                            }
+                                            {regionMenuItems}
                                         </Select>
                                     </FormControl>
                                 </Stack>
@@ -428,13 +411,11 @@ export function DeployPage(props: any) {
                                                 onChange={(event) => handleAddNode(event.target.value as number)}
                                                 label="Nodes"
                                             >
-                                                {nodes
-                                                    .filter((node) => node.cloudProvider === cloudProvider && node.region === region)
-                                                    .map((node) => (
-                                                        <MenuItem key={node.resourceID} value={node.resourceID}>
-                                                            {node.slug + ' ($' + node.priceMonthly.toFixed(2) + '/month)'}
-                                                        </MenuItem>
-                                                    ))}
+                                                {nodesInRegion.map((node) => (
+                                                    <MenuItem key={node.resourceID} value={node.resourceID}>
+                                                        {`${node.slug} ($${node.priceMonthly.toFixed(2)}/month)`}
+                                                    </MenuItem>
+                                                ))}
                                             </Select>
                                         </FormControl>
                                     }

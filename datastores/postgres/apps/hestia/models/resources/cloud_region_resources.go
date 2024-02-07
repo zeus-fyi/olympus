@@ -13,6 +13,8 @@ import (
 // Resources represents a collection of nodes.
 type Resources struct {
 	Nodes hestia_autogen_bases.NodesSlice `json:"nodes"`
+	// TODO: should use a map instead of a slice
+	Disks hestia_autogen_bases.DisksSlice `json:"disks,omitempty"`
 }
 
 // RegionResourcesMap maps region names to their corresponding Resources.

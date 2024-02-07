@@ -51,9 +51,10 @@ func (t *TopologyReadPrivateAppsRequest) ListPrivateAppsRequest(c echo.Context) 
 type TopologyUIAppDetailsResponse struct {
 	zeus_templates.Cluster                        `json:"cluster"`
 	zeus_templates.ClusterPreviewWorkloadsOlympus `json:"clusterPreview"`
-	SelectedComponentBaseName                     string                          `json:"selectedComponentBaseName"`
-	SelectedSkeletonBaseName                      string                          `json:"selectedSkeletonBaseName"`
-	Nodes                                         hestia_autogen_bases.NodesSlice `json:"nodes,omitempty"`
+	SelectedComponentBaseName                     string                                                    `json:"selectedComponentBaseName"`
+	SelectedSkeletonBaseName                      string                                                    `json:"selectedSkeletonBaseName"`
+	Nodes                                         hestia_autogen_bases.NodesSlice                           `json:"nodes,omitempty"`
+	CloudRegionResourceMap                        hestia_compute_resources.CloudProviderRegionsResourcesMap `json:"cloudRegionResourceMap,omitempty"`
 }
 
 func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequest(c echo.Context) error {
@@ -216,6 +217,12 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	resourceMap, err := hestia_compute_resources.SelectNodesV2(ctx, nf)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
 	if strings.Contains(apps.ClusterClassName, "sui-") {
 		for i, _ := range nodes {
 			switch {
@@ -225,5 +232,6 @@ func (t *TopologyReadPrivateAppsRequest) GetAppDetailsRequestLookup(c echo.Conte
 		}
 	}
 	resp.Nodes = nodes
+	resp.CloudRegionResourceMap = resourceMap
 	return c.JSON(http.StatusOK, resp)
 }

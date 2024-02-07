@@ -29,7 +29,6 @@ func (s *CloudResourcesTestSuite) TestCloudResourcesQuery() {
 	cm, err := SelectNodesV2(ctx, nf)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(cm)
-
 }
 
 func (s *CloudResourcesTestSuite) TestCloudResourcesStruct() {

@@ -20,6 +20,7 @@ import Container from "@mui/material/Container";
 import {appsApiGateway} from "../../gateway/apps";
 import {RootState} from "../../redux/store";
 import {
+    setCloudRegionResourceMap,
     setCluster,
     setClusterPreview,
     setNodes,
@@ -84,6 +85,9 @@ export function AppPageWrapper(props: any) {
                         selectedSkeletonBaseName = sbs[0];
                         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
                     }
+                }
+                if (response.cloudRegionResourceMap) {
+                    dispatch(setCloudRegionResourceMap(response.cloudRegionResourceMap))
                 }
                 if (response.nodes.length > 0) {
                     dispatch(setNodes(response.nodes))

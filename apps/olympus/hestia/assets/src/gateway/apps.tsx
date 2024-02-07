@@ -2,6 +2,7 @@ import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
 import {Nodes, TopologySystemComponents} from "../redux/apps/apps.types";
 import {Cluster, ClusterPreview} from "../redux/clusters/clusters.types";
+import {CloudProviderRegionsResourcesMap} from "../redux/resources/resources.types";
 
 class AppsApiGateway {
     async getPrivateApps(): Promise<TopologySystemComponents[]>  {
@@ -176,4 +177,5 @@ export interface AppPageResponse {
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;
     nodes: Nodes[];
+    cloudRegionResourceMap: CloudProviderRegionsResourcesMap;
 }

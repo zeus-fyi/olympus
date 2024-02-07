@@ -3,7 +3,7 @@ import {useEffect} from "react";
 import {ClusterSetupContent} from "./ClustersSetup";
 import {clustersApiGateway} from "../../../gateway/clusters";
 import {useDispatch, useSelector} from "react-redux";
-import {setExtClustersConfigs, updateExtClusterConfig} from "../../../redux/clusters/clusters.configs.reducer";
+import {setClustersConfigs, updateClusterConfigs} from "../../../redux/clusters/clusters.configs.reducer";
 import {RootState} from "../../../redux/store";
 import {FormControlLabel, Stack, Switch} from "@mui/material";
 import Box from "@mui/material/Box";
@@ -19,7 +19,7 @@ export default function ClusterConfig() {
             setIsLoading(true);
             try {
                 const response = await clustersApiGateway.getExtClustersConfigs();
-                dispatch(setExtClustersConfigs(response.data));
+                dispatch(setClustersConfigs(response.data));
             } catch (error) {
                 console.log("error", error);
             } finally {
@@ -59,8 +59,7 @@ export function ClusterConfigList(props: any) {
     }
 
     const handleChange = (index: number, field: string, value: any) => {
-        console.log('index', index, 'field', field, 'value', value)
-        dispatch(updateExtClusterConfig({ index, changes: { [field]: value } }));
+        dispatch(updateClusterConfigs({ index, changes: { [field]: value } }));
     };
 
     return (

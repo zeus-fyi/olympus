@@ -4,8 +4,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func ExternalDeployRoutes(e *echo.Group) *echo.Group {
-	e.GET("/clusters", ReadExtKubeConfigsHandler)
+func ClusterAccessRoutes(e *echo.Group) *echo.Group {
+	e.GET("/clusters/all", ReadAuthorizedClustersRequestHandler)
+	e.GET("/clusters/private", ReadExtKubeConfigsHandler)
 	e.PUT("/clusters", UpdateExtClustersRequestHandler)
 	e.POST("/kubeconfig", CreateOrUpdateKubeConfigsHandler)
 	return nil

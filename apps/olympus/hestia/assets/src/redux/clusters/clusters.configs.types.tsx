@@ -1,11 +1,8 @@
-
-
 export interface ClustersConfigsState {
-    clusterConfigs: ExtClusterConfig[];
+    clusterConfigs: ClusterConfig[];
 }
 
-
-export interface ExtClusterConfig{
+export interface ClusterConfig{
     extConfigStrID: string,
     cloudProvider: string,
     region: string,
@@ -14,3 +11,4 @@ export interface ExtClusterConfig{
     env: string,
     isActive: boolean
 }
+

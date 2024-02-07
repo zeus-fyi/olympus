@@ -30,7 +30,7 @@ import (
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	pods_workflows "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/pods"
 	router "github.com/zeus-fyi/olympus/zeus/api"
-	zeus_v1_clusters_api "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/ext_clusters"
+	zeus_v1_clusters_api "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/clusters_access"
 	read_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/read"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"

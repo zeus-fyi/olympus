@@ -113,7 +113,7 @@ func InitExtV1Routes(e *echo.Echo, mw echo.MiddlewareFunc) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	eg = zeus_v1_router.ExtSecureIntegrationRoutes(eg)
+	eg = zeus_v1_router.ClusterAccessRoutes(eg)
 }
 
 func InitV1RoutesUI(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc) {

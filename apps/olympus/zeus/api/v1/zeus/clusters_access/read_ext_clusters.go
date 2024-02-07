@@ -12,18 +12,18 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
 )
 
-type ReadExtClustersRequest struct {
+type ReadPrivateClustersRequest struct {
 }
 
 func ReadExtKubeConfigsHandler(c echo.Context) error {
-	request := new(ReadExtClustersRequest)
+	request := new(ReadPrivateClustersRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
 	return request.ReadExtKubeConfig(c)
 }
 
-func (t *ReadExtClustersRequest) ReadExtKubeConfig(c echo.Context) error {
+func (t *ReadPrivateClustersRequest) ReadExtKubeConfig(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	if ou.OrgID == 0 {
 		return c.JSON(http.StatusUnauthorized, "Unauthorized")

@@ -1,6 +1,6 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
-import {ExtClusterConfig} from "../redux/clusters/clusters.configs.types";
+import {ClusterConfig} from "../redux/clusters/clusters.configs.types";
 
 class ClustersApiGateway {
     async previewCreateCluster(params: any): Promise<any>  {
@@ -287,7 +287,7 @@ class ClustersApiGateway {
             return exc
         }
     }
-    async putExtClustersConfigs(extClusters: ExtClusterConfig[]): Promise<any>  {
+    async putExtClustersConfigs(extClusters: ClusterConfig[]): Promise<any>  {
         const url = `/ext/v1/clusters`;
         try {
             const sessionID = inMemoryJWT.getToken();

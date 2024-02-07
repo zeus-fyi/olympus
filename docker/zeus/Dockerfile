@@ -77,6 +77,19 @@ WORKDIR /app
 RUN git clone https://github.com/zeus-fyi/zeus.git --branch main --single-branch
 RUN cp -r zeus/cookbooks .
 
+# Stage 1: Download and unpack Helm
+FROM ubuntu:22.04 as helm-installer
+ARG HELM_VERSION=v3.0.0
+
+# Install dependencies needed to fetch and unpack Helm
+RUN apt-get update && apt-get install -y curl tar && rm -rf /var/lib/apt/lists/*
+
+# Download and unpack Helm
+WORKDIR /tmp
+RUN curl -LO https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz \
+    && tar -zxvf helm-${HELM_VERSION}-linux-amd64.tar.gz
+
+
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates unzip less
 
@@ -90,6 +103,9 @@ COPY --from=doctl /app/doctl /usr/local/bin
 COPY --from=gcp /app/google-cloud-cli.tar.gz /
 
 COPY --from=aws_cli /app/awscliv2.zip /
+
+# Copy the Helm binary from the helm-installer stage
+COPY --from=helm-installer /tmp/linux-amd64/helm /usr/local/bin/helm
 
 RUN unzip awscliv2.zip
 RUN rm awscliv2.zip

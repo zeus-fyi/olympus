@@ -41,6 +41,7 @@ export interface NodeSearchRequest {
 }
 
 export interface Node {
+    extCfgStrID: string;
     memory: number;
     vcpus: number;
     disk: number;

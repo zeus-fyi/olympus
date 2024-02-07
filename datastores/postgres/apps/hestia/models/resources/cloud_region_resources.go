@@ -14,7 +14,6 @@ import (
 // Resources represents a collection of nodes.
 type Resources struct {
 	Nodes hestia_autogen_bases.NodesSlice `json:"nodes"`
-	// TODO: should use a map instead of a slice
 	Disks hestia_autogen_bases.DisksSlice `json:"disks,omitempty"`
 }
 
@@ -74,13 +73,14 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 	// Build the SQL query
 	q := `WITH user_auth_ctxs AS (
 			SELECT
+				ext_config_id::text,
 				cloud_provider,
 				region
 			FROM authorized_cluster_configs
 			WHERE (is_public = true AND is_active = true) ` + qorg + ` 
-			GROUP BY cloud_provider, region
+			GROUP BY ext_config_id, cloud_provider, region
 		  )
-		  SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, n.region, n.cloud_provider, gpus, gpu_type
+		  SELECT uac.ext_config_id, resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, n.region, n.cloud_provider, gpus, gpu_type
     	  FROM nodes n
 		  JOIN user_auth_ctxs uac ON n.cloud_provider = uac.cloud_provider AND n.region = uac.region
     	  WHERE memory >= $1 AND (vcpus + .1) >= $2 ` + qa + `
@@ -105,6 +105,7 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 	for rows.Next() {
 		var node hestia_autogen_bases.Nodes
 		err = rows.Scan(
+			&node.ExtCfgStrID,
 			&node.ResourceID,
 			&node.Description,
 			&node.Slug,
@@ -133,6 +134,7 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 		}
 		di := hestia_autogen_bases.Disks{
 			DiskUnits:     "Gi",
+			ExtCfgStrID:   node.ExtCfgStrID,
 			Type:          node.DiskType,
 			Region:        node.Region,
 			CloudProvider: node.CloudProvider,

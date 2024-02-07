@@ -389,7 +389,7 @@ export function DeployPage(props: any) {
                                             labelId={`regionLabel`}
                                             id={`region`}
                                             name="region"
-                                            value={region}
+                                            value={region in regions ? region : ''}
                                             onChange={(event) => handleChangeSelectRegion(event.target.value)}
                                             label="Region"
                                         >

@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -16,6 +17,7 @@ type NodeFilter struct {
 	Region        string                 `json:"region"`
 	DiskType      string                 `json:"diskType,omitempty"`
 	ResourceSums  zeus_core.ResourceSums `json:"resourceSums"`
+	Ou            org_users.OrgUser      `json:"ou"`
 }
 
 func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.NodesSlice, error) {

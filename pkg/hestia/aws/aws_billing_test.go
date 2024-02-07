@@ -51,15 +51,16 @@ i4i.8xlarge	$3.027	32	256 GiB	2 x 3750 NVMe SSD	18750 Megabit
 func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	instanceTypes := []string{
-		//"i3.4xlarge",
-		//"i3.8xlarge",
-		//"i4i.4xlarge",
-		//"i4i.8xlarge",
+		"i3.4xlarge",
+		"i3.8xlarge",
+		"i4i.4xlarge",
+		"i4i.8xlarge",
 	}
+	region := "us-east-2"
 
 	n := hestia_autogen_bases.NodesSlice{}
 	for _, instanceType := range instanceTypes {
-		prices, err := s.pc.GetEC2Product(ctx, UsWest1, instanceType)
+		prices, err := s.pc.GetEC2Product(ctx, region, instanceType)
 		s.Require().NoError(err)
 		fmt.Printf("%s\n", instanceType)
 		for _, price := range prices {
@@ -96,7 +97,7 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 			dbSize.PriceHourly = usdCost
 			dbSize.CloudProvider = "aws"
 			dbSize.Vcpus = vcpus
-			dbSize.Region = UsWest1
+			dbSize.Region = region
 			dbSize.PriceMonthly = usdCost * 730
 			dbSize.Memory = memInt * 1024
 			dbSize.MemoryUnits = "MiB"
@@ -104,6 +105,8 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 			n = append(n, dbSize)
 		}
 	}
+
+	s.Require().NotEmpty(n)
 	//
 	err := hestia_compute_resources.InsertNodes(ctx, n)
 	s.Require().NoError(err)

@@ -48,7 +48,7 @@ func SearchAndSelectNodesV2(ctx context.Context, nf nodes.NodeSearchParams) (Clo
 			cloudProviders = append(cloudProviders, cp)
 			for _, region := range regions {
 				switch region {
-				case "us-west-1":
+				case "us-west-1", "us-east-2":
 					regionConditions = append(regionConditions, region)
 				}
 			}

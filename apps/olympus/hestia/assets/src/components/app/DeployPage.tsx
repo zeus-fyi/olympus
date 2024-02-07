@@ -51,7 +51,7 @@ export function DeployPage(props: any) {
     const nodeMap: NodeMap = {};
     const [count, setCount] = useState(0);
     const [freeTrial, setFreeTrial] = useState(false);
-    let filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+    let filteredNodes = nodes.filter((node) => cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes[0] || [])
     const [node, setNode] = useState(filteredNodes[0]);
     const dispatch = useDispatch();
     const params = useParams();
@@ -92,10 +92,10 @@ export function DeployPage(props: any) {
                         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
                     }
                 }
-                if (response.nodes.length > 0) {
-                    dispatch(setNodes(response.nodes))
+                if (response.cloudRegionResourceMap) {
+                    dispatch(setNodes( cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || []))
                 }
-                nodes = response.nodes
+                nodes = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || [];
                 const filteredNodes = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || [];
                 filteredNodes.forEach((node) => {
                     if (node.resourceID === 0) {

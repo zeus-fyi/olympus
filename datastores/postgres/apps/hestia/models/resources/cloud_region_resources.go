@@ -45,31 +45,43 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 	cpuRequestsMilli := cpuRequests.MilliValue()
 	cpuRequestsCores := float64(cpuRequestsMilli) / 1000
 
+	qa := ""
+	args := []interface{}{
+		memRequestsMegaBytes,
+		cpuRequestsCores,
+	}
+
 	switch strings.ToLower(nf.DiskType) {
 	case "nvme":
 		nf.DiskType = "nvme"
+		qa = " AND disk_type = $3"
+		args = append(args, nf.DiskType)
+	case "ssd":
+		nf.DiskType = "ssd"
+		qa = " AND disk_type = $3"
+		args = append(args, nf.DiskType)
 	default:
 		nf.DiskType = "ssd"
 	}
 	// Build the SQL query
 	q := `WITH user_auth_ctxs AS (
-			SELECT cloud_provider, region FROM authorized_cluster_configs GROUP BY cloud_provider, region
+			SELECT
+				cloud_provider,
+				region
+			FROM authorized_cluster_configs
+			GROUP BY cloud_provider, region
 		  )
 		  SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, n.region, n.cloud_provider, gpus, gpu_type
     	  FROM nodes n
 		  JOIN user_auth_ctxs uac ON n.cloud_provider = uac.cloud_provider AND n.region = uac.region
-    	  WHERE memory >= $1 AND (vcpus + .1) >= $2 AND disk_type = $3
+    	  WHERE memory >= $1 AND (vcpus + .1) >= $2 ` + qa + `
 			  AND (
 					(n.cloud_provider = 'do' AND n.price_monthly >= 12)
 					OR n.cloud_provider IN ('gcp', 'aws', 'ovh')
 				  )
 			  AND n.price_monthly < 3000
 		ORDER BY cloud_provider, price_hourly ASC;`
-	args := []interface{}{
-		memRequestsMegaBytes,
-		cpuRequestsCores,
-		nf.DiskType,
-	}
+
 	// Execute the SQL query
 	rows, err := apps.Pg.Query(ctx, q, args...)
 	if err != nil {

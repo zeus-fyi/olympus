@@ -139,23 +139,32 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 			Region:        node.Region,
 			CloudProvider: node.CloudProvider,
 		}
+
+		var ds hestia_autogen_bases.DisksSlice
 		switch node.CloudProvider {
 		case "do":
-			di.PriceMonthly = 0.0137
+			di.PriceHourly = 0.0137
+			di.PriceMonthly = di.PriceMonthly * 730
 			node.PriceHourly *= 1.00  // Add 10% to the price
 			node.PriceMonthly *= 1.00 // Add 10% to the price
+			ds = append(ds, di)
 		case "gcp":
 			di.PriceHourly = 0.02329
+			di.PriceMonthly = di.PriceMonthly * 730
 			node.PriceHourly *= 1.00  // Add 40% to the price
 			node.PriceMonthly *= 1.00 // Add 40% to the price
+			ds = append(ds, di)
 		case "aws":
-			di.PriceHourly = 0.01765
 			node.PriceHourly *= 1.00  // Add 40% to the price
 			node.PriceMonthly *= 1.00 // Add 40% to the price
+			ds = GetDiskTypesAWS(node.Region)
+			//diskSlice := []hestia_autogen_bases.Disks{di}
 		case "ovh":
+			di.PriceMonthly = di.PriceMonthly * 730
 			di.PriceHourly = 0.01643835616
 			node.PriceHourly *= 1.00  // Add 20% to the price
 			node.PriceMonthly *= 1.00 // Add 20% to the price
+			ds = append(ds, di)
 		}
 		if err != nil {
 			return nil, err
@@ -166,11 +175,14 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 			cloudProviderRegionsResources[node.CloudProvider] = make(RegionResourcesMap)
 		}
 		if _, ok := cloudProviderRegionsResources[node.CloudProvider][node.Region]; !ok {
-			cloudProviderRegionsResources[node.CloudProvider][node.Region] = Resources{Nodes: make(hestia_autogen_bases.NodesSlice, 0)}
+			cloudProviderRegionsResources[node.CloudProvider][node.Region] = Resources{
+				Nodes: make(hestia_autogen_bases.NodesSlice, 0),
+				Disks: make(hestia_autogen_bases.DisksSlice, 0),
+			}
 		}
 		tmp := cloudProviderRegionsResources[node.CloudProvider][node.Region].Nodes
 		tmp = append(tmp, node)
-		cloudProviderRegionsResources[node.CloudProvider][node.Region] = Resources{Nodes: tmp}
+		cloudProviderRegionsResources[node.CloudProvider][node.Region] = Resources{Nodes: tmp, Disks: ds}
 	}
 
 	if err = rows.Err(); err != nil {

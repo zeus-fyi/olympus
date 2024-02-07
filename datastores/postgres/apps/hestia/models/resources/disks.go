@@ -25,3 +25,43 @@ func InsertDisk(ctx context.Context, disk hestia_autogen_bases.Disks) error {
 	}
 	return err
 }
+
+func GetDiskTypesAWS(region string) []hestia_autogen_bases.Disks {
+	gbInGi := 107.374
+	if region == "us-west-1" {
+		gbInGi *= 0.1
+	} else if region == "us-east-2" {
+		gbInGi *= 0.08
+	}
+	disk := hestia_autogen_bases.Disks{
+		PriceMonthly:  gbInGi,
+		PriceHourly:   gbInGi / 730,
+		Region:        region,
+		CloudProvider: "aws",
+		Description:   "EBS gp3 Block Storage SSD",
+		Type:          "ssd",
+		SubType:       "gp2",
+		DiskSize:      100,
+		DiskUnits:     "Gi",
+	}
+	gbInGi = 107.374
+	if region == "us-west-1" {
+		gbInGi *= 0.12
+	} else if region == "us-east-2" {
+		gbInGi *= 0.1
+	}
+	disk2 := hestia_autogen_bases.Disks{
+		PriceMonthly:  gbInGi,
+		PriceHourly:   gbInGi / 730,
+		Region:        region,
+		CloudProvider: "aws",
+		Description:   "EBS gp2 Block Storage SSD",
+		Type:          "ssd",
+		SubType:       "gp2",
+		DiskSize:      100,
+		DiskUnits:     "Gi",
+	}
+	return []hestia_autogen_bases.Disks{
+		disk, disk2,
+	}
+}

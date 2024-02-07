@@ -93,6 +93,7 @@ export function DeployPage(props: any) {
                     }
                 }
                 if (response.cloudRegionResourceMap) {
+                    console.log(response.cloudRegionResourceMap)
                     dispatch(setNodes( cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || []))
                 }
                 nodes = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || [];

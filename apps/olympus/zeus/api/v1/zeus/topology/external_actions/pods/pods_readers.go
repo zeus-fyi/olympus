@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 	zeus_pods_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/pods"
@@ -14,9 +15,17 @@ import (
 
 func PodsDescribeRequest(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
 	ctx := context.Background()
-	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, request.LogOpts, request.FilterOpts)
+	k := zeus.K8Util
+	k8CfgInterface := c.Get("k8Cfg")
+	if k8CfgInterface != nil {
+		k8Cfg, ok := k8CfgInterface.(autok8s_core.K8Util) // Ensure the type assertion is correct
+		if ok {
+			k = k8Cfg
+		}
+	}
+	pods, err := k.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, request.LogOpts, request.FilterOpts)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("PodsDescribeRequest")
+		log.Err(err).Msg("PodsDescribeRequest")
 		return err
 	}
 	return c.JSON(http.StatusOK, pods)
@@ -24,10 +33,19 @@ func PodsDescribeRequest(c echo.Context, request *zeus_pods_reqs.PodActionReques
 
 func PodLogsActionRequest(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
 	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("PodLogsActionRequest")
-	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, nil, request.FilterOpts)
+	log.Debug().Msg("PodLogsActionRequest")
+	k := zeus.K8Util
+	k8CfgInterface := c.Get("k8Cfg")
+	if k8CfgInterface != nil {
+		k8Cfg, ok := k8CfgInterface.(autok8s_core.K8Util) // Ensure the type assertion is correct
+		if ok {
+			k = k8Cfg
+		}
+	}
+
+	pods, err := k.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, nil, request.FilterOpts)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("PodLogsActionRequest: GetPodsUsingCtxNs")
+		log.Err(err).Msg("PodLogsActionRequest: GetPodsUsingCtxNs")
 		return err
 	}
 	p := v1.Pod{}
@@ -45,9 +63,9 @@ func PodLogsActionRequest(c echo.Context, request *zeus_pods_reqs.PodActionReque
 		request.ContainerName = p.Spec.Containers[len(p.Spec.Containers)-1].Name
 		request.LogOpts.Container = request.ContainerName
 	}
-	logs, err := zeus.K8Util.GetPodLogs(ctx, p.GetName(), request.CloudCtxNs, request.LogOpts, request.FilterOpts)
+	logs, err := k.GetPodLogs(ctx, p.GetName(), request.CloudCtxNs, request.LogOpts, request.FilterOpts)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("PodLogsActionRequest: GetPodLogs")
+		log.Err(err).Msg("PodLogsActionRequest: GetPodLogs")
 		return err
 	}
 	return c.JSON(http.StatusOK, string(logs))
@@ -55,7 +73,15 @@ func PodLogsActionRequest(c echo.Context, request *zeus_pods_reqs.PodActionReque
 
 func PodsAuditRequest(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
 	ctx := context.Background()
-	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, request.LogOpts, request.FilterOpts)
+	k := zeus.K8Util
+	k8CfgInterface := c.Get("k8Cfg")
+	if k8CfgInterface != nil {
+		k8Cfg, ok := k8CfgInterface.(autok8s_core.K8Util) // Ensure the type assertion is correct
+		if ok {
+			k = k8Cfg
+		}
+	}
+	pods, err := k.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, request.LogOpts, request.FilterOpts)
 	if err != nil {
 		log.Err(err).Msg("PodsAuditRequest")
 		return c.JSON(http.StatusInternalServerError, nil)

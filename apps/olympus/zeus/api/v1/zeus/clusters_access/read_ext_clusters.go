@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_cluster_configs "github.com/zeus-fyi/olympus/pkg/hestia/cluster_configs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
 type ReadPrivateClustersRequest struct {
@@ -57,7 +58,7 @@ func (t *ReadPrivateClustersRequest) ReadExtKubeConfig(c echo.Context) error {
 				log.Err(err).Msg("ReadExtKubeConfig: buf.Read")
 				return c.JSON(http.StatusInternalServerError, nil)
 			}
-			err = EncAndUpload(c.Request().Context(), ou.OrgID, *inCmp, AgeEnc, cfg)
+			err = EncAndUpload(c.Request().Context(), ou.OrgID, *inCmp, zeus.AgeEnc, cfg)
 			if err != nil {
 				log.Err(err).Msg("ReadExtKubeConfig: EncAndUpload")
 				return c.JSON(http.StatusInternalServerError, nil)

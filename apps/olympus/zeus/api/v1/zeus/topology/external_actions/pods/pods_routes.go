@@ -30,6 +30,7 @@ func PodsCloudCtxNsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			log.Warn().Msg("PodsCloudCtxNsMiddleware: orgUser not found")
 			return c.JSON(http.StatusUnauthorized, nil)
 		}
+		c.Set("orgUser", ou)
 		request := new(zeus_pods_reqs.PodActionRequest)
 		if err := c.Bind(request); err != nil {
 			return err
@@ -56,6 +57,14 @@ func PodsCloudCtxNsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, nil)
 		}
 		request.CloudCtxNs = cctx
+		k, err := zeus.VerifyClusterAuthFromCtxOnlyAndGetKubeCfg(c.Request().Context(), ou, cctx)
+		if err != nil {
+			log.Warn().Interface("ou", ou).Interface("req", request).Msg("PodsCloudCtxNsMiddleware: IsOrgCloudCtxNsAuthorizedFromID")
+			return c.JSON(http.StatusUnauthorized, nil)
+		}
+		if k != nil {
+			c.Set("k8Cfg", *k)
+		}
 		c.Set("PodActionRequest", request)
 		return next(c)
 	}

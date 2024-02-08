@@ -11,6 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	"github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/compression"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
@@ -39,13 +40,13 @@ func (t *KubeConfigRequestTestSuite) TestKubeConfigUpload() {
 	err := ZipKubeConfigChartToPath(&fp)
 	t.Require().Nil(err)
 	authKeysCfg := t.Tc.ProdLocalAuthKeysCfg
-	KeysCfg = auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+	zeus.KeysCfg = auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
 
 	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 
 	pubKey := t.Tc.LocalAgePubkey
 	privKey := t.Tc.LocalAgePkey
-	AgeEnc = encryption.NewAge(privKey, pubKey)
+	zeus.AgeEnc = encryption.NewAge(privKey, pubKey)
 
 	resp, err := t.ZeusClient.R().
 		SetFormData(map[string]string{}).

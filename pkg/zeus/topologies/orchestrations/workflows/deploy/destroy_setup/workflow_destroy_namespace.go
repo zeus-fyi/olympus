@@ -31,21 +31,21 @@ func (c *DestroyNamespaceSetupWorkflow) GetWorkflows() []interface{} {
 }
 
 func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workflow.Context, wfID string, params base_deploy_params.TopologyWorkflowRequest) error {
-	log := workflow.GetLogger(ctx)
+	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
 	removeSubdomainCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.TopologyDeployRequest.CloudCtxNs).Get(removeSubdomainCtx, nil)
 	if err != nil {
-		log.Error("Failed to remove domain record", "Error", err)
+		logger.Error("Failed to remove domain record", "Error", err)
 		return err
 	}
 	getDisksAtCloudCtxNs := workflow.WithActivityOptions(ctx, ao)
 	var disks []hestia_compute_resources.OrgResourceDisks
 	err = workflow.ExecuteActivity(getDisksAtCloudCtxNs, c.CreateSetupTopologyActivities.SelectDiskResourcesAtCloudCtxNs, params.OrgUser.OrgID, params.TopologyDeployRequest.CloudCtxNs).Get(getDisksAtCloudCtxNs, &disks)
 	if err != nil {
-		log.Error("Failed to get disk resources at cloud ctx ns", "Error", err)
+		logger.Error("Failed to get disk resources at cloud ctx ns", "Error", err)
 		return err
 	}
 	if len(disks) > 0 {
@@ -60,14 +60,14 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 		}
 		err = workflow.ExecuteActivity(endDiskServiceCtx, c.CreateSetupTopologyActivities.EndResourceService, req).Get(endDiskServiceCtx, nil)
 		if err != nil {
-			log.Error("Failed to update org_resources to end disk service", "Error", err)
+			logger.Error("Failed to update org_resources to end disk service", "Error", err)
 			return err
 		}
 	}
 	removeAuthCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params.OrgUser.OrgID, params.TopologyDeployRequest.CloudCtxNs).Get(removeAuthCtx, nil)
 	if err != nil {
-		log.Error("Failed to remove auth ctx ns", "Error", err)
+		logger.Error("Failed to remove auth ctx ns", "Error", err)
 		return err
 	}
 	childWorkflowOptions := workflow.ChildWorkflowOptions{

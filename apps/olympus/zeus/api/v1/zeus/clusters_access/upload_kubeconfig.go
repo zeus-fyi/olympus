@@ -18,6 +18,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
 type CreateOrUpdateKubeConfigsRequest struct {
@@ -30,11 +31,6 @@ func CreateOrUpdateKubeConfigsHandler(c echo.Context) error {
 	}
 	return request.CreateOrUpdateKubeConfig(c)
 }
-
-var (
-	AgeEnc  = encryption.Age{}
-	KeysCfg = auth_startup.AuthConfig{}
-)
 
 func (t *CreateOrUpdateKubeConfigsRequest) CreateOrUpdateKubeConfig(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
@@ -73,7 +69,7 @@ func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryp
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: EncryptItem")
 		return err
 	}
-	uploader := s3uploader.NewS3ClientUploader(KeysCfg.GetS3BaseClient())
+	uploader := s3uploader.NewS3ClientUploader(zeus.KeysCfg.GetS3BaseClient())
 	err = uploader.UploadFromInMemFs(ctx, p, input, inMemFsEnc)
 	if err != nil {
 		log.Err(err).Msg("CreateOrUpdateKubeConfig: Upload")
@@ -83,7 +79,7 @@ func EncAndUpload(ctx context.Context, orgID int, in bytes.Buffer, ageEnc encryp
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(p.FnOut),
 	}
-	inMemFsK8sConfig := auth_startup.ExtClustersRunDigitalOceanS3BucketObjAuthProcedure(ctx, KeysCfg, inKey)
+	inMemFsK8sConfig := auth_startup.ExtClustersRunDigitalOceanS3BucketObjAuthProcedure(ctx, zeus.KeysCfg, inKey)
 	k := zeus_core.K8Util{}
 	k.ConnectToK8sFromInMemFsCfgPath(inMemFsK8sConfig)
 	ctxes, err := k.GetContexts()

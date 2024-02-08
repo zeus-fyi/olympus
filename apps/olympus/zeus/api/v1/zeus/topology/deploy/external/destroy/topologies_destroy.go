@@ -21,6 +21,9 @@ func DestroyDeployedTopology(c echo.Context, tar zeus_req_types.TopologyDeployRe
 		log.Warn().Interface("ou", ou).Msg("DestroyDeployedTopology, orgUser not found")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	if tar.CheckIfEmpty() {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
 	tr.TopologyID = tar.TopologyID
 	err := tr.SelectTopology(ctx)

@@ -60,36 +60,36 @@ func InternalDeployStatusRoutes(e *echo.Group) *echo.Group {
 
 func InternalSecretsRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
-	e.POST("/deploy/secrets", internal_secrets_deploy.DeploySecretsHandler)
+	e.POST("/deploy/secrets", internal_secrets_deploy.DeploySecretsHandlerWrapper(k8Cfg))
 	return e
 }
 
 func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
-	e.POST("/deploy/cronjob", internal_deploy.DeployCronJobsHandler)
-	e.POST("/deploy/job", internal_deploy.DeployJobHandler)
-	e.POST("/deploy/namespace", internal_deploy.DeployNamespaceHandler)
-	e.POST("/deploy/deployment", internal_deploy.DeployDeploymentHandler)
-	e.POST("/deploy/statefulset", internal_deploy.DeployStatefulSetHandler)
-	e.POST("/deploy/configmap", internal_deploy.DeployConfigMapHandler)
-	e.POST("/deploy/service", internal_deploy.DeployServiceHandler)
-	e.POST("/deploy/ingress", internal_deploy.DeployIngressHandler)
-	e.POST("/deploy/dynamic/secrets", internal_deploy.DeployDynamicSecretsHandler)
-	e.POST("/deploy/choreography/secrets", internal_deploy.DeployChoreographySecretsHandler)
-	e.POST("/deploy/servicemonitor", internal_deploy.DeployServiceMonitorHandler)
+	e.POST("/deploy/cronjob", internal_deploy.DeployCronJobsHandlerWrapper(k8Cfg))
+	e.POST("/deploy/job", internal_deploy.DeployJobHandlerWrapper(k8Cfg))
+	e.POST("/deploy/namespace", internal_deploy.DeployNamespaceHandlerWrapper(k8Cfg))
+	e.POST("/deploy/deployment", internal_deploy.DeployDeploymentHandlerWrapper(k8Cfg))
+	e.POST("/deploy/statefulset", internal_deploy.DeployStatefulSetHandlerWrapper(k8Cfg))
+	e.POST("/deploy/configmap", internal_deploy.DeployConfigMapHandlerWrapper(k8Cfg))
+	e.POST("/deploy/service", internal_deploy.DeployServiceHandlerWrapper(k8Cfg))
+	e.POST("/deploy/ingress", internal_deploy.DeployIngressHandlerWrapper(k8Cfg))
+	e.POST("/deploy/dynamic/secrets", internal_deploy.DeployDynamicSecretsHandlerWrapper(k8Cfg))
+	e.POST("/deploy/choreography/secrets", internal_deploy.DeployChoreographySecretsHandlerWrapper(k8Cfg))
+	e.POST("/deploy/servicemonitor", internal_deploy.DeployServiceMonitorHandlerWrapper(k8Cfg))
 	return e
 }
 
 func InternalDeployDestroyRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
-	e.POST("/deploy/destroy/cronjob", internal_destroy_deploy.DestroyCronJobHandler)
-	e.POST("/deploy/destroy/job", internal_destroy_deploy.DestroyJobHandler)
-	e.POST("/deploy/destroy/namespace", internal_destroy_deploy.DestroyDeployNamespaceHandler)
-	e.POST("/deploy/destroy/deployment", internal_destroy_deploy.DestroyDeployDeploymentHandler)
-	e.POST("/deploy/destroy/statefulset", internal_destroy_deploy.DestroyDeployStatefulSetHandler)
-	e.POST("/deploy/destroy/configmap", internal_destroy_deploy.DestroyDeployConfigMapHandler)
-	e.POST("/deploy/destroy/service", internal_destroy_deploy.DestroyDeployServiceHandler)
-	e.POST("/deploy/destroy/ingress", internal_destroy_deploy.DestroyDeployIngressHandler)
-	e.POST("/deploy/destroy/servicemonitor", internal_destroy_deploy.DestroyDeployServiceMonitorHandler)
+	e.POST("/deploy/destroy/cronjob", internal_destroy_deploy.DestroyCronJobHandlerWrapper(k8Cfg))
+	e.POST("/deploy/destroy/job", internal_destroy_deploy.DestroyJobHandlerWrapper(k8Cfg))
+	e.POST("/deploy/destroy/namespace", internal_destroy_deploy.DestroyDeployNamespaceHandlerWrapper(k8Cfg))
+	e.POST("/deploy/destroy/deployment", internal_destroy_deploy.DestroyDeployDeploymentHandlerWrapper(k8Cfg))
+	e.POST("/deploy/destroy/statefulset", internal_destroy_deploy.DestroyDeployStatefulSetHandlerWrapper(k8Cfg))
+	e.POST("/deploy/destroy/configmap", internal_destroy_deploy.DestroyDeployConfigMapHandlerWrapper(k8Cfg))
+	e.POST("/deploy/destroy/service", internal_destroy_deploy.DestroyDeployServiceHandlerWrapper(k8Cfg))
+	e.POST("/deploy/destroy/ingress", internal_destroy_deploy.DestroyDeployIngressHandlerWrapper(k8Cfg))
+	e.POST("/deploy/destroy/servicemonitor", internal_destroy_deploy.DestroyDeployServiceMonitorHandlerWrapper(k8Cfg))
 	return e
 }

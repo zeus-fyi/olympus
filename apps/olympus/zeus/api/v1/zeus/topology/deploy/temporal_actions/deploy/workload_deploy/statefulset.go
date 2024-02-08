@@ -20,9 +20,11 @@ func DeployStatefulSetHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context)
 		if k8CfgInterface == nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Kubernetes configuration not found in context"})
 		}
+		isPublic := true
 		k8Cfg, ok := k8CfgInterface.(autok8s_core.K8Util) // Ensure the type assertion is correct
 		if ok {
 			k = k8Cfg
+			isPublic = false
 		}
 		// Attempt to retrieve the InternalDeploymentActionRequest from the context
 		requestInterface := c.Get("internalDeploymentActionRequest")
@@ -43,14 +45,18 @@ func DeployStatefulSetHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context)
 				if request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations == nil {
 					request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}
 				}
-				request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{
-					{
-						Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),
-						Operator: "Equal",
-						Value:    fmt.Sprintf("org-%d", request.OrgUser.OrgID),
-						Effect:   "NoSchedule",
-					},
+
+				if isPublic {
+					request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{
+						{
+							Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),
+							Operator: "Equal",
+							Value:    fmt.Sprintf("org-%d", request.OrgUser.OrgID),
+							Effect:   "NoSchedule",
+						},
+					}
 				}
+
 				if request.Kns.ClusterClassName != "" {
 					request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations = append(request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.Tolerations, v1.Toleration{
 						Key:      "app",

@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -36,8 +37,7 @@ func NewPodsWorkflows() PodsWorkflows {
 func (p *PodsWorkflows) GetWorkflows() []interface{} {
 	return []interface{}{p.DeletePodWorkflow}
 }
-
-func (p *PodsWorkflows) DeletePodWorkflow(ctx workflow.Context, wfId, podName string, cctx zeus_common_types.CloudCtxNs, delay time.Duration) error {
+func (p *PodsWorkflows) DeletePodWorkflow(ctx workflow.Context, wfId string, ou org_users.OrgUser, cctx zeus_common_types.CloudCtxNs, podName string, delay time.Duration) error {
 	logger := workflow.GetLogger(ctx)
 	retryPolicy := &temporal.RetryPolicy{
 		InitialInterval:    time.Second * 60,
@@ -54,7 +54,7 @@ func (p *PodsWorkflows) DeletePodWorkflow(ctx workflow.Context, wfId, podName st
 	}
 
 	dpCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(dpCtx, p.DeletePod, podName, cctx).Get(dpCtx, nil)
+	err = workflow.ExecuteActivity(dpCtx, p.DeletePod, ou, podName, cctx).Get(dpCtx, nil)
 	if err != nil {
 		logger.Error("Failed to delete pod", "Error", err)
 		return err
@@ -62,7 +62,7 @@ func (p *PodsWorkflows) DeletePodWorkflow(ctx workflow.Context, wfId, podName st
 	return nil
 }
 
-func (t *PodsWorker) ExecuteDeletePodWorkflow(ctx context.Context, cctx zeus_common_types.CloudCtxNs, podName string, delay time.Duration) error {
+func (t *PodsWorker) ExecuteDeletePodWorkflow(ctx context.Context, ou org_users.OrgUser, cctx zeus_common_types.CloudCtxNs, podName string, delay time.Duration) error {
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -71,7 +71,7 @@ func (t *PodsWorker) ExecuteDeletePodWorkflow(ctx context.Context, cctx zeus_com
 	}
 	podsWfs := NewPodsWorkflows()
 	wf := podsWfs.DeletePodWorkflow
-	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, cctx, podName, delay)
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, cctx, podName, delay)
 	if err != nil {
 		log.Err(err).Msg("DeletePodWorkflow")
 		return err
@@ -101,8 +101,8 @@ func InitPodsWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 	return
 }
 
-func ExecuteDeletePodWorkflow(c echo.Context, ctx context.Context, cctx zeus_common_types.CloudCtxNs, podName string, delay time.Duration) error {
-	err := PodsServiceWorker.ExecuteDeletePodWorkflow(ctx, cctx, podName, delay)
+func ExecuteDeletePodWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, cctx zeus_common_types.CloudCtxNs, podName string, delay time.Duration) error {
+	err := PodsServiceWorker.ExecuteDeletePodWorkflow(ctx, ou, cctx, podName, delay)
 	if err != nil {
 		log.Err(err).Msg("ExecuteDeletePodWorkflow, ExecuteWorkflow error")
 		return c.JSON(http.StatusInternalServerError, nil)

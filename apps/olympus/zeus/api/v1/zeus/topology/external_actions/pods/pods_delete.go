@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	pods_workflows "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/pods"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
@@ -16,7 +17,13 @@ import (
 func PodsDeleteRequest(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
 	log.Debug().Msg("PodsDeleteRequest")
 
-	err := pods_workflows.ExecuteDeletePodWorkflow(c, context.Background(), request.CloudCtxNs, request.PodName, request.Delay)
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Warn().Msg("PodsCloudCtxNsMiddleware: orgUser not found")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+
+	err := pods_workflows.ExecuteDeletePodWorkflow(c, context.Background(), ou, request.CloudCtxNs, request.PodName, request.Delay)
 	if err != nil {
 		log.Err(err).Msg("PodsDeleteRequest: ExecuteDeletePodWorkflow")
 		return c.JSON(http.StatusInternalServerError, nil)

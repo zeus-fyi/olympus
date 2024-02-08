@@ -30,6 +30,7 @@ func PodsCloudCtxNsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			log.Warn().Msg("PodsCloudCtxNsMiddleware: orgUser not found")
 			return c.JSON(http.StatusUnauthorized, nil)
 		}
+		c.Set("orgUser", ou)
 		request := new(zeus_pods_reqs.PodActionRequest)
 		if err := c.Bind(request); err != nil {
 			return err

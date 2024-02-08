@@ -42,6 +42,7 @@ type TopologyDeployUIRequest struct {
 	NamespaceAlias               string                     `json:"namespaceAlias"`
 	Cluster                      zeus_templates.Cluster     `json:"cluster"`
 	ResourceRequirements         []DiskResourceRequirements `json:"resourceRequirements"`
+	IsPublic                     bool                       `json:"isPublic"`
 }
 
 func (t *TopologyDeployUIRequest) Validate(ctx context.Context, ou org_users.OrgUser) error {
@@ -85,6 +86,7 @@ func (t *TopologyDeployUIRequest) Validate(ctx context.Context, ou org_users.Org
 		if kc.CloudProvider == t.CloudProvider && kc.Region == t.Region && kc.ExtConfigStrID == t.Node.ExtCfgStrID {
 			t.Context = kc.Context
 			t.ClusterCfgStrID = kc.ExtConfigStrID
+			t.IsPublic = kc.IsPublic
 			return nil
 		}
 	}
@@ -201,7 +203,6 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		case true:
 			t.Node.DiskType = "nvme"
 		}
-
 		cr = base_deploy_params.ClusterSetupRequest{
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,
@@ -312,6 +313,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			},
 			Cluster:  t.Cluster,
 			AppTaint: appTaint,
+			IsPublic: t.IsPublic,
 		}
 	}
 	if cr.CloudCtxNs.CheckIfEmpty() {

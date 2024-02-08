@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -39,18 +38,16 @@ func InitAwsEKS(ctx context.Context, accessCred aegis_aws_auth.AuthAWS) (AwsEKS,
 		config.WithRegion(accessCred.Region),
 	)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Err(err).Msg("InitAwsEKS")
 		return AwsEKS{}, err
 	}
 	return AwsEKS{eks.NewFromConfig(cfg)}, nil
 }
 
 func (a *AwsEKS) AddNodeGroup(ctx context.Context, ngReq *eks.CreateNodegroupInput) (*eks.CreateNodegroupOutput, error) {
-	ngReq.NodeRole = aws.String(AwsEksRole)
-	ngReq.Subnets = []string{AwsSubnetIDWest1A, AwsSubnetIDWest1B}
 	ngr, err := a.CreateNodegroup(ctx, ngReq)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Err(err).Msg("AddNodeGroup")
 		return ngr, err
 	}
 	return ngr, err
@@ -59,7 +56,7 @@ func (a *AwsEKS) AddNodeGroup(ctx context.Context, ngReq *eks.CreateNodegroupInp
 func (a *AwsEKS) RemoveNodeGroup(ctx context.Context, ngReq *eks.DeleteNodegroupInput) (*eks.DeleteNodegroupOutput, error) {
 	ngr, err := a.DeleteNodegroup(ctx, ngReq)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Err(err).Msg("RemoveNodeGroup")
 		return ngr, err
 	}
 	return ngr, err

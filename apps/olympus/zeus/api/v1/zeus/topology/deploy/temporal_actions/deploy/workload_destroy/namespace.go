@@ -32,7 +32,7 @@ func DestroyDeployNamespaceHandlerWrapper(k autok8s_core.K8Util) func(c echo.Con
 		log.Info().Interface("request", request).Msg("DestroyDeployNamespaceHandler")
 		err := k.DeleteNamespace(ctx, request.Kns.CloudCtxNs)
 		if err != nil {
-			log.Err(err).Msg("DestroyDeployNamespaceHandler")
+			log.Err(err).Interface("req", request).Msg("DestroyDeployNamespaceHandler")
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 		return c.JSON(http.StatusOK, nil)

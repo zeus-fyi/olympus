@@ -98,13 +98,8 @@ func SelectAuthedClusterByRouteOnlyAndOrgID(ctx context.Context, ou org_users.Or
 		FROM public.authorized_cluster_configs
 		WHERE org_id = $1 AND is_active = true AND cloud_provider = $2 AND region = $3 AND context = $4 AND is_public = false`
 
-	ccid, err := strconv.Atoi(cloudCtxNs.ClusterCfgStrID)
-	if err != nil {
-		log.Err(err).Interface("ou", ou).Interface("cloudCtxNs", cloudCtxNs).Msg("SelectAuthedClusterByRouteAndOrgID")
-		return nil, err
-	}
 	var ccfg K8sClusterConfig
-	rerr := apps.Pg.QueryRowWArgs(ctx, q, ou.OrgID, ccid, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context).Scan(
+	rerr := apps.Pg.QueryRowWArgs(ctx, q, ou.OrgID, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context).Scan(
 		&ccfg.ExtConfigID, &ccfg.ExtConfigStrID, &ccfg.CloudProvider, &ccfg.Region, &ccfg.Context, &ccfg.ContextAlias, &ccfg.Env, &ccfg.IsActive, &ccfg.IsPublic)
 	if rerr == pgx.ErrNoRows {
 		return nil, nil

@@ -36,6 +36,7 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.EksAddNodePoolToOrgResources,
 		c.SelectEksNodeResources,
 		c.EksRemoveNodePoolRequest,
+		c.PrivateEksRemoveNodePoolRequest,
 		c.EksSelectFreeTrialNodes,
 		c.OvhAddNodePoolToOrgResources,
 		c.OvhMakeNodePoolRequest,

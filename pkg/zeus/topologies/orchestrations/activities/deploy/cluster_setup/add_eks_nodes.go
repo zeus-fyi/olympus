@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/smithy-go"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	hestia_eks_aws "github.com/zeus-fyi/olympus/pkg/hestia/aws"
@@ -19,6 +20,7 @@ import (
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func (c *CreateSetupTopologyActivities) EksAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
@@ -252,6 +254,51 @@ func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Con
 			return nil
 		} else {
 			log.Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx context.Context, ou org_users.OrgUser, cloudCtxNs zeus_common_types.CloudCtxNs, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
+	nr := &eks.DeleteNodegroupInput{
+		ClusterName:   aws.String(nodePool.ClusterID),
+		NodegroupName: aws.String(nodePool.NodePoolID),
+	}
+
+	ps, err := aws_secrets.GetServiceAccountSecrets(ctx, ou)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Msg("PrivateEksRemoveNodePoolRequest: GetServiceAccountSecrets error")
+		return err
+	}
+	var clusterName string
+	var eksServiceAuth aegis_aws_auth.AuthAWS
+	for cn, v := range ps.AwsEksServiceMap {
+		if v.Region == cloudCtxNs.Region {
+			eksServiceAuth = v
+			clusterName = cn
+			break
+		}
+	}
+	if eksServiceAuth.Region == "" || eksServiceAuth.AccessKey == "" || eksServiceAuth.SecretKey == "" || clusterName == "" {
+		log.Err(err).Interface("ou", ou).Msg("PrivateEksRemoveNodePoolRequest: GetServiceAccountSecrets error")
+		return err
+	}
+	eka, err := hestia_eks_aws.InitAwsEKS(ctx, eksServiceAuth)
+	if err != nil {
+		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
+		return err
+	}
+	_, err = eka.RemoveNodeGroup(ctx, nr)
+	if err != nil {
+		errSmithy := err.(*smithy.OperationError)
+		httpErr := errSmithy.Err.(*http.ResponseError)
+		httpResponse := httpErr.HTTPStatusCode()
+		if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
+			log.Info().Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest: node pool not found")
+			return nil
+		} else {
+			log.Err(err).Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest error")
 			return err
 		}
 	}

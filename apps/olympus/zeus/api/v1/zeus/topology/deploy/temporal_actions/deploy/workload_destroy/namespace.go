@@ -12,6 +12,7 @@ import (
 
 func DestroyDeployNamespaceHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		log.Info().Msg("DestroyDeployNamespaceHandlerWrapper")
 		ctx := context.Background()
 		k8CfgInterface := c.Get("k8Cfg")
 		if k8CfgInterface != nil {

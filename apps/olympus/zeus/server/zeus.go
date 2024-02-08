@@ -65,13 +65,13 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		log.Info().Msg("Zeus: k8s auth procedure starting")
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
-
 		temporalAuthCfg = temporal_auth.TemporalAuth{
 			ClientCertPath:   "/etc/ssl/certs/ca.pem",
 			ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
 			Namespace:        "production-zeus.ngb72",
 			HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
 		}
+		topology_auths.KeysCfg = authCfg
 		topology_auths.K8Util = cfg.K8sUtil
 		dynMemFs, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		dynamic_secrets.AegisInMemSecrets = dynMemFs
@@ -150,6 +150,7 @@ func Zeus() {
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
 		zeus.KeysCfg = authCfg
 		zeus.AgeEnc = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
+		topology_auths.KeysCfg = authCfg
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.DevTemporalAuth
@@ -186,6 +187,7 @@ func Zeus() {
 		tc := configs.InitLocalTestConfigs()
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)
 		zeus.KeysCfg = authCfg
+		topology_auths.KeysCfg = authCfg
 		zeus.AgeEnc = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)

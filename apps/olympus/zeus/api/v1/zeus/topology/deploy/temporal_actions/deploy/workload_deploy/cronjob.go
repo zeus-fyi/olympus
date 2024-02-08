@@ -13,12 +13,11 @@ import (
 func DeployCronJobsHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		k8CfgInterface := c.Get("k8Cfg")
-		if k8CfgInterface == nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Kubernetes configuration not found in context"})
-		}
-		k8Cfg, ok := k8CfgInterface.(autok8s_core.K8Util) // Ensure the type assertion is correct
-		if ok {
-			k = k8Cfg
+		if k8CfgInterface != nil {
+			k8Cfg, ok := k8CfgInterface.(autok8s_core.K8Util) // Ensure the type assertion is correct
+			if ok {
+				k = k8Cfg
+			}
 		}
 		// Attempt to retrieve the InternalDeploymentActionRequest from the context
 		requestInterface := c.Get("internalDeploymentActionRequest")

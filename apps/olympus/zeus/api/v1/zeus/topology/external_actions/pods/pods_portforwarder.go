@@ -14,6 +14,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
 	"github.com/zeus-fyi/olympus/pkg/utils/client"
+	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	zeus_pods_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/pods"
 	zeus_pods_resp "github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/pods"
@@ -22,7 +23,16 @@ import (
 func podsPortForwardRequestToAllPods(c echo.Context, request *zeus_pods_reqs.PodActionRequest) error {
 	ctx := context.Background()
 	log.Debug().Msg("start podsPortForwardRequestToAllPods")
-	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, nil, request.FilterOpts)
+	k := zeus.K8Util
+	k8CfgInterface := c.Get("k8Cfg")
+	if k8CfgInterface != nil {
+		k8Cfg, ok := k8CfgInterface.(autok8s_core.K8Util) // Ensure the type assertion is correct
+		if ok {
+			k = k8Cfg
+		}
+	}
+
+	pods, err := k.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, nil, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -41,6 +51,15 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *zeus_pods_reqs.Pod
 }
 
 func PodsPortForwardRequest(c echo.Context, request *zeus_pods_reqs.PodActionRequest) ([]byte, error) {
+	k := zeus.K8Util
+	k8CfgInterface := c.Get("k8Cfg")
+	if k8CfgInterface != nil {
+		k8Cfg, ok := k8CfgInterface.(autok8s_core.K8Util) // Ensure the type assertion is correct
+		if ok {
+			k = k8Cfg
+		}
+	}
+
 	ctx := context.Background()
 	log.Debug().Msg("start PodsPortForwardRequest")
 
@@ -58,7 +77,7 @@ func PodsPortForwardRequest(c echo.Context, request *zeus_pods_reqs.PodActionReq
 	go func() {
 		log.Debug().Msg("start port-forward thread")
 		address := "localhost"
-		err := zeus.K8Util.PortForwardPod(ctx, request.CloudCtxNs, request.PodName, address, clientReq.Ports, startChan, stopChan, request.FilterOpts)
+		err := k.PortForwardPod(ctx, request.CloudCtxNs, request.PodName, address, clientReq.Ports, startChan, stopChan, request.FilterOpts)
 		log.Err(err).Msg("error in port forwarding")
 		log.Debug().Msg("done port-forward")
 	}()

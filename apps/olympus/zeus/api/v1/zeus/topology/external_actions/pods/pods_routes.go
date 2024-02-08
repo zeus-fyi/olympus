@@ -56,6 +56,14 @@ func PodsCloudCtxNsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, nil)
 		}
 		request.CloudCtxNs = cctx
+		k, err := zeus.VerifyClusterAuthFromCtxOnlyAndGetKubeCfg(c.Request().Context(), ou, cctx)
+		if err != nil {
+			log.Warn().Interface("ou", ou).Interface("req", request).Msg("PodsCloudCtxNsMiddleware: IsOrgCloudCtxNsAuthorizedFromID")
+			return c.JSON(http.StatusUnauthorized, nil)
+		}
+		if k != nil {
+			c.Set("k8Cfg", *k)
+		}
 		c.Set("PodActionRequest", request)
 		return next(c)
 	}

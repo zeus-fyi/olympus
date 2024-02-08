@@ -46,3 +46,19 @@ func GetKubeConfig(ctx context.Context, ou org_users.OrgUser, p authorized_clust
 	}
 	return k, err
 }
+
+func VerifyClusterAuthFromCtxOnlyAndGetKubeCfg(ctx context.Context, ou org_users.OrgUser, cloudCtxNs zeus_common_types.CloudCtxNs) (*autok8s_core.K8Util, error) {
+	p, err := authorized_clusters.SelectAuthedClusterByRouteOnlyAndOrgID(ctx, ou, cloudCtxNs)
+	if err != nil {
+		return nil, err
+	}
+	if p == nil {
+		return nil, nil
+	}
+	k, err := GetKubeConfig(ctx, ou, *p)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Msg("CheckKubeConfig: ConnectToK8sFromInMemFsCfgPathOrErr")
+		return nil, err
+	}
+	return &k, nil
+}

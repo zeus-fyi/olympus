@@ -89,10 +89,16 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		Key:    aws.String("app"),
 		Value:  aws.String(strings.ToLower(params.Cluster.ClusterName)),
 	}
+	orgTaint := types.Taint{
+		Effect: "NO_SCHEDULE",
+		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
+		Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
+	}
 	var taints []types.Taint
 	if params.AppTaint {
 		taints = append(taints, appTaint)
 	}
+	taints = append(taints, orgTaint)
 	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s", params.Ou.OrgID, suffix))
 	if len(nodeGroupName) > 39 {
 		nodeGroupName = nodeGroupName[:39]

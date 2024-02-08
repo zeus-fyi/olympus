@@ -28,6 +28,7 @@ import (
 	topology_auths "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/auth"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
+	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	pods_workflows "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/pods"
 	router "github.com/zeus-fyi/olympus/zeus/api"
 	read_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/read"
@@ -273,6 +274,7 @@ func Zeus() {
 			AllowCredentials: true,
 		})
 		srv.E = router.InitRouter(srv.E, cfg.K8sUtil, mw)
+		base_deploy_params.BaseURL = "http://localhost:9001"
 	} else {
 		mw := middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi",

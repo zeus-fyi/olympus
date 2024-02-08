@@ -58,9 +58,11 @@ type ClusterSetupRequest struct {
 	IsPublic      bool                            `json:"isPublic"`
 }
 
+var BaseURL = "https://api.zeus.fyi"
+
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {
 	u := url.URL{
-		Host: "https://api.zeus.fyi",
+		Host: BaseURL,
 		Path: path.Join(prefix, target),
 	}
 	return u

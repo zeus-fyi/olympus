@@ -158,6 +158,7 @@ func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+
 	eg = zeus_v1_router.V1InternalRoutes(eg, k8Cfg)
 }
 

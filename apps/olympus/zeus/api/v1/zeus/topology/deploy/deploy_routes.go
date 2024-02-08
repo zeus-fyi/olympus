@@ -1,13 +1,17 @@
 package deploy_routes
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	clean_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/clean"
 	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
 	destroy_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
 	deployment_status "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/read"
 	deploy_updates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/update"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
 	internal_secrets_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/secrets_deploy"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/workload_deploy"
 	internal_destroy_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/workload_destroy"
@@ -66,6 +70,8 @@ func InternalSecretsRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group
 
 func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
+
+	e.Use(RequestExtractionMiddleware)
 	e.POST("/deploy/cronjob", internal_deploy.DeployCronJobsHandlerWrapper(k8Cfg))
 	e.POST("/deploy/job", internal_deploy.DeployJobHandlerWrapper(k8Cfg))
 	e.POST("/deploy/namespace", internal_deploy.DeployNamespaceHandlerWrapper(k8Cfg))
@@ -82,6 +88,8 @@ func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 
 func InternalDeployDestroyRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
+
+	e.Use(RequestExtractionMiddleware)
 	e.POST("/deploy/destroy/cronjob", internal_destroy_deploy.DestroyCronJobHandlerWrapper(k8Cfg))
 	e.POST("/deploy/destroy/job", internal_destroy_deploy.DestroyJobHandlerWrapper(k8Cfg))
 	e.POST("/deploy/destroy/namespace", internal_destroy_deploy.DestroyDeployNamespaceHandlerWrapper(k8Cfg))
@@ -92,4 +100,26 @@ func InternalDeployDestroyRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo
 	e.POST("/deploy/destroy/ingress", internal_destroy_deploy.DestroyDeployIngressHandlerWrapper(k8Cfg))
 	e.POST("/deploy/destroy/servicemonitor", internal_destroy_deploy.DestroyDeployServiceMonitorHandlerWrapper(k8Cfg))
 	return e
+}
+
+func RequestExtractionMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		request := new(base_request.InternalDeploymentActionRequest)
+		if err := c.Bind(request); err != nil {
+			// Respond with an error if the request cannot be bound
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+
+		if request.Kns.CloudCtxNs.ClusterCfgStrID == "" {
+			return next(c)
+		}
+		k, err := zeus.VerifyClusterAuthAndGetKubeCfg(c.Request().Context(), request.OrgUser, request.Kns.CloudCtxNs)
+		if err != nil {
+			log.Err(err).Interface("request", request).Interface("ou", request.OrgUser).Msg("RequestExtractionMiddleware: VerifyClusterAuthAndGetKubeCfg")
+			return err
+		}
+		c.Set("k8Cfg", k)
+		c.Set("internalDeploymentActionRequest", request)
+		return next(c)
+	}
 }

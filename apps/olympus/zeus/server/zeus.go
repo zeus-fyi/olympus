@@ -30,8 +30,8 @@ import (
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	pods_workflows "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/pods"
 	router "github.com/zeus-fyi/olympus/zeus/api"
-	zeus_v1_clusters_api "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/clusters_access"
 	read_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/read"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
@@ -59,8 +59,8 @@ func Zeus() {
 	case "production":
 		log.Info().Msg("Zeus: production auth procedure starting")
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		zeus_v1_clusters_api.KeysCfg = authCfg
-		zeus_v1_clusters_api.AgeEnc = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
+		zeus.KeysCfg = authCfg
+		zeus.AgeEnc = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		log.Info().Msg("Zeus: k8s auth procedure starting")
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
@@ -147,8 +147,8 @@ func Zeus() {
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
-		zeus_v1_clusters_api.KeysCfg = authCfg
-		zeus_v1_clusters_api.AgeEnc = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
+		zeus.KeysCfg = authCfg
+		zeus.AgeEnc = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.DevTemporalAuth
@@ -184,8 +184,8 @@ func Zeus() {
 		auth_startup.Sp.DirIn = "../configs"
 		tc := configs.InitLocalTestConfigs()
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)
-		zeus_v1_clusters_api.KeysCfg = authCfg
-		zeus_v1_clusters_api.AgeEnc = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
+		zeus.KeysCfg = authCfg
+		zeus.AgeEnc = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.DevTemporalAuth

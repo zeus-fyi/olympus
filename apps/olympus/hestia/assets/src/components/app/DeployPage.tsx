@@ -28,10 +28,15 @@ import {RootState} from "../../redux/store";
 import {Nodes} from "../../redux/apps/apps.types";
 import {Add, Remove} from "@mui/icons-material";
 import {
+    setCloudProvider,
     setCluster,
     setClusterPreview,
+    setDeployServersCount,
     setNodes,
+    setRegion,
     setSelectedComponentBaseName,
+    setSelectedDisk,
+    setSelectedNode,
     setSelectedSkeletonBaseName
 } from "../../redux/apps/apps.reducer";
 import {AppConfigsTable} from "./AppConfigTable";
@@ -43,24 +48,19 @@ interface NodeMap {
 }
 
 export function DeployPage(props: any) {
-    const {app, region, setRegion, cloudProvider, setCloudProvider} = props
-    const cluster = useSelector((state: RootState) => state.apps.cluster);
+    const {app} = props
     const cloudProviderRegionsResourcesMap = useSelector((state: RootState) => state.apps.cloudRegionResourceMap);
+    const cloudProvider = useSelector((state: RootState) => state.apps.selectedCloudProvider);
+    const region = useSelector((state: RootState) => state.apps.selectedRegion);
+    const node = useSelector((state: RootState) => state.apps.selectedNode);
+    const cluster = useSelector((state: RootState) => state.apps.cluster);
     const resourceRequirements = createDiskResourceRequirements(cluster);
     let nodes = useSelector((state: RootState) => state.apps.nodes);
     const nodeMap: NodeMap = {};
-    const [count, setCount] = useState(0);
+
+    const count =  useSelector((state: RootState) => state.apps.deployServersCount);
     const [freeTrial, setFreeTrial] = useState(false);
-    let filteredNodes = nodes.filter((node) => cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes[0] || [])
-    const [node, setNode] = useState(filteredNodes[0]);
-
-    let disks = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.disks || [];
-
-    const [monthlyPrice, setMonthlyPrice] = useState<number>(disks.length > 0 ? disks[0].priceMonthly : 0);
-
-    const [selectedDiskType, setSelectedDiskType] = useState<string>(
-        disks.length > 0 ? `${disks[0].type}-${disks[0].subType}` : 'ssd-block-storage'
-    );
+    const disk =  useSelector((state: RootState) => state.apps.selectedDisk);
     const dispatch = useDispatch();
     const params = useParams();
 
@@ -102,6 +102,14 @@ export function DeployPage(props: any) {
                 }
                 if (response.cloudRegionResourceMap) {
                     dispatch(setNodes( cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || []))
+                    const cloudProviderKeys = Object.keys(cloudProviderRegionsResourcesMap);
+                    const firstCloudProvider = cloudProviderKeys.length > 0 ? cloudProviderKeys[0] : '';
+                    dispatch(setCloudProvider(firstCloudProvider));
+
+                    const regionKeys = Object.keys(cloudProviderKeys);
+                    const firstRegion = regionKeys.length > 0 ? regionKeys[0] : '';
+
+                    dispatch(setRegion(firstRegion));
                 }
                 nodes = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || [];
                 const filteredNodes = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.nodes || [];
@@ -115,30 +123,24 @@ export function DeployPage(props: any) {
             } catch (e) {
             }
         }
+        // if (params.id) {
+        //     if (getPrefix(params.id.toString()) === 'sui') {
+        //         if (getSuffix(params.id.toString()) === 'aws') {
+        //             dispatch(setRegion('us-west-1');
+        //             setCloudProvider('aws');
+        //         }
+        //         if (getSuffix(params.id.toString()) === 'gcp') {
+        //             setRegion('us-central1');
+        //             setCloudProvider('gcp');
+        //         }
+        //         if (getSuffix(params.id.toString()) === 'do') {
+        //             setRegion('nyc1');
+        //             setCloudProvider('do');
+        //         }
+        //     }
+        // }
 
-        if (filteredNodes.length > 0 && filteredNodes[0].resourceID === 0) {
-            fetchData().then(r => {
-                setNode(filteredNodes[0]);
-            });
-        }
-        if (params.id) {
-            if (getPrefix(params.id.toString()) === 'sui') {
-                if (getSuffix(params.id.toString()) === 'aws') {
-                    setRegion('us-west-1');
-                    setCloudProvider('aws');
-                }
-                if (getSuffix(params.id.toString()) === 'gcp') {
-                    setRegion('us-central1');
-                    setCloudProvider('gcp');
-                }
-                if (getSuffix(params.id.toString()) === 'do') {
-                    setRegion('nyc1');
-                    setCloudProvider('do');
-                }
-            }
-        }
-
-    }, [params.id, nodes, filteredNodes, nodeMap, cloudProvider, region]);
+    }, [params.id, nodes, nodeMap, cloudProviderRegionsResourcesMap]);
 
     // Dynamically fetch the regions for the selected cloud provider
     const regions = cloudProviderRegionsResourcesMap[cloudProvider] || {};
@@ -156,8 +158,7 @@ export function DeployPage(props: any) {
         const disksInRegion = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.disks || [];
         const selectedDisk = disksInRegion.find(disk => `${disk.type}-${disk.subType}` === event.target.value);
         if (selectedDisk) {
-            setSelectedDiskType(event.target.value);
-            setMonthlyPrice(selectedDisk.priceMonthly); // Update state with the selected disk's monthly price
+           dispatch(setSelectedDisk(selectedDisk));
         }
     };
     const disksInRegion = cloudProviderRegionsResourcesMap[cloudProvider]?.[region]?.disks || [];
@@ -166,23 +167,16 @@ export function DeployPage(props: any) {
     ));
 
     const handleIncrement = () => {
-        setCount(count + 1);
+        dispatch(setDeployServersCount(count + 1));
     };
 
     const handleDecrement = () => {
         if (count - 1 < 0) {
-            setCount(0)
+            dispatch(setDeployServersCount(0))
             return;
         }
-        setCount(count - 1);
+        dispatch(setDeployServersCount(count - 1));
     };
-
-    filteredNodes.forEach((node) => {
-        if (node.resourceID === 0) {
-            return;
-        }
-        nodeMap[node.resourceID] = node;
-    });
 
     let buttonLabel;
     let buttonDisabled;
@@ -279,24 +273,22 @@ export function DeployPage(props: any) {
         // Check if there are any disks available and set related states
         if (disks.length > 0) {
             const firstDisk = disks[0];
-            setSelectedDiskType(`${firstDisk.type}-${firstDisk.subType}`);
-            setMonthlyPrice(firstDisk.priceMonthly);
+
+            dispatch(setSelectedDisk(firstDisk));
         } else {
             // Handle the case where no disks are available for the first region of the selected provider
             // This could be setting to default values or handling as a special case
-            setSelectedDiskType('ssd-block-storage'); // Or any other default/fallback value
-            setMonthlyPrice(0); // Assume no cost as a fallback
         }
-        setRegion(region);
+        dispatch(setRegion(region));
     }
     function handleChangeSelectCloudProvider(cloudProvider: string) {
-        setCloudProvider(cloudProvider);
+        dispatch(setCloudProvider(cloudProvider));
         const regionsMap = cloudProviderRegionsResourcesMap[cloudProvider];
 
         if (regionsMap && Object.keys(regionsMap).length > 0) {
             // Get the first region's key from the regions map
             const firstRegion = Object.keys(regionsMap)[0];
-            setRegion(firstRegion);
+            dispatch(setRegion(firstRegion));
 
             // Assuming disks are immediately available upon selecting a region
             // and regionsMap is structured to include disks directly under each region
@@ -305,19 +297,14 @@ export function DeployPage(props: any) {
             // Check if there are any disks available and set related states
             if (disks.length > 0) {
                 const firstDisk = disks[0];
-                setSelectedDiskType(`${firstDisk.type}-${firstDisk.subType}`);
-                setMonthlyPrice(firstDisk.priceMonthly);
+
+                dispatch(setSelectedDisk(firstDisk));
             } else {
                 // Handle the case where no disks are available for the first region of the selected provider
-                // This could be setting to default values or handling as a special case
-                setSelectedDiskType('ssd-block-storage'); // Or any other default/fallback value
-                setMonthlyPrice(0); // Assume no cost as a fallback
             }
         } else {
             // Handle the case where no regions (and thus no disks) are available for the selected provider
-            setRegion(''); // Clear the region or set to a default/fallback value
-            setSelectedDiskType('ssd-block-storage'); // Reset or default value for disk type
-            setMonthlyPrice(0); // Reset or default value for monthly price
+            dispatch(setRegion('')); // Clear the region or set to a default/fallback value
         }
     }
 
@@ -332,24 +319,24 @@ export function DeployPage(props: any) {
         if (nodesInRegion.length > 0) {
             if (node) {
                 if (!isNodeInMap(node.resourceID)) {
-                    setNode(nodesInRegion[0]);
+                    dispatch(setSelectedNode(nodesInRegion[0]));
                 }
             } else {
-                setNode(nodesInRegion[0]);
+                dispatch(setSelectedNode(nodesInRegion[0]));
             }
         }
-    }, [cloudProvider, region, nodeMap,node]);
+    }, [nodeMap,node]);
 
 
     function handleAddNode(resourceID: number) {
         if (resourceID in nodeMap) {
-            setNode(nodeMap[resourceID]);
+            dispatch(setSelectedNode(nodeMap[resourceID]));
         }
     }
     function totalCost() {
         let totalBlockStorageCost = 0;
         for (const resource of resourceRequirements) {
-            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * monthlyPrice * parseInt(resource.replicas));
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * disk.priceMonthly * parseInt(resource.replicas));
         }
         return node.priceMonthly * count + totalBlockStorageCost;
     }
@@ -357,11 +344,12 @@ export function DeployPage(props: any) {
         let totalBlockStorageCost = 0;
 
         for (const resource of resourceRequirements) {
-            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * (monthlyPrice/730) * parseInt(resource.replicas));
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * (disk.priceMonthly/730) * parseInt(resource.replicas));
         }
         let roundedNum = Math.ceil(node.priceHourly * Math.pow(10, 2)) / Math.pow(10, 2);
         return roundedNum * count + (totalBlockStorageCost);
     }
+
     return (
         <div>
             <ThemeProvider theme={mdTheme}>
@@ -558,7 +546,7 @@ export function DeployPage(props: any) {
                                                 <Select
                                                     labelId="disk-type-select-label"
                                                     id="disk-type-select"
-                                                    value={selectedDiskType || disksInRegion[0].type+'-'+disksInRegion[0].subType}
+                                                    value={disk && disk.type + "-" + disk.subType || disksInRegion[0].type+'-'+disksInRegion[0].subType}
                                                     label="Disk Type"
                                                     sx={{ width: 200, mr: 2 }}
                                                     onChange={handleDiskTypeChange}
@@ -566,18 +554,18 @@ export function DeployPage(props: any) {
                                                     {diskCloudRegionMenuItems}
                                                 </Select>
                                                 <TextField
-                                                    value={monthlyPrice > 0 ?  monthlyPrice.toFixed(2) : disksInRegion[0].priceMonthly.toFixed(2)}
+                                                    value={disk.priceMonthly.toFixed(2)}
                                                     fullWidth
-                                                    id={`monthlyPrice-${monthlyPrice}`}
+                                                    id={`monthlyPrice-${disk.priceMonthly}`}
                                                     label="Monthly Cost ($)"
                                                     variant="outlined"
                                                     inputProps={{ readOnly: true }}
                                                     sx={{ flex: 1, mr: 2 }}
                                                 />
                                                 <TextField
-                                                    value={monthlyPrice > 0 ?  (monthlyPrice/730).toFixed(4) : (disksInRegion[0].priceMonthly/730).toFixed(4)}
+                                                    value={(disk.priceMonthly/730).toFixed(4)}
                                                     fullWidth
-                                                    id={`hourlyPrice-${monthlyPrice}`}
+                                                    id={`hourlyPrice-${disk.priceHourly}`}
                                                     label="Hourly Cost ($)"
                                                     variant="outlined"
                                                     inputProps={{ readOnly: true }}

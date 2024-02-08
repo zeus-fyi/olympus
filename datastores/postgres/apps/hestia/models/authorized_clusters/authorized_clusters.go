@@ -11,6 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 const Sn = "extClusterConfigs"
@@ -18,13 +19,11 @@ const Sn = "extClusterConfigs"
 type K8sClusterConfig struct {
 	ExtConfigStrID string `json:"extConfigStrID"`
 	ExtConfigID    int    `json:"extConfigID,omitempty"`
-	CloudProvider  string `json:"cloudProvider"`
-	Region         string `json:"region"`
-	Context        string `json:"context"`
-	ContextAlias   string `json:"contextAlias"`
-	Env            string `json:"env,omitempty"`
-	IsActive       bool   `json:"isActive,omitempty"`
-	IsPublic       bool   `json:"isPublic,omitempty"`
+
+	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
+	ContextAlias                 string `json:"contextAlias"`
+	IsActive                     bool   `json:"isActive,omitempty"`
+	IsPublic                     bool   `json:"isPublic,omitempty"`
 
 	Path              filepaths.Path `json:"-"`
 	InMemFsKubeConfig memfs.MemFS    `json:"-"`

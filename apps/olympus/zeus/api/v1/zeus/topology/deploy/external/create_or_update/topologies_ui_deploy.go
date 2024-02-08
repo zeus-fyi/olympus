@@ -34,8 +34,7 @@ type TopologyDeployUIRequest struct {
 	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 	FreeTrial                    bool                       `json:"freeTrial"`
 	MonthlyCost                  float64                    `json:"monthlyCost"`
-	CloudProvider                string                     `json:"cloudProvider"`
-	Region                       string                     `json:"region"`
+	Disk                         autogen_bases.Disks        `json:"disk,omitempty"`
 	Node                         autogen_bases.Nodes        `json:"nodes"`
 	Count                        float64                    `json:"count"`
 	NamespaceAlias               string                     `json:"namespaceAlias"`
@@ -43,12 +42,24 @@ type TopologyDeployUIRequest struct {
 	ResourceRequirements         []DiskResourceRequirements `json:"resourceRequirements"`
 }
 
+func (t *TopologyDeployUIRequest) Validate() error {
+	if t.CloudProvider == "" {
+		return fmt.Errorf("cloudProvider is required")
+	}
+	if t.Region == "" {
+		return fmt.Errorf("region is required")
+	}
+
+	return nil
+}
+
 func SetupClusterTopologyDeploymentHandler(c echo.Context) error {
 	request := new(TopologyDeployUIRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.DeploySetupClusterTopology(c)
+	return nil
+	//return request.DeploySetupClusterTopology(c)
 }
 
 func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) error {

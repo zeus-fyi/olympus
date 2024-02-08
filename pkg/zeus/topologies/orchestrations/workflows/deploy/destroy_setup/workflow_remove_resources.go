@@ -93,6 +93,17 @@ func (c *DestroyResourcesWorkflows) DestroyClusterResourcesWorkflow(ctx workflow
 		}
 	}
 	for _, node := range eksNodes {
+
+		//eksDestroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+		//logger.Info("Destroying node pool org resources", "PrivateEksRemoveNodePoolRequest", node)
+		//ou := org_users.OrgUser{}
+		//cloudCtxNs := zeus_common_types.CloudCtxNs{}
+		//err = workflow.ExecuteActivity(eksDestroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.PrivateEksRemoveNodePoolRequest, ou, cloudCtxNs, node).Get(eksDestroyNodePoolOrgResourcesCtx, nil)
+		//if err != nil {
+		//	logger.Error("Failed to remove eks node resources for account", "Error", err)
+		//	return err
+		//}
+
 		destroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 		logger.Info("Destroying node pool org resources", "EksRemoveNodePoolRequest", node)
 		err = workflow.ExecuteActivity(destroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksRemoveNodePoolRequest, node).Get(destroyNodePoolOrgResourcesCtx, nil)

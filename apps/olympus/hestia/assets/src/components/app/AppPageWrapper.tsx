@@ -1,6 +1,6 @@
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
@@ -33,9 +33,6 @@ const mdTheme = createTheme();
 
 export function AppPageWrapper(props: any) {
     const {app} = props
-
-    const [cloudProvider, setCloudProvider] = useState('do');
-    const [region, setRegion] = useState('nyc1');
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -172,7 +169,7 @@ export function AppPageWrapper(props: any) {
                     <Toolbar />
                     <div style={{ display: 'flex' }}>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <DeployConfigToggle app={app} cloudProvider={cloudProvider} setCloudProvider={setCloudProvider} region={region} setRegion={setRegion}/>
+                            <DeployConfigToggle app={app} />
                         </Container>
                     </div>
                 </Box>

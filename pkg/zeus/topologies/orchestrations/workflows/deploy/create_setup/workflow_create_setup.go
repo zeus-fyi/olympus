@@ -90,13 +90,22 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		case "aws":
 			nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
 			var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
-			err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.EksMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
-			if err != nil {
-				logger.Error("Failed to complete node pool request for eks", "Error", err)
-				return err
+			switch params.IsPublic {
+			case true:
+				err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.EksMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
+				if err != nil {
+					logger.Error("Failed to complete node pool request for eks", "Error", err)
+					return err
+				}
+			case false:
+				err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.PrivateEksMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
+				if err != nil {
+					logger.Error("Failed to complete private node pool request for eks", "Error", err)
+					return err
+				}
 			}
 			nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+			err := workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
 			if err != nil {
 				logger.Error("Failed to add node resources to org account for eks", "Error", err)
 				return err

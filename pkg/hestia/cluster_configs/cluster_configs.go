@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]authorized_clusters.K8sClusterConfig, error) {
@@ -27,7 +28,7 @@ func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]authoriz
 			Creds:       creds,
 			ClusterName: clusterName,
 		}
-		kubeConfig, err := hestia_eks_aws.GetKubeConfig(ctx, eksCredsAuth)
+		kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
 		if err != nil {
 			log.Err(err).Interface("ou", ou).Msg("GetExtClusterConfigs: GetKubeConfig")
 			return nil, err
@@ -55,12 +56,15 @@ func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]authoriz
 			return nil, err
 		}
 		for name, _ := range ctxes {
+			zctx := zeus_common_types.CloudCtxNs{
+				CloudProvider: "aws",
+				Region:        creds.Region,
+				Context:       name,
+				Env:           "production",
+			}
 			ec := authorized_clusters.K8sClusterConfig{
-				CloudProvider:     "aws",
-				Region:            creds.Region,
-				Context:           name,
+				CloudCtxNs:        zctx,
 				ContextAlias:      clusterName,
-				Env:               "production",
 				IsActive:          false,
 				InMemFsKubeConfig: inMemFilestore,
 				Path:              p,

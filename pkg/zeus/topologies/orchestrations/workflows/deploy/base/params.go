@@ -55,6 +55,7 @@ type ClusterSetupRequest struct {
 	Disks         hestia_autogen_bases.DisksSlice `json:"disks"`
 	Cluster       zeus_templates.Cluster          `json:"cluster"`
 	AppTaint      bool                            `json:"appTaint"`
+	IsPublic      bool                            `json:"isPublic"`
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

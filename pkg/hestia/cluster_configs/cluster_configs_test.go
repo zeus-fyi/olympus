@@ -51,7 +51,7 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 			Creds:       creds,
 			ClusterName: clusterName,
 		}
-		kubeConfig, err := hestia_eks_aws.GetKubeConfig(ctx, eksCredsAuth)
+		kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
 		s.Require().NoError(err)
 
 		kubeConfigYAML, err := yaml.Marshal(&kubeConfig)

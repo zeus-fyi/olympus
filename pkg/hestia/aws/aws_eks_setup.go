@@ -15,7 +15,7 @@ type EksCredentials struct {
 	ClusterName string                 `json:"clusterName"`
 }
 
-func GetKubeConfig(ctx context.Context, eksCreds EksCredentials) (*KubeConfig, error) {
+func GetEksKubeConfig(ctx context.Context, eksCreds EksCredentials) (*KubeConfig, error) {
 	eka, err := InitAwsEKS(ctx, eksCreds.Creds)
 	if err != nil {
 		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
@@ -36,21 +36,24 @@ func GetKubeConfig(ctx context.Context, eksCreds EksCredentials) (*KubeConfig, e
 		return nil, err
 	}
 
-	clusterEndpoint := *clusterOutput.Cluster.Endpoint
-	clusterCA := *clusterOutput.Cluster.CertificateAuthority.Data
-	return populateKubeConfig(eksCreds.ClusterName, clusterEndpoint, clusterCA), nil
+	return populateEksKubeConfig(eksCreds.ClusterName, clusterOutput), nil
 }
 
-func populateKubeConfig(clusterName, clusterEndpoint, clusterCA string) *KubeConfig {
+func populateEksKubeConfig(clusterName string, clusterOutput *eks.DescribeClusterOutput) *KubeConfig {
 	kubeConfig := KubeConfig{
 		APIVersion: "v1",
 		Kind:       "Config",
+		EksKubeInfo: &EksKubeInfo{
+			Arn:                clusterOutput.Cluster.Arn,
+			RoleArn:            clusterOutput.Cluster.RoleArn,
+			ResourcesVpcConfig: clusterOutput.Cluster.ResourcesVpcConfig,
+		},
 		Clusters: []ClusterEntry{
 			{
 				Name: clusterName,
 				Cluster: ClusterInfo{
-					Server:                   clusterEndpoint,
-					CertificateAuthorityData: clusterCA,
+					Server:                   *clusterOutput.Cluster.Endpoint,
+					CertificateAuthorityData: *clusterOutput.Cluster.CertificateAuthority.Data,
 				},
 			},
 		},

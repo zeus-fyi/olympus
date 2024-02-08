@@ -68,7 +68,7 @@ func (s *AwsEKSTestSuite) TestGetServiceSecret() {
 			Creds:       creds,
 			ClusterName: clusterName,
 		}
-		kubeConfig, err := GetKubeConfig(ctx, eksCredsAuth)
+		kubeConfig, err := GetEksKubeConfig(ctx, eksCredsAuth)
 		s.Require().NoError(err)
 
 		kubeConfigYAML, err := yaml.Marshal(&kubeConfig)
@@ -106,12 +106,8 @@ func (s *AwsEKSTestSuite) TestGetServiceSecret() {
 				fmt.Println(ns.Name)
 			}
 			ec := authorized_clusters.K8sClusterConfig{
-				CloudProvider: "aws",
-				Region:        creds.Region,
-				Context:       name,
-				ContextAlias:  clusterName,
-				Env:           "none",
-				IsActive:      false,
+				ContextAlias: clusterName,
+				IsActive:     false,
 			}
 			extClusterConfigs = append(extClusterConfigs, ec)
 		}
@@ -134,7 +130,7 @@ func (s *AwsEKSTestSuite) TestGetKubeConfig() {
 		ClusterName: clusterName,
 	}
 
-	kubeConfig, err := GetKubeConfig(ctx, eksCredsAuth)
+	kubeConfig, err := GetEksKubeConfig(ctx, eksCredsAuth)
 	s.Require().NoError(err)
 
 	kubeConfigYAML, err := yaml.Marshal(&kubeConfig)

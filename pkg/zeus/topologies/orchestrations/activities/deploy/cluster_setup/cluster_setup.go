@@ -32,6 +32,7 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.GkeSelectFreeTrialNodes,
 		c.GkeAddNodePoolToOrgResources,
 		c.EksMakeNodePoolRequest,
+		c.PrivateEksMakeNodePoolRequest,
 		c.EksAddNodePoolToOrgResources,
 		c.SelectEksNodeResources,
 		c.EksRemoveNodePoolRequest,

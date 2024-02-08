@@ -1,5 +1,11 @@
 package hestia_eks_aws
 
+import (
+	"fmt"
+
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+)
+
 type KubeConfig struct {
 	APIVersion     string         `json:"apiVersion"`
 	Kind           string         `json:"kind"`
@@ -7,6 +13,27 @@ type KubeConfig struct {
 	Contexts       []ContextEntry `json:"contexts"`
 	CurrentContext string         `json:"current-context"`
 	Users          []UserEntry    `json:"users"`
+
+	EksKubeInfo *EksKubeInfo `json:"eksKubeInfo,omitempty"`
+}
+
+func (k *KubeConfig) GetEksSubnets() ([]string, error) {
+	if k.EksKubeInfo == nil || k.EksKubeInfo.ResourcesVpcConfig == nil {
+		return nil, fmt.Errorf("GetEksSubnets: EksKubeInfo or ResourcesVpcConfig is nil")
+	}
+	return k.EksKubeInfo.ResourcesVpcConfig.SubnetIds, nil
+}
+func (k *KubeConfig) GetEksRoleArn() (*string, error) {
+	if k.EksKubeInfo == nil || k.EksKubeInfo.RoleArn == nil {
+		return nil, fmt.Errorf("GetEksRoleArn: EksKubeInfo or RoleArn is nil")
+	}
+	return k.EksKubeInfo.RoleArn, nil
+}
+
+type EksKubeInfo struct {
+	Arn                *string                  `json:"arn,omitempty"`
+	RoleArn            *string                  `json:"roleArn,omitempty"`
+	ResourcesVpcConfig *types.VpcConfigResponse `json:"resourcesVpcConfig,omitempty"`
 }
 
 type ClusterEntry struct {

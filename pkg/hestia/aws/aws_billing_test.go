@@ -51,12 +51,30 @@ i4i.8xlarge	$3.027	32	256 GiB	2 x 3750 NVMe SSD	18750 Megabit
 func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	instanceTypes := []string{
-		"i3.4xlarge",
-		"i3.8xlarge",
-		"i4i.4xlarge",
-		"i4i.8xlarge",
+		"t4g.nano",
+		"t4g.micro",
+		"t4g.small",
+		"t4g.medium",
+		"t4g.large",
+		"t4g.xlarge",
+		"t4g.2xlarge",
+		"t3.nano",
+		"t3.micro",
+		"t3.small",
+		"t3.medium",
+		"t3.large",
+		"t3.xlarge",
+		"t3.2xlarge",
+		"t3a.nano",
+		"t3a.micro",
+		"t3a.small",
+		"t3a.medium",
+		"t3a.large",
+		"t3a.xlarge",
 	}
 	region := "us-east-2"
+
+	diskType := "ssd"
 
 	n := hestia_autogen_bases.NodesSlice{}
 	for _, instanceType := range instanceTypes {
@@ -65,11 +83,10 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 		fmt.Printf("%s\n", instanceType)
 		for _, price := range prices {
 			desc := price.GetDescription()
-			fmt.Println(desc)
 			if !strings.Contains(desc, fmt.Sprintf("per On Demand Linux %s Instance Hour", instanceType)) {
 				continue
 			}
-
+			fmt.Println(desc)
 			trimmed := strings.SplitAfter(desc, "per ")
 			fmt.Println(trimmed[1])
 			trimmed = strings.SplitAfter(trimmed[1], "Instance")
@@ -93,7 +110,7 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 			dbSize.Slug = instanceType
 			dbSize.Disk = 20
 			dbSize.DiskUnits = "GB"
-			dbSize.DiskType = "nvme"
+			dbSize.DiskType = diskType
 			dbSize.PriceHourly = usdCost
 			dbSize.CloudProvider = "aws"
 			dbSize.Vcpus = vcpus

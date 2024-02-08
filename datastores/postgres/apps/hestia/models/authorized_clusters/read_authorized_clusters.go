@@ -3,6 +3,7 @@ package authorized_clusters
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
@@ -24,6 +25,10 @@ func SelectAuthedClusterConfigsByOrgID(ctx context.Context, ou org_users.OrgUser
 		err := rows.Scan(&c.ExtConfigID, &c.ExtConfigStrID, &c.CloudProvider, &c.Region, &c.Context, &c.ContextAlias, &c.Env, &c.IsActive)
 		if err != nil {
 			return nil, err
+		}
+		if c.Context == "" {
+			log.Warn("Context is empty", "extConfigID", c.ExtConfigID)
+			continue
 		}
 		configs = append(configs, c)
 	}
@@ -50,6 +55,10 @@ func SelectAuthedAndPublicClusterConfigsByOrgID(ctx context.Context, ou org_user
 		err := rows.Scan(&c.ExtConfigID, &c.ExtConfigStrID, &c.CloudProvider, &c.Region, &c.Context, &c.ContextAlias, &c.Env, &c.IsActive, &c.IsPublic)
 		if err != nil {
 			return nil, err
+		}
+		if c.Context == "" {
+			log.Warn("Context is empty", "extConfigID", c.ExtConfigID)
+			continue
 		}
 		configs = append(configs, c)
 	}

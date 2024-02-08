@@ -61,7 +61,6 @@ func SelectNodesV2(ctx context.Context, nf NodeFilter) (CloudProviderRegionsReso
 	case "ssd":
 		nf.DiskType = "ssd"
 		args = append(args, nf.DiskType)
-		args = append(args, nf.DiskType)
 		qa = fmt.Sprintf(" AND disk_type = $%d", len(args))
 	default:
 	}

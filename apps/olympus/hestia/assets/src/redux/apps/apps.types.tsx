@@ -1,5 +1,5 @@
 import {Cluster, ClusterPreview} from "../clusters/clusters.types";
-import {CloudProviderRegionsResourcesMap} from "../resources/resources.types";
+import {CloudProviderRegionsResourcesMap, Disks} from "../resources/resources.types";
 
 export interface TopologySystemComponents {
     topologySystemComponentID: number;
@@ -15,6 +15,11 @@ export interface AppsState {
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;
     nodes: Nodes[];
+    selectedCloudProvider: string;
+    selectedRegion: string;
+    selectedDisk: Disks;
+    selectedNode: Nodes;
+    deployServersCount: number;
     cloudRegionResourceMap: CloudProviderRegionsResourcesMap;
 }
 

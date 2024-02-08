@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
@@ -42,15 +44,51 @@ type TopologyDeployUIRequest struct {
 	ResourceRequirements         []DiskResourceRequirements `json:"resourceRequirements"`
 }
 
-func (t *TopologyDeployUIRequest) Validate() error {
+func (t *TopologyDeployUIRequest) Validate(ctx context.Context, ou org_users.OrgUser) error {
 	if t.CloudProvider == "" {
 		return fmt.Errorf("cloudProvider is required")
 	}
 	if t.Region == "" {
 		return fmt.Errorf("region is required")
 	}
+	if t.Count > 0 && t.Node.Slug == "" {
+		return fmt.Errorf("slug is required")
+	}
+	if t.Disk.DiskSize > 0 && t.Disk.Type == "" {
+		return fmt.Errorf("disk type is required")
+	}
+	if t.Disk.DiskSize > 0 && t.Node.Slug == "" {
+		return fmt.Errorf("node slug is required for disk provisioning")
+	}
+	if t.Disk.DiskSize > 0 && t.Disk.ResourceStrID == "" {
+		return fmt.Errorf("resource id is required for disk provisioning")
+	}
+	if t.Disk.ResourceStrID != "" {
+		rid, err := strconv.Atoi(t.Disk.ResourceStrID)
+		if err != nil {
+			return fmt.Errorf("invalid resource id")
+		}
+		t.Disk.ResourceID = rid
+	}
 
-	return nil
+	if t.Node.ExtCfgStrID != "" && t.Disk.ExtCfgStrID != "" {
+		if t.Node.ExtCfgStrID != t.Disk.ExtCfgStrID {
+			return fmt.Errorf("node and disk must belong to the same cloud region group")
+		}
+	}
+	kcs, err := authorized_clusters.SelectAuthedAndPublicClusterConfigsByOrgID(ctx, ou)
+	if err != nil {
+		log.Err(err).Msg("failed to get authorized and public cluster configs")
+		return err
+	}
+	for _, kc := range kcs {
+		if kc.CloudProvider == t.CloudProvider && kc.Region == t.Region && kc.ExtConfigStrID == t.Node.ExtCfgStrID {
+			t.Context = kc.Context
+			t.ClusterCfgStrID = kc.ExtConfigStrID
+			return nil
+		}
+	}
+	return fmt.Errorf("node does not belong to the same cloud region group")
 }
 
 func SetupClusterTopologyDeploymentHandler(c echo.Context) error {
@@ -58,8 +96,7 @@ func SetupClusterTopologyDeploymentHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return nil
-	//return request.DeploySetupClusterTopology(c)
+	return request.DeploySetupClusterTopology(c)
 }
 
 func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) error {
@@ -69,7 +106,6 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(ctx, ou.UserID)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to check if user has billing method")
@@ -96,44 +132,42 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			return c.JSON(http.StatusPreconditionFailed, nil)
 		}
 	}
+	err = t.Validate(c.Request().Context(), ou)
+	if err != nil {
+		log.Err(err).Msg("failed to validate request")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 
 	clusterID := uuid.New()
 	suffix := strings.Split(clusterID.String(), "-")[0]
 	var cr base_deploy_params.ClusterSetupRequest
-	var diskResourceID int
 	alias := fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix)
 	clusterNs := clusterID.String()
 	if validation.IsDNS1123Label(alias) == nil {
 		clusterNs = alias
 	}
-
-	cloudProvider := t.CloudCtxNs.CloudProvider
-	region := t.CloudCtxNs.Region
-	switch cloudProvider {
+	switch t.CloudCtxNs.CloudProvider {
 	case "do":
 		cr = base_deploy_params.ClusterSetupRequest{
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,
 			CloudCtxNs: zeus_common_types.CloudCtxNs{
-				CloudProvider: "do",
-				Region:        "nyc1",
-				Context:       "do-nyc1-do-nyc1-zeus-demo", // hardcoded for now
-				Namespace:     clusterNs,
-				Alias:         alias,
-				Env:           "",
+				ClusterCfgStrID: t.ClusterCfgStrID,
+				CloudProvider:   t.CloudProvider,
+				Context:         t.Context,
+				Region:          t.Region,
+				Namespace:       clusterNs,
+				Alias:           alias,
+				Env:             "",
 			},
-			Nodes: autogen_bases.Nodes{
-				Region:        region,
-				CloudProvider: cloudProvider,
-				ResourceID:    t.Node.ResourceID,
-				Slug:          t.Node.Slug,
-			},
+			Nodes:         t.Node,
 			NodesQuantity: t.Count,
-			Disks:         autogen_bases.DisksSlice{},
-			Cluster:       t.Cluster,
-			AppTaint:      true,
+			Disks: autogen_bases.DisksSlice{
+				t.Disk,
+			},
+			Cluster:  t.Cluster,
+			AppTaint: true,
 		}
-		diskResourceID = 1681408541855876000
 	case "gcp":
 		if strings.HasPrefix(t.Cluster.ClusterName, "sui") {
 			t.Node.DiskType = "nvme"
@@ -142,25 +176,26 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,
 			CloudCtxNs: zeus_common_types.CloudCtxNs{
-				CloudProvider: "gcp",
-				Region:        "us-central1",
-				Context:       "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0", // hardcoded for now
-				Namespace:     clusterNs,
-				Alias:         alias,
-				Env:           "",
+				ClusterCfgStrID: t.ClusterCfgStrID,
+				CloudProvider:   t.CloudProvider,
+				Region:          t.Region,
+				Context:         t.Context,
+				Namespace:       clusterNs,
+				Alias:           alias,
 			},
 			Nodes: autogen_bases.Nodes{
-				Region:        region,
-				CloudProvider: cloudProvider,
+				CloudProvider: t.CloudProvider,
+				Region:        t.Region,
 				ResourceID:    t.Node.ResourceID,
 				Slug:          t.Node.Slug,
 			},
 			NodesQuantity: t.Count,
-			Disks:         autogen_bases.DisksSlice{},
-			Cluster:       t.Cluster,
-			AppTaint:      true,
+			Disks: autogen_bases.DisksSlice{
+				t.Disk,
+			},
+			Cluster:  t.Cluster,
+			AppTaint: true,
 		}
-		diskResourceID = 1683165785839881000
 	case "aws":
 		switch strings.HasPrefix("i", t.Node.Slug) {
 		case true:
@@ -171,27 +206,29 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,
 			CloudCtxNs: zeus_common_types.CloudCtxNs{
-				CloudProvider: "aws",
-				Region:        "us-west-1",
-				Context:       "zeus-us-west-1", // hardcoded for now
-				Namespace:     clusterNs,
-				Alias:         alias,
-				Env:           "",
+				ClusterCfgStrID: t.ClusterCfgStrID,
+				CloudProvider:   t.CloudProvider,
+				Region:          t.Region,
+				Context:         t.Context,
+				Namespace:       clusterNs,
+				Alias:           alias,
+				Env:             "",
 			},
 			Nodes: autogen_bases.Nodes{
-				Region:        region,
-				CloudProvider: cloudProvider,
+				CloudProvider: t.CloudProvider,
+				Region:        t.Region,
 				ResourceID:    t.Node.ResourceID,
 				Slug:          t.Node.Slug,
 			},
 			NodesQuantity: t.Count,
-			Disks:         autogen_bases.DisksSlice{},
-			Cluster:       t.Cluster,
-			AppTaint:      true,
+			Disks: autogen_bases.DisksSlice{
+				t.Disk,
+			},
+			Cluster:  t.Cluster,
+			AppTaint: true,
 		}
-		diskResourceID = 1683860918169422000
 	case "ovh":
-		ovhContext := hestia_ovhcloud.OvhSharedContext
+		ovhContext := t.Context
 		namespace := clusterNs
 		appTaint := true
 		switch ou.UserID {
@@ -255,43 +292,31 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,
 			CloudCtxNs: zeus_common_types.CloudCtxNs{
-				CloudProvider: "ovh",
-				Region:        hestia_ovhcloud.OvhRegionUsWestOr1,
-				Context:       ovhContext, // hardcoded for now
-				Namespace:     namespace,
-				Alias:         alias,
-				Env:           "",
+				ClusterCfgStrID: t.ClusterCfgStrID,
+				CloudProvider:   t.CloudProvider,
+				Region:          t.Region,
+				Context:         ovhContext, // hardcoded for now
+				Namespace:       namespace,
+				Alias:           alias,
+				Env:             "",
 			},
 			Nodes: autogen_bases.Nodes{
-				Region:        region,
-				CloudProvider: cloudProvider,
+				CloudProvider: t.CloudProvider,
+				Region:        t.Region,
 				ResourceID:    t.Node.ResourceID,
 				Slug:          t.Node.Slug,
 			},
 			NodesQuantity: t.Count,
-			Disks:         autogen_bases.DisksSlice{},
-			Cluster:       t.Cluster,
-			AppTaint:      appTaint,
+			Disks: autogen_bases.DisksSlice{
+				t.Disk,
+			},
+			Cluster:  t.Cluster,
+			AppTaint: appTaint,
 		}
-		diskResourceID = 1687637679066833000
 	}
-
-	ds := make(autogen_bases.DisksSlice, len(t.ResourceRequirements))
-	for i, dr := range t.ResourceRequirements {
-		disk := autogen_bases.Disks{
-			ResourceID:    diskResourceID,
-			Region:        region,
-			CloudProvider: cloudProvider,
-			DiskUnits:     dr.ResourceSumsDisk,
-		}
-		ds[i] = disk
-	}
-	cr.Disks = ds
 	if cr.CloudCtxNs.CheckIfEmpty() {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 
-	// TODO: use the disk type or id vs hardcoding the resource id
-	// TODO: update this to use the new structure
 	return zeus.ExecuteCreateSetupClusterWorkflow(c, ctx, cr)
 }

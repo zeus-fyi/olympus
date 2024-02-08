@@ -230,6 +230,7 @@ export function DeployPage(props: any) {
                 },
                 "nodes": node,
                 "count": count,
+                "disk": disk,
                 "namespaceAlias": namespaceAlias,
                 "cluster": cluster,
                 "resourceRequirements": resourceRequirements,

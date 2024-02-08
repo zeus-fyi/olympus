@@ -21,11 +21,11 @@ func (s *InsertExtClusterConfigsTestSuite) TestInsertExtClusterConfigs() {
 		{
 			ExtConfigStrID: "1707021989652474001",
 			ExtConfigID:    1707021989652474001,
-			CloudProvider:  "do",
-			Region:         "nyc-3",
-			Context:        "context",
-			ContextAlias:   "alias",
-			Env:            "test123",
+			//CloudProvider:  "do",
+			//Region:         "nyc-3",
+			//Context:        "context",
+			//ContextAlias:   "alias",
+			//Env:            "test123",
 		},
 	}
 	err := InsertOrUpdateK8sClusterConfigs(ctx, s.Ou, pyl)

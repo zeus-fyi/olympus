@@ -109,7 +109,7 @@ func RequestExtractionMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			// Respond with an error if the request cannot be bound
 			return c.JSON(http.StatusBadRequest, nil)
 		}
-
+		c.Set("internalDeploymentActionRequest", request)
 		if request.Kns.CloudCtxNs.ClusterCfgStrID == "" {
 			k, err := zeus.VerifyClusterAuthFromCtxOnlyAndGetKubeCfg(c.Request().Context(), request.OrgUser, request.Kns.CloudCtxNs)
 			if err != nil {
@@ -128,7 +128,6 @@ func RequestExtractionMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return err
 		}
 		c.Set("k8Cfg", k)
-		c.Set("internalDeploymentActionRequest", request)
 		return next(c)
 	}
 }

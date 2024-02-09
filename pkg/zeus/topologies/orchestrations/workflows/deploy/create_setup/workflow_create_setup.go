@@ -68,10 +68,20 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 
 	isPublic := false
 	if authCfg != nil {
-		tmp := params
-		tmp.CloudCtxNs = authCfg.CloudCtxNs
-		params = tmp
+		ns := params.CloudCtxNs.Namespace
+		alias := params.CloudCtxNs.Alias
+		if len(alias) == 0 {
+			alias = ns
+		}
+		cctx := authCfg.CloudCtxNs
+		cctx.Namespace = ns
+		cctx.Alias = alias
+		params.CloudCtxNs = cctx
 		isPublic = authCfg.IsPublic
+	}
+
+	if len(params.CloudCtxNs.Namespace) <= 0 {
+		return fmt.Errorf("namespace is empty")
 	}
 	// TODO add billing email step
 	if params.NodesQuantity > 0 {

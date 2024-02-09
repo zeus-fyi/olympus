@@ -319,6 +319,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	if cr.CloudCtxNs.CheckIfEmpty() {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-
+	if len(cr.CloudCtxNs.Alias) == 0 {
+		cr.CloudCtxNs.Alias = cr.CloudCtxNs.Namespace
+	}
 	return zeus.ExecuteCreateSetupClusterWorkflow(c, ctx, cr)
 }

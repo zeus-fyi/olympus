@@ -96,6 +96,10 @@ func (c *DestroyResourcesWorkflows) DestroyClusterResourcesWorkflow(ctx workflow
 		}
 	}
 	for _, node := range eksNodes {
+		if node.ClusterID == "" && node.ExtClusterCfgID == 0 {
+			logger.Info("Skipping node pool org resources", "NodePoolRequestStatus", node)
+			continue
+		}
 		if node.ExtClusterCfgID > 0 {
 			eksDestroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 			logger.Info("Destroying node pool org resources", "PrivateEksRemoveNodePoolRequest", node)

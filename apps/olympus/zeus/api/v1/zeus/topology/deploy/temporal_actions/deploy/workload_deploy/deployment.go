@@ -16,11 +16,13 @@ import (
 func DeployDeploymentHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ctx := context.Background()
+		public := true
 		k8CfgInterface := c.Get("k8Cfg")
 		if k8CfgInterface != nil {
 			k8Cfg, ok := k8CfgInterface.(autok8s_core.K8Util) // Ensure the type assertion is correct
 			if ok {
 				k = k8Cfg
+				public = false
 			}
 		}
 		// Attempt to retrieve the InternalDeploymentActionRequest from the context
@@ -42,15 +44,17 @@ func DeployDeploymentHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context) 
 				if request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations == nil {
 					request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{}
 				}
-				request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{
-					{
-						Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),
-						Operator: "Equal",
-						Value:    fmt.Sprintf("org-%d", request.OrgUser.OrgID),
-						Effect:   "NoSchedule",
-					},
+				if public {
+					request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{
+						{
+							Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),
+							Operator: "Equal",
+							Value:    fmt.Sprintf("org-%d", request.OrgUser.OrgID),
+							Effect:   "NoSchedule",
+						},
+					}
 				}
-				if request.Kns.ClusterClassName != "" {
+				if request.Kns.AppTaint {
 					request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations = append(request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.Tolerations, v1.Toleration{
 						Key:      "app",
 						Operator: "Equal",

@@ -276,6 +276,7 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 				TopologyID:                topID,
 				CloudCtxNs:                params.CloudCtxNs,
 				TopologyBaseInfraWorkload: *infraConfig,
+				AppTaint:                  params.AppTaint,
 			},
 			OrgUser: params.Ou,
 		}

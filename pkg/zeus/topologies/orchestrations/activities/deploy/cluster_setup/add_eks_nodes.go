@@ -92,13 +92,12 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	labels := CreateBaseNodeLabels(params)
-	orgTaint := types.Taint{
-		Effect: "NO_SCHEDULE",
-		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
-		Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
-	}
+	//orgTaint := types.Taint{
+	//	Effect: "NO_SCHEDULE",
+	//	Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
+	//	Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
+	//}
 	var taints []types.Taint
-	taints = append(taints, orgTaint)
 	if len(params.Cluster.ClusterName) > 0 && params.AppTaint {
 		appTaint := types.Taint{
 			Effect: "NO_SCHEDULE",

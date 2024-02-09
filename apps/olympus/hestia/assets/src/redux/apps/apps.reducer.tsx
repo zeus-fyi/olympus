@@ -60,12 +60,16 @@ const initialState: AppsState = {
     },
     deployServersCount: 0,
     cloudRegionResourceMap: {} as CloudProviderRegionsResourcesMap,
+    appTaintEnabled: true,
 }
 
 const appsSlice = createSlice({
     name: 'apps',
     initialState,
     reducers: {
+        setAppTaintEnabledToggle: (state) => {
+            state.appTaintEnabled = !state.appTaintEnabled;
+        },
         setDeployServersCount: (state, action: PayloadAction<number>) => {
             state.deployServersCount = action.payload;
         },
@@ -170,6 +174,7 @@ export const { setPublicMatrixFamilyApps,
     setRegion,
     setSelectedDisk,
     setSelectedNode,
-    setDeployServersCount
+    setDeployServersCount,
+    setAppTaintEnabledToggle
 } = appsSlice.actions;
 export default appsSlice.reducer;

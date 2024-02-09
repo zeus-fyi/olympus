@@ -15,6 +15,7 @@ export interface AppsState {
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;
     nodes: Nodes[];
+    appTaintEnabled: boolean;
     selectedCloudProvider: string;
     selectedRegion: string;
     selectedDisk: Disks;

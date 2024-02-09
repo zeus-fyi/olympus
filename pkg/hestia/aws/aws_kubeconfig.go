@@ -68,3 +68,7 @@ type ExecConfig struct {
 	Command    string   `json:"command"`
 	Args       []string `json:"args"`
 }
+type ExecEnvVariable struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}

@@ -3,7 +3,6 @@ package hestia_cluster_configs
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/ghodss/yaml"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
@@ -64,40 +63,10 @@ func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]authoriz
 				Namespace:     "kube-system",
 				Env:           "production",
 			}
-
-			cms, cerr := k.GetConfigMapWithKns(ctx, zctx, "aws-auth", nil)
-			if cerr != nil {
-				log.Err(cerr).Interface("ou", ou).Msg("GetExtClusterConfigs: GetContexts")
-				return nil, cerr
-			}
-			var awsAuthMapRoles AwsAuthConfigMap
-			if cms.Data != nil {
-				_, ok := cms.Data["mapUsers"]
-				if !ok {
-					eka, eerr := hestia_eks_aws.InitAwsEKS(ctx, eksCredsAuth.Creds)
-					if eerr != nil {
-						log.Err(eerr).Interface("ou", ou).Msg("GetExtClusterConfigs: GetContexts")
-						return nil, eerr
-					}
-					awsAuthMapRoles.MapUsers = []UserEntry{
-						{
-							UserARN:  aws.StringValue(eka.Arn),
-							Username: eka.Username,
-							Groups:   []string{"system:masters"},
-						},
-					}
-					b, berr := yaml.Marshal(awsAuthMapRoles.MapUsers)
-					if berr != nil {
-						log.Err(berr).Interface("ou", ou).Msg("GetExtClusterConfigs: GetContexts")
-						return nil, berr
-					}
-					cms.Data["mapUsers"] = string(b)
-					cms2, kerr := k.UpdateConfigMapWithKns(ctx, zctx, cms, nil)
-					if kerr != nil {
-						log.Err(kerr).Interface("ou", ou).Interface("cms2", cms2).Msg("GetExtClusterConfigs: GetContexts")
-						return nil, kerr
-					}
-				}
+			nses, berr := k.GetNamespaces(ctx, zctx)
+			if berr != nil {
+				log.Err(berr).Interface("nses", nses).Msg("GetExtClusterConfigs: GetNamespaces")
+				return nil, berr
 			}
 
 			ec := authorized_clusters.K8sClusterConfig{
@@ -130,3 +99,38 @@ type RoleEntry struct {
 	RoleARN  string   `json:"rolearn"`
 	Username string   `json:"username"`
 }
+
+//cms, cerr := k.GetConfigMapWithKns(ctx, zctx, "aws-auth", nil)
+//if cerr != nil {
+//	log.Err(cerr).Interface("ou", ou).Msg("GetExtClusterConfigs: GetContexts")
+//	return nil, cerr
+//}
+//var awsAuthMapRoles AwsAuthConfigMap
+//if cms.Data != nil {
+//	_, ok := cms.Data["mapUsers"]
+//	if !ok {
+//		eka, eerr := hestia_eks_aws.InitAwsEKS(ctx, eksCredsAuth.Creds)
+//		if eerr != nil {
+//			log.Err(eerr).Interface("ou", ou).Msg("GetExtClusterConfigs: GetContexts")
+//			return nil, eerr
+//		}
+//		awsAuthMapRoles.MapUsers = []UserEntry{
+//			{
+//				UserARN:  aws.StringValue(eka.Arn),
+//				Username: eka.Username,
+//				Groups:   []string{"system:masters"},
+//			},
+//		}
+//		b, berr := yaml.Marshal(awsAuthMapRoles.MapUsers)
+//		if berr != nil {
+//			log.Err(berr).Interface("ou", ou).Msg("GetExtClusterConfigs: GetContexts")
+//			return nil, berr
+//		}
+//		cms.Data["mapUsers"] = string(b)
+//		cms2, kerr := k.UpdateConfigMapWithKns(ctx, zctx, cms, nil)
+//		if kerr != nil {
+//			log.Err(kerr).Interface("ou", ou).Interface("cms2", cms2).Msg("GetExtClusterConfigs: GetContexts")
+//			return nil, kerr
+//		}
+//	}
+//}

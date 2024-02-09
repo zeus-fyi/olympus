@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/ghodss/yaml"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
@@ -20,9 +19,6 @@ import (
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
-	v1 "k8s.io/api/storage/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
 )
 
 var ctx = context.Background()
@@ -57,7 +53,6 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 		}
 		_, kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
 		s.Require().NoError(err)
-
 		kubeConfigYAML, err := yaml.Marshal(&kubeConfig)
 		s.Require().Nil(err)
 
@@ -70,7 +65,6 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 		inMemFilestore := memfs.NewMemFs()
 		err = inMemFilestore.MakeFileIn(&p, kubeConfigYAML)
 		s.Require().Nil(err)
-
 		inCmp, err := compression.GzipDirectoryToMemoryFS(p, inMemFilestore)
 		s.Require().Nil(err)
 		s.Require().NotNil(inCmp)
@@ -98,50 +92,6 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 				fmt.Println(ns.Name)
 			}
 
-			cms, cerr := k.GetConfigMapWithKns(ctx, kctx, "aws-auth", nil)
-			s.Require().Nil(cerr)
-			s.Require().NotNil(cms)
-			var awsAuthMapRoles AwsAuthConfigMap
-			err = yaml.Unmarshal([]byte(cms.Data["mapRoles"]), &awsAuthMapRoles.MapRoles)
-			s.Require().Nil(err)
-
-			eka, eerr := hestia_eks_aws.InitAwsEKS(ctx, eksCredsAuth.Creds)
-			s.Require().Nil(eerr)
-			s.Require().NotNil(eka)
-
-			awsAuthMapRoles.MapUsers = []UserEntry{
-				{
-					UserARN:  aws.StringValue(eka.Arn),
-					Username: eka.Username,
-					Groups:   []string{"system:masters"},
-				},
-			}
-
-			b, berr := yaml.Marshal(awsAuthMapRoles.MapUsers)
-			s.Require().Nil(berr)
-
-			cms.Data["mapUsers"] = string(b)
-			sc := &v1.StorageClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "aws-ebs-gp3-max-performance", // Provide a meaningful name for the StorageClass
-				},
-				Provisioner: "ebs.csi.aws.com", // AWS EBS CSI driver
-				Parameters: map[string]string{
-					"type":       "gp3",   // Specify gp3 type for the EBS volume
-					"iops":       "16000", // Maximum IOPS for gp3
-					"throughput": "1000",  // Maximum throughput in MB/s for gp3
-					//"encrypted":  "true",  // Optionally, ensure encryption is enabled
-					// "fsType":      "ext4",            // Specify filesystem type if needed, e.g., ext4 or xfs
-				},
-				ReclaimPolicy:        nil,                   // You can specify a ReclaimPolicy if needed
-				AllowVolumeExpansion: pointer.BoolPtr(true), // Optionally allow volume expansion
-			}
-			_, kerr := k.CreateStorageClass(ctx, kctx, sc)
-			s.Require().Nil(kerr)
-
-			cms2, cerr := k.UpdateConfigMapWithKns(ctx, kctx, cms, nil)
-			s.Require().Nil(cerr)
-			s.Require().Equal(cms.Data, cms2.Data)
 			ec := authorized_clusters.K8sClusterConfig{
 				CloudCtxNs:   kctx,
 				ContextAlias: clusterName,
@@ -158,3 +108,48 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 func TestExtClusterCfgsTestSuite(t *testing.T) {
 	suite.Run(t, new(ExtClusterCfgsTestSuite))
 }
+
+//cms, cerr := k.GetConfigMapWithKns(ctx, kctx, "aws-auth", nil)
+//s.Require().Nil(cerr)
+//s.Require().NotNil(cms)
+//var awsAuthMapRoles AwsAuthConfigMap
+//err = yaml.Unmarshal([]byte(cms.Data["mapRoles"]), &awsAuthMapRoles.MapRoles)
+//s.Require().Nil(err)
+//
+//eka, eerr := hestia_eks_aws.InitAwsEKS(ctx, eksCredsAuth.Creds)
+//s.Require().Nil(eerr)
+//s.Require().NotNil(eka)
+//
+//awsAuthMapRoles.MapUsers = []UserEntry{
+//	{
+//		UserARN:  aws.StringValue(eka.Arn),
+//		Username: eka.Username,
+//		Groups:   []string{"system:masters"},
+//	},
+//}
+//
+//b, berr := yaml.Marshal(awsAuthMapRoles.MapUsers)
+//s.Require().Nil(berr)
+//
+//cms.Data["mapUsers"] = string(b)
+//sc := &v1.StorageClass{
+//	ObjectMeta: metav1.ObjectMeta{
+//		Name: "aws-ebs-gp3-max-performance", // Provide a meaningful name for the StorageClass
+//	},
+//	Provisioner: "ebs.csi.aws.com", // AWS EBS CSI driver
+//	Parameters: map[string]string{
+//		"type":       "gp3",   // Specify gp3 type for the EBS volume
+//		"iops":       "16000", // Maximum IOPS for gp3
+//		"throughput": "1000",  // Maximum throughput in MB/s for gp3
+//		//"encrypted":  "true",  // Optionally, ensure encryption is enabled
+//		// "fsType":      "ext4",            // Specify filesystem type if needed, e.g., ext4 or xfs
+//	},
+//	ReclaimPolicy:        nil,                   // You can specify a ReclaimPolicy if needed
+//	AllowVolumeExpansion: pointer.BoolPtr(true), // Optionally allow volume expansion
+//}
+//_, kerr := k.CreateStorageClass(ctx, kctx, sc)
+//s.Require().Nil(kerr)
+//
+//cms2, cerr := k.UpdateConfigMapWithKns(ctx, kctx, cms, nil)
+//s.Require().Nil(cerr)
+//s.Require().Equal(cms.Data, cms2.Data)

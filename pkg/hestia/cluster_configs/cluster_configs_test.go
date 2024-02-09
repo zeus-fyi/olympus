@@ -135,23 +135,6 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 	}
 }
 
-type AwsAuthConfigMap struct {
-	MapRoles []RoleEntry `json:"mapRoles"`
-	MapUsers []UserEntry `json:"mapUsers"`
-}
-
-type UserEntry struct {
-	UserARN  string   `json:"userarn"`
-	Username string   `json:"username"`
-	Groups   []string `json:"groups"`
-}
-
-type RoleEntry struct {
-	Groups   []string `json:"groups"`
-	RoleARN  string   `json:"rolearn"`
-	Username string   `json:"username"`
-}
-
 func TestExtClusterCfgsTestSuite(t *testing.T) {
 	suite.Run(t, new(ExtClusterCfgsTestSuite))
 }

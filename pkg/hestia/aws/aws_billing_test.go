@@ -58,14 +58,35 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 		//"t3.large",
 		//"t3.xlarge",
 		//"t3.2xlarge",
-		"i3.4xlarge",
-		"i3.8xlarge",
-		"i4i.4xlarge",
-		"i4i.8xlarge",
+		//"i3.4xlarge",
+		//"i3.8xlarge",
+		//"i4i.4xlarge",
+		//"i4i.8xlarge",
+		//"c3.4xlarge",
+		//"c1.medium",
+		//"c1.xlarge",
+		//"c3.2xlarge",
+		//"c3.4xlarge",
+		//"c3.8xlarge",
+		//"c3.large",
+		//"c3.xlarge",
+		//"c4.large",
+		//"c4.xlarge",
+		//"c5.12xlarge",
+		//"c5.18xlarge",
+		//"c5.24xlarge",
+		//"c5.2xlarge",
+		//"c5.4xlarge",
+		"m7g.medium",
+		"m7g.large",
+		"m7g.xlarge",
+		"m7g.2xlarge",
+		"m7g.4xlarge",
+		"m7g.8xlarge",
 	}
 	region := "us-east-1"
 
-	diskType := "nvme"
+	diskType := "ssd"
 
 	n := hestia_autogen_bases.NodesSlice{}
 	for _, instanceType := range instanceTypes {

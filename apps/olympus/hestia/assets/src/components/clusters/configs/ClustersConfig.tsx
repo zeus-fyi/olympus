@@ -51,7 +51,6 @@ export function ClusterConfigList(props: any) {
     if (loading) {
         return <div>Loading...</div>;
     }
-    console.log("clusterConfigs", clusterConfigs)
     const handleChange = (index: number, field: string, value: any) => {
         dispatch(updateClusterConfigs({ index, changes: { [field]: value } }));
     };

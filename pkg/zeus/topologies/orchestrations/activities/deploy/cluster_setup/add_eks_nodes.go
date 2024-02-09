@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	ht "net/http"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -44,6 +45,11 @@ func (c *CreateSetupTopologyActivities) EksSelectFreeTrialNodes(ctx context.Cont
 }
 
 func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
+	cfgID, err := strconv.Atoi(params.CloudCtxNs.ClusterCfgStrID)
+	if err != nil {
+		log.Err(err).Interface("cloudCtxNs", params.CloudCtxNs).Msg("PrivateEksMakeNodePoolRequest: strconv.Atoi error")
+		return do_types.DigitalOceanNodePoolRequestStatus{}, err
+	}
 	if params.CloudCtxNs.Context == "" {
 		log.Err(fmt.Errorf("context is empty")).Interface("ou", params.Ou).Msg("PrivateEksMakeNodePoolRequest: context is empty")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, fmt.Errorf("context is empty")
@@ -145,8 +151,9 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	return do_types.DigitalOceanNodePoolRequestStatus{
-		ClusterID:  params.CloudCtxNs.Context,
-		NodePoolID: nodeGroupName,
+		ExtClusterCfgID: cfgID,
+		ClusterID:       params.CloudCtxNs.Context,
+		NodePoolID:      nodeGroupName,
 	}, nil
 }
 

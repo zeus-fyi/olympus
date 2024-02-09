@@ -1,6 +1,7 @@
 package deploy_workflow_cluster_setup
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -114,19 +115,37 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 					logger.Error("Failed to complete node pool request for eks", "Error", err)
 					return err
 				}
+				if len(nodePoolRequestStatus.ClusterID) == 0 || len(nodePoolRequestStatus.NodePoolID) == 0 {
+					err = fmt.Errorf("failed to get cluster id")
+					logger.Error("Failed to get cluster id", "Error", err)
+					return err
+				}
+
+				nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+				if err != nil {
+					logger.Error("Failed to add node resources to org account for eks", "Error", err)
+					return err
+				}
 			case false:
 				err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.PrivateEksMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 				if err != nil {
 					logger.Error("Failed to complete private node pool request for eks", "Error", err)
 					return err
 				}
+				if len(nodePoolRequestStatus.ClusterID) == 0 || len(nodePoolRequestStatus.NodePoolID) == 0 || nodePoolRequestStatus.ExtClusterCfgID <= 0 {
+					err = fmt.Errorf("failed to get cluster id")
+					logger.Error("Failed to get cluster id", "Error", err)
+					return err
+				}
+				nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+				if err != nil {
+					logger.Error("Failed to add node resources to org account for eks", "Error", err)
+					return err
+				}
 			}
-			nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
-			if err != nil {
-				logger.Error("Failed to add node resources to org account for eks", "Error", err)
-				return err
-			}
+
 		case "ovh":
 			nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
 			var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus

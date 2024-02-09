@@ -276,7 +276,7 @@ func GkeSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int
 	q.RawQuery = `SELECT node_pool_id, node_context_id
  				  FROM gke_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND free_trial = false
 				  `
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
@@ -300,7 +300,7 @@ func EksSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int
 	q.RawQuery = `SELECT node_pool_id, node_context_id, COALESCE(ext_config_id, 0)
  				  FROM eks_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND free_trial = false
 				  `
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
@@ -324,7 +324,7 @@ func OvhSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int
 	q.RawQuery = `SELECT node_pool_id, node_context_id
  				  FROM ovh_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND free_trial = false
 				  `
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
@@ -348,7 +348,7 @@ func SelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int) (
 	q.RawQuery = `SELECT node_pool_id, node_context_id
  				  FROM digitalocean_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND free_trial = false
 				  `
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
@@ -371,11 +371,11 @@ func UpdateEndServiceOrgResources(ctx context.Context, orgID int, orgResourceIDs
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `UPDATE org_resources
 				  SET end_service = NOW()
-				  WHERE org_id = $1	AND org_resource_id = ANY($2::bigint[]) AND end_service IS NULL
+				  WHERE org_id = $1	 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND end_service IS NULL
 				  `
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
-		log.Ctx(ctx).Info().Msg("No org resources to update end service")
+		log.Info().Msg("No org resources to update end service")
 		return nil
 	}
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {

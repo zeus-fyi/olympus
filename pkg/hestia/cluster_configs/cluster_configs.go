@@ -72,7 +72,7 @@ func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]authoriz
 			}
 			var awsAuthMapRoles AwsAuthConfigMap
 			if cms.Data != nil {
-				_, ok := cms.Data["mapRoles"]
+				_, ok := cms.Data["mapUsers"]
 				if !ok {
 					eka, eerr := hestia_eks_aws.InitAwsEKS(ctx, eksCredsAuth.Creds)
 					if eerr != nil {

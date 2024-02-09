@@ -24,18 +24,18 @@ func (k *K8Util) GetPodLogs(ctx context.Context, name string, kns zeus_common_ty
 	}
 	buf := new(bytes.Buffer)
 	podLogs, err := req.Stream(ctx)
-	defer func(podLogs io.ReadCloser) {
+	if err != nil {
+		return buf.Bytes(), err // Return here if an error occurs, no need for defer since podLogs is nil or undefined
+	}
+	defer func() {
 		closeErr := podLogs.Close()
 		if closeErr != nil {
 			fmt.Printf("%s", closeErr.Error())
 		}
-	}(podLogs)
-	if err != nil {
-		return buf.Bytes(), err
-	}
+	}()
 	_, err = io.Copy(buf, podLogs)
 	if err != nil {
 		return buf.Bytes(), err
 	}
-	return buf.Bytes(), err
+	return buf.Bytes(), nil
 }

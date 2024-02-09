@@ -3,10 +3,12 @@ package hestia_eks_aws
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/rs/zerolog/log"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
@@ -23,7 +25,10 @@ const (
 var UsWestSubnetIDs = []string{AwsSubnetIDWest1A, AwsSubnetIDWest1B}
 
 type AwsEKS struct {
-	*eks.Client
+	*eks.Client         // Embed the client
+	Arn         *string `json:"arn"`
+	Account     *string `json:"account"`
+	Username    string  `json:"username"`
 }
 
 func (a *AwsEKS) GetFullContextName(alias string) string {
@@ -41,7 +46,19 @@ func InitAwsEKS(ctx context.Context, accessCred aegis_aws_auth.AuthAWS) (AwsEKS,
 		log.Err(err).Msg("InitAwsEKS")
 		return AwsEKS{}, err
 	}
-	return AwsEKS{eks.NewFromConfig(cfg)}, nil
+	// Create an Amazon STS client from just a session.
+	stsClient := sts.NewFromConfig(cfg)
+
+	// Call to get the caller identity
+	result, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil {
+		return AwsEKS{}, err
+	}
+	var username string
+	if result.Arn != nil {
+		username = strings.Split(*result.Arn, "/")[len(strings.Split(*result.Arn, "/"))-1]
+	}
+	return AwsEKS{Arn: result.Arn, Account: result.Account, Client: eks.NewFromConfig(cfg), Username: username}, nil
 }
 
 func (a *AwsEKS) AddNodeGroup(ctx context.Context, ngReq *eks.CreateNodegroupInput) (*eks.CreateNodegroupOutput, error) {

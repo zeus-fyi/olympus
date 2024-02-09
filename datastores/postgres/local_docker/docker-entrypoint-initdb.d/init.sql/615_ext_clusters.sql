@@ -12,3 +12,10 @@ CREATE TABLE authorized_cluster_configs (
 
 ALTER TABLE authorized_cluster_configs
     ADD CONSTRAINT cloud_ctx_ns_org_uniq UNIQUE  ("org_id", "cloud_provider", "context");
+
+
+ALTER TABLE eks_node_pools
+    ADD COLUMN ext_config_id int8 NULL REFERENCES authorized_cluster_configs(ext_config_id);
+
+
+

@@ -43,6 +43,7 @@ type TopologyDeployUIRequest struct {
 	Cluster                      zeus_templates.Cluster     `json:"cluster"`
 	ResourceRequirements         []DiskResourceRequirements `json:"resourceRequirements"`
 	IsPublic                     bool                       `json:"isPublic"`
+	AppTaint                     bool                       `json:"appTaint"`
 }
 
 func (t *TopologyDeployUIRequest) Validate(ctx context.Context, ou org_users.OrgUser) error {
@@ -168,7 +169,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				t.Disk,
 			},
 			Cluster:  t.Cluster,
-			AppTaint: true,
+			AppTaint: t.AppTaint,
 		}
 	case "gcp":
 		if strings.HasPrefix(t.Cluster.ClusterName, "sui") {
@@ -196,7 +197,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				t.Disk,
 			},
 			Cluster:  t.Cluster,
-			AppTaint: true,
+			AppTaint: t.AppTaint,
 		}
 	case "aws":
 		switch strings.HasPrefix("i", t.Node.Slug) {
@@ -226,12 +227,12 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				t.Disk,
 			},
 			Cluster:  t.Cluster,
-			AppTaint: true,
+			AppTaint: t.AppTaint,
 		}
 	case "ovh":
 		ovhContext := t.Context
 		namespace := clusterNs
-		appTaint := true
+		appTaint := t.AppTaint
 		switch ou.UserID {
 		case 7138958574876245565:
 			if ou.OrgID == 7138983863666903883 {
@@ -319,6 +320,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	if cr.CloudCtxNs.CheckIfEmpty() {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-
+	if len(cr.CloudCtxNs.Alias) == 0 {
+		cr.CloudCtxNs.Alias = cr.CloudCtxNs.Namespace
+	}
 	return zeus.ExecuteCreateSetupClusterWorkflow(c, ctx, cr)
 }

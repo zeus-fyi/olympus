@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	ht "net/http"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/smithy-go"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
@@ -21,10 +23,11 @@ import (
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 func (c *CreateSetupTopologyActivities) EksAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
-	err := hestia_compute_resources.AddEksNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
+	err := hestia_compute_resources.AddEksNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial, params.CloudCtxNs.ClusterCfgStrID)
 	if err != nil {
 		log.Err(err).Interface("nodes", params.Nodes).Msg("EksAddNodePoolToOrgResources error")
 		return err
@@ -42,6 +45,11 @@ func (c *CreateSetupTopologyActivities) EksSelectFreeTrialNodes(ctx context.Cont
 }
 
 func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
+	cfgID, err := strconv.Atoi(params.CloudCtxNs.ClusterCfgStrID)
+	if err != nil {
+		log.Err(err).Interface("cloudCtxNs", params.CloudCtxNs).Msg("PrivateEksMakeNodePoolRequest: strconv.Atoi error")
+		return do_types.DigitalOceanNodePoolRequestStatus{}, err
+	}
 	if params.CloudCtxNs.Context == "" {
 		log.Err(fmt.Errorf("context is empty")).Interface("ou", params.Ou).Msg("PrivateEksMakeNodePoolRequest: context is empty")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, fmt.Errorf("context is empty")
@@ -57,6 +65,7 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		if v.Region == params.CloudCtxNs.Region {
 			eksServiceAuth = v
 			clusterName = cn
+			eksServiceAuth.AccountNumber = v.AccountNumber
 			break
 		}
 	}
@@ -68,7 +77,7 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		Creds:       eksServiceAuth,
 		ClusterName: clusterName,
 	}
-	kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
+	_, kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
 	if err != nil {
 		log.Err(err).Interface("ou", params.Ou).Msg("PrivateEksMakeNodePoolRequest: GetEksKubeConfig error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
@@ -78,32 +87,26 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		log.Err(err).Interface("ou", params.Ou).Msg("PrivateEksMakeNodePoolRequest: GetEksSubnets error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
-	role, err := kubeConfig.GetEksRoleArn()
-	if err != nil {
-		log.Err(err).Interface("ou", params.Ou).Msg("PrivateEksMakeNodePoolRequest: GetEksRoleArn error")
-		return do_types.DigitalOceanNodePoolRequestStatus{}, err
-	}
+
 	labels := CreateBaseNodeLabels(params)
-	tmp := strings.Split(params.CloudCtxNs.Namespace, "-")
-	suffix := tmp[len(tmp)-1]
-	appTaint := types.Taint{
-		Effect: "NO_SCHEDULE",
-		Key:    aws.String("app"),
-		Value:  aws.String(strings.ToLower(params.Cluster.ClusterName)),
-	}
-	orgTaint := types.Taint{
-		Effect: "NO_SCHEDULE",
-		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
-		Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
-	}
+	//orgTaint := types.Taint{
+	//	Effect: "NO_SCHEDULE",
+	//	Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
+	//	Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
+	//}
 	var taints []types.Taint
-	if params.AppTaint {
+	if len(params.Cluster.ClusterName) > 0 && params.AppTaint {
+		appTaint := types.Taint{
+			Effect: "NO_SCHEDULE",
+			Key:    aws.String("app"),
+			Value:  aws.String(strings.ToLower(params.Cluster.ClusterName)),
+		}
 		taints = append(taints, appTaint)
 	}
-	taints = append(taints, orgTaint)
-	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s", params.Ou.OrgID, suffix))
+	nsAlias := NamespaceAlias(params.Cluster.ClusterName)
+	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s-z", params.Ou.OrgID, nsAlias))
 	if len(nodeGroupName) > 39 {
-		nodeGroupName = nodeGroupName[:39]
+		nodeGroupName = nodeGroupName[:38] + "z"
 	}
 	var lt *types.LaunchTemplateSpecification
 	instanceTypes := []string{params.Nodes.Slug}
@@ -114,9 +117,19 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		st := hestia_eks_aws.SlugToInstanceTemplateName[params.Nodes.Slug]
 		lt = hestia_eks_aws.GetLaunchTemplate(id, st)
 	}
+	eka, err := hestia_eks_aws.InitAwsEKS(ctx, eksServiceAuth)
+	if err != nil {
+		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
+		return do_types.DigitalOceanNodePoolRequestStatus{}, err
+	}
+
+	if len(aws.ToString(eka.Account)) <= 0 {
+		log.Err(fmt.Errorf("AccountNumber is empty")).Interface("eks", "").Msg("PrivateEksMakeNodePoolRequest: AccountNumber is empty")
+		return do_types.DigitalOceanNodePoolRequestStatus{}, fmt.Errorf("AccountNumber is empty")
+	}
 	nr := &eks.CreateNodegroupInput{
 		ClusterName:        aws.String(clusterName),
-		NodeRole:           role,
+		NodeRole:           aws.String(fmt.Sprintf("arn:aws:iam::%s:role/AWS-EKS-Role", aws.ToString(eka.Account))),
 		NodegroupName:      aws.String(nodeGroupName),
 		AmiType:            types.AMITypesAl2X8664,
 		Subnets:            subnets,
@@ -132,47 +145,41 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		Taints: taints,
 		Tags:   labels,
 	}
-
-	eka, err := hestia_eks_aws.InitAwsEKS(ctx, eksServiceAuth)
+	resp, err := eka.AddNodeGroup(ctx, nr)
 	if err != nil {
-		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
-		return do_types.DigitalOceanNodePoolRequestStatus{}, err
-	}
-	_, err = eka.AddNodeGroup(ctx, nr)
-	if err != nil {
-		log.Err(err).Interface("nodes", params.Nodes).Msg("PrivateEksMakeNodePoolRequest error")
+		log.Err(err).Interface("resp", resp).Interface("nodes", params.Nodes).Msg("PrivateEksMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	return do_types.DigitalOceanNodePoolRequestStatus{
-		ClusterID:  params.CloudCtxNs.Context,
-		NodePoolID: nodeGroupName,
+		ExtClusterCfgID: cfgID,
+		ClusterID:       params.CloudCtxNs.Context,
+		NodePoolID:      nodeGroupName,
 	}, nil
 }
 
 func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
 	labels := CreateBaseNodeLabels(params)
-	tmp := strings.Split(params.CloudCtxNs.Namespace, "-")
-	suffix := tmp[len(tmp)-1]
 	orgTaint := types.Taint{
 		Effect: "NO_SCHEDULE",
 		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
 		Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
 	}
-	appTaint := types.Taint{
-		Effect: "NO_SCHEDULE",
-		Key:    aws.String("app"),
-		Value:  aws.String(strings.ToLower(params.Cluster.ClusterName)),
-	}
 	taints := []types.Taint{
 		orgTaint,
 	}
-	if params.AppTaint {
+	if len(params.Cluster.ClusterName) > 0 && params.AppTaint {
+		appTaint := types.Taint{
+			Effect: "NO_SCHEDULE",
+			Key:    aws.String("app"),
+			Value:  aws.String(strings.ToLower(params.Cluster.ClusterName)),
+		}
 		taints = append(taints, appTaint)
 	}
 
-	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s", params.Ou.OrgID, suffix))
+	nsAlias := NamespaceAlias(params.Cluster.ClusterName)
+	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s-z", params.Ou.OrgID, nsAlias))
 	if len(nodeGroupName) > 39 {
-		nodeGroupName = nodeGroupName[:39]
+		nodeGroupName = nodeGroupName[:38] + "z"
 	}
 	var lt *types.LaunchTemplateSpecification
 	instanceTypes := []string{params.Nodes.Slug}
@@ -203,7 +210,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 		Taints: taints,
 		Tags:   labels,
 	}
-	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
+	resp, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
 	if err != nil {
 
 		//errSmithy, ok := err.(*smithy.OperationError)
@@ -220,7 +227,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 		//		NodePoolID: nodeGroupName,
 		//	}, nil
 		//}
-		log.Err(err).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
+		log.Err(err).Interface("resp", resp).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	return do_types.DigitalOceanNodePoolRequestStatus{
@@ -246,16 +253,19 @@ func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Con
 	}
 	_, err := api_auth_temporal.Eks.RemoveNodeGroup(ctx, nr)
 	if err != nil {
-		errSmithy := err.(*smithy.OperationError)
-		httpErr := errSmithy.Err.(*http.ResponseError)
-		httpResponse := httpErr.HTTPStatusCode()
-		if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
-			log.Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
-			return nil
-		} else {
-			log.Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
-			return err
+		log.Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
+		errSmithy, ok := err.(*smithy.OperationError)
+		if ok {
+			httpErr, ok2 := errSmithy.Err.(*http.ResponseError)
+			if ok2 {
+				httpResponse := httpErr.HTTPStatusCode()
+				if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
+					log.Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
+					return nil
+				}
+			}
 		}
+		return err
 	}
 	return nil
 }
@@ -265,7 +275,6 @@ func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx cont
 		ClusterName:   aws.String(nodePool.ClusterID),
 		NodegroupName: aws.String(nodePool.NodePoolID),
 	}
-
 	ps, err := aws_secrets.GetServiceAccountSecrets(ctx, ou)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("PrivateEksRemoveNodePoolRequest: GetServiceAccountSecrets error")
@@ -274,7 +283,7 @@ func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx cont
 	var clusterName string
 	var eksServiceAuth aegis_aws_auth.AuthAWS
 	for cn, v := range ps.AwsEksServiceMap {
-		if v.Region == cloudCtxNs.Region {
+		if v.Region == cloudCtxNs.Region && cn == nodePool.ClusterID {
 			eksServiceAuth = v
 			clusterName = cn
 			break
@@ -284,6 +293,10 @@ func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx cont
 		log.Err(err).Interface("ou", ou).Msg("PrivateEksRemoveNodePoolRequest: GetServiceAccountSecrets error")
 		return err
 	}
+	if clusterName != nodePool.ClusterID {
+		log.Err(fmt.Errorf("clusterName and nodePool.ClusterID do not match")).Interface("ou", ou).Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest: clusterName and nodePool.ClusterID do not match")
+		return fmt.Errorf("clusterName and nodePool.ClusterID do not match")
+	}
 	eka, err := hestia_eks_aws.InitAwsEKS(ctx, eksServiceAuth)
 	if err != nil {
 		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
@@ -291,16 +304,35 @@ func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx cont
 	}
 	_, err = eka.RemoveNodeGroup(ctx, nr)
 	if err != nil {
-		errSmithy := err.(*smithy.OperationError)
-		httpErr := errSmithy.Err.(*http.ResponseError)
-		httpResponse := httpErr.HTTPStatusCode()
-		if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
-			log.Info().Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest: node pool not found")
-			return nil
-		} else {
-			log.Err(err).Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest error")
-			return err
+		log.Err(err).Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest error")
+		errSmithy, ok := err.(*smithy.OperationError)
+		if ok {
+			httpErr, ok2 := errSmithy.Err.(*http.ResponseError)
+			if ok2 {
+				httpResponse := httpErr.HTTPStatusCode()
+				if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
+					log.Info().Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest: node pool not found")
+					return nil
+				}
+			}
 		}
+		return err
 	}
 	return nil
+}
+
+func NamespaceAlias(clusterName string) string {
+	clusterID := uuid.New()
+	suffix := strings.Split(clusterID.String(), "-")[0]
+	if len(clusterName) <= 0 {
+		return "z" + suffix + "z"
+	}
+	alias := fmt.Sprintf("%s-%s", clusterName, suffix)
+	clusterNs := clusterID.String()
+	if validation.IsDNS1123Label(alias) == nil {
+		clusterNs = alias
+	} else {
+		clusterNs = suffix
+	}
+	return clusterNs
 }

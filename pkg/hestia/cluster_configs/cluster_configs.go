@@ -28,7 +28,7 @@ func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]authoriz
 			Creds:       creds,
 			ClusterName: clusterName,
 		}
-		kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
+		_, kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
 		if err != nil {
 			log.Err(err).Interface("ou", ou).Msg("GetExtClusterConfigs: GetKubeConfig")
 			return nil, err

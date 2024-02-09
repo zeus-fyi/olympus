@@ -1,9 +1,10 @@
 package deploy_workflow_cluster_setup
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -49,12 +50,38 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-	oj := artemis_orchestrations.NewInternalActiveTemporalOrchestrationJobTemplate(wfID, "ClusterSetupWorkflows", "DeployClusterSetupWorkflow")
-	alertCtx := workflow.WithActivityOptions(ctx, ao)
-	aerr := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
-	if aerr != nil {
-		logger.Error("Failed to upsert assignment", "Error", aerr)
-		return aerr
+	//oj := artemis_orchestrations.NewInternalActiveTemporalOrchestrationJobTemplate(wfID, "ClusterSetupWorkflows", "DeployClusterSetupWorkflow")
+	//alertCtx := workflow.WithActivityOptions(ctx, ao)
+	//aerr := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	//if aerr != nil {
+	//	logger.Error("Failed to upsert assignment", "Error", aerr)
+	//	return aerr
+	//}
+
+	var authCfg *authorized_clusters.K8sClusterConfig
+	clusterAuthCtxKns := workflow.WithActivityOptions(ctx, ao)
+	cerr := workflow.ExecuteActivity(clusterAuthCtxKns, c.CreateSetupTopologyActivities.GetClusterAuthCtx, params.Ou, params.CloudCtxNs).Get(clusterAuthCtxKns, &authCfg)
+	if cerr != nil {
+		logger.Error("Failed to get cluster auth ctx", "Error", cerr)
+		return cerr
+	}
+
+	isPublic := false
+	if authCfg != nil {
+		ns := params.CloudCtxNs.Namespace
+		alias := params.CloudCtxNs.Alias
+		if len(alias) == 0 {
+			alias = ns
+		}
+		cctx := authCfg.CloudCtxNs
+		cctx.Namespace = ns
+		cctx.Alias = alias
+		params.CloudCtxNs = cctx
+		isPublic = authCfg.IsPublic
+	}
+
+	if len(params.CloudCtxNs.Namespace) <= 0 {
+		return fmt.Errorf("namespace is empty")
 	}
 	// TODO add billing email step
 	if params.NodesQuantity > 0 {
@@ -90,11 +117,23 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		case "aws":
 			nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
 			var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
-			switch params.IsPublic {
+			switch isPublic {
 			case true:
 				err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.EksMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 				if err != nil {
 					logger.Error("Failed to complete node pool request for eks", "Error", err)
+					return err
+				}
+				if len(nodePoolRequestStatus.ClusterID) == 0 || len(nodePoolRequestStatus.NodePoolID) == 0 {
+					err = fmt.Errorf("failed to get cluster id")
+					logger.Error("Failed to get cluster id", "Error", err)
+					return err
+				}
+
+				nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+				if err != nil {
+					logger.Error("Failed to add node resources to org account for eks", "Error", err)
 					return err
 				}
 			case false:
@@ -103,13 +142,19 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 					logger.Error("Failed to complete private node pool request for eks", "Error", err)
 					return err
 				}
+				if len(nodePoolRequestStatus.ClusterID) == 0 || len(nodePoolRequestStatus.NodePoolID) == 0 || nodePoolRequestStatus.ExtClusterCfgID <= 0 {
+					err = fmt.Errorf("failed to get cluster id")
+					logger.Error("Failed to get cluster id", "Error", err)
+					return err
+				}
+				nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+				if err != nil {
+					logger.Error("Failed to add node resources to org account for eks", "Error", err)
+					return err
+				}
 			}
-			nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
-			if err != nil {
-				logger.Error("Failed to add node resources to org account for eks", "Error", err)
-				return err
-			}
+
 		case "ovh":
 			nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
 			var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
@@ -166,11 +211,14 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 	//	logger.Error("Failed to send email notification", "Error", err)
 	//	return err
 	//}
-	domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.CloudCtxNs).Get(domainRequestCtx, nil)
-	if err != nil {
-		logger.Error("Failed to add subdomain resources to org account", "Error", err)
-		return err
+
+	if len(params.CloudCtxNs.ClusterCfgStrID) <= 0 {
+		domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.CloudCtxNs).Get(domainRequestCtx, nil)
+		if err != nil {
+			logger.Error("Failed to add subdomain resources to org account", "Error", err)
+			return err
+		}
 	}
 	deployRetryPolicy := &temporal.RetryPolicy{
 		InitialInterval:    time.Second * 15,
@@ -228,6 +276,7 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 				TopologyID:                topID,
 				CloudCtxNs:                params.CloudCtxNs,
 				TopologyBaseInfraWorkload: *infraConfig,
+				AppTaint:                  params.AppTaint,
 			},
 			OrgUser: params.Ou,
 		}
@@ -254,11 +303,11 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		logger.Error("Failed to get child workflow execution", "Error", err)
 		return err
 	}
-	finishedCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
-	if err != nil {
-		logger.Error("Failed to update and mark orchestration inactive", "Error", err)
-		return err
-	}
+	//finishedCtx := workflow.WithActivityOptions(ctx, ao)
+	//err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	//if err != nil {
+	//	logger.Error("Failed to update and mark orchestration inactive", "Error", err)
+	//	return err
+	//}
 	return nil
 }

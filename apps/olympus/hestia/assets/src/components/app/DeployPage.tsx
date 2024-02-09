@@ -10,11 +10,13 @@ import {
     createTheme,
     Divider,
     FormControl,
+    FormControlLabel,
     IconButton,
     InputLabel,
     MenuItem,
     Select,
     Stack,
+    Switch,
     TextField
 } from "@mui/material";
 import * as React from "react";
@@ -28,6 +30,7 @@ import {RootState} from "../../redux/store";
 import {Nodes} from "../../redux/apps/apps.types";
 import {Add, Remove} from "@mui/icons-material";
 import {
+    setAppTaintEnabledToggle,
     setCloudProvider,
     setCluster,
     setClusterPreview,
@@ -54,6 +57,7 @@ export function DeployPage(props: any) {
     const region = useSelector((state: RootState) => state.apps.selectedRegion);
     const node = useSelector((state: RootState) => state.apps.selectedNode);
     const cluster = useSelector((state: RootState) => state.apps.cluster);
+    const appTaintEnabled = useSelector((state: RootState) => state.apps.appTaintEnabled);
     const resourceRequirements = createDiskResourceRequirements(cluster);
     let nodes = useSelector((state: RootState) => state.apps.nodes);
     const nodeMap: NodeMap = {};
@@ -235,6 +239,7 @@ export function DeployPage(props: any) {
                 "cluster": cluster,
                 "resourceRequirements": resourceRequirements,
                 "freeTrial": freeTrial,
+                "appTaint": appTaintEnabled,
                 "monthlyCost": totalCost()
             }
             const response = await appsApiGateway.deployApp(payload);
@@ -351,7 +356,11 @@ export function DeployPage(props: any) {
         return roundedNum * count + (totalBlockStorageCost);
     }
 
-    return (
+    function onToggle() {
+        dispatch(setAppTaintEnabledToggle());
+    }
+
+        return (
         <div>
             <ThemeProvider theme={mdTheme}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4}}>
@@ -500,6 +509,24 @@ export function DeployPage(props: any) {
                                         />
                                     </Stack>
                                 }
+                                <Divider />
+                                <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
+                                    <Typography variant="h6" color="text.secondary">
+                                        Node Taints
+                                    </Typography>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={appTaintEnabled}
+                                                onChange={onToggle}
+                                                name="appTaintEnabled"
+                                                color="primary"
+                                            />
+                                        }
+                                        label="App Taint"
+                                    />
+                                </Box>
+
                                 <Divider />
                                 <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
                                     <Typography variant="h6" color="text.secondary">

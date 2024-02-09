@@ -22,7 +22,7 @@ func insertTopologyStatus() sql_query_templates.QueryParams {
 }
 
 func InsertOrUpdateStatus(ctx context.Context, status *topology_deployment_status.DeployStatus) error {
-	if status == nil {
+	if status == nil || status.TopologyID == 0 {
 		return nil
 	}
 	q := insertTopologyStatus()

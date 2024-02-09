@@ -2,6 +2,8 @@ package hestia_compute_resources
 
 import (
 	"context"
+	"database/sql"
+	"strconv"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
@@ -50,16 +52,28 @@ func AddGkeNodePoolResourcesToOrg(ctx context.Context, orgID, resourceID int, qu
 	return err
 }
 
-func AddEksNodePoolResourcesToOrg(ctx context.Context, orgID, resourceID int, quantity float64, nodePoolID, nodeContextID string, freeTrial bool) error {
+func AddEksNodePoolResourcesToOrg(ctx context.Context, orgID, resourceID int, quantity float64, nodePoolID, nodeContextID string, freeTrial bool, clusterCfgStrID string) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = ` WITH cte_org_resources AS (
 					  INSERT INTO org_resources(org_id, resource_id, quantity, free_trial)
 					  VALUES ($1, $2, $3, $6)
 					  RETURNING org_resource_id
-				  ) INSERT INTO eks_node_pools(org_resource_id, resource_id, node_pool_id, node_context_id)
-					VALUES ((SELECT org_resource_id FROM cte_org_resources), $2, $4, $5)
+				  ) INSERT INTO eks_node_pools(org_resource_id, resource_id, node_pool_id, node_context_id, ext_config_id)
+					VALUES ((SELECT org_resource_id FROM cte_org_resources), $2, $4, $5, $7)
 				  `
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity, nodePoolID, nodeContextID, freeTrial)
+
+	extConfigID := sql.NullInt64{Valid: false}
+	if len(clusterCfgStrID) > 0 {
+		cid, err := strconv.Atoi(clusterCfgStrID)
+		if err != nil {
+			log.Err(err).Msg("AddEksNodePoolResourcesToOrg: strconv.Atoi(cctx.ClusterCfg) error")
+			return err
+		}
+		if cid > 0 {
+			extConfigID = sql.NullInt64{Int64: int64(cid), Valid: true}
+		}
+	}
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity, nodePoolID, nodeContextID, freeTrial, extConfigID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return returnErr
 	}
@@ -262,7 +276,7 @@ func GkeSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int
 	q.RawQuery = `SELECT node_pool_id, node_context_id
  				  FROM gke_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND free_trial = false
 				  `
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
@@ -283,10 +297,10 @@ func GkeSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int
 
 func EksSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT node_pool_id, node_context_id
+	q.RawQuery = `SELECT node_pool_id, node_context_id, COALESCE(ext_config_id, 0)
  				  FROM eks_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND free_trial = false
 				  `
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
@@ -296,7 +310,7 @@ func EksSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int
 	var nodePools []do_types.DigitalOceanNodePoolRequestStatus
 	for rows.Next() {
 		np := do_types.DigitalOceanNodePoolRequestStatus{}
-		err = rows.Scan(&np.NodePoolID, &np.ClusterID)
+		err = rows.Scan(&np.NodePoolID, &np.ClusterID, &np.ExtClusterCfgID)
 		if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 			return nil, returnErr
 		}
@@ -310,7 +324,7 @@ func OvhSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int
 	q.RawQuery = `SELECT node_pool_id, node_context_id
  				  FROM ovh_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND free_trial = false
 				  `
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
@@ -334,7 +348,7 @@ func SelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int) (
 	q.RawQuery = `SELECT node_pool_id, node_context_id
  				  FROM digitalocean_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND free_trial = false
 				  `
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
@@ -357,11 +371,11 @@ func UpdateEndServiceOrgResources(ctx context.Context, orgID int, orgResourceIDs
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `UPDATE org_resources
 				  SET end_service = NOW()
-				  WHERE org_id = $1	AND org_resource_id = ANY($2::bigint[]) AND end_service IS NULL
+				  WHERE org_id = $1	 AND org_resource_id IN (SELECT UNNEST($2::bigint[])) AND end_service IS NULL
 				  `
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
-		log.Ctx(ctx).Info().Msg("No org resources to update end service")
+		log.Info().Msg("No org resources to update end service")
 		return nil
 	}
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {

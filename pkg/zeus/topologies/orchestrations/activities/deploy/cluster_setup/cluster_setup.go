@@ -44,6 +44,8 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.OvhRemoveNodePoolRequest,
 		c.OvhSelectFreeTrialNodes,
 		c.GetClusterTopologyIds,
+		c.GetClusterAuthCtx,
+		c.GetClusterAuthCtxFromID,
 	}
 	return actSlice
 }

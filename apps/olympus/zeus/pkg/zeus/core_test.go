@@ -2,6 +2,7 @@ package zeus
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -37,6 +38,18 @@ func (s *ZeusAppCoreTestSuite) TestVerifyClusterAuthAndGetKubeCfg() {
 	k, err := VerifyClusterAuthAndGetKubeCfg(ctx, s.Ou, cctx)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(k)
+
+	ns, err := k.GetNamespaces(ctx, cctx)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(ns)
+
+	for _, n := range ns.Items {
+		if strings.HasPrefix(n.Name, "anvil") {
+			cctx.Namespace = n.Name
+			err = k.DeleteNamespace(ctx, cctx)
+			s.Require().Nil(err)
+		}
+	}
 }
 
 func (s *ZeusAppCoreTestSuite) TestClusterAuthKube() {

@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/smithy-go"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
@@ -21,10 +22,11 @@ import (
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 func (c *CreateSetupTopologyActivities) EksAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
-	err := hestia_compute_resources.AddEksNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
+	err := hestia_compute_resources.AddEksNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial, params.CloudCtxNs.ClusterCfgStrID)
 	if err != nil {
 		log.Err(err).Interface("nodes", params.Nodes).Msg("EksAddNodePoolToOrgResources error")
 		return err
@@ -84,26 +86,25 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	labels := CreateBaseNodeLabels(params)
-	tmp := strings.Split(params.CloudCtxNs.Namespace, "-")
-	suffix := tmp[len(tmp)-1]
-	appTaint := types.Taint{
-		Effect: "NO_SCHEDULE",
-		Key:    aws.String("app"),
-		Value:  aws.String(strings.ToLower(params.Cluster.ClusterName)),
-	}
 	orgTaint := types.Taint{
 		Effect: "NO_SCHEDULE",
 		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
 		Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
 	}
 	var taints []types.Taint
-	if params.AppTaint {
+	taints = append(taints, orgTaint)
+	if len(params.Cluster.ClusterName) > 0 && params.AppTaint {
+		appTaint := types.Taint{
+			Effect: "NO_SCHEDULE",
+			Key:    aws.String("app"),
+			Value:  aws.String(strings.ToLower(params.Cluster.ClusterName)),
+		}
 		taints = append(taints, appTaint)
 	}
-	taints = append(taints, orgTaint)
-	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s", params.Ou.OrgID, suffix))
+	nsAlias := NamespaceAlias(params.Cluster.ClusterName)
+	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s-z", params.Ou.OrgID, nsAlias))
 	if len(nodeGroupName) > 39 {
-		nodeGroupName = nodeGroupName[:39]
+		nodeGroupName = nodeGroupName[:38] + "z"
 	}
 	var lt *types.LaunchTemplateSpecification
 	instanceTypes := []string{params.Nodes.Slug}
@@ -169,10 +170,10 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	if params.AppTaint {
 		taints = append(taints, appTaint)
 	}
-
-	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s", params.Ou.OrgID, suffix))
+	nsAlias := NamespaceAlias(params.Cluster.ClusterName)
+	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s-z", params.Ou.OrgID, nsAlias))
 	if len(nodeGroupName) > 39 {
-		nodeGroupName = nodeGroupName[:39]
+		nodeGroupName = nodeGroupName[:38] + "z"
 	}
 	var lt *types.LaunchTemplateSpecification
 	instanceTypes := []string{params.Nodes.Slug}
@@ -303,4 +304,20 @@ func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx cont
 		}
 	}
 	return nil
+}
+
+func NamespaceAlias(clusterName string) string {
+	clusterID := uuid.New()
+	suffix := strings.Split(clusterID.String(), "-")[0]
+	if len(clusterName) <= 0 {
+		return "z" + suffix + "z"
+	}
+	alias := fmt.Sprintf("%s-%s", clusterName, suffix)
+	clusterNs := clusterID.String()
+	if validation.IsDNS1123Label(alias) == nil {
+		clusterNs = alias
+	} else {
+		clusterNs = suffix
+	}
+	return clusterNs
 }

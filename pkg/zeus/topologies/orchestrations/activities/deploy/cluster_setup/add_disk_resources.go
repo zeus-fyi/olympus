@@ -14,22 +14,22 @@ import (
 func (c *CreateSetupTopologyActivities) AddDiskResourcesToOrg(ctx context.Context, params base_deploy_params.ClusterSetupRequest, disk hestia_autogen_bases.Disks) error {
 	q, err := digitalOceanBlockStorageBillingUnits(ctx, disk.DiskUnits)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("disks", params.Disks).Msg("AddDiskResourcesToOrg error")
+		log.Err(err).Interface("disks", params.Disks).Msg("AddDiskResourcesToOrg error")
 		return err
 	}
 	err = hestia_compute_resources.AddResourcesToOrgAndCtx(ctx, params.Ou.OrgID, disk.ResourceID, q, params.FreeTrial, params.CloudCtxNs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("disks", params.Disks).Msg("AddDiskResourcesToOrg error")
+		log.Err(err).Interface("disks", params.Disks).Msg("AddDiskResourcesToOrg error")
 		return err
 	}
 	return nil
 }
 
 func (c *CreateSetupTopologyActivities) SelectDiskResourcesAtCloudCtxNs(ctx context.Context, orgID int, cloudCtxNs zeus_common_types.CloudCtxNs) ([]hestia_compute_resources.OrgResourceDisks, error) {
-	log.Ctx(ctx).Info().Interface("cloudCtxNs", cloudCtxNs).Interface("orgID", orgID).Msg("SelectDiskResourcesAtCloudCtxNs")
+	log.Info().Interface("cloudCtxNs", cloudCtxNs).Interface("orgID", orgID).Msg("SelectDiskResourcesAtCloudCtxNs")
 	dsks, err := hestia_compute_resources.SelectOrgResourcesDisksAtCloudCtxNs(ctx, orgID, cloudCtxNs)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("cloudCtxNs", cloudCtxNs).Msg("SelectDiskResourcesAtCloudCtxNs: SelectOrgResourcesDisksAtCloudCtxNs error")
+		log.Err(err).Interface("cloudCtxNs", cloudCtxNs).Msg("SelectDiskResourcesAtCloudCtxNs: SelectOrgResourcesDisksAtCloudCtxNs error")
 		return dsks, err
 	}
 	return dsks, err

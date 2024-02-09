@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -56,6 +57,22 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		logger.Error("Failed to upsert assignment", "Error", aerr)
 		return aerr
 	}
+
+	var authCfg *authorized_clusters.K8sClusterConfig
+	clusterAuthCtxKns := workflow.WithActivityOptions(ctx, ao)
+	cerr := workflow.ExecuteActivity(clusterAuthCtxKns, c.CreateSetupTopologyActivities.GetClusterAuthCtx, params.Ou, params.CloudCtxNs).Get(clusterAuthCtxKns, &authCfg)
+	if cerr != nil {
+		logger.Error("Failed to get cluster auth ctx", "Error", cerr)
+		return cerr
+	}
+
+	isPublic := false
+	if authCfg != nil {
+		tmp := params
+		tmp.CloudCtxNs = authCfg.CloudCtxNs
+		params = tmp
+		isPublic = authCfg.IsPublic
+	}
 	// TODO add billing email step
 	if params.NodesQuantity > 0 {
 		switch params.CloudCtxNs.CloudProvider {
@@ -90,7 +107,7 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		case "aws":
 			nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
 			var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
-			switch params.IsPublic {
+			switch isPublic {
 			case true:
 				err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.EksMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 				if err != nil {

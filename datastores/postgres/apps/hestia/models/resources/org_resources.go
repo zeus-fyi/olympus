@@ -2,6 +2,8 @@ package hestia_compute_resources
 
 import (
 	"context"
+	"database/sql"
+	"strconv"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
@@ -50,16 +52,28 @@ func AddGkeNodePoolResourcesToOrg(ctx context.Context, orgID, resourceID int, qu
 	return err
 }
 
-func AddEksNodePoolResourcesToOrg(ctx context.Context, orgID, resourceID int, quantity float64, nodePoolID, nodeContextID string, freeTrial bool) error {
+func AddEksNodePoolResourcesToOrg(ctx context.Context, orgID, resourceID int, quantity float64, nodePoolID, nodeContextID string, freeTrial bool, clusterCfgStrID string) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = ` WITH cte_org_resources AS (
 					  INSERT INTO org_resources(org_id, resource_id, quantity, free_trial)
 					  VALUES ($1, $2, $3, $6)
 					  RETURNING org_resource_id
-				  ) INSERT INTO eks_node_pools(org_resource_id, resource_id, node_pool_id, node_context_id)
-					VALUES ((SELECT org_resource_id FROM cte_org_resources), $2, $4, $5)
+				  ) INSERT INTO eks_node_pools(org_resource_id, resource_id, node_pool_id, node_context_id, ext_config_id)
+					VALUES ((SELECT org_resource_id FROM cte_org_resources), $2, $4, $5, $7)
 				  `
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity, nodePoolID, nodeContextID, freeTrial)
+
+	extConfigID := sql.NullInt64{Valid: false}
+	if len(clusterCfgStrID) > 0 {
+		cid, err := strconv.Atoi(clusterCfgStrID)
+		if err != nil {
+			log.Err(err).Msg("AddEksNodePoolResourcesToOrg: strconv.Atoi(cctx.ClusterCfg) error")
+			return err
+		}
+		if cid > 0 {
+			extConfigID = sql.NullInt64{Int64: int64(cid), Valid: true}
+		}
+	}
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity, nodePoolID, nodeContextID, freeTrial, extConfigID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return returnErr
 	}

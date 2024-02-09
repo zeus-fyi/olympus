@@ -154,8 +154,6 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 						logger.Error("Failed to get cluster auth ctx", "Error", cerr)
 						return cerr
 					}
-
-					// TOOD, lookup cloudCtxNs
 					err = workflow.ExecuteActivity(eksDestroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.PrivateEksRemoveNodePoolRequest, params.Ou, authCfg.CloudCtxNs, node).Get(eksDestroyNodePoolOrgResourcesCtx, nil)
 					if err != nil {
 						logger.Error("Failed to remove eks node resources for account", "Error", err)

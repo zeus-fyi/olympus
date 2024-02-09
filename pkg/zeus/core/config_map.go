@@ -11,6 +11,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func (k *K8Util) UpdateConfigMapWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, cmUpdate *v1.ConfigMap, filter *string_utils.FilterOpts) (*v1.ConfigMap, error) {
+	k.SetContext(kns.Context)
+	cm, err := k.kc.CoreV1().ConfigMaps(kns.Namespace).Update(ctx, cmUpdate, metav1.UpdateOptions{})
+	if err != nil {
+		log.Err(err).Interface("kns", kns).Interface("cmUpdate.name", cmUpdate.Name).Msg("Failed to update ConfigMap")
+		return nil, err
+	}
+	return cm, nil
+}
+
 func (k *K8Util) GetConfigMapListWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, filter *string_utils.FilterOpts) (*v1.ConfigMapList, error) {
 	k.SetContext(kns.Context)
 	return k.kc.CoreV1().ConfigMaps(kns.Namespace).List(ctx, metav1.ListOptions{})
@@ -18,7 +28,12 @@ func (k *K8Util) GetConfigMapListWithKns(ctx context.Context, kns zeus_common_ty
 
 func (k *K8Util) GetConfigMapWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.ConfigMap, error) {
 	k.SetContext(kns.Context)
-	return k.kc.CoreV1().ConfigMaps(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
+	cm, err := k.kc.CoreV1().ConfigMaps(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		log.Err(err).Interface("kns", kns).Interface("name", name).Msg("GetConfigMapWithKns")
+		return nil, err
+	}
+	return cm, nil
 }
 
 func (k *K8Util) CreateConfigMapWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, cm *v1.ConfigMap, filter *string_utils.FilterOpts) (*v1.ConfigMap, error) {

@@ -23,9 +23,17 @@ func (k *K8Util) GetPod(ctx context.Context, name string, kns zeus_common_types.
 	return p, err
 }
 
-func (k *K8Util) GetPods(ctx context.Context, kns zeus_common_types.CloudCtxNs, opts metav1.ListOptions) (*v1.PodList, error) {
+func (k *K8Util) GetPods(ctx context.Context, kns zeus_common_types.CloudCtxNs, opts *metav1.ListOptions) (*v1.PodList, error) {
+	if opts == nil {
+		opts = &metav1.ListOptions{}
+	}
 	k.SetContext(kns.Context)
-	return k.kc.CoreV1().Pods(kns.Namespace).List(ctx, opts)
+	pods, err := k.kc.CoreV1().Pods(kns.Namespace).List(ctx, *opts)
+	if err != nil {
+		log.Err(err).Interface("kns", kns).Msg("GetPods")
+		return nil, err
+	}
+	return pods, err
 }
 
 func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, logOpts *v1.PodLogOptions, filter *strings_filter.FilterOpts) (*v1.PodList, error) {
@@ -35,7 +43,7 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_ty
 	if logOpts == nil {
 		logOpts = &v1.PodLogOptions{}
 	}
-	pods, err := k.GetPods(ctx, kubeCtxNs, metav1.ListOptions{})
+	pods, err := k.GetPods(ctx, kubeCtxNs, &metav1.ListOptions{})
 	if err != nil {
 		log.Err(err).Interface("kns", kubeCtxNs).Msg("GetPodsUsingCtxNs: GetPods")
 		return pods, err

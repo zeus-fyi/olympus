@@ -15,11 +15,11 @@ type EksCredentials struct {
 	ClusterName string                 `json:"clusterName"`
 }
 
-func GetEksKubeConfig(ctx context.Context, eksCreds EksCredentials) (*KubeConfig, error) {
+func GetEksKubeConfig(ctx context.Context, eksCreds EksCredentials) (*AwsEKS, *KubeConfig, error) {
 	eka, err := InitAwsEKS(ctx, eksCreds.Creds)
 	if err != nil {
 		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
-		return nil, err
+		return nil, nil, err
 	}
 	clusterInput := &eks.DescribeClusterInput{
 		Name: aws.String(eksCreds.ClusterName),
@@ -27,16 +27,16 @@ func GetEksKubeConfig(ctx context.Context, eksCreds EksCredentials) (*KubeConfig
 	clusterOutput, err := eka.DescribeCluster(ctx, clusterInput)
 	if err != nil {
 		log.Err(err).Msg("GetKubeConfig: failed to describe cluster")
-		return nil, err
+		return nil, nil, err
 	}
 
 	if clusterOutput == nil || clusterOutput.Cluster == nil || clusterOutput.Cluster.Endpoint == nil || clusterOutput.Cluster.CertificateAuthority == nil || clusterOutput.Cluster.CertificateAuthority.Data == nil {
 		err = fmt.Errorf("GetKubeConfig: clusterOutput is nil")
 		log.Err(err).Msg("GetKubeConfig: clusterOutput is nil")
-		return nil, err
+		return nil, nil, err
 	}
 
-	return populateEksKubeConfig(eksCreds.ClusterName, clusterOutput), nil
+	return &eka, populateEksKubeConfig(eksCreds.ClusterName, clusterOutput), nil
 }
 
 func populateEksKubeConfig(clusterName string, clusterOutput *eks.DescribeClusterOutput) *KubeConfig {

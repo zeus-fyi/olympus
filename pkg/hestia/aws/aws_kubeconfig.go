@@ -24,9 +24,7 @@ func (k *KubeConfig) GetEksSubnets() ([]string, error) {
 	return k.EksKubeInfo.ResourcesVpcConfig.SubnetIds, nil
 }
 func (k *KubeConfig) GetEksRoleArn() (*string, error) {
-	if k.EksKubeInfo == nil || k.EksKubeInfo.RoleArn == nil {
-		return nil, fmt.Errorf("GetEksRoleArn: EksKubeInfo or RoleArn is nil")
-	}
+
 	return k.EksKubeInfo.RoleArn, nil
 }
 

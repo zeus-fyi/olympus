@@ -68,7 +68,7 @@ func (s *AwsEKSTestSuite) TestGetServiceSecret() {
 			Creds:       creds,
 			ClusterName: clusterName,
 		}
-		kubeConfig, err := GetEksKubeConfig(ctx, eksCredsAuth)
+		_, kubeConfig, err := GetEksKubeConfig(ctx, eksCredsAuth)
 		s.Require().NoError(err)
 
 		kubeConfigYAML, err := yaml.Marshal(&kubeConfig)
@@ -130,7 +130,7 @@ func (s *AwsEKSTestSuite) TestGetKubeConfig() {
 		ClusterName: clusterName,
 	}
 
-	kubeConfig, err := GetEksKubeConfig(ctx, eksCredsAuth)
+	_, kubeConfig, err := GetEksKubeConfig(ctx, eksCredsAuth)
 	s.Require().NoError(err)
 
 	kubeConfigYAML, err := yaml.Marshal(&kubeConfig)

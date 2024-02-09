@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/ghodss/yaml"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
@@ -51,7 +52,7 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 			Creds:       creds,
 			ClusterName: clusterName,
 		}
-		kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
+		_, kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
 		s.Require().NoError(err)
 
 		kubeConfigYAML, err := yaml.Marshal(&kubeConfig)
@@ -83,6 +84,7 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 			kctx := zeus_common_types.CloudCtxNs{
 				CloudProvider: "aws",
 				Region:        "us-east-2",
+				Namespace:     "kube-system",
 				Context:       name,
 			}
 			nses, nerr := k.GetNamespaces(ctx, kctx)
@@ -92,13 +94,38 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 			for _, ns := range nses.Items {
 				fmt.Println(ns.Name)
 			}
+
+			cms, cerr := k.GetConfigMapWithKns(ctx, kctx, "aws-auth", nil)
+			s.Require().Nil(cerr)
+			s.Require().NotNil(cms)
+			var awsAuthMapRoles AwsAuthConfigMap
+			err = yaml.Unmarshal([]byte(cms.Data["mapRoles"]), &awsAuthMapRoles.MapRoles)
+			s.Require().Nil(err)
+
+			eka, eerr := hestia_eks_aws.InitAwsEKS(ctx, eksCredsAuth.Creds)
+			s.Require().Nil(eerr)
+			s.Require().NotNil(eka)
+
+			awsAuthMapRoles.MapUsers = []UserEntry{
+				{
+					UserARN:  aws.StringValue(eka.Arn),
+					Username: eka.Username,
+					Groups:   []string{"system:masters"},
+				},
+			}
+
+			b, berr := yaml.Marshal(awsAuthMapRoles.MapUsers)
+			s.Require().Nil(berr)
+
+			cms.Data["mapUsers"] = string(b)
+
+			cms2, cerr := k.UpdateConfigMapWithKns(ctx, kctx, cms, nil)
+			s.Require().Nil(cerr)
+			s.Require().Equal(cms.Data, cms2.Data)
 			ec := authorized_clusters.K8sClusterConfig{
-				CloudProvider: "aws",
-				Region:        creds.Region,
-				Context:       name,
-				ContextAlias:  clusterName,
-				Env:           "none",
-				IsActive:      false,
+				CloudCtxNs:   kctx,
+				ContextAlias: clusterName,
+				IsActive:     false,
 			}
 			extClusterConfigs = append(extClusterConfigs, ec)
 		}
@@ -107,6 +134,24 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 		fmt.Println(ec)
 	}
 }
+
+type AwsAuthConfigMap struct {
+	MapRoles []RoleEntry `json:"mapRoles"`
+	MapUsers []UserEntry `json:"mapUsers"`
+}
+
+type UserEntry struct {
+	UserARN  string   `json:"userarn"`
+	Username string   `json:"username"`
+	Groups   []string `json:"groups"`
+}
+
+type RoleEntry struct {
+	Groups   []string `json:"groups"`
+	RoleARN  string   `json:"rolearn"`
+	Username string   `json:"username"`
+}
+
 func TestExtClusterCfgsTestSuite(t *testing.T) {
 	suite.Run(t, new(ExtClusterCfgsTestSuite))
 }

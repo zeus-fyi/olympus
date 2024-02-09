@@ -76,7 +76,7 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		Creds:       eksServiceAuth,
 		ClusterName: clusterName,
 	}
-	kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
+	_, kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
 	if err != nil {
 		log.Err(err).Interface("ou", params.Ou).Msg("PrivateEksMakeNodePoolRequest: GetEksKubeConfig error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
@@ -86,11 +86,7 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		log.Err(err).Interface("ou", params.Ou).Msg("PrivateEksMakeNodePoolRequest: GetEksSubnets error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
-	role, err := kubeConfig.GetEksRoleArn()
-	if err != nil {
-		log.Err(err).Interface("ou", params.Ou).Msg("PrivateEksMakeNodePoolRequest: GetEksRoleArn error")
-		return do_types.DigitalOceanNodePoolRequestStatus{}, err
-	}
+
 	labels := CreateBaseNodeLabels(params)
 	//orgTaint := types.Taint{
 	//	Effect: "NO_SCHEDULE",
@@ -120,9 +116,13 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		st := hestia_eks_aws.SlugToInstanceTemplateName[params.Nodes.Slug]
 		lt = hestia_eks_aws.GetLaunchTemplate(id, st)
 	}
+	if len(eksCredsAuth.Creds.AccountNumber) <= 0 {
+		log.Err(fmt.Errorf("AccountNumber is empty")).Interface("eks", "").Msg("PrivateEksMakeNodePoolRequest: AccountNumber is empty")
+		return do_types.DigitalOceanNodePoolRequestStatus{}, fmt.Errorf("AccountNumber is empty")
+	}
 	nr := &eks.CreateNodegroupInput{
 		ClusterName:        aws.String(clusterName),
-		NodeRole:           role,
+		NodeRole:           aws.String(fmt.Sprintf("arn:aws:iam::%s:role/AWS-EKS-Role", eksCredsAuth.Creds.AccountNumber)),
 		NodegroupName:      aws.String(nodeGroupName),
 		AmiType:            types.AMITypesAl2X8664,
 		Subnets:            subnets,
@@ -144,9 +144,9 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
-	_, err = eka.AddNodeGroup(ctx, nr)
+	resp, err := eka.AddNodeGroup(ctx, nr)
 	if err != nil {
-		log.Err(err).Interface("nodes", params.Nodes).Msg("PrivateEksMakeNodePoolRequest error")
+		log.Err(err).Interface("resp", resp).Interface("nodes", params.Nodes).Msg("PrivateEksMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	return do_types.DigitalOceanNodePoolRequestStatus{
@@ -209,7 +209,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 		Taints: taints,
 		Tags:   labels,
 	}
-	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
+	resp, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
 	if err != nil {
 
 		//errSmithy, ok := err.(*smithy.OperationError)
@@ -226,7 +226,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 		//		NodePoolID: nodeGroupName,
 		//	}, nil
 		//}
-		log.Err(err).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
+		log.Err(err).Interface("resp", resp).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	return do_types.DigitalOceanNodePoolRequestStatus{

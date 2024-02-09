@@ -32,6 +32,22 @@ func VerifyClusterAuthAndGetKubeCfg(ctx context.Context, ou org_users.OrgUser, c
 	return GetKubeConfig(ctx, ou, *p)
 }
 
+func VerifyClusterAuthAndGetKubeCfgPtr(ctx context.Context, ou org_users.OrgUser, cloudCtxNs zeus_common_types.CloudCtxNs) (*autok8s_core.K8Util, error) {
+	p, err := authorized_clusters.SelectAuthedClusterByRouteAndOrgID(ctx, ou, cloudCtxNs)
+	if err != nil {
+		return nil, err
+	}
+	if p == nil {
+		return nil, nil
+	}
+	k, err := GetKubeConfig(ctx, ou, *p)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Msg("CheckKubeConfig: ConnectToK8sFromInMemFsCfgPathOrErr")
+		return nil, err
+	}
+	return &k, err
+}
+
 func GetKubeConfig(ctx context.Context, ou org_users.OrgUser, p authorized_clusters.K8sClusterConfig) (autok8s_core.K8Util, error) {
 	inKey := &s3.GetObjectInput{
 		Bucket: aws.String("zeus-fyi"),

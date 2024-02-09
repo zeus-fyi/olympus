@@ -37,8 +37,8 @@ func DeployDeploymentHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context) 
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Invalid request type"})
 		}
 		if request.Kns.TopologyBaseInfraWorkload.Deployment != nil {
-			imps := request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.ImagePullSecrets
-			if request.Kns.TopologyBaseInfraWorkload.StatefulSet.Spec.Template.Spec.ImagePullSecrets != nil {
+			imps := request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.ImagePullSecrets
+			if request.Kns.TopologyBaseInfraWorkload.Deployment.Spec.Template.Spec.ImagePullSecrets != nil {
 				for _, ext := range imps {
 					ps, err := aws_secrets.GetDockerSecret(ctx, request.OrgUser, ext.Name)
 					if err != nil {

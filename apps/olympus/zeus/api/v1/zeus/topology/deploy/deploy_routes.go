@@ -121,13 +121,14 @@ func RequestExtractionMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 			return next(c)
 		}
-
-		k, err := zeus.VerifyClusterAuthAndGetKubeCfg(c.Request().Context(), request.OrgUser, request.Kns.CloudCtxNs)
+		k, err := zeus.VerifyClusterAuthAndGetKubeCfgPtr(c.Request().Context(), request.OrgUser, request.Kns.CloudCtxNs)
 		if err != nil {
 			log.Err(err).Interface("request", request).Interface("ou", request.OrgUser).Msg("RequestExtractionMiddleware: VerifyClusterAuthAndGetKubeCfg")
 			return err
 		}
-		c.Set("k8Cfg", k)
+		if k != nil {
+			c.Set("k8Cfg", *k)
+		}
 		return next(c)
 	}
 }

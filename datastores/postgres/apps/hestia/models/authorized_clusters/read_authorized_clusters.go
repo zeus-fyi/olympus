@@ -85,6 +85,9 @@ func SelectAuthedClusterByRouteAndOrgID(ctx context.Context, ou org_users.OrgUse
 	var ccfg K8sClusterConfig
 	rerr := apps.Pg.QueryRowWArgs(ctx, q, ou.OrgID, ccid, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context).Scan(
 		&ccfg.ExtConfigID, &ccfg.ExtConfigStrID, &ccfg.CloudProvider, &ccfg.Region, &ccfg.Context, &ccfg.ContextAlias, &ccfg.Env, &ccfg.IsActive, &ccfg.IsPublic)
+	if rerr == pgx.ErrNoRows {
+		return nil, nil
+	}
 	if rerr != nil {
 		log.Err(rerr).Interface("ou", ou).Interface("cloudCtxNs", cloudCtxNs).Msg("SelectAuthedClusterByRouteAndOrgID")
 		return nil, rerr

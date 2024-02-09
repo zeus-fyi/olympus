@@ -202,11 +202,14 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 	//	logger.Error("Failed to send email notification", "Error", err)
 	//	return err
 	//}
-	domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.CloudCtxNs).Get(domainRequestCtx, nil)
-	if err != nil {
-		logger.Error("Failed to add subdomain resources to org account", "Error", err)
-		return err
+
+	if len(params.CloudCtxNs.ClusterCfgStrID) <= 0 {
+		domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.CloudCtxNs).Get(domainRequestCtx, nil)
+		if err != nil {
+			logger.Error("Failed to add subdomain resources to org account", "Error", err)
+			return err
+		}
 	}
 	deployRetryPolicy := &temporal.RetryPolicy{
 		InitialInterval:    time.Second * 15,

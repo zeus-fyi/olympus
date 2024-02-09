@@ -36,6 +36,9 @@ func GetDiskTypesAWS(region string) []hestia_autogen_bases.Disks {
 	} else if region == "us-east-2" {
 		gbInGi *= 0.08
 		resourceStrID = "1707332235297634000"
+	} else if region == "us-east-1" {
+		gbInGi *= 0.08
+		resourceStrID = "1707486802147690000"
 	}
 	disk := hestia_autogen_bases.Disks{
 		ResourceStrID: resourceStrID,
@@ -56,6 +59,9 @@ func GetDiskTypesAWS(region string) []hestia_autogen_bases.Disks {
 	} else if region == "us-east-2" {
 		gbInGi *= 0.1
 		resourceStrID = "1707332260863081000"
+	} else if region == "us-east-1" {
+		gbInGi *= 0.1
+		resourceStrID = "1707486750716592000"
 	}
 	disk2 := hestia_autogen_bases.Disks{
 		ResourceStrID: resourceStrID,

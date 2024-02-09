@@ -5,6 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
+	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -291,6 +294,26 @@ func (s *SecretsTestSuite) TestCreateS3AwsSecret() {
 	newSecret, err := s.K.CreateSecretWithKns(ctx, kns, &sec, nil)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(newSecret)
+}
+
+func (s *SecretsTestSuite) TestDockerSecret() {
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "zeus"}
+
+	secret, err := s.K.GetSecretWithKns(ctx, kns, "zeus-fyi-ext", nil)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(secret)
+
+	auth := aegis_aws_auth.AuthAWS{
+		Region:    "us-west-1",
+		AccessKey: s.Tc.AwsAccessKeySecretManager,
+		SecretKey: s.Tc.AwsSecretKeySecretManager,
+	}
+	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
+	ps, err := aws_secrets.GetDockerSecret(ctx, s.Ou, "zeus-do-docker")
+	s.Require().Nil(err)
+	s.Require().NotEmpty(ps)
+
+	s.Require().Equal(ps.DockerAuthJson, string(secret.Data[".dockerconfigjson"]))
 }
 
 func TestSecretsTestSuite(t *testing.T) {

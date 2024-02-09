@@ -51,7 +51,7 @@ func (k *K8Util) CreateSecretWithKns(ctx context.Context, kns zeus_common_types.
 	sec, err := k.kc.CoreV1().Secrets(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
 	alreadyExists := errors.IsAlreadyExists(err)
 	if alreadyExists {
-		log.Ctx(ctx).Err(err).Msg("Secret already exists, skipping creation")
+		log.Err(err).Msg("Secret already exists, skipping creation")
 		return sec, nil
 	}
 	return sec, err

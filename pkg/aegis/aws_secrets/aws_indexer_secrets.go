@@ -197,3 +197,28 @@ type OAuth2PlatformSecret struct {
 type ServiceAccountPlatformSecrets struct {
 	AwsEksServiceMap map[string]aegis_aws_auth.AuthAWS `json:"awsEksServiceMap"`
 }
+
+func GetDockerSecret(ctx context.Context, ou org_users.OrgUser, sn string) (*DockerPlatformSecret, error) {
+	m := make(map[string]SecretsKeyValue)
+	sv, err := artemis_hydra_orchestrations_aws_auth.GetOrgSecret(ctx, FormatSecret(ou.OrgID))
+	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+		return nil, err
+	}
+	err = json.Unmarshal(sv, &m)
+	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("%s", err.Error()))
+		return nil, err
+	}
+	for secretName, v := range m {
+		if v.Key == "dockerconfigjson" && secretName == sn {
+			dps := &DockerPlatformSecret{DockerAuthJson: v.Value}
+			return dps, err
+		}
+	}
+	return nil, err
+}
+
+type DockerPlatformSecret struct {
+	DockerAuthJson string `json:"dockerAuthJSON"`
+}

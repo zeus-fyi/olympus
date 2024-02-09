@@ -297,7 +297,7 @@ func GkeSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int
 
 func EksSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT node_pool_id, node_context_id
+	q.RawQuery = `SELECT node_pool_id, node_context_id, COALESCE(ext_config_id, 0)
  				  FROM eks_node_pools
  				  JOIN org_resources USING (org_resource_id)
 				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
@@ -310,7 +310,7 @@ func EksSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int
 	var nodePools []do_types.DigitalOceanNodePoolRequestStatus
 	for rows.Next() {
 		np := do_types.DigitalOceanNodePoolRequestStatus{}
-		err = rows.Scan(&np.NodePoolID, &np.ClusterID)
+		err = rows.Scan(&np.NodePoolID, &np.ClusterID, &np.ExtClusterCfgID)
 		if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 			return nil, returnErr
 		}

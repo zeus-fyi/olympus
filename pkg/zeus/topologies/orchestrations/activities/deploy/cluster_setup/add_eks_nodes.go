@@ -152,24 +152,23 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 
 func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
 	labels := CreateBaseNodeLabels(params)
-	tmp := strings.Split(params.CloudCtxNs.Namespace, "-")
-	suffix := tmp[len(tmp)-1]
 	orgTaint := types.Taint{
 		Effect: "NO_SCHEDULE",
 		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
 		Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
 	}
-	appTaint := types.Taint{
-		Effect: "NO_SCHEDULE",
-		Key:    aws.String("app"),
-		Value:  aws.String(strings.ToLower(params.Cluster.ClusterName)),
-	}
 	taints := []types.Taint{
 		orgTaint,
 	}
-	if params.AppTaint {
+	if len(params.Cluster.ClusterName) > 0 && params.AppTaint {
+		appTaint := types.Taint{
+			Effect: "NO_SCHEDULE",
+			Key:    aws.String("app"),
+			Value:  aws.String(strings.ToLower(params.Cluster.ClusterName)),
+		}
 		taints = append(taints, appTaint)
 	}
+
 	nsAlias := NamespaceAlias(params.Cluster.ClusterName)
 	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s-z", params.Ou.OrgID, nsAlias))
 	if len(nodeGroupName) > 39 {
@@ -247,16 +246,19 @@ func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Con
 	}
 	_, err := api_auth_temporal.Eks.RemoveNodeGroup(ctx, nr)
 	if err != nil {
-		errSmithy := err.(*smithy.OperationError)
-		httpErr := errSmithy.Err.(*http.ResponseError)
-		httpResponse := httpErr.HTTPStatusCode()
-		if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
-			log.Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
-			return nil
-		} else {
-			log.Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
-			return err
+		log.Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
+		errSmithy, ok := err.(*smithy.OperationError)
+		if ok {
+			httpErr, ok2 := errSmithy.Err.(*http.ResponseError)
+			if ok2 {
+				httpResponse := httpErr.HTTPStatusCode()
+				if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
+					log.Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
+					return nil
+				}
+			}
 		}
+		return err
 	}
 	return nil
 }
@@ -266,7 +268,6 @@ func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx cont
 		ClusterName:   aws.String(nodePool.ClusterID),
 		NodegroupName: aws.String(nodePool.NodePoolID),
 	}
-
 	ps, err := aws_secrets.GetServiceAccountSecrets(ctx, ou)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("PrivateEksRemoveNodePoolRequest: GetServiceAccountSecrets error")
@@ -275,7 +276,7 @@ func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx cont
 	var clusterName string
 	var eksServiceAuth aegis_aws_auth.AuthAWS
 	for cn, v := range ps.AwsEksServiceMap {
-		if v.Region == cloudCtxNs.Region {
+		if v.Region == cloudCtxNs.Region && cn == nodePool.ClusterID {
 			eksServiceAuth = v
 			clusterName = cn
 			break
@@ -285,6 +286,10 @@ func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx cont
 		log.Err(err).Interface("ou", ou).Msg("PrivateEksRemoveNodePoolRequest: GetServiceAccountSecrets error")
 		return err
 	}
+	if clusterName != nodePool.ClusterID {
+		log.Err(fmt.Errorf("clusterName and nodePool.ClusterID do not match")).Interface("ou", ou).Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest: clusterName and nodePool.ClusterID do not match")
+		return fmt.Errorf("clusterName and nodePool.ClusterID do not match")
+	}
 	eka, err := hestia_eks_aws.InitAwsEKS(ctx, eksServiceAuth)
 	if err != nil {
 		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
@@ -292,16 +297,19 @@ func (c *CreateSetupTopologyActivities) PrivateEksRemoveNodePoolRequest(ctx cont
 	}
 	_, err = eka.RemoveNodeGroup(ctx, nr)
 	if err != nil {
-		errSmithy := err.(*smithy.OperationError)
-		httpErr := errSmithy.Err.(*http.ResponseError)
-		httpResponse := httpErr.HTTPStatusCode()
-		if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
-			log.Info().Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest: node pool not found")
-			return nil
-		} else {
-			log.Err(err).Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest error")
-			return err
+		log.Err(err).Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest error")
+		errSmithy, ok := err.(*smithy.OperationError)
+		if ok {
+			httpErr, ok2 := errSmithy.Err.(*http.ResponseError)
+			if ok2 {
+				httpResponse := httpErr.HTTPStatusCode()
+				if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
+					log.Info().Interface("nodePool", nodePool).Msg("PrivateEksRemoveNodePoolRequest: node pool not found")
+					return nil
+				}
+			}
 		}
+		return err
 	}
 	return nil
 }

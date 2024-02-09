@@ -17,3 +17,12 @@ func (c *CreateSetupTopologyActivities) GetClusterAuthCtx(ctx context.Context, o
 	}
 	return kc, nil
 }
+
+func (c *CreateSetupTopologyActivities) GetClusterAuthCtxFromID(ctx context.Context, ou org_users.OrgUser, clusterCfgStrID string) (*authorized_clusters.K8sClusterConfig, error) {
+	kc, err := authorized_clusters.SelectAuthedClusterByIDAndOrgID(ctx, ou, clusterCfgStrID)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Interface("clusterCfgStrID", clusterCfgStrID).Msg("CreateSetupTopologyActivities: GetClusterAuthCtxFromID: error")
+		return nil, err
+	}
+	return kc, nil
+}

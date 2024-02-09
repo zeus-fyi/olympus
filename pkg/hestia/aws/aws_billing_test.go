@@ -51,30 +51,21 @@ i4i.8xlarge	$3.027	32	256 GiB	2 x 3750 NVMe SSD	18750 Megabit
 func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	instanceTypes := []string{
-		"t4g.nano",
-		"t4g.micro",
-		"t4g.small",
-		"t4g.medium",
-		"t4g.large",
-		"t4g.xlarge",
-		"t4g.2xlarge",
-		"t3.nano",
-		"t3.micro",
-		"t3.small",
-		"t3.medium",
-		"t3.large",
-		"t3.xlarge",
-		"t3.2xlarge",
-		"t3a.nano",
-		"t3a.micro",
-		"t3a.small",
-		"t3a.medium",
-		"t3a.large",
-		"t3a.xlarge",
+		//"t3.nano",
+		//"t3.micro",
+		//"t3.small",
+		//"t3.medium",
+		//"t3.large",
+		//"t3.xlarge",
+		//"t3.2xlarge",
+		"i3.4xlarge",
+		"i3.8xlarge",
+		"i4i.4xlarge",
+		"i4i.8xlarge",
 	}
-	region := "us-east-2"
+	region := "us-east-1"
 
-	diskType := "ssd"
+	diskType := "nvme"
 
 	n := hestia_autogen_bases.NodesSlice{}
 	for _, instanceType := range instanceTypes {

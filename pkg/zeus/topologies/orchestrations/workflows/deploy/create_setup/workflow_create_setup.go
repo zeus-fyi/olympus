@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
@@ -50,13 +51,13 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-	//oj := artemis_orchestrations.NewInternalActiveTemporalOrchestrationJobTemplate(wfID, "ClusterSetupWorkflows", "DeployClusterSetupWorkflow")
-	//alertCtx := workflow.WithActivityOptions(ctx, ao)
-	//aerr := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
-	//if aerr != nil {
-	//	logger.Error("Failed to upsert assignment", "Error", aerr)
-	//	return aerr
-	//}
+	oj := artemis_orchestrations.NewInternalActiveTemporalOrchestrationJobTemplate(wfID, "ClusterSetupWorkflows", "DeployClusterSetupWorkflow")
+	alertCtx := workflow.WithActivityOptions(ctx, ao)
+	aerr := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	if aerr != nil {
+		logger.Error("Failed to upsert assignment", "Error", aerr)
+		return aerr
+	}
 
 	var authCfg *authorized_clusters.K8sClusterConfig
 	clusterAuthCtxKns := workflow.WithActivityOptions(ctx, ao)
@@ -303,11 +304,11 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		logger.Error("Failed to get child workflow execution", "Error", err)
 		return err
 	}
-	//finishedCtx := workflow.WithActivityOptions(ctx, ao)
-	//err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
-	//if err != nil {
-	//	logger.Error("Failed to update and mark orchestration inactive", "Error", err)
-	//	return err
-	//}
+	finishedCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	if err != nil {
+		logger.Error("Failed to update and mark orchestration inactive", "Error", err)
+		return err
+	}
 	return nil
 }

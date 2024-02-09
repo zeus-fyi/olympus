@@ -65,6 +65,7 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		if v.Region == params.CloudCtxNs.Region {
 			eksServiceAuth = v
 			clusterName = cn
+			eksServiceAuth.AccountNumber = v.AccountNumber
 			break
 		}
 	}
@@ -116,13 +117,19 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		st := hestia_eks_aws.SlugToInstanceTemplateName[params.Nodes.Slug]
 		lt = hestia_eks_aws.GetLaunchTemplate(id, st)
 	}
-	if len(eksCredsAuth.Creds.AccountNumber) <= 0 {
+	eka, err := hestia_eks_aws.InitAwsEKS(ctx, eksServiceAuth)
+	if err != nil {
+		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
+		return do_types.DigitalOceanNodePoolRequestStatus{}, err
+	}
+
+	if len(aws.ToString(eka.Account)) <= 0 {
 		log.Err(fmt.Errorf("AccountNumber is empty")).Interface("eks", "").Msg("PrivateEksMakeNodePoolRequest: AccountNumber is empty")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, fmt.Errorf("AccountNumber is empty")
 	}
 	nr := &eks.CreateNodegroupInput{
 		ClusterName:        aws.String(clusterName),
-		NodeRole:           aws.String(fmt.Sprintf("arn:aws:iam::%s:role/AWS-EKS-Role", eksCredsAuth.Creds.AccountNumber)),
+		NodeRole:           aws.String(fmt.Sprintf("arn:aws:iam::%s:role/AWS-EKS-Role", aws.ToString(eka.Account))),
 		NodegroupName:      aws.String(nodeGroupName),
 		AmiType:            types.AMITypesAl2X8664,
 		Subnets:            subnets,
@@ -137,12 +144,6 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		},
 		Taints: taints,
 		Tags:   labels,
-	}
-
-	eka, err := hestia_eks_aws.InitAwsEKS(ctx, eksServiceAuth)
-	if err != nil {
-		log.Err(err).Msg("GetKubeConfig: failed to init EKS client")
-		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	resp, err := eka.AddNodeGroup(ctx, nr)
 	if err != nil {

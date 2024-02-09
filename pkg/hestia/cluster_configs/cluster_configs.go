@@ -2,6 +2,7 @@ package hestia_cluster_configs
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ghodss/yaml"
 	"github.com/rs/zerolog/log"
@@ -67,6 +68,9 @@ func GetExtClusterConfigs(ctx context.Context, ou org_users.OrgUser) ([]authoriz
 			if berr != nil {
 				log.Err(berr).Interface("nses", nses).Msg("GetExtClusterConfigs: GetNamespaces")
 				return nil, berr
+			}
+			for _, nv := range nses.Items {
+				fmt.Println(nv.Name)
 			}
 
 			ec := authorized_clusters.K8sClusterConfig{

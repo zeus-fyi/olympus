@@ -51,6 +51,13 @@ func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) error
 		}
 		p.AddPodTemplateSpecClassGenericFields(csv)
 	}
+	// TODO: Add support for ImagePullSecrets
+	//if ps.ImagePullSecrets != nil && len(ps.ImagePullSecrets) > 0 {
+	//	spn := structs.NewChildClassSingleValue("imagePullSecrets")
+	//	spn.ChartSubcomponentKeyName = "imagePullSecrets"
+	//	spn.ChartSubcomponentValue = fmt.Sprintf("%v", ps.ImagePullSecrets)
+	//	p.Spec.ShareProcessNamespace = &spn
+	//}
 
 	if ps.ShareProcessNamespace != nil {
 		spn := structs.NewChildClassSingleValue("shareProcessNamespace")

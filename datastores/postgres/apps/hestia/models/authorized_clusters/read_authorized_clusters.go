@@ -12,7 +12,7 @@ import (
 )
 
 func SelectAuthedClusterConfigsByOrgID(ctx context.Context, ou org_users.OrgUser) ([]K8sClusterConfig, error) {
-	q := `SELECT ext_config_id, ext_config_id::text, cloud_provider, region, context, context_alias, env, is_active
+	q := `SELECT ext_config_id, ext_config_id::text, ext_config_id::text, cloud_provider, region, context, context_alias, env, is_active
 		FROM public.authorized_cluster_configs
 		WHERE org_id = $1;`
 
@@ -25,7 +25,7 @@ func SelectAuthedClusterConfigsByOrgID(ctx context.Context, ou org_users.OrgUser
 	var configs []K8sClusterConfig
 	for rows.Next() {
 		var c K8sClusterConfig
-		err := rows.Scan(&c.ExtConfigID, &c.ExtConfigStrID, &c.CloudProvider, &c.Region, &c.Context, &c.ContextAlias, &c.Env, &c.IsActive)
+		err := rows.Scan(&c.ExtConfigID, &c.ExtConfigStrID, &c.CloudCtxNs.ClusterCfgStrID, &c.CloudProvider, &c.Region, &c.Context, &c.ContextAlias, &c.Env, &c.IsActive)
 		if err != nil {
 			log.Err(err).Msg("SelectAuthedClusterConfigsByOrgID")
 			return nil, err

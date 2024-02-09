@@ -75,7 +75,6 @@ export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 
 const mdTheme = createTheme();
 
 export function ClusterSetupContent(props: any) {
-    const {loading, setIsLoading} = props;
     const [open, setOpen] = useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -185,7 +184,7 @@ export function ClusterSetupContent(props: any) {
                                 {/*</Typography>*/}
                             </CardContent>
                             <CardContent>
-                                    <ClusterConfigList loading={loading} setIsLoading={setIsLoading} />
+                                <ClusterConfigList />
                             </CardContent>
                         </Card>
                     </Container>

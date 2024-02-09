@@ -11,9 +11,15 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 
 export default function ClusterConfig() {
-    const [loading, setIsLoading] = React.useState(false);
 
+    return <ClusterSetupContent/>;
+}
+
+export function ClusterConfigList(props: any) {
+    const [loading, setIsLoading] = React.useState(false);
     const dispatch = useDispatch();
+    const clusterConfigs = useSelector((state: RootState) => state.clustersConfigs.clusterConfigs);
+
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
@@ -21,23 +27,11 @@ export default function ClusterConfig() {
                 const response = await clustersApiGateway.getPrivateAuthedClustersConfigs();
                 dispatch(setClustersConfigs(response.data));
             } catch (error) {
-                console.log("error", error);
             } finally {
                 setIsLoading(false);
             }}
         fetchData().then(r => '');
     }, []);
-
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-    return <ClusterSetupContent loading={loading} setIsLoading={setIsLoading} />;
-}
-
-export function ClusterConfigList(props: any) {
-    const {loading, setIsLoading} = props;
-    const dispatch = useDispatch();
-    const clusterConfigs = useSelector((state: RootState) => state.clustersConfigs.clusterConfigs);
 
     const putExtClusterConfigChanges = async (event: any) => {
         try {
@@ -57,7 +51,7 @@ export function ClusterConfigList(props: any) {
     if (loading) {
         return <div>Loading...</div>;
     }
-
+    console.log("clusterConfigs", clusterConfigs)
     const handleChange = (index: number, field: string, value: any) => {
         dispatch(updateClusterConfigs({ index, changes: { [field]: value } }));
     };
@@ -80,7 +74,7 @@ export function ClusterConfigList(props: any) {
                         <TextField
                             label="Cloud Provider"
                             variant="outlined"
-                            value={config.cloudProvider}
+                            value={config.cloudCtxNs.cloudProvider}
                             InputProps={{
                                 readOnly: true,
                             }}
@@ -90,7 +84,7 @@ export function ClusterConfigList(props: any) {
                         <TextField
                             label="Region"
                             variant="outlined"
-                            value={config.region}
+                            value={config.cloudCtxNs.region}
                             InputProps={{
                                 readOnly: true,
                             }}
@@ -101,7 +95,7 @@ export function ClusterConfigList(props: any) {
                         <TextField
                             label="Context Name"
                             variant="outlined"
-                            value={config.context}
+                            value={config.cloudCtxNs.context}
                             InputProps={{
                                 readOnly: true,
                             }}
@@ -119,7 +113,7 @@ export function ClusterConfigList(props: any) {
                         <TextField
                             label="Environment"
                             variant="outlined"
-                            value={config.env}
+                            value={config.cloudCtxNs.env}
                             onChange={(e) => handleChange(index, 'env', e.target.value)}
                         />
                     </Box>

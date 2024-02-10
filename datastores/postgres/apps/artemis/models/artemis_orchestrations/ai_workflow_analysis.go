@@ -129,11 +129,21 @@ func GenerateContentText(wrs []AIWorkflowAnalysisResult) (string, error) {
 	}
 
 	// todo refactor after fixing the above
-	if len(temp) <= 0 && len(wrs) > 0 {
+	if (len(temp) <= 0 || temp == "\n") && len(wrs) > 0 {
 		tc := ToolCompletions{}
 		err := json.Unmarshal(wrs[0].CompletionChoices, &tc)
 		if err != nil {
 			log.Err(err).Msg("ToolCompletions Unmarshal Error")
+			var tmp = []ToolCompletions{}
+			err = json.Unmarshal(wrs[0].CompletionChoices, &tmp)
+			if err != nil {
+				log.Err(err).Msg("ToolCompletions UnmarshalSlice Error")
+			}
+			for _, tcIn := range tmp {
+				for _, c := range tcIn.Message.ToolCalls {
+					temp += c.Function.Arguments + "\n"
+				}
+			}
 			err = nil
 		}
 		for _, c := range tc.Message.ToolCalls {

@@ -193,6 +193,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						sg.FilteredSearchResults = aiResp.FilteredSearchResults
 					}
 					if aiResp != nil {
+						if cp.AnalysisEvalActionParams == nil {
+							cp.AnalysisEvalActionParams = &EvalActionParams{}
+						}
 						cp.AnalysisEvalActionParams.ParentOutputToEval = aiResp
 					}
 				default:

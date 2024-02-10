@@ -15,6 +15,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
@@ -279,6 +280,8 @@ func Zeus() {
 		srv.E = router.InitRouter(srv.E, cfg.K8sUtil, mw)
 		base_deploy_params.BaseURL = "http://localhost:9001"
 		deployment_status.BaseURL = "http://localhost:9001"
+		aws_secrets.CredBasePath = "~" + aws_secrets.CredBasePath
+		aws_secrets.ConfigPath = "~" + aws_secrets.ConfigPath
 	} else {
 		mw := middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi",

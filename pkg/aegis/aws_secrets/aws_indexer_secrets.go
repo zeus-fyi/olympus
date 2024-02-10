@@ -55,6 +55,11 @@ func ClearOrgSecretCache(ou org_users.OrgUser) {
 	SecretCache.Delete(FormatSecret(ou.OrgID))
 }
 
+var (
+	CredBasePath = "/.aws/credentials"
+	ConfigPath   = "/.aws/config"
+)
+
 func GetServiceAccountSecrets(ctx context.Context, ou org_users.OrgUser) (ServiceAccountPlatformSecrets, error) {
 	sps := ServiceAccountPlatformSecrets{
 		AwsEksServiceMap: make(map[string]aegis_aws_auth.AuthAWS),
@@ -90,11 +95,11 @@ func GetServiceAccountSecrets(ctx context.Context, ou org_users.OrgUser) (Servic
 		}
 	}
 	for _, v := range sps.AwsEksServiceMap {
-		err = AddOrUpdateProfile("/.aws/credentials", fmt.Sprintf("%d", ou.OrgID), v.AccessKey, v.SecretKey)
+		err = AddOrUpdateProfile(CredBasePath, fmt.Sprintf("%d", ou.OrgID), v.AccessKey, v.SecretKey)
 		if err != nil {
 			return sps, err
 		}
-		err = AddOrUpdateConfig("/.aws/config", fmt.Sprintf("%d", ou.OrgID), v.Region)
+		err = AddOrUpdateConfig(ConfigPath, fmt.Sprintf("%d", ou.OrgID), v.Region)
 		if err != nil {
 			return sps, err
 		}

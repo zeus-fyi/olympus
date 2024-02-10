@@ -117,7 +117,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	if !isBillingSetup {
 		t.FreeTrial = true
 	}
-	if ou.UserID == 1685378241971196000 || ou.UserID == 7138958574876245565 {
+	if ou.UserID == 1685378241971196000 || ou.UserID == 7138958574876245565 || ou.OrgID == 1685378241971196000 {
 		t.FreeTrial = false
 	} else {
 		isFreeTrialOngoing, ferr := hestia_compute_resources.DoesOrgHaveOngoingFreeTrial(ctx, ou.OrgID)

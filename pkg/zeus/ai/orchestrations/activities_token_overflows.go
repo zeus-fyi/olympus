@@ -144,8 +144,35 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		return nil
 	}
 	totalSearchResults := pr.PromptReductionSearchResults.InSearchGroup.SearchResults
+
+	if len(totalSearchResults) <= 0 && len(compressedSearchStr) > 0 && needsReduction {
+		// Treat compressedSearchStr as if it was an input string that can be chunked
+		marginBuffer = validateMarginBufferLimits(pr.MarginBuffer)
+		chunks, cerr := ChunkPromptToSlices(ctx, pr.Model, compressedSearchStr, marginBuffer)
+		if cerr != nil {
+			log.Err(cerr).Msg("TokenOverflowSearchResults: ChunkPromptToSlices for compressedSearchStr")
+			return cerr
+		}
+
+		// Assuming that ChunkPromptToSlices does not only chunk but also ensures each chunk is within token limits
+		if len(chunks) > 0 {
+			// Update the PromptReductionText to reflect the chunking of compressedSearchStr
+			pr.PromptReductionText = &PromptReductionText{
+				InPromptBody:    compressedSearchStr, // Original compressed string
+				OutPromptChunks: chunks,              // Chunks after processing
+			}
+		} else {
+			// Fallback to original string if no chunks were created (should not happen due to checks)
+			pr.PromptReductionText = &PromptReductionText{
+				InPromptBody:       compressedSearchStr,
+				OutPromptTruncated: compressedSearchStr, // Or handle accordingly
+			}
+		}
+		return nil
+	}
+
 	splitIteration := 2
-	for needsReduction && splitIteration < len(totalSearchResults) {
+	for needsReduction && (splitIteration < len(totalSearchResults)) {
 		chunks := splitSliceIntoChunks(totalSearchResults, splitIteration)
 		var tokenEstimates []int
 		needsReduction, tokenEstimates, err = validateChunkTokenLimits(ctx, model, marginBuffer, chunks)
@@ -163,6 +190,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		}
 		splitIteration++
 	}
+
 	return fmt.Errorf("TokenOverflowSearchResults: failed to reduce search results")
 }
 

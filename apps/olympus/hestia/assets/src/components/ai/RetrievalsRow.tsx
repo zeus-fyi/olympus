@@ -98,6 +98,21 @@ export const prettyPrintPromptJSON = (json: any): string => {
     }
 };
 
+export const prettyPrintPromptContentJSON = (json: any): string => {
+    try {
+        // Check if the input is a string that needs to be parsed
+        if (typeof json === 'string') {
+            json = JSON.parse(json);
+        }
+        return JSON.parse(JSON.stringify(json.content, null, 2))
+
+    } catch (error) {
+        console.error('Error parsing or formatting JSON:', error);
+        return ''; // Return an empty string in case of error
+    }
+};
+
+
 export const prettyPrintJSON = (json: any): string => {
     try {
         // Check if the input is a string that needs to be parsed
@@ -105,7 +120,6 @@ export const prettyPrintJSON = (json: any): string => {
             json = JSON.parse(json);
         }
         return JSON.stringify(json, null, 2)
-
     } catch (error) {
         console.error('Error parsing or formatting JSON:', error);
         return ''; // Return an empty string in case of error

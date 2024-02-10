@@ -1,9 +1,11 @@
 package aws_secrets
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -87,7 +89,125 @@ func GetServiceAccountSecrets(ctx context.Context, ou org_users.OrgUser) (Servic
 			sps.AwsEksServiceMap[v.Key] = tmp
 		}
 	}
+	for _, v := range sps.AwsEksServiceMap {
+		err = AddOrUpdateProfile("/.aws/credentials", fmt.Sprintf("%d", ou.OrgID), v.AccessKey, v.SecretKey)
+		if err != nil {
+			return sps, err
+		}
+		err = AddOrUpdateConfig("/.aws/config", fmt.Sprintf("%d", ou.OrgID), v.Region)
+		if err != nil {
+			return sps, err
+		}
+	}
+
 	return sps, err
+}
+func AddOrUpdateConfig(filePath, profileName, region string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	// Variables to hold the new contents of the file and a flag to mark if the profile was found.
+	var newContents []string
+	profileFound := false
+	profileHeader := fmt.Sprintf("[profile %s]", profileName)
+	scanner := bufio.NewScanner(file)
+
+	// Scan through the file line by line.
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// Check if the current line marks the beginning of the profile.
+		if strings.TrimSpace(line) == profileHeader {
+			profileFound = true
+			newContents = append(newContents, line)
+			newContents = append(newContents, fmt.Sprintf("region = %s", region))
+			// Skip the next two lines assuming they are the keys we want to update.
+			scanner.Scan() // Skip aws_access_key_id
+			scanner.Scan() // Skip aws_secret_access_key
+			continue
+		}
+		newContents = append(newContents, line)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("error reading file: %v", err)
+	}
+
+	// If the profile was not found, add it to the end of the file.
+	if !profileFound {
+		newContents = append(newContents, profileHeader)
+		newContents = append(newContents, fmt.Sprintf("region = %s", region))
+	}
+
+	// Write the new contents back to the file.
+	return writeToFile(filePath, newContents)
+}
+
+func AddOrUpdateProfile(filePath, profileName, awsAccessKeyID, awsSecretAccessKey string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	// Variables to hold the new contents of the file and a flag to mark if the profile was found.
+	var newContents []string
+	profileFound := false
+	profileHeader := fmt.Sprintf("[%s]", profileName)
+	scanner := bufio.NewScanner(file)
+
+	// Scan through the file line by line.
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// Check if the current line marks the beginning of the profile.
+		if strings.TrimSpace(line) == profileHeader {
+			profileFound = true
+			newContents = append(newContents, line)
+			newContents = append(newContents, fmt.Sprintf("aws_access_key_id = %s", awsAccessKeyID))
+			newContents = append(newContents, fmt.Sprintf("aws_secret_access_key = %s", awsSecretAccessKey))
+			// Skip the next two lines assuming they are the keys we want to update.
+			scanner.Scan() // Skip aws_access_key_id
+			scanner.Scan() // Skip aws_secret_access_key
+			continue
+		}
+		newContents = append(newContents, line)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("error reading file: %v", err)
+	}
+
+	// If the profile was not found, add it to the end of the file.
+	if !profileFound {
+		newContents = append(newContents, profileHeader)
+		newContents = append(newContents, fmt.Sprintf("aws_access_key_id = %s", awsAccessKeyID))
+		newContents = append(newContents, fmt.Sprintf("aws_secret_access_key = %s", awsSecretAccessKey))
+	}
+
+	// Write the new contents back to the file.
+	return writeToFile(filePath, newContents)
+}
+
+// Helper function to write the new contents to the file.
+func writeToFile(filePath string, contents []string) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open file for writing: %v", err)
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	for _, line := range contents {
+		_, err := writer.WriteString(line + "\n")
+		if err != nil {
+			return fmt.Errorf("failed to write to file: %v", err)
+		}
+	}
+	return writer.Flush()
 }
 
 func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, platform string) (*OAuth2PlatformSecret, error) {

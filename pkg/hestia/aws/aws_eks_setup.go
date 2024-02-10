@@ -7,10 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 type EksCredentials struct {
+	Ou          org_users.OrgUser      `json:"ou"`
 	Creds       aegis_aws_auth.AuthAWS `json:"creds"`
 	ClusterName string                 `json:"clusterName"`
 	ProfileName string                 `json:"profileName"`
@@ -35,16 +37,15 @@ func GetEksKubeConfig(ctx context.Context, eksCreds EksCredentials) (*AwsEKS, *K
 		log.Err(err).Msg("GetKubeConfig: clusterOutput is nil")
 		return nil, nil, err
 	}
-
-	return &eka, populateEksKubeConfig(eksCreds.ClusterName, clusterOutput, eksCreds.Creds.Region), nil
+	return &eka, populateEksKubeConfig(eksCreds.ClusterName, clusterOutput, eksCreds.Creds.Region, fmt.Sprintf("%d", eksCreds.Ou.OrgID)), nil
 }
 
-func populateEksKubeConfig(clusterName string, clusterOutput *eks.DescribeClusterOutput, region string) *KubeConfig {
-
+func populateEksKubeConfig(clusterName string, clusterOutput *eks.DescribeClusterOutput, region, orgStrID string) *KubeConfig {
 	args := []string{"eks", "get-token", "--cluster-name", clusterName, "--region", region}
-	if clusterName == "zeus-external" {
-		args = append(args, "--profile", "zetta")
+	if orgStrID != "" && orgStrID != "0" {
+		args = append(args, "--profile", orgStrID)
 	}
+
 	kubeConfig := KubeConfig{
 		APIVersion: "v1",
 		Kind:       "Config",
@@ -79,7 +80,7 @@ func populateEksKubeConfig(clusterName string, clusterOutput *eks.DescribeCluste
 					Exec: ExecConfig{
 						APIVersion: "client.authentication.k8s.io/v1beta1",
 						Command:    "aws",
-						Args:       []string{"eks", "get-token", "--cluster-name", clusterName, "--region", region},
+						Args:       args,
 					},
 				},
 			},

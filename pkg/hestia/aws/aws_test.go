@@ -67,6 +67,7 @@ func (s *AwsEKSTestSuite) TestGetServiceSecret() {
 		eksCredsAuth := EksCredentials{
 			Creds:       creds,
 			ClusterName: clusterName,
+			Ou:          ou,
 		}
 		_, kubeConfig, err := GetEksKubeConfig(ctx, eksCredsAuth)
 		s.Require().NoError(err)

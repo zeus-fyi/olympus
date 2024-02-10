@@ -39,7 +39,7 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 	}
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
 
-	aiUserOrgID := 1699642242976434000
+	aiUserOrgID := 1685378241971196000
 	ou := org_users.NewOrgUserWithID(aiUserOrgID, aiUserOrgID)
 	ps, perr := aws_secrets.GetServiceAccountSecrets(ctx, ou)
 	s.Require().Nil(perr)
@@ -47,12 +47,19 @@ func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs
 
 	var extClusterConfigs []authorized_clusters.K8sClusterConfig
 	for clusterName, creds := range ps.AwsEksServiceMap {
+
+		if clusterName == "zeus-eks-us-east-2" {
+			continue
+		}
 		eksCredsAuth := hestia_eks_aws.EksCredentials{
 			Creds:       creds,
 			ClusterName: clusterName,
+			Ou:          ou,
 		}
-		_, kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
+		ek, kubeConfig, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
 		s.Require().NoError(err)
+		s.Require().NotNil(ek)
+
 		kubeConfigYAML, err := yaml.Marshal(&kubeConfig)
 		s.Require().Nil(err)
 

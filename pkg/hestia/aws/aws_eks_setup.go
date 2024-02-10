@@ -29,17 +29,16 @@ func GetEksKubeConfig(ctx context.Context, eksCreds EksCredentials) (*AwsEKS, *K
 		log.Err(err).Msg("GetKubeConfig: failed to describe cluster")
 		return nil, nil, err
 	}
-
 	if clusterOutput == nil || clusterOutput.Cluster == nil || clusterOutput.Cluster.Endpoint == nil || clusterOutput.Cluster.CertificateAuthority == nil || clusterOutput.Cluster.CertificateAuthority.Data == nil {
 		err = fmt.Errorf("GetKubeConfig: clusterOutput is nil")
 		log.Err(err).Msg("GetKubeConfig: clusterOutput is nil")
 		return nil, nil, err
 	}
 
-	return &eka, populateEksKubeConfig(eksCreds.ClusterName, clusterOutput), nil
+	return &eka, populateEksKubeConfig(eksCreds.ClusterName, clusterOutput, eksCreds.Creds.Region), nil
 }
 
-func populateEksKubeConfig(clusterName string, clusterOutput *eks.DescribeClusterOutput) *KubeConfig {
+func populateEksKubeConfig(clusterName string, clusterOutput *eks.DescribeClusterOutput, region string) *KubeConfig {
 	kubeConfig := KubeConfig{
 		APIVersion: "v1",
 		Kind:       "Config",
@@ -74,7 +73,7 @@ func populateEksKubeConfig(clusterName string, clusterOutput *eks.DescribeCluste
 					Exec: ExecConfig{
 						APIVersion: "client.authentication.k8s.io/v1beta1",
 						Command:    "aws",
-						Args:       []string{"eks", "get-token", "--cluster-name", clusterName},
+						Args:       []string{"eks", "get-token", "--cluster-name", clusterName, "--region", region},
 					},
 				},
 			},

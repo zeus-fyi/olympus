@@ -3,6 +3,8 @@ package hestia_cluster_configs
 import (
 	"context"
 	"fmt"
+	"os"
+	"path"
 	"testing"
 
 	"github.com/ghodss/yaml"
@@ -29,7 +31,11 @@ type ExtClusterCfgsTestSuite struct {
 
 func (s *ExtClusterCfgsTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-
+	home, exists := os.LookupEnv("HOME")
+	if exists {
+		aws_secrets.CredBasePath = path.Join(home, aws_secrets.CredBasePath)
+		aws_secrets.ConfigPath = path.Join(home, aws_secrets.ConfigPath)
+	}
 }
 func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs() {
 	auth := aegis_aws_auth.AuthAWS{

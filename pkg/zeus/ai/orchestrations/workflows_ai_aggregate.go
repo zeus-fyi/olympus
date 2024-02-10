@@ -61,6 +61,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				return err
 			}
 			md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
+
 			wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
 				OrchestrationID:       oj.OrchestrationID,
 				SourceTaskID:          aws.IntValue(aggInst.AggTaskID),

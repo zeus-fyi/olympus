@@ -67,8 +67,9 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		return cerr
 	}
 
-	isPublic := false
+	isPublic := true
 	if authCfg != nil {
+		isPublic = false
 		ns := params.CloudCtxNs.Namespace
 		alias := params.CloudCtxNs.Alias
 		if len(alias) == 0 {

@@ -109,8 +109,10 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
 
 func GenerateContentText(wrs []AIWorkflowAnalysisResult) (string, error) {
 	var temp string
+
 	for _, wr := range wrs {
 		if len(wr.CompletionChoices) > 0 {
+			// todo, this isn't working
 			var cc []openai.ChatCompletionChoice
 			err := json.Unmarshal(wr.CompletionChoices, &cc)
 			if err != nil {
@@ -125,5 +127,35 @@ func GenerateContentText(wrs []AIWorkflowAnalysisResult) (string, error) {
 			temp += string(wr.Metadata) + "\n"
 		}
 	}
+
+	// todo refactor after fixing the above
+	if len(temp) <= 0 && len(wrs) > 0 {
+		for _, wr := range wrs {
+			b, err := json.Marshal(wr.Metadata)
+			if err != nil {
+				log.Err(err).Msg("Marshal Error")
+				return "", err
+			}
+			temp += string(b) + "\n"
+		}
+	}
+
 	return temp, nil
+}
+
+type ToolCompletions struct {
+	Index   int `json:"index"`
+	Message struct {
+		Role      string `json:"role"`
+		Content   string `json:"content"`
+		ToolCalls []struct {
+			Id       string `json:"id"`
+			Type     string `json:"type"`
+			Function struct {
+				Name      string `json:"name"`
+				Arguments string `json:"arguments"`
+			} `json:"function"`
+		} `json:"tool_calls"`
+	} `json:"message"`
+	FinishReason string `json:"finish_reason"`
 }

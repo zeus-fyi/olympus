@@ -45,7 +45,7 @@ func InsertOrUpdateK8sClusterConfigs(ctx context.Context, ou org_users.OrgUser, 
 	// Prepare the SQL statement for inserting or updating
 	stmt := `INSERT INTO public.authorized_cluster_configs (ext_config_id, org_id, cloud_provider, region, context, context_alias, env, is_active)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             ON CONFLICT (ext_config_id)
+             ON CONFLICT ("org_id", "cloud_provider", "context")
              DO UPDATE SET 
                  region = EXCLUDED.region, 
                  context_alias = EXCLUDED.context_alias, 

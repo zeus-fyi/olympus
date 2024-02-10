@@ -65,7 +65,7 @@ func (k *K8Util) SetContext(context string) {
 		context = "arn:aws:eks:us-west-1:480391564655:cluster/zeus-us-west-1"
 	case zeusfyi:
 		context = fmt.Sprintf("kubernetes-admin@%s", zeusfyi)
-	case zeusfyiShared:
+	case zeusfyiShared, "zeusfyi-us-west-or-1g":
 		context = fmt.Sprintf("kubernetes-admin@%s", zeusfyiShared)
 	}
 	var err error

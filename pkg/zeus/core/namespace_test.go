@@ -1,7 +1,6 @@
 package zeus_core
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -95,7 +94,6 @@ func (s *NamespaceTestSuite) TestListK8Namespaces() {
 }
 
 func (s *NamespaceTestSuite) TestCreateK8sNamespace() {
-	ctx := context.Background()
 	ns := v1.Namespace{
 		TypeMeta:   metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{},

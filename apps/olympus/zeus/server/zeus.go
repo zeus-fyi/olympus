@@ -126,6 +126,7 @@ func Zeus() {
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
+
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 		cfg.PGConnStr = sw.PostgresAuth
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)

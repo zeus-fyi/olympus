@@ -3,6 +3,7 @@ package artemis_orchestration_auth
 import (
 	"context"
 
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	hestia_eks_aws "github.com/zeus-fyi/olympus/pkg/hestia/aws"
 	hestia_digitalocean "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean"
 	hestia_gcp "github.com/zeus-fyi/olympus/pkg/hestia/gcp"
@@ -43,6 +44,14 @@ func InitOrchestrationGcpClient(ctx context.Context, authJsonBytes []byte) {
 
 func InitOrchestrationEksClient(ctx context.Context, accessCred aegis_aws_auth.AuthAWS) {
 	eks, err := hestia_eks_aws.InitAwsEKS(ctx, accessCred)
+	if err != nil {
+		panic(err)
+	}
+	err = aws_secrets.AddOrUpdateProfile(aws_secrets.CredBasePath, "default", accessCred.AccessKey, accessCred.SecretKey)
+	if err != nil {
+		panic(err)
+	}
+	err = aws_secrets.AddOrUpdateConfig(aws_secrets.ConfigPath, "default", accessCred.Region)
 	if err != nil {
 		panic(err)
 	}

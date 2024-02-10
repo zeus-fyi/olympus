@@ -13,6 +13,7 @@ import (
 type EksCredentials struct {
 	Creds       aegis_aws_auth.AuthAWS `json:"creds"`
 	ClusterName string                 `json:"clusterName"`
+	ProfileName string                 `json:"profileName"`
 }
 
 func GetEksKubeConfig(ctx context.Context, eksCreds EksCredentials) (*AwsEKS, *KubeConfig, error) {
@@ -39,6 +40,11 @@ func GetEksKubeConfig(ctx context.Context, eksCreds EksCredentials) (*AwsEKS, *K
 }
 
 func populateEksKubeConfig(clusterName string, clusterOutput *eks.DescribeClusterOutput, region string) *KubeConfig {
+
+	args := []string{"eks", "get-token", "--cluster-name", clusterName, "--region", region}
+	if clusterName == "zeus-external" {
+		args = append(args, "--profile", "zetta")
+	}
 	kubeConfig := KubeConfig{
 		APIVersion: "v1",
 		Kind:       "Config",

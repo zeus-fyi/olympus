@@ -67,6 +67,8 @@ func (k *K8Util) SetContext(context string) {
 		context = fmt.Sprintf("kubernetes-admin@%s", zeusfyi)
 	case zeusfyiShared, "zeusfyi-us-west-or-1g":
 		context = fmt.Sprintf("kubernetes-admin@%s", zeusfyiShared)
+	case "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0":
+		//context = GcpContext
 	}
 	var err error
 	rc, err := k.kcCfg.RawConfig()

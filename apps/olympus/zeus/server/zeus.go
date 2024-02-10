@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/exec"
+	"path"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -280,8 +281,12 @@ func Zeus() {
 		srv.E = router.InitRouter(srv.E, cfg.K8sUtil, mw)
 		base_deploy_params.BaseURL = "http://localhost:9001"
 		deployment_status.BaseURL = "http://localhost:9001"
-		aws_secrets.CredBasePath = "~" + aws_secrets.CredBasePath
-		aws_secrets.ConfigPath = "~" + aws_secrets.ConfigPath
+		home, exists := os.LookupEnv("HOME")
+		if exists {
+			aws_secrets.CredBasePath = path.Join(home, aws_secrets.CredBasePath)
+			aws_secrets.ConfigPath = path.Join(home, aws_secrets.ConfigPath)
+		}
+
 	} else {
 		mw := middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi",
@@ -303,7 +308,6 @@ func init() {
 	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
-
 	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
 }
 

@@ -247,7 +247,6 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 			const fail = "fail"
 			const cFail = "Fail"
 			if evals[j].EvalMetricResult.EvalResultOutcomeBool != nil {
-
 				var resultBool bool
 				if evals[j].EvalMetricResult.EvalResultOutcomeBool != nil {
 					resultBool = *evals[j].EvalMetricResult.EvalResultOutcomeBool

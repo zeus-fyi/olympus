@@ -177,7 +177,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell >
                                                 {data.prompt !== undefined ? prettyPrintPromptJSON(data.prompt) : ""}
                                             </TableCell>
-                                            <TableCell >
+                                            <TableCell style={{ whiteSpace: 'pre-wrap' }}>
                                                 {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
                                             </TableCell>
                                         </TableRow>

@@ -1441,6 +1441,7 @@ github.com/lyft/protoc-gen-star/v2 v2.0.3/go.mod h1:amey7yeodaJhXSbf/TlLvWiqQfLO
 github.com/lyft/protoc-gen-validate v0.0.13 h1:KNt/RhmQTOLr7Aj8PsJ7mTronaFyx80mRTT9qF261dA=
 github.com/mailgun/raymond/v2 v2.0.46 h1:aOYHhvTpF5USySJ0o7cpPno/Uh2I5qg2115K25A+Ft4=
 github.com/mailgun/raymond/v2 v2.0.46/go.mod h1:lsgvL50kgt1ylcFJYZiULi5fjPBkkhNfj4KA0W54Z18=
+github.com/manifoldco/promptui v0.9.0 h1:3V4HzJk1TtXW1MTZMP7mdlwbBpIinw3HztaIlYthEiA=
 github.com/manifoldco/promptui v0.9.0/go.mod h1:ka04sppxSGFAtxX0qhlYQjISsg9mR4GWtQEhdbn6Pgg=
 github.com/markbates/going v1.0.0 h1:DQw0ZP7NbNlFGcKbcE/IVSOAFzScxRtLpd0rLMzLhq0=
 github.com/maruel/panicparse v1.0.2 h1:dTqB9K2WSvu6JoCQSqSJhNgnir3AA64OHX+jNp4kFNg=
@@ -2119,6 +2120,7 @@ k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280/go.mod h1:+Axhij7bCpeqhkl
 k8s.io/metrics v0.24.3 h1:pXzh+PG8L8ANg0PD3Ce8+yG5oj8BLvzBgsz8yCVEXyg=
 k8s.io/metrics v0.26.1 h1:iB+QdMLa2V70a7zb0XYEcaUpPM0y+p4fZN0UtxcPHLk=
 k8s.io/metrics v0.26.1/go.mod h1:fMeLXmK/xgvckFG63GJ0kDjFiQH7P0Dpi5Lvhlo5DXE=
+k8s.io/sample-controller v0.26.1 h1:+t3EbW66zbQSFA378/Bfje6C68ZqjFy1sYPdLgZfkYE=
 k8s.io/sample-controller v0.26.1/go.mod h1:f3gQsdfg38iReAcxh9IaHXVIdO+bEo8LKOzlX63rCP4=
 k8s.io/utils v0.0.0-20210802155522-efc7438f0176/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 k8s.io/utils v0.0.0-20221107191617-1a15be271d1d/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=

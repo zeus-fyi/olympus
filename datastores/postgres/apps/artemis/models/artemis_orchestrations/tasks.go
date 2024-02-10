@@ -38,18 +38,20 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 		return nil
 	}
 
+	// Opt1 and Opt2 query definitions remain the same
 	opt1 := `DELETE FROM public.ai_task_schemas
-    		 WHERE task_id IN (SELECT task_id FROM cte_task_wrapper)`
+             WHERE task_id IN (SELECT task_id FROM cte_task_wrapper)`
 
 	opt2 := `INSERT INTO public.ai_task_schemas (task_id, schema_id)
-			 SELECT (SELECT task_id FROM cte_task_wrapper), unnest($11::bigint[])
-			 ON CONFLICT (schema_id, task_id) DO NOTHING`
+             SELECT (SELECT task_id FROM cte_task_wrapper), unnest($13::bigint[])
+             ON CONFLICT (schema_id, task_id) DO NOTHING`
 
-	// Executing the query
+	// Setting default response format and initializing schema IDs slice
 	if task.ResponseFormat == "" {
 		task.ResponseFormat = "text"
 		task.Schemas = nil
 	}
+
 	var sids []int
 	if task.ResponseFormat == "json" || task.ResponseFormat == "social-media-engagement" {
 		if len(task.Schemas) == 0 {
@@ -60,41 +62,44 @@ func InsertTask(ctx context.Context, task *AITaskLibrary) error {
 		}
 		opt1 = opt2
 	}
-	query := `
-		WITH cte_task_wrapper AS (
-			INSERT INTO public.ai_task_library 
-				(org_id, user_id, max_tokens_per_task, task_type, task_name, task_group, token_overflow_strategy, model, prompt, response_format, temperature, margin_buffer)
-			VALUES 
-				($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-			ON CONFLICT (org_id, task_group, task_name) 
-			DO UPDATE SET 
-				max_tokens_per_task = EXCLUDED.max_tokens_per_task,
-				token_overflow_strategy = EXCLUDED.token_overflow_strategy,
-				model = EXCLUDED.model,
-				response_format = EXCLUDED.response_format,
-				prompt = EXCLUDED.prompt,
-				temperature = EXCLUDED.temperature,
-				margin_buffer = EXCLUDED.margin_buffer	
-			RETURNING task_id
-		), cte_cleanup_json_schema AS (
-			DELETE FROM public.ai_task_schemas
-			WHERE task_id IN (SELECT task_id FROM cte_task_wrapper) AND schema_id != ANY($13)
-		), cte_insert_json_schema AS (
-			` + opt1 + `
-		) SELECT task_id FROM cte_task_wrapper;`
 
+	// SQL query with corrected placeholder for array of schema IDs
+	query := `
+    WITH cte_task_wrapper AS (
+        INSERT INTO public.ai_task_library 
+            (org_id, user_id, max_tokens_per_task, task_type, task_name, task_group, token_overflow_strategy, model, prompt, response_format, temperature, margin_buffer)
+        VALUES 
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ON CONFLICT (org_id, task_group, task_name) 
+        DO UPDATE SET 
+            max_tokens_per_task = EXCLUDED.max_tokens_per_task,
+            token_overflow_strategy = EXCLUDED.token_overflow_strategy,
+            model = EXCLUDED.model,
+            response_format = EXCLUDED.response_format,
+            prompt = EXCLUDED.prompt,
+            temperature = EXCLUDED.temperature,
+            margin_buffer = EXCLUDED.margin_buffer    
+        RETURNING task_id
+    ), cte_cleanup_json_schema AS (
+        DELETE FROM public.ai_task_schemas
+        WHERE task_id IN (SELECT task_id FROM cte_task_wrapper) AND schema_id != ANY($13)
+    ), cte_insert_json_schema AS (
+        ` + opt1 + `
+    ) SELECT task_id FROM cte_task_wrapper;`
+
+	// Executing the query with corrected parameters
 	err := apps.Pg.QueryRowWArgs(ctx, query,
 		task.OrgID, task.UserID, task.MaxTokensPerTask, task.TaskType,
 		task.TaskName, task.TaskGroup, task.TokenOverflowStrategy,
 		task.Model, task.Prompt, task.ResponseFormat,
-		task.Temperature, task.MarginBuffer,
-		pq.Array(sids)).
+		task.Temperature, task.MarginBuffer, pq.Array(sids)).
 		Scan(&task.TaskID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert task")
 		return err
 	}
 
+	// Additional logic remains unchanged
 	task.TaskStrID = fmt.Sprintf("%d", task.TaskID)
 	return nil
 }

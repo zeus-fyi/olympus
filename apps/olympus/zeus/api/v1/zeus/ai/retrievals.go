@@ -44,7 +44,7 @@ func (t *CreateOrUpdateRetrievalRequest) CreateOrUpdateRetrieval(c echo.Context)
 	}
 	err := artemis_orchestrations.InsertRetrieval(c.Request().Context(), ou, &t.RetrievalItem)
 	if err != nil {
-		log.Err(err).Msg("failed to insert task")
+		log.Err(err).Msg("failed to insert ret")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, t.RetrievalItem)

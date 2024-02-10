@@ -130,16 +130,17 @@ func GenerateContentText(wrs []AIWorkflowAnalysisResult) (string, error) {
 
 	// todo refactor after fixing the above
 	if len(temp) <= 0 && len(wrs) > 0 {
-		for _, wr := range wrs {
-			b, err := json.Marshal(wr.Metadata)
-			if err != nil {
-				log.Err(err).Msg("Marshal Error")
-				return "", err
-			}
-			temp += string(b) + "\n"
+		tc := ToolCompletions{}
+		err := json.Unmarshal(wrs[0].CompletionChoices, &tc)
+		if err != nil {
+			log.Err(err).Msg("ToolCompletions Unmarshal Error")
+			err = nil
 		}
-	}
+		for _, c := range tc.Message.ToolCalls {
+			temp += c.Function.Arguments + "\n"
+		}
 
+	}
 	return temp, nil
 }
 

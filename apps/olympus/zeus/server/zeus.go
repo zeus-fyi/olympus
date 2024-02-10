@@ -147,6 +147,13 @@ func Zeus() {
 		}
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
+		base_deploy_params.BaseURL = "http://localhost:9001"
+		deployment_status.BaseURL = "http://localhost:9001"
+		home, exists := os.LookupEnv("HOME")
+		if exists {
+			aws_secrets.CredBasePath = path.Join(home, aws_secrets.CredBasePath)
+			aws_secrets.ConfigPath = path.Join(home, aws_secrets.ConfigPath)
+		}
 		auth_startup.Ksp.DirIn = "../configs"
 		auth_startup.Sp.DirIn = "../configs"
 		tc := configs.InitLocalTestConfigs()
@@ -186,6 +193,13 @@ func Zeus() {
 		}
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
+		base_deploy_params.BaseURL = "http://localhost:9001"
+		deployment_status.BaseURL = "http://localhost:9001"
+		home, exists := os.LookupEnv("HOME")
+		if exists {
+			aws_secrets.CredBasePath = path.Join(home, aws_secrets.CredBasePath)
+			aws_secrets.ConfigPath = path.Join(home, aws_secrets.ConfigPath)
+		}
 		auth_startup.Ksp.DirIn = "../configs"
 		auth_startup.Sp.DirIn = "../configs"
 		tc := configs.InitLocalTestConfigs()
@@ -280,14 +294,6 @@ func Zeus() {
 			AllowCredentials: true,
 		})
 		srv.E = router.InitRouter(srv.E, cfg.K8sUtil, mw)
-		base_deploy_params.BaseURL = "http://localhost:9001"
-		deployment_status.BaseURL = "http://localhost:9001"
-		home, exists := os.LookupEnv("HOME")
-		if exists {
-			aws_secrets.CredBasePath = path.Join(home, aws_secrets.CredBasePath)
-			aws_secrets.ConfigPath = path.Join(home, aws_secrets.ConfigPath)
-		}
-
 	} else {
 		mw := middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi",

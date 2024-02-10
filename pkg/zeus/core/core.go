@@ -71,13 +71,13 @@ func (k *K8Util) SetContext(context string) {
 	var err error
 	rc, err := k.kcCfg.RawConfig()
 	if err != nil {
-		log.Err(err)
+		misc.DelayedPanic(err)
 	}
 	cc := clientcmd.NewNonInteractiveClientConfig(rc, context, nil, k.cfgAccess)
 	k.cfgAccess = cc.ConfigAccess()
 	k.clientCfg, err = cc.ClientConfig()
 	if err != nil {
-		log.Err(err)
+		misc.DelayedPanic(err)
 	}
 	k.SetClient(k.clientCfg)
 	mclient, err := monitoringclient.NewForConfig(k.clientCfg)

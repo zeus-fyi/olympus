@@ -66,6 +66,8 @@ func Zeus() {
 		zeus.KeysCfg = authCfg
 		zeus.AgeEnc = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
+		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
+
 		log.Info().Msg("Zeus: k8s auth procedure starting")
 		temporalAuthCfg = temporal_auth.TemporalAuth{
 			ClientCertPath:   "/etc/ssl/certs/ca.pem",
@@ -125,7 +127,6 @@ func Zeus() {
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
-		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 		cfg.PGConnStr = sw.PostgresAuth

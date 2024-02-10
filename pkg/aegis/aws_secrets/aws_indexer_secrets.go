@@ -103,9 +103,9 @@ func GetServiceAccountSecrets(ctx context.Context, ou org_users.OrgUser) (Servic
 	return sps, err
 }
 func AddOrUpdateConfig(filePath, profileName, region string) error {
-	file, err := os.Open(filePath)
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		return fmt.Errorf("failed to open file: %v", err)
+		return fmt.Errorf("failed to open or create file: %v", err)
 	}
 	defer file.Close()
 
@@ -147,9 +147,9 @@ func AddOrUpdateConfig(filePath, profileName, region string) error {
 }
 
 func AddOrUpdateProfile(filePath, profileName, awsAccessKeyID, awsSecretAccessKey string) error {
-	file, err := os.Open(filePath)
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		return fmt.Errorf("failed to open file: %v", err)
+		return fmt.Errorf("failed to open or create file: %v", err)
 	}
 	defer file.Close()
 
@@ -194,7 +194,7 @@ func AddOrUpdateProfile(filePath, profileName, awsAccessKeyID, awsSecretAccessKe
 
 // Helper function to write the new contents to the file.
 func writeToFile(filePath string, contents []string) error {
-	file, err := os.Create(filePath)
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		return fmt.Errorf("failed to open file for writing: %v", err)
 	}
@@ -202,11 +202,12 @@ func writeToFile(filePath string, contents []string) error {
 
 	writer := bufio.NewWriter(file)
 	for _, line := range contents {
-		_, err := writer.WriteString(line + "\n")
+		_, err = writer.WriteString(line + "\n")
 		if err != nil {
 			return fmt.Errorf("failed to write to file: %v", err)
 		}
 	}
+
 	return writer.Flush()
 }
 

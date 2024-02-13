@@ -119,8 +119,10 @@ func RequestExtractionMiddlewareWrapper(k8Cfg autok8s_core.K8Util) echo.Middlewa
 				}
 				if k != nil {
 					c.Set("k8Cfg", *k)
+					c.Set("public", false)
 				} else {
 					c.Set("k8Cfg", k8Cfg)
+					c.Set("public", true)
 				}
 				return next(c)
 			}
@@ -130,8 +132,10 @@ func RequestExtractionMiddlewareWrapper(k8Cfg autok8s_core.K8Util) echo.Middlewa
 			}
 			if k != nil {
 				c.Set("k8Cfg", *k)
+				c.Set("public", false)
 			} else {
 				c.Set("k8Cfg", k8Cfg)
+				c.Set("public", true)
 			}
 			return next(c)
 		}

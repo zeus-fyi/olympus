@@ -388,10 +388,10 @@ func FormatSearchResultsV2(results []SearchResult) string {
 			parts = append(parts, escapeString(result.RedditMetadata.Title))
 		}
 		if result.RedditMetadata.Url != "" {
-			parts = append(parts, escapeString(result.RedditMetadata.Title))
+			parts = append(parts, escapeString(result.RedditMetadata.Url))
 		}
 		if result.RedditMetadata.FullPostID != "" {
-			parts = append(parts, escapeString(result.RedditMetadata.Title))
+			parts = append(parts, escapeString(result.RedditMetadata.FullPostID))
 		}
 		if result.RedditMetadata.NumberOfComments > 0 {
 			parts = append(parts, escapeString(fmt.Sprintf("Number of comments: %d", result.RedditMetadata.NumberOfComments)))

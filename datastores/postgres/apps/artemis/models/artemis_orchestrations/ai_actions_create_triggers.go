@@ -25,16 +25,24 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 	// Insert or update the ai_trigger_actions
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
-        INSERT INTO public.ai_trigger_actions (org_id, user_id, trigger_name, trigger_group, trigger_action)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO public.ai_trigger_actions (org_id, user_id, trigger_name, trigger_group, trigger_action, expires_after_seconds)
+        VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (org_id, trigger_name) 
         DO UPDATE SET 
             user_id = EXCLUDED.user_id,
             trigger_action = EXCLUDED.trigger_action,
-            trigger_group = EXCLUDED.trigger_group
+            trigger_group = EXCLUDED.trigger_group,
+        	expires_after_seconds = EXCLUDED.expires_after_seconds
         RETURNING trigger_id;`
 
-	err = tx.QueryRow(ctx, q.RawQuery, ou.OrgID, ou.UserID, trigger.TriggerName, trigger.TriggerGroup, trigger.TriggerAction).Scan(&trigger.TriggerID)
+	if trigger.TriggerExpirationDuration > 0 && trigger.TriggerExpirationTimeUnit != "" {
+		trigger.TriggerExpiresAfterSeconds = CalculateStepSizeUnix(int(trigger.TriggerExpirationDuration), trigger.TriggerExpirationTimeUnit)
+	} else {
+		trigger.TriggerExpiresAfterSeconds = 0
+	}
+	err = tx.QueryRow(ctx, q.RawQuery, ou.OrgID, ou.UserID, trigger.TriggerName,
+		trigger.TriggerGroup, trigger.TriggerAction, trigger.TriggerExpiresAfterSeconds,
+	).Scan(&trigger.TriggerID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert ai trigger action")
 		return err

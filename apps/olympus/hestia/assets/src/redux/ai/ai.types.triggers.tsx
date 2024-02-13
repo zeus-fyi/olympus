@@ -10,6 +10,8 @@ export interface TriggerAction {
     triggerName: string;
     triggerGroup: string;
     triggerAction: string;
+    triggerExpirationDuration: number;
+    triggerExpirationTimeUnit: string;
     triggerRetrievals: Retrieval[];
     triggerActionsApprovals: TriggerActionsApproval[];
     evalTriggerActions: EvalActionTrigger[];

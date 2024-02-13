@@ -2953,6 +2953,40 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
+                                                        <Box sx={{ width: '15%' }}> {/* Adjusted Box for TextField */}
+                                                            <TextField
+                                                                type="number"
+                                                                label="Expiration Duration"
+                                                                variant="outlined"
+                                                                inputProps={{ min: 0 }}  // Set minimum value to 1
+                                                                value={action.triggerExpirationDuration}
+                                                                onChange={(e) => dispatch(setTriggerAction({
+                                                                    ...action,
+                                                                    triggerExpirationDuration: Number(e.target.value),
+                                                                }))}
+                                                                fullWidth
+                                                            />
+                                                        </Box>
+                                                        <Box sx={{ width: '15%' }}> {/* Adjusted Box for FormControl */}
+                                                            <FormControl fullWidth>
+                                                                <InputLabel id="time-unit-label">Expiration Time Unit</InputLabel>
+                                                                <Select
+                                                                    labelId="time-unit-label"
+                                                                    id="time-unit-select"
+                                                                    value={action.triggerExpirationTimeUnit}
+                                                                    label="Time Unit"
+                                                                    onChange={(e) => dispatch(setTriggerAction({
+                                                                        ...action,
+                                                                        triggerExpirationTimeUnit: e.target.value,
+                                                                    }))}
+                                                                >
+                                                                    <MenuItem value="minutes">Minutes</MenuItem>
+                                                                    <MenuItem value="hours">Hours</MenuItem>
+                                                                    <MenuItem value="days">Days</MenuItem>
+                                                                    <MenuItem value="weeks">Weeks</MenuItem>
+                                                                </Select>
+                                                            </FormControl>
+                                                        </Box>
                                                     </Stack>
                                                     { !loading &&
                                                     <Stack direction="row" >

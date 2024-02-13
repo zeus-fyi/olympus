@@ -14,10 +14,13 @@ func (s *OrchestrationsTestSuite) TestTriggerInserts() {
 
 	// Create a TriggerActions instance
 	triggerAction := TriggerAction{
-		OrgID:        ou.OrgID,
-		UserID:       ou.UserID,
-		TriggerName:  "TestTrigger",
-		TriggerGroup: "TestGroup",
+		TriggerID:                 1706782012810341000,
+		OrgID:                     ou.OrgID,
+		UserID:                    ou.UserID,
+		TriggerName:               "trigger-mockingbird",
+		TriggerGroup:              "mockingbird",
+		TriggerExpirationDuration: 1,
+		TriggerExpirationTimeUnit: "minute",
 		EvalTriggerActions: []EvalTriggerActions{
 			{
 				EvalID:               1703922045959259000, // Use an appropriate EvalID
@@ -46,13 +49,15 @@ func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval() {
 	// Create a TriggerActions instance
 	// round-robin
 	triggerAction := TriggerAction{
-		TriggerStrID:  "1705438732527176000",
-		TriggerID:     1705438732527176000,
-		OrgID:         ou.OrgID,
-		UserID:        ou.UserID,
-		TriggerName:   "social-media-approvals",
-		TriggerGroup:  "social-media",
-		TriggerAction: "social-media-engagement",
+		TriggerStrID:              "1705438732527176000",
+		TriggerID:                 1705438732527176000,
+		OrgID:                     ou.OrgID,
+		UserID:                    ou.UserID,
+		TriggerExpirationDuration: 1,
+		TriggerExpirationTimeUnit: "minute",
+		TriggerName:               "social-media-approvals",
+		TriggerGroup:              "social-media",
+		TriggerAction:             "social-media-engagement",
 		TriggerRetrievals: []RetrievalItem{
 			{
 				RetrievalStrID: aws.String("1702098054592167000"),

@@ -3,6 +3,7 @@ package deploy_workflow
 import (
 	"time"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/create"
@@ -34,8 +35,6 @@ func (t *DeployTopologyWorkflow) GetWorkflows() []interface{} {
 
 func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wfID string, params base_deploy_params.TopologyWorkflowRequest) error {
 	logger := workflow.GetLogger(ctx)
-
-	t.DeployTopologyActivities.TopologyWorkflowRequest = params
 	retryPolicy := &temporal.RetryPolicy{
 		InitialInterval:    time.Second * 60,
 		BackoffCoefficient: 1.0,
@@ -46,6 +45,15 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 		StartToCloseTimeout: defaultTimeout,
 		RetryPolicy:         retryPolicy,
 	}
+	oj := artemis_orchestrations.NewInternalActiveTemporalOrchestrationJobTemplate(wfID, "DeployTopologyWorkflow", "DeployTopologyWorkflow")
+	alertCtx := workflow.WithActivityOptions(ctx, ao)
+	aerr := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	if aerr != nil {
+		logger.Error("Failed to upsert assignment", "Error", aerr)
+		return aerr
+	}
+
+	t.DeployTopologyActivities.TopologyWorkflowRequest = params
 	statusCtxKns := workflow.WithActivityOptions(ctx, ao)
 	status := topology_deployment_status.NewPopulatedTopologyStatus(params.TopologyDeployRequest, topology_deployment_status.DeployInProgress)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
@@ -148,6 +156,13 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, wf
 	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
 	if err != nil {
 		logger.Error("Failed to update topology status", "Error", err)
+		return err
+	}
+
+	finishedCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	if err != nil {
+		logger.Error("Failed to update and mark orchestration inactive", "Error", err)
 		return err
 	}
 	return err

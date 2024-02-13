@@ -384,17 +384,23 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		if result.Group != "" {
 			parts = append(parts, escapeString(result.Group))
 		}
-		if result.RedditMetadata.Title != "" {
-			parts = append(parts, escapeString(result.RedditMetadata.Title))
-		}
-		if result.RedditMetadata.Url != "" {
-			parts = append(parts, escapeString(result.RedditMetadata.Url))
-		}
 		if result.RedditMetadata.FullPostID != "" {
 			parts = append(parts, escapeString(result.RedditMetadata.FullPostID))
 		}
-		if result.RedditMetadata.NumberOfComments > 0 {
-			parts = append(parts, escapeString(fmt.Sprintf("Number of comments: %d", result.RedditMetadata.NumberOfComments)))
+		if len(result.RedditMetadata.Author) > 0 {
+			parts = append(parts, escapeString(fmt.Sprintf("Author: %s", result.RedditMetadata.Author)))
+		}
+		if len(result.RedditMetadata.AuthorID) > 0 {
+			parts = append(parts, escapeString(fmt.Sprintf("AuthorID: %s", result.RedditMetadata.AuthorID)))
+		}
+		if result.RedditMetadata.Score > 0 {
+			parts = append(parts, escapeString(fmt.Sprintf("Score: %d", result.RedditMetadata.Score)))
+		}
+		if result.RedditMetadata.UpvoteRatio > 0 {
+			parts = append(parts, escapeString(fmt.Sprintf("UpvoteRatio: %f", result.RedditMetadata.UpvoteRatio)))
+		}
+		if result.RedditMetadata.Url != "" {
+			parts = append(parts, escapeString(result.RedditMetadata.Url))
 		}
 		if result.DiscordMetadata.Category != "" {
 			parts = append(parts, escapeString(result.DiscordMetadata.Category))

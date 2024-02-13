@@ -105,6 +105,7 @@ func SelectAuthedClusterByRouteOnlyAndOrgID(ctx context.Context, ou org_users.Or
 	rerr := apps.Pg.QueryRowWArgs(ctx, q, ou.OrgID, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context).Scan(
 		&ccfg.ExtConfigID, &ccfg.ExtConfigStrID, &ccfg.CloudCtxNs.ClusterCfgStrID, &ccfg.CloudCtxNs.CloudProvider, &ccfg.CloudCtxNs.Region, &ccfg.CloudCtxNs.Context, &ccfg.ContextAlias, &ccfg.Env, &ccfg.IsActive, &ccfg.IsPublic)
 	if rerr == pgx.ErrNoRows {
+		log.Err(rerr).Interface("ou", ou).Interface("cloudCtxNs", cloudCtxNs).Msg("SelectAuthedClusterByRouteOnlyAndOrgID")
 		return nil, nil
 	}
 	if rerr != nil {

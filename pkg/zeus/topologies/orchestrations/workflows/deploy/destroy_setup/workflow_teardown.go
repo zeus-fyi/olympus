@@ -137,23 +137,24 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 				return err
 			}
 			for _, node := range eksNodes {
+				var authCfg *authorized_clusters.K8sClusterConfig
 				if node.ExtClusterCfgID > 0 {
-					eksDestroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-					logger.Info("Destroying node pool org resources", "PrivateEksRemoveNodePoolRequest", node)
-
-					var authCfg *authorized_clusters.K8sClusterConfig
 					clusterAuthCtxKns := workflow.WithActivityOptions(ctx, ao)
 					cerr := workflow.ExecuteActivity(clusterAuthCtxKns, c.CreateSetupTopologyActivities.GetClusterAuthCtxFromID, params.Ou, fmt.Sprintf("%d", node.ExtClusterCfgID)).Get(clusterAuthCtxKns, &authCfg)
 					if cerr != nil {
 						logger.Error("Failed to get cluster auth ctx", "Error", cerr)
 						return cerr
 					}
+				}
 
+				if authCfg != nil && !authCfg.IsPublic {
 					if authCfg == nil || authCfg.Context == "" || authCfg.Region == "" {
-						cerr = fmt.Errorf("failed to get cluster auth ctx")
+						cerr := fmt.Errorf("failed to get cluster auth ctx")
 						logger.Error("Failed to get cluster auth ctx", "Error", cerr)
 						return cerr
 					}
+					eksDestroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+					logger.Info("Destroying node pool org resources", "PrivateEksRemoveNodePoolRequest", node)
 					err = workflow.ExecuteActivity(eksDestroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.PrivateEksRemoveNodePoolRequest, params.Ou, authCfg.CloudCtxNs, node).Get(eksDestroyNodePoolOrgResourcesCtx, nil)
 					if err != nil {
 						logger.Error("Failed to remove eks node resources for account", "Error", err)

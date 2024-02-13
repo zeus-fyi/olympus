@@ -155,7 +155,24 @@ type SearchResult struct {
 	Verified        *bool            `json:"verified,omitempty"`
 	Metadata        TelegramMetadata `json:"metadata,omitempty"`
 	DiscordMetadata DiscordMetadata  `json:"discordMetadata"`
+	RedditMetadata  RedditMetadata   `json:"redditMetadata"`
 	WebResponse     WebResponse      `json:"webResponses,omitempty"`
+}
+
+type RedditMetadata struct {
+	PostID           string `json:"postID"`
+	FullPostID       string `json:"fullPostID"`
+	NumberOfComments int    `json:"numberOfComments"`
+	Url              string `json:"url"`
+	Title            string `json:"title"`
+	Body             string `json:"body"`
+	Permalink        string
+	Author           string          `json:"author"`
+	AuthorID         string          `json:"authorID"`
+	Subreddit        string          `json:"subreddit"`
+	Score            int             `json:"score"`
+	UpvoteRatio      float64         `json:"upvoteRatio"`
+	Metadata         json.RawMessage `json:"metadata"`
 }
 
 type WebResponse struct {
@@ -333,13 +350,13 @@ func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSea
 		res = append(res, resReddit...)
 	}
 
-	if strings.Contains(platform, "web") {
-		resWeb, err := SearchReddit(ctx, ou, sp)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, resWeb...)
-	}
+	//if strings.Contains(platform, "web") {
+	//	resWeb, err := SearchReddit(ctx, ou, sp)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	res = append(res, resWeb...)
+	//}
 	return res, nil
 }
 
@@ -366,6 +383,18 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		}
 		if result.Group != "" {
 			parts = append(parts, escapeString(result.Group))
+		}
+		if result.RedditMetadata.Title != "" {
+			parts = append(parts, escapeString(result.RedditMetadata.Title))
+		}
+		if result.RedditMetadata.Url != "" {
+			parts = append(parts, escapeString(result.RedditMetadata.Title))
+		}
+		if result.RedditMetadata.FullPostID != "" {
+			parts = append(parts, escapeString(result.RedditMetadata.Title))
+		}
+		if result.RedditMetadata.NumberOfComments > 0 {
+			parts = append(parts, escapeString(fmt.Sprintf("Number of comments: %d", result.RedditMetadata.NumberOfComments)))
 		}
 		if result.DiscordMetadata.Category != "" {
 			parts = append(parts, escapeString(result.DiscordMetadata.Category))

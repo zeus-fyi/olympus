@@ -37,6 +37,38 @@ func (s *ExtClusterCfgsTestSuite) SetupTest() {
 		aws_secrets.ConfigPath = path.Join(home, aws_secrets.ConfigPath)
 	}
 }
+
+func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsExplore() {
+	auth := aegis_aws_auth.AuthAWS{
+		Region:    "us-west-1",
+		AccessKey: s.Tc.AwsAccessKeySecretManager,
+		SecretKey: s.Tc.AwsSecretKeySecretManager,
+	}
+	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
+
+	aiUserOrgID := 1685378241971196000
+	ou := org_users.NewOrgUserWithID(aiUserOrgID, aiUserOrgID)
+	ps, perr := aws_secrets.GetServiceAccountSecrets(ctx, ou)
+	s.Require().Nil(perr)
+	s.Require().NotNil(ps)
+
+	for clusterName, creds := range ps.AwsEksServiceMap {
+
+		if clusterName == "zeus-eks-us-east-2" {
+			continue
+		}
+		eksCredsAuth := hestia_eks_aws.EksCredentials{
+			Creds:       creds,
+			ClusterName: clusterName,
+			Ou:          ou,
+		}
+
+		ek, _, err := hestia_eks_aws.GetEksKubeConfig(ctx, eksCredsAuth)
+		s.Require().NoError(err)
+		s.Require().NotNil(ek)
+	}
+}
+
 func (s *ExtClusterCfgsTestSuite) TestGetPlatformServiceAccountsToExtClusterCfgs() {
 	auth := aegis_aws_auth.AuthAWS{
 		Region:    "us-west-1",

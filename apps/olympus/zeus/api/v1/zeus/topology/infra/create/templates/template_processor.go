@@ -175,13 +175,13 @@ func BuildStatefulSetDriver(ctx context.Context, containers Containers, sts Stat
 		PersistentVolumeClaimDrivers: make(map[string]v1.PersistentVolumeClaim),
 	}
 	for _, pvcTemplate := range sts.PVCTemplates {
-		storageReq := v1.ResourceList{"storage": resource.MustParse(pvcTemplate.StorageSizeRequest)}
+		//storageReq := v1.ResourceList{"storage": resource.MustParse(pvcTemplate.StorageSizeRequest)}
 		pvc := v1.PersistentVolumeClaim{
 			Spec: v1.PersistentVolumeClaimSpec{
 				AccessModes: []v1.PersistentVolumeAccessMode{v1.PersistentVolumeAccessMode(pvcTemplate.AccessMode)},
-				Resources: v1.ResourceRequirements{
-					Requests: storageReq,
-				},
+				//Resources: v1.ResourceRequirements{
+				//	Requests: storageReq,
+				//},
 				VolumeName: pvcTemplate.Name,
 			},
 		}

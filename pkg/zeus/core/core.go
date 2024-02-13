@@ -60,6 +60,7 @@ func (k *K8Util) GetContexts() (map[string]*clientcmdapi.Context, error) {
 }
 
 func (k *K8Util) SetContext(context string) {
+	var err error
 	switch context {
 	case "zeus-us-west-1":
 		context = "arn:aws:eks:us-west-1:480391564655:cluster/zeus-us-west-1"
@@ -70,7 +71,6 @@ func (k *K8Util) SetContext(context string) {
 	case "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0":
 		//context = GcpContext
 	}
-	var err error
 	rc, err := k.kcCfg.RawConfig()
 	if err != nil {
 		misc.DelayedPanic(err)

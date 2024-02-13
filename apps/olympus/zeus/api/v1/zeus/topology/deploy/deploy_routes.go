@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog/log"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	clean_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/clean"
 	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
@@ -71,7 +70,7 @@ func InternalSecretsRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group
 func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 
-	e.Use(RequestExtractionMiddleware)
+	e.Use(RequestExtractionMiddlewareWrapper(k8Cfg))
 	e.POST("/deploy/cronjob", internal_deploy.DeployCronJobsHandlerWrapper(k8Cfg))
 	e.POST("/deploy/job", internal_deploy.DeployJobHandlerWrapper(k8Cfg))
 	e.POST("/deploy/namespace", internal_deploy.DeployNamespaceHandlerWrapper(k8Cfg))
@@ -89,7 +88,7 @@ func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 func InternalDeployDestroyRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 
-	e.Use(RequestExtractionMiddleware)
+	e.Use(RequestExtractionMiddlewareWrapper(k8Cfg))
 	e.POST("/deploy/destroy/cronjob", internal_destroy_deploy.DestroyCronJobHandlerWrapper(k8Cfg))
 	e.POST("/deploy/destroy/job", internal_destroy_deploy.DestroyJobHandlerWrapper(k8Cfg))
 	e.POST("/deploy/destroy/namespace", internal_destroy_deploy.DestroyDeployNamespaceHandlerWrapper(k8Cfg))
@@ -102,33 +101,39 @@ func InternalDeployDestroyRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo
 	return e
 }
 
-func RequestExtractionMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		request := new(base_request.InternalDeploymentActionRequest)
-		if err := c.Bind(request); err != nil {
-			// Respond with an error if the request cannot be bound
-			return c.JSON(http.StatusBadRequest, nil)
-		}
-		c.Set("internalDeploymentActionRequest", request)
-		if request.Kns.CloudCtxNs.ClusterCfgStrID == "" {
-			k, err := zeus.VerifyClusterAuthFromCtxOnlyAndGetKubeCfg(c.Request().Context(), request.OrgUser, request.Kns.CloudCtxNs)
+func RequestExtractionMiddlewareWrapper(k8Cfg autok8s_core.K8Util) echo.MiddlewareFunc {
+	// Return a function that conforms to Echo's MiddlewareFunc signature
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		// Return the actual middleware function, utilizing k8Cfg as needed
+		return func(c echo.Context) error {
+			// Your middleware logic here, utilizing k8Cfg
+			request := new(base_request.InternalDeploymentActionRequest)
+			if err := c.Bind(request); err != nil {
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			c.Set("internalDeploymentActionRequest", request)
+			if request.Kns.CloudCtxNs.ClusterCfgStrID == "" {
+				k, err := zeus.VerifyClusterAuthFromCtxOnlyAndGetKubeCfg(c.Request().Context(), request.OrgUser, request.Kns.CloudCtxNs)
+				if err != nil {
+					return err
+				}
+				if k != nil {
+					c.Set("k8Cfg", *k)
+				} else {
+					c.Set("k8Cfg", k8Cfg)
+				}
+				return next(c)
+			}
+			k, err := zeus.VerifyClusterAuthAndGetKubeCfgPtr(c.Request().Context(), request.OrgUser, request.Kns.CloudCtxNs)
 			if err != nil {
-				log.Err(err).Interface("request", request).Interface("ou", request.OrgUser).Msg("RequestExtractionMiddleware: VerifyClusterAuthAndGetKubeCfg")
 				return err
 			}
 			if k != nil {
 				c.Set("k8Cfg", *k)
+			} else {
+				c.Set("k8Cfg", k8Cfg)
 			}
 			return next(c)
 		}
-		k, err := zeus.VerifyClusterAuthAndGetKubeCfgPtr(c.Request().Context(), request.OrgUser, request.Kns.CloudCtxNs)
-		if err != nil {
-			log.Err(err).Interface("request", request).Interface("ou", request.OrgUser).Msg("RequestExtractionMiddleware: VerifyClusterAuthAndGetKubeCfg")
-			return err
-		}
-		if k != nil {
-			c.Set("k8Cfg", *k)
-		}
-		return next(c)
 	}
 }

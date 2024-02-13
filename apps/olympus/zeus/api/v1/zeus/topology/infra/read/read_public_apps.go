@@ -230,7 +230,7 @@ func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_
 	region := "nyc1"
 	diskType := ""
 	switch {
-	case strings.Contains(selectedApp.ClusterClassName, "-aws"):
+	case strings.Contains(selectedApp.ClusterClassName, "-aws") && !strings.Contains(selectedApp.ClusterClassName, "sui-devnet"):
 		cp = "aws"
 		region = "us-west-1"
 		diskType = setNvmeType(selectedApp.ClusterClassName)
@@ -286,7 +286,7 @@ func (a *PublicAppsPageRequest) GetApp(c echo.Context, selectedApp zeus_cluster_
 }
 
 func setNvmeType(appName string) string {
-	if strings.Contains(appName, "sui-") {
+	if strings.Contains(appName, "sui-") && !strings.Contains(appName, "devnet") {
 		return "nvme"
 	}
 	return "ssd"

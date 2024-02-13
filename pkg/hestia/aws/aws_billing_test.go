@@ -77,12 +77,13 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 		//"c5.24xlarge",
 		//"c5.2xlarge",
 		//"c5.4xlarge",
-		"m7g.medium",
-		"m7g.large",
-		"m7g.xlarge",
-		"m7g.2xlarge",
-		"m7g.4xlarge",
-		"m7g.8xlarge",
+		//"m7g.medium",
+		//"m7g.large",
+		//"m7g.xlarge",
+		//"m7g.2xlarge",
+		//"m7g.4xlarge",
+		//"m7g.8xlarge",
+		"m6a.xlarge",
 	}
 	region := "us-east-1"
 
@@ -95,6 +96,7 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 		fmt.Printf("%s\n", instanceType)
 		for _, price := range prices {
 			desc := price.GetDescription()
+			fmt.Println(desc)
 			if !strings.Contains(desc, fmt.Sprintf("per On Demand Linux %s Instance Hour", instanceType)) {
 				continue
 			}
@@ -136,7 +138,7 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 	}
 
 	s.Require().NotEmpty(n)
-	//
+	////
 	err := hestia_compute_resources.InsertNodes(ctx, n)
 	s.Require().NoError(err)
 }

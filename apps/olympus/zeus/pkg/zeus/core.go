@@ -38,7 +38,7 @@ func VerifyClusterAuthAndGetKubeCfgPtr(ctx context.Context, ou org_users.OrgUser
 	if err != nil {
 		return nil, err
 	}
-	if p == nil {
+	if p == nil || p.IsPublic || !p.IsActive {
 		return nil, nil
 	}
 	k, err := GetKubeConfig(ctx, ou, *p)

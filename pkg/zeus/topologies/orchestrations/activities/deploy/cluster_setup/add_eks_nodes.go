@@ -147,6 +147,15 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 	}
 	resp, err := eka.AddNodeGroup(ctx, nr)
 	if err != nil {
+		es := err.Error()
+		if strings.Contains(es, "StatusCode: 409") {
+			log.Warn().Err(err).Interface("resp", resp).Interface("nodes", params.Nodes).Msg("PrivateEksMakeNodePoolRequest: node pool already exists")
+			return do_types.DigitalOceanNodePoolRequestStatus{
+				ExtClusterCfgID: cfgID,
+				ClusterID:       params.CloudCtxNs.Context,
+				NodePoolID:      nodeGroupName,
+			}, nil
+		}
 		log.Err(err).Interface("resp", resp).Interface("nodes", params.Nodes).Msg("PrivateEksMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
@@ -212,21 +221,14 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	}
 	resp, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
 	if err != nil {
-
-		//errSmithy, ok := err.(*smithy.OperationError)
-		//if !ok {
-		//	log.Err(err).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
-		//	return do_types.DigitalOceanNodePoolRequestStatus{}, err
-		//}
-		//httpErr := errSmithy.Err.(*http.ResponseError)
-		//httpResponse := httpErr.HTTPStatusCode()
-		//if httpResponse == ht.StatusConflict {
-		//	log.Info().Interface("nodeGroup", nodeGroupName).Msg("EksMakeNodePoolRequest already exists")
-		//	return do_types.DigitalOceanNodePoolRequestStatus{
-		//		ClusterID:  hestia_eks_aws.AwsUsWest1Context,
-		//		NodePoolID: nodeGroupName,
-		//	}, nil
-		//}
+		es := err.Error()
+		if strings.Contains(es, "StatusCode: 409") {
+			log.Warn().Err(err).Interface("resp", resp).Interface("nodes", params.Nodes).Msg("PrivateEksMakeNodePoolRequest: node pool already exists")
+			return do_types.DigitalOceanNodePoolRequestStatus{
+				ClusterID:  params.CloudCtxNs.Context,
+				NodePoolID: nodeGroupName,
+			}, nil
+		}
 		log.Err(err).Interface("resp", resp).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}

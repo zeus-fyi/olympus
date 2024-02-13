@@ -11,6 +11,7 @@ import (
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/zeus/cluster_config_drivers"
 	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/zeus/workload_config_drivers/config_overrides"
 	"github.com/zeus-fyi/zeus/zeus/workload_config_drivers/topology_workloads"
+	"github.com/zeus-fyi/zeus/zeus/workload_config_drivers/zk8s_templates"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 	v1 "k8s.io/api/core/v1"
 	v1networking "k8s.io/api/networking/v1"
@@ -175,18 +176,8 @@ func BuildStatefulSetDriver(ctx context.Context, containers Containers, sts Stat
 		PersistentVolumeClaimDrivers: make(map[string]v1.PersistentVolumeClaim),
 	}
 	for _, pvcTemplate := range sts.PVCTemplates {
-		storageReq := v1.ResourceList{"storage": resource.MustParse(pvcTemplate.StorageSizeRequest)}
-		pvc := v1.PersistentVolumeClaim{
-			Spec: v1.PersistentVolumeClaimSpec{
-				AccessModes: []v1.PersistentVolumeAccessMode{v1.PersistentVolumeAccessMode(pvcTemplate.AccessMode)},
-				Resources: v1.ResourceRequirements{
-					Requests: storageReq,
-				},
-				VolumeName: pvcTemplate.Name,
-			},
-		}
 		pvcCfg.AppendPVC[pvcTemplate.Name] = true
-		pvcCfg.PersistentVolumeClaimDrivers[pvcTemplate.Name] = pvc
+		pvcCfg.PersistentVolumeClaimDrivers[pvcTemplate.Name] = zk8s_templates.GetPvcTemplate(pvcTemplate)
 	}
 	stsDriver.PVCDriver = &pvcCfg
 	return stsDriver, nil

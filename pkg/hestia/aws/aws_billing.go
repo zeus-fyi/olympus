@@ -57,7 +57,7 @@ func (a *AwsPricing) GetAllProducts(ctx context.Context, region string) error {
 				{
 					Field: aws.String("instanceType"),
 					Type:  "TERM_MATCH",
-					Value: aws.String("t3"),
+					Value: aws.String("m6a"),
 				},
 			},
 			NextToken: nil,
@@ -114,7 +114,7 @@ func (a *AwsPricing) GetEC2Product(ctx context.Context, region, instanceType str
 		}
 		pa, err := a.GetProducts(ctx, pi)
 		if err != nil {
-			log.Ctx(ctx).Err(err)
+			log.Err(err)
 			return []AWSPrice{}, err
 		}
 

@@ -3,6 +3,7 @@ package artemis_orchestrations
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
@@ -61,6 +62,15 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 			return err
 		}
 		if eta.EvalID != 0 {
+			if eta.EvalStrID != "" {
+				ei, aerr := strconv.Atoi(eta.EvalStrID)
+				if aerr != nil {
+					log.Err(aerr).Msg("failed to convert eval id to int")
+					return aerr
+				}
+				eta.EvalID = ei
+			}
+
 			q.RawQuery = `
             INSERT INTO public.ai_trigger_actions_evals(eval_id, trigger_id)
             VALUES ($1, $2)

@@ -32,6 +32,10 @@ CREATE TABLE public.ai_trigger_actions_evals(
 CREATE INDEX ai_trigger_actions_evals_indx ON public.ai_trigger_actions_evals("eval_id");
 CREATE INDEX ai_trigger_actions_trg_indx ON public.ai_trigger_actions_evals("trigger_id");
 
+ALTER TABLE public.ai_trigger_actions_evals
+    ADD CONSTRAINT eval_trigger_uniq UNIQUE (eval_id, trigger_id);
+
+
 CREATE TABLE public.ai_trigger_actions_approvals(
     approval_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
     eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),

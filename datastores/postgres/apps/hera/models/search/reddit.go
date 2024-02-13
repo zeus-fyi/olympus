@@ -213,12 +213,16 @@ func redditSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templ
 			args = append(args, negQuery)
 		}
 	}
-
 	if !sp.Window.IsWindowEmpty() {
 		baseQuery += ` AND`
 		tsRangeStart, tsEnd := sp.Window.GetUnixTimestamps()
 		baseQuery += fmt.Sprintf(` created_at BETWEEN $%d AND $%d`, len(args)+1, len(args)+2)
 		args = append(args, tsRangeStart, tsEnd)
+	}
+
+	if sp.Retrieval.RetrievalItemInstruction.RetrievalPlatformGroups != nil && *sp.Retrieval.RetrievalItemInstruction.RetrievalPlatformGroups != "" {
+		baseQuery += fmt.Sprintf(` AND subreddit = $%d`, len(args)+1)
+		args = append(args, sp.Retrieval.RetrievalGroup)
 	}
 	baseQuery += ` ORDER BY created_at DESC;`
 	q.RawQuery = baseQuery

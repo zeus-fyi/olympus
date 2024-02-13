@@ -1,6 +1,9 @@
 package zeus_templates
 
-import zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+import (
+	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/zeus/zeus/workload_config_drivers/zk8s_templates"
+)
 
 type Cluster struct {
 	ClusterName     string                 `json:"clusterName"`
@@ -48,14 +51,8 @@ type Deployment struct {
 }
 
 type StatefulSet struct {
-	ReplicaCount int           `json:"replicaCount"`
-	PVCTemplates []PVCTemplate `json:"pvcTemplates"`
-}
-
-type PVCTemplate struct {
-	Name               string `json:"name"`
-	AccessMode         string `json:"accessMode"`
-	StorageSizeRequest string `json:"storageSizeRequest"`
+	ReplicaCount int                          `json:"replicaCount"`
+	PVCTemplates []zk8s_templates.PVCTemplate `json:"pvcTemplates"`
 }
 
 type Containers map[string]Container

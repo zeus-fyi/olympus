@@ -162,15 +162,15 @@ func ConvertSecondsToLargestUnit(seconds int) (int, string) {
 	// Check from the largest to the smallest unit
 	switch {
 	case seconds%week == 0:
-		return seconds / week, "week"
+		return seconds / week, "weeks"
 	case seconds%day == 0:
-		return seconds / day, "day"
+		return seconds / day, "days"
 	case seconds%hour == 0:
-		return seconds / hour, "hour"
+		return seconds / hour, "hours"
 	case seconds%minute == 0:
-		return seconds / minute, "minute"
+		return seconds / minute, "minutes"
 	default:
-		return seconds, "second"
+		return seconds, "seconds"
 	}
 }
 func CalculateAggCycleCount(aggBaseCycleCount int, analysisCycleCounts int) int {

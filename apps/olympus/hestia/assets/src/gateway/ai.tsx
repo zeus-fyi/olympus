@@ -175,7 +175,7 @@ class AiApiGateway {
         return await zeusApi.post(url, params, config)
     }
     async searchIndexerCreateOrUpdateRequest(params: PostCreateOrUpdateSearchIndexerRequest): Promise<any> {
-        const url = 'v'
+        const url = `/v1/search`;
         const sessionID = inMemoryJWT.getToken();
         let config = {
             headers: {

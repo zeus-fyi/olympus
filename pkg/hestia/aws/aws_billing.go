@@ -110,7 +110,7 @@ func (a *AwsPricing) GetEC2Product(ctx context.Context, region, instanceType str
 					Value: aws.String(instanceType),
 				},
 			},
-			//NextToken: aws.String("AAMA-EFRSURBSGcrSDFjTlVoZFVJb1BZdW9DYmtYMTNoUWx2NzdZN0N3SzdQQkNVOHJxclpnRldDbXZFd2dPS1FOL1loM0srMWNQRUFBQUFmakI4QmdrcWhraUc5dzBCQndhZ2J6QnRBZ0VBTUdnR0NTcUdTSWIzRFFFSEFUQWVCZ2xnaGtnQlpRTUVBUzR3RVFRTUdaTGdYSmU2dFdib2JBK1pBZ0VRZ0R2N1hnb21WbmNlTVhhQUljdGZQb2hoMDVaMDZtNURGbTZXTEJFdzlNMjNJdmpkTlY3RTM4RGUrbUdRWkdTMy9EcDZ1enFKWDRwSVY1MjduQT09G-IAg7H0YqCgItKR8wEU4H0Grc5LqM8yqj-VCMttC5kLE2a15MLzwfpYBByf7k57TvAZjdHS_BElfdeBFXy4WoV7TBwCu_-vYz-pkwwBF5cre4xEsS-9FYFcuC91ylNUYQDfQw3ytArQfdA0GGRzYcbrnQ9dXE4xIPnviCUyYKUn-uBPLFfkXaBQ4XScFz61VUWnxDV2e6biK3z8FTO0OznHEdhvW3TS99jLdVvLQiaaY2uUpeM-4gQ="),
+			NextToken: nil,
 		}
 		pa, err := a.GetProducts(ctx, pi)
 		if err != nil {

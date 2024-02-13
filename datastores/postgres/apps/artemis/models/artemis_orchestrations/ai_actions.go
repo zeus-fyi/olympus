@@ -159,7 +159,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 					ataa.updated_at
 				FROM cte_trigger_action_evals ta
 				JOIN public.ai_trigger_actions_approvals ataa ON ta.trigger_id = ataa.trigger_id
-			   	WHERE ataa.expires_at > NOW() OR ataa.expires_at IS NULL
+			   	WHERE ataa.expires_at > NOW() OR ataa.expires_at IS NULL OR ataa.approval_state = 'finished' OR ataa.approval_state = 'rejected' OR ataa.approval_state = 'approved'
 				GROUP BY ta.trigger_id, ta.trigger_action, ta.expires_after_seconds,
 					ataa.workflow_result_id,
 					ataa.eval_id,

@@ -196,7 +196,7 @@ func redditSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templ
 	q.QueryName = "redditSearchQuery"
 	args := []interface{}{ou.OrgID}
 
-	baseQuery := `SELECT created_at, subreddit, title, body
+	baseQuery := `SELECT created_at, subreddit, title, body, post_id, post_full_id, number_of_comments, url, permalink, author, author_id, score, upvote_ratio, reddit_meta
 				  FROM public.ai_reddit_incoming_posts
 				  JOIN ai_reddit_search_query sq ON sq.search_id = ai_reddit_incoming_posts.search_id
 				  WHERE sq.org_id = $1
@@ -238,19 +238,21 @@ func SearchReddit(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) 
 	for rows.Next() {
 		var sr SearchResult
 		sr.Source = "reddit"
-		title := ""
-		body := ""
 		rowErr := rows.Scan(
-			&sr.UnixTimestamp, &sr.Group, &title, &body,
+			&sr.UnixTimestamp, &sr.RedditMetadata.Subreddit, &sr.RedditMetadata.Title, &sr.RedditMetadata.Body,
+			&sr.RedditMetadata.PostID, &sr.RedditMetadata.FullPostID, &sr.RedditMetadata.NumberOfComments, &sr.RedditMetadata.Url, &sr.RedditMetadata.Permalink,
+			&sr.RedditMetadata.Author, &sr.RedditMetadata.AuthorID, &sr.RedditMetadata.Score, &sr.RedditMetadata.UpvoteRatio, &sr.RedditMetadata.Metadata,
 		)
-		if len(body) <= 0 {
-			continue
-		}
-		sr.Value = title + "\n " + body + "\n"
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SearchReddit"))
 			return nil, rowErr
 		}
+		sr.Group = sr.RedditMetadata.Subreddit
+		if len(sr.RedditMetadata.Body) <= 0 {
+			continue
+		}
+		sr.Value = sr.RedditMetadata.Title + "\n " + sr.RedditMetadata.Body + "\n"
+
 		srs = append(srs, sr)
 	}
 	return srs, nil

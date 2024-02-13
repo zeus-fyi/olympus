@@ -9,10 +9,10 @@ grafana:
       - kubernetes.io/pvc-protection
   resources:
     limits:
-      cpu: "1"
+      cpu: "1500m"
       memory: "3Gi"
     requests:
-      cpu: "1"
+      cpu: "1500m"
       memory: "3Gi"
 prometheus:
   prometheusSpec:
@@ -26,7 +26,7 @@ prometheus:
     resources:
       limits:
         cpu: "2"
-        memory: "8Gi"
+        memory: "9Gi"
       requests:
         cpu: "2"
-        memory: "8Gi"
+        memory: "9Gi"

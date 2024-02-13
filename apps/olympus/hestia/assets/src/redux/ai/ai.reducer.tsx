@@ -159,6 +159,8 @@ const initialState: AiState = {
     triggerAction: {
         triggerStrID: '',
         triggerName: '',
+        triggerExpirationTimeUnit: '',
+        triggerExpirationDuration: 0,
         triggerGroup: '',
         triggerAction: 'api',
         triggerRetrievals: [],

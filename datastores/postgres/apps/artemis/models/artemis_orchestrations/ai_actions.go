@@ -13,17 +13,20 @@ import (
 )
 
 type TriggerAction struct {
-	TriggerStrID            string                   `json:"triggerStrID,omitempty"`
-	TriggerID               int                      `db:"trigger_id" json:"triggerID,omitempty"`
-	OrgID                   int                      `db:"org_id" json:"orgID,omitempty"`
-	UserID                  int                      `db:"user_id" json:"userID,omitempty"`
-	TriggerName             string                   `db:"trigger_name" json:"triggerName"`
-	TriggerGroup            string                   `db:"trigger_group" json:"triggerGroup"`
-	TriggerAction           string                   `db:"trigger_action" json:"triggerAction"`
-	TriggerRetrievals       []RetrievalItem          `json:"triggerRetrievals,omitempty"`
-	EvalTriggerAction       EvalTriggerActions       `db:"eval_trigger_action" json:"evalTriggerAction,omitempty"`
-	EvalTriggerActions      []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions,omitempty"`
-	TriggerActionsApprovals []TriggerActionsApproval `json:"triggerActionsApprovals,omitempty"`
+	TriggerStrID               string                   `json:"triggerStrID,omitempty"`
+	TriggerID                  int                      `db:"trigger_id" json:"triggerID,omitempty"`
+	OrgID                      int                      `db:"org_id" json:"orgID,omitempty"`
+	UserID                     int                      `db:"user_id" json:"userID,omitempty"`
+	TriggerName                string                   `db:"trigger_name" json:"triggerName"`
+	TriggerGroup               string                   `db:"trigger_group" json:"triggerGroup"`
+	TriggerAction              string                   `db:"trigger_action" json:"triggerAction"`
+	TriggerExpirationDuration  float64                  `json:"triggerExpirationDuration,omitempty"`
+	TriggerExpirationTimeUnit  string                   `json:"triggerExpirationTimeUnit,omitempty"`
+	TriggerExpiresAfterSeconds int                      `db:"expires_at" json:"triggerExpiresAfter,omitempty"`
+	TriggerRetrievals          []RetrievalItem          `json:"triggerRetrievals,omitempty"`
+	EvalTriggerAction          EvalTriggerActions       `db:"eval_trigger_action" json:"evalTriggerAction,omitempty"`
+	EvalTriggerActions         []EvalTriggerActions     `db:"eval_trigger_actions" json:"evalTriggerActions,omitempty"`
+	TriggerActionsApprovals    []TriggerActionsApproval `json:"triggerActionsApprovals,omitempty"`
 }
 
 type TriggerActionsApproval struct {
@@ -39,6 +42,7 @@ type TriggerActionsApproval struct {
 	ApprovalState       string    `db:"approval_state" json:"approvalState"`
 	RequestSummary      string    `db:"request_summary" json:"requestSummary"`
 	UpdatedAt           time.Time `db:"updated_at" json:"updatedAt"`
+	//ExpiresAt           *time.Time `db:"expires_at" json:"expiresAt"`
 
 	Requests  json.RawMessage `json:"requests,omitempty"`
 	Responses json.RawMessage `json:"responses,omitempty"`
@@ -76,14 +80,14 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 	params := []interface{}{tq.Ou.OrgID}
 
 	q1 := `	WITH cte_trigger_acts AS (
-				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action
+				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action, ta.expires_after_seconds
 				FROM public.ai_trigger_actions ta
 				WHERE ta.org_id = $1
 			),`
 
 	if tq.EvalID != 0 && tq.TaskID != 0 && tq.WorkflowTemplateID != 0 {
 		q1 = `	WITH cte_trigger_acts AS (
-				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action
+				SELECT ta.trigger_id, ta.trigger_name, ta.trigger_group, ta.trigger_action, ta.expires_after_seconds
 				FROM public.ai_trigger_actions ta
 				JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
 				JOIN public.ai_workflow_template_eval_task_relationships trrr ON trrr.eval_id = tae.eval_id
@@ -95,7 +99,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 	// Updated query to include TriggerActionsApproval
 	q.RawQuery = q1 + `
 			cte_trigger_action_evals AS (
-				SELECT ta.trigger_id, ta.trigger_action, COALESCE(tae.eval_id, 0) as eval_id, taee.eval_trigger_state, taee.eval_results_trigger_on
+				SELECT ta.trigger_id, ta.trigger_action, ta.expires_after_seconds, COALESCE(tae.eval_id, 0) as eval_id, taee.eval_trigger_state, taee.eval_results_trigger_on
 				FROM cte_trigger_acts ta
 				LEFT JOIN public.ai_trigger_actions_evals tae ON ta.trigger_id = tae.trigger_id
 				LEFT JOIN public.ai_trigger_eval taee ON ta.trigger_id = taee.trigger_id
@@ -145,6 +149,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 				SELECT 
 					ta.trigger_id,
 					ta.trigger_action,
+					ta.expires_after_seconds,
 					ataa.workflow_result_id,
 					ataa.eval_id,
 					ataa.trigger_id AS approval_trigger_id,
@@ -154,7 +159,8 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 					ataa.updated_at
 				FROM cte_trigger_action_evals ta
 				JOIN public.ai_trigger_actions_approvals ataa ON ta.trigger_id = ataa.trigger_id
-					GROUP BY ta.trigger_id, ta.trigger_action,
+			   	WHERE ataa.expires_at > NOW() OR ataa.expires_at IS NULL
+				GROUP BY ta.trigger_id, ta.trigger_action, ta.expires_after_seconds,
 					ataa.workflow_result_id,
 					ataa.eval_id,
 					ataa.trigger_id,
@@ -242,6 +248,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 				acts.trigger_name,
 				acts.trigger_group,
 				acts.trigger_action,
+				acts.expires_after_seconds,
 				eval_triggers,
 				COALESCE(api_rets.retrievals, '[]'::jsonb),
 				COALESCE(approvals, '[]'::jsonb)
@@ -267,6 +274,7 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 			&triggerAction.TriggerName,
 			&triggerAction.TriggerGroup,
 			&triggerAction.TriggerAction,
+			&triggerAction.TriggerExpiresAfterSeconds,
 			&triggerAction.EvalTriggerActions,
 			&triggerAction.TriggerRetrievals,
 			&triggerAction.TriggerActionsApprovals,

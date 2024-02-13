@@ -3,7 +3,9 @@ package artemis_orchestrations
 import (
 	"context"
 	"errors"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -25,16 +27,24 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 	// Insert or update the ai_trigger_actions
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
-        INSERT INTO public.ai_trigger_actions (org_id, user_id, trigger_name, trigger_group, trigger_action)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO public.ai_trigger_actions (org_id, user_id, trigger_name, trigger_group, trigger_action, expires_after_seconds)
+        VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (org_id, trigger_name) 
         DO UPDATE SET 
             user_id = EXCLUDED.user_id,
             trigger_action = EXCLUDED.trigger_action,
-            trigger_group = EXCLUDED.trigger_group
+            trigger_group = EXCLUDED.trigger_group,
+        	expires_after_seconds = EXCLUDED.expires_after_seconds
         RETURNING trigger_id;`
 
-	err = tx.QueryRow(ctx, q.RawQuery, ou.OrgID, ou.UserID, trigger.TriggerName, trigger.TriggerGroup, trigger.TriggerAction).Scan(&trigger.TriggerID)
+	if trigger.TriggerExpirationDuration > 0 && trigger.TriggerExpirationTimeUnit != "" {
+		trigger.TriggerExpiresAfterSeconds = CalculateStepSizeUnix(int(trigger.TriggerExpirationDuration), trigger.TriggerExpirationTimeUnit)
+	} else {
+		trigger.TriggerExpiresAfterSeconds = 0
+	}
+	err = tx.QueryRow(ctx, q.RawQuery, ou.OrgID, ou.UserID, trigger.TriggerName,
+		trigger.TriggerGroup, trigger.TriggerAction, trigger.TriggerExpiresAfterSeconds,
+	).Scan(&trigger.TriggerID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert ai trigger action")
 		return err
@@ -53,6 +63,15 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 			return err
 		}
 		if eta.EvalID != 0 {
+			if eta.EvalStrID != "" {
+				ei, aerr := strconv.Atoi(eta.EvalStrID)
+				if aerr != nil {
+					log.Err(aerr).Msg("failed to convert eval id to int")
+					return aerr
+				}
+				eta.EvalID = ei
+			}
+
 			q.RawQuery = `
             INSERT INTO public.ai_trigger_actions_evals(eval_id, trigger_id)
             VALUES ($1, $2)
@@ -66,9 +85,18 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 		}
 	}
 	var rids []int
-	for _, retrieval := range trigger.TriggerRetrievals {
+	for i, retrieval := range trigger.TriggerRetrievals {
 		if retrieval.RetrievalID == nil {
 			continue
+		}
+		if aws.StringValue(retrieval.RetrievalStrID) != "" {
+			ri, aerr := strconv.Atoi(*retrieval.RetrievalStrID)
+			if aerr != nil {
+				log.Err(aerr).Msg("failed to convert retrieval id to int")
+				return aerr
+			}
+			trigger.TriggerRetrievals[i].RetrievalID = &ri
+			retrieval.RetrievalID = &ri
 		}
 		rids = append(rids, *retrieval.RetrievalID)
 		q.RawQuery = `

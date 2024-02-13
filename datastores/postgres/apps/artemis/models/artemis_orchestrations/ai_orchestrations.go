@@ -136,15 +136,15 @@ func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, window 
 
 func CalculateStepSizeUnix(stepSize int, stepUnit string) int {
 	switch stepUnit {
-	case "seconds":
+	case "seconds", "sec", "second":
 		return stepSize
-	case "minutes":
+	case "minutes", "minute":
 		return stepSize * 60
 	case "hours", "hour":
 		return stepSize * 60 * 60
-	case "days":
+	case "days", "day":
 		return stepSize * 60 * 60 * 24
-	case "weeks":
+	case "weeks", "week":
 		return stepSize * 60 * 60 * 24 * 7
 	}
 	return 0

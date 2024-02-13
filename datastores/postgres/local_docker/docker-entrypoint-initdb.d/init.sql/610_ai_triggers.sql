@@ -4,7 +4,8 @@ CREATE TABLE public.ai_trigger_actions(
     user_id BIGINT NOT NULL REFERENCES users(user_id),
     trigger_name text NOT NULL,
     trigger_group text NOT NULL,
-    trigger_action text NOT NULL DEFAULT 'social-media-engagement'
+    trigger_action text NOT NULL DEFAULT 'social-media-engagement',
+    expires_after_seconds BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE INDEX ai_trigger_actions_oid_ind ON public.ai_trigger_actions("org_id");
@@ -31,6 +32,10 @@ CREATE TABLE public.ai_trigger_actions_evals(
 CREATE INDEX ai_trigger_actions_evals_indx ON public.ai_trigger_actions_evals("eval_id");
 CREATE INDEX ai_trigger_actions_trg_indx ON public.ai_trigger_actions_evals("trigger_id");
 
+ALTER TABLE public.ai_trigger_actions_evals
+    ADD CONSTRAINT eval_trigger_uniq UNIQUE (eval_id, trigger_id);
+
+
 CREATE TABLE public.ai_trigger_actions_approvals(
     approval_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
     eval_id BIGINT NOT NULL REFERENCES eval_fns(eval_id),
@@ -38,6 +43,7 @@ CREATE TABLE public.ai_trigger_actions_approvals(
     workflow_result_id BIGINT NOT NULL REFERENCES ai_workflow_analysis_results(workflow_result_id),
     approval_state text NOT NULL DEFAULT 'pending',
     request_summary text NOT NULL,
+    expires_at timestamptz,
     updated_at timestamptz  NOT NULL DEFAULT NOW()
 );
 CREATE INDEX ai_trigger_actions_approval_eval_source ON public.ai_trigger_actions_approvals("eval_id");

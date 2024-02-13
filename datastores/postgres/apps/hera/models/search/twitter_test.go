@@ -37,6 +37,17 @@ func (s *SearchAITestSuite) TestSelectTwitterSearchQuery() {
 	s.Assert().NotZero(ts.MaxTweetID)
 }
 
+func (s *SearchAITestSuite) TestSelectTwitterSearchQueryProd() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	ts, err := SelectTwitterSearchQuery(ctx, ou, "llm")
+	s.Require().Nil(err)
+	s.Assert().NotZero(ts.SearchID)
+}
+
 func (s *SearchAITestSuite) TestInsertIncomingTweets() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	searchID := 1700515651883687936

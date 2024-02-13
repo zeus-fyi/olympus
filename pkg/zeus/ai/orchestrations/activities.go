@@ -224,7 +224,7 @@ func (z *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, 
 		log.Warn().Interface("ou", ou).Msg("SearchTwitterUsingQuery: ps is empty")
 		return nil, fmt.Errorf("SearchTwitterUsingQuery: ps is empty")
 	}
-	tc, err := hera_twitter.InitOrgTwitterClient(ctx, ps.OAuth2Public, ps.OAuth2Secret)
+	tc, err := hera_twitter.InitTwitterClient(ctx, ps.ConsumerPublic, ps.ConsumerSecret, ps.AccessTokenPublic, ps.AccessTokenSecret)
 	if err != nil {
 		log.Err(err).Msg("SearchTwitterUsingQuery: failed to init twitter client")
 		return nil, err

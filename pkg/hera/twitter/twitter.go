@@ -89,8 +89,10 @@ func (tc *Twitter) GetTweets(ctx context.Context, query string, maxResults, maxT
 	vals := url.Values{}
 	vals.Set("query", query)
 	vals.Set("max_results", fmt.Sprintf("%d", maxResults))
-	vals.Set("since_id", fmt.Sprintf("%d", maxTweetID))
 
+	if maxTweetID != 0 {
+		vals.Set("since_id", fmt.Sprintf("%d", maxTweetID))
+	}
 	resChan, errChan := tc.V2Client.GetTweetsSearchRecent(vals, twitter2.WithAuto(false))
 
 	// Handle channels and timeout

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
@@ -66,37 +65,17 @@ func (t *ZeusWorkerTestSuite) TestAiSearchIndexerWorkflow() {
 	resp, err := act.SelectActiveSearchIndexerJobs(ctx)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
-
-	sgPlatformSeen := make(map[string]map[string]bool)
-	var sisProcessed []hera_search.SearchIndexerParams
-	for _, oj := range resp {
-		switch oj.Platform {
-		case "discord":
-			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
-			}
-		case "reddit":
-			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
-			}
-		case "twitter":
-			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
-			}
-		case "telegram":
-			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]bool)
-			}
-		}
-		if _, ok := sgPlatformSeen[oj.SearchGroupName][oj.Platform]; !ok {
-			sgPlatformSeen[oj.SearchGroupName][oj.Platform] = true
-			sisProcessed = append(sisProcessed, oj)
-		}
-	}
-	for _, si := range sisProcessed {
-		if si.Platform != "twitter" {
-			err = act.StartIndexingJob(ctx, si)
-			t.Require().Nil(err)
-		}
-	}
+	//
+	//for _, si := range resp {
+	//	if si.Platform == "twitter" {
+	//		err = act.StartIndexingJob(ctx, si)
+	//		t.Require().Nil(err)
+	//	}
+	//}
+	sq, err := act.SelectTwitterSearchQuery(ctx, t.Ou, "llm")
+	t.Require().Nil(err)
+	t.Require().NotNil(sq)
+	resps, err := act.SearchTwitterUsingQuery(ctx, t.Ou, sq)
+	t.Require().Nil(err)
+	t.Require().NotNil(resps)
 }

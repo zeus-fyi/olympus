@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/zeus/zeus/workload_config_drivers/zk8s_templates"
 	v1Apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -17,23 +18,20 @@ type ResourceSumsTestSuite struct {
 
 func (s *ResourceSumsTestSuite) TestGetDiskRequirements() {
 	diskSizeOne := "20Gi"
+
+	pvcTemp := zk8s_templates.PVCTemplate{
+		Name:               "test",
+		StorageSizeRequest: diskSizeOne,
+		StorageClassName:   nil,
+	}
+
+	pvcIn := zk8s_templates.GetPvcTemplate(pvcTemp)
 	sts := v1Apps.StatefulSet{
 		TypeMeta:   metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec: v1Apps.StatefulSetSpec{
-			Template: v1.PodTemplateSpec{},
-			VolumeClaimTemplates: []v1.PersistentVolumeClaim{{
-				TypeMeta:   metav1.TypeMeta{},
-				ObjectMeta: metav1.ObjectMeta{},
-				Spec: v1.PersistentVolumeClaimSpec{
-					Resources: v1.ResourceRequirements{
-						Limits:   nil,
-						Requests: v1.ResourceList{"storage": resource.MustParse(diskSizeOne)},
-						Claims:   nil,
-					},
-				},
-				Status: v1.PersistentVolumeClaimStatus{},
-			}},
+			Template:             v1.PodTemplateSpec{},
+			VolumeClaimTemplates: []v1.PersistentVolumeClaim{pvcIn},
 		},
 		Status: v1Apps.StatefulSetStatus{},
 	}

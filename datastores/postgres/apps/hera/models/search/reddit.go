@@ -222,7 +222,7 @@ func redditSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templ
 
 	if sp.Retrieval.RetrievalItemInstruction.RetrievalPlatformGroups != nil && *sp.Retrieval.RetrievalItemInstruction.RetrievalPlatformGroups != "" {
 		baseQuery += fmt.Sprintf(` AND subreddit = $%d`, len(args)+1)
-		args = append(args, sp.Retrieval.RetrievalGroup)
+		args = append(args, *sp.Retrieval.RetrievalItemInstruction.RetrievalPlatformGroups)
 	}
 	baseQuery += ` ORDER BY created_at DESC;`
 	q.RawQuery = baseQuery

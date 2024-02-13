@@ -58,8 +58,11 @@ func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Con
 		return nil, err
 	}
 	sgPlatformSeen := make(map[string]map[string]map[int]bool)
+
+	tmp := make(map[int]hera_search.SearchIndexerParams)
 	var sisProcessed []hera_search.SearchIndexerParams
 	for _, oj := range sis {
+		tmp[oj.SearchID] = oj
 		switch oj.Platform {
 		case discordPlatform:
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
@@ -72,10 +75,10 @@ func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Con
 				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
 			}
 		case twitterPlatform:
-			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
-				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
-				sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
+			if oj.Active {
+				sisProcessed = append(sisProcessed, oj)
 			}
+			continue
 		case telegramPlatform:
 			if _, ok := sgPlatformSeen[oj.SearchGroupName]; !ok {
 				sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
@@ -85,7 +88,19 @@ func (z *ZeusAiPlatformActivities) SelectActiveSearchIndexerJobs(ctx context.Con
 		if _, ok := sgPlatformSeen[oj.SearchGroupName][oj.Platform]; !ok {
 			sgPlatformSeen[oj.SearchGroupName] = make(map[string]map[int]bool)
 			sgPlatformSeen[oj.SearchGroupName][oj.Platform] = make(map[int]bool)
-			sisProcessed = append(sisProcessed, oj)
+		}
+
+		if _, ok := sgPlatformSeen[oj.SearchGroupName][oj.Platform][oj.SearchID]; !ok {
+			sgPlatformSeen[oj.SearchGroupName][oj.Platform][oj.SearchID] = true
+		}
+	}
+	for _, oj := range sgPlatformSeen {
+		for _, si := range oj {
+			for k, v := range si {
+				if v {
+					sisProcessed = append(sisProcessed, tmp[k])
+				}
+			}
 		}
 	}
 	return sisProcessed, nil

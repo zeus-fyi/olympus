@@ -33,3 +33,23 @@ func GetS3SecretSui(ctx context.Context, kns zeus_common_types.CloudCtxNs) v1.Se
 	}
 	return sec
 }
+
+func GetS3FakeSecretSui(ctx context.Context, kns zeus_common_types.CloudCtxNs) v1.Secret {
+	//sw := auth_startup.SecretsWrapper{}
+	m := make(map[string]string)
+	m["AWS_ACCESS_KEY_ID"] = "fake"
+	m["AWS_SECRET_ACCESS_KEY"] = "fake"
+	sec := v1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "aws-credentials",
+			Namespace: kns.Namespace,
+		},
+		StringData: m,
+		Type:       "Opaque",
+	}
+	return sec
+}

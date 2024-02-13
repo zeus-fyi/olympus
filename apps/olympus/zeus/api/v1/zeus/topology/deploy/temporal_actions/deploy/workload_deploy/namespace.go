@@ -48,6 +48,15 @@ func DeployNamespaceHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context) e
 			}
 		}
 
+		//if strings.HasPrefix(request.Kns.CloudCtxNs.Namespace, "sui") && k8CfgInterface != nil {
+		//	sec := dynamic_secrets.GetS3FakeSecretSui(ctx, request.Kns.CloudCtxNs)
+		//	_, serr := k.CreateSecretWithKnsIfDoesNotExist(ctx, request.Kns.CloudCtxNs, &sec, nil)
+		//	if serr != nil {
+		//		log.Err(serr).Msg("DeployNamespaceHandler")
+		//		return c.JSON(http.StatusInternalServerError, serr)
+		//	}
+		//}
+
 		if request.Kns.CloudCtxNs.Context == "zeusfyi" && request.Kns.CloudCtxNs.CloudProvider == "ovh" {
 			fromKns := zeus_common_types.CloudCtxNs{
 				CloudProvider: "do",

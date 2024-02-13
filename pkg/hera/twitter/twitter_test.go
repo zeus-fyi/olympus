@@ -15,7 +15,10 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
+	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 var ctx = context.Background()
@@ -28,10 +31,21 @@ type TwitterTestSuite struct {
 func (s *TwitterTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	tw, err := InitPkgTwitterClient(ctx,
-		s.Tc.TwitterConsumerPublicAPIKey, s.Tc.TwitterConsumerSecretAPIKey,
-		s.Tc.TwitterAccessToken, s.Tc.TwitterAccessTokenSecret,
-	)
+
+	awsAuthCfg := aegis_aws_auth.AuthAWS{
+		AccountNumber: "",
+		Region:        "us-west-1",
+		AccessKey:     s.Tc.AwsAccessKeySecretManager,
+		SecretKey:     s.Tc.AwsSecretKeySecretManager,
+	}
+	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
+
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, s.Ou, "twitter")
+	s.Require().NoError(err)
+	s.Require().NotNil(ps)
+	tw, err := InitTwitterClient(ctx, ps.ConsumerPublic, ps.ConsumerSecret, ps.AccessTokenPublic, ps.AccessTokenSecret)
+	s.Require().NoError(err)
+	s.Require().NotNil(tw)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tw.V1Client)
 	s.tw = tw
@@ -91,27 +105,30 @@ func (s *TwitterTestSuite) TestTweetTopicSearchOrgV2() {
 }
 
 func (s *TwitterTestSuite) TestTweetTopicSearchV2() {
+
 	vals := url.Values{}
 	query := `(("Kubernetes" OR "k8s" OR "#kube" OR "container orchestration") -is:retweet (has:links OR has:media OR has:mentions) (lang:en))`
 	//query := `(("Kubernetes" OR "k8s" OR "kube") ("mlops" OR "migrating to" OR "suggest" OR "suggestion" OR "complexity") -horrible -worst -sucks -bad -disappointing -frustrated -confused -angry)`
 	//query := `(("Kubernetes" OR "k8s" OR "kube") ("mlops" OR "gpu" OR "gpu sharing" OR "gpu management" OR "cost efficient") -horrible -worst -sucks -bad -disappointing -frustrated -confused -angry)`
+	query = `("LLM" -is:retweet (has:links OR has:media OR has:mentions) (lang:en))`
 
+	//query = `(("LLM" AND "chunking") OR ("OpenAI" AND "JSON") OR ("LLM" AND "eval") OR ("LLM" AND "RAG") OR ("LLM" AND "production")) -is:retweet -has:hashtags (lang:en)`
 	vals.Set("query", query)
 	vals.Set("max_results", "10")
-	vals.Set("since_id", "1726707774195728627")
+	//vals.Set("since_id", "1726707774195728627")
 
-	//urlWithParams := "https://api.twitter.com/2/tweets/search/recent?" + vals.Encode()
-	//
-	//req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlWithParams, nil)
-	//s.Assert().NoError(err)
-	//resp, err := s.tw.V2alt.Client.Do(req)
-	//s.Assert().NoError(err)
-	//s.Assert().NotNil(resp)
-	//bodyBytes, err := io.ReadAll(resp.Body)
-	//s.Assert().NoError(err)
-	//fmt.Println(string(bodyBytes))
-	//
-	//resp.Body.Close()
+	urlWithParams := "https://api.twitter.com/2/tweets/search/recent?" + vals.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlWithParams, nil)
+	s.Assert().NoError(err)
+	resp, err := s.tw.V2alt.Client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(resp)
+	bodyBytes, err := io.ReadAll(resp.Body)
+	s.Assert().NoError(err)
+	fmt.Println(string(bodyBytes))
+
+	resp.Body.Close()
 
 	resChan, errChan := s.tw.V2Client.GetTweetsSearchRecent(vals, twitter2.WithAuto(false))
 
@@ -139,9 +156,9 @@ func (s *TwitterTestSuite) TestTweetTopicSearchV2() {
 		fmt.Printf("TweetID %s: AuthorID %s, Text: %s \n", tweet.ID, tweet.AuthorID, tweet.Text)
 	}
 
-	resp, err := hera_search.InsertIncomingTweets(ctx, 1700514815519783000, data)
+	respd, err := hera_search.InsertIncomingTweets(ctx, 1700514815519783000, data)
 	s.Require().NoError(err)
-	s.Assert().NotEmpty(resp)
+	s.Assert().NotEmpty(respd)
 }
 
 func (s *TwitterTestSuite) TestApiGets() {

@@ -245,6 +245,7 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 	}
 
 	for mkeyName, mockingbird := range mp {
+		fmt.Println(mkeyName, "mkey")
 		svItem, sok := m[mkeyName]
 		if sok && svItem.Key == mockingbird {
 			if mkeyName == fmt.Sprintf("%s-oauth2-public", platform) {
@@ -271,11 +272,8 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 			if strings.HasSuffix(mkeyName, "consumer-key") {
 				op.ConsumerPublic = svItem.Value
 			}
-			if strings.HasSuffix(mkeyName, "consumer-key") {
-				op.ConsumerPublic = svItem.Value
-			}
 			if strings.HasSuffix(mkeyName, "access-token-secret") {
-				op.AccessTokenPublic = svItem.Value
+				op.AccessTokenSecret = svItem.Value
 			}
 			if strings.HasSuffix(mkeyName, "access-token-public") {
 				op.AccessTokenPublic = svItem.Value

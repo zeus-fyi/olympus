@@ -287,6 +287,12 @@ func SelectTriggerActionsByOrgAndOptParams(ctx context.Context, tq TriggersWorkf
 			triggerAction.EvalTriggerAction = triggerAction.EvalTriggerActions[0]
 		}
 
+		if triggerAction.TriggerExpiresAfterSeconds > 0 {
+			expDuration, timeUnit := ConvertSecondsToLargestUnit(triggerAction.TriggerExpiresAfterSeconds)
+			triggerAction.TriggerExpirationTimeUnit = timeUnit
+			triggerAction.TriggerExpirationDuration = float64(expDuration)
+		}
+
 		for ri, _ := range triggerAction.TriggerRetrievals {
 			b := triggerAction.TriggerRetrievals[ri].Instructions
 			if b != nil {

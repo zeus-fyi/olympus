@@ -149,7 +149,30 @@ func CalculateStepSizeUnix(stepSize int, stepUnit string) int {
 	}
 	return 0
 }
+func ConvertSecondsToLargestUnit(seconds int) (int, string) {
+	// Define conversion factors
+	const (
+		second = 1
+		minute = 60 * second
+		hour   = 60 * minute
+		day    = 24 * hour
+		week   = 7 * day
+	)
 
+	// Check from the largest to the smallest unit
+	switch {
+	case seconds%week == 0:
+		return seconds / week, "weeks"
+	case seconds%day == 0:
+		return seconds / day, "days"
+	case seconds%hour == 0:
+		return seconds / hour, "hours"
+	case seconds%minute == 0:
+		return seconds / minute, "minutes"
+	default:
+		return seconds, "seconds"
+	}
+}
 func CalculateAggCycleCount(aggBaseCycleCount int, analysisCycleCounts int) int {
 	if analysisCycleCounts > aggBaseCycleCount {
 		aggBaseCycleCount = analysisCycleCounts

@@ -1010,7 +1010,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                 </Stack>
                                                             </div>
                                                         }
-                                                        { (searchIndexer.platform === 'reddit' || searchIndexer.platform === 'twitter') &&
+                                                        { (searchIndexer.platform === 'reddit' ) &&
                                                             <div>
                                                                 <Stack direction={"row"} >
                                                                     <Box flexGrow={1} sx={{ mt: 2}}>
@@ -1044,6 +1044,103 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                             label={"Secret Name"}
                                                                             variant="outlined"
                                                                             value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-oauth2-secret' : platformSecretReference.secretKeyName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-key-group-input"
+                                                                            label={"Secret Key"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretGroupName}
+                                                                        />
+                                                                    </Box>
+                                                                </Stack>
+                                                            </div>
+                                                        }
+                                                        { (searchIndexer.platform === 'twitter') &&
+                                                            <div>
+                                                                <Stack direction={"row"} >
+                                                                    <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-group-input"
+                                                                            label={"Secret Name"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-consumer-key' : platformSecretReference.secretKeyName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-key-group-input"
+                                                                            label={"Secret Key"}
+                                                                            variant="outlined"
+
+                                                                            value={platformSecretReference.secretGroupName}
+                                                                        />
+                                                                    </Box>
+                                                                </Stack>
+                                                                <Stack direction={"row"} >
+                                                                    <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-group-input"
+                                                                            label={"Secret Name"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-consumer-secret' : platformSecretReference.secretKeyName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-key-group-input"
+                                                                            label={"Secret Key"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretGroupName}
+                                                                        />
+                                                                    </Box>
+                                                                </Stack>
+                                                                <Stack direction={"row"} >
+                                                                    <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-group-input"
+                                                                            label={"Secret Name"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-access-token-public' : platformSecretReference.secretKeyName}
+                                                                            InputProps={{
+                                                                                readOnly: true,
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mt: 2, ml: 2 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-key-group-input"
+                                                                            label={"Secret Key"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretGroupName}
+                                                                        />
+                                                                    </Box>
+                                                                </Stack>
+                                                                <Stack direction={"row"} >
+                                                                    <Box flexGrow={1} sx={{ mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="platformSecretReference-group-input"
+                                                                            label={"Secret Name"}
+                                                                            variant="outlined"
+                                                                            value={platformSecretReference.secretKeyName === '' ? searchIndexer.platform + '-access-token-secret' : platformSecretReference.secretKeyName}
                                                                             InputProps={{
                                                                                 readOnly: true,
                                                                             }}

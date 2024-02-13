@@ -104,7 +104,7 @@ func (c *CreateSetupTopologyActivities) PrivateEksMakeNodePoolRequest(ctx contex
 		taints = append(taints, appTaint)
 	}
 	nsAlias := NamespaceAlias(params.Cluster.ClusterName)
-	nodeGroupName := strings.ToLower(fmt.Sprintf("aws-%d-%s-z", params.Ou.OrgID, nsAlias))
+	nodeGroupName := strings.ToLower(fmt.Sprintf("a%d%s-z", params.Ou.OrgID, nsAlias))
 	if len(nodeGroupName) > 39 {
 		nodeGroupName = nodeGroupName[:38] + "z"
 	}

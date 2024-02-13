@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -84,9 +85,18 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 		}
 	}
 	var rids []int
-	for _, retrieval := range trigger.TriggerRetrievals {
+	for i, retrieval := range trigger.TriggerRetrievals {
 		if retrieval.RetrievalID == nil {
 			continue
+		}
+		if aws.StringValue(retrieval.RetrievalStrID) != "" {
+			ri, aerr := strconv.Atoi(*retrieval.RetrievalStrID)
+			if aerr != nil {
+				log.Err(aerr).Msg("failed to convert retrieval id to int")
+				return aerr
+			}
+			trigger.TriggerRetrievals[i].RetrievalID = &ri
+			retrieval.RetrievalID = &ri
 		}
 		rids = append(rids, *retrieval.RetrievalID)
 		q.RawQuery = `

@@ -5,7 +5,7 @@ import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 type Orchestrations struct {
 	OrchestrationStrID string `db:"-" json:"orchestrationStrID"`
 	OrchestrationID    int    `db:"orchestration_id" json:"orchestrationID"`
-	OrgID              int    `db:"org_id" json:"orgID"`
+	OrgID              int    `db:"org_id" json:"-,omitempty"`
 	Active             bool   `db:"active" json:"active"`
 	GroupName          string `db:"group_name" json:"groupName"`
 	Type               string `db:"type" json:"type"`

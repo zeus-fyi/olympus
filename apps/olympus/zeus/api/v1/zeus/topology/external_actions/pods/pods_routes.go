@@ -16,56 +16,62 @@ import (
 
 func ExternalApiPodsRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
-	e.Use(PodsCloudCtxNsMiddleware)
+	e.Use(PodsCloudCtxNsMiddlewareWrapper(k8Cfg))
 	e.POST("/pods", HandlePodActionRequest)
 	return e
 }
 
-func PodsCloudCtxNsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		log.Info().Msg("PodsCloudCtxNsMiddleware")
-		ctx := context.Background()
-		ou, ok := c.Get("orgUser").(org_users.OrgUser)
-		if !ok {
-			log.Warn().Msg("PodsCloudCtxNsMiddleware: orgUser not found")
-			return c.JSON(http.StatusUnauthorized, nil)
-		}
-		c.Set("orgUser", ou)
-		request := new(zeus_pods_reqs.PodActionRequest)
-		if err := c.Bind(request); err != nil {
-			return err
-		}
+func PodsCloudCtxNsMiddlewareWrapper(k8Cfg autok8s_core.K8Util) echo.MiddlewareFunc {
+	// Return a function that conforms to Echo's MiddlewareFunc signature
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		// Return the actual middleware function, utilizing k8Cfg as needed
+		return func(c echo.Context) error {
+			log.Info().Msg("PodsCloudCtxNsMiddleware")
+			ctx := context.Background()
+			ou, ok := c.Get("orgUser").(org_users.OrgUser)
+			if !ok {
+				log.Warn().Msg("PodsCloudCtxNsMiddleware: orgUser not found")
+				return c.JSON(http.StatusUnauthorized, nil)
+			}
+			c.Set("orgUser", ou)
+			request := new(zeus_pods_reqs.PodActionRequest)
+			if err := c.Bind(request); err != nil {
+				return err
+			}
 
-		cctxID := c.Request().Header.Get("CloudCtxNsID")
-		if len(cctxID) == 0 {
-			authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
+			cctxID := c.Request().Header.Get("CloudCtxNsID")
+			if len(cctxID) == 0 {
+				authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
+				if authed != true {
+					return c.JSON(http.StatusUnauthorized, err)
+				}
+				c.Set("PodActionRequest", request)
+				return next(c)
+			}
+			cID, err := strconv.Atoi(cctxID)
+			if err != nil {
+				log.Err(err).Msg("PodsCloudCtxNsMiddleware")
+				return c.JSON(http.StatusInternalServerError, nil)
+			}
+			authed, cctx, err := read_topology.IsOrgCloudCtxNsAuthorizedFromID(ctx, ou.OrgID, cID)
 			if authed != true {
-				return c.JSON(http.StatusUnauthorized, err)
+				log.Warn().Interface("ou", ou).Interface("req", request).Msg("PodsCloudCtxNsMiddleware: IsOrgCloudCtxNsAuthorizedFromID")
+
+				return c.JSON(http.StatusUnauthorized, nil)
+			}
+			request.CloudCtxNs = cctx
+			k, err := zeus.VerifyClusterAuthFromCtxOnlyAndGetKubeCfg(c.Request().Context(), ou, cctx)
+			if err != nil {
+				log.Warn().Interface("ou", ou).Interface("req", request).Msg("PodsCloudCtxNsMiddleware: IsOrgCloudCtxNsAuthorizedFromID")
+				return c.JSON(http.StatusUnauthorized, nil)
+			}
+			if k != nil {
+				c.Set("k8Cfg", *k)
+			} else {
+				c.Set("k8Cfg", k8Cfg)
 			}
 			c.Set("PodActionRequest", request)
 			return next(c)
 		}
-		cID, err := strconv.Atoi(cctxID)
-		if err != nil {
-			log.Err(err).Msg("PodsCloudCtxNsMiddleware")
-			return c.JSON(http.StatusInternalServerError, nil)
-		}
-		authed, cctx, err := read_topology.IsOrgCloudCtxNsAuthorizedFromID(ctx, ou.OrgID, cID)
-		if authed != true {
-			log.Warn().Interface("ou", ou).Interface("req", request).Msg("PodsCloudCtxNsMiddleware: IsOrgCloudCtxNsAuthorizedFromID")
-
-			return c.JSON(http.StatusUnauthorized, nil)
-		}
-		request.CloudCtxNs = cctx
-		k, err := zeus.VerifyClusterAuthFromCtxOnlyAndGetKubeCfg(c.Request().Context(), ou, cctx)
-		if err != nil {
-			log.Warn().Interface("ou", ou).Interface("req", request).Msg("PodsCloudCtxNsMiddleware: IsOrgCloudCtxNsAuthorizedFromID")
-			return c.JSON(http.StatusUnauthorized, nil)
-		}
-		if k != nil {
-			c.Set("k8Cfg", *k)
-		}
-		c.Set("PodActionRequest", request)
-		return next(c)
 	}
 }

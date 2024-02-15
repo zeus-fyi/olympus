@@ -166,6 +166,23 @@ type ChatCompletionQueryResponse struct {
 	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition `json:"jsonResponseResults,omitempty"`
 }
 
+func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.JsonSchemaDefinition) bool {
+	if len(jr) <= 0 {
+		return false
+	}
+	for _, j := range jr {
+		if j.SchemaID != expSchemaID {
+			return false
+		}
+		for _, f := range j.Fields {
+			if f.IsValidated == false {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, sg *hera_search.SearchResultGroup) (*ChatCompletionQueryResponse, error) {
 	var content string
 	if len(sg.BodyPrompt) > 0 {

@@ -98,20 +98,36 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 				continue
 			}
+
+			var canSkip bool
+			if cpe.ParentOutputToEval != nil && cpe.ParentOutputToEval.JsonResponseResults != nil && len(cpe.ParentOutputToEval.JsonResponseResults) > 0 && len(evalFnsAgg[evFnIndex].Schemas) > 0 {
+				jrs := cpe.ParentOutputToEval.JsonResponseResults
+				evs := evalFnsAgg[evFnIndex].Schemas
+				canSkip = true
+				for _, sv := range evs {
+					if !CheckSchemaIDsAndValidFields(sv.SchemaID, jrs) {
+						canSkip = false
+						break
+					}
+				}
+			}
+
 			cpe.TaskToExecute.Tc.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
 			cpe.TaskToExecute.Tc.Schemas = evalFnsAgg[evFnIndex].Schemas
 			cpe.TaskToExecute.Tc.Model = aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
-			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cpe.ParentOutputToEval)
-			if err != nil {
-				logger.Error("failed to execute analysis json workflow", "Error", err)
-				return err
+			if !canSkip {
+				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cpe.ParentOutputToEval)
+				if err != nil {
+					logger.Error("failed to execute analysis json workflow", "Error", err)
+					return err
+				}
 			}
 			if cpe.ParentOutputToEval.JsonResponseResults == nil {
 				continue
 			}
 			evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, evalFnsAgg[evFnIndex], cpe.ParentOutputToEval.JsonResponseResults).Get(evalModelScoredJsonCtx, &emr)
+			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, evalFnsAgg[evFnIndex], cpe.ParentOutputToEval.JsonResponseResults).Get(evalModelScoredJsonCtx, &emr)
 			if err != nil {
 				logger.Error("failed to get score eval", "Error", err)
 				return err

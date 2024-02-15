@@ -11,6 +11,11 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+type InputDataAnalysisToAgg struct {
+	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
+	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`
+}
+
 func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) error {
 	if cp == nil {
 		return nil
@@ -48,20 +53,20 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 		aggCycle := wfExecParams.CycleCountTaskRelative.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 		if i%aggCycle == 0 {
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
-			var dataIn []artemis_orchestrations.AIWorkflowAnalysisResult
 			depM := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 			var analysisDep []int
 			for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
 				analysisDep = append(analysisDep, k)
 			}
+
+			var aggRet AggRetResp
 			aggRetrievalCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, analysisDep).Get(aggRetrievalCtx, &dataIn)
+			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, analysisDep).Get(aggRetrievalCtx, &aggRet)
 			if err != nil {
 				logger.Error("failed to run aggregate retrieval", "Error", err)
 				return err
 			}
 			md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
-
 			wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
 				OrchestrationID:       oj.OrchestrationID,
 				SourceTaskID:          aws.IntValue(aggInst.AggTaskID),
@@ -73,32 +78,32 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				Ou:  ou,
 				Wft: aggInst,
 				Sg: &hera_search.SearchResultGroup{
-					DataIn:                dataIn,
-					SourceTaskID:          aws.IntValue(aggInst.AggTaskID),
-					Model:                 aws.StringValue(aggInst.AggModel),
-					ResponseFormat:        aws.StringValue(aggInst.AggResponseFormat),
-					FilteredSearchResults: cp.GetFilteredSearchResults(),
+					SourceTaskID:   aws.IntValue(aggInst.AggTaskID),
+					Model:          aws.StringValue(aggInst.AggModel),
+					ResponseFormat: aws.StringValue(aggInst.AggResponseFormat),
 				},
 				Wr: wr,
 			}
+
 			pr := &PromptReduction{
 				Model:                     aws.StringValue(aggInst.AggModel),
 				TokenOverflowStrategy:     aws.StringValue(aggInst.AggTokenOverflowStrategy),
 				MarginBuffer:              aws.Float64Value(aggInst.AggMarginBuffer),
-				DataInAnalysisAggregation: dataIn,
+				DataInAnalysisAggregation: aggRet.InputDataAnalysisToAggSlice,
+				AIWorkflowAnalysisResults: aggRet.AIWorkflowAnalysisResultSlice,
 				PromptReductionSearchResults: &PromptReductionSearchResults{
-					InPromptBody:  aws.StringValue(aggInst.AggPrompt),
-					InSearchGroup: tte.Sg,
+					InPromptBody: aws.StringValue(aggInst.AggPrompt),
 				},
 				PromptReductionText: &PromptReductionText{
 					InPromptSystem: aws.StringValue(aggInst.AggPrompt),
 				},
 			}
-			if len(dataIn) == 0 && tte.Sg.FilteredSearchResults == nil {
+
+			// todo, maybe can deprecate tte.Sg.FilteredSearchResults == nil
+			if len(aggRet.InputDataAnalysisToAggSlice) == 0 && len(aggRet.AIWorkflowAnalysisResultSlice) == 0 && tte.Sg.FilteredSearchResults == nil {
 				logger.Info("no data in for agg", "aggInst", aggInst)
 				continue
 			}
-			var aiAggResp *ChatCompletionQueryResponse
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, ou, pr).Get(chunkedTaskCtx, &pr)
 			if err != nil {
@@ -116,9 +121,24 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				wr.ChunkOffset = chunkOffset
 				tte.WfID = oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i) + "-" + strconv.Itoa(chunkOffset)
-				if pr.PromptReductionText.OutPromptChunks != nil && chunkOffset < len(pr.PromptReductionText.OutPromptChunks) {
-					tte.Sg.BodyPrompt = pr.PromptReductionText.OutPromptChunks[chunkOffset]
+				var sg *hera_search.SearchResultGroup
+				if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && chunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
+					sg = pr.PromptReductionSearchResults.OutSearchGroups[chunkOffset]
+					sg.Model = aws.StringValue(aggInst.AggModel)
+					sg.ResponseFormat = aws.StringValue(aggInst.AggResponseFormat)
+					if chunkOffset < len(pr.PromptReductionText.OutPromptChunks) {
+						sg.BodyPrompt = pr.PromptReductionText.OutPromptChunks[chunkOffset]
+					}
+				} else {
+					sg = &hera_search.SearchResultGroup{
+						Model:          aws.StringValue(aggInst.AggModel),
+						ResponseFormat: aws.StringValue(aggInst.AggResponseFormat),
+						BodyPrompt:     pr.PromptReductionText.OutPromptChunks[chunkOffset],
+						SearchResults:  []hera_search.SearchResult{},
+					}
 				}
+				tte.Sg = sg
+				var aiAggResp *ChatCompletionQueryResponse
 				switch aws.StringValue(aggInst.AggResponseFormat) {
 				case jsonFormat:
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
@@ -141,42 +161,21 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						jdef = append(jdef, taskDef.Schemas...)
 					}
 					tte.Tc.Schemas = jdef
-
 					if aggInst.AggTemperature != nil {
 						tte.Tc.Temperature = float32(*aggInst.AggTemperature)
 					} else {
 						tte.Tc.Temperature = 0.5
 					}
-
 					childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, tte).Get(childAggWfCtx, &aiAggResp)
 					if err != nil {
 						logger.Error("failed to execute json agg workflow", "Error", err)
 						return err
 					}
-					tte.Sg.FilteredSearchResults = aiAggResp.FilteredSearchResults
 					wr.WorkflowResultID = aiAggResp.WorkflowResultID
-				case socialMediaEngagementResponseFormat:
-					//if cp.AnalysisEvalActionParams != nil && cp.AnalysisEvalActionParams.SearchResultGroup != nil {
-					//	sg = cp.AnalysisEvalActionParams.SearchResultGroup
-					//}
-					//if sg == nil || len(sg.SearchResults) == 0 {
-					//	continue
-					//}
-					//sg.ExtractionPromptExt = aws.StringValue(aggInst.AggPrompt)
-					//childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					//	WorkflowID:               oj.OrchestrationName + "-agg-social-media-engagement-" + strconv.Itoa(i),
-					//	WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-					//}
-					//childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-					//err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.SocialMediaEngagementWorkflow, ou, sg).Get(childAggWfCtx, &aiAggResp)
-					//if err != nil {
-					//	logger.Error("failed to execute child social media engagement workflow", "Error", err)
-					//	return err
-					//}
 				default:
 					aggCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, dataIn).Get(aggCtx, &aiAggResp)
+					err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, tte.Sg).Get(aggCtx, &aiAggResp)
 					if err != nil {
 						logger.Error("failed to run aggregation", "Error", err)
 						return err
@@ -190,44 +189,43 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					}
 					wr.ResponseID = aggRespId
 					recordAggCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, dataIn).Get(recordAggCtx, &aiAggResp.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, aiAggResp).Get(recordAggCtx, &aiAggResp.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save aggregation resp", "Error", err)
 						return err
 					}
 				}
-			}
-
-			if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 {
-				continue
-			}
-			if aggInst.AggEvalFns == nil || len(aggInst.AggEvalFns) == 0 {
-				continue
-			}
-			evalWfID := oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i)
-			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-				WorkflowID:               oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i),
-				RetryPolicy:              ao.RetryPolicy,
-				WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-			}
-			cp.Window = window
-			cp.WfID = evalWfID
-			cp.WorkflowResult = *wr
-			ea := &EvalActionParams{
-				WorkflowTemplateData: aggInst,
-				ParentOutputToEval:   aiAggResp,
-				EvalFns:              aggInst.AggEvalFns,
-				SearchResultGroup:    tte.Sg,
-				TaskToExecute:        tte,
-			}
-			for _, evalFn := range ea.EvalFns {
-				evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]
-				if i%evalAggCycle == 0 {
-					childAggEvalWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-					err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAggEvalWfCtx, nil)
-					if err != nil {
-						logger.Error("failed to execute child agg eval workflow", "Error", err)
-						return err
+				if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 {
+					continue
+				}
+				if aggInst.AggEvalFns == nil || len(aggInst.AggEvalFns) == 0 {
+					continue
+				}
+				evalWfID := oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i)
+				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+					WorkflowID:               oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i),
+					RetryPolicy:              ao.RetryPolicy,
+					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+				}
+				cp.Window = window
+				cp.WfID = evalWfID
+				cp.WorkflowResult = *wr
+				ea := &EvalActionParams{
+					WorkflowTemplateData: aggInst,
+					ParentOutputToEval:   aiAggResp,
+					EvalFns:              aggInst.AggEvalFns,
+					SearchResultGroup:    tte.Sg,
+					TaskToExecute:        tte,
+				}
+				for _, evalFn := range ea.EvalFns {
+					evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]
+					if i%evalAggCycle == 0 {
+						childAggEvalWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+						err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAggEvalWfCtx, nil)
+						if err != nil {
+							logger.Error("failed to execute child agg eval workflow", "Error", err)
+							return err
+						}
 					}
 				}
 			}

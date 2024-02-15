@@ -63,21 +63,20 @@ type AiModelParams struct {
 }
 
 type SearchResultGroup struct {
-	DataIn                         []artemis_orchestrations.AIWorkflowAnalysisResult `json:"dataIn,omitempty"`
-	PlatformName                   string                                            `json:"platformName"`
-	SourceTaskID                   int                                               `json:"sourceTaskID,omitempty"`
-	ExtractionPromptExt            string                                            `json:"extractionPromptExt,omitempty"`
-	Model                          string                                            `json:"model,omitempty"`
-	ResponseFormat                 string                                            `json:"responseFormat,omitempty"`
-	BodyPrompt                     string                                            `json:"bodyPrompt,omitempty"`
-	ResponseBody                   string                                            `json:"responseBody,omitempty"`
-	ApiResponseResults             []SearchResult                                    `json:"apiResponseResults,omitempty"`
-	SearchResults                  []SearchResult                                    `json:"searchResults"`
-	FilteredSearchResults          []SearchResult                                    `json:"filteredSearchResults,omitempty"`
-	FilteredSearchResultMap        map[int]*SearchResult                             `json:"filteredSearchResultsMap"`
-	SearchResultChunkTokenEstimate *int                                              `json:"searchResultChunkTokenEstimates,omitempty"`
-	Window                         artemis_orchestrations.Window                     `json:"window,omitempty"`
-	FunctionDefinition             openai.FunctionDefinition                         `json:"functionDefinition,omitempty"`
+	PlatformName                   string                        `json:"platformName"`
+	SourceTaskID                   int                           `json:"sourceTaskID,omitempty"`
+	ExtractionPromptExt            string                        `json:"extractionPromptExt,omitempty"`
+	Model                          string                        `json:"model,omitempty"`
+	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
+	BodyPrompt                     string                        `json:"bodyPrompt,omitempty"`
+	ResponseBody                   string                        `json:"responseBody,omitempty"`
+	ApiResponseResults             []SearchResult                `json:"apiResponseResults,omitempty"`
+	SearchResults                  []SearchResult                `json:"searchResults"`
+	FilteredSearchResults          []SearchResult                `json:"filteredSearchResults,omitempty"`
+	FilteredSearchResultMap        map[int]*SearchResult         `json:"filteredSearchResultsMap"`
+	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
+	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
+	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`
 }
 
 func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
@@ -90,11 +89,14 @@ func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
 }
 
 func (sg *SearchResultGroup) GetPromptBody() string {
-	if len(sg.SearchResults) == 0 || len(sg.ApiResponseResults) == 0 {
+	if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) == 0 {
 		return sg.BodyPrompt + "\n" + sg.ResponseBody
 	}
 	if len(sg.ApiResponseResults) > 0 {
 		return FormatApiSearchResultSliceToString(sg.ApiResponseResults)
+	}
+	if len(sg.SearchResults) > 0 && len(sg.BodyPrompt) > 0 {
+		return sg.BodyPrompt + FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
 	}
 	return FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
 }

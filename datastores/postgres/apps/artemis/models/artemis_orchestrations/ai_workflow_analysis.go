@@ -28,22 +28,6 @@ type AIWorkflowAnalysisResult struct {
 	CompletionChoices     json.RawMessage `json:"completionChoices,omitempty"`
 }
 
-func GetRawMessagesFromAiWorkflowAnalysisResults(wrs []AIWorkflowAnalysisResult) ([]openai.ChatCompletionChoice, error) {
-	var temp []openai.ChatCompletionChoice
-	for _, wr := range wrs {
-		if len(wr.CompletionChoices) > 0 {
-			var cc []openai.ChatCompletionChoice
-			err := json.Unmarshal(wr.CompletionChoices, &cc)
-			if err != nil {
-				log.Err(err).Msg("ChatCompletionChoice Unmarshal Error")
-				return nil, err
-			}
-			temp = append(temp, cc...)
-		}
-	}
-	return temp, nil
-}
-
 func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisResult) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO ai_workflow_analysis_results(orchestration_id, response_id, source_task_id, chunk_offset, iteration_count, 
@@ -107,7 +91,7 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
 
 // todo more efficient way to do this
 
-func GenerateContentText(wrs []AIWorkflowAnalysisResult) (string, error) {
+func GenerateContentTextFromOpenAIResp(wrs []AIWorkflowAnalysisResult) (string, error) {
 	var temp string
 
 	for _, wr := range wrs {

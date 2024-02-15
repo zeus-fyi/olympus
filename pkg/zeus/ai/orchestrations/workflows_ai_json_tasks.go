@@ -125,8 +125,12 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 					return nil, err
 				}
 			} else {
+				afv := InputDataAnalysisToAgg{
+					ChatCompletionQueryResponse: aiResp,
+					SearchResultGroup:           tte.Sg,
+				}
 				recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.Response).Get(recordTaskCtx, &aiResp.WorkflowResultID)
+				err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, afv).Get(recordTaskCtx, &aiResp.WorkflowResultID)
 				if err != nil {
 					logger.Error("failed to save task output", "Error", err)
 					return nil, err
@@ -151,13 +155,17 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		} else {
 			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			tte.Wr.SkipAnalysis = false
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, aiResp.JsonResponseResults).Get(recordTaskCtx, &aiResp.WorkflowResultID)
+			afv := InputDataAnalysisToAgg{
+				ChatCompletionQueryResponse: aiResp,
+				SearchResultGroup:           tte.Sg,
+			}
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, afv).Get(recordTaskCtx, &aiResp.WorkflowResultID)
 			if err != nil {
 				logger.Error("failed to save task output", "Error", err)
 				return nil, err
 			}
 		}
-		aiResp.JsonResponseResults = append(aiResp.JsonResponseResults, tmpResp...)
+		aiResp.JsonResponseResults = tmpResp
 		break
 	}
 

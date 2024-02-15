@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -53,24 +54,40 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 	}
 	// if there are no trigger actions to execute, check if conditions are met for execution
 	for _, ta := range triggerActions {
-		var taps []artemis_orchestrations.TriggerActionsApproval
-		checkTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		err = workflow.ExecuteActivity(checkTriggerCondCtx, z.CheckEvalTriggerCondition, &ta, tar.Emr).Get(checkTriggerCondCtx, &taps)
+		var jro JsonResponseGroupsByOutcomeMap
+		filterJsonEvalCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		err = workflow.ExecuteActivity(filterJsonEvalCtx, z.FilterEvalJsonResponses, &ta, tar.Emr).Get(filterJsonEvalCtx, &jro)
 		if err != nil {
 			logger.Error("failed to check eval trigger condition", "Error", err)
 			return err
 		}
-		if taps == nil {
-			continue
+
+		var payloadJsonSlice []artemis_orchestrations.JsonSchemaDefinition
+		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		// update to pass sg
+		sgIn := tar.Cpe.SearchResultGroup
+		if sgIn == nil {
+			sgIn = &hera_search.SearchResultGroup{}
 		}
-		if len(ta.EvalTriggerActions) == 0 || len(ta.EvalTriggerActions) != len(taps) {
-			logger.Warn("failed to match trigger actions and approvals", "TriggerActions", ta.EvalTriggerActions, "Approvals", taps)
-			continue
+		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, &tar.Mb.WorkflowResult, jro, sgIn).Get(updateTaskCtx, &payloadJsonSlice)
+		if err != nil {
+			logger.Error("failed to update task", "Error", err)
+			return err
 		}
+
 		switch ta.TriggerAction {
 		case apiApproval:
+			/*
+					EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"` // eg. info, filter, etc
+					EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"` // all-pass, any-fail, etc
+
+					this contains the result of all-pass, any-fail, etc per each element json item vs all elements
+				    so we want to only use the passing elements regardless of the trigger on, since that is already accounted for
+					on a per element level
+			*/
+
 			var echoReqs []echo.Map
-			payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(tar.Cpe.TaskToExecute.Ec.JsonResponseResults)
+			payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(payloadJsonSlice)
 			for _, m := range payloadMaps {
 				echoMap := echo.Map{}
 				for k, v := range m {
@@ -92,15 +109,14 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 					ApprovalState:    pendingStatus,
 					RequestSummary:   "Requesting approval for trigger action",
 				}
-
 				recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tar.Mb.Ou, tap, trrr).Get(recordTriggerCondCtx, nil)
 				if err != nil {
 					logger.Error("failed to create or update trigger action approval for api", "Error", err)
 					return err
 				}
-
 			}
+
 		}
 	}
 	return nil

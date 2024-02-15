@@ -33,7 +33,8 @@ type PromptReduction struct {
 	Model                 string  `json:"model"`
 	TokenOverflowStrategy string  `json:"tokenOverflowStrategy"`
 
-	DataInAnalysisAggregation    []artemis_orchestrations.AIWorkflowAnalysisResult `json:"dataInAnalysisAggregation,omitempty"`
+	AIWorkflowAnalysisResults    []artemis_orchestrations.AIWorkflowAnalysisResult `json:"dataInAnalysisResults,omitempty"`
+	DataInAnalysisAggregation    []InputDataAnalysisToAgg                          `json:"dataInAnalysisAggregation,omitempty"`
 	PromptReductionSearchResults *PromptReductionSearchResults                     `json:"promptReductionSearchResults,omitempty"`
 	PromptReductionText          *PromptReductionText                              `json:"promptReductionText,omitempty"`
 }
@@ -60,19 +61,41 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 	if pr == nil {
 		return nil, nil
 	}
-	log.Info().Interface("pr", pr).Msg("TokenOverflowReduction")
-
-	if pr.DataInAnalysisAggregation != nil && len(pr.DataInAnalysisAggregation) > 0 {
-		crs, err := artemis_orchestrations.GetRawMessagesFromAiWorkflowAnalysisResults(pr.DataInAnalysisAggregation)
-		if err != nil {
-			log.Err(err).Msg("TokenOverflowReduction: GetRawMessagesFromAiWorkflowAnalysisResults")
-			return nil, err
+	if pr.DataInAnalysisAggregation != nil {
+		for _, d := range pr.DataInAnalysisAggregation {
+			if d.SearchResultGroup != nil && d.SearchResultGroup.SearchResults != nil {
+				if pr.PromptReductionSearchResults == nil {
+					pr.PromptReductionSearchResults = &PromptReductionSearchResults{
+						InSearchGroup: &hera_search.SearchResultGroup{},
+					}
+				}
+				pr.PromptReductionSearchResults.InSearchGroup.FilteredSearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.FilteredSearchResults, d.SearchResultGroup.FilteredSearchResults...)
+				pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, d.SearchResultGroup.SearchResults...)
+				pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults, d.SearchResultGroup.ApiResponseResults...)
+			} else if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
+				for _, jsonSchema := range d.ChatCompletionQueryResponse.JsonResponseResults {
+					hs := hera_search.SearchResult{
+						Value: jsonSchema.GetAllFieldsStr(),
+					}
+					pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, hs)
+				}
+			}
 		}
-		for _, cr := range crs {
-			pr.PromptReductionText.OutPromptChunks = append(pr.PromptReductionText.OutPromptChunks, cr.Message.Content)
+	} else {
+		for _, wr := range pr.AIWorkflowAnalysisResults {
+			sv, err := artemis_orchestrations.GenerateContentTextFromOpenAIResp([]artemis_orchestrations.AIWorkflowAnalysisResult{wr})
+			if err != nil {
+				log.Err(err).Msg("TokenOverflowReduction: GenerateContentTextFromOpenAIResp")
+				continue
+			}
+			hs := hera_search.SearchResult{
+				Value: sv,
+			}
+			pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, hs)
 		}
-		return pr, nil
 	}
+
+	log.Info().Interface("pr", pr).Msg("TokenOverflowReduction")
 	err := TokenOverflowSearchResults(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowSearchResults")
@@ -127,9 +150,10 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	model := pr.Model
 	var compressedSearchStr string
 	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
-		compressedSearchStr = hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
-	} else {
-		compressedSearchStr = hera_search.FormatSearchResultsV3(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
+		compressedSearchStr += hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
+	}
+	if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
+		compressedSearchStr += hera_search.FormatSearchResultsV2(pr.PromptReductionSearchResults.InSearchGroup.SearchResults) + pr.PromptReductionText.InPromptBody + pr.PromptReductionText.InPromptSystem
 	}
 	needsReduction, tokenEstimate, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)
 	if err != nil {

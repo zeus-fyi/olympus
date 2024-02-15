@@ -42,10 +42,76 @@ func (z *ZeusAiPlatformActivities) SelectTriggerActionToExec(ctx context.Context
 }
 
 const (
-	infoState      = "info"
+	infoState   = "info"
+	filterState = "filter"
+	errorState  = "error"
+
 	pendingStatus  = "pending"
 	finishedStatus = "finished"
 )
+
+type JsonResponseGroupsByOutcome struct {
+	EvalResultsTriggersOn string                                        `json:"evalResultsTriggerOn"`
+	Passed                []artemis_orchestrations.JsonSchemaDefinition `json:"passed"`
+	Failed                []artemis_orchestrations.JsonSchemaDefinition `json:"failed"`
+}
+
+type JsonResponseGroupsByOutcomeMap map[string]JsonResponseGroupsByOutcome
+
+func (z *ZeusAiPlatformActivities) FilterEvalJsonResponses(ctx context.Context, act *artemis_orchestrations.TriggerAction, emr *artemis_orchestrations.EvalMetricsResults) (JsonResponseGroupsByOutcomeMap, error) {
+	var jro JsonResponseGroupsByOutcomeMap
+	if act == nil || emr == nil || emr.EvalMetricsResults == nil {
+		return jro, nil
+	}
+	jro = make(map[string]JsonResponseGroupsByOutcome)
+
+	// init for all the state of the trigger actions, removes duplicate states via map key
+	for _, tr := range act.EvalTriggerActions {
+		/*
+			EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"` // eg. info, filter, etc
+			EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"` // all-pass, any-fail, etc
+		*/
+		if _, ok := jro[tr.EvalTriggerState]; !ok {
+			jro[tr.EvalTriggerState] = JsonResponseGroupsByOutcome{
+				EvalResultsTriggersOn: tr.EvalResultsTriggerOn,
+				Passed:                []artemis_orchestrations.JsonSchemaDefinition{},
+				Failed:                []artemis_orchestrations.JsonSchemaDefinition{},
+			}
+		} else {
+			log.Warn().Interface("act", act).Interface("jro", jro).Msg("FilterEvalJsonResponses: duplicate evalTriggerState")
+			continue
+		}
+	}
+	for _, jr := range emr.EvaluatedJsonResponses {
+		m1 := make(map[string][]bool)
+		for _, er := range jr.ScoredEvalMetrics {
+			if er.EvalState == "" {
+				continue
+			}
+			if _, ok := m1[er.EvalState]; !ok {
+				m1[er.EvalState] = []bool{}
+			}
+			if er.EvalMetricResult == nil || er.EvalMetricResult.EvalResultOutcomeBool == nil {
+				continue
+			}
+			m1[er.EvalState] = append(m1[er.EvalState], *er.EvalMetricResult.EvalResultOutcomeBool)
+		}
+		for evalState, _ := range jro {
+			results := m1[evalState]
+			if len(results) <= 0 {
+				continue
+			}
+			tmp := jro[evalState]
+			if checkTriggerOnEvalResults(tmp.EvalResultsTriggersOn, results) {
+				tmp.Passed = append(tmp.Passed, jr)
+			} else {
+				tmp.Failed = append(tmp.Failed, jr)
+			}
+			jro[evalState] = tmp
+		}
+	}
+	return jro, nil
+}
 
 func (z *ZeusAiPlatformActivities) CheckEvalTriggerCondition(ctx context.Context, act *artemis_orchestrations.TriggerAction, emr *artemis_orchestrations.EvalMetricsResults) ([]artemis_orchestrations.TriggerActionsApproval, error) {
 	if act == nil || emr == nil || emr.EvalMetricsResults == nil {

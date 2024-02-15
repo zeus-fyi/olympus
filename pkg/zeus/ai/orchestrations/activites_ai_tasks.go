@@ -2,7 +2,6 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -112,12 +111,11 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		ctx, cr,
 	)
 	if err == nil {
-		b, rerr := json.Marshal(resp.Choices)
-		if rerr != nil {
-			log.Err(rerr).Msg("AiAnalysisTask: CreateChatCompletion Marshal failed")
-			return nil, rerr
+		var sc string
+		for _, c := range resp.Choices {
+			sc += c.Message.Content + "\n"
 		}
-		prompt["response"] = string(b)
+		prompt["response"] = sc
 		return &ChatCompletionQueryResponse{
 			Prompt:         prompt,
 			ResponseTaskID: taskInst.AnalysisTaskID,
@@ -143,12 +141,11 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed")
 		return nil, err
 	}
-	b, rerr := json.Marshal(resp.Choices)
-	if rerr != nil {
-		log.Err(rerr).Msg("AiAnalysisTask: CreateChatCompletion Marshal failed")
-		return nil, rerr
+	var sc string
+	for _, c := range resp.Choices {
+		sc += c.Message.Content + "\n"
 	}
-	prompt["response"] = string(b)
+	prompt["response"] = sc
 	return &ChatCompletionQueryResponse{
 		Prompt:         prompt,
 		ResponseTaskID: taskInst.AnalysisTaskID,

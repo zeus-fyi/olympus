@@ -114,6 +114,10 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 		ctx,
 		reqBody,
 	)
+	if err != nil {
+		log.Err(err).Msg("MakeCodeGenRequestJsonFormattedOutput")
+		return resp, err
+	}
 	return resp, err
 }
 

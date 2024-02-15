@@ -92,13 +92,20 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 	if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) == 0 {
 		return sg.BodyPrompt + "\n" + sg.ResponseBody
 	}
+	var ret string
 	if len(sg.ApiResponseResults) > 0 {
-		return FormatApiSearchResultSliceToString(sg.ApiResponseResults)
+		ret += FormatApiSearchResultSliceToString(sg.ApiResponseResults)
 	}
-	if len(sg.SearchResults) > 0 && len(sg.BodyPrompt) > 0 {
-		return sg.BodyPrompt + FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
+	if len(sg.SearchResults) > 0 {
+		ret += FormatApiSearchResultSliceToString(sg.SearchResults)
 	}
-	return FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
+	if len(sg.BodyPrompt) > 0 {
+		ret += "\n" + sg.BodyPrompt
+	}
+	if sg.FilteredSearchResultMap != nil && sg.SearchResults != nil {
+		ret += FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
+	}
+	return ret
 }
 
 func FormatApiSearchResultSliceToString(results []SearchResult) string {

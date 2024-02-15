@@ -68,7 +68,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
 				seen := make(map[int]hera_search.SearchResult)
 				switch d.SearchResultGroup.PlatformName {
-				case twitterPlatform:
+				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:
 					for _, sr := range d.SearchResultGroup.SearchResults {
 						seen[sr.UnixTimestamp] = sr
 					}
@@ -178,7 +178,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		compressedSearchStr += hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
 	}
 	if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
-		compressedSearchStr += hera_search.FormatSearchResultsV2(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
+		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
 	}
 	if pr.PromptReductionText != nil {
 		compressedSearchStr += pr.PromptReductionText.InPromptSystem

@@ -54,7 +54,7 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 	}
 	si, err := hera_openai_dbmodels.GetSearchIndexersByOrg(c.Request().Context(), ou)
 	if err != nil {
-		log.Err(err).Msg("failed to get search indexers")
+		log.Err(err).Interface("ou", ou).Msg("GetWorkflowsRequest: failed to get search indexers")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	tp := artemis_orchestrations.TriggersWorkflowQueryParams{Ou: ou}

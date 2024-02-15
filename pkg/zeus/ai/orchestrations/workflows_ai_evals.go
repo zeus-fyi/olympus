@@ -100,10 +100,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			}
 
 			var canSkip bool
+
 			if cpe.ParentOutputToEval != nil && cpe.ParentOutputToEval.JsonResponseResults != nil && len(cpe.ParentOutputToEval.JsonResponseResults) > 0 && len(evalFnsAgg[evFnIndex].Schemas) > 0 {
 				jrs := cpe.ParentOutputToEval.JsonResponseResults
 				evs := evalFnsAgg[evFnIndex].Schemas
-				canSkip = true
+				evmName := aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
+				canSkip = evmName == cpe.ParentOutputToEval.Params.Model
 				for _, sv := range evs {
 					if !CheckSchemaIDsAndValidFields(sv.SchemaID, jrs) {
 						canSkip = false
@@ -111,7 +113,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 					}
 				}
 			}
-
 			cpe.TaskToExecute.Tc.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
 			cpe.TaskToExecute.Tc.Schemas = evalFnsAgg[evFnIndex].Schemas
 			cpe.TaskToExecute.Tc.Model = aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)

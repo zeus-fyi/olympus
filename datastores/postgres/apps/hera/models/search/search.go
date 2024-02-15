@@ -97,9 +97,6 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 	if len(sg.ApiResponseResults) > 0 {
 		ret += FormatApiSearchResultSliceToString(sg.ApiResponseResults)
 	}
-	if len(sg.SearchResults) > 0 {
-		ret += FormatApiSearchResultSliceToString(sg.SearchResults)
-	}
 	if len(sg.BodyPrompt) > 0 {
 		ret += "\n" + sg.BodyPrompt
 	}
@@ -107,7 +104,7 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 		ret += FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
 	}
 	if len(ret) <= 0 && len(sg.SearchResults) > 0 {
-		ret = FormatSearchResultsV3(sg.SearchResults)
+		ret = FormatSearchResultsV5(sg.SearchResults)
 	}
 	return ret
 }
@@ -439,6 +436,45 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		// Join the parts with " | " and add a newline at the end
 		line := strings.Join(parts, " | ") + "\n"
 		builder.WriteString(line)
+	}
+	return builder.String()
+}
+
+func FormatSearchResultsV5(results []SearchResult) string {
+	if len(results) == 0 {
+		return ""
+	}
+	var builder strings.Builder
+	for _, result := range results {
+		var parts []string
+		// Always include the UnixTimestamp
+		parts = append(parts, fmt.Sprintf("%d", result.UnixTimestamp))
+		if result.WebResponse.Body != nil {
+			if result.Value != "" {
+				result.WebResponse.Body["msg_body"] = result.Value
+			}
+			bodyString, err := json.Marshal(result.WebResponse.Body)
+			if err != nil {
+				log.Err(err).Msg("FormatSearchResultsV5: Error marshalling web response body")
+				// Handle error, maybe log it or use a default error message in place of the body
+				continue // or handle it differently
+			}
+			builder.WriteString(string(bodyString))
+		} else if result.Verified != nil && !*result.Verified && result.UnixTimestamp > 0 {
+			nr := SimplifiedSearchResultJSON{
+				MessageID:   fmt.Sprintf("%d", result.UnixTimestamp),
+				MessageBody: result.Value,
+			}
+			bodyString, err := json.Marshal(nr)
+			if err != nil {
+				log.Err(err).Msg("FormatSearchResultsV5: Error marshalling web response body")
+				// Handle error, maybe log it or use a default error message in place of the body
+				continue // or handle it differently
+			}
+			builder.WriteString(string(bodyString))
+		}
+		builder.WriteString("\n")
+		// Join the parts with " | " and add a newline at the end
 	}
 	return builder.String()
 }

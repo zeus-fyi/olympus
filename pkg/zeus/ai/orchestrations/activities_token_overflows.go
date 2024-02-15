@@ -183,7 +183,6 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	if pr.PromptReductionText != nil {
 		compressedSearchStr += pr.PromptReductionText.InPromptSystem
 		compressedSearchStr += pr.PromptReductionText.InPromptBody
-
 	}
 
 	needsReduction, tokenEstimate, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)

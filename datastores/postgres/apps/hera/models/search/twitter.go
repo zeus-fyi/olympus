@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	twitter2 "github.com/cvcio/twitter"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -121,6 +122,7 @@ func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 	for rows.Next() {
 		var sr SearchResult
 		sr.Source = "twitter"
+		sr.Verified = aws.Bool(true)
 		rowErr := rows.Scan(
 			&sr.UnixTimestamp, &sr.Value,
 		)

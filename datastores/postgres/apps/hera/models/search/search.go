@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -104,6 +105,9 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 	}
 	if sg.FilteredSearchResultMap != nil && sg.SearchResults != nil {
 		ret += FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
+	}
+	if len(ret) <= 0 && len(sg.SearchResults) > 0 {
+		ret = FormatSearchResultsV2(sg.SearchResults)
 	}
 	return ret
 }
@@ -509,6 +513,7 @@ func SearchTelegram(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams
 	defer rows.Close()
 	for rows.Next() {
 		var sr SearchResult
+		sr.Verified = aws.Bool(true)
 		sr.Source = "telegram"
 		rowErr := rows.Scan(
 			&sr.UnixTimestamp, &sr.Group, &sr.Value, &sr.Metadata,

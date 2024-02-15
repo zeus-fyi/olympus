@@ -69,8 +69,8 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 				seen := make(map[int]hera_search.SearchResult)
 				switch d.SearchResultGroup.PlatformName {
 				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:
-					for _, sr := range d.SearchResultGroup.SearchResults {
-						seen[sr.UnixTimestamp] = sr
+					for ind, _ := range d.SearchResultGroup.SearchResults {
+						seen[d.SearchResultGroup.SearchResults[ind].UnixTimestamp] = d.SearchResultGroup.SearchResults[ind]
 					}
 				}
 				for _, payloadMap := range payloadMaps {

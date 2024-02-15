@@ -103,7 +103,7 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 	if sg.FilteredSearchResultMap != nil && sg.SearchResults != nil {
 		ret += FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
 	}
-	if len(ret) <= 0 && len(sg.SearchResults) > 0 {
+	if sg.SearchResults != nil && len(sg.SearchResults) > 0 {
 		ret = FormatSearchResultsV5(sg.SearchResults)
 	}
 	return ret
@@ -446,9 +446,7 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	}
 	var builder strings.Builder
 	for _, result := range results {
-		var parts []string
 		// Always include the UnixTimestamp
-		parts = append(parts, fmt.Sprintf("%d", result.UnixTimestamp))
 		if result.WebResponse.Body != nil {
 			if result.Value != "" {
 				result.WebResponse.Body["msg_body"] = result.Value
@@ -460,7 +458,7 @@ func FormatSearchResultsV5(results []SearchResult) string {
 				continue // or handle it differently
 			}
 			builder.WriteString(string(bodyString))
-		} else if result.Verified != nil && !*result.Verified && result.UnixTimestamp > 0 {
+		} else if result.Verified != nil && *result.Verified && result.UnixTimestamp > 0 {
 			nr := SimplifiedSearchResultJSON{
 				MessageID:   fmt.Sprintf("%d", result.UnixTimestamp),
 				MessageBody: result.Value,
@@ -472,6 +470,16 @@ func FormatSearchResultsV5(results []SearchResult) string {
 				continue // or handle it differently
 			}
 			builder.WriteString(string(bodyString))
+		} else {
+			m := map[string]interface{}{
+				"msg_id":   result.UnixTimestamp,
+				"msg_body": result.Value,
+			}
+			b, err := json.Marshal(m)
+			if err != nil {
+				continue
+			}
+			builder.WriteString(string(b))
 		}
 		builder.WriteString("\n")
 		// Join the parts with " | " and add a newline at the end

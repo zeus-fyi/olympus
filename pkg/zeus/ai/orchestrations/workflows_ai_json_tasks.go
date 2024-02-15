@@ -124,6 +124,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 					logger.Error("failed to save eval resp id", "Error", err)
 					return nil, err
 				}
+
 			} else {
 				afv := InputDataAnalysisToAgg{
 					ChatCompletionQueryResponse: aiResp,

@@ -69,6 +69,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		if sgIn == nil {
 			sgIn = &hera_search.SearchResultGroup{}
 		}
+
 		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, &tar.Mb.WorkflowResult, jro, sgIn).Get(updateTaskCtx, &payloadJsonSlice)
 		if err != nil {
 			logger.Error("failed to update task", "Error", err)

@@ -176,5 +176,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		logger.Error("failed to update cache for qn services", "Error", err)
 		return nil, err
 	}
+	aiResp.WorkflowResultID = tte.Wr.WorkflowResultID
 	return aiResp, nil
 }

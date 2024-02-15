@@ -71,13 +71,11 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		}
 
 		wfr := tar.Mb.WorkflowResult
-
 		if tar.Cpe.ParentOutputToEval != nil {
 			wfr.WorkflowResultID = tar.Cpe.ParentOutputToEval.WorkflowResultID
 			wfr.ResponseID = tar.Cpe.ParentOutputToEval.ResponseID
 		}
-
-		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, &tar.Mb.WorkflowResult, jro, sgIn).Get(updateTaskCtx, &payloadJsonSlice)
+		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, &wfr, jro, sgIn).Get(updateTaskCtx, &payloadJsonSlice)
 		if err != nil {
 			logger.Error("failed to update task", "Error", err)
 			return err

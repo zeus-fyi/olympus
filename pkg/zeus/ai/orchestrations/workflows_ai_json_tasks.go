@@ -80,7 +80,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			return nil, err
 		}
 		analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, tte.Ou, aiResp).Get(analysisCompCtx, &aiResp.ResponseTaskID)
+		err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, tte.Ou, aiResp).Get(analysisCompCtx, &aiResp.ResponseID)
 		if err != nil {
 			logger.Error("failed to record completion response", "Error", err)
 			return nil, err
@@ -88,7 +88,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		wr := tte.Wr
 		wr.SourceTaskID = tte.Tc.TaskID
 		wr.IterationCount = attempt
-		wr.ResponseID = aiResp.ResponseTaskID
+		wr.ResponseID = aiResp.ResponseID
 		var m any
 		var anyErr error
 		if len(aiResp.Response.Choices) > 0 && len(aiResp.Response.Choices[0].Message.ToolCalls) > 0 {

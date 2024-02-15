@@ -159,6 +159,7 @@ type ChatCompletionQueryResponse struct {
 	EvalResultID          int                                           `json:"evalResultID,omitempty"`
 	WorkflowResultID      int                                           `json:"workflowResultID,omitempty"`
 	Response              openai.ChatCompletionResponse                 `json:"response"`
+	ResponseID            int                                           `json:"responseID,omitempty"`
 	ResponseTaskID        int                                           `json:"responseTaskID,omitempty"`
 	FilteredMessages      *FilteredMessages                             `json:"filteredMessages,omitempty"`
 	FilteredSearchResults []hera_search.SearchResult                    `json:"filteredSearchResults,omitempty"`

@@ -63,14 +63,22 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	jsonTaskCtx := workflow.WithActivityOptions(ctx, ao)
 	maxAttempts := ao.RetryPolicy.MaximumAttempts
 	var aiResp *ChatCompletionQueryResponse
+	var feedback error
+
 	for attempt := 0; attempt < int(maxAttempts); attempt++ {
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
 		fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.Schemas)
+
+		feedbackPrompt := ""
+		if feedback != nil {
+			feedbackPrompt = "Please fix your answer, it had this error: " + feedback.Error()
+		}
 		params := hera_openai.OpenAIParams{
 			Model:              tte.Tc.Model,
 			Prompt:             tte.Sg.GetPromptBody(),
 			FunctionDefinition: fd,
 			Temperature:        tte.Tc.Temperature,
+			SystemPromptExt:    feedbackPrompt,
 		}
 		jsd := tte.Tc.Schemas
 		tte.Wr.IterationCount = attempt
@@ -106,6 +114,8 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		var tmpResp []artemis_orchestrations.JsonSchemaDefinition
 		if anyErr == nil {
 			tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
+		} else {
+			feedback = anyErr
 		}
 		if anyErr != nil {
 			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")

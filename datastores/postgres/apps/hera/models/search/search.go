@@ -454,7 +454,7 @@ func FormatSearchResultsV3(results []SearchResult) string {
 	}
 	var newResults []SimplifiedSearchResultJSON
 	for _, r := range results {
-		if r.Verified != nil && *r.Verified {
+		if r.Verified != nil && !*r.Verified {
 			continue
 		}
 		nr := SimplifiedSearchResultJSON{

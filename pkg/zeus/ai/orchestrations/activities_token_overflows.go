@@ -120,8 +120,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 			pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, hs)
 		}
 	}
-
-	log.Info().Interface("pr", pr).Msg("TokenOverflowReduction")
+	log.Info().Interface("pr.MarginBuffer", pr.MarginBuffer).Msg("TokenOverflowReduction")
 	err := TokenOverflowSearchResults(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowSearchResults")

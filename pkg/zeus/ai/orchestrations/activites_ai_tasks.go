@@ -91,12 +91,11 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 			ctx, cr,
 		)
 		if cerr == nil {
-			b, rerr := json.Marshal(cres.Choices)
-			if rerr != nil {
-				log.Err(rerr).Msg("AiAnalysisTask: CreateChatCompletion Marshal failed")
-				return nil, rerr
+			var sc string
+			for _, c := range cres.Choices {
+				sc += c.Message.Content + "\n"
 			}
-			prompt["response"] = string(b)
+			prompt["response"] = sc
 			return &ChatCompletionQueryResponse{
 				Prompt:         prompt,
 				ResponseTaskID: taskInst.AnalysisTaskID,

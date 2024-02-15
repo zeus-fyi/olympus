@@ -107,7 +107,7 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 		ret += FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
 	}
 	if len(ret) <= 0 && len(sg.SearchResults) > 0 {
-		ret = FormatSearchResultsV2(sg.SearchResults)
+		ret = FormatSearchResultsV3(sg.SearchResults)
 	}
 	return ret
 }

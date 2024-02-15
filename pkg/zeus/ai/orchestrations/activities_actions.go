@@ -71,14 +71,14 @@ func (z *ZeusAiPlatformActivities) FilterEvalJsonResponses(ctx context.Context, 
 			EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"` // eg. info, filter, etc
 			EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"` // all-pass, any-fail, etc
 		*/
-		if _, ok := jro[tr.EvalTriggerState]; !ok {
+		if v, ok := jro[tr.EvalTriggerState]; !ok {
 			jro[tr.EvalTriggerState] = JsonResponseGroupsByOutcome{
 				EvalResultsTriggersOn: tr.EvalResultsTriggerOn,
 				Passed:                []artemis_orchestrations.JsonSchemaDefinition{},
 				Failed:                []artemis_orchestrations.JsonSchemaDefinition{},
 			}
 		} else {
-			log.Warn().Interface("act", act).Interface("jro", jro).Msg("FilterEvalJsonResponses: duplicate evalTriggerState")
+			log.Warn().Interface("act.EvalTriggerActions", act.EvalTriggerActions).Interface("v", v).Interface("jro", jro).Msg("FilterEvalJsonResponses: duplicate evalTriggerState")
 			continue
 		}
 	}

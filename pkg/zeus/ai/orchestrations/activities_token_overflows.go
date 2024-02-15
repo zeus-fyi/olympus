@@ -62,23 +62,35 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 		return nil, nil
 	}
 	if pr.DataInAnalysisAggregation != nil {
+		pr.PromptReductionSearchResults.InSearchGroup = &hera_search.SearchResultGroup{}
 		for _, d := range pr.DataInAnalysisAggregation {
-			if d.SearchResultGroup != nil && d.SearchResultGroup.SearchResults != nil {
-				if pr.PromptReductionSearchResults == nil {
-					pr.PromptReductionSearchResults = &PromptReductionSearchResults{
-						InSearchGroup: &hera_search.SearchResultGroup{},
-					}
-				}
-				pr.PromptReductionSearchResults.InSearchGroup.FilteredSearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.FilteredSearchResults, d.SearchResultGroup.FilteredSearchResults...)
-				pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, d.SearchResultGroup.SearchResults...)
-				pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults, d.SearchResultGroup.ApiResponseResults...)
-			} else if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
-				for _, jsonSchema := range d.ChatCompletionQueryResponse.JsonResponseResults {
+			if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
+				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
+				for _, payloadMap := range payloadMaps {
 					hs := hera_search.SearchResult{
-						Value: jsonSchema.GetAllFieldsStr(),
+						WebResponse: hera_search.WebResponse{
+							Body: payloadMap,
+						},
 					}
 					pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, hs)
 				}
+			} else if d.SearchResultGroup != nil && d.SearchResultGroup.SearchResults != nil {
+				if pr.PromptReductionSearchResults == nil {
+					pr.PromptReductionSearchResults = &PromptReductionSearchResults{
+						InSearchGroup: &hera_search.SearchResultGroup{
+							SearchResults:         make([]hera_search.SearchResult, 0),
+							ApiResponseResults:    make([]hera_search.SearchResult, 0),
+							FilteredSearchResults: make([]hera_search.SearchResult, 0),
+						},
+					}
+				}
+				if d.SearchResultGroup.FilteredSearchResults != nil {
+					pr.PromptReductionSearchResults.InSearchGroup.FilteredSearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.FilteredSearchResults, d.SearchResultGroup.FilteredSearchResults...)
+				}
+				if d.SearchResultGroup.ApiResponseResults != nil {
+					pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults, d.SearchResultGroup.ApiResponseResults...)
+				}
+				pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, d.SearchResultGroup.SearchResults...)
 			}
 		}
 	} else {

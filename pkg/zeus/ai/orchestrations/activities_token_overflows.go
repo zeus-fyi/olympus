@@ -66,12 +66,26 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 		for _, d := range pr.DataInAnalysisAggregation {
 			if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
-				for _, payloadMap := range payloadMaps {
-					hs := hera_search.SearchResult{
-						WebResponse: hera_search.WebResponse{
-							Body: payloadMap,
-						},
+				seen := make(map[int]hera_search.SearchResult)
+				switch d.SearchResultGroup.PlatformName {
+				case twitterPlatform:
+					for _, sr := range d.SearchResultGroup.SearchResults {
+						seen[sr.UnixTimestamp] = sr
 					}
+				}
+				for _, payloadMap := range payloadMaps {
+					var hs hera_search.SearchResult
+					if payloadMap["msg_id"] != nil {
+						msgID, ok := payloadMap["msg_id"].(int)
+						msgIDf, fok := payloadMap["msg_id"].(float64)
+						if ok {
+							hs = seen[msgID]
+						}
+						if fok {
+							hs = seen[int(msgIDf)]
+						}
+					}
+					hs.WebResponse.Body = payloadMap
 					pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, hs)
 				}
 			} else if d.SearchResultGroup != nil && d.SearchResultGroup.SearchResults != nil {

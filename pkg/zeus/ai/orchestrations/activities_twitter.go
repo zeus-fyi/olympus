@@ -2,6 +2,7 @@ package ai_platform_service_orchestrations
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 )
@@ -61,6 +62,10 @@ func UnmarshallOpenAiJsonInterface(fn string, cr *ChatCompletionQueryResponse) (
 				}
 			}
 		}
+	}
+	emsg, ok := m["error"]
+	if ok {
+		return nil, fmt.Errorf("error: %v", emsg)
 	}
 	return m, nil
 }

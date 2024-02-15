@@ -165,8 +165,14 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		compressedSearchStr += hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
 	}
 	if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
-		compressedSearchStr += hera_search.FormatSearchResultsV2(pr.PromptReductionSearchResults.InSearchGroup.SearchResults) + pr.PromptReductionText.InPromptBody + pr.PromptReductionText.InPromptSystem
+		compressedSearchStr += hera_search.FormatSearchResultsV2(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
 	}
+	if pr.PromptReductionText != nil {
+		compressedSearchStr += pr.PromptReductionText.InPromptSystem
+		compressedSearchStr += pr.PromptReductionText.InPromptBody
+
+	}
+
 	needsReduction, tokenEstimate, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)
 	if err != nil {
 		log.Err(err).Interface("tokenEstimate", tokenEstimate).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")

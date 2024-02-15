@@ -46,7 +46,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	}
 
 	if tte.Tc.EvalID <= 0 || tte.Tc.TriggerActionsApproval.ApprovalID <= 0 {
-		platform = webPlatform
+		switch platform {
+		case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
+		default:
+			platform = webPlatform
+		}
 	}
 	switch platform {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:

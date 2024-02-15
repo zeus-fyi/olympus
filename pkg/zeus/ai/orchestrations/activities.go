@@ -55,7 +55,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SendTriggerActionRequestForApproval, z.CreateOrUpdateTriggerActionToExec,
 		z.CheckEvalTriggerCondition, z.LookupEvalTriggerConditions,
 		z.SocialTweetTask, z.SocialRedditTask, z.SocialDiscordTask, z.SocialTelegramTask,
-		z.EvalFormatForApi, z.SaveTriggerResponseOutput, z.SaveEvalResponseOutput,
+		z.SaveTriggerResponseOutput, z.SaveEvalResponseOutput,
 		z.SelectTaskDefinition, z.ExtractTweets, z.TokenOverflowReduction,
 		z.AnalyzeEngagementTweets, z.SaveTriggerApiRequestResp, z.SelectRetrievalTask,
 		z.SelectTriggerActionToExec, z.SelectTriggerActionApiApprovalWithReqResponses,

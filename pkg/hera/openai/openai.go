@@ -79,7 +79,7 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 		sysPrompt = params.SystemPromptOverride
 	}
 	if params.SystemPromptExt != "" {
-		sysPrompt += params.SystemPromptExt
+		sysPrompt += " " + params.SystemPromptExt
 	}
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,

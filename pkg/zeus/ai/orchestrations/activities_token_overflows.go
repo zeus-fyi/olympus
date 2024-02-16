@@ -76,21 +76,27 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
 				switch d.SearchResultGroup.PlatformName {
 				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:
-					tmpMap := make(map[int]map[string]interface{})
-					for _, payloadMap := range payloadMaps {
-						if payloadMap["msg_id"] != nil {
-							msgID, ok := payloadMap["msg_id"].(int)
-							if ok {
-								tmpMap[msgID] = payloadMap
-							}
-							msgIDf, fok := payloadMap["msg_id"].(float64)
-							if fok {
-								tmpMap[int(msgIDf)] = payloadMap
+					tmpMap := make(map[string]map[string]interface{})
+					for ind, pv := range payloadMaps {
+						for keyName, payloadValue := range payloadMaps[ind] {
+							if keyName == "msg_id" {
+								msgStrID, ok := payloadValue.(string)
+								if ok {
+									if tmpMap[msgStrID] == nil {
+										tmpMap[msgStrID] = make(map[string]interface{})
+									}
+									tmpMap[msgStrID] = pv
+								}
 							}
 						}
 					}
 					for _, sv := range d.SearchResultGroup.SearchResults {
-						if item, ok := tmpMap[sv.UnixTimestamp]; ok && item != nil {
+						fmt.Println("UnixTimestamp", sv.UnixTimestamp, "TweetID", sv.TwitterMetadata.TweetID, "tmpMap[sv.TwitterMetadata.TweetID]", tmpMap[sv.TwitterMetadata.TweetStrID])
+						if sv.TwitterMetadata != nil && sv.TwitterMetadata.TweetStrID != "" {
+							if item, ok := tmpMap[sv.TwitterMetadata.TweetStrID]; ok && item != nil {
+								pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, sv)
+							}
+						} else if item, ok := tmpMap[fmt.Sprintf("%d", sv.UnixTimestamp)]; ok && item != nil {
 							pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, sv)
 						}
 					}

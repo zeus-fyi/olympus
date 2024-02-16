@@ -84,7 +84,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				},
 				Wr: wr,
 			}
-
 			pr := &PromptReduction{
 				Model:                     aws.StringValue(aggInst.AggModel),
 				TokenOverflowStrategy:     aws.StringValue(aggInst.AggTokenOverflowStrategy),
@@ -98,7 +97,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					InPromptSystem: aws.StringValue(aggInst.AggPrompt),
 				},
 			}
-
 			// todo, maybe can deprecate tte.Sg.FilteredSearchResults == nil
 			if len(aggRet.InputDataAnalysisToAggSlice) == 0 && len(aggRet.AIWorkflowAnalysisResultSlice) == 0 && tte.Sg.FilteredSearchResults == nil {
 				logger.Info("no data in for agg", "aggInst", aggInst)

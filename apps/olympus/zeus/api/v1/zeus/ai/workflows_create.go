@@ -1,11 +1,9 @@
 package zeus_v1_ai
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -107,13 +105,9 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 					}
 				}
 			}
-			if m.TaskStrID == "" && m.TaskID > 0 {
-				m.TaskStrID = fmt.Sprintf("%d", m.TaskID)
-				log.Warn().Msg("TaskStrID was empty, setting it to TaskID")
-			}
 
 			for k, v := range w.AggregateSubTasksMap {
-				if k == m.TaskStrID {
+				if k == taskStrID {
 					for at, isTrue := range v {
 						if isTrue {
 							ait, zerr := strconv.Atoi(at)
@@ -147,21 +141,13 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				CycleCount:            m.CycleCount,
 				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
 			}
-			if w.EvalTasksMap != nil {
-				if evm, tok := w.EvalTasksMap[fmt.Sprintf("%d", m.TaskID)]; tok {
-					for ke, ve := range evm {
-						if ve {
-							mappedEval := w.EvalsMap[ke]
-							if mappedEval.EvalStrID != nil && *mappedEval.EvalStrID != "" {
-								eid, serr := strconv.Atoi(*mappedEval.EvalStrID)
-								if serr != nil {
-									log.Err(serr).Msg("failed to parse int")
-									return c.JSON(http.StatusBadRequest, nil)
-								}
-								mappedEval.EvalID = aws.Int(eid)
-							}
-							at.EvalFns = append(at.EvalFns, mappedEval)
-						}
+
+			efAnalysis, aok := w.EvalTasksMap[taskStrID]
+			if aok {
+				for ke, _ := range efAnalysis {
+					agev, avok := w.EvalsMap[ke]
+					if avok {
+						at.EvalFns = append(at.EvalFns, agev)
 					}
 				}
 			}

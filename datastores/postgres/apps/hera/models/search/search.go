@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -63,21 +64,20 @@ type AiModelParams struct {
 }
 
 type SearchResultGroup struct {
-	DataIn                         []artemis_orchestrations.AIWorkflowAnalysisResult `json:"dataIn,omitempty"`
-	PlatformName                   string                                            `json:"platformName"`
-	SourceTaskID                   int                                               `json:"sourceTaskID,omitempty"`
-	ExtractionPromptExt            string                                            `json:"extractionPromptExt,omitempty"`
-	Model                          string                                            `json:"model,omitempty"`
-	ResponseFormat                 string                                            `json:"responseFormat,omitempty"`
-	BodyPrompt                     string                                            `json:"bodyPrompt,omitempty"`
-	ResponseBody                   string                                            `json:"responseBody,omitempty"`
-	ApiResponseResults             []SearchResult                                    `json:"apiResponseResults,omitempty"`
-	SearchResults                  []SearchResult                                    `json:"searchResults"`
-	FilteredSearchResults          []SearchResult                                    `json:"filteredSearchResults,omitempty"`
-	FilteredSearchResultMap        map[int]*SearchResult                             `json:"filteredSearchResultsMap"`
-	SearchResultChunkTokenEstimate *int                                              `json:"searchResultChunkTokenEstimates,omitempty"`
-	Window                         artemis_orchestrations.Window                     `json:"window,omitempty"`
-	FunctionDefinition             openai.FunctionDefinition                         `json:"functionDefinition,omitempty"`
+	PlatformName                   string                        `json:"platformName"`
+	SourceTaskID                   int                           `json:"sourceTaskID,omitempty"`
+	ExtractionPromptExt            string                        `json:"extractionPromptExt,omitempty"`
+	Model                          string                        `json:"model,omitempty"`
+	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
+	BodyPrompt                     string                        `json:"bodyPrompt,omitempty"`
+	ResponseBody                   string                        `json:"responseBody,omitempty"`
+	ApiResponseResults             []SearchResult                `json:"apiResponseResults,omitempty"`
+	SearchResults                  []SearchResult                `json:"searchResults"`
+	FilteredSearchResults          []SearchResult                `json:"filteredSearchResults,omitempty"`
+	FilteredSearchResultMap        map[int]*SearchResult         `json:"filteredSearchResultsMap"`
+	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
+	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
+	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`
 }
 
 func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
@@ -90,13 +90,23 @@ func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
 }
 
 func (sg *SearchResultGroup) GetPromptBody() string {
-	if len(sg.SearchResults) == 0 || len(sg.ApiResponseResults) == 0 {
+	if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) == 0 {
 		return sg.BodyPrompt + "\n" + sg.ResponseBody
 	}
+	var ret string
 	if len(sg.ApiResponseResults) > 0 {
-		return FormatApiSearchResultSliceToString(sg.ApiResponseResults)
+		ret += FormatApiSearchResultSliceToString(sg.ApiResponseResults)
 	}
-	return FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
+	if len(sg.BodyPrompt) > 0 {
+		ret += "\n" + sg.BodyPrompt
+	}
+	if sg.FilteredSearchResultMap != nil && sg.SearchResults != nil {
+		ret += FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
+	}
+	if sg.SearchResults != nil && len(sg.SearchResults) > 0 {
+		ret = FormatSearchResultsV5(sg.SearchResults)
+	}
+	return ret
 }
 
 func FormatApiSearchResultSliceToString(results []SearchResult) string {
@@ -430,6 +440,40 @@ func FormatSearchResultsV2(results []SearchResult) string {
 	return builder.String()
 }
 
+func FormatSearchResultsV5(results []SearchResult) string {
+	if len(results) == 0 {
+		return ""
+	}
+	var newResults []interface{}
+	for _, result := range results {
+		// Always include the UnixTimestamp
+		if result.WebResponse.Body != nil {
+			if result.Value != "" {
+				result.WebResponse.Body["msg_body"] = result.Value
+			}
+			newResults = append(newResults, result.WebResponse.Body)
+		} else if result.Verified != nil && *result.Verified && result.UnixTimestamp > 0 {
+			nr := SimplifiedSearchResultJSON{
+				MessageID:   fmt.Sprintf("%d", result.UnixTimestamp),
+				MessageBody: result.Value,
+			}
+			newResults = append(newResults, nr)
+		} else {
+			m := map[string]interface{}{
+				"msg_id":   result.UnixTimestamp,
+				"msg_body": result.Value,
+			}
+			newResults = append(newResults, m)
+		}
+	}
+	b, err := json.Marshal(newResults)
+	if err != nil {
+		log.Err(err).Msg("FormatSearchResultsV3: Error marshalling search results")
+		return ""
+	}
+	return string(b)
+}
+
 type SimplifiedSearchResultJSON struct {
 	MessageID   string `json:"msg_id"`
 	MessageBody string `json:"msg_body"`
@@ -441,7 +485,7 @@ func FormatSearchResultsV3(results []SearchResult) string {
 	}
 	var newResults []SimplifiedSearchResultJSON
 	for _, r := range results {
-		if r.Verified != nil && *r.Verified {
+		if r.Verified != nil && !*r.Verified {
 			continue
 		}
 		nr := SimplifiedSearchResultJSON{
@@ -500,6 +544,7 @@ func SearchTelegram(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams
 	defer rows.Close()
 	for rows.Next() {
 		var sr SearchResult
+		sr.Verified = aws.Bool(true)
 		sr.Source = "telegram"
 		rowErr := rows.Scan(
 			&sr.UnixTimestamp, &sr.Group, &sr.Value, &sr.Metadata,

@@ -37,7 +37,7 @@ func (z *ZeusAiPlatformActivities) SaveEvalMetricResults(ctx context.Context, em
 func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, errr artemis_orchestrations.AIWorkflowEvalResultResponse) (int, error) {
 	respID, err := artemis_orchestrations.InsertOrUpdateAiWorkflowEvalResultResponse(ctx, errr)
 	if err != nil {
-		log.Err(err).Interface("respID", respID).Interface("errr", errr).Msg("SaveTaskOutput: failed")
+		log.Err(err).Interface("respID", respID).Interface("errr", errr).Msg("SaveEvalResponseOutput: failed")
 		return -1, err
 	}
 	return respID, nil
@@ -97,9 +97,11 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 					continue
 				}
 				evm := *ef.SchemasMap[jrs[i].SchemaStrID].Fields[fj].EvalMetrics[emi]
+				jrs[i].ScoredEvalMetrics = append(jrs[i].ScoredEvalMetrics, &evm)
 				emr.EvalMetricsResults = append(emr.EvalMetricsResults, &evm)
 			}
 		}
 	}
+	emr.EvaluatedJsonResponses = jrs
 	return emr, nil
 }

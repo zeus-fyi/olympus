@@ -125,7 +125,7 @@ func SearchDiscord(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 	defer rows.Close()
 
 	for rows.Next() {
-		sr := SearchResult{Source: "discord"}
+		sr := SearchResult{Source: "discord", Verified: aws.Bool(true)}
 		rowErr := rows.Scan(&sr.UnixTimestamp, &sr.Value, &sr.Group, &sr.DiscordMetadata.Category, &sr.DiscordMetadata.CategoryName)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SearchDiscord"))

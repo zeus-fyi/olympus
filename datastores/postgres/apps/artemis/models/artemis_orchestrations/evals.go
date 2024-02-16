@@ -144,11 +144,14 @@ type EvalContext struct {
 	AIWorkflowAnalysisResult     AIWorkflowAnalysisResult     `json:"aiWorkflowAnalysisResult"`
 	AIWorkflowEvalResultResponse AIWorkflowEvalResultResponse `json:"aiWorkflowEvalResultResponse"`
 	JsonResponseResults          []JsonSchemaDefinition       `json:"jsonResponseResults,omitempty"`
+	EvaluatedJsonResponses       []JsonSchemaDefinition       `json:"evaluatedJsonResponses,omitempty"`
 }
 
 type EvalMetricsResults struct {
 	EvalContext        EvalContext   `json:"evalContext"`
 	EvalMetricsResults []*EvalMetric `json:"evalMetricsResults"`
+
+	EvaluatedJsonResponses []JsonSchemaDefinition `json:"evaluatedJsonResponses,omitempty"`
 }
 
 type EvalMetricResult struct {

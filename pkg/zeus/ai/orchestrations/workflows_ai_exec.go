@@ -79,7 +79,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			RetryPolicy:              ao.RetryPolicy,
 		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiChildAnalysisProcessWorkflow, childParams).Get(childAnalysisCtx, &childParams)
+		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiChildAnalysisProcessWorkflow, childParams).Get(childAnalysisCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute child analysis workflow", "Error", err)
 			return err

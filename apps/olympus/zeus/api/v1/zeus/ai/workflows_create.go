@@ -1,11 +1,9 @@
 package zeus_v1_ai
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -32,6 +30,7 @@ type TaskMap map[string]TaskModelInstructions
 
 // TaskModelInstructions represents the equivalent of the TypeScript interface TaskModelInstructions
 type TaskModelInstructions struct {
+	TaskStrID             string                          `json:"taskStrID"`
 	TaskID                int                             `json:"taskID"`
 	Model                 string                          `json:"model"`
 	TaskType              string                          `json:"taskType"`
@@ -86,8 +85,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 		AnalysisOnlyTasks: []artemis_orchestrations.AITaskLibrary{},
 	}
 
-	ms := make(map[string]string)
-	for _, m := range w.Models {
+	for taskStrID, m := range w.Models {
 		if m.CycleCount < 1 {
 			m.CycleCount = 1
 		}
@@ -98,29 +96,20 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				CycleCount: m.CycleCount,
 				Tasks:      []artemis_orchestrations.AITaskLibrary{},
 			}
-			if w.EvalTasksMap != nil {
-				if evm, tok := w.EvalTasksMap[fmt.Sprintf("%d", m.TaskID)]; tok {
-					for k, v := range evm {
-						if v {
-							mappedEval := w.EvalsMap[fmt.Sprintf("%d", k)]
-							if mappedEval.EvalStrID != nil && *mappedEval.EvalStrID != "" {
-								eid, serr := strconv.Atoi(*mappedEval.EvalStrID)
-								if serr != nil {
-									log.Err(serr).Msg("failed to parse int")
-									return c.JSON(http.StatusBadRequest, nil)
-								}
-								mappedEval.EvalID = aws.Int(eid)
-							}
-							agt.EvalFns = append(agt.EvalFns, mappedEval)
-						}
+			efAgg, aok := w.EvalTasksMap[taskStrID]
+			if aok {
+				for ke, _ := range efAgg {
+					agev, avok := w.EvalsMap[ke]
+					if avok {
+						agt.EvalFns = append(agt.EvalFns, agev)
 					}
 				}
 			}
+
 			for k, v := range w.AggregateSubTasksMap {
-				if k == fmt.Sprintf("%d", m.TaskID) {
+				if k == taskStrID {
 					for at, isTrue := range v {
 						if isTrue {
-							ms[at] = fmt.Sprintf("%d", m.TaskID)
 							ait, zerr := strconv.Atoi(at)
 							if zerr != nil {
 								log.Err(zerr).Msg("failed to parse int")
@@ -131,24 +120,6 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 								TaskID:     ait,
 								CycleCount: m.CycleCount,
 							}
-							if w.EvalTasksMap != nil {
-								if evm, tok := w.EvalTasksMap[at]; tok {
-									for ke, ve := range evm {
-										if ve {
-											mappedEval := w.EvalsMap[ke]
-											if mappedEval.EvalStrID != nil && *mappedEval.EvalStrID != "" {
-												eid, serr := strconv.Atoi(*mappedEval.EvalStrID)
-												if serr != nil {
-													log.Err(serr).Msg("failed to parse int")
-													return c.JSON(http.StatusBadRequest, nil)
-												}
-												mappedEval.EvalID = aws.Int(eid)
-											}
-											agt.EvalFns = append(agt.EvalFns, mappedEval)
-										}
-									}
-								}
-							}
 							agt.Tasks = append(agt.Tasks, ta)
 						}
 					}
@@ -157,6 +128,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 			wft.AggTasks = append(wft.AggTasks, agt)
 		case "analysis":
 			at := artemis_orchestrations.AITaskLibrary{
+				TaskStrID:             taskStrID,
 				TaskID:                m.TaskID,
 				OrgID:                 ou.OrgID,
 				UserID:                ou.UserID,
@@ -170,21 +142,12 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				CycleCount:            m.CycleCount,
 				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
 			}
-			if w.EvalTasksMap != nil {
-				if evm, tok := w.EvalTasksMap[fmt.Sprintf("%d", m.TaskID)]; tok {
-					for ke, ve := range evm {
-						if ve {
-							mappedEval := w.EvalsMap[ke]
-							if mappedEval.EvalStrID != nil && *mappedEval.EvalStrID != "" {
-								eid, serr := strconv.Atoi(*mappedEval.EvalStrID)
-								if serr != nil {
-									log.Err(serr).Msg("failed to parse int")
-									return c.JSON(http.StatusBadRequest, nil)
-								}
-								mappedEval.EvalID = aws.Int(eid)
-							}
-							at.EvalFns = append(at.EvalFns, mappedEval)
-						}
+			efAnalysis, aok := w.EvalTasksMap[taskStrID]
+			if aok {
+				for ke, _ := range efAnalysis {
+					agev, avok := w.EvalsMap[ke]
+					if avok {
+						at.EvalFns = append(at.EvalFns, agev)
 					}
 				}
 			}

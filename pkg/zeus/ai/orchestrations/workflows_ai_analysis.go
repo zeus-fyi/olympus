@@ -11,9 +11,9 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
+func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) error {
 	if cp == nil || cp.WfExecParams.WorkflowTasks == nil || cp.Oj.OrchestrationID == 0 || cp.Ou.OrgID == 0 || cp.Ou.UserID == 0 {
-		return nil, nil
+		return nil
 	}
 	wfExecParams := cp.WfExecParams
 	ou := cp.Ou
@@ -65,7 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				err := workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, ou, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
 				if err != nil {
 					logger.Error("failed to run analysis json", "Error", err)
-					return nil, err
+					return err
 				}
 				if len(rets) <= 0 {
 					continue
@@ -85,7 +85,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &sg)
 				if err != nil {
 					logger.Error("failed to execute child retrieval workflow", "Error", err)
-					return nil, err
+					return err
 				}
 				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] = false
 				if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) <= 0 {
@@ -116,7 +116,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, ou, pr).Get(chunkedTaskCtx, &pr)
 			if err != nil {
 				logger.Error("failed to run analysis json", "Error", err)
-				return nil, err
+				return err
 			}
 
 			chunkIterator := getChunkIteratorLen(pr)
@@ -153,8 +153,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				var analysisRespId int
 				switch analysisInst.AnalysisResponseFormat {
 				case jsonFormat, socialMediaExtractionResponseFormat:
-					sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
-					sg.SourceTaskID = analysisInst.AnalysisTaskID
+					tte.Sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
+					tte.Sg.SourceTaskID = analysisInst.AnalysisTaskID
 					tte.WfID = oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d", analysisInst.AnalysisResponseFormat, i)
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 						WorkflowID:               tte.WfID,
@@ -173,10 +173,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, tte.Sg.SourceTaskID).Get(selectTaskCtx, &fullTaskDef)
 					if err != nil {
 						logger.Error("failed to run task", "Error", err)
-						return nil, err
+						return err
 					}
 					if len(fullTaskDef) == 0 {
-						return nil, nil
+						return nil
 					}
 					var jdef []*artemis_orchestrations.JsonSchemaDefinition
 					for _, taskDef := range fullTaskDef {
@@ -187,10 +187,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, tte).Get(childAnalysisCtx, &aiResp)
 					if err != nil {
 						logger.Error("failed to execute analysis json workflow", "Error", err)
-						return nil, err
-					}
-					if aiResp != nil && aiResp.FilteredSearchResults != nil {
-						sg.FilteredSearchResults = aiResp.FilteredSearchResults
+						return err
 					}
 					if aiResp != nil {
 						if cp.AnalysisEvalActionParams == nil {
@@ -199,9 +196,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						cp.AnalysisEvalActionParams.ParentOutputToEval = aiResp
 					}
 				default:
-					inGroup := sg.SearchResults
-					if len(sg.ApiResponseResults) > 0 {
-						inGroup = sg.ApiResponseResults
+					inGroup := tte.Sg.SearchResults
+					if len(tte.Sg.ApiResponseResults) > 0 {
+						inGroup = tte.Sg.ApiResponseResults
 					}
 					tte.Tc = TaskContext{
 						TaskName:       analysisInst.AnalysisTaskName,
@@ -216,25 +213,29 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, inGroup).Get(analysisCtx, &aiResp)
 					if err != nil {
 						logger.Error("failed to run analysis", "Error", err)
-						return nil, err
+						return err
 					}
 					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
 					if err != nil {
 						logger.Error("failed to save analysis response", "Error", err)
-						return nil, err
+						return err
 					}
 					wr.ResponseID = analysisRespId
+					afv := InputDataAnalysisToAgg{
+						ChatCompletionQueryResponse: aiResp,
+						SearchResultGroup:           tte.Sg,
+					}
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, &wr).Get(recordAnalysisCtx, &aiResp.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, &wr, afv).Get(recordAnalysisCtx, &aiResp.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save analysis", "Error", err)
-						return nil, err
+						return err
 					}
 					if aiResp != nil && aiResp.Prompt != nil {
-						sg.ResponseBody = aiResp.Prompt["response"]
+						tte.Sg.ResponseBody = aiResp.Prompt["response"]
 					}
-					sg.BodyPrompt = hera_search.FormatSearchResultsV2(inGroup)
+					tte.Sg.BodyPrompt = hera_search.FormatSearchResultsV2(inGroup)
 				}
 				if aiResp == nil || len(aiResp.Response.Choices) == 0 {
 					continue
@@ -254,7 +255,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					WorkflowTemplateData: analysisInst,
 					ParentOutputToEval:   aiResp,
 					EvalFns:              analysisInst.AnalysisTaskDB.AnalysisEvalFns,
-					SearchResultGroup:    sg,
+					SearchResultGroup:    tte.Sg,
 					TaskToExecute:        tte,
 				}
 				if analysisInst.AggTaskID != nil && analysisInst.AggAnalysisEvalFns != nil {
@@ -279,14 +280,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
 						if err != nil {
 							logger.Error("failed to execute child analysis workflow", "Error", err)
-							return nil, err
+							return err
 						}
 					}
 				}
-				cp.AnalysisEvalActionParams = ea
-				return cp, nil
 			}
 		}
 	}
-	return cp, nil
+	return nil
 }

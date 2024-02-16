@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -64,6 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		if cpe.EvalFns[ei].EvalID == 0 {
 			continue
 		}
+		log.Info().Int("evalID", cpe.EvalFns[ei].EvalID).Msg("evalID")
 		var efs []artemis_orchestrations.EvalFn
 		evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, cpe.EvalFns[ei].EvalID).Get(evalFnMetricsLookupCtx, &efs)
@@ -98,26 +100,41 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 				continue
 			}
+			var canSkip bool
+			if cpe.ParentOutputToEval != nil && cpe.ParentOutputToEval.JsonResponseResults != nil && len(cpe.ParentOutputToEval.JsonResponseResults) > 0 && len(evalFnsAgg[evFnIndex].Schemas) > 0 {
+				jrs := cpe.ParentOutputToEval.JsonResponseResults
+				evs := evalFnsAgg[evFnIndex].Schemas
+				evmModelName := aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
+				canSkip = evmModelName == cpe.ParentOutputToEval.Params.Model
+				for _, sv := range evs {
+					if !CheckSchemaIDsAndValidFields(sv.SchemaID, jrs) {
+						canSkip = false
+						break
+					}
+				}
+			}
 			cpe.TaskToExecute.Tc.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
 			cpe.TaskToExecute.Tc.Schemas = evalFnsAgg[evFnIndex].Schemas
 			cpe.TaskToExecute.Tc.Model = aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
-			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cpe.ParentOutputToEval)
-			if err != nil {
-				logger.Error("failed to execute analysis json workflow", "Error", err)
-				return err
+			if !canSkip {
+				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+				err := workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cpe.TaskToExecute).Get(childAnalysisCtx, &cpe.ParentOutputToEval)
+				if err != nil {
+					logger.Error("failed to execute analysis json workflow", "Error", err)
+					return err
+				}
 			}
 			if cpe.ParentOutputToEval.JsonResponseResults == nil {
 				continue
 			}
 			evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, evalFnsAgg[evFnIndex], cpe.ParentOutputToEval.JsonResponseResults).Get(evalModelScoredJsonCtx, &emr)
+			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, evalFnsAgg[evFnIndex], cpe.ParentOutputToEval.JsonResponseResults).Get(evalModelScoredJsonCtx, &emr)
 			if err != nil {
 				logger.Error("failed to get score eval", "Error", err)
 				return err
 			}
-			// TODO, can filter failing results here
 			evCtx.JsonResponseResults = cpe.ParentOutputToEval.JsonResponseResults
+			evCtx.EvaluatedJsonResponses = emr.EvaluatedJsonResponses
 		case "api":
 			// TODO, complete this, should attach a retrieval option? use that for the scoring?
 			//retrievalCtx := workflow.WithActivityOptions(ctx, ao)

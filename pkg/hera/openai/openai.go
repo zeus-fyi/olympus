@@ -79,7 +79,7 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 		sysPrompt = params.SystemPromptOverride
 	}
 	if params.SystemPromptExt != "" {
-		sysPrompt += params.SystemPromptExt
+		sysPrompt += " " + params.SystemPromptExt
 	}
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
@@ -97,15 +97,13 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 				Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
 			},
 		},
-		MaxTokens:      params.MaxTokens,
-		Temperature:    0,
 		ResponseFormat: &openai.ChatCompletionResponseFormat{Type: openai.ChatCompletionResponseFormatTypeJSONObject},
-		LogitBias:      nil,
 		Tools: []openai.Tool{{
 			Type:     openai.ChatMessageRoleFunction,
 			Function: params.FunctionDefinition,
 		}},
-		ToolChoice: nil,
+		Stop:        []string{"}]}  "},
+		Temperature: float32(0.0),
 	}
 	if params.MaxTokens > 0 {
 		reqBody.MaxTokens = params.MaxTokens
@@ -114,6 +112,10 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 		ctx,
 		reqBody,
 	)
+	if err != nil {
+		log.Err(err).Msg("MakeCodeGenRequestJsonFormattedOutput")
+		return resp, err
+	}
 	return resp, err
 }
 

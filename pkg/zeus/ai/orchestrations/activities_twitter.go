@@ -1,16 +1,10 @@
 package ai_platform_service_orchestrations
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
-	"github.com/g8rswimmer/go-twitter/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/sashabaranov/go-openai"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 )
 
 const (
@@ -31,64 +25,7 @@ const (
 	webPlatform                         = "web"
 )
 
-func (z *ZeusAiPlatformActivities) EvalFormatForApi(ctx context.Context, ou org_users.OrgUser, ta *artemis_orchestrations.TriggerAction) (*ChatCompletionQueryResponse, error) {
-	var fnApiFormat openai.FunctionDefinition
-
-	platformName := ""
-	switch platformName {
-	case twitterPlatform:
-		fnApiFormat = EvalFormatTweetForApiJsonSchema(ta.TriggerAction)
-		log.Info().Msgf("EvalFormatTweetForApi: body: %v", fnApiFormat)
-	default:
-		return nil, fmt.Errorf("EvalFormatForApi: platform %s not supported", platformName)
-	}
-	za := NewZeusAiPlatformActivities()
-	resp, err := za.CreateJsonOutputModelResponse(ctx, ou, hera_openai.OpenAIParams{
-		Model:              Gpt4JsonModel,
-		FunctionDefinition: fnApiFormat,
-	})
-	if err != nil {
-		log.Err(err).Msg("EvalFormatTweetForApi: CreateJsonOutputModelResponse failed")
-		return nil, err
-	}
-	switch platformName {
-	case twitterPlatform:
-		tr, terr := UnmarshallTwitterFromAiJson(fnApiFormat.Name, resp)
-		if terr != nil {
-			log.Err(terr).Msg("EvalFormatTweetForApi: failed to unmarshall json interface")
-			return nil, terr
-		}
-		resp.CreateTweetRequest = tr
-	case redditPlatform:
-	case discordPlatform:
-	case telegramPlatform:
-	default:
-		return nil, fmt.Errorf("EvalFormatForApi: platform %s not supported", platformName)
-	}
-	return resp, nil
-}
-
-func UnmarshallTwitterFromAiJson(fn string, cr *ChatCompletionQueryResponse) (*twitter.CreateTweetRequest, error) {
-	m, err := UnmarshallOpenAiJsonInterface(fn, cr)
-	if err != nil {
-		return nil, err
-	}
-	rb, ok := m[text].(string)
-	if !ok || len(rb) == 0 {
-		return nil, fmt.Errorf("text body had no text, or was not a string")
-	}
-	tr := &twitter.CreateTweetRequest{
-		Text: rb,
-	}
-	rt, ok := m[inReplyToTweetID].(string)
-	if ok {
-		tr.Reply = &twitter.CreateTweetReply{InReplyToTweetID: rt}
-	}
-	return tr, nil
-}
-
 func UnmarshallOpenAiJsonInterface(fn string, cr *ChatCompletionQueryResponse) (map[string]interface{}, error) {
-
 	m := make(map[string]interface{})
 	for _, cho := range cr.Response.Choices {
 		if cho.Message.ToolCalls == nil && cho.Message.Content != "" {
@@ -125,6 +62,10 @@ func UnmarshallOpenAiJsonInterface(fn string, cr *ChatCompletionQueryResponse) (
 				}
 			}
 		}
+	}
+	emsg, ok := m["error"]
+	if ok {
+		return nil, fmt.Errorf("error: %v", emsg)
 	}
 	return m, nil
 }

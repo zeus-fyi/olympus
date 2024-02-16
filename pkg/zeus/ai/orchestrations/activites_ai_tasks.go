@@ -2,11 +2,9 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/g8rswimmer/go-twitter/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -92,12 +90,11 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 			ctx, cr,
 		)
 		if cerr == nil {
-			b, rerr := json.Marshal(cres.Choices)
-			if rerr != nil {
-				log.Err(rerr).Msg("AiAnalysisTask: CreateChatCompletion Marshal failed")
-				return nil, rerr
+			var sc string
+			for _, c := range cres.Choices {
+				sc += c.Message.Content + "\n"
 			}
-			prompt["response"] = string(b)
+			prompt["response"] = sc
 			return &ChatCompletionQueryResponse{
 				Prompt:         prompt,
 				ResponseTaskID: taskInst.AnalysisTaskID,
@@ -114,12 +111,11 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		ctx, cr,
 	)
 	if err == nil {
-		b, rerr := json.Marshal(resp.Choices)
-		if rerr != nil {
-			log.Err(rerr).Msg("AiAnalysisTask: CreateChatCompletion Marshal failed")
-			return nil, rerr
+		var sc string
+		for _, c := range resp.Choices {
+			sc += c.Message.Content + "\n"
 		}
-		prompt["response"] = string(b)
+		prompt["response"] = sc
 		return &ChatCompletionQueryResponse{
 			Prompt:         prompt,
 			ResponseTaskID: taskInst.AnalysisTaskID,
@@ -145,12 +141,11 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed")
 		return nil, err
 	}
-	b, rerr := json.Marshal(resp.Choices)
-	if rerr != nil {
-		log.Err(rerr).Msg("AiAnalysisTask: CreateChatCompletion Marshal failed")
-		return nil, rerr
+	var sc string
+	for _, c := range resp.Choices {
+		sc += c.Message.Content + "\n"
 	}
-	prompt["response"] = string(b)
+	prompt["response"] = sc
 	return &ChatCompletionQueryResponse{
 		Prompt:         prompt,
 		ResponseTaskID: taskInst.AnalysisTaskID,
@@ -159,23 +154,42 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 }
 
 type ChatCompletionQueryResponse struct {
-	Prompt                      map[string]string                             `json:"prompt"`
-	Params                      hera_openai.OpenAIParams                      `json:"params"`
-	EvalResultID                int                                           `json:"evalResultID,omitempty"`
-	WorkflowResultID            int                                           `json:"workflowResultID,omitempty"`
-	Response                    openai.ChatCompletionResponse                 `json:"response"`
-	ResponseTaskID              int                                           `json:"responseTaskID,omitempty"`
-	FilteredMessages            *FilteredMessages                             `json:"filteredMessages,omitempty"`
-	FilteredSearchResults       []hera_search.SearchResult                    `json:"filteredSearchResults,omitempty"`
-	JsonResponseResults         []artemis_orchestrations.JsonSchemaDefinition `json:"jsonResponseResults,omitempty"`
-	*twitter.CreateTweetRequest `json:"twitterCreateTweetRequest,omitempty"`
+	Prompt                map[string]string                             `json:"prompt"`
+	Params                hera_openai.OpenAIParams                      `json:"params"`
+	EvalResultID          int                                           `json:"evalResultID,omitempty"`
+	WorkflowResultID      int                                           `json:"workflowResultID,omitempty"`
+	Response              openai.ChatCompletionResponse                 `json:"response"`
+	ResponseID            int                                           `json:"responseID,omitempty"`
+	ResponseTaskID        int                                           `json:"responseTaskID,omitempty"`
+	FilteredMessages      *FilteredMessages                             `json:"filteredMessages,omitempty"`
+	FilteredSearchResults []hera_search.SearchResult                    `json:"filteredSearchResults,omitempty"`
+	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition `json:"jsonResponseResults,omitempty"`
 }
 
-func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, dataIn []artemis_orchestrations.AIWorkflowAnalysisResult) (*ChatCompletionQueryResponse, error) {
-	content, err := artemis_orchestrations.GenerateContentText(dataIn)
-	if err != nil {
-		log.Err(err).Msg("AiAggregateTask: GenerateContentText failed")
-		return nil, err
+func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.JsonSchemaDefinition) bool {
+	if len(jr) <= 0 {
+		return false
+	}
+	for _, j := range jr {
+		if j.SchemaID != expSchemaID {
+			return false
+		}
+		for _, f := range j.Fields {
+			if f.IsValidated == false {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, sg *hera_search.SearchResultGroup) (*ChatCompletionQueryResponse, error) {
+	var content string
+	if len(sg.BodyPrompt) > 0 {
+		content = sg.BodyPrompt
+	}
+	if len(sg.SearchResults) > 0 {
+		content += hera_search.FormatSearchResultsV2(sg.SearchResults)
 	}
 	if len(content) <= 0 || aggInst.AggPrompt == nil || aggInst.AggModel == nil || aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil {
 		return nil, nil
@@ -208,7 +222,6 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 			},
 		},
 	}
-
 	if aggInst.AggMaxTokensPerTask == nil {
 		aggInst.AggMaxTokensPerTask = aws.Int(0)
 	}

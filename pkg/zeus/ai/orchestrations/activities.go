@@ -55,11 +55,12 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SendTriggerActionRequestForApproval, z.CreateOrUpdateTriggerActionToExec,
 		z.CheckEvalTriggerCondition, z.LookupEvalTriggerConditions,
 		z.SocialTweetTask, z.SocialRedditTask, z.SocialDiscordTask, z.SocialTelegramTask,
-		z.EvalFormatForApi, z.SaveTriggerResponseOutput, z.SaveEvalResponseOutput,
+		z.SaveTriggerResponseOutput, z.SaveEvalResponseOutput,
 		z.SelectTaskDefinition, z.ExtractTweets, z.TokenOverflowReduction,
 		z.AnalyzeEngagementTweets, z.SaveTriggerApiRequestResp, z.SelectRetrievalTask,
 		z.SelectTriggerActionToExec, z.SelectTriggerActionApiApprovalWithReqResponses,
 		z.CreateOrUpdateTriggerActionApprovalWithApiReq, z.UpdateTriggerActionApproval,
+		z.FilterEvalJsonResponses, z.UpdateTaskOutput,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -403,13 +404,36 @@ func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context,
 	return rid, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.Context, window artemis_orchestrations.Window, ojIDs, sourceTaskIds []int) ([]artemis_orchestrations.AIWorkflowAnalysisResult, error) {
+type AggRetResp struct {
+	AIWorkflowAnalysisResultSlice []artemis_orchestrations.AIWorkflowAnalysisResult
+	InputDataAnalysisToAggSlice   []InputDataAnalysisToAgg
+}
+
+func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.Context, window artemis_orchestrations.Window, ojIDs, sourceTaskIds []int) (*AggRetResp, error) {
 	results, err := artemis_orchestrations.SelectAiWorkflowAnalysisResults(ctx, window, ojIDs, sourceTaskIds)
 	if err != nil {
 		log.Err(err).Msg("AiAggregateAnalysisRetrievalTask: failed")
 		return nil, err
 	}
-	return results, nil
+	var resp []InputDataAnalysisToAgg
+	for _, r := range results {
+		b, berr := json.Marshal(r.Metadata)
+		if berr != nil {
+			log.Err(berr).Msg("AiAggregateAnalysisRetrievalTask: failed")
+			continue
+		}
+		tmp := InputDataAnalysisToAgg{}
+		jerr := json.Unmarshal(b, &tmp)
+		if jerr != nil {
+			log.Err(jerr).Msg("AiAggregateAnalysisRetrievalTask: failed")
+			continue
+		}
+		resp = append(resp, tmp)
+	}
+	return &AggRetResp{
+		AIWorkflowAnalysisResultSlice: results,
+		InputDataAnalysisToAggSlice:   resp,
+	}, nil
 }
 
 func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, dataIn any) (int, error) {
@@ -429,3 +453,92 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 	}
 	return wr.WorkflowResultID, nil
 }
+
+func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, jro JsonResponseGroupsByOutcomeMap, sg *hera_search.SearchResultGroup) ([]artemis_orchestrations.JsonSchemaDefinition, error) {
+	if wr == nil || len(jro) <= 0 {
+		return nil, nil
+	}
+	var md []byte
+	var err error
+	var filteredJsonResponses []artemis_orchestrations.JsonSchemaDefinition
+	var infoJsonResponses []artemis_orchestrations.JsonSchemaDefinition
+	for evalState, v := range jro {
+		switch evalState {
+		case filterState:
+			filteredJsonResponses = v.Passed
+		case infoState:
+			if len(v.Failed) > 0 {
+				wr.SkipAnalysis = true
+			} else {
+				infoJsonResponses = v.Passed
+			}
+		case errorState:
+			// TODO: stop workflow?
+		}
+	}
+	var res []artemis_orchestrations.JsonSchemaDefinition
+	if len(filteredJsonResponses) <= 0 && len(infoJsonResponses) <= 0 {
+		wr.SkipAnalysis = true
+		md, err = json.Marshal(jro)
+		if err != nil {
+			log.Err(err).Interface("jro", jro).Interface("wr", wr).Msg("UpdateTaskOutput: failed")
+			return nil, err
+		}
+	} else if len(filteredJsonResponses) > 0 {
+		res = filteredJsonResponses
+		tmp := InputDataAnalysisToAgg{
+			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
+				JsonResponseResults: res,
+			},
+			SearchResultGroup: sg,
+		}
+		md, err = json.Marshal(tmp)
+		if err != nil {
+			log.Err(err).Interface("infoJsonResponses", infoJsonResponses).Interface("jro", jro).Interface("wr", wr).Msg("UpdateTaskOutput: failed")
+			return nil, err
+		}
+	} else {
+		res = infoJsonResponses
+		tmp := InputDataAnalysisToAgg{
+			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
+				JsonResponseResults: res,
+			},
+			SearchResultGroup: sg,
+		}
+		md, err = json.Marshal(tmp)
+		if err != nil {
+			log.Err(err).Interface("infoJsonResponses", infoJsonResponses).Interface("jro", jro).Interface("wr", wr).Msg("UpdateTaskOutput: failed")
+			return nil, err
+		}
+	}
+
+	if res != nil && sg != nil && sg.SearchResults != nil {
+		seen := make(map[int]bool)
+		for _, jr := range res {
+			for _, fv := range jr.Fields {
+				if fv.FieldName == "msg_id" && fv.IsValidated && fv.IntegerValue != nil && *fv.IntegerValue > 0 {
+					seen[*fv.IntegerValue] = true
+				}
+			}
+		}
+		sg.FilteredSearchResults = []hera_search.SearchResult{}
+		for _, sr := range sg.SearchResults {
+			_, ok := seen[sr.UnixTimestamp]
+			if ok {
+				sg.FilteredSearchResults = append(sg.FilteredSearchResults, sr)
+			}
+		}
+	}
+	wr.Metadata = md
+	err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
+	if err != nil {
+		log.Err(err).Interface("filteredJsonResponses", filteredJsonResponses).Interface("jro", jro).Interface("wr", wr).Msg("UpdateTaskOutput: failed")
+		return nil, err
+	}
+	return res, nil
+}
+
+//type InputDataAnalysisToAgg struct {
+//	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
+//	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`
+//}

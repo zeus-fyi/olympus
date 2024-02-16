@@ -151,13 +151,13 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 	for _, aggTask := range tasks.AggTasks {
 		// Link aggregation tasks to eval functions
 
-		for _, at := range aggTask.Tasks {
+		for _, aggt := range aggTask.Tasks {
 			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks(agg_task_id, workflow_template_id, analysis_task_id, cycle_count)
 											VALUES ($1, $2, $3, $4)
 											ON CONFLICT (workflow_template_id, agg_task_id, analysis_task_id)
 											DO UPDATE SET cycle_count = EXCLUDED.cycle_count
 											RETURNING analysis_task_id`,
-				aggTask.AggId, workflowTemplate.WorkflowTemplateID, at.TaskID, aggTask.CycleCount).Scan(&at.TaskID)
+				aggTask.AggId, workflowTemplate.WorkflowTemplateID, aggt.TaskID, aggTask.CycleCount).Scan(&aggt.TaskID)
 			if err != nil {
 				log.Err(err).Msg("failed to insert workflow component")
 				return err
@@ -190,7 +190,7 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 				}
 			}
 			// Link aggregation tasks to eval functions
-			for _, ef := range at.EvalFns {
+			for _, ef := range aggt.EvalFns {
 				if ef.EvalStrID != nil && *ef.EvalStrID != "" {
 					eid, eerr := strconv.Atoi(*ef.EvalStrID)
 					if eerr != nil {
@@ -207,7 +207,7 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
                                     DO UPDATE SET 
                                         cycle_count = EXCLUDED.cycle_count
                                     RETURNING task_eval_id`,
-					ts.UnixTimeStampNow(), workflowTemplate.WorkflowTemplateID, at.TaskID, at.CycleCount, ef.EvalID).Scan(&taskEvalID)
+					ts.UnixTimeStampNow(), workflowTemplate.WorkflowTemplateID, aggt.TaskID, aggt.CycleCount, ef.EvalID).Scan(&taskEvalID)
 				if err != nil {
 					log.Err(err).Interface("ef", ef).Msg("failed to insert or update eval task relationship for analysis-aggregation task")
 					return err

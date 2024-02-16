@@ -31,15 +31,9 @@ func (z *ZeusAiPlatformServiceWorkflows) SocialMediaInteractiveWorkflow(ctx work
 		return nil, err
 	}
 	var aiResp *ChatCompletionQueryResponse
-	extractCtx := workflow.WithActivityOptions(ctx, ao)
+	//extractCtx := workflow.WithActivityOptions(ctx, ao)
 	switch sg.PlatformName {
 	case twitterPlatform:
-
-		err = workflow.ExecuteActivity(extractCtx, z.EvalFormatForApi, ou, sg).Get(extractCtx, &aiResp)
-		if err != nil {
-			logger.Error("failed to run twitter extraction", "Error", err)
-			return nil, err
-		}
 	case telegramPlatform:
 	case discordPlatform:
 	case redditPlatform:

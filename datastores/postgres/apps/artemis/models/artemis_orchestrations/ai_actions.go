@@ -53,8 +53,8 @@ type EvalTriggerActions struct {
 	EvalStrID            string `db:"eval_str_id" json:"evalStrID,omitempty"`
 	TriggerID            int    `db:"trigger_id" json:"triggerID,omitempty"`
 	TriggerStrID         string `db:"trigger_str_id" json:"triggerStrID,omitempty"`
-	EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"` // eg. info, filter, etc
-	EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"`
+	EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"`          // eg. info, filter, etc
+	EvalResultsTriggerOn string `db:"eval_results_trigger_on" json:"evalResultsTriggerOn"` // all-pass, any-fail, etc
 }
 
 type TriggersWorkflowQueryParams struct {

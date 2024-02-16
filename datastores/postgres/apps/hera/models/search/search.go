@@ -169,6 +169,7 @@ type SearchResult struct {
 	TwitterMetadata *TwitterMetadata `json:"twitterMetadata,omitempty"`
 	WebResponse     WebResponse      `json:"webResponses,omitempty"`
 }
+
 type TwitterMetadata struct {
 	TweetID    int    `json:"tweet_id"`
 	TweetStrID string `json:"in_reply_to_tweet_id"`

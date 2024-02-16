@@ -92,9 +92,11 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 						fmt.Println("UnixTimestamp", sv.UnixTimestamp, "TweetStrID", sv.TwitterMetadata.TweetStrID, "tmpMap[sv.TwitterMetadata.TweetID]", tmpMap[sv.TwitterMetadata.TweetStrID])
 						if sv.TwitterMetadata != nil && sv.TwitterMetadata.TweetStrID != "" {
 							if item, ok := tmpMap[sv.TwitterMetadata.TweetStrID]; ok && item != nil {
+								sv.WebResponse.Body = item
 								pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, sv)
 							}
 						} else if item, ok := tmpMap[fmt.Sprintf("%d", sv.UnixTimestamp)]; ok && item != nil {
+							sv.WebResponse.Body = item
 							pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, sv)
 						}
 					}

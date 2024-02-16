@@ -100,7 +100,6 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 							pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, sv)
 						}
 					}
-					fmt.Println("ok")
 				}
 			} else if d.SearchResultGroup != nil && d.SearchResultGroup.SearchResults != nil {
 				if pr.PromptReductionSearchResults == nil {

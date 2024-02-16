@@ -73,6 +73,15 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 		}
 		for _, d := range pr.DataInAnalysisAggregation {
 			if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
+				if pr.PromptReductionSearchResults == nil {
+					pr.PromptReductionSearchResults = &PromptReductionSearchResults{
+						InSearchGroup: &hera_search.SearchResultGroup{
+							SearchResults:         make([]hera_search.SearchResult, 0),
+							ApiResponseResults:    make([]hera_search.SearchResult, 0),
+							FilteredSearchResults: make([]hera_search.SearchResult, 0),
+						},
+					}
+				}
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
 				switch d.SearchResultGroup.PlatformName {
 				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:

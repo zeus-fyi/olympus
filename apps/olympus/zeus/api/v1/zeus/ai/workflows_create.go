@@ -32,6 +32,7 @@ type TaskMap map[string]TaskModelInstructions
 
 // TaskModelInstructions represents the equivalent of the TypeScript interface TaskModelInstructions
 type TaskModelInstructions struct {
+	TaskStrID             string                          `json:"taskStrID"`
 	TaskID                int                             `json:"taskID"`
 	Model                 string                          `json:"model"`
 	TaskType              string                          `json:"taskType"`
@@ -102,7 +103,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				if evm, tok := w.EvalTasksMap[fmt.Sprintf("%d", m.TaskID)]; tok {
 					for k, v := range evm {
 						if v {
-							mappedEval := w.EvalsMap[fmt.Sprintf("%d", k)]
+							mappedEval := w.EvalsMap[fmt.Sprintf("%s", k)]
 							if mappedEval.EvalStrID != nil && *mappedEval.EvalStrID != "" {
 								eid, serr := strconv.Atoi(*mappedEval.EvalStrID)
 								if serr != nil {

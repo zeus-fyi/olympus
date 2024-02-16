@@ -278,7 +278,7 @@ func SelectWorkflowTemplateByName(ctx context.Context, ou org_users.OrgUser, nam
 			log.Err(err).Msg("Error scanning row in SelectWorkflowTemplate")
 			return nil, err
 		}
-
+		wt.WorkflowTemplateStrID = fmt.Sprintf("%d", wt.WorkflowTemplateID)
 		err = json.Unmarshal([]byte(taskJSON), &wt.AnalysisTasksSlice)
 		if err != nil {
 			log.Err(err).Msg("Error unmarshalling analysis tasks JSON")

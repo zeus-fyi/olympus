@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -66,12 +67,13 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	var feedback error
 
 	for attempt := 0; attempt < int(maxAttempts); attempt++ {
+		log.Info().Int("attempt", attempt).Msg("JsonOutputTaskWorkflow: attempt")
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
 		fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.Schemas)
 
 		feedbackPrompt := ""
 		if feedback != nil {
-			feedbackPrompt = "Please fix your answer or make best assumptions on data structure to fix this error: " + feedback.Error()
+			feedbackPrompt = fmt.Sprintf("Please fix your answer or make best assumptions on data structure to fix this error: %s. This is attempt number: %d", feedback.Error(), attempt)
 			feedback = nil
 		}
 		params := hera_openai.OpenAIParams{
@@ -105,17 +107,20 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			// ok no err
 			if anyErr != nil {
 				log.Err(anyErr).Interface("m", m).Interface("resp", aiResp.Response.Choices).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
+				logger.Error("1_UnmarshallFilteredMsgIdsFromAiJson", "Error", err, "m", m, "resp", aiResp.Response.Choices)
 			}
 		} else {
 			m, anyErr = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, aiResp)
 			if anyErr != nil {
 				log.Err(anyErr).Interface("m", m).Interface("resp", aiResp.Response.Choices).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+				logger.Error("2_UnmarshallFilteredMsgIdsFromAiJson", "Error", err, "m", m, "resp", aiResp.Response.Choices)
 			}
 		}
 		var tmpResp []artemis_orchestrations.JsonSchemaDefinition
 		if anyErr == nil {
 			tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
 			if anyErr != nil {
+				log.Err(anyErr).Interface("m", m).Interface("jsd", jsd).Msg("AssignMapValuesMultipleJsonSchemasSlice: UnmarshallOpenAiJsonInterface failed")
 				feedback = anyErr
 			}
 		} else {
@@ -184,6 +189,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			}
 		}
 		aiResp.JsonResponseResults = tmpResp
+		log.Info().Int("attempt", attempt).Interface("len(aiResp.JsonResponseResults)", len(aiResp.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 		break
 	}
 

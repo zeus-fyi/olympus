@@ -62,7 +62,15 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 		return nil, nil
 	}
 	if pr.DataInAnalysisAggregation != nil {
-		pr.PromptReductionSearchResults.InSearchGroup = &hera_search.SearchResultGroup{}
+		if pr.PromptReductionSearchResults == nil {
+			pr.PromptReductionSearchResults = &PromptReductionSearchResults{
+				InSearchGroup: &hera_search.SearchResultGroup{
+					SearchResults:         make([]hera_search.SearchResult, 0),
+					ApiResponseResults:    make([]hera_search.SearchResult, 0),
+					FilteredSearchResults: make([]hera_search.SearchResult, 0),
+				},
+			}
+		}
 		for _, d := range pr.DataInAnalysisAggregation {
 			if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
@@ -70,10 +78,9 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:
 					d.SearchResultGroup.FilteredSearchResultMap = make(map[int]*hera_search.SearchResult)
 					for ind, _ := range d.SearchResultGroup.SearchResults {
+						d.SearchResultGroup.FilteredSearchResultMap[d.SearchResultGroup.SearchResults[ind].UnixTimestamp] = &d.SearchResultGroup.SearchResults[ind]
 						if d.SearchResultGroup.SearchResults[ind].TwitterMetadata != nil && d.SearchResultGroup.SearchResults[ind].TwitterMetadata.TweetID > 0 {
 							d.SearchResultGroup.FilteredSearchResultMap[d.SearchResultGroup.SearchResults[ind].TwitterMetadata.TweetID] = &d.SearchResultGroup.SearchResults[ind]
-						} else {
-							d.SearchResultGroup.FilteredSearchResultMap[d.SearchResultGroup.SearchResults[ind].UnixTimestamp] = &d.SearchResultGroup.SearchResults[ind]
 						}
 					}
 				}
@@ -83,17 +90,28 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 						msgID, ok := payloadMap["msg_id"].(int)
 						msgIDf, fok := payloadMap["msg_id"].(float64)
 						if ok {
-							hs = d.SearchResultGroup.FilteredSearchResultMap[msgID]
+							tmp, bok := d.SearchResultGroup.FilteredSearchResultMap[msgID]
+							if bok {
+								hs = tmp
+							}
+							hs = tmp
 						}
 						if fok {
-							hs = d.SearchResultGroup.FilteredSearchResultMap[int(msgIDf)]
+							tmp, bok := d.SearchResultGroup.FilteredSearchResultMap[int(msgIDf)]
+							if bok {
+								hs = tmp
+							}
 						}
 					}
-					hs.WebResponse.Body = payloadMap
 					if hs != nil {
+						if hs.TwitterMetadata != nil && hs.TwitterMetadata.TweetID > 0 {
+							hs.UnixTimestamp = hs.TwitterMetadata.TweetID
+						}
+						hs.WebResponse.Body = payloadMap
 						pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, *hs)
 					}
 				}
+				fmt.Println("ok")
 			} else if d.SearchResultGroup != nil && d.SearchResultGroup.SearchResults != nil {
 				if pr.PromptReductionSearchResults == nil {
 					pr.PromptReductionSearchResults = &PromptReductionSearchResults{

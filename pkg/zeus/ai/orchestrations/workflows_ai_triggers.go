@@ -173,13 +173,13 @@ func FilterPassingEvalPassingResponses(jres []artemis_orchestrations.JsonSchemaD
 			}
 		}
 		if count == len(jr.ScoredEvalMetrics) && len(jr.ScoredEvalMetrics) > 0 {
-			jro["filter"] = JsonResponseGroupsByOutcome{
-				Passed: append(jro["filter"].Passed, jr),
-			}
+			tmp := jro["filter"]
+			tmp.Passed = append(tmp.Passed, jr)
+			jro["filter"] = tmp
 		} else {
-			jro["filter"] = JsonResponseGroupsByOutcome{
-				Failed: append(jro["filter"].Failed, jr),
-			}
+			tmp := jro["filter"]
+			tmp.Failed = append(tmp.Failed, jr)
+			jro["filter"] = tmp
 		}
 	}
 	return jro

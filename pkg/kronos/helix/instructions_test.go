@@ -32,10 +32,11 @@ func (t *KronosInstructionsTestSuite) SetupTest() {
 
 // You can change any params for this, it is a template of the other test meant for creating alerts
 func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
-	groupName := "IrisPlatformServiceWorkflows"
-	instType := "IrisServerlessResyncWorkflow"
-
+	groupName := "DestroyDeployTopologyWorkflow"
+	instType := "DestroyDeployedTopologyWorkflow"
 	orchName := fmt.Sprintf("%s-%s", groupName, instType)
+
+	alertThresholdDuration := time.Minute * 20
 	inst := Instructions{
 		GroupName: groupName,
 		Type:      instType,
@@ -43,11 +44,11 @@ func (t *KronosWorkerTestSuite) TestInsertAlertOrchestratorsScratchPad() {
 			Severity:  apollo_pagerduty.CRITICAL,
 			Source:    TemporalAlerts,
 			Component: orchName,
-			Message:   "An Iris cronjob workflow is stuck",
+			Message:   fmt.Sprintf("%s: workflow is stuck for at least %f minutes", orchName, alertThresholdDuration.Minutes()),
 		},
 		Trigger: TriggerInstructions{
-			AlertAfterTime:              time.Minute * 30,
-			ResetAlertAfterTimeDuration: time.Minute * 30,
+			AlertAfterTime:              alertThresholdDuration,
+			ResetAlertAfterTimeDuration: alertThresholdDuration,
 		},
 	}
 	b, err := json.Marshal(inst)

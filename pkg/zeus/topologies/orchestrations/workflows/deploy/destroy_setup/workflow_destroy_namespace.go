@@ -1,6 +1,7 @@
 package deploy_workflow_destroy_setup
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
@@ -34,6 +35,13 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
+	}
+	oj := artemis_orchestrations.NewInternalActiveTemporalOrchestrationJobTemplate(wfID, "DestroyNamespaceSetupWorkflow", "DestroyNamespaceSetupWorkflow")
+	alertCtx := workflow.WithActivityOptions(ctx, ao)
+	aerr := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	if aerr != nil {
+		logger.Error("Failed to upsert assignment", "Error", aerr)
+		return aerr
 	}
 	removeSubdomainCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.TopologyDeployRequest.CloudCtxNs).Get(removeSubdomainCtx, nil)
@@ -78,6 +86,12 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyDeployedTopologyWorkflow", wfID, params)
 	var childWE workflow.Execution
 	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
+		return err
+	}
+	finishedCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	if err != nil {
+		logger.Error("Failed to update and mark orchestration inactive", "Error", err)
 		return err
 	}
 	return nil

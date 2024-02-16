@@ -356,7 +356,6 @@ func ChunkPromptToSlices(ctx context.Context, model, strIn string, marginBuffer 
 				log.Err(err).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 				return nil, err
 			}
-
 			if needsReduction {
 				allChunksValid = false
 				break

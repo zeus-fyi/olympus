@@ -163,6 +163,10 @@ func FilterPassingEvalPassingResponses(jres []artemis_orchestrations.JsonSchemaD
 		}
 		count := 0
 		for _, er := range jr.ScoredEvalMetrics {
+			if er.EvalExpectedResultState == "ignore" {
+				count += 1
+				continue
+			}
 			if er.EvalState != "filter" {
 				continue
 			}

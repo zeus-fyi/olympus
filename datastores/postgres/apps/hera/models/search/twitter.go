@@ -128,7 +128,6 @@ func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 		)
 		sr.TwitterMetadata = &TwitterMetadata{
 			TweetStrID: fmt.Sprintf("%d", sr.UnixTimestamp),
-			TweetID:    sr.UnixTimestamp,
 			Text:       sr.Value,
 		}
 		sr.UnixTimestamp = ts.ConvertTweetIDToUnixTimestamp(sr.UnixTimestamp)

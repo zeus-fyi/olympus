@@ -70,7 +70,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		log.Info().Int("attempt", attempt).Msg("JsonOutputTaskWorkflow: attempt")
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
 		fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.Schemas)
-
 		feedbackPrompt := ""
 		if feedback != nil {
 			feedbackPrompt = fmt.Sprintf("Please fix your answer or make best assumptions on data structure to fix this error: %s. This is attempt number: %d", feedback.Error(), attempt)

@@ -66,30 +66,33 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 		for _, d := range pr.DataInAnalysisAggregation {
 			if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
-				seen := make(map[int]hera_search.SearchResult)
 				switch d.SearchResultGroup.PlatformName {
 				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:
+					d.SearchResultGroup.FilteredSearchResultMap = make(map[int]*hera_search.SearchResult)
 					for ind, _ := range d.SearchResultGroup.SearchResults {
 						if d.SearchResultGroup.SearchResults[ind].TwitterMetadata != nil && d.SearchResultGroup.SearchResults[ind].TwitterMetadata.TweetID > 0 {
-							seen[d.SearchResultGroup.SearchResults[ind].TwitterMetadata.TweetID] = d.SearchResultGroup.SearchResults[ind]
+							d.SearchResultGroup.FilteredSearchResultMap[d.SearchResultGroup.SearchResults[ind].TwitterMetadata.TweetID] = &d.SearchResultGroup.SearchResults[ind]
+						} else {
+							d.SearchResultGroup.FilteredSearchResultMap[d.SearchResultGroup.SearchResults[ind].UnixTimestamp] = &d.SearchResultGroup.SearchResults[ind]
 						}
-						seen[d.SearchResultGroup.SearchResults[ind].UnixTimestamp] = d.SearchResultGroup.SearchResults[ind]
 					}
 				}
 				for _, payloadMap := range payloadMaps {
-					var hs hera_search.SearchResult
+					var hs *hera_search.SearchResult
 					if payloadMap["msg_id"] != nil {
 						msgID, ok := payloadMap["msg_id"].(int)
 						msgIDf, fok := payloadMap["msg_id"].(float64)
 						if ok {
-							hs = seen[msgID]
+							hs = d.SearchResultGroup.FilteredSearchResultMap[msgID]
 						}
 						if fok {
-							hs = seen[int(msgIDf)]
+							hs = d.SearchResultGroup.FilteredSearchResultMap[int(msgIDf)]
 						}
 					}
 					hs.WebResponse.Body = payloadMap
-					pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, hs)
+					if hs != nil {
+						pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, *hs)
+					}
 				}
 			} else if d.SearchResultGroup != nil && d.SearchResultGroup.SearchResults != nil {
 				if pr.PromptReductionSearchResults == nil {

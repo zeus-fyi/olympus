@@ -103,17 +103,20 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			m, anyErr = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, aiResp)
 			// ok no err
 			if anyErr != nil {
-				log.Err(anyErr).Interface("m", m).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
+				log.Err(anyErr).Interface("m", m).Interface("resp", aiResp.Response.Choices).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
 			}
 		} else {
 			m, anyErr = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, aiResp)
 			if anyErr != nil {
-				log.Err(anyErr).Interface("m", m).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+				log.Err(anyErr).Interface("m", m).Interface("resp", aiResp.Response.Choices).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
 			}
 		}
 		var tmpResp []artemis_orchestrations.JsonSchemaDefinition
 		if anyErr == nil {
 			tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
+			if anyErr != nil {
+				feedback = anyErr
+			}
 		} else {
 			feedback = anyErr
 		}
@@ -137,7 +140,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 					logger.Error("failed to save eval resp id", "Error", err)
 					return nil, err
 				}
-
+				continue
 			} else {
 				afv := InputDataAnalysisToAgg{
 					ChatCompletionQueryResponse: aiResp,

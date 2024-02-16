@@ -132,7 +132,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 		return nil, err
 	}
 
-	log.Info().Interface("pr", pr).Msg("TokenOverflowReductioDone")
+	log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Msg("TokenOverflowReductioDone")
 	return pr, nil
 }
 

@@ -166,7 +166,13 @@ type SearchResult struct {
 	Metadata        TelegramMetadata `json:"metadata,omitempty"`
 	DiscordMetadata DiscordMetadata  `json:"discordMetadata"`
 	RedditMetadata  RedditMetadata   `json:"redditMetadata"`
+	TwitterMetadata *TwitterMetadata `json:"twitterMetadata,omitempty"`
 	WebResponse     WebResponse      `json:"webResponses,omitempty"`
+}
+type TwitterMetadata struct {
+	TweetID    int    `json:"tweet_id"`
+	TweetStrID string `json:"in_reply_to_tweet_id"`
+	Text       string `json:"text"`
 }
 
 type RedditMetadata struct {
@@ -385,8 +391,11 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		var parts []string
 
 		// Always include the UnixTimestamp
-		parts = append(parts, fmt.Sprintf("%d", result.UnixTimestamp))
-
+		if result.TwitterMetadata != nil && result.TwitterMetadata.TweetStrID != "" {
+			parts = append(parts, result.TwitterMetadata.TweetStrID)
+		} else {
+			parts = append(parts, fmt.Sprintf("%d", result.UnixTimestamp))
+		}
 		// Conditionally append other fields if they are not empty
 		if result.Source != "" {
 			parts = append(parts, escapeString(result.Source))
@@ -446,15 +455,19 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	}
 	var newResults []interface{}
 	for _, result := range results {
-		// Always include the UnixTimestamp
 		if result.WebResponse.Body != nil {
 			if result.Value != "" {
 				result.WebResponse.Body["msg_body"] = result.Value
 			}
 			newResults = append(newResults, result.WebResponse.Body)
-		} else if result.Verified != nil && *result.Verified && result.UnixTimestamp > 0 {
+		}
+		if result.Verified != nil && *result.Verified && result.UnixTimestamp > 0 {
+			msgID := fmt.Sprintf("%d", result.UnixTimestamp)
+			if result.TwitterMetadata != nil && result.TwitterMetadata.TweetStrID != "" {
+				msgID = result.TwitterMetadata.TweetStrID
+			}
 			nr := SimplifiedSearchResultJSON{
-				MessageID:   fmt.Sprintf("%d", result.UnixTimestamp),
+				MessageID:   msgID,
 				MessageBody: result.Value,
 			}
 			newResults = append(newResults, nr)
@@ -468,7 +481,7 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	}
 	b, err := json.Marshal(newResults)
 	if err != nil {
-		log.Err(err).Msg("FormatSearchResultsV3: Error marshalling search results")
+		log.Err(err).Msg("FormatSearchResultsV5: Error marshalling search results")
 		return ""
 	}
 	return string(b)

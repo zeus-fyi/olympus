@@ -53,6 +53,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		return err
 	}
 
+	// if there are no trigger actions to execute, check if conditions are met for execution for filter
 	if len(triggerActions) == 0 && tar.Emr.EvaluatedJsonResponses != nil {
 		// just filter passing to next stage then if no trigger action with specific pass/fail conditions
 		jro := FilterPassingEvalPassingResponses(tar.Emr.EvaluatedJsonResponses)
@@ -75,7 +76,6 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		}
 	}
 
-	// if there are no trigger actions to execute, check if conditions are met for execution
 	for _, ta := range triggerActions {
 		var jro JsonResponseGroupsByOutcomeMap
 		filterJsonEvalCtx := workflow.WithActivityOptions(ctx, aoAiAct)

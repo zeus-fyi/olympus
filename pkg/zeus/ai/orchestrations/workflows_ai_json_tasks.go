@@ -72,6 +72,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		feedbackPrompt := ""
 		if feedback != nil {
 			feedbackPrompt = "Please fix your answer or make best assumptions on data structure to fix this error: " + feedback.Error()
+			feedback = nil
 		}
 		params := hera_openai.OpenAIParams{
 			Model:              tte.Tc.Model,

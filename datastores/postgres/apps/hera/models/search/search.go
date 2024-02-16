@@ -444,47 +444,34 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	if len(results) == 0 {
 		return ""
 	}
-	var builder strings.Builder
+	var newResults []interface{}
 	for _, result := range results {
 		// Always include the UnixTimestamp
 		if result.WebResponse.Body != nil {
 			if result.Value != "" {
 				result.WebResponse.Body["msg_body"] = result.Value
 			}
-			bodyString, err := json.Marshal(result.WebResponse.Body)
-			if err != nil {
-				log.Err(err).Msg("FormatSearchResultsV5: Error marshalling web response body")
-				// Handle error, maybe log it or use a default error message in place of the body
-				continue // or handle it differently
-			}
-			builder.WriteString(string(bodyString))
+			newResults = append(newResults, result.WebResponse.Body)
 		} else if result.Verified != nil && *result.Verified && result.UnixTimestamp > 0 {
 			nr := SimplifiedSearchResultJSON{
 				MessageID:   fmt.Sprintf("%d", result.UnixTimestamp),
 				MessageBody: result.Value,
 			}
-			bodyString, err := json.Marshal(nr)
-			if err != nil {
-				log.Err(err).Msg("FormatSearchResultsV5: Error marshalling web response body")
-				// Handle error, maybe log it or use a default error message in place of the body
-				continue // or handle it differently
-			}
-			builder.WriteString(string(bodyString))
+			newResults = append(newResults, nr)
 		} else {
 			m := map[string]interface{}{
 				"msg_id":   result.UnixTimestamp,
 				"msg_body": result.Value,
 			}
-			b, err := json.Marshal(m)
-			if err != nil {
-				continue
-			}
-			builder.WriteString(string(b))
+			newResults = append(newResults, m)
 		}
-		builder.WriteString("\n")
-		// Join the parts with " | " and add a newline at the end
 	}
-	return builder.String()
+	b, err := json.Marshal(newResults)
+	if err != nil {
+		log.Err(err).Msg("FormatSearchResultsV3: Error marshalling search results")
+		return ""
+	}
+	return string(b)
 }
 
 type SimplifiedSearchResultJSON struct {

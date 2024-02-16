@@ -128,6 +128,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 			wft.AggTasks = append(wft.AggTasks, agt)
 		case "analysis":
 			at := artemis_orchestrations.AITaskLibrary{
+				TaskStrID:             taskStrID,
 				TaskID:                m.TaskID,
 				OrgID:                 ou.OrgID,
 				UserID:                ou.UserID,
@@ -141,7 +142,6 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				CycleCount:            m.CycleCount,
 				RetrievalDependencies: []artemis_orchestrations.RetrievalItem{},
 			}
-
 			efAnalysis, aok := w.EvalTasksMap[taskStrID]
 			if aok {
 				for ke, _ := range efAnalysis {

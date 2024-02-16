@@ -64,3 +64,38 @@ func CreateOrUpdateSchema(c echo.Context, js *artemis_orchestrations.JsonSchemaD
 	}
 	return c.JSON(http.StatusOK, js)
 }
+
+type JsonSchemaDefinitionsReader struct {
+}
+
+func AiSchemaHHandler(c echo.Context) error {
+	request := new(JsonSchemaDefinitionsReader)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	if request == nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return GetSchemas(c)
+}
+
+func GetSchemas(c echo.Context) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	if berr != nil {
+		log.Error().Err(berr).Msg("failed to check if user has billing method")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if !isBillingSetup {
+		return c.JSON(http.StatusPreconditionFailed, nil)
+	}
+	jsds, err := artemis_orchestrations.SelectJsonSchemaByOrg(c.Request().Context(), ou)
+	if err != nil {
+		log.Err(err).Msg("failed to select schemas")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, jsds)
+}

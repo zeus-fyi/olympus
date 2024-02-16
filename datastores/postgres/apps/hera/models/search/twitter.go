@@ -126,6 +126,11 @@ func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams)
 		rowErr := rows.Scan(
 			&sr.UnixTimestamp, &sr.Value,
 		)
+		sr.TwitterMetadata = &TwitterMetadata{
+			TweetStrID: fmt.Sprintf("%d", sr.UnixTimestamp),
+			TweetID:    sr.UnixTimestamp,
+			Text:       sr.Value,
+		}
 		sr.UnixTimestamp = ts.ConvertTweetIDToUnixTimestamp(sr.UnixTimestamp)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SearchTwitter"))

@@ -194,6 +194,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 							cp.AnalysisEvalActionParams = &EvalActionParams{}
 						}
 						cp.AnalysisEvalActionParams.ParentOutputToEval = aiResp
+						cp.AnalysisEvalActionParams.SearchResultGroup = tte.Sg
 					}
 				default:
 					inGroup := tte.Sg.SearchResults

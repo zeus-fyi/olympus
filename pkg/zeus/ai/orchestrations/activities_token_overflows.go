@@ -70,6 +70,9 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 				switch d.SearchResultGroup.PlatformName {
 				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:
 					for ind, _ := range d.SearchResultGroup.SearchResults {
+						if d.SearchResultGroup.SearchResults[ind].TwitterMetadata != nil && d.SearchResultGroup.SearchResults[ind].TwitterMetadata.TweetID > 0 {
+							seen[d.SearchResultGroup.SearchResults[ind].TwitterMetadata.TweetID] = d.SearchResultGroup.SearchResults[ind]
+						}
 						seen[d.SearchResultGroup.SearchResults[ind].UnixTimestamp] = d.SearchResultGroup.SearchResults[ind]
 					}
 				}

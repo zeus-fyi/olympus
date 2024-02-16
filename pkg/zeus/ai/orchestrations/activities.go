@@ -511,11 +511,13 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *art
 			return nil, err
 		}
 	}
-
 	if res != nil && sg != nil && sg.SearchResults != nil {
 		seen := make(map[int]bool)
 		for _, jr := range res {
 			for _, fv := range jr.Fields {
+				if fv.FieldName == "msg_id" && fv.IsValidated && fv.NumberValue != nil && *fv.NumberValue > 0 {
+					seen[int(*fv.NumberValue)] = true
+				}
 				if fv.FieldName == "msg_id" && fv.IsValidated && fv.IntegerValue != nil && *fv.IntegerValue > 0 {
 					seen[*fv.IntegerValue] = true
 				}

@@ -172,6 +172,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						logger.Error("failed to execute json agg workflow", "Error", err)
 						return err
 					}
+					wr.ResponseID = aiAggResp.ResponseID
 					wr.WorkflowResultID = aiAggResp.WorkflowResultID
 				default:
 					aggCtx := workflow.WithActivityOptions(ctx, ao)

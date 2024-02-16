@@ -132,7 +132,14 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 		return nil, err
 	}
 
-	log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Msg("TokenOverflowReductioDone")
+	tmp := pr.PromptReductionSearchResults
+	if tmp != nil && tmp.OutSearchGroups != nil && len(tmp.OutSearchGroups) > 0 {
+		log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Interface("len(tmp.OutSearchGroups)", len(tmp.OutSearchGroups)).Msg("TokenOverflowReductioDone")
+	}
+
+	if pr.PromptReductionText != nil {
+		log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Interface("pr.PromptReductionText.OutPromptChunks", len(pr.PromptReductionText.OutPromptChunks)).Msg("TokenOverflowReductionDone")
+	}
 	return pr, nil
 }
 

@@ -443,8 +443,8 @@ func validateMarginBufferLimits(marginBuffer float64) float64 {
 	if marginBuffer < 0.01 {
 		return 0.5
 	}
-	if marginBuffer >= 0.01 && marginBuffer < 0.1 {
-		return 0.1
+	if marginBuffer >= 0.01 && marginBuffer < 0.2 {
+		return 0.2
 	}
 	if marginBuffer > 0.80 {
 		return 0.80

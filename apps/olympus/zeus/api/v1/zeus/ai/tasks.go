@@ -46,8 +46,8 @@ func (t *CreateOrUpdateTaskRequest) CreateOrUpdateTask(c echo.Context) error {
 	if t.MarginBuffer == 0 {
 		t.MarginBuffer = 0.5
 	}
-	if t.MarginBuffer < 0.1 {
-		t.MarginBuffer = 0.1
+	if t.MarginBuffer < 0.2 {
+		t.MarginBuffer = 0.2
 	}
 	if t.MarginBuffer > 0.8 {
 		t.MarginBuffer = 0.8

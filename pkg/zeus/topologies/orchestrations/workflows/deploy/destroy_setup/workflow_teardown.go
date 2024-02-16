@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/authorized_clusters"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
@@ -46,14 +47,14 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-	//
-	//oj := artemis_orchestrations.NewInternalActiveTemporalOrchestrationJobTemplate(wfID, "DestroyClusterSetupWorkflow", "DestroyClusterSetupWorkflowFreeTrial")
-	//alertCtx := workflow.WithActivityOptions(ctx, ao)
-	//aerr := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
-	//if aerr != nil {
-	//	logger.Error("Failed to upsert assignment", "Error", aerr)
-	//	return aerr
-	//}
+
+	oj := artemis_orchestrations.NewInternalActiveTemporalOrchestrationJobTemplate(wfID, "DestroyClusterSetupWorkflow", "DestroyClusterSetupWorkflowFreeTrial")
+	alertCtx := workflow.WithActivityOptions(ctx, ao)
+	aerr := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	if aerr != nil {
+		logger.Error("Failed to upsert assignment", "Error", aerr)
+		return aerr
+	}
 
 	if params.FreeTrial {
 		err := workflow.Sleep(ctx, 60*time.Minute)
@@ -218,13 +219,12 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 		}
 	}
 
-	/*
-		finishedCtx := workflow.WithActivityOptions(ctx, ao)
-		err := workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
-		if err != nil {
-			logger.Error("Failed to update and mark orchestration inactive", "Error", err)
-			return err
-		}
-	*/
+	finishedCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
+	if err != nil {
+		logger.Error("Failed to update and mark orchestration inactive", "Error", err)
+		return err
+	}
+
 	return nil
 }

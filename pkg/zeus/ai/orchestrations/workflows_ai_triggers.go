@@ -52,6 +52,29 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		logger.Error("failed to get eval trigger info", "Error", err)
 		return err
 	}
+
+	if len(triggerActions) == 0 && tar.Emr.EvaluatedJsonResponses != nil {
+		// just filter passing to next stage then if no trigger action with specific pass/fail conditions
+		jro := FilterPassingEvalPassingResponses(tar.Emr.EvaluatedJsonResponses)
+		var payloadJsonSlice []artemis_orchestrations.JsonSchemaDefinition
+		// update to pass sg
+		sgIn := tar.Cpe.SearchResultGroup
+		if sgIn == nil {
+			sgIn = &hera_search.SearchResultGroup{}
+		}
+		wfr := tar.Mb.WorkflowResult
+		if tar.Cpe.ParentOutputToEval != nil {
+			wfr.WorkflowResultID = tar.Cpe.ParentOutputToEval.WorkflowResultID
+			wfr.ResponseID = tar.Cpe.ParentOutputToEval.ResponseID
+		}
+		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, &wfr, jro, sgIn).Get(updateTaskCtx, &payloadJsonSlice)
+		if err != nil {
+			logger.Error("failed to update task", "Error", err)
+			return err
+		}
+	}
+
 	// if there are no trigger actions to execute, check if conditions are met for execution
 	for _, ta := range triggerActions {
 		var jro JsonResponseGroupsByOutcomeMap
@@ -126,4 +149,38 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		}
 	}
 	return nil
+}
+
+func FilterPassingEvalPassingResponses(jres []artemis_orchestrations.JsonSchemaDefinition) JsonResponseGroupsByOutcomeMap {
+	jro := make(map[string]JsonResponseGroupsByOutcome)
+	jro["filter"] = JsonResponseGroupsByOutcome{
+		Passed: []artemis_orchestrations.JsonSchemaDefinition{},
+		Failed: []artemis_orchestrations.JsonSchemaDefinition{},
+	}
+	for _, jr := range jres {
+		if jr.ScoredEvalMetrics == nil {
+			continue
+		}
+		count := 0
+		for _, er := range jr.ScoredEvalMetrics {
+			if er.EvalState != "filter" {
+				continue
+			}
+			if er.EvalExpectedResultState == "pass" && er.EvalMetricResult != nil && er.EvalMetricResult.EvalResultOutcomeBool != nil && *er.EvalMetricResult.EvalResultOutcomeBool {
+				count += 1
+			} else if er.EvalExpectedResultState == "fail" && er.EvalMetricResult != nil && er.EvalMetricResult.EvalResultOutcomeBool != nil && !*er.EvalMetricResult.EvalResultOutcomeBool {
+				count += 1
+			}
+		}
+		if count == len(jr.ScoredEvalMetrics) && len(jr.ScoredEvalMetrics) > 0 {
+			jro["filter"] = JsonResponseGroupsByOutcome{
+				Passed: append(jro["filter"].Passed, jr),
+			}
+		} else {
+			jro["filter"] = JsonResponseGroupsByOutcome{
+				Failed: append(jro["filter"].Failed, jr),
+			}
+		}
+	}
+	return jro
 }

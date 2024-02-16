@@ -455,7 +455,7 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 }
 
 func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, jro JsonResponseGroupsByOutcomeMap, sg *hera_search.SearchResultGroup) ([]artemis_orchestrations.JsonSchemaDefinition, error) {
-	if wr == nil {
+	if wr == nil || len(jro) <= 0 {
 		return nil, nil
 	}
 	var md []byte

@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -64,6 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		if cpe.EvalFns[ei].EvalID == 0 {
 			continue
 		}
+		log.Info().Int("evalID", cpe.EvalFns[ei].EvalID).Msg("evalID")
 		var efs []artemis_orchestrations.EvalFn
 		evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, cpe.EvalFns[ei].EvalID).Get(evalFnMetricsLookupCtx, &efs)
@@ -98,14 +100,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 				continue
 			}
-
 			var canSkip bool
-
 			if cpe.ParentOutputToEval != nil && cpe.ParentOutputToEval.JsonResponseResults != nil && len(cpe.ParentOutputToEval.JsonResponseResults) > 0 && len(evalFnsAgg[evFnIndex].Schemas) > 0 {
 				jrs := cpe.ParentOutputToEval.JsonResponseResults
 				evs := evalFnsAgg[evFnIndex].Schemas
-				evmName := aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
-				canSkip = evmName == cpe.ParentOutputToEval.Params.Model
+				evmModelName := aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
+				canSkip = evmModelName == cpe.ParentOutputToEval.Params.Model
 				for _, sv := range evs {
 					if !CheckSchemaIDsAndValidFields(sv.SchemaID, jrs) {
 						canSkip = false
@@ -134,6 +134,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				return err
 			}
 			evCtx.JsonResponseResults = cpe.ParentOutputToEval.JsonResponseResults
+			evCtx.EvaluatedJsonResponses = emr.EvaluatedJsonResponses
 		case "api":
 			// TODO, complete this, should attach a retrieval option? use that for the scoring?
 			//retrievalCtx := workflow.WithActivityOptions(ctx, ao)

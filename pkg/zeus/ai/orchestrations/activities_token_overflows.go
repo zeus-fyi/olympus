@@ -76,42 +76,26 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
 				switch d.SearchResultGroup.PlatformName {
 				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:
-					d.SearchResultGroup.FilteredSearchResultMap = make(map[int]*hera_search.SearchResult)
-					for ind, _ := range d.SearchResultGroup.SearchResults {
-						d.SearchResultGroup.FilteredSearchResultMap[d.SearchResultGroup.SearchResults[ind].UnixTimestamp] = &d.SearchResultGroup.SearchResults[ind]
-						if d.SearchResultGroup.SearchResults[ind].TwitterMetadata != nil && d.SearchResultGroup.SearchResults[ind].TwitterMetadata.TweetID > 0 {
-							d.SearchResultGroup.FilteredSearchResultMap[d.SearchResultGroup.SearchResults[ind].TwitterMetadata.TweetID] = &d.SearchResultGroup.SearchResults[ind]
-						}
-					}
-				}
-				for _, payloadMap := range payloadMaps {
-					var hs *hera_search.SearchResult
-					if payloadMap["msg_id"] != nil {
-						msgID, ok := payloadMap["msg_id"].(int)
-						msgIDf, fok := payloadMap["msg_id"].(float64)
-						if ok {
-							tmp, bok := d.SearchResultGroup.FilteredSearchResultMap[msgID]
-							if bok {
-								hs = tmp
+					tmpMap := make(map[int]map[string]interface{})
+					for _, payloadMap := range payloadMaps {
+						if payloadMap["msg_id"] != nil {
+							msgID, ok := payloadMap["msg_id"].(int)
+							if ok {
+								tmpMap[msgID] = payloadMap
 							}
-							hs = tmp
-						}
-						if fok {
-							tmp, bok := d.SearchResultGroup.FilteredSearchResultMap[int(msgIDf)]
-							if bok {
-								hs = tmp
+							msgIDf, fok := payloadMap["msg_id"].(float64)
+							if fok {
+								tmpMap[int(msgIDf)] = payloadMap
 							}
 						}
 					}
-					if hs != nil {
-						if hs.TwitterMetadata != nil && hs.TwitterMetadata.TweetID > 0 {
-							hs.UnixTimestamp = hs.TwitterMetadata.TweetID
+					for _, sv := range d.SearchResultGroup.SearchResults {
+						if item, ok := tmpMap[sv.UnixTimestamp]; ok && item != nil {
+							pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, sv)
 						}
-						hs.WebResponse.Body = payloadMap
-						pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, *hs)
 					}
+					fmt.Println("ok")
 				}
-				fmt.Println("ok")
 			} else if d.SearchResultGroup != nil && d.SearchResultGroup.SearchResults != nil {
 				if pr.PromptReductionSearchResults == nil {
 					pr.PromptReductionSearchResults = &PromptReductionSearchResults{

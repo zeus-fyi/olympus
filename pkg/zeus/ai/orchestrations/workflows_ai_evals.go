@@ -83,20 +83,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			continue
 		}
 		var emr *artemis_orchestrations.EvalMetricsResults
-		evCtx := artemis_orchestrations.EvalContext{
-			EvalID:                   aws.IntValue(evalFnsAgg[evFnIndex].EvalID),
-			AIWorkflowAnalysisResult: mb.WorkflowResult,
-			EvalIterationCount:       0,
-		}
+		evCtx := artemis_orchestrations.EvalContext{EvalID: aws.IntValue(evalFnsAgg[evFnIndex].EvalID), AIWorkflowAnalysisResult: mb.WorkflowResult, EvalIterationCount: 0}
 		cpe.TaskToExecute.Ec = evCtx
 		switch strings.ToLower(evalFnsAgg[evFnIndex].EvalType) {
 		case "model":
 			wfID := mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.RunCycle)
-			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-				WorkflowID:               wfID,
-				WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-				RetryPolicy:              aoAiAct.RetryPolicy,
-			}
+			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: wfID, WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: aoAiAct.RetryPolicy}
 			if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 				continue
 			}
@@ -125,10 +117,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				}
 			}
 			if cpe.ParentOutputToEval.JsonResponseResults == nil {
+				logger.Warn("json response results are nil, skipping eval", "evalID", cpe.TaskToExecute)
 				continue
 			}
+			efin := evalFnsAgg[evFnIndex]
+			jrevr := cpe.ParentOutputToEval.JsonResponseResults
 			evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, evalFnsAgg[evFnIndex], cpe.ParentOutputToEval.JsonResponseResults).Get(evalModelScoredJsonCtx, &emr)
+			err := workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, efin, jrevr).Get(evalModelScoredJsonCtx, &emr)
 			if err != nil {
 				logger.Error("failed to get score eval", "Error", err)
 				return err
@@ -136,39 +131,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			evCtx.JsonResponseResults = cpe.ParentOutputToEval.JsonResponseResults
 			evCtx.EvaluatedJsonResponses = emr.EvaluatedJsonResponses
 		case "api":
-			// TODO, complete this, should attach a retrieval option? use that for the scoring?
-			//retrievalCtx := workflow.WithActivityOptions(ctx, ao)
-			//err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, ou, analysisInst, window).Get(retrievalCtx, &sr)
-			//if err != nil {
-			//	logger.Error("failed to run retrieval", "Error", err)
-			//	return err
-			//}
-			//var routes []iris_models.RouteInfo
-			//retrievalWebCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			//err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, ou, analysisInst).Get(retrievalWebCtx, &routes)
-			//if err != nil {
-			//	logger.Error("failed to run retrieval", "Error", err)
-			//	return err
-			//}
-			//for _, route := range routes {
-			//	fetchedResult := &hera_search.SearchResult{}
-			//	retrievalWebTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			//	err = workflow.ExecuteActivity(retrievalWebTaskCtx, z.AiWebRetrievalTask, ou, analysisInst, route).Get(retrievalWebTaskCtx, &fetchedResult)
-			//	if err != nil {
-			//		logger.Error("failed to run retrieval", "Error", err)
-			//		return err
-			//	}
-			//	if fetchedResult != nil && len(fetchedResult.Value) > 0 {
-			//		sr = append(sr, *fetchedResult)
-			//	}
-			//}
-			//cr := &ChatCompletionQueryResponse{}
-			//apiScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			//err = workflow.ExecuteActivity(apiScoredJsonCtx, z.SendResponseToApiForScoresInJson, mb.Ou, evalParams).Get(apiScoredJsonCtx, &cr)
-			//if err != nil {
-			//	logger.Error("failed to get eval info", "Error", err)
-			//	return err
-			//}
 		}
 		if emr == nil {
 			continue
@@ -181,15 +143,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			return err
 		}
 		cpe.TaskToExecute.Ec = evCtx
-		suffix := strings.Split(uuid.New().String(), "-")[0]
-		wfID := mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + suffix
-		tar := TriggerActionsWorkflowParams{
-			Emr: emr,
-			Mb:  mb,
-			Cpe: cpe,
-		}
+		tar := TriggerActionsWorkflowParams{Emr: emr, Mb: mb, Cpe: cpe}
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               wfID,
+			WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + strings.Split(uuid.New().String(), "-")[0],
 			WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			RetryPolicy:              aoAiAct.RetryPolicy,
 		}

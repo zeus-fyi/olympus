@@ -26,7 +26,7 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 				FieldValue:                 &jsonSchemaDef.Fields[vi].FieldValue,
 			}
 			switch jsonSchemaDef.Fields[vi].DataType {
-			case "integer":
+			case "integer", "int":
 				if jsonSchemaDef.Fields[vi].IntegerValue == nil {
 					return fmt.Errorf("no int value for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
@@ -38,7 +38,6 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger = aws.Int(int(fv))
 					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonNumber = nil
 				}
-
 				if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger != nil {
 					jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult.EvalResultOutcomeBool = aws.Bool(GetIntEvalComparisonResult(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, *jsonSchemaDef.Fields[vi].IntegerValue, aws.ToInt(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger)))
 					eocr.EvalOpCtxStr = fmt.Sprintf("%s %d %s %d", jsonSchemaDef.Fields[vi].FieldName, aws.ToInt(jsonSchemaDef.Fields[vi].IntegerValue), jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalOperator, aws.ToInt(jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricComparisonValues.EvalComparisonInteger))
@@ -48,7 +47,7 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 				} else {
 					return fmt.Errorf("no comparison number for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}
-			case "number":
+			case "number", "float":
 				if jsonSchemaDef.Fields[vi].NumberValue == nil {
 					return fmt.Errorf("no number value for key '%s'", jsonSchemaDef.Fields[vi].FieldName)
 				}

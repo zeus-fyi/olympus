@@ -9,59 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
-/*
-type EvalFn struct {
-	EvalID         *int                          `json:"evalID,omitempty"`
-	EvalType       string                        `json:"evalType"`
-	EvalModel      *string                       `json:"evalModel,omitempty"`
-	EvalFormat     string                        `json:"evalFormat"`
-	EvalCycleCount int                           `json:"evalCycleCount,omitempty"`
-	TriggerActions []TriggerAction               `json:"triggerFunctions,omitempty"`
-	Schemas        []*JsonSchemaDefinition       `json:"schemas,omitempty"`
-	SchemasMap     map[int]*JsonSchemaDefinition `json:"schemaMap"`
-}
-type JsonSchemaDefinition struct {
-	SchemaID    int               `db:"schema_id" json:"schemaID"`
-	IsObjArray  bool              `db:"is_obj_array" json:"isObjArray"`
-	Fields      []JsonSchemaField `db:"-" json:"fields"`
-}
-
-type JsonSchemaField struct {
-	FieldID           int         `db:"field_id" json:"fieldID"`
-	FieldName         string      `db:"field_name" json:"fieldName"`
-	FieldDescription  string      `db:"field_description" json:"fieldDescription"`
-	DataType          string      `db:"data_type" json:"dataType"`
-	IntegerValue      *int        `db:"-" json:"intValue,omitempty"`
-	StringValue       *string     `db:"-" json:"stringValue,omitempty"`
-	NumberValue       *float64    `db:"-" json:"numberValue,omitempty"`
-	BooleanValue      *bool       `db:"-" json:"booleanValue,omitempty"`
-	IntegerValueSlice []int       `db:"-" json:"intValueSlice,omitempty"`
-	StringValueSlice  []string    `db:"-" json:"stringValueSlice,omitempty"`
-	NumberValueSlice  []float64   `db:"-" json:"numberValueSlice,omitempty"`
-	BooleanValueSlice []bool      `db:"-" json:"booleanValueSlice,omitempty"`
-	IsValidated       bool        `db:"-" json:"isValidated,omitempty"`
-	EvalMetric        *EvalMetric `db:"-" json:"evalMetricResult,omitempty"`
-}
-
-type EvalMetricResult struct {
-	EvalMetricsResultID    *int            `json:"evalMetricResultID"`
-	EvalResultOutcomeBool *bool           `json:"evalResultOutcome,omitempty"` // true if eval passed, false if eval failed
-	EvalMetadata          json.RawMessage `json:"evalMetadata,omitempty"`
-}
-type EvalMetric struct {
-	EvalMetricID            *int              `json:"evalMetricID"`
-	EvalMetricResult        *EvalMetricResult `json:"evalMetricResult"`
-	EvalOperator            string            `json:"evalOperator"`
-	EvalState               string            `json:"evalState"`
-	EvalExpectedResultState string            `json:"evalExpectedResultState"` // true if eval passed, false if eval failed
-	EvalComparisonBoolean   *bool             `json:"evalComparisonBoolean,omitempty"`
-	EvalComparisonNumber    *float64          `json:"evalComparisonNumber,omitempty"`
-	EvalComparisonString    *string           `json:"evalComparisonString,omitempty"`
-	EvalComparisonInteger   *int              `json:"evalComparisonInteger,omitempty"`
-	EvalMetadata            json.RawMessage   `json:"evalMetadata,omitempty"`
-}
-*/
-
 func (t *ZeusWorkerTestSuite) TestJsonToEvalMetric() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 

@@ -108,7 +108,6 @@ func (z *ZeusAiPlatformActivities) CreateRedditJob(ctx context.Context, ou org_u
 		Namespace:     "zeus",
 		Env:           "production",
 	}
-
 	err := zeus.K8Util.DeleteJob(ctx, kns, j.Name)
 	if err != nil {
 		log.Err(err).Msg("CreateDiscordJob: failed to delete job")

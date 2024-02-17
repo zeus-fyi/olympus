@@ -97,7 +97,6 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			UnixStartTime: w.UnixStartTime,
 			UnixEndTime:   endTime,
 		}
-
 		for wfi, _ := range w.Workflows {
 			if w.Workflows[wfi].WorkflowTemplateStrID != "" {
 				wid, werr := strconv.Atoi(w.Workflows[wfi].WorkflowTemplateStrID)

@@ -101,9 +101,11 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 		ret += "\n" + sg.BodyPrompt
 	}
 	if sg.FilteredSearchResultMap != nil && sg.SearchResults != nil {
+		log.Info().Msg("GetPromptBody: using filtered search results: sg.FilteredSearchResultMap != nil && sg.SearchResults != nil")
 		ret += FormatSearchResultsV4(sg.FilteredSearchResultMap, sg.SearchResults)
 	}
 	if sg.SearchResults != nil && len(sg.SearchResults) > 0 {
+		log.Info().Msg("GetPromptBody: using filtered search results:  sg.SearchResults != nil && len(sg.SearchResults) > 0")
 		ret = FormatSearchResultsV5(sg.SearchResults)
 	}
 	return ret
@@ -460,8 +462,7 @@ func FormatSearchResultsV5(results []SearchResult) string {
 				result.WebResponse.Body["msg_body"] = result.Value
 			}
 			newResults = append(newResults, result.WebResponse.Body)
-		}
-		if result.Verified != nil && *result.Verified && result.UnixTimestamp > 0 {
+		} else if result.Verified != nil && *result.Verified && result.UnixTimestamp > 0 {
 			msgID := fmt.Sprintf("%d", result.UnixTimestamp)
 			if result.TwitterMetadata != nil && result.TwitterMetadata.TweetStrID != "" {
 				msgID = result.TwitterMetadata.TweetStrID

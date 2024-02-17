@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"go.temporal.io/sdk/temporal"
@@ -75,7 +76,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			return err
 		}
 	}
-
+	log.Info().Interface("CreateTriggerActionsWorkflow: len(triggerActions)", len(triggerActions)).Msg("triggerActions")
 	for _, ta := range triggerActions {
 		var jro JsonResponseGroupsByOutcomeMap
 		filterJsonEvalCtx := workflow.WithActivityOptions(ctx, aoAiAct)
@@ -84,26 +85,26 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			logger.Error("failed to check eval trigger condition", "Error", err)
 			return err
 		}
-
 		var payloadJsonSlice []artemis_orchestrations.JsonSchemaDefinition
-		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		// update to pass sg
 		sgIn := tar.Cpe.SearchResultGroup
 		if sgIn == nil {
 			sgIn = &hera_search.SearchResultGroup{}
 		}
-
 		wfr := tar.Mb.WorkflowResult
 		if tar.Cpe.ParentOutputToEval != nil {
 			wfr.WorkflowResultID = tar.Cpe.ParentOutputToEval.WorkflowResultID
 			wfr.ResponseID = tar.Cpe.ParentOutputToEval.ResponseID
 		}
+		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, &wfr, jro, sgIn).Get(updateTaskCtx, &payloadJsonSlice)
 		if err != nil {
 			logger.Error("failed to update task", "Error", err)
 			return err
 		}
-
+		if len(payloadJsonSlice) == 0 {
+			logger.Warn("payload json slice is empty, skipping trigger action", "TriggerAction", ta)
+			continue
+		}
 		switch ta.TriggerAction {
 		case apiApproval:
 			/*
@@ -114,7 +115,6 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				    so we want to only use the passing elements regardless of the trigger on, since that is already accounted for
 					on a per element level
 			*/
-
 			var echoReqs []echo.Map
 			payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(payloadJsonSlice)
 			for _, m := range payloadMaps {
@@ -149,42 +149,4 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		}
 	}
 	return nil
-}
-
-func FilterPassingEvalPassingResponses(jres []artemis_orchestrations.JsonSchemaDefinition) JsonResponseGroupsByOutcomeMap {
-	jro := make(map[string]JsonResponseGroupsByOutcome)
-	jro["filter"] = JsonResponseGroupsByOutcome{
-		Passed: []artemis_orchestrations.JsonSchemaDefinition{},
-		Failed: []artemis_orchestrations.JsonSchemaDefinition{},
-	}
-	for _, jr := range jres {
-		if jr.ScoredEvalMetrics == nil {
-			continue
-		}
-		count := 0
-		for _, er := range jr.ScoredEvalMetrics {
-			if er.EvalExpectedResultState == "ignore" {
-				count += 1
-				continue
-			}
-			if er.EvalState != "filter" {
-				continue
-			}
-			if er.EvalExpectedResultState == "pass" && er.EvalMetricResult != nil && er.EvalMetricResult.EvalResultOutcomeBool != nil && *er.EvalMetricResult.EvalResultOutcomeBool {
-				count += 1
-			} else if er.EvalExpectedResultState == "fail" && er.EvalMetricResult != nil && er.EvalMetricResult.EvalResultOutcomeBool != nil && !*er.EvalMetricResult.EvalResultOutcomeBool {
-				count += 1
-			}
-		}
-		if count == len(jr.ScoredEvalMetrics) && len(jr.ScoredEvalMetrics) > 0 {
-			tmp := jro["filter"]
-			tmp.Passed = append(tmp.Passed, jr)
-			jro["filter"] = tmp
-		} else {
-			tmp := jro["filter"]
-			tmp.Failed = append(tmp.Failed, jr)
-			jro["filter"] = tmp
-		}
-	}
-	return jro
 }

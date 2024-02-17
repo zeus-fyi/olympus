@@ -118,7 +118,6 @@ func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, window 
 		if window.UnixEndTime == 0 {
 			window.UnixEndTime = window.UnixStartTime + int(wfTimeParams.WorkflowExecTimekeepingParams.TotalCyclesPerOneCompleteWorkflowAsDuration.Seconds())
 		}
-
 		wfTimeParams.WorkflowTemplate = wf
 		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime = window.UnixStartTime
 		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.Start = time.Unix(int64(window.UnixStartTime), 0)

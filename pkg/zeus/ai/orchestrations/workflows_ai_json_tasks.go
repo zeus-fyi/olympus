@@ -46,7 +46,7 @@ type TaskContext struct {
 func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 10,
@@ -160,7 +160,8 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			}
 			continue
 		}
-
+		aiResp.JsonResponseResults = tmpResp
+		log.Info().Int("attempt", attempt).Interface("len(aiResp.JsonResponseResults)", len(aiResp.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 		if tte.Tc.EvalID > 0 {
 			evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
 				EvalID:             tte.Tc.EvalID,
@@ -187,8 +188,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				return nil, err
 			}
 		}
-		aiResp.JsonResponseResults = tmpResp
-		log.Info().Int("attempt", attempt).Interface("len(aiResp.JsonResponseResults)", len(aiResp.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 		break
 	}
 

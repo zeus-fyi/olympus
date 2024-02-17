@@ -221,7 +221,6 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 	defer rows.Close()
 	for rows.Next() {
 		oj := OrchestrationsAnalysis{}
-
 		var evals []EvalMetric
 		var agdd []AggregatedData
 		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationStrID, &oj.OrchestrationName, &oj.GroupName,
@@ -231,7 +230,6 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 			return nil, rowErr
 		}
 		oj.AggregatedData = agdd
-
 		var filteredResults []EvalMetric
 		seen := make(map[int]bool)
 		for j, _ := range evals {
@@ -241,17 +239,17 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 			if evals[j].EvalMetricID != nil {
 				evals[j].EvalMetricStrID = aws.String(fmt.Sprintf("%d", *evals[j].EvalMetricID))
 			}
-
 			const pass = "pass"
 			const cPass = "Pass"
 			const fail = "fail"
 			const cFail = "Fail"
+			const ignore = "ignore"
+			const cIgnore = "Ignore"
 			if evals[j].EvalMetricResult.EvalResultOutcomeBool != nil {
 				var resultBool bool
 				if evals[j].EvalMetricResult.EvalResultOutcomeBool != nil {
 					resultBool = *evals[j].EvalMetricResult.EvalResultOutcomeBool
 				}
-
 				switch evals[j].EvalExpectedResultState {
 				case pass:
 					evals[j].EvalExpectedResultState = cPass
@@ -267,16 +265,20 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 					} else {
 						evals[j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cPass)
 					}
+				case ignore:
+					evals[j].EvalExpectedResultState = cIgnore
+					evals[j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cIgnore)
+				default:
+					evals[j].EvalExpectedResultState = cIgnore
+					evals[j].EvalMetricResult.EvalResultOutcomeStateStr = aws.String(cIgnore)
 				}
 			}
-
 			evals[j].EvalMetricResult.EvalMetricResultStrID = aws.String(fmt.Sprintf("%d", aws.ToInt(evals[j].EvalMetricResult.EvalMetricResultID)))
 			if _, ok := seen[aws.ToInt(evals[j].EvalMetricResult.EvalMetricResultID)]; !ok {
 				filteredResults = append(filteredResults, evals[j])
 				seen[aws.ToInt(evals[j].EvalMetricResult.EvalMetricResultID)] = true
 			}
 		}
-
 		oj.AggregatedEvalResults = filteredResults
 		ojs = append(ojs, oj)
 	}

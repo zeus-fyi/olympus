@@ -41,14 +41,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 		if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggPrompt == nil || aggInst.AggModel == nil || wfExecParams.WorkflowTaskRelationships.AggAnalysisTasks == nil {
 			continue
 		}
-		if aggInst.AggTaskName == nil || aggInst.AggModel == nil || aggInst.AggTokenOverflowStrategy == nil {
+		if aggInst.AggTaskName == nil || aggInst.AggModel == nil || aggInst.AggTokenOverflowStrategy == nil || md.AggregateAnalysis[*aggInst.AggTaskID] == nil || md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false {
 			return nil
-		}
-		if md.AggregateAnalysis[*aggInst.AggTaskID] == nil {
-			continue
-		}
-		if md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false {
-			continue
 		}
 		aggCycle := wfExecParams.CycleCountTaskRelative.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 		if i%aggCycle == 0 {
@@ -58,7 +52,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
 				analysisDep = append(analysisDep, k)
 			}
-
 			var aggRet AggRetResp
 			aggRetrievalCtx := workflow.WithActivityOptions(ctx, ao)
 			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, analysisDep).Get(aggRetrievalCtx, &aggRet)
@@ -67,13 +60,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				return err
 			}
 			md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
-			wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
-				OrchestrationID:       oj.OrchestrationID,
-				SourceTaskID:          aws.IntValue(aggInst.AggTaskID),
-				RunningCycleNumber:    i,
-				SearchWindowUnixStart: window.UnixStartTime,
-				SearchWindowUnixEnd:   window.UnixEndTime,
-			}
+			wr := &artemis_orchestrations.AIWorkflowAnalysisResult{OrchestrationID: oj.OrchestrationID, SourceTaskID: aws.IntValue(aggInst.AggTaskID), RunningCycleNumber: i, SearchWindowUnixStart: window.UnixStartTime, SearchWindowUnixEnd: window.UnixEndTime}
 			tte := TaskToExecute{
 				Ou:  ou,
 				Wft: aggInst,
@@ -109,14 +96,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				return err
 			}
 			chunkIterator := getChunkIteratorLen(pr)
-			tte.Tc = TaskContext{
-				TaskName:       aws.StringValue(aggInst.AggTaskName),
-				TaskType:       AggTask,
-				ResponseFormat: aws.StringValue(aggInst.AggResponseFormat),
-				Model:          aws.StringValue(aggInst.AggModel),
-				TaskID:         aws.IntValue(aggInst.AggTaskID),
-			}
+			tte.Tc = TaskContext{TaskName: aws.StringValue(aggInst.AggTaskName), TaskType: AggTask, ResponseFormat: aws.StringValue(aggInst.AggResponseFormat), Model: aws.StringValue(aggInst.AggModel), TaskID: aws.IntValue(aggInst.AggTaskID)}
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
+				logger.Info("RunAiChildAggAnalysisProcessWorkflow: chunkOffset", chunkOffset)
 				wr.ChunkOffset = chunkOffset
 				tte.WfID = oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i) + "-" + strconv.Itoa(chunkOffset)
 				var sg *hera_search.SearchResultGroup
@@ -139,11 +121,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				var aiAggResp *ChatCompletionQueryResponse
 				switch aws.StringValue(aggInst.AggResponseFormat) {
 				case jsonFormat:
-					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-						WorkflowID:               oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i),
-						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-						RetryPolicy:              ao.RetryPolicy,
-					}
+					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 					var fullTaskDef []artemis_orchestrations.AITaskLibrary
 					selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, aws.IntValue(aggInst.AggTaskID)).Get(selectTaskCtx, &fullTaskDef)
@@ -172,6 +150,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					}
 					wr.ResponseID = aiAggResp.ResponseID
 					wr.WorkflowResultID = aiAggResp.WorkflowResultID
+					if len(aiAggResp.JsonResponseResults) <= 0 {
+						logger.Warn("no json response results", "aiAggResp", aiAggResp)
+						continue
+					}
 				default:
 					aggCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, tte.Sg).Get(aggCtx, &aiAggResp)
@@ -194,28 +176,19 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						return err
 					}
 				}
-				if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 {
+				if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 || aggInst.AggEvalFns == nil || len(aggInst.AggEvalFns) == 0 {
 					continue
 				}
-				if aggInst.AggEvalFns == nil || len(aggInst.AggEvalFns) == 0 {
-					continue
-				}
-				evalWfID := oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i)
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 					WorkflowID:               oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i),
 					RetryPolicy:              ao.RetryPolicy,
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
+				aiAggResp.ResponseTaskID = aws.IntValue(aggInst.AggTaskID)
 				cp.Window = window
-				cp.WfID = evalWfID
+				cp.WfID = childAnalysisWorkflowOptions.WorkflowID
 				cp.WorkflowResult = *wr
-				ea := &EvalActionParams{
-					WorkflowTemplateData: aggInst,
-					ParentOutputToEval:   aiAggResp,
-					EvalFns:              aggInst.AggEvalFns,
-					SearchResultGroup:    tte.Sg,
-					TaskToExecute:        tte,
-				}
+				ea := &EvalActionParams{WorkflowTemplateData: aggInst, ParentOutputToEval: aiAggResp, EvalFns: aggInst.AggEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
 				for _, evalFn := range ea.EvalFns {
 					evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]
 					if i%evalAggCycle == 0 {

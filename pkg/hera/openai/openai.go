@@ -102,7 +102,7 @@ func (ai *OpenAI) MakeCodeGenRequestJsonFormattedOutput(ctx context.Context, ou 
 			Type:     openai.ChatMessageRoleFunction,
 			Function: params.FunctionDefinition,
 		}},
-		Stop:        []string{"}]}  "},
+		Stop:        []string{"}]}  ", "                     "},
 		Temperature: float32(0.0),
 	}
 	if params.MaxTokens > 0 {

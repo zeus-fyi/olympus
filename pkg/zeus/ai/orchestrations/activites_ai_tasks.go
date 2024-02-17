@@ -161,7 +161,6 @@ type ChatCompletionQueryResponse struct {
 	Response              openai.ChatCompletionResponse                 `json:"response"`
 	ResponseID            int                                           `json:"responseID,omitempty"`
 	ResponseTaskID        int                                           `json:"responseTaskID,omitempty"`
-	FilteredMessages      *FilteredMessages                             `json:"filteredMessages,omitempty"`
 	FilteredSearchResults []hera_search.SearchResult                    `json:"filteredSearchResults,omitempty"`
 	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition `json:"jsonResponseResults,omitempty"`
 }
@@ -191,13 +190,9 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	if len(sg.SearchResults) > 0 {
 		content += hera_search.FormatSearchResultsV2(sg.SearchResults)
 	}
-	if len(content) <= 0 || aggInst.AggPrompt == nil || aggInst.AggModel == nil || aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil {
+	if len(content) <= 0 || aggInst.AggPrompt == nil || aggInst.AggModel == nil || aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || len(*aggInst.AggPrompt) <= 0 {
 		return nil, nil
 	}
-	if len(*aggInst.AggPrompt) <= 0 {
-		return nil, nil
-	}
-
 	temp := 1.0
 	if aggInst.AggTemperature != nil {
 		temp = *aggInst.AggTemperature
@@ -236,7 +231,6 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 		log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
 		return nil, nil
 	}
-
 	if ps.ApiKey == "" {
 		log.Err(err).Msg("AiAggregateTask: CreateChatCompletion failed, using backup and deleting secret cache for org")
 		cres, cerr := hera_openai.HeraOpenAI.CreateChatCompletion(

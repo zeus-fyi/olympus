@@ -3,9 +3,7 @@ package artemis_orchestrations
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
@@ -42,51 +40,6 @@ func (j *JsonSchemaDefinition) Validate() bool {
 		}
 	}
 	return true
-}
-
-func (j *JsonSchemaDefinition) GetAllFieldsStr() string {
-	var stvs []string
-	for _, sch := range j.Fields {
-		if !sch.IsValidated {
-			continue
-		}
-		switch sch.DataType {
-		case "integer":
-			stvs = append(stvs, fmt.Sprintf("%d", aws.IntValue(sch.IntegerValue)))
-		case "string":
-			stvs = append(stvs, fmt.Sprintf("%s", aws.StringValue(sch.StringValue)))
-		case "number":
-			stvs = append(stvs, fmt.Sprintf("%f", aws.Float64Value(sch.NumberValue)))
-		case "boolean":
-			stvs = append(stvs, fmt.Sprintf("%t", aws.BoolValue(sch.BooleanValue)))
-		case "array[integer]":
-			stvs = append(stvs, "[")
-			for _, v := range sch.IntegerValueSlice {
-				stvs = append(stvs, fmt.Sprintf("%d,", v))
-			}
-			stvs = append(stvs, "]")
-		case "array[string]":
-			stvs = append(stvs, "[")
-			for _, v := range sch.StringValueSlice {
-				stvs = append(stvs, fmt.Sprintf("%s,", v))
-			}
-			stvs = append(stvs, "]")
-		case "array[number]":
-			stvs = append(stvs, "[")
-			for _, v := range sch.NumberValueSlice {
-				stvs = append(stvs, fmt.Sprintf("%f,", v))
-			}
-			stvs = append(stvs, "]")
-		case "array[boolean]":
-			stvs = append(stvs, "[")
-			for _, v := range sch.BooleanValueSlice {
-				stvs = append(stvs, fmt.Sprintf("%t,", v))
-			}
-			stvs = append(stvs, "]")
-		}
-		stvs = append(stvs, fmt.Sprintf("%s", aws.StringValue(sch.StringValue)))
-	}
-	return strings.Join(stvs, " ")
 }
 
 type JsonSchemaField struct {

@@ -43,9 +43,9 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		WorkflowTemplateID: tar.Mb.WfExecParams.WorkflowTemplate.WorkflowTemplateID,
 	}
 	if !tq.ValidateEvalTaskQp() {
+		log.Warn().Interface("tq", tq).Msg("CreateTriggerActionsWorkflow: invalid trigger query params")
 		return nil
 	}
-
 	var triggerActions []artemis_orchestrations.TriggerAction
 	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tq).Get(triggerEvalsLookupCtx, &triggerActions)
@@ -53,7 +53,6 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		logger.Error("failed to get eval trigger info", "Error", err)
 		return err
 	}
-
 	// if there are no trigger actions to execute, check if conditions are met for execution for filter
 	if len(triggerActions) == 0 && tar.Emr.EvaluatedJsonResponses != nil {
 		// just filter passing to next stage then if no trigger action with specific pass/fail conditions

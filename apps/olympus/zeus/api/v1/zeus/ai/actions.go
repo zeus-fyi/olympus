@@ -12,17 +12,18 @@ import (
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
+type GetActionsRequest struct {
+}
+
 func AiActionsReaderHandler(c echo.Context) error {
-	request := new(artemis_orchestrations.TriggerAction)
+	request := new(GetActionsRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	if request == nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return GetActions(c, request)
+	return GetActions(c)
 }
-func GetActions(c echo.Context, act *artemis_orchestrations.TriggerAction) error {
+
+func GetActions(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)

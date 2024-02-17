@@ -37,6 +37,7 @@ export interface WebFilters {
     backoffCoefficient?: number;
     endpointRoutePath?: string;
     endpointREST?: string;
+    payloadPreProcessing?: string;
 }
 
 export interface Retrieval {

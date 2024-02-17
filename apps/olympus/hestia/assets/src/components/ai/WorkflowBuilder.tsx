@@ -2742,6 +2742,33 @@ function WorkflowEngineBuilder(props: any) {
                                                                     </Select>
                                                                 </FormControl>
                                                             </Box>
+                                                            <Box flexGrow={1} sx={{ mb: 0, ml: 2, mr: 0, mt: 2 }}>
+                                                                <FormControl fullWidth>
+                                                                    <InputLabel id="endpoint-rest-trigger">Payload Pre-Processing</InputLabel>
+                                                                    <Select
+                                                                        id="payload-pre-processing"
+                                                                        label="Payload Handling"
+                                                                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                        && retrieval.retrievalItemInstruction.webFilters.payloadPreProcessing ? retrieval.retrievalItemInstruction.webFilters.payloadPreProcessing : ''}
+                                                                        onChange={(e) => {
+                                                                            const updatedRetrieval = {
+                                                                                ...retrieval,
+                                                                                retrievalItemInstruction: {
+                                                                                    ...retrieval.retrievalItemInstruction,
+                                                                                    webFilters: {
+                                                                                        ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                        payloadPreProcessing: e.target.value, // Correctly update the selection
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            dispatch(setRetrieval(updatedRetrieval));
+                                                                        }}
+                                                                    >
+                                                                        <MenuItem value="iterate">Send Each Element Separately</MenuItem>
+                                                                        <MenuItem value="bulk">Send Entire Payload</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </Box>
                                                         </Stack>
                                                     </div>
                                                 }

@@ -75,7 +75,6 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			return err
 		}
 	}
-
 	for _, ta := range triggerActions {
 		var jro JsonResponseGroupsByOutcomeMap
 		filterJsonEvalCtx := workflow.WithActivityOptions(ctx, aoAiAct)
@@ -84,26 +83,22 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			logger.Error("failed to check eval trigger condition", "Error", err)
 			return err
 		}
-
 		var payloadJsonSlice []artemis_orchestrations.JsonSchemaDefinition
-		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-		// update to pass sg
 		sgIn := tar.Cpe.SearchResultGroup
 		if sgIn == nil {
 			sgIn = &hera_search.SearchResultGroup{}
 		}
-
 		wfr := tar.Mb.WorkflowResult
 		if tar.Cpe.ParentOutputToEval != nil {
 			wfr.WorkflowResultID = tar.Cpe.ParentOutputToEval.WorkflowResultID
 			wfr.ResponseID = tar.Cpe.ParentOutputToEval.ResponseID
 		}
+		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, &wfr, jro, sgIn).Get(updateTaskCtx, &payloadJsonSlice)
 		if err != nil {
 			logger.Error("failed to update task", "Error", err)
 			return err
 		}
-
 		switch ta.TriggerAction {
 		case apiApproval:
 			/*
@@ -114,7 +109,6 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				    so we want to only use the passing elements regardless of the trigger on, since that is already accounted for
 					on a per element level
 			*/
-
 			var echoReqs []echo.Map
 			payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(payloadJsonSlice)
 			for _, m := range payloadMaps {

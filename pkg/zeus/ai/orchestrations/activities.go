@@ -454,6 +454,7 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 	return wr.WorkflowResultID, nil
 }
 
+// UpdateTaskOutput updates the task output, but it only intended for json output results
 func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, jro JsonResponseGroupsByOutcomeMap, sg *hera_search.SearchResultGroup) ([]artemis_orchestrations.JsonSchemaDefinition, error) {
 	if wr == nil || len(jro) <= 0 {
 		return nil, nil
@@ -511,6 +512,7 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *art
 			return nil, err
 		}
 	}
+	// TODO refactor or deprecate vvv
 	if res != nil && sg != nil && sg.SearchResults != nil {
 		seen := make(map[int]bool)
 		for _, jr := range res {
@@ -531,6 +533,7 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *art
 			}
 		}
 	}
+	// TODO refactor or deprecate ^^^
 	wr.Metadata = md
 	err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 	if err != nil {
@@ -539,8 +542,3 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *art
 	}
 	return res, nil
 }
-
-//type InputDataAnalysisToAgg struct {
-//	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
-//	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`
-//}

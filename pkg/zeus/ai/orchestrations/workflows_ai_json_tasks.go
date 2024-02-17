@@ -160,7 +160,8 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			}
 			continue
 		}
-
+		aiResp.JsonResponseResults = tmpResp
+		log.Info().Int("attempt", attempt).Interface("len(aiResp.JsonResponseResults)", len(aiResp.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 		if tte.Tc.EvalID > 0 {
 			evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
 				EvalID:             tte.Tc.EvalID,
@@ -187,8 +188,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				return nil, err
 			}
 		}
-		aiResp.JsonResponseResults = tmpResp
-		log.Info().Int("attempt", attempt).Interface("len(aiResp.JsonResponseResults)", len(aiResp.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 		break
 	}
 

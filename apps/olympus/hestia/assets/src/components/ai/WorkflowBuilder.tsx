@@ -2765,7 +2765,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                         }}
                                                                     >
                                                                         <MenuItem value="iterate">Send Each Element Separately</MenuItem>
-                                                                        <MenuItem value="bulk">Send Entire Array</MenuItem>
+                                                                        <MenuItem value="bulk">Send Entire Payload</MenuItem>
                                                                     </Select>
                                                                 </FormControl>
                                                             </Box>

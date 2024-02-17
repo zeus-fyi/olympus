@@ -125,27 +125,52 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				echoReqs = append(echoReqs, echoMap)
 			}
 			for _, ret := range ta.TriggerRetrievals {
-				trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
-					TriggerID:   ta.TriggerID,
-					RetrievalID: aws.ToInt(ret.RetrievalID),
-					ReqPayloads: echoReqs,
+				var apiTrgs []*artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse
+				if ret.WebFilters != nil && ret.WebFilters.PayloadPreProcessing != nil && len(payloadMaps) > 0 {
+					switch *ret.WebFilters.PayloadPreProcessing {
+					case "iterate":
+						for _, ple := range echoReqs {
+							trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
+								TriggerID:   ta.TriggerID,
+								RetrievalID: aws.ToInt(ret.RetrievalID),
+								ReqPayloads: []echo.Map{ple},
+							}
+							apiTrgs = append(apiTrgs, trrr)
+						}
+					case "bulk":
+						trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
+							TriggerID:   ta.TriggerID,
+							RetrievalID: aws.ToInt(ret.RetrievalID),
+							ReqPayloads: echoReqs,
+						}
+						apiTrgs = append(apiTrgs, trrr)
+					}
+				} else {
+					trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
+						TriggerID:   ta.TriggerID,
+						RetrievalID: aws.ToInt(ret.RetrievalID),
+						ReqPayloads: echoReqs,
+					}
+					apiTrgs = append(apiTrgs, trrr)
 				}
-				tap := artemis_orchestrations.TriggerActionsApproval{
-					TriggerAction:    apiApproval,
-					EvalID:           tq.EvalID,
-					TriggerID:        ta.TriggerID,
-					WorkflowResultID: tar.Emr.EvalContext.AIWorkflowAnalysisResult.WorkflowResultID,
-					ApprovalState:    pendingStatus,
-					RequestSummary:   "Requesting approval for trigger action",
-				}
-				recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tar.Mb.Ou, tap, trrr).Get(recordTriggerCondCtx, nil)
-				if err != nil {
-					logger.Error("failed to create or update trigger action approval for api", "Error", err)
-					return err
+
+				for _, trrr := range apiTrgs {
+					tap := artemis_orchestrations.TriggerActionsApproval{
+						TriggerAction:    apiApproval,
+						EvalID:           tq.EvalID,
+						TriggerID:        ta.TriggerID,
+						WorkflowResultID: tar.Emr.EvalContext.AIWorkflowAnalysisResult.WorkflowResultID,
+						ApprovalState:    pendingStatus,
+						RequestSummary:   "Requesting approval for trigger action",
+					}
+					recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+					err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tar.Mb.Ou, tap, trrr).Get(recordTriggerCondCtx, nil)
+					if err != nil {
+						logger.Error("failed to create or update trigger action approval for api", "Error", err)
+						return err
+					}
 				}
 			}
-
 		}
 	}
 	return nil

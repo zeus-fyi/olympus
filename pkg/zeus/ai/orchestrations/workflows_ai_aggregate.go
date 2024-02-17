@@ -172,6 +172,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					}
 					wr.ResponseID = aiAggResp.ResponseID
 					wr.WorkflowResultID = aiAggResp.WorkflowResultID
+
+					if len(aiAggResp.JsonResponseResults) <= 0 {
+						logger.Warn("no json response results", "aiAggResp", aiAggResp)
+						continue
+					}
 				default:
 					aggCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, tte.Sg).Get(aggCtx, &aiAggResp)

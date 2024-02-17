@@ -104,14 +104,17 @@ export const prettyPrintPromptContentJSON = (json: any): string => {
         if (typeof json === 'string') {
             json = JSON.parse(json);
         }
-        return JSON.parse(JSON.stringify(json.content, null, 2))
+        // Check if json.content is undefined before proceeding
+        if (json.content === undefined) {
+            return ''; // Return an empty string if json.content is undefined
+        }
+        return JSON.stringify(json.content, null, 2); // Directly stringify json.content with formatting
 
     } catch (error) {
         console.error('Error parsing or formatting JSON:', error);
         return ''; // Return an empty string in case of error
     }
 };
-
 
 export const prettyPrintJSON = (json: any): string => {
     try {

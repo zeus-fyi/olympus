@@ -89,7 +89,6 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 						}
 					}
 					for _, sv := range d.SearchResultGroup.SearchResults {
-						fmt.Println("UnixTimestamp", sv.UnixTimestamp, "TweetStrID", sv.TwitterMetadata.TweetStrID, "tmpMap[sv.TwitterMetadata.TweetID]", tmpMap[sv.TwitterMetadata.TweetStrID])
 						if sv.TwitterMetadata != nil && sv.TwitterMetadata.TweetStrID != "" {
 							if item, ok := tmpMap[sv.TwitterMetadata.TweetStrID]; ok && item != nil {
 								sv.WebResponse.Body = item

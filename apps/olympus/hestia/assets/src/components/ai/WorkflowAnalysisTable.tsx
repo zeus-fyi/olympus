@@ -9,7 +9,6 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
 import {
-    setAiTasks,
     setAssistants,
     setEvalFns,
     setRetrievals,
@@ -45,6 +44,22 @@ export function WorkflowAnalysisTable(props: any) {
     };
 
     useEffect(() => {
+        const fetchData = async (params: any) => {
+            try {
+                setIsLoading(true); // Set loading to true
+                const response = await aiApiGateway.getRuns();
+                dispatch(setRuns(response.data));
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setIsLoading(false); // Set loading to false regardless of success or failure.
+            }
+        }
+        fetchData({});
+    }, []);
+
+
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true)
@@ -53,9 +68,7 @@ export function WorkflowAnalysisTable(props: any) {
                 if (statusCode < 400) {
                     const data = response.data;
                     dispatch(setWorkflows(data.workflows));
-                    dispatch(setAiTasks(data.tasks));
                     dispatch(setRetrievals(data.retrievals));
-                    dispatch(setRuns(data.runs))
                     dispatch(setTriggerActions(data.triggerActions))
                     dispatch(setEvalFns(data.evalFns))
                     dispatch(setAssistants(data.assistants))

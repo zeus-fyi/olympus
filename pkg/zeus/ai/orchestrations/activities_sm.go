@@ -69,3 +69,30 @@ func (z *ZeusAiPlatformActivities) SearchRedditNewPostsUsingSubreddit(ctx contex
 	}
 	return posts, nil
 }
+
+func (z *ZeusAiPlatformActivities) SocialDiscordTask(ctx context.Context, ou org_users.OrgUser, reply *ChatCompletionQueryResponse, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "discord")
+	if err != nil || ps == nil || ps.ApiKey == "" {
+		if err == nil {
+			err = fmt.Errorf("failed to get mockingbird secrets")
+		}
+		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
+		return nil, err
+	}
+	return nil, err
+}
+
+func (z *ZeusAiPlatformActivities) SocialTelegramTask(ctx context.Context, ou org_users.OrgUser, reply *SocialMediaPlatformResponses, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "telegram")
+	if err != nil {
+		log.Err(err).Msg("SocialTelegramTask: failed to get mockingbird secrets")
+		return nil, err
+	}
+	if ps == nil {
+		return nil, fmt.Errorf("SocialTelegramTask: ps is nil")
+	}
+	if ps.OAuth2Public == "" || ps.OAuth2Secret == "" || ps.Username == "" || ps.Password == "" {
+		return nil, fmt.Errorf("SocialTelegramTask: ps is empty")
+	}
+	return nil, err
+}

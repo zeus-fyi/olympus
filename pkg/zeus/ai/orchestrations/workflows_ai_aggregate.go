@@ -184,6 +184,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					RetryPolicy:              ao.RetryPolicy,
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 				}
+				aiAggResp.ResponseTaskID = aws.IntValue(aggInst.AggTaskID)
 				cp.Window = window
 				cp.WfID = childAnalysisWorkflowOptions.WorkflowID
 				cp.WorkflowResult = *wr

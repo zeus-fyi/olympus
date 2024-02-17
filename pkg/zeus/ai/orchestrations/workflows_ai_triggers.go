@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"go.temporal.io/sdk/temporal"
@@ -75,6 +76,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			return err
 		}
 	}
+	log.Info().Interface("CreateTriggerActionsWorkflow: len(triggerActions)", len(triggerActions)).Msg("triggerActions")
 	for _, ta := range triggerActions {
 		var jro JsonResponseGroupsByOutcomeMap
 		filterJsonEvalCtx := workflow.WithActivityOptions(ctx, aoAiAct)
@@ -98,6 +100,10 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		if err != nil {
 			logger.Error("failed to update task", "Error", err)
 			return err
+		}
+		if len(payloadJsonSlice) == 0 {
+			logger.Warn("payload json slice is empty, skipping trigger action", "TriggerAction", ta)
+			continue
 		}
 		switch ta.TriggerAction {
 		case apiApproval:

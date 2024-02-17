@@ -26,16 +26,6 @@ type MbChildSubProcessParams struct {
 	AnalysisEvalActionParams *EvalActionParams                               `json:"analysisEvalActionParams,omitempty"`
 }
 
-func (m *MbChildSubProcessParams) GetFilteredSearchResults() []hera_search.SearchResult {
-	if m == nil {
-		return nil
-	}
-	if m.AnalysisEvalActionParams != nil && m.AnalysisEvalActionParams.SearchResultGroup != nil {
-		return m.AnalysisEvalActionParams.SearchResultGroup.SearchResults
-	}
-	return nil
-}
-
 type EvalActionParams struct {
 	WorkflowTemplateData artemis_orchestrations.WorkflowTemplateData `json:"parentProcess"`
 	ParentOutputToEval   *ChatCompletionQueryResponse                `json:"parentOutputToEval"`
@@ -43,6 +33,11 @@ type EvalActionParams struct {
 	SearchResultGroup    *hera_search.SearchResultGroup              `json:"searchResultsGroup,omitempty"`
 	TaskToExecute        TaskToExecute                               `json:"tte,omitempty"`
 }
+
+const (
+	evalModelScoredJsonOutput = "model"
+	evalModelScoredViaApi     = "api"
+)
 
 func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe *EvalActionParams) error {
 	if cpe == nil || mb == nil {
@@ -58,7 +53,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			MaximumAttempts:    25,
 		},
 	}
-
 	evalsFnsMap := make(map[int]*artemis_orchestrations.EvalFn)
 	var evalFnsAgg []artemis_orchestrations.EvalFn
 	for ei, _ := range cpe.EvalFns {
@@ -86,7 +80,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		evCtx := artemis_orchestrations.EvalContext{EvalID: aws.IntValue(evalFnsAgg[evFnIndex].EvalID), AIWorkflowAnalysisResult: mb.WorkflowResult, EvalIterationCount: 0}
 		cpe.TaskToExecute.Ec = evCtx
 		switch strings.ToLower(evalFnsAgg[evFnIndex].EvalType) {
-		case "model":
+		case evalModelScoredJsonOutput:
 			wfID := mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.RunCycle)
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: wfID, WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: aoAiAct.RetryPolicy}
 			if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
@@ -130,9 +124,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			}
 			evCtx.JsonResponseResults = cpe.ParentOutputToEval.JsonResponseResults
 			evCtx.EvaluatedJsonResponses = emr.EvaluatedJsonResponses
-		case "api":
+		case evalModelScoredViaApi:
 		}
 		if emr == nil {
+			log.Warn().Msg("emr is nil, skipping save eval metric results")
 			continue
 		}
 		emr.EvalContext = evCtx

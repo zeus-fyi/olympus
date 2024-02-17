@@ -59,7 +59,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					RetryPolicy:              ao.RetryPolicy,
 				}
-
 				var rets []artemis_orchestrations.RetrievalItem
 				chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 				err := workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, ou, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
@@ -92,11 +91,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					continue
 				}
 			}
-			pr := &PromptReduction{
-				TokenOverflowStrategy: analysisInst.AnalysisTokenOverflowStrategy,
-				Model:                 analysisInst.AnalysisModel,
-				MarginBuffer:          analysisInst.AnalysisMarginBuffer,
-			}
+			pr := &PromptReduction{TokenOverflowStrategy: analysisInst.AnalysisTokenOverflowStrategy, Model: analysisInst.AnalysisModel, MarginBuffer: analysisInst.AnalysisMarginBuffer}
 			if sg != nil && len(sg.SearchResults) > 0 {
 				pr.PromptReductionSearchResults = &PromptReductionSearchResults{
 					InPromptBody:  analysisInst.AnalysisPrompt,
@@ -133,24 +128,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						SearchResults:  []hera_search.SearchResult{},
 					}
 				}
-				wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
-					OrchestrationID:       oj.OrchestrationID,
-					SourceTaskID:          analysisInst.AnalysisTaskID,
-					RunningCycleNumber:    i,
-					ChunkOffset:           chunkOffset,
-					IterationCount:        0,
-					SearchWindowUnixStart: window.UnixStartTime,
-					SearchWindowUnixEnd:   window.UnixEndTime,
-				}
-
-				var aiResp *ChatCompletionQueryResponse
-				tte := TaskToExecute{
-					Ou:  ou,
-					Wft: analysisInst,
-					Sg:  sg,
-					Wr:  wr,
-				}
+				wr := &artemis_orchestrations.AIWorkflowAnalysisResult{OrchestrationID: oj.OrchestrationID, SourceTaskID: analysisInst.AnalysisTaskID, RunningCycleNumber: i, ChunkOffset: chunkOffset, IterationCount: 0, SearchWindowUnixStart: window.UnixStartTime, SearchWindowUnixEnd: window.UnixEndTime}
+				tte := TaskToExecute{Ou: ou, Wft: analysisInst, Sg: sg, Wr: wr}
 				var analysisRespId int
+				var aiResp *ChatCompletionQueryResponse
 				switch analysisInst.AnalysisResponseFormat {
 				case jsonFormat, socialMediaExtractionResponseFormat:
 					tte.Sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
@@ -161,13 +142,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 						RetryPolicy:              ao.RetryPolicy,
 					}
-					tte.Tc = TaskContext{
-						TaskName:       analysisInst.AnalysisTaskName,
-						TaskType:       AnalysisTask,
-						ResponseFormat: analysisInst.AnalysisResponseFormat,
-						Model:          analysisInst.AnalysisModel,
-						TaskID:         analysisInst.AnalysisTaskID,
-					}
+					tte.Tc = TaskContext{TaskName: analysisInst.AnalysisTaskName, TaskType: AnalysisTask, ResponseFormat: analysisInst.AnalysisResponseFormat, Model: analysisInst.AnalysisModel, TaskID: analysisInst.AnalysisTaskID}
 					var fullTaskDef []artemis_orchestrations.AITaskLibrary
 					selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, tte.Sg.SourceTaskID).Get(selectTaskCtx, &fullTaskDef)
@@ -176,7 +151,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						return err
 					}
 					if len(fullTaskDef) == 0 {
-						return nil
+						logger.Warn("failed to run task", "Error", err)
+						continue
 					}
 					var jdef []*artemis_orchestrations.JsonSchemaDefinition
 					for _, taskDef := range fullTaskDef {
@@ -195,21 +171,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						}
 						cp.AnalysisEvalActionParams.ParentOutputToEval = aiResp
 						cp.AnalysisEvalActionParams.SearchResultGroup = tte.Sg
+					} else {
+						continue
 					}
 				default:
 					inGroup := tte.Sg.SearchResults
 					if len(tte.Sg.ApiResponseResults) > 0 {
 						inGroup = tte.Sg.ApiResponseResults
 					}
-					tte.Tc = TaskContext{
-						TaskName:       analysisInst.AnalysisTaskName,
-						TaskType:       AnalysisTask,
-						Temperature:    float32(analysisInst.AnalysisTemperature),
-						ResponseFormat: analysisInst.AnalysisResponseFormat,
-						Model:          analysisInst.AnalysisModel,
-						TaskID:         analysisInst.AnalysisTaskID,
-					}
-
+					tte.Tc = TaskContext{TaskName: analysisInst.AnalysisTaskName, TaskType: AnalysisTask, Temperature: float32(analysisInst.AnalysisTemperature), ResponseFormat: analysisInst.AnalysisResponseFormat, Model: analysisInst.AnalysisModel, TaskID: analysisInst.AnalysisTaskID}
 					analysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, inGroup).Get(analysisCtx, &aiResp)
 					if err != nil {
@@ -252,19 +222,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					wr.WorkflowResultID = aiResp.WorkflowResultID
 				}
 				cp.WorkflowResult = *wr
-				ea := &EvalActionParams{
-					WorkflowTemplateData: analysisInst,
-					ParentOutputToEval:   aiResp,
-					EvalFns:              analysisInst.AnalysisTaskDB.AnalysisEvalFns,
-					SearchResultGroup:    tte.Sg,
-					TaskToExecute:        tte,
-				}
+				ea := &EvalActionParams{WorkflowTemplateData: analysisInst, ParentOutputToEval: aiResp, EvalFns: analysisInst.AnalysisTaskDB.AnalysisEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
 				if analysisInst.AggTaskID != nil && analysisInst.AggAnalysisEvalFns != nil {
 					ea.EvalFns = analysisInst.AggAnalysisEvalFns
 				} else if analysisInst.AnalysisEvalFns != nil {
 					ea.EvalFns = analysisInst.AnalysisTaskDB.AnalysisEvalFns
 				}
-
 				// TODO, run in parallel
 				for _, evalFn := range ea.EvalFns {
 					if evalFn.EvalID == 0 {

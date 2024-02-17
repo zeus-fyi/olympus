@@ -1,4 +1,5 @@
 import * as React from "react";
+import {useEffect} from "react";
 import {Checkbox, TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -7,12 +8,32 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {TasksRow} from "./TasksRow";
+import {useDispatch} from "react-redux";
+import {aiApiGateway} from "../../gateway/ai";
+import {setAiTasks} from "../../redux/ai/ai.reducer";
 
 export function TasksTable(props: any) {
     const {selected, tasks, handleClick, handleSelectAllClick} = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
+
+    const dispatch = useDispatch();
+    useEffect(() => {
+        const fetchData = async (params: any) => {
+            try {
+                setIsLoading(true); // Set loading to true
+                const response = await aiApiGateway.getTasks();
+                dispatch(setAiTasks(response.data));
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setIsLoading(false); // Set loading to false regardless of success or failure.
+            }
+        }
+        fetchData({});
+    }, []);
+
     const countTaskValues = (): number => {
         return Object.keys(tasks).length;
     };

@@ -9,7 +9,6 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
 import {
-    setAiTasks,
     setAssistants,
     setEvalFns,
     setRetrievals,
@@ -54,7 +53,7 @@ export function WorkflowTable(props: any) {
                     dispatch(setWorkflows(data.workflows));
                     dispatch(setEvalFns(data.evalFns));
                     dispatch(setTriggerActions(data.triggerActions));
-                    dispatch(setAiTasks(data.tasks));
+                    // dispatch(setAiTasks(data.tasks));
                     dispatch(setRetrievals(data.retrievals));
                     dispatch(setAssistants(data.assistants));
                     dispatch(setSchemas(data.schemas))

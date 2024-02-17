@@ -42,16 +42,16 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 		log.Err(err).Msg("failed to get retrievals")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	tasks, err := artemis_orchestrations.SelectTasks(c.Request().Context(), ou)
-	if err != nil {
-		log.Err(err).Msg("failed to get tasks")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(c.Request().Context(), ou)
-	if err != nil {
-		log.Err(err).Msg("failed to get runs")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
+	//tasks, err := artemis_orchestrations.SelectTasks(c.Request().Context(), ou)
+	//if err != nil {
+	//	log.Err(err).Msg("failed to get tasks")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(c.Request().Context(), ou)
+	//if err != nil {
+	//	log.Err(err).Msg("failed to get runs")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
 	si, err := hera_openai_dbmodels.GetSearchIndexersByOrg(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Msg("GetWorkflowsRequest: failed to get search indexers")
@@ -96,10 +96,10 @@ func (w *GetWorkflowsRequest) GetWorkflows(c echo.Context) error {
 	//}
 	sortWorkflowsByTemplateID(ojs.WorkflowTemplateSlice)
 	return c.JSON(http.StatusOK, AiWorkflowWrapper{
-		Workflows:      ojs.WorkflowTemplateSlice,
-		Tasks:          tasks,
-		Retrievals:     ret,
-		Runs:           ojsRuns,
+		Workflows: ojs.WorkflowTemplateSlice,
+		//Tasks:          tasks,
+		Retrievals: ret,
+		//Runs:           ojsRuns,
 		SearchIndexers: si,
 		TriggerActions: actions,
 		Evals:          evals,

@@ -175,10 +175,10 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableRow key={dataIndex}>
                                             <TableCell> {data.workflowResultID}</TableCell>
                                             <TableCell style={{ whiteSpace: 'pre-wrap' }}>
-                                                {data.prompt !== undefined ? prettyPrintPromptJSON(data.prompt) + prettyPrintPromptContentJSON(data.prompt): ""}
+                                                {data && data.prompt !== undefined ? prettyPrintPromptJSON(data.prompt) + prettyPrintPromptContentJSON(data.prompt): ""}
                                             </TableCell>
                                             <TableCell style={{ whiteSpace: 'pre-wrap' }}>
-                                                {data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
+                                                {data && data.completionChoices !== undefined ? prettyPrintJSON(data.completionChoices) : ""}
                                             </TableCell>
                                         </TableRow>
                                     ))}

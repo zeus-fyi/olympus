@@ -17,7 +17,10 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 
 	e.POST("/assistants/ai", CreateOrUpdateAssistantRequestHandler)
 
+	// tasks
+	e.GET("/tasks/ai", GetTasksRequestHandler)
 	e.POST("/tasks/ai", CreateOrUpdateTaskRequestHandler)
+
 	e.POST("/evals/ai", CreateOrUpdateEvalsRequestHandler)
 
 	e.POST("/retrievals/ai", CreateOrUpdateRetrievalRequestHandler)

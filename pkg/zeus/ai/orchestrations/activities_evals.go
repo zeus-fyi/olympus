@@ -48,11 +48,7 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
 		return nil, nil
 	}
-
-	emr := &artemis_orchestrations.EvalMetricsResults{
-		EvalMetricsResults: []*artemis_orchestrations.EvalMetric{},
-	}
-
+	emr := &artemis_orchestrations.EvalMetricsResults{EvalMetricsResults: []*artemis_orchestrations.EvalMetric{}}
 	for i, _ := range jrs {
 		_, ok := ef.SchemasMap[jrs[i].SchemaStrID]
 		if !ok {

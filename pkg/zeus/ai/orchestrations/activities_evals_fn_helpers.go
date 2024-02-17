@@ -16,7 +16,10 @@ func TransformJSONToEvalScoredMetrics(jsonSchemaDef *artemis_orchestrations.Json
 	for vi, _ := range jsonSchemaDef.Fields {
 		for i, _ := range jsonSchemaDef.Fields[vi].EvalMetrics {
 			if jsonSchemaDef.Fields[vi].EvalMetrics[i] == nil {
-				jsonSchemaDef.Fields[vi].EvalMetrics[i] = &artemis_orchestrations.EvalMetric{}
+				continue
+			}
+			if jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalExpectedResultState == "ignore" {
+				continue
 			}
 			jsonSchemaDef.Fields[vi].EvalMetrics[i].EvalMetricResult = &artemis_orchestrations.EvalMetricResult{}
 			eocr := artemis_orchestrations.EvalMetaDataResult{

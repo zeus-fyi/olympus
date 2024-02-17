@@ -34,7 +34,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		logger.Error("failed to UpsertAiOrchestration", "Error", err)
 		return err
 	}
-
 	timer := UpdatableTimer{}
 	err = workflow.SetQueryHandler(ctx, QueryType, func() (time.Time, error) {
 		return timer.GetWakeUpTime(), nil
@@ -50,12 +49,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			return err
 		}
 	}
-	//startCtx := workflow.WithActivityOptions(ctx, ao)
-	//err = workflow.ExecuteActivity(startCtx, "UpdateAndMarkOrchestrationActive", oj).Get(startCtx, nil)
-	//if err != nil {
-	//	logger.Error("failed to UpdateAndMarkOrchestrationActive", "Error", err)
-	//	return err
-	//}
+	startCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(startCtx, "UpdateAndMarkOrchestrationActive", oj).Get(startCtx, nil)
+	if err != nil {
+		logger.Error("failed to UpdateAndMarkOrchestrationActive", "Error", err)
+		return err
+	}
 	for i := 1; i < wfExecParams.WorkflowExecTimekeepingParams.RunCycles+1; i++ {
 		startTime := wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start.Add(time.Duration(i) * wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 		if time.Now().Before(startTime) && !wfExecParams.WorkflowExecTimekeepingParams.IsCycleStepped {
@@ -65,19 +64,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				return err
 			}
 		}
-		childParams := &MbChildSubProcessParams{
-			WfID:         oj.OrchestrationName + "-analysis-" + strconv.Itoa(i),
-			Ou:           ou,
-			WfExecParams: wfExecParams,
-			Oj:           oj,
-			RunCycle:     i,
-		}
-		// Execute child workflow for analysis
-		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               childParams.WfID,
-			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-			RetryPolicy:              ao.RetryPolicy,
-		}
+		childParams := &MbChildSubProcessParams{WfID: oj.OrchestrationName + "-analysis-" + strconv.Itoa(i), Ou: ou, WfExecParams: wfExecParams, Oj: oj, RunCycle: i}
+		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: childParams.WfID, WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiChildAnalysisProcessWorkflow, childParams).Get(childAnalysisCtx, nil)
 		if err != nil {

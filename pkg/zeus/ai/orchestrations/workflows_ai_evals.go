@@ -45,7 +45,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 	}
 	logger := workflow.GetLogger(ctx)
 	aoAiAct := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2.0,
@@ -59,7 +59,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		if cpe.EvalFns[ei].EvalID == 0 {
 			continue
 		}
-		log.Info().Int("evalID", cpe.EvalFns[ei].EvalID).Msg("evalID")
+		log.Info().Int("evalID", cpe.EvalFns[ei].EvalID).Msg("RunAiWorkflowAutoEvalProcess: evalID")
 		var efs []artemis_orchestrations.EvalFn
 		evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, cpe.EvalFns[ei].EvalID).Get(evalFnMetricsLookupCtx, &efs)
@@ -72,6 +72,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		}
 		evalFnsAgg = append(evalFnsAgg, efs...)
 	}
+	log.Info().Interface("RunAiWorkflowAutoEvalProcess: len(evalFnsAgg)", len(evalFnsAgg)).Msg("evalFnsAgg")
 	for evFnIndex, _ := range evalFnsAgg {
 		if evalFnsAgg[evFnIndex].EvalID == nil {
 			continue

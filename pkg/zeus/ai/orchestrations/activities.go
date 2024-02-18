@@ -61,6 +61,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SelectTriggerActionToExec, z.SelectTriggerActionApiApprovalWithReqResponses,
 		z.CreateOrUpdateTriggerActionApprovalWithApiReq, z.UpdateTriggerActionApproval,
 		z.FilterEvalJsonResponses, z.UpdateTaskOutput,
+		z.SelectWorkflowIO, z.SaveWorkflowIO,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }

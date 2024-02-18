@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -38,6 +37,11 @@ const (
 	evalModelScoredJsonOutput = "model"
 	evalModelScoredViaApi     = "api"
 )
+
+type RunAiWorkflowAutoEvalProcessInputs struct {
+	Mb  *MbChildSubProcessParams `json:"mb,omitempty"`
+	Cpe *EvalActionParams        `json:"cpe,omitempty"`
+}
 
 func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe *EvalActionParams) error {
 	if cpe == nil || mb == nil {
@@ -82,7 +86,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		cpe.TaskToExecute.Ec = evCtx
 		switch strings.ToLower(evalFnsAgg[evFnIndex].EvalType) {
 		case evalModelScoredJsonOutput:
-			wfID := mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.RunCycle)
+			wfID := CreateExecAiWfId(mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex))
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: wfID, WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: aoAiAct.RetryPolicy}
 			if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 				continue
@@ -139,9 +143,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			return err
 		}
 		cpe.TaskToExecute.Ec = evCtx
-		tar := TriggerActionsWorkflowParams{Emr: emr, Mb: mb, Cpe: cpe}
+		tar := CreateTriggerActionsWorkflowInputs{Emr: emr, RunAiWorkflowAutoEvalProcessInputs: &RunAiWorkflowAutoEvalProcessInputs{
+			Mb:  mb,
+			Cpe: cpe,
+		}}
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + strings.Split(uuid.New().String(), "-")[0],
+			WorkflowID:               CreateExecAiWfId(mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex)),
 			WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			RetryPolicy:              aoAiAct.RetryPolicy,
 		}

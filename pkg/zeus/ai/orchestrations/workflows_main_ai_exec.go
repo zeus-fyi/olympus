@@ -64,7 +64,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				return err
 			}
 		}
-		childParams := &MbChildSubProcessParams{WfID: oj.OrchestrationName + "-analysis-" + strconv.Itoa(i), Ou: ou, WfExecParams: wfExecParams, Oj: oj, RunCycle: i}
+		childParams := &MbChildSubProcessParams{WfID: CreateExecAiWfId(oj.OrchestrationName + "-analysis-" + strconv.Itoa(i)), Ou: ou, WfExecParams: wfExecParams, Oj: oj, RunCycle: i}
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: childParams.WfID, WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiChildAnalysisProcessWorkflow, childParams).Get(childAnalysisCtx, nil)
@@ -75,7 +75,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		logger.Info("RunAiWorkflowProcess: all child analysis workflow executed", "RunCycle", i)
 		// Execute child workflow for aggregation
 		childAggAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i),
+			WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i)),
 			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
 			RetryPolicy:              ao.RetryPolicy,

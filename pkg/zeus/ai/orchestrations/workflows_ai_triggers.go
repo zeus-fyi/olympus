@@ -12,18 +12,17 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type TriggerActionsWorkflowParams struct {
-	Emr *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
-	Mb  *MbChildSubProcessParams                   `json:"mb,omitempty"`
-	Cpe *EvalActionParams                          `json:"cpe,omitempty"`
+type CreateTriggerActionsWorkflowInputs struct {
+	Emr                                *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
+	RunAiWorkflowAutoEvalProcessInputs *RunAiWorkflowAutoEvalProcessInputs        `json:"runAiWorkflowAutoEvalProcessInputs,omitempty"`
 }
 
 const (
 	apiApproval = "api"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workflow.Context, tar TriggerActionsWorkflowParams) error {
-	if tar.Emr == nil || tar.Mb == nil || tar.Cpe == nil {
+func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workflow.Context, tar CreateTriggerActionsWorkflowInputs) error {
+	if tar.Emr == nil || tar.RunAiWorkflowAutoEvalProcessInputs.Mb == nil || tar.RunAiWorkflowAutoEvalProcessInputs.Cpe == nil {
 		return nil
 	}
 	logger := workflow.GetLogger(ctx)
@@ -37,10 +36,10 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		},
 	}
 	tq := artemis_orchestrations.TriggersWorkflowQueryParams{
-		Ou:                 tar.Mb.Ou,
-		EvalID:             tar.Cpe.TaskToExecute.Tc.EvalID,
-		TaskID:             tar.Cpe.TaskToExecute.Tc.TaskID,
-		WorkflowTemplateID: tar.Mb.WfExecParams.WorkflowTemplate.WorkflowTemplateID,
+		Ou:                 tar.RunAiWorkflowAutoEvalProcessInputs.Mb.Ou,
+		EvalID:             tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.TaskToExecute.Tc.EvalID,
+		TaskID:             tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.TaskToExecute.Tc.TaskID,
+		WorkflowTemplateID: tar.RunAiWorkflowAutoEvalProcessInputs.Mb.WfExecParams.WorkflowTemplate.WorkflowTemplateID,
 	}
 	if !tq.ValidateEvalTaskQp() {
 		log.Warn().Interface("tq", tq).Msg("CreateTriggerActionsWorkflow: invalid trigger query params")
@@ -59,14 +58,14 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		jro := FilterPassingEvalPassingResponses(tar.Emr.EvaluatedJsonResponses)
 		var payloadJsonSlice []artemis_orchestrations.JsonSchemaDefinition
 		// update to pass sg
-		sgIn := tar.Cpe.SearchResultGroup
+		sgIn := tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.SearchResultGroup
 		if sgIn == nil {
 			sgIn = &hera_search.SearchResultGroup{}
 		}
-		wfr := tar.Mb.WorkflowResult
-		if tar.Cpe.ParentOutputToEval != nil {
-			wfr.WorkflowResultID = tar.Cpe.ParentOutputToEval.WorkflowResultID
-			wfr.ResponseID = tar.Cpe.ParentOutputToEval.ResponseID
+		wfr := tar.RunAiWorkflowAutoEvalProcessInputs.Mb.WorkflowResult
+		if tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.ParentOutputToEval != nil {
+			wfr.WorkflowResultID = tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.ParentOutputToEval.WorkflowResultID
+			wfr.ResponseID = tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.ParentOutputToEval.ResponseID
 		}
 		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, &wfr, jro, sgIn).Get(updateTaskCtx, &payloadJsonSlice)
@@ -85,14 +84,14 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			return err
 		}
 		var payloadJsonSlice []artemis_orchestrations.JsonSchemaDefinition
-		sgIn := tar.Cpe.SearchResultGroup
+		sgIn := tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.SearchResultGroup
 		if sgIn == nil {
 			sgIn = &hera_search.SearchResultGroup{}
 		}
-		wfr := tar.Mb.WorkflowResult
-		if tar.Cpe.ParentOutputToEval != nil {
-			wfr.WorkflowResultID = tar.Cpe.ParentOutputToEval.WorkflowResultID
-			wfr.ResponseID = tar.Cpe.ParentOutputToEval.ResponseID
+		wfr := tar.RunAiWorkflowAutoEvalProcessInputs.Mb.WorkflowResult
+		if tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.ParentOutputToEval != nil {
+			wfr.WorkflowResultID = tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.ParentOutputToEval.WorkflowResultID
+			wfr.ResponseID = tar.RunAiWorkflowAutoEvalProcessInputs.Cpe.ParentOutputToEval.ResponseID
 		}
 		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, &wfr, jro, sgIn).Get(updateTaskCtx, &payloadJsonSlice)
@@ -163,7 +162,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 						RequestSummary:   "Requesting approval for trigger action",
 					}
 					recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-					err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tar.Mb.Ou, tap, trrr).Get(recordTriggerCondCtx, nil)
+					err = workflow.ExecuteActivity(recordTriggerCondCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tar.RunAiWorkflowAutoEvalProcessInputs.Mb.Ou, tap, trrr).Get(recordTriggerCondCtx, nil)
 					if err != nil {
 						logger.Error("failed to create or update trigger action approval for api", "Error", err)
 						return err

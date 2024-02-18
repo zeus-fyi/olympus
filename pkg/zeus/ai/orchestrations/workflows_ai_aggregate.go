@@ -122,7 +122,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				var aiAggResp *ChatCompletionQueryResponse
 				switch aws.StringValue(aggInst.AggResponseFormat) {
 				case jsonFormat:
-					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
+					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: CreateExecAiWfId(oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i)), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 					var fullTaskDef []artemis_orchestrations.AITaskLibrary
 					selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, aws.IntValue(aggInst.AggTaskID)).Get(selectTaskCtx, &fullTaskDef)
@@ -181,19 +181,19 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					log.Warn().Interface("aiAggResp", aiAggResp).Msg("RunAiChildAggAnalysisProcessWorkflow: aiAggResp")
 					continue
 				}
-				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i),
-					RetryPolicy:              ao.RetryPolicy,
-					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-				}
-				aiAggResp.ResponseTaskID = aws.IntValue(aggInst.AggTaskID)
-				cp.Window = window
-				cp.WfID = childAnalysisWorkflowOptions.WorkflowID
-				cp.WorkflowResult = *wr
-				ea := &EvalActionParams{WorkflowTemplateData: aggInst, ParentOutputToEval: aiAggResp, EvalFns: aggInst.AggEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
-				for _, evalFn := range ea.EvalFns {
+				for ind, evalFn := range aggInst.AggEvalFns {
 					evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]
 					if i%evalAggCycle == 0 {
+						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+							WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-ind-" + strconv.Itoa(ind)),
+							RetryPolicy:              ao.RetryPolicy,
+							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+						}
+						aiAggResp.ResponseTaskID = aws.IntValue(aggInst.AggTaskID)
+						cp.Window = window
+						cp.WfID = childAnalysisWorkflowOptions.WorkflowID
+						cp.WorkflowResult = *wr
+						ea := &EvalActionParams{WorkflowTemplateData: aggInst, ParentOutputToEval: aiAggResp, EvalFns: aggInst.AggEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
 						childAggEvalWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 						err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAggEvalWfCtx, nil)
 						if err != nil {

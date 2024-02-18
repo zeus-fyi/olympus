@@ -1,12 +1,12 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -39,10 +39,12 @@ const (
 	evalModelScoredViaApi     = "api"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe *EvalActionParams) error {
-	if cpe == nil || mb == nil {
-		return nil
-	}
+type RunAiWorkflowAutoEvalProcessInputs struct {
+	Mb  *MbChildSubProcessParams `json:"mb,omitempty"`
+	Cpe *EvalActionParams        `json:"cpe,omitempty"`
+}
+
+func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, inputID int) error {
 	logger := workflow.GetLogger(ctx)
 	aoAiAct := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
@@ -53,6 +55,22 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			MaximumAttempts:    25,
 		},
 	}
+	var wfs WorkflowStageIO
+	taskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+	serr := workflow.ExecuteActivity(taskCtx, z.SelectWorkflowIO, inputID).Get(taskCtx, &wfs)
+	if serr != nil {
+		logger.Error("failed to select task io", "Error", serr)
+		return serr
+	}
+	if wfs.RunAiWorkflowAutoEvalProcessInputs == nil {
+		return nil
+	}
+	cpe := wfs.RunAiWorkflowAutoEvalProcessInputs.Cpe
+	mb := wfs.RunAiWorkflowAutoEvalProcessInputs.Mb
+	if cpe == nil || mb == nil {
+		return nil
+	}
+
 	evalsFnsMap := make(map[int]*artemis_orchestrations.EvalFn)
 	var evalFnsAgg []artemis_orchestrations.EvalFn
 	for ei, _ := range cpe.EvalFns {
@@ -82,7 +100,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		cpe.TaskToExecute.Ec = evCtx
 		switch strings.ToLower(evalFnsAgg[evFnIndex].EvalType) {
 		case evalModelScoredJsonOutput:
-			wfID := mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.RunCycle)
+			wfID := CreateExecAiWfId(mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex))
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: wfID, WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: aoAiAct.RetryPolicy}
 			if len(evalFnsAgg[evFnIndex].Schemas) == 0 {
 				continue
@@ -139,14 +157,39 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			return err
 		}
 		cpe.TaskToExecute.Ec = evCtx
-		tar := TriggerActionsWorkflowParams{Emr: emr, Mb: mb, Cpe: cpe}
+		tar := CreateTriggerActionsWorkflowInputs{Emr: emr, RunAiWorkflowAutoEvalProcessInputs: &RunAiWorkflowAutoEvalProcessInputs{
+			Mb:  mb,
+			Cpe: cpe,
+		}}
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + strings.Split(uuid.New().String(), "-")[0],
+			WorkflowID:               CreateExecAiWfId(mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex)),
 			WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			RetryPolicy:              aoAiAct.RetryPolicy,
 		}
+
+		wio := &WorkflowStageIO{
+			WorkflowStageReference: artemis_orchestrations.WorkflowStageReference{
+				WorkflowRunID: mb.Oj.OrchestrationID,
+				ChildWfID:     childAnalysisWorkflowOptions.WorkflowID,
+				RunCycle:      mb.RunCycle,
+			},
+			WorkflowStageInfo: WorkflowStageInfo{
+				CreateTriggerActionsWorkflowInputs: &tar,
+			},
+		}
+		saveWfStageIOCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		err = workflow.ExecuteActivity(saveWfStageIOCtx, z.SaveWorkflowIO, wio).Get(saveWfStageIOCtx, &wio)
+		if err != nil {
+			logger.Error("failed to saveWfStageIOCtx results", "Error", err)
+			return err
+		}
+		if wio == nil || wio.InputID == 0 {
+			err = fmt.Errorf("wio.InputID is 0 in evals")
+			logger.Warn("wio.InputID is 0 in evals", "Error", err)
+			return err
+		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, tar).Get(childAnalysisCtx, nil)
+		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, wio.InputID).Get(childAnalysisCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute child run trigger actions workflow", "Error", err)
 			return err

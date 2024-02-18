@@ -53,9 +53,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					SearchResults:  []hera_search.SearchResult{},
 					Window:         window,
 				}
-				retWfID := oj.OrchestrationName + "-analysis-ret-" + strconv.Itoa(i)
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               retWfID,
+					WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-analysis-ret-" + strconv.Itoa(i)),
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					RetryPolicy:              ao.RetryPolicy,
 				}
@@ -70,7 +69,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					continue
 				}
 				tte := TaskToExecute{
-					WfID: retWfID,
+					WfID: childAnalysisWorkflowOptions.WorkflowID,
 					Ou:   ou,
 					Wft:  analysisInst,
 					Sg:   sg,
@@ -136,12 +135,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				case jsonFormat, socialMediaExtractionResponseFormat:
 					tte.Sg.ExtractionPromptExt = analysisInst.AnalysisPrompt
 					tte.Sg.SourceTaskID = analysisInst.AnalysisTaskID
-					tte.WfID = oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d", analysisInst.AnalysisResponseFormat, i)
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-						WorkflowID:               tte.WfID,
+						WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d-chunk-%d", analysisInst.AnalysisResponseFormat, i, chunkOffset)),
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 						RetryPolicy:              ao.RetryPolicy,
 					}
+					tte.WfID = childAnalysisWorkflowOptions.WorkflowID
 					tte.Tc = TaskContext{TaskName: analysisInst.AnalysisTaskName, TaskType: AnalysisTask, ResponseFormat: analysisInst.AnalysisResponseFormat, Model: analysisInst.AnalysisModel, TaskID: analysisInst.AnalysisTaskID}
 					var fullTaskDef []artemis_orchestrations.AITaskLibrary
 					selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
@@ -211,25 +210,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if aiResp == nil || len(aiResp.Response.Choices) == 0 {
 					continue
 				}
-				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i),
-					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-					RetryPolicy:              ao.RetryPolicy,
-				}
-				cp.Window = window
-				cp.WfID = childAnalysisWorkflowOptions.WorkflowID
-				if wr.WorkflowResultID == 0 {
-					wr.WorkflowResultID = aiResp.WorkflowResultID
-				}
-				cp.WorkflowResult = *wr
-				ea := &EvalActionParams{WorkflowTemplateData: analysisInst, ParentOutputToEval: aiResp, EvalFns: analysisInst.AnalysisTaskDB.AnalysisEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
-				if analysisInst.AggTaskID != nil && analysisInst.AggAnalysisEvalFns != nil {
-					ea.EvalFns = analysisInst.AggAnalysisEvalFns
-				} else if analysisInst.AnalysisEvalFns != nil {
-					ea.EvalFns = analysisInst.AnalysisTaskDB.AnalysisEvalFns
-				}
 				// TODO, run in parallel
-				for _, evalFn := range ea.EvalFns {
+				for ind, evalFn := range analysisInst.AnalysisTaskDB.AnalysisEvalFns {
 					if evalFn.EvalID == 0 {
 						continue
 					}
@@ -240,8 +222,49 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AnalysisEvalNormalizedCycleCounts[analysisInst.AnalysisTaskID][evalFn.EvalID]
 					}
 					if i%evalAnalysisOnlyCycle == 0 {
+						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+							WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "eval-fn" + strconv.Itoa(evalFn.EvalID) + "-ind-" + strconv.Itoa(ind)),
+							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+							RetryPolicy:              ao.RetryPolicy,
+						}
+						cp.Window = window
+						cp.WfID = childAnalysisWorkflowOptions.WorkflowID
+						if wr.WorkflowResultID == 0 {
+							wr.WorkflowResultID = aiResp.WorkflowResultID
+						}
+						cp.WorkflowResult = *wr
+						ea := &EvalActionParams{WorkflowTemplateData: analysisInst, ParentOutputToEval: aiResp, EvalFns: analysisInst.AnalysisTaskDB.AnalysisEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
+						if analysisInst.AggTaskID != nil && analysisInst.AggAnalysisEvalFns != nil {
+							ea.EvalFns = analysisInst.AggAnalysisEvalFns
+						} else if analysisInst.AnalysisEvalFns != nil {
+							ea.EvalFns = analysisInst.AnalysisTaskDB.AnalysisEvalFns
+						}
 						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
+						wio := &WorkflowStageIO{
+							WorkflowStageReference: artemis_orchestrations.WorkflowStageReference{
+								WorkflowRunID: oj.OrchestrationID,
+								ChildWfID:     childAnalysisWorkflowOptions.WorkflowID,
+								RunCycle:      runCycle,
+							},
+							WorkflowStageInfo: WorkflowStageInfo{
+								RunAiWorkflowAutoEvalProcessInputs: &RunAiWorkflowAutoEvalProcessInputs{
+									Mb:  cp,
+									Cpe: ea,
+								},
+							},
+						}
+						saveWfStageIOCtx := workflow.WithActivityOptions(ctx, ao)
+						err = workflow.ExecuteActivity(saveWfStageIOCtx, z.SaveWorkflowIO, wio).Get(saveWfStageIOCtx, &wio)
+						if err != nil {
+							logger.Error("failed to saveWfStageIOCtx results", "Error", err)
+							return err
+						}
+						if wio == nil || wio.InputID == 0 {
+							err = fmt.Errorf("wio.InputID is 0 in analysis eval")
+							logger.Warn("wio.InputID is 0 in analysis eval", "Error", err)
+							return err
+						}
+						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, wio.InputID).Get(childAnalysisCtx, nil)
 						if err != nil {
 							logger.Error("failed to execute child analysis workflow", "Error", err)
 							return err

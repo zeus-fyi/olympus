@@ -1,10 +1,12 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"go.temporal.io/sdk/temporal"
@@ -121,7 +123,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				var aiAggResp *ChatCompletionQueryResponse
 				switch aws.StringValue(aggInst.AggResponseFormat) {
 				case jsonFormat:
-					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
+					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: CreateExecAiWfId(oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i)), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 					var fullTaskDef []artemis_orchestrations.AITaskLibrary
 					selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, aws.IntValue(aggInst.AggTaskID)).Get(selectTaskCtx, &fullTaskDef)
@@ -177,23 +179,48 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					}
 				}
 				if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 || aggInst.AggEvalFns == nil || len(aggInst.AggEvalFns) == 0 {
+					log.Warn().Interface("aiAggResp", aiAggResp).Msg("RunAiChildAggAnalysisProcessWorkflow: aiAggResp")
 					continue
 				}
-				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i),
-					RetryPolicy:              ao.RetryPolicy,
-					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-				}
-				aiAggResp.ResponseTaskID = aws.IntValue(aggInst.AggTaskID)
-				cp.Window = window
-				cp.WfID = childAnalysisWorkflowOptions.WorkflowID
-				cp.WorkflowResult = *wr
-				ea := &EvalActionParams{WorkflowTemplateData: aggInst, ParentOutputToEval: aiAggResp, EvalFns: aggInst.AggEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
-				for _, evalFn := range ea.EvalFns {
+				for ind, evalFn := range aggInst.AggEvalFns {
 					evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]
 					if i%evalAggCycle == 0 {
+						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+							WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-ind-" + strconv.Itoa(ind)),
+							RetryPolicy:              ao.RetryPolicy,
+							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+						}
+						aiAggResp.ResponseTaskID = aws.IntValue(aggInst.AggTaskID)
+						cp.Window = window
+						cp.WfID = childAnalysisWorkflowOptions.WorkflowID
+						cp.WorkflowResult = *wr
+						ea := &EvalActionParams{WorkflowTemplateData: aggInst, ParentOutputToEval: aiAggResp, EvalFns: aggInst.AggEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
+						wio := &WorkflowStageIO{
+							WorkflowStageReference: artemis_orchestrations.WorkflowStageReference{
+								WorkflowRunID: oj.OrchestrationID,
+								ChildWfID:     childAnalysisWorkflowOptions.WorkflowID,
+								RunCycle:      runCycle,
+							},
+							WorkflowStageInfo: WorkflowStageInfo{
+								RunAiWorkflowAutoEvalProcessInputs: &RunAiWorkflowAutoEvalProcessInputs{
+									Mb:  cp,
+									Cpe: ea,
+								},
+							},
+						}
+						saveWfStageIOCtx := workflow.WithActivityOptions(ctx, ao)
+						err = workflow.ExecuteActivity(saveWfStageIOCtx, z.SaveWorkflowIO, wio).Get(saveWfStageIOCtx, &wio)
+						if err != nil {
+							logger.Error("failed to saveWfStageIOCtx results", "Error", err)
+							return err
+						}
+						if wio == nil || wio.InputID == 0 {
+							err = fmt.Errorf("wio.InputID is 0 in analysis eval")
+							logger.Warn("wio.InputID is 0 in analysis eval", "Error", err)
+							return err
+						}
 						childAggEvalWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-						err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAggEvalWfCtx, nil)
+						err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, wio.InputID).Get(childAggEvalWfCtx, nil)
 						if err != nil {
 							logger.Error("failed to execute child agg eval workflow", "Error", err)
 							return err

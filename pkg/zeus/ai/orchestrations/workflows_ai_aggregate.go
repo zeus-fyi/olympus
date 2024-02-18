@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -194,8 +195,32 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						cp.WfID = childAnalysisWorkflowOptions.WorkflowID
 						cp.WorkflowResult = *wr
 						ea := &EvalActionParams{WorkflowTemplateData: aggInst, ParentOutputToEval: aiAggResp, EvalFns: aggInst.AggEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
+						wio := &WorkflowStageIO{
+							WorkflowStageReference: artemis_orchestrations.WorkflowStageReference{
+								WorkflowRunID: oj.OrchestrationID,
+								ChildWfID:     childAnalysisWorkflowOptions.WorkflowID,
+								RunCycle:      runCycle,
+							},
+							WorkflowStageInfo: WorkflowStageInfo{
+								RunAiWorkflowAutoEvalProcessInputs: &RunAiWorkflowAutoEvalProcessInputs{
+									Mb:  cp,
+									Cpe: ea,
+								},
+							},
+						}
+						saveWfStageIOCtx := workflow.WithActivityOptions(ctx, ao)
+						err = workflow.ExecuteActivity(saveWfStageIOCtx, z.SaveWorkflowIO, wio).Get(saveWfStageIOCtx, &wio)
+						if err != nil {
+							logger.Error("failed to saveWfStageIOCtx results", "Error", err)
+							return err
+						}
+						if wio == nil || wio.InputID == 0 {
+							err = fmt.Errorf("wio.InputID is 0 in analysis eval")
+							logger.Warn("wio.InputID is 0 in analysis eval", "Error", err)
+							return err
+						}
 						childAggEvalWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-						err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAggEvalWfCtx, nil)
+						err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, wio.InputID).Get(childAggEvalWfCtx, nil)
 						if err != nil {
 							logger.Error("failed to execute child agg eval workflow", "Error", err)
 							return err

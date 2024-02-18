@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -43,10 +44,7 @@ type RunAiWorkflowAutoEvalProcessInputs struct {
 	Cpe *EvalActionParams        `json:"cpe,omitempty"`
 }
 
-func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams, cpe *EvalActionParams) error {
-	if cpe == nil || mb == nil {
-		return nil
-	}
+func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, inputID int) error {
 	logger := workflow.GetLogger(ctx)
 	aoAiAct := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
@@ -57,6 +55,22 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			MaximumAttempts:    25,
 		},
 	}
+	var wfs WorkflowStageIO
+	taskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+	serr := workflow.ExecuteActivity(taskCtx, z.SelectWorkflowIO, inputID).Get(taskCtx, &wfs)
+	if serr != nil {
+		logger.Error("failed to select task io", "Error", serr)
+		return serr
+	}
+	if wfs.RunAiWorkflowAutoEvalProcessInputs == nil {
+		return nil
+	}
+	cpe := wfs.RunAiWorkflowAutoEvalProcessInputs.Cpe
+	mb := wfs.RunAiWorkflowAutoEvalProcessInputs.Mb
+	if cpe == nil || mb == nil {
+		return nil
+	}
+
 	evalsFnsMap := make(map[int]*artemis_orchestrations.EvalFn)
 	var evalFnsAgg []artemis_orchestrations.EvalFn
 	for ei, _ := range cpe.EvalFns {
@@ -170,10 +184,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			return err
 		}
 		if wio == nil || wio.InputID == 0 {
-			logger.Warn("wio.InputID is 0, skipping trigger actions")
+			err = fmt.Errorf("wio.InputID is 0 in evals")
+			logger.Warn("wio.InputID is 0 in evals", "Error", err)
 			return err
 		}
-
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, wio.InputID).Get(childAnalysisCtx, nil)
 		if err != nil {

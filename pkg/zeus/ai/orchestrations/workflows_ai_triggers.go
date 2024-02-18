@@ -39,6 +39,9 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		logger.Error("failed to update task", "Error", err)
 		return err
 	}
+	if wfs.CreateTriggerActionsWorkflowInputs == nil {
+		return nil
+	}
 	tar := wfs.WorkflowStageInfo.CreateTriggerActionsWorkflowInputs
 	if tar.Emr == nil || tar.RunAiWorkflowAutoEvalProcessInputs.Mb == nil || tar.RunAiWorkflowAutoEvalProcessInputs.Cpe == nil {
 		return nil

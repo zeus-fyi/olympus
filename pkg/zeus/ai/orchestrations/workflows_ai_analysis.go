@@ -240,7 +240,31 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 							ea.EvalFns = analysisInst.AnalysisTaskDB.AnalysisEvalFns
 						}
 						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp, ea).Get(childAnalysisCtx, nil)
+						wio := &WorkflowStageIO{
+							WorkflowStageReference: artemis_orchestrations.WorkflowStageReference{
+								WorkflowRunID: oj.OrchestrationID,
+								ChildWfID:     childAnalysisWorkflowOptions.WorkflowID,
+								RunCycle:      runCycle,
+							},
+							WorkflowStageInfo: WorkflowStageInfo{
+								RunAiWorkflowAutoEvalProcessInputs: &RunAiWorkflowAutoEvalProcessInputs{
+									Mb:  cp,
+									Cpe: ea,
+								},
+							},
+						}
+						saveWfStageIOCtx := workflow.WithActivityOptions(ctx, ao)
+						err = workflow.ExecuteActivity(saveWfStageIOCtx, z.SaveWorkflowIO, wio).Get(saveWfStageIOCtx, &wio)
+						if err != nil {
+							logger.Error("failed to saveWfStageIOCtx results", "Error", err)
+							return err
+						}
+						if wio == nil || wio.InputID == 0 {
+							err = fmt.Errorf("wio.InputID is 0 in analysis eval")
+							logger.Warn("wio.InputID is 0 in analysis eval", "Error", err)
+							return err
+						}
+						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, wio.InputID).Get(childAnalysisCtx, nil)
 						if err != nil {
 							logger.Error("failed to execute child analysis workflow", "Error", err)
 							return err

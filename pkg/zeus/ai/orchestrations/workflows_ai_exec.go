@@ -72,6 +72,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			logger.Error("failed to execute child analysis workflow", "Error", err)
 			return err
 		}
+		logger.Info("RunAiWorkflowProcess: all child analysis workflow executed", "RunCycle", i)
 		// Execute child workflow for aggregation
 		childAggAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 			WorkflowID:               oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i),
@@ -79,6 +80,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
 			RetryPolicy:              ao.RetryPolicy,
 		}
+		logger.Info("RunAiWorkflowProcess: child aggregation workflow starting", "RunCycle", i)
 		childAggAnalysisCtx := workflow.WithChildOptions(ctx, childAggAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAggAnalysisCtx, z.RunAiChildAggAnalysisProcessWorkflow, childParams).Get(childAggAnalysisCtx, nil)
 		if err != nil {

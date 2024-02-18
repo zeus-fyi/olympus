@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"go.temporal.io/sdk/temporal"
@@ -177,6 +178,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					}
 				}
 				if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 || aggInst.AggEvalFns == nil || len(aggInst.AggEvalFns) == 0 {
+					log.Warn().Interface("aiAggResp", aiAggResp).Msg("RunAiChildAggAnalysisProcessWorkflow: aiAggResp")
 					continue
 				}
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{

@@ -42,8 +42,8 @@ func (z *ZeusAiPlatformActivities) SaveWorkflowIO(ctx context.Context, wfInputs 
 }
 
 type WorkflowStageIO struct {
-	artemis_orchestrations.WorkflowStageReference
-	WorkflowStageInfo
+	artemis_orchestrations.WorkflowStageReference `json:"workflowStageReference"`
+	WorkflowStageInfo                             `json:"workflowStageInfo"`
 }
 
 type WorkflowStageInfo struct {

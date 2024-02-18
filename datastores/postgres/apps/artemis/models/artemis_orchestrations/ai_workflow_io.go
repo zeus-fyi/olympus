@@ -41,6 +41,7 @@ func InsertWorkflowStageReference(ctx context.Context, wfStageIO *WorkflowStageR
 	jsonb.Bytes = sanitizeBytesUTF8(wfStageIO.InputData)
 	jsonb.Status = IsNull(wfStageIO.InputData)
 
+	wfStageIO.LogsStr = strings.Join(wfStageIO.Logs, ",")
 	// Executing the query
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wfStageIO.InputID, wfStageIO.WorkflowRunID, wfStageIO.ChildWfID, wfStageIO.RunCycle, jsonb, wfStageIO.LogsStr).Scan(&wfStageIO.WorkflowRunID)
 	if err != nil {

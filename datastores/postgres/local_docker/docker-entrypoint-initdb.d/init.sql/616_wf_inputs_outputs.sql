@@ -1,15 +1,14 @@
-CREATE TABLE public.ai_workflow_io(
-    response_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
-    approval_id BIGINT NOT NULL REFERENCES ai_trigger_actions_approvals(approval_id),
-    trigger_id BIGINT NOT NULL REFERENCES ai_trigger_actions(trigger_id),
-    retrieval_id BIGINT NOT NULL REFERENCES ai_retrieval_library(retrieval_id),
-    req_payload JSONB,
-    resp_payload JSONB
+CREATE TABLE public.ai_workflow_stage_references (
+    input_id BIGINT NOT NULL DEFAULT next_id() PRIMARY KEY,
+    workflow_run_id BIGINT NOT NULL,
+    child_wf_id VARCHAR NOT NULL,
+    run_cycle BIGINT NOT NULL DEFAULT 0,
+    input_data JSONB NULL,
+    logs TEXT NOT NULL DEFAULT '',
+    CONSTRAINT fk_workflow_run_id
+     FOREIGN KEY (workflow_run_id)
+         REFERENCES public.ai_workflow_runs(workflow_run_id)
 );
 
-CREATE INDEX ai_trigger_actions_api_trg_resp_indx ON public.ai_trigger_actions_api_reqs_responses("trigger_id");
-CREATE INDEX ai_trigger_actions_api_resp_rest_indx ON public.ai_trigger_actions_api_reqs_responses("retrieval_id");
-CREATE INDEX ai_trigger_actions_api_apprv_indx ON public.ai_trigger_actions_api_reqs_responses("approval_id");
-
-ALTER TABLE public.ai_trigger_actions_api_reqs_responses
-    ADD CONSTRAINT ai_trigger_actions_api_responses_ret_apprv_uniq UNIQUE (response_id, approval_id, trigger_id, retrieval_id);
+CREATE UNIQUE INDEX idx_child_wf_id ON public.ai_workflow_stage_references(child_wf_id);
+CREATE INDEX idx_workflow_run_id ON public.ai_workflow_stage_references(workflow_run_id);

@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"context"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
@@ -14,16 +15,8 @@ func (z *ZeusAiPlatformActivities) SaveWorkflowIO(ctx context.Context, ou org_us
 	return nil, nil
 }
 
-type WorkflowStageReference struct {
-	InputID         int    `json:"inputID,omitempty"`
-	InputStrID      string `json:"inputStrID,omitempty"`
-	OrchestrationID int    `json:"orchestrationID,omitempty"`
-	ChildWfID       string `json:"childWfID,omitempty"`
-	RunCycle        int    `json:"runCycle"`
-}
-
 type WorkflowStageIO struct {
-	WorkflowStageReference
+	artemis_orchestrations.WorkflowStageReference
 	TaskToExecute                      *TaskToExecute                      `json:"tte,omitempty"`
 	RunAiWorkflowAutoEvalProcessInputs *RunAiWorkflowAutoEvalProcessInputs `json:"runAiWorkflowAutoEvalProcessInputs,omitempty"`
 	CreateTriggerActionsWorkflowInputs *CreateTriggerActionsWorkflowInputs `json:"createTriggerActionsWorkflowInputs,omitempty"`

@@ -153,8 +153,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			RetryPolicy:              aoAiAct.RetryPolicy,
 		}
 
-		wio := WorkflowStageIO{
-			WorkflowStageReference: artemis_orchestrations.WorkflowStageReference{},
+		wio := &WorkflowStageIO{
+			WorkflowStageReference: artemis_orchestrations.WorkflowStageReference{
+				WorkflowRunID: mb.Oj.OrchestrationID,
+				ChildWfID:     childAnalysisWorkflowOptions.WorkflowID,
+				RunCycle:      mb.RunCycle,
+			},
 			WorkflowStageInfo: WorkflowStageInfo{
 				CreateTriggerActionsWorkflowInputs: &tar,
 			},
@@ -165,9 +169,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			logger.Error("failed to saveWfStageIOCtx results", "Error", err)
 			return err
 		}
+		if wio == nil || wio.InputID == 0 {
+			logger.Warn("wio.InputID is 0, skipping trigger actions")
+			return err
+		}
 
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, tar).Get(childAnalysisCtx, nil)
+		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, wio.InputID).Get(childAnalysisCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute child run trigger actions workflow", "Error", err)
 			return err

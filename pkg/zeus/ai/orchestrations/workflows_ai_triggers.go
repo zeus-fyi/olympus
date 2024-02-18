@@ -21,10 +21,7 @@ const (
 	apiApproval = "api"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workflow.Context, tar CreateTriggerActionsWorkflowInputs) error {
-	if tar.Emr == nil || tar.RunAiWorkflowAutoEvalProcessInputs.Mb == nil || tar.RunAiWorkflowAutoEvalProcessInputs.Cpe == nil {
-		return nil
-	}
+func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workflow.Context, inputID int) error {
 	logger := workflow.GetLogger(ctx)
 	aoAiAct := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
@@ -34,6 +31,17 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			MaximumInterval:    time.Minute * 5,
 			MaximumAttempts:    25,
 		},
+	}
+	var wfs WorkflowStageIO
+	taskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+	err := workflow.ExecuteActivity(taskCtx, z.SelectWorkflowIO, inputID).Get(taskCtx, &wfs)
+	if err != nil {
+		logger.Error("failed to update task", "Error", err)
+		return err
+	}
+	tar := wfs.WorkflowStageInfo.CreateTriggerActionsWorkflowInputs
+	if tar.Emr == nil || tar.RunAiWorkflowAutoEvalProcessInputs.Mb == nil || tar.RunAiWorkflowAutoEvalProcessInputs.Cpe == nil {
+		return nil
 	}
 	tq := artemis_orchestrations.TriggersWorkflowQueryParams{
 		Ou:                 tar.RunAiWorkflowAutoEvalProcessInputs.Mb.Ou,
@@ -47,7 +55,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 	}
 	var triggerActions []artemis_orchestrations.TriggerAction
 	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tq).Get(triggerEvalsLookupCtx, &triggerActions)
+	err = workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tq).Get(triggerEvalsLookupCtx, &triggerActions)
 	if err != nil {
 		logger.Error("failed to get eval trigger info", "Error", err)
 		return err

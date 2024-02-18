@@ -31,7 +31,7 @@ func InsertWorkflowStageReference(ctx context.Context, wfStageIO *WorkflowStageR
 			ON CONFLICT (input_id) DO UPDATE
 			SET input_data = EXCLUDED.input_data,
 				logs = EXCLUDED.logs
-			RETURNING workflow_run_id;
+			RETURNING input_id, input_id::text;
 `
 	ts := chronos.Chronos{}
 	if wfStageIO.InputID == 0 {
@@ -43,7 +43,7 @@ func InsertWorkflowStageReference(ctx context.Context, wfStageIO *WorkflowStageR
 
 	wfStageIO.LogsStr = strings.Join(wfStageIO.Logs, ",")
 	// Executing the query
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wfStageIO.InputID, wfStageIO.WorkflowRunID, wfStageIO.ChildWfID, wfStageIO.RunCycle, jsonb, wfStageIO.LogsStr).Scan(&wfStageIO.WorkflowRunID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wfStageIO.InputID, wfStageIO.WorkflowRunID, wfStageIO.ChildWfID, wfStageIO.RunCycle, jsonb, wfStageIO.LogsStr).Scan(&wfStageIO.InputID, &wfStageIO.InputStrID)
 	if err != nil {
 		log.Err(err).Msg("failed to execute query for InsertWorkflowStageReference")
 		return err

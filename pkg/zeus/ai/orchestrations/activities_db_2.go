@@ -25,20 +25,21 @@ func (z *ZeusAiPlatformActivities) SelectWorkflowIO(ctx context.Context, refID i
 	return wsr, nil
 }
 
-func (z *ZeusAiPlatformActivities) SaveWorkflowIO(ctx context.Context, wfInputs *WorkflowStageIO) error {
+func (z *ZeusAiPlatformActivities) SaveWorkflowIO(ctx context.Context, wfInputs *WorkflowStageIO) (*WorkflowStageIO, error) {
 	wsr := wfInputs.WorkflowStageReference
 	b, err := json.Marshal(wfInputs.WorkflowStageInfo)
 	if err != nil {
 		log.Err(err).Interface("wfInputs", wfInputs).Msg("failed to marshal workflow stage info")
-		return err
+		return nil, err
 	}
 	wsr.InputData = b
 	err = artemis_orchestrations.InsertWorkflowStageReference(ctx, &wsr)
 	if err != nil {
 		log.Err(err).Interface("wfInputs", wfInputs).Msg("failed to select workflow stage reference")
-		return err
+		return nil, err
 	}
-	return nil
+	wfInputs.WorkflowStageReference = wsr
+	return wfInputs, nil
 }
 
 type WorkflowStageIO struct {

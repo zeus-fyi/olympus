@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
@@ -38,7 +39,11 @@ func (t *ZeusWorkerTestSuite) TestInsertWorkflowIO() {
 			},
 		},
 	}
-	err = act.SaveWorkflowIO(ctx, tmp)
+	wfi, err := act.SaveWorkflowIO(ctx, tmp)
+	t.Require().Nil(err)
+	t.Require().NotNil(wfi)
+	t.Require().NotZero(wfi.InputID)
+
 	t.Require().Nil(err)
 	wflu, err := act.SelectWorkflowIO(ctx, 2)
 	t.Require().Nil(err)
@@ -48,4 +53,12 @@ func (t *ZeusWorkerTestSuite) TestInsertWorkflowIO() {
 	t.Require().NotEmpty(wflu.Logs)
 
 	fmt.Println(strings.Join(wflu.Logs, ","))
+
+	tmp.InputID = 0
+	tmp.ChildWfID = uuid.New().String()
+	wfiNew, err := act.SaveWorkflowIO(ctx, tmp)
+	t.Require().Nil(err)
+	t.Require().NotNil(wfiNew)
+	t.Require().NotZero(wfiNew.InputID)
+
 }

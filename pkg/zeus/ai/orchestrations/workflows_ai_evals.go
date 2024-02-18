@@ -152,6 +152,20 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			RetryPolicy:              aoAiAct.RetryPolicy,
 		}
+
+		wio := WorkflowStageIO{
+			WorkflowStageReference: artemis_orchestrations.WorkflowStageReference{},
+			WorkflowStageInfo: WorkflowStageInfo{
+				CreateTriggerActionsWorkflowInputs: &tar,
+			},
+		}
+		saveWfStageIOCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+		err = workflow.ExecuteActivity(saveWfStageIOCtx, z.SaveWorkflowIO, wio).Get(saveWfStageIOCtx, &wio)
+		if err != nil {
+			logger.Error("failed to saveWfStageIOCtx results", "Error", err)
+			return err
+		}
+
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, tar).Get(childAnalysisCtx, nil)
 		if err != nil {

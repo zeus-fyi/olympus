@@ -298,7 +298,16 @@ function AiWorkflowsDashboardContent(props: any) {
         try {
             setIsLoading(true)
                 // console.log("routingGroup", retrieval.retrievalItemInstruction.webFilters.routingGroup)
-                const response = await IrisApiGateway.sendIrisGetRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code, "free",  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
+                let response: any
+                if (retrieval.retrievalItemInstruction.webFilters.endpointREST === 'post') {
+                    response = await IrisApiGateway.sendIrisPostRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code,  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
+                } else if (retrieval.retrievalItemInstruction.webFilters.endpointREST === 'put') {
+                    response = await IrisApiGateway.sendIrisPutRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code,  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
+                } else if (retrieval.retrievalItemInstruction.webFilters.endpointREST === 'delete') {
+                    response = await IrisApiGateway.sendIrisDeleteRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
+                } else {
+                    response = await IrisApiGateway.sendIrisGetRequest(retrieval.retrievalItemInstruction.webFilters.routingGroup, code, "free",  retrieval.retrievalItemInstruction.webFilters.endpointRoutePath);
+                }
                 // console.log("response", response)
                 if (response && response.data) {
                     const result = JSON.stringify(response.data, null, 2);

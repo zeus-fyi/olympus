@@ -35,6 +35,72 @@ class IrisLoadBalancingApiGateway {
             return
         }
     }
+    async sendIrisPostRequest(routeGroup: string, payload: any,ext: string): Promise<any>  {
+        const url = `/v1/router/${ext}`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                    'X-Route-Group': `${routeGroup}`,
+                    'X-Load-Balancing-Strategy': 'RoundRobin',
+                    // 'Content-Type': 'application/json'
+                },
+                withCredentials: true,
+            }
+            return await irisApi.post(url, payload, config)
+
+        } catch (exc) {
+            console.error('error sending endpoints table request');
+            console.error(exc);
+            return
+        }
+    }
+    async sendIrisPutRequest(routeGroup: string, payload: any, ext: string): Promise<any>  {
+        const url = `/v1/router/${ext}`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                    'X-Route-Group': `${routeGroup}`,
+                    'X-Load-Balancing-Strategy': 'RoundRobin',
+                    // 'Content-Type': 'application/json'
+                },
+                withCredentials: true,
+            }
+            return await irisApi.put(url, payload, config)
+
+        } catch (exc) {
+            console.error('error sending endpoints table request');
+            console.error(exc);
+            return
+        }
+    }
+    async sendIrisDeleteRequest(routeGroup: string, ext: string): Promise<any>  {
+        const url = `/v1/router/${ext}`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                    'X-Route-Group': `${routeGroup}`,
+                    'X-Load-Balancing-Strategy': 'RoundRobin',
+                    // 'Content-Type': 'application/json'
+                },
+                withCredentials: true,
+            }
+            return await irisApi.delete(url, config)
+
+        } catch (exc) {
+            console.error('error sending endpoints table request');
+            console.error(exc);
+            return
+        }
+    }
     async sendIrisGetRequest(routeGroup: string, payload: any, planName: string, ext: string): Promise<any>  {
         const url = `/v1/router/${ext}`;
         try {

@@ -35,9 +35,18 @@ func (s *InsertExtClusterConfigsTestSuite) TestInsertExtClusterConfigs() {
 	s.Require().Nil(err)
 	s.Require().Len(pylSelects, 2)
 }
+
+func (s *InsertExtClusterConfigsTestSuite) TestInsertExtClusterConfigs2() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	// SelectAuthedClusterByRouteAndOrgID
+	pylSelects, err := SelectAuthedAndPublicClusterConfigsByOrgID(ctx, s.Ou)
+	s.Require().Nil(err)
+	s.Require().Len(pylSelects, 2)
+}
+
 func (s *InsertExtClusterConfigsTestSuite) TestSelectAuthedAndPublicClusterConfigsByOrgID() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-
+	// SelectAuthedClusterByRouteAndOrgID
 	pylSelects, err := SelectAuthedAndPublicClusterConfigsByOrgID(ctx, s.Ou)
 	s.Require().Nil(err)
 	s.Require().Len(pylSelects, 2)

@@ -72,15 +72,25 @@ func GetKubeConfig(ctx context.Context, ou org_users.OrgUser, p authorized_clust
 func VerifyClusterAuthFromCtxOnlyAndGetKubeCfg(ctx context.Context, ou org_users.OrgUser, cloudCtxNs zeus_common_types.CloudCtxNs) (*autok8s_core.K8Util, error) {
 	p, err := authorized_clusters.SelectAuthedClusterByRouteOnlyAndOrgID(ctx, ou, cloudCtxNs)
 	if err != nil {
+		log.Err(err).Interface("ou", ou).Msg("VerifyClusterAuthFromCtxOnlyAndGetKubeCfg: SelectAuthedClusterByRouteOnlyAndOrgID")
 		return nil, err
 	}
 	if p == nil {
+		log.Warn().Interface("ou", ou).Interface("cloudCtxNs", cloudCtxNs).Msg("VerifyClusterAuthFromCtxOnlyAndGetKubeCfg: SelectAuthedClusterByRouteOnlyAndOrgID p == nil")
 		return nil, nil
 	}
 	k, err := GetKubeConfig(ctx, ou, *p)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Msg("CheckKubeConfig: ConnectToK8sFromInMemFsCfgPathOrErr")
+		log.Err(err).Interface("ou", ou).Interface("cloudCtxNs", cloudCtxNs).Msg("CheckKubeConfig: ConnectToK8sFromInMemFsCfgPathOrErr")
 		return nil, err
+	}
+	ctxv, err := k.GetContexts()
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Msg("CheckKubeConfig: GetContexts")
+		return nil, err
+	}
+	for _, c := range ctxv {
+		log.Info().Interface("c.Cluster", c.Cluster).Interface("cloudCtxNs", cloudCtxNs).Msg("context")
 	}
 	return &k, nil
 }

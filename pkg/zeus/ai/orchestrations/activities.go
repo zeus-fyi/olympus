@@ -583,6 +583,7 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 
 	wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
 		WorkflowResultID:      cp.Tc.WorkflowResultID,
+		ResponseID:            cp.Tc.ResponseID,
 		OrchestrationID:       cp.Oj.OrchestrationID,
 		SourceTaskID:          cp.Tc.TaskID,
 		IterationCount:        cp.Wsr.IterationCount,

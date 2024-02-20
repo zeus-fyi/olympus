@@ -103,6 +103,7 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 				SearchWindowUnixStart: cp.Window.UnixStartTime,
 				SearchWindowUnixEnd:   cp.Window.UnixEndTime,
 				ResponseID:            cp.Tc.ResponseID,
+				WorkflowResultID:      cp.Tc.WorkflowResultID,
 			},
 			AIWorkflowEvalResultResponse: artemis_orchestrations.AIWorkflowEvalResultResponse{
 				EvalResultsID:      cp.Tc.EvalResultID,

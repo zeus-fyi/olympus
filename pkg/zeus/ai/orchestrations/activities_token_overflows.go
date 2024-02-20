@@ -170,9 +170,15 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, i
 }
 
 func TokenOverflowSearchResults(ctx context.Context, pr *PromptReduction) error {
-	if pr.PromptReductionSearchResults == nil || pr.PromptReductionSearchResults.InSearchGroup == nil || pr.PromptReductionSearchResults.InSearchGroup.SearchResults == nil {
+	if pr.PromptReductionSearchResults == nil || pr.PromptReductionSearchResults.InSearchGroup == nil {
+		log.Info().Msg("TokenOverflowSearchResults: no search results")
 		return nil
 	}
+	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults == nil && pr.PromptReductionSearchResults.InSearchGroup.SearchResults == nil {
+		log.Info().Msg("TokenOverflowSearchResults: no search results or api responses")
+		return nil
+	}
+
 	switch pr.TokenOverflowStrategy {
 	case OverflowStrategyDeduce:
 		err := ChunkSearchResults(ctx, pr)

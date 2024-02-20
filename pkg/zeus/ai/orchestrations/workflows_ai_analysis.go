@@ -135,6 +135,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						logger.Error("failed to save analysis", "Error", err)
 						return err
 					}
+					wr.WorkflowResultID = aiResp.WorkflowResultID
 				}
 				for ind, evalFn := range analysisInst.AnalysisTaskDB.AnalysisEvalFns {
 					if evalFn.EvalID == 0 {

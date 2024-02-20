@@ -125,6 +125,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						logger.Error("failed to save aggregation resp", "Error", err)
 						return err
 					}
+					wr.WorkflowResultID = aiAggResp.WorkflowResultID
 				}
 				for ind, evalFn := range aggInst.AggEvalFns {
 					evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]

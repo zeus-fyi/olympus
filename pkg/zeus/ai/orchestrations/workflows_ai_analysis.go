@@ -130,7 +130,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						ChatCompletionQueryResponse: aiResp,
 					}
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, ia).Get(recordAnalysisCtx, &aiResp.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAnalysisCtx, &aiResp.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save analysis", "Error", err)
 						return err

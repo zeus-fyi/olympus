@@ -28,6 +28,7 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	for _, taskDef := range tv {
 		jsd = append(jsd, taskDef.Schemas...)
 	}
+	params.FunctionDefinition = artemis_orchestrations.ConvertToFuncDef(jsd)
 	in, err := gws(ctx, mb.Wsr.InputID)
 	if err != nil {
 		log.Err(err).Msg("CreateJsonOutputModelResponse: gws failed")
@@ -74,6 +75,7 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		Prompt:     map[string]string{"prompt": params.Prompt},
 		Response:   resp,
 		ResponseID: rid,
+		Schemas:    jsd,
 	}
 	var m any
 	var anyErr error

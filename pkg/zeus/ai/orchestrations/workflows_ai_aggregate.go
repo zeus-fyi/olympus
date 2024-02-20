@@ -65,7 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				analysisDep = append(analysisDep, k)
 			}
 			aggRetrievalCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, cp, analysisDep).Get(aggRetrievalCtx, nil)
+			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, cp, analysisDep).Get(aggRetrievalCtx, &cp)
 			if err != nil {
 				logger.Error("failed to run aggregate retrieval", "Error", err)
 				return err

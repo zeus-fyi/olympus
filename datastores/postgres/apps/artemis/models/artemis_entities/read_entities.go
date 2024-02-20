@@ -1,4 +1,4 @@
-package entities
+package artemis_entities
 
 import (
 	"context"
@@ -7,6 +7,15 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
+
+type EntitiesFilter struct {
+	Nickname           string          `json:"nickname" db:"nickname"`
+	Platform           string          `json:"platform" db:"platform"`
+	Labels             []string        `json:"labels"`
+	MetadataJsonb      json.RawMessage `json:"metadataJsonb,omitempty"`
+	MetadataText       string          `json:"metadataText,omitempty"`
+	SinceUnixTimestamp int             `json:"sinceTimestampUnix,omitempty"`
+}
 
 func SelectUserMetadataByNicknameAndPlatform(ctx context.Context, nickname string, platform string, labels []string, sinceUnixTimestamp int) ([]UserEntityWrapper, error) {
 	var wrappers []UserEntityWrapper
@@ -17,7 +26,8 @@ func SelectUserMetadataByNicknameAndPlatform(ctx context.Context, nickname strin
 		FROM public.user_entities ue
 		LEFT JOIN public.user_entities_md umd ON ue.entity_id = umd.entity_id
 		LEFT JOIN public.user_entities_md_labels umdl ON umd.entity_metadata_id = umdl.entity_metadata_id
-		WHERE ue.nickname = $1 AND ue.platform = $2`
+		WHERE ue.nickname = $1 AND ue.platform = $2
+		ORDER BY umdl.entity_metadata_label_id DESC`
 
 	args := []interface{}{nickname, platform}
 
@@ -29,9 +39,7 @@ func SelectUserMetadataByNicknameAndPlatform(ctx context.Context, nickname strin
 	if sinceUnixTimestamp > 0 {
 		query += " AND umdl.entity_metadata_label_id > $4"
 		args = append(args, sinceUnixTimestamp)
-
 	}
-
 	// Executing the query
 	rows, err := apps.Pg.Query(ctx, query, args...)
 	if err != nil {
@@ -47,7 +55,9 @@ func SelectUserMetadataByNicknameAndPlatform(ctx context.Context, nickname strin
 		var entityID, metadataID int
 		var jsonData json.RawMessage
 		var textData, label *string
-		var userEntity UserEntity
+		userEntity := UserEntity{
+			MdSlice: []UserEntityMetadata{},
+		}
 		var metadata UserEntityMetadata
 		var labelID *int
 		err = rows.Scan(&entityID, &userEntity.Nickname, &userEntity.Platform, &userEntity.FirstName, &userEntity.LastName, &metadataID, &jsonData, &textData, &label, &labelID)
@@ -61,7 +71,6 @@ func SelectUserMetadataByNicknameAndPlatform(ctx context.Context, nickname strin
 		if !exists {
 			wrapper = &UserEntityWrapper{
 				UserEntity: userEntity,
-				MdSlice:    []UserEntityMetadata{},
 			}
 			tempMap[entityID] = wrapper
 		}

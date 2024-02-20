@@ -1,4 +1,4 @@
-package entities
+package artemis_entities
 
 import (
 	"context"
@@ -13,8 +13,7 @@ import (
 
 type UserEntityWrapper struct {
 	UserEntity
-	Ou      org_users.OrgUser
-	MdSlice []UserEntityMetadata
+	Ou org_users.OrgUser
 }
 
 type UserEntity struct {
@@ -23,6 +22,7 @@ type UserEntity struct {
 	Platform  string  `json:"platform" db:"platform"`
 	FirstName *string `json:"firstName,omitempty" db:"first_name"` // Pointer used to handle NULL, omitempty for JSON if nil
 	LastName  *string `json:"lastName,omitempty" db:"last_name"`   // Pointer used to handle NULL, omitempty for JSON if nil
+	MdSlice   []UserEntityMetadata
 }
 
 type UserEntityMetadata struct {

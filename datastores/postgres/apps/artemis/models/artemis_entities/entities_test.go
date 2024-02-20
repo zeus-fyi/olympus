@@ -1,4 +1,4 @@
-package entities
+package artemis_entities
 
 import (
 	"context"
@@ -37,22 +37,20 @@ func (s *EntitiesTestSuite) TestInsertUserEntity() {
 	// Test data for insertion
 	testUserEntity := UserEntityWrapper{
 		UserEntity: UserEntity{
-			Nickname:  "test-nickname",
-			Platform:  "test-platform",
-			FirstName: nil, // Assuming no first name to demonstrate handling of NULL
-			LastName:  nil, // Assuming no last name to demonstrate handling of NULL
-		},
-		Ou: s.Ou,
-		MdSlice: []UserEntityMetadata{
-			{
-				JsonData: json.RawMessage(`{"key": "value"}`),
-				TextData: nil, // Demonstrating handling of NULL
-				Labels: []UserEntityMetadataLabel{
-					{Label: "test-label1"},
-					{Label: "test-label2"},
+			Nickname: "nickname",
+			Platform: "email",
+			MdSlice: []UserEntityMetadata{
+				{
+					JsonData: json.RawMessage(`{"key_b": "value_b"}`),
+					TextData: nil, // Demonstrating handling of NULL
+					Labels: []UserEntityMetadataLabel{
+						{Label: "test-label_c"},
+						{Label: "test-label_c2"},
+					},
 				},
 			},
 		},
+		Ou: s.Ou,
 	}
 
 	err := InsertUserEntityLabeledMetadata(ctx, &testUserEntity)

@@ -11,6 +11,8 @@ import (
 type EntitiesFilter struct {
 	Nickname           string          `json:"nickname" db:"nickname"`
 	Platform           string          `json:"platform" db:"platform"`
+	FirstName          *string         `json:"firstName,omitempty"`
+	LastName           *string         `json:"lastName,omitempty"`
 	Labels             []string        `json:"labels"`
 	MetadataJsonb      json.RawMessage `json:"metadataJsonb,omitempty"`
 	MetadataText       string          `json:"metadataText,omitempty"`

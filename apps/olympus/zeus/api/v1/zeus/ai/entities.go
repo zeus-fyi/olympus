@@ -51,8 +51,10 @@ func (e *CreateOrUpdateEntitiesRequest) CreateOrUpdateEntity(c echo.Context) err
 	mdb.Labels = labels
 	urw := &artemis_entities.UserEntityWrapper{
 		UserEntity: artemis_entities.UserEntity{
-			Nickname: e.Nickname,
-			Platform: e.Platform,
+			Nickname:  e.Nickname,
+			Platform:  e.Platform,
+			FirstName: e.FirstName,
+			LastName:  e.LastName,
 			MdSlice: []artemis_entities.UserEntityMetadata{
 				mdb,
 			},
@@ -63,7 +65,7 @@ func (e *CreateOrUpdateEntitiesRequest) CreateOrUpdateEntity(c echo.Context) err
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, urw)
 }
 
 type SelectEntitiesRequest struct {

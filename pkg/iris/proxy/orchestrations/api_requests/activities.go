@@ -228,7 +228,6 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 	if pr.ExtRoutePath != "" {
 		ext = pr.ExtRoutePath
 	}
-
 	if pr.Payload != nil {
 		switch method {
 		case "GET":
@@ -266,7 +265,6 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		} else {
 			log.Err(err).Interface("url", pr.Url).Interface("pr.ExtRoutePath", ext).Msg("sendRequest: failed to relay api request")
 		}
-		return nil, fmt.Errorf("failed to relay api request")
 	}
 
 	if resp != nil {

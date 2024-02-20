@@ -30,7 +30,7 @@ func DestroyDeployNamespaceHandlerWrapper(k autok8s_core.K8Util) func(c echo.Con
 		if !ok {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Invalid request type"})
 		}
-		log.Info().Interface("request", request).Msg("DestroyDeployNamespaceHandler")
+		log.Info().Interface("request", request.Kns.CloudCtxNs).Msg("DestroyDeployNamespaceHandlerWrapper")
 		err := k.DeleteNamespace(ctx, request.Kns.CloudCtxNs)
 		if err != nil {
 			log.Err(err).Interface("req", request).Msg("DestroyDeployNamespaceHandler")

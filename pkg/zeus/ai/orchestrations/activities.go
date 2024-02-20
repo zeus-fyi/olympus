@@ -537,11 +537,13 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 		switch evalState {
 		case filterState:
 			filteredJsonResponses = v.Passed
+			log.Info().Interface("v.Passed", len(v.Passed)).Interface("v.Failed", len(v.Failed)).Msg("UpdateTaskOutput: filterState")
 		case infoState:
 			if len(v.Failed) > 0 {
 				skipAnalysis = true
 			} else {
 				infoJsonResponses = v.Passed
+				log.Info().Interface("v.Passed", len(v.Passed)).Msg("UpdateTaskOutput: infoState")
 			}
 		case errorState:
 			// TODO: stop workflow?

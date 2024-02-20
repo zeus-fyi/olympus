@@ -21,6 +21,7 @@ func (d *DestroyDeployTopologyActivities) DestroyNamespace(ctx context.Context, 
 		return perr
 	}
 	if p != nil && !p.IsPublic {
+		log.Info().Interface("!p.IsPublic ", !p.IsPublic).Interface("kns", params.Kns).Msg("DestroyNamespace: SelectAuthedClusterByRouteOnlyAndOrgID")
 		kp, err := GetKubeConfig(ctx, params.OrgUser, *p)
 		if err != nil {
 			log.Err(err).Interface("params", params).Msg("DestroyNamespace: CheckKubeConfig: ConnectToK8sFromInMemFsCfgPathOrErr")
@@ -28,7 +29,15 @@ func (d *DestroyDeployTopologyActivities) DestroyNamespace(ctx context.Context, 
 		}
 		k = kp
 	}
-	err := k.DeleteNamespace(ctx, params.Kns.CloudCtxNs)
+	cvv, err := k.GetContexts()
+	if err != nil {
+		log.Err(err).Interface("params", params).Msg("DestroyNamespace: GetContexts")
+		return err
+	}
+	for _, ctxvn := range cvv {
+		log.Info().Interface("ctxvn", ctxvn).Msg("DestroyNamespace: GetContexts")
+	}
+	err = k.DeleteNamespace(ctx, params.Kns.CloudCtxNs)
 	if err != nil {
 		log.Err(err).Interface("params", params).Msg("DestroyDeployTopologyActivities: DestroyNamespace")
 		return err

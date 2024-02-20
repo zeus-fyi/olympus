@@ -765,10 +765,10 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                 label="REST Trigger"
                                                                 value={'get'}
                                                             >
-                                                                {/*<MenuItem value="post">{'POST'}</MenuItem>*/}
+                                                                <MenuItem value="post">{'POST'}</MenuItem>
                                                                 <MenuItem value="get">{'GET'}</MenuItem>
-                                                                {/*<MenuItem value="put">{'PUT'}</MenuItem>*/}
-                                                                {/*<MenuItem value="delete">{'DELETE'}</MenuItem>*/}
+                                                                <MenuItem value="put">{'PUT'}</MenuItem>
+                                                                <MenuItem value="delete">{'DELETE'}</MenuItem>
                                                             </Select>
                                                         </FormControl>
                                                     </Box>

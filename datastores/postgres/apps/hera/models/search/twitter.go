@@ -22,6 +22,25 @@ const (
 	defaultTwitterSearchGroupName = "zeusfyi"
 )
 
+// links are mostly spam, filtering out links reduces the number of tweets by 75%, which results in ~90% less spam
+
+func twitterSearchQuery2() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "twitterSearchQuery"
+	q.RawQuery = `SELECT tweet_id, message_text
+				  FROM public.ai_incoming_tweets
+				  JOIN ai_twitter_search_query sq ON sq.search_id = ai_incoming_tweets.search_id
+				  WHERE NOT EXISTS (
+					  SELECT 1
+					  FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️', '💎', '🪂']) as t(emoji)
+					  WHERE message_text LIKE '%' || t.emoji || '%'
+						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '@', ''))) > 7
+						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2
+					)
+				 AND message_text NOT LIKE '%https://t.co%' AND sq.org_id = $1`
+	return q
+}
+
 func twitterSearchQuery(ou org_users.OrgUser, sp AiSearchParams) (sql_query_templates.QueryParams, []interface{}) {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "twitterSearchQuery"
@@ -87,25 +106,6 @@ func formatKeywordsForTsQuery(queryText string, negate ...bool) string {
 		}
 	}
 	return formattedQuery
-}
-
-// links are mostly spam, filtering out links reduces the number of tweets by 75%, which results in ~90% less spam
-
-func twitterSearchQuery2() sql_query_templates.QueryParams {
-	q := sql_query_templates.QueryParams{}
-	q.QueryName = "twitterSearchQuery"
-	q.RawQuery = `SELECT tweet_id, message_text
-				  FROM public.ai_incoming_tweets
-				  JOIN ai_twitter_search_query sq ON sq.search_id = ai_incoming_tweets.search_id
-				  WHERE NOT EXISTS (
-					  SELECT 1
-					  FROM unnest(ARRAY['🧰','⏳','💥','📍', '🎤', '🚀', '🛑','🏆','🚨','📅','☸️','🆕', '🏓 ', '⭕️','🛡️','👉', '🎟️', '💎', '🪂']) as t(emoji)
-					  WHERE message_text LIKE '%' || t.emoji || '%'
-						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '@', ''))) > 7
-						OR (LENGTH(message_text) - LENGTH(REPLACE(message_text, '#', ''))) > 2
-					)
-				 AND message_text NOT LIKE '%https://t.co%' AND sq.org_id = $1`
-	return q
 }
 
 func SearchTwitter(ctx context.Context, ou org_users.OrgUser, sp AiSearchParams) ([]SearchResult, error) {

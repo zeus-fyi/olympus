@@ -73,7 +73,7 @@ func (s *SearchAITestSuite) TestSelectTweets() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	si := artemis_orchestrations.Window{}
-	si.Start = time.Now().AddDate(0, 0, -30)
+	si.Start = time.Now().Add(-time.Hour * 1)
 	si.End = time.Now()
 
 	// Call the function
@@ -85,7 +85,6 @@ func (s *SearchAITestSuite) TestSelectTweets() {
 				RetrievalPlatform:         "",
 				RetrievalPrompt:           nil,
 				RetrievalPlatformGroups:   nil,
-				RetrievalKeywords:         aws.String("airdrops"),
 				RetrievalNegativeKeywords: aws.String("Rafay"),
 				RetrievalUsernames:        nil,
 				DiscordFilters:            nil,

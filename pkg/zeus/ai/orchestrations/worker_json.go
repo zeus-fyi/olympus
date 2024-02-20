@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (z *ZeusAiPlatformServicesWorker) ExecuteJsonOutputTaskWorkflow(ctx context.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformServicesWorker) ExecuteJsonOutputTaskWorkflow(ctx context.Context, mb *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -18,17 +18,15 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteJsonOutputTaskWorkflow(ctx context
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.JsonOutputTaskWorkflow
-	var cr *ChatCompletionQueryResponse
-	tte.WfID = workflowOptions.ID
-	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, tte)
+	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, mb)
 	if err != nil {
 		log.Err(err).Msg("ExecuteJsonOutputTaskWorkflow")
 		return nil, err
 	}
-	err = workflowRun.Get(ctx, &cr)
+	err = workflowRun.Get(ctx, &mb)
 	if err != nil {
 		log.Err(err).Msg("ExecuteJsonOutputTaskWorkflow: Get ChatCompletionQueryResponse")
 		return nil, err
 	}
-	return cr, nil
+	return mb, nil
 }

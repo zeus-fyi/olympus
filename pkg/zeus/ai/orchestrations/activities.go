@@ -637,8 +637,3 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 	}
 	return res, nil
 }
-
-/*
-	// TODO refactor or deprecate vvv
-
-*/

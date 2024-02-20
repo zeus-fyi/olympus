@@ -336,6 +336,8 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		Window:       cp.Window,
 	}
 	sg.ApiResponseResults = []hera_search.SearchResult{sres}
+	cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sres)
+
 	sg.SourceTaskID = cp.Tc.TaskID
 	if cp.Wsr.InputID == 0 {
 		wio := WorkflowStageIO{
@@ -375,19 +377,16 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 					InSearchGroup: sg,
 				},
 			}
-			cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 		} else if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults == nil || wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup == nil {
 			wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
 				InPromptBody:  cp.Tc.Prompt,
 				InSearchGroup: sg,
 			}
-			cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 		} else {
 			if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults == nil {
 				wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = make([]hera_search.SearchResult, 0)
 			}
 			wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults, sres)
-			cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 		}
 		wo, err := sws(ctx, &wio)
 		if err != nil {

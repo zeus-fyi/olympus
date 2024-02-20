@@ -87,7 +87,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			}
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				cp.Wsr.ChunkOffset = chunkOffset
-				var analysisRespId int
 				switch analysisInst.AnalysisResponseFormat {
 				case jsonFormat, socialMediaExtractionResponseFormat:
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
@@ -111,7 +110,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						return err
 					}
 					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &analysisRespId)
+					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &cp.Tc.ResponseID)
 					if err != nil {
 						logger.Error("failed to save analysis response", "Error", err)
 						return err
@@ -124,18 +123,17 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						RunningCycleNumber:    cp.Wsr.RunCycle,
 						SearchWindowUnixStart: cp.Window.UnixStartTime,
 						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
-						ResponseID:            analysisRespId,
+						ResponseID:            cp.Tc.ResponseID,
 					}
 					ia := InputDataAnalysisToAgg{
 						ChatCompletionQueryResponse: aiResp,
 					}
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAnalysisCtx, &aiResp.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save analysis", "Error", err)
 						return err
 					}
-					wr.WorkflowResultID = aiResp.WorkflowResultID
 				}
 				for ind, evalFn := range analysisInst.AnalysisTaskDB.AnalysisEvalFns {
 					if evalFn.EvalID == 0 {

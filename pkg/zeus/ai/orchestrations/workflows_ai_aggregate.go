@@ -99,9 +99,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						logger.Error("failed to run aggregation", "Error", err)
 						return err
 					}
-					var aggRespId int
 					aggCompCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &aggRespId)
+					err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &cp.Tc.ResponseID)
 					if err != nil {
 						logger.Error("failed to save agg response", "Error", err)
 						return err
@@ -114,18 +113,17 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						RunningCycleNumber:    cp.Wsr.RunCycle,
 						SearchWindowUnixStart: cp.Window.UnixStartTime,
 						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
-						ResponseID:            aggRespId,
+						ResponseID:            cp.Tc.ResponseID,
 					}
 					ia := InputDataAnalysisToAgg{
 						ChatCompletionQueryResponse: aiAggResp,
 					}
 					recordAggCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAggCtx, &aiAggResp.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAggCtx, &cp.Tc.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save aggregation resp", "Error", err)
 						return err
 					}
-					wr.WorkflowResultID = aiAggResp.WorkflowResultID
 				}
 				for ind, evalFn := range aggInst.AggEvalFns {
 					evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]

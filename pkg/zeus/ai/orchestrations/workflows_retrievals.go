@@ -80,12 +80,14 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				Retrieval: cp.Tc.Retrieval,
 				RouteInfo: route,
 			}
-			fetchedResult := &hera_search.SearchResult{}
 			apiCallCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt).Get(apiCallCtx, &fetchedResult)
+			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp.Wsr.InputID)
 			if err != nil {
 				logger.Error("failed to run api call request task retrieval", "Error", err)
 				return nil, err
+			}
+			if cp.Tc.Retrieval.WebFilters != nil && aws.ToString(cp.Tc.Retrieval.WebFilters.LbStrategy) != lbStrategyPollTable && cp.Wsr.InputID > 0 {
+				break
 			}
 		}
 	case apiApproval:

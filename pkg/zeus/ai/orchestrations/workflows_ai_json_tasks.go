@@ -23,21 +23,22 @@ type TaskToExecute struct {
 }
 
 type TaskContext struct {
-	TaskName                           string                                                       `json:"taskName"`
-	TaskType                           string                                                       `json:"taskType"`
-	Temperature                        float32                                                      `json:"temperature"`
-	MarginBuffer                       float64                                                      `json:"marginBuffer"`
-	Prompt                             string                                                       `json:"prompt,omitempty"`
-	TokenOverflowStrategy              string                                                       `json:"tokenOverflowStrategy"`
-	ResponseFormat                     string                                                       `json:"responseFormat"`
-	Model                              string                                                       `json:"model"`
-	EvalModel                          string                                                       `json:"evalModel"`
-	WorkflowResultID                   int                                                          `json:"workflowResultID"`
-	TaskID                             int                                                          `json:"taskID"`
-	EvalID                             int                                                          `json:"evalID,omitempty"`
-	EvalResultID                       int                                                          `json:"evalResultID,omitempty"`
-	ResponseID                         int                                                          `json:"responseID,omitempty"`
-	Retrieval                          artemis_orchestrations.RetrievalItem                         `json:"retrieval,omitempty"`
+	TaskName                           string                               `json:"taskName"`
+	TaskType                           string                               `json:"taskType"`
+	Temperature                        float32                              `json:"temperature"`
+	MarginBuffer                       float64                              `json:"marginBuffer"`
+	Prompt                             string                               `json:"prompt,omitempty"`
+	TokenOverflowStrategy              string                               `json:"tokenOverflowStrategy"`
+	ResponseFormat                     string                               `json:"responseFormat"`
+	Model                              string                               `json:"model"`
+	EvalModel                          string                               `json:"evalModel"`
+	WorkflowResultID                   int                                  `json:"workflowResultID"`
+	TaskID                             int                                  `json:"taskID"`
+	EvalID                             int                                  `json:"evalID,omitempty"`
+	EvalResultID                       int                                  `json:"evalResultID,omitempty"`
+	ResponseID                         int                                  `json:"responseID,omitempty"`
+	Retrieval                          artemis_orchestrations.RetrievalItem `json:"retrieval,omitempty"`
+	ApiResponseResults                 []artemis_orchestrations.JsonSchemaDefinition
 	TriggerActionsApproval             artemis_orchestrations.TriggerActionsApproval                `json:"triggerActionsApproval,omitempty"`
 	AIWorkflowTriggerResultApiResponse artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse `json:"aiWorkflowTriggerResultApiResponse,omitempty"`
 	EvalSchemas                        []*artemis_orchestrations.JsonSchemaDefinition               `json:"evalSchemas,omitempty"`

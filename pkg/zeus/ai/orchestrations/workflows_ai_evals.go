@@ -96,7 +96,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 				continue
 			}
 			evalModelScoredJsonCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-			err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, evalFnsAgg[evFnIndex], mb.Tc.JsonResponseResults).Get(evalModelScoredJsonCtx, nil)
+			err = workflow.ExecuteActivity(evalModelScoredJsonCtx, z.EvalModelScoredJsonOutput, evalFnsAgg[evFnIndex], mb.Tc.JsonResponseResults, mb.Wsr.InputID).Get(evalModelScoredJsonCtx, nil)
 			if err != nil {
 				logger.Error("failed to get score eval", "Error", err)
 				return err

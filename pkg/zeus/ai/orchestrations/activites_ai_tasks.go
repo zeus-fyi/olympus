@@ -39,13 +39,32 @@ func (z *ZeusAiPlatformActivities) SelectTaskDefinition(ctx context.Context, ou 
 	return tv, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, sr []hera_search.SearchResult) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
+	var content string
+	if cp != nil && cp.Wsr.InputID > 0 {
+		in, werr := gws(ctx, cp.Wsr.InputID)
+		if werr != nil {
+			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+			return nil, werr
+		}
+		pr := in.WorkflowStageInfo.PromptReduction
+		var sg *hera_search.SearchResultGroup
+		if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && cp.Wsr.ChunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
+			sg = pr.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
+		} else {
+			sg = &hera_search.SearchResultGroup{
+				BodyPrompt:    pr.PromptReductionText.OutPromptChunks[cp.Wsr.ChunkOffset],
+				SearchResults: []hera_search.SearchResult{},
+			}
+		}
+		content = sg.GetPromptBody()
+	}
+
 	cr := openai.ChatCompletionRequest{
 		Model:       taskInst.AnalysisModel,
 		Temperature: float32(taskInst.AnalysisTemperature),
 		Messages:    []openai.ChatCompletionMessage{},
 	}
-	content := hera_search.FormatSearchResultsV2(sr)
 	if len(content) > 0 {
 		systemMessage := openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleSystem,
@@ -183,13 +202,25 @@ func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.J
 	return true
 }
 
-func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, sg *hera_search.SearchResultGroup) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
 	var content string
-	if len(sg.BodyPrompt) > 0 {
-		content = sg.BodyPrompt
-	}
-	if len(sg.SearchResults) > 0 {
-		content += hera_search.FormatSearchResultsV2(sg.SearchResults)
+	if cp != nil && cp.Wsr.InputID > 0 {
+		in, werr := gws(ctx, cp.Wsr.InputID)
+		if werr != nil {
+			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+			return nil, werr
+		}
+		pr := in.WorkflowStageInfo.PromptReduction
+		var sg *hera_search.SearchResultGroup
+		if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && cp.Wsr.ChunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
+			sg = pr.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
+		} else {
+			sg = &hera_search.SearchResultGroup{
+				BodyPrompt:    pr.PromptReductionText.OutPromptChunks[cp.Wsr.ChunkOffset],
+				SearchResults: []hera_search.SearchResult{},
+			}
+		}
+		content = sg.GetPromptBody()
 	}
 	if len(content) <= 0 || aggInst.AggPrompt == nil || aggInst.AggModel == nil || aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || len(*aggInst.AggPrompt) <= 0 {
 		return nil, nil

@@ -81,7 +81,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				RouteInfo: route,
 			}
 			apiCallCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt).Get(apiCallCtx, &cp.Wsr.InputID)
+			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp.Wsr.InputID)
 			if err != nil {
 				logger.Error("failed to run api call request task retrieval", "Error", err)
 				return nil, err

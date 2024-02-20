@@ -503,7 +503,9 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 		return 0, werr
 	}
 	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
-		dataIn.SearchResultGroup = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
+		if cp.Wsr.ChunkOffset < len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) {
+			dataIn.SearchResultGroup = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
+		}
 	}
 	if wr == nil {
 		return 0, nil
@@ -549,6 +551,17 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 			// TODO: stop workflow?
 		}
 	}
+	var sg *hera_search.SearchResultGroup
+	wio, werr := gws(ctx, cp.Wsr.InputID)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return nil, werr
+	}
+	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
+		if cp.Wsr.ChunkOffset < len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) {
+			sg = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
+		}
+	}
 	var res []artemis_orchestrations.JsonSchemaDefinition
 	if len(filteredJsonResponses) <= 0 && len(infoJsonResponses) <= 0 {
 		skipAnalysis = true
@@ -560,6 +573,7 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 	} else if len(filteredJsonResponses) > 0 {
 		res = filteredJsonResponses
 		tmp := InputDataAnalysisToAgg{
+			SearchResultGroup: sg,
 			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
 				JsonResponseResults: res,
 			},
@@ -572,6 +586,7 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 	} else {
 		res = infoJsonResponses
 		tmp := InputDataAnalysisToAgg{
+			SearchResultGroup: sg,
 			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
 				JsonResponseResults: res,
 			},
@@ -582,7 +597,26 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 			return nil, err
 		}
 	}
-
+	if res != nil && sg != nil && sg.SearchResults != nil {
+		seen := make(map[int]bool)
+		for _, jr := range res {
+			for _, fv := range jr.Fields {
+				if fv.FieldName == "msg_id" && fv.IsValidated && fv.NumberValue != nil && *fv.NumberValue > 0 {
+					seen[int(*fv.NumberValue)] = true
+				}
+				if fv.FieldName == "msg_id" && fv.IsValidated && fv.IntegerValue != nil && *fv.IntegerValue > 0 {
+					seen[*fv.IntegerValue] = true
+				}
+			}
+		}
+		sg.FilteredSearchResults = []hera_search.SearchResult{}
+		for _, sr := range sg.SearchResults {
+			_, ok := seen[sr.UnixTimestamp]
+			if ok {
+				sg.FilteredSearchResults = append(sg.FilteredSearchResults, sr)
+			}
+		}
+	}
 	wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
 		WorkflowResultID:      cp.Tc.WorkflowResultID,
 		ResponseID:            cp.Tc.ResponseID,
@@ -606,24 +640,5 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 
 /*
 	// TODO refactor or deprecate vvv
-	if res != nil && sg != nil && sg.SearchResults != nil {
-		seen := make(map[int]bool)
-		for _, jr := range res {
-			for _, fv := range jr.Fields {
-				if fv.FieldName == "msg_id" && fv.IsValidated && fv.NumberValue != nil && *fv.NumberValue > 0 {
-					seen[int(*fv.NumberValue)] = true
-				}
-				if fv.FieldName == "msg_id" && fv.IsValidated && fv.IntegerValue != nil && *fv.IntegerValue > 0 {
-					seen[*fv.IntegerValue] = true
-				}
-			}
-		}
-		sg.FilteredSearchResults = []hera_search.SearchResult{}
-		for _, sr := range sg.SearchResults {
-			_, ok := seen[sr.UnixTimestamp]
-			if ok {
-				sg.FilteredSearchResults = append(sg.FilteredSearchResults, sr)
-			}
-		}
-	}
+
 */

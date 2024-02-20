@@ -145,7 +145,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					}
 					if i%evalAnalysisOnlyCycle == 0 {
 						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-							WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "eval-fn" + strconv.Itoa(evalFn.EvalID) + "-ind-" + strconv.Itoa(ind)),
+							WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-eval-fn" + strconv.Itoa(evalFn.EvalID) + "-ind-" + strconv.Itoa(ind)),
 							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 							RetryPolicy:              ao.RetryPolicy,
 						}

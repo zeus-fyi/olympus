@@ -119,6 +119,9 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		aiResp.WorkflowResultID = wfa.WorkflowResultID
 		log.Info().Int("attempt", attempt).Interface("len(aiResp.JsonResponseResults)", len(aiResp.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 		if mb.Tc.EvalID > 0 {
+			if mb.Tc.WorkflowResultID > 0 {
+				wfa.WorkflowResultID = mb.Tc.WorkflowResultID
+			}
 			evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
 				EvalID:             mb.Tc.EvalID,
 				WorkflowResultID:   wfa.WorkflowResultID,

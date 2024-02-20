@@ -104,7 +104,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			SearchWindowUnixEnd:   mb.Window.UnixEndTime,
 		}
 		mb.Wsr.IterationCount = attempt
-		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, params, mb).Get(jsonTaskCtx, &aiResp)
+		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, mb, params).Get(jsonTaskCtx, &aiResp)
 		if err != nil {
 			logger.Error("failed to run analysis json", "Error", err)
 			feedback = err

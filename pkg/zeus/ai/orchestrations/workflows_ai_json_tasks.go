@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -37,6 +38,7 @@ type TaskContext struct {
 	EvalID                             int                                  `json:"evalID,omitempty"`
 	EvalResultID                       int                                  `json:"evalResultID,omitempty"`
 	ResponseID                         int                                  `json:"responseID,omitempty"`
+	RetSearchResults                   []hera_search.SearchResult           `json:"searchResults,omitempty"`
 	Retrieval                          artemis_orchestrations.RetrievalItem `json:"retrieval,omitempty"`
 	ApiResponseResults                 []artemis_orchestrations.JsonSchemaDefinition
 	TriggerActionsApproval             artemis_orchestrations.TriggerActionsApproval                `json:"triggerActionsApproval,omitempty"`

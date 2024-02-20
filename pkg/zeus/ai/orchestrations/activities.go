@@ -260,11 +260,12 @@ type RouteTask struct {
 	Headers   http.Header                          `json:"headers"`
 }
 
-func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r RouteTask, cp *MbChildSubProcessParams) (*int, error) {
+func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r RouteTask, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	retInst := r.Retrieval
 	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
 		return nil, nil
 	}
+	cp.Tc.RetSearchResults = make([]hera_search.SearchResult, 0)
 	restMethod := http.MethodGet
 	if retInst.WebFilters.EndpointREST != nil {
 		restMethod = *retInst.WebFilters.EndpointREST
@@ -356,6 +357,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			log.Err(err).Msg("AiRetrievalTask: failed")
 			return nil, err
 		}
+		cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 		cp.Wsr.InputID = wid.InputID
 	} else {
 		wio, werr := gws(ctx, cp.Wsr.InputID)
@@ -373,16 +375,19 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 					InSearchGroup: sg,
 				},
 			}
+			cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 		} else if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults == nil || wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup == nil {
 			wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
 				InPromptBody:  cp.Tc.Prompt,
 				InSearchGroup: sg,
 			}
+			cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 		} else {
 			if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults == nil {
 				wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = make([]hera_search.SearchResult, 0)
 			}
 			wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults, sres)
+			cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 		}
 		wo, err := sws(ctx, &wio)
 		if err != nil {
@@ -391,13 +396,15 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		}
 		cp.Wsr.InputID = wo.InputID
 	}
-	return &cp.Wsr.InputID, nil
+	return cp, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbChildSubProcessParams) (*int, error) {
+func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	retrieval := cp.Tc.Retrieval
 	ou := cp.Ou
 	window := cp.Window
+	cp.Tc.RetSearchResults = make([]hera_search.SearchResult, 0)
+
 	if retrieval.RetrievalPlatform == "" || retrieval.RetrievalName == "" {
 		return nil, nil
 	}
@@ -446,7 +453,9 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbCh
 			log.Err(err).Msg("AiRetrievalTask: failed")
 			return nil, err
 		}
-		return &wid.InputID, nil
+		cp.Wsr.InputID = wid.InputID
+		cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
+		return cp, nil
 	}
 
 	var resp []hera_search.SearchResult
@@ -483,12 +492,14 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbCh
 			},
 		},
 	}
+	cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 	wid, err := sws(ctx, &wio)
 	if err != nil {
 		log.Err(err).Msg("AiRetrievalTask: failed")
 		return nil, err
 	}
-	return &wid.InputID, nil
+	cp.Wsr.InputID = wid.InputID
+	return cp, nil
 }
 
 func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp *ChatCompletionQueryResponse) (int, error) {

@@ -81,13 +81,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				RouteInfo: route,
 			}
 			apiCallCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp.Wsr.InputID)
+			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp)
 			if err != nil {
 				logger.Error("failed to run api call request task retrieval", "Error", err)
 				return nil, err
 			}
 			if cp.Tc.Retrieval.WebFilters != nil && aws.ToString(cp.Tc.Retrieval.WebFilters.LbStrategy) != lbStrategyPollTable && cp.Wsr.InputID > 0 {
-				break
+				if cp.Tc.RetSearchResults != nil && len(cp.Tc.RetSearchResults) > 0 {
+					break
+				}
 			}
 		}
 	case apiApproval:
@@ -126,14 +128,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					RouteInfo: route,
 					Payload:   payload,
 				}
-				fetchedResult := &hera_search.SearchResult{}
 				apiCallCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &fetchedResult)
+				err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp)
 				if err != nil {
 					logger.Error("failed to run api call request task retrieval", "Error", err)
 					return nil, err
 				}
-				if fetchedResult != nil {
+				var fetchedResult hera_search.SearchResult
+				if cp.Tc.RetSearchResults != nil && len(cp.Tc.RetSearchResults) > 0 {
+					fetchedResult = cp.Tc.RetSearchResults[0]
 					if fetchedResult.WebResponse.Body == nil {
 						fetchedResult.WebResponse.Body = echo.Map{}
 					}
@@ -165,12 +168,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 						logger.Error("failed to save trigger response retrieval", "Error", err)
 						return nil, err
 					}
+					if fetchedResult.WebResponse.WebFilters != nil &&
+						fetchedResult.WebResponse.WebFilters.LbStrategy != nil &&
+						*fetchedResult.WebResponse.WebFilters.LbStrategy != lbStrategyPollTable {
+						break
+					}
 				}
-				if fetchedResult != nil && fetchedResult.WebResponse.WebFilters != nil &&
-					fetchedResult.WebResponse.WebFilters.LbStrategy != nil &&
-					*fetchedResult.WebResponse.WebFilters.LbStrategy != lbStrategyPollTable {
-					break
-				}
+
 			}
 		}
 	}

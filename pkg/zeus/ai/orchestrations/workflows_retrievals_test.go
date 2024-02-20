@@ -1,11 +1,44 @@
 package ai_platform_service_orchestrations
 
 import (
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
+	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 )
+
+func (t *ZeusWorkerTestSuite) TestRetrievalsWorkflowTask() {
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	act := NewZeusAiPlatformActivities()
+	rets, err := act.SelectRetrievalTask(ctx, t.Ou, 1706767039731058000)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(rets)
+	ret := rets[0]
+
+	ret.RetrievalPlatform = apiApproval
+	cp := &MbChildSubProcessParams{
+		WfID:         uuid.New().String(),
+		Ou:           t.Ou,
+		WfExecParams: artemis_orchestrations.WorkflowExecParams{},
+		Oj: artemis_orchestrations.OrchestrationJob{Orchestrations: artemis_autogen_bases.Orchestrations{
+			OrchestrationID: 1706767039731058000,
+		}},
+		Window: artemis_orchestrations.Window{},
+		Wsr: artemis_orchestrations.WorkflowStageReference{
+			WorkflowRunID: 1704069081079680000,
+			ChildWfID:     "TestRetrievalsWorkflow-" + uuid.New().String(),
+		},
+		Tc: TaskContext{
+			TaskID:    1706842030247904000,
+			Retrieval: ret,
+		},
+	}
+
+	cp, err = ZeusAiPlatformWorker.ExecuteRetrievalsWorkflow(ctx, cp)
+	t.Require().Nil(err)
+	t.Require().NotZero(cp.Wsr.InputID)
+}
 
 func (t *ZeusWorkerTestSuite) TestRetrievalsWorkflow() {
 	t.initWorker()
@@ -22,8 +55,19 @@ func (t *ZeusWorkerTestSuite) TestRetrievalsWorkflow() {
 	t.Require().NotNil(ret.WebFilters)
 	t.Require().NotNil(ret.WebFilters.RoutingGroup)
 
-	tte := TaskToExecute{
-		Ou: t.Ou,
+	cp := &MbChildSubProcessParams{
+		WfID:         uuid.New().String(),
+		Ou:           t.Ou,
+		WfExecParams: artemis_orchestrations.WorkflowExecParams{},
+		Oj:           artemis_orchestrations.OrchestrationJob{},
+		Window:       artemis_orchestrations.Window{},
+		Wsr: artemis_orchestrations.WorkflowStageReference{
+			WorkflowRunID:  0,
+			ChildWfID:      "TestRetrievalsWorkflow-" + uuid.New().String(),
+			RunCycle:       0,
+			IterationCount: 0,
+			ChunkOffset:    0,
+		},
 		Tc: TaskContext{
 			TaskID:    0,
 			EvalID:    1704066747085827000,
@@ -48,12 +92,10 @@ func (t *ZeusWorkerTestSuite) TestRetrievalsWorkflow() {
 						"key2": "value2",
 					},
 				},
-				RespPayloads: nil,
 			},
 		},
-		Sg:          &hera_search.SearchResultGroup{},
-		RetryPolicy: nil,
 	}
-	err = ZeusAiPlatformWorker.ExecuteRetrievalsWorkflow(ctx, tte)
+
+	_, err = ZeusAiPlatformWorker.ExecuteRetrievalsWorkflow(ctx, cp)
 	t.Require().Nil(err)
 }

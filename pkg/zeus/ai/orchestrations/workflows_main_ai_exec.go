@@ -64,7 +64,14 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				return err
 			}
 		}
-		childParams := &MbChildSubProcessParams{WfID: CreateExecAiWfId(oj.OrchestrationName + "-analysis-" + strconv.Itoa(i)), Ou: ou, WfExecParams: wfExecParams, Oj: oj, RunCycle: i}
+		wfChildID := CreateExecAiWfId(oj.OrchestrationName + "-analysis-" + strconv.Itoa(i))
+		childParams := &MbChildSubProcessParams{WfID: wfChildID, Ou: ou, WfExecParams: wfExecParams, Oj: oj,
+			Wsr: artemis_orchestrations.WorkflowStageReference{
+				WorkflowRunID: oj.OrchestrationID,
+				ChildWfID:     CreateExecAiWfId(oj.OrchestrationName + "-analysis-" + strconv.Itoa(i)),
+				RunCycle:      i,
+				ChunkOffset:   0,
+			}}
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: childParams.WfID, WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiChildAnalysisProcessWorkflow, childParams).Get(childAnalysisCtx, nil)
@@ -74,15 +81,23 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		}
 		logger.Info("RunAiWorkflowProcess: all child analysis workflow executed", "RunCycle", i)
 		// Execute child workflow for aggregation
+		wfAggChildID := CreateExecAiWfId(oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i))
 		childAggAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i)),
+			WorkflowID:               wfAggChildID,
 			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
 			RetryPolicy:              ao.RetryPolicy,
 		}
+		aggChildParams := &MbChildSubProcessParams{WfID: wfAggChildID, Ou: ou, WfExecParams: wfExecParams, Oj: oj,
+			Wsr: artemis_orchestrations.WorkflowStageReference{
+				WorkflowRunID: oj.OrchestrationID,
+				ChildWfID:     childAggAnalysisWorkflowOptions.WorkflowID,
+				RunCycle:      i,
+				ChunkOffset:   0,
+			}}
 		logger.Info("RunAiWorkflowProcess: child aggregation workflow starting", "RunCycle", i)
 		childAggAnalysisCtx := workflow.WithChildOptions(ctx, childAggAnalysisWorkflowOptions)
-		err = workflow.ExecuteChildWorkflow(childAggAnalysisCtx, z.RunAiChildAggAnalysisProcessWorkflow, childParams).Get(childAggAnalysisCtx, nil)
+		err = workflow.ExecuteChildWorkflow(childAggAnalysisCtx, z.RunAiChildAggAnalysisProcessWorkflow, aggChildParams).Get(childAggAnalysisCtx, nil)
 		if err != nil {
 			logger.Error("failed to execute child aggregation workflow", "Error", err)
 			return err

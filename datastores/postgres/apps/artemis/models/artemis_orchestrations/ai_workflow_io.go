@@ -13,14 +13,16 @@ import (
 )
 
 type WorkflowStageReference struct {
-	InputID       int             `json:"inputID"`
-	InputStrID    string          `json:"inputStrID"`
-	WorkflowRunID int             `json:"workflowRunID"`
-	ChildWfID     string          `json:"childWfID"`
-	RunCycle      int             `json:"runCycle"`
-	InputData     json.RawMessage `json:"inputData"`
-	Logs          []string        `json:"logs"`
-	LogsStr       string          `json:"-"`
+	InputID        int             `json:"inputID"`
+	InputStrID     string          `json:"inputStrID"`
+	WorkflowRunID  int             `json:"workflowRunID"`
+	ChildWfID      string          `json:"childWfID"`
+	RunCycle       int             `json:"runCycle"`
+	IterationCount int             `json:"iterationCount"`
+	ChunkOffset    int             `json:"chunk"`
+	InputData      json.RawMessage `json:"inputData"`
+	Logs           []string        `json:"logs"`
+	LogsStr        string          `json:"-"`
 }
 
 func InsertWorkflowStageReference(ctx context.Context, wfStageIO *WorkflowStageReference) error {

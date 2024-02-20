@@ -2,6 +2,7 @@ package ai_platform_service_orchestrations
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -20,7 +21,12 @@ const (
 	lbStrategyRoundRobin = "round-robin"
 )
 
-func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context, tte TaskToExecute) (*hera_search.SearchResultGroup, error) {
+func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
+	if cp == nil {
+		err := fmt.Errorf("wsr is nil")
+		log.Err(err).Msg("RetrievalsWorkflow: failed to get workflow stage reference")
+		return nil, err
+	}
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
@@ -30,22 +36,22 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			MaximumAttempts:    10,
 		},
 	}
-	if tte.RetryPolicy != nil {
-		ao.RetryPolicy = tte.RetryPolicy
+
+	if cp.Tc.RetryPolicy != nil {
+		ao.RetryPolicy = cp.Tc.RetryPolicy
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(tte.Ou.OrgID, tte.WfID, "ZeusAiPlatformServiceWorkflows", "RetrievalsWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(cp.Ou.OrgID, cp.Wsr.ChildWfID, "ZeusAiPlatformServiceWorkflows", "RetrievalsWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
 		logger.Error("failed to update ai orch services", "Error", err)
 		return nil, err
 	}
-	platform := tte.Tc.Retrieval.RetrievalPlatform
-	if tte.Tc.TriggerActionsApproval.TriggerAction == apiApproval {
+	platform := cp.Tc.Retrieval.RetrievalPlatform
+	if cp.Tc.TriggerActionsApproval.TriggerAction == apiApproval {
 		platform = apiApproval
 	}
-
-	if tte.Tc.EvalID <= 0 || tte.Tc.TriggerActionsApproval.ApprovalID <= 0 {
+	if cp.Tc.EvalID <= 0 || cp.Tc.TriggerActionsApproval.ApprovalID <= 0 {
 		switch platform {
 		case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		default:
@@ -55,24 +61,23 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	switch platform {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		retrievalCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, tte.Ou, tte.Tc.Retrieval, tte.Sg.Window).Get(retrievalCtx, &tte.Sg)
+		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, cp).Get(retrievalCtx, &cp.Wsr.InputID)
 		if err != nil {
 			logger.Error("failed to run retrieval", "Error", err)
 			return nil, err
 		}
-		tte.Sg.SourceTaskID = tte.Wft.AnalysisTaskID
 	case webPlatform:
 		var routes []iris_models.RouteInfo
 		retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tte.Ou, tte.Tc.Retrieval).Get(retrievalWebCtx, &routes)
+		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, cp.Ou, cp.Tc.Retrieval).Get(retrievalWebCtx, &routes)
 		if err != nil {
 			logger.Error("failed to run get retrieval routes", "Error", err)
 			return nil, err
 		}
 		for _, route := range routes {
 			rt := RouteTask{
-				Ou:        tte.Ou,
-				Retrieval: tte.Tc.Retrieval,
+				Ou:        cp.Ou,
+				Retrieval: cp.Tc.Retrieval,
 				RouteInfo: route,
 			}
 			fetchedResult := &hera_search.SearchResult{}
@@ -82,32 +87,24 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				logger.Error("failed to run api call request task retrieval", "Error", err)
 				return nil, err
 			}
-			if fetchedResult != nil && len(fetchedResult.WebResponse.Body) > 0 {
-				tte.Sg.ApiResponseResults = append(tte.Sg.ApiResponseResults, *fetchedResult)
-			}
-			if fetchedResult != nil && fetchedResult.WebResponse.WebFilters != nil &&
-				fetchedResult.WebResponse.WebFilters.LbStrategy != nil &&
-				*fetchedResult.WebResponse.WebFilters.LbStrategy != lbStrategyPollTable {
-				break
-			}
 		}
 	case apiApproval:
 		var routes []iris_models.RouteInfo
 		retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tte.Ou, tte.Tc.Retrieval).Get(retrievalWebCtx, &routes)
+		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, cp.Ou, cp.Tc.Retrieval).Get(retrievalWebCtx, &routes)
 		if err != nil {
 			logger.Error("failed to run retrieval", "Error", err)
 			return nil, err
 		}
 
-		count := len(tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads)
+		count := len(cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads)
 		if count <= 0 {
 			count = 1
 		}
 		for i := 0; i < count; i++ {
 			var payload echo.Map
-			if i < len(tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads) {
-				payload = tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads[i]
+			if i < len(cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads) {
+				payload = cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads[i]
 			}
 			for _, route := range routes {
 				if strings.HasPrefix(route.RoutePath, "https://api.twitter.com/2") {
@@ -122,12 +119,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					}
 				}
 				rt := RouteTask{
-					Ou:        tte.Ou,
-					Retrieval: tte.Tc.Retrieval,
+					Ou:        cp.Ou,
+					Retrieval: cp.Tc.Retrieval,
 					RouteInfo: route,
 					Payload:   payload,
 				}
-				//fmt.Println("rt", rt)
 				fetchedResult := &hera_search.SearchResult{}
 				apiCallCtx := workflow.WithActivityOptions(ctx, ao)
 				err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt).Get(apiCallCtx, &fetchedResult)
@@ -136,36 +132,33 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					return nil, err
 				}
 				if fetchedResult != nil {
-					tte.Sg.ApiResponseResults = append(tte.Sg.ApiResponseResults, *fetchedResult)
-					var arrs []echo.Map
-					for _, apv := range tte.Sg.ApiResponseResults {
-						arrs = append(arrs, apv.WebResponse.Body)
+					if fetchedResult.WebResponse.Body == nil {
+						fetchedResult.WebResponse.Body = echo.Map{}
 					}
 					trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
-						ApprovalID:   tte.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
-						TriggerID:    tte.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
-						RetrievalID:  aws.ToInt(tte.Tc.Retrieval.RetrievalID),
-						ResponseID:   tte.Tc.AIWorkflowTriggerResultApiResponse.ResponseID,
-						ReqPayloads:  tte.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads,
-						RespPayloads: arrs,
+						ApprovalID:   cp.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
+						TriggerID:    cp.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
+						RetrievalID:  aws.ToInt(cp.Tc.Retrieval.RetrievalID),
+						ResponseID:   cp.Tc.AIWorkflowTriggerResultApiResponse.ResponseID,
+						ReqPayloads:  []echo.Map{payload},
+						RespPayloads: []echo.Map{fetchedResult.WebResponse.Body},
 					}
-					bresp, berr := json.MarshalIndent(arrs, "", "  ")
+					bresp, berr := json.MarshalIndent(fetchedResult.WebResponse.Body, "", "  ")
 					if berr != nil {
 						log.Err(berr).Msg("failed to marshal resp payload")
 						return nil, berr
 					}
-
 					approval := artemis_orchestrations.TriggerActionsApproval{
 						TriggerAction:    apiApproval,
-						ApprovalID:       tte.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
-						EvalID:           tte.Tc.EvalID,
-						TriggerID:        tte.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
-						WorkflowResultID: tte.Tc.TriggerActionsApproval.WorkflowResultID,
+						ApprovalID:       cp.Tc.AIWorkflowTriggerResultApiResponse.ApprovalID,
+						EvalID:           cp.Tc.EvalID,
+						TriggerID:        cp.Tc.AIWorkflowTriggerResultApiResponse.TriggerID,
+						WorkflowResultID: cp.Tc.TriggerActionsApproval.WorkflowResultID,
 						ApprovalState:    finishedStatus,
 						RequestSummary:   "Done with api call request: \n" + string(bresp),
 					}
 					saveApiRespCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(saveApiRespCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, tte.Ou, approval, trrr).Get(saveApiRespCtx, &trrr)
+					err = workflow.ExecuteActivity(saveApiRespCtx, z.CreateOrUpdateTriggerActionApprovalWithApiReq, cp.Ou, approval, trrr).Get(saveApiRespCtx, &trrr)
 					if err != nil {
 						logger.Error("failed to save trigger response retrieval", "Error", err)
 						return nil, err
@@ -185,7 +178,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		logger.Error("failed to update orch for retrieval services", "Error", err)
 		return nil, err
 	}
-	return tte.Sg, nil
+	return cp, nil
 }
 
 func GetRetryPolicy(ret artemis_orchestrations.RetrievalItem, maxRunTime time.Duration) *temporal.RetryPolicy {

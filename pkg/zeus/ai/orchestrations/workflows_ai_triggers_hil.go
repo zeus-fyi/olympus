@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -53,7 +52,6 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 		logger.Error("failed to update ai trigger hil action", "Error", err)
 		return err
 	}
-
 	if approvalTaskGroup.RequestedState == requestRejectedState {
 		for _, v := range approvalTaskGroup.Taps {
 			recordTriggerCondCtx := workflow.WithActivityOptions(ctx, aoAiAct)
@@ -72,7 +70,6 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 		}
 		return nil
 	}
-
 	for _, v := range approvalTaskGroup.Taps {
 		switch v.TriggerAction {
 		case apiApproval:
@@ -92,46 +89,38 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 				continue
 			}
 			for i, ar := range apiApprovalReqs {
-				tte := TaskToExecute{
-					WfID: approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID + "-" + strconv.Itoa(i),
+				if GetRetryPolicy(ar.RetrievalItem, 5*time.Minute) != nil {
+					aoAiAct.RetryPolicy = GetRetryPolicy(ar.RetrievalItem, 5*time.Minute)
+				}
+				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+					WorkflowID:               CreateExecAiWfId(approvalTaskGroup.WfID + "-api-approval-" + v.ApprovalStrID + "-" + strconv.Itoa(i)),
+					RetryPolicy:              aoAiAct.RetryPolicy,
+					WorkflowExecutionTimeout: 10 * time.Minute,
+				}
+				ar.RetrievalItem.RetrievalPlatform = apiApproval
+				cp := &MbChildSubProcessParams{
+					WfID: approvalTaskGroup.WfID,
 					Ou:   approvalTaskGroup.Ou,
-					Ec:   artemis_orchestrations.EvalContext{},
+					Oj:   oj,
+					Wsr: artemis_orchestrations.WorkflowStageReference{
+						ChildWfID: childAnalysisWorkflowOptions.WorkflowID,
+					},
 					Tc: TaskContext{
 						TriggerActionsApproval:             ar.TriggerActionsApproval,
 						EvalID:                             ar.TriggerActionsApproval.EvalID,
 						Retrieval:                          ar.RetrievalItem,
 						AIWorkflowTriggerResultApiResponse: ar.AIWorkflowTriggerResultApiReqResponse,
 					},
-					Sg:          &hera_search.SearchResultGroup{},
-					RetryPolicy: GetRetryPolicy(ar.RetrievalItem, 5*time.Minute),
 				}
-				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:  tte.WfID,
-					RetryPolicy: aoAiAct.RetryPolicy,
-					//WorkflowExecutionTimeout: tar.Mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-				}
-				tte.Tc.Retrieval.RetrievalPlatform = apiApproval
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, tte).Get(childAnalysisCtx, &tte.Sg)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)
 				if err != nil {
 					logger.Error("failed to execute child api retrieval workflow", "Error", err)
 					return err
 				}
 			}
-		case socialMediaEngagementResponseFormat:
-			//childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			//	//WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.RunCycle) + suffix,
-			//	//WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-			//}
-			//childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-			//err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunApprovedSocialMediaTriggerActionsWorkflow, tar).Get(childAnalysisCtx, nil)
-			//if err != nil {
-			//	logger.Error("failed to execute child run trigger actions workflow", "Error", err)
-			//	return err
-			//}
 		}
 	}
-
 	finishedCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {

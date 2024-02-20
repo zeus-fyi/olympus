@@ -763,7 +763,21 @@ function AiWorkflowsDashboardContent(props: any) {
                                                             <Select
                                                                 id="endpoint-rest-trigger"
                                                                 label="REST Trigger"
-                                                                value={'get'}
+                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                && retrieval.retrievalItemInstruction.webFilters.endpointREST ? retrieval.retrievalItemInstruction.webFilters.endpointREST : ''}
+                                                                onChange={(e) => {
+                                                                    const updatedRetrieval = {
+                                                                        ...retrieval,
+                                                                        retrievalItemInstruction: {
+                                                                            ...retrieval.retrievalItemInstruction,
+                                                                            webFilters: {
+                                                                                ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                endpointREST: e.target.value, // Correctly update the routingGroup field
+                                                                            }
+                                                                        }
+                                                                    };
+                                                                    dispatch(setRetrieval(updatedRetrieval));
+                                                                }}
                                                             >
                                                                 <MenuItem value="post">{'POST'}</MenuItem>
                                                                 <MenuItem value="get">{'GET'}</MenuItem>

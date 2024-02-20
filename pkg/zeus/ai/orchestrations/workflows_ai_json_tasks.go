@@ -35,6 +35,8 @@ type TaskContext struct {
 	WorkflowResultID                   int                                                          `json:"workflowResultID"`
 	TaskID                             int                                                          `json:"taskID"`
 	EvalID                             int                                                          `json:"evalID,omitempty"`
+	EvalResultID                       int                                                          `json:"evalResultID,omitempty"`
+	ResponseID                         int                                                          `json:"responseID,omitempty"`
 	Retrieval                          artemis_orchestrations.RetrievalItem                         `json:"retrieval,omitempty"`
 	TriggerActionsApproval             artemis_orchestrations.TriggerActionsApproval                `json:"triggerActionsApproval,omitempty"`
 	AIWorkflowTriggerResultApiResponse artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse `json:"aiWorkflowTriggerResultApiResponse,omitempty"`
@@ -120,12 +122,14 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				ResponseID:         wfa.ResponseID,
 				EvalIterationCount: wfa.IterationCount,
 			}
+			mb.Wsr.EvalIterationCount = wfa.IterationCount
 			recordEvalResCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(recordEvalResCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResCtx, &aiResp.EvalResultID)
 			if err != nil {
 				logger.Error("failed to save eval resp id", "Error", err)
 				return nil, err
 			}
+			mb.Tc.WorkflowResultID = aiResp.EvalResultID
 		} else {
 			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			wfa.SkipAnalysis = false
@@ -134,6 +138,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 				logger.Error("failed to save task output", "Error", err)
 				return nil, err
 			}
+			mb.Tc.WorkflowResultID = aiResp.WorkflowResultID
 		}
 		break
 	}
@@ -144,7 +149,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		return nil, err
 	}
 	mb.Tc.JsonResponseResults = aiResp.JsonResponseResults
-	mb.Tc.WorkflowResultID = aiResp.WorkflowResultID
 	mb.Tc.Schemas = aiResp.Schemas
+	mb.Tc.ResponseID = aiResp.ResponseID
 	return mb, nil
 }

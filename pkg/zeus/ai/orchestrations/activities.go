@@ -359,7 +359,6 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			log.Err(err).Msg("AiRetrievalTask: failed")
 			return nil, err
 		}
-		cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 		cp.Wsr.InputID = wid.InputID
 	} else {
 		wio, werr := gws(ctx, cp.Wsr.InputID)

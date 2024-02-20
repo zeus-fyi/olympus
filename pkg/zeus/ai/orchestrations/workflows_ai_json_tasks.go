@@ -96,6 +96,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			Temperature:        mb.Tc.Temperature,
 			SystemPromptExt:    feedbackPrompt,
 		}
+		mb.Wsr.IterationCount = attempt
 		wfa := artemis_orchestrations.AIWorkflowAnalysisResult{
 			OrchestrationID:       mb.Oj.OrchestrationID,
 			SourceTaskID:          mb.Tc.TaskID,
@@ -105,7 +106,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			SearchWindowUnixStart: mb.Window.UnixStartTime,
 			SearchWindowUnixEnd:   mb.Window.UnixEndTime,
 		}
-		mb.Wsr.IterationCount = attempt
 		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, mb, params).Get(jsonTaskCtx, &aiResp)
 		if err != nil {
 			logger.Error("failed to run analysis json", "Error", err)

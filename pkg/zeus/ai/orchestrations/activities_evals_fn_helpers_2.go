@@ -28,10 +28,15 @@ func FilterPassingEvalPassingResponses(jres []artemis_orchestrations.JsonSchemaD
 			if er.EvalState != "filter" {
 				continue
 			}
+			if er.EvalMetricResult.EvalResultOutcomeBool == nil {
+				continue
+			}
 			if er.EvalExpectedResultState == "pass" && er.EvalMetricResult != nil && er.EvalMetricResult.EvalResultOutcomeBool != nil && *er.EvalMetricResult.EvalResultOutcomeBool {
 				count += 1
 			} else if er.EvalExpectedResultState == "fail" && er.EvalMetricResult != nil && er.EvalMetricResult.EvalResultOutcomeBool != nil && !*er.EvalMetricResult.EvalResultOutcomeBool {
 				count += 1
+			} else {
+				log.Info().Interface("er.EvalMetricResult.EvalResultOutcomeBool ", er.EvalMetricResult.EvalResultOutcomeBool).Interface("*er.EvalMetricResult.EvalResultOutcomeBool", *er.EvalMetricResult.EvalResultOutcomeBool).Msg("FilterEvalJsonResponses: no evalMetricResult or evalResultOutcomeBool")
 			}
 		}
 		if count == len(jr.ScoredEvalMetrics) && len(jr.ScoredEvalMetrics) > 0 {
@@ -42,6 +47,7 @@ func FilterPassingEvalPassingResponses(jres []artemis_orchestrations.JsonSchemaD
 			tmp := jro["filter"]
 			tmp.Failed = append(tmp.Failed, jr)
 			jro["filter"] = tmp
+			log.Info().Interface("passed", count).Interface("failed", len(jr.ScoredEvalMetrics)-count).Msg("FilterEvalJsonResponses: failed to pass all eval metrics")
 		}
 	}
 	return jro

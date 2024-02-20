@@ -110,6 +110,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			feedback = err
 			continue
 		}
+		wfa.ResponseID = aiResp.ResponseID
 		aiResp.WorkflowResultID = wfa.WorkflowResultID
 		log.Info().Int("attempt", attempt).Interface("len(aiResp.JsonResponseResults)", len(aiResp.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 		if mb.Tc.EvalID > 0 {
@@ -144,5 +145,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	}
 	mb.Tc.JsonResponseResults = aiResp.JsonResponseResults
 	mb.Tc.WorkflowResultID = aiResp.WorkflowResultID
+	mb.Tc.Schemas = aiResp.Schemas
 	return mb, nil
 }

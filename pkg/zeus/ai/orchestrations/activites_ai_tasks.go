@@ -154,15 +154,16 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 }
 
 type ChatCompletionQueryResponse struct {
-	Prompt                map[string]string                             `json:"prompt"`
-	Params                hera_openai.OpenAIParams                      `json:"params"`
-	EvalResultID          int                                           `json:"evalResultID,omitempty"`
-	WorkflowResultID      int                                           `json:"workflowResultID,omitempty"`
-	Response              openai.ChatCompletionResponse                 `json:"response"`
-	ResponseID            int                                           `json:"responseID,omitempty"`
-	ResponseTaskID        int                                           `json:"responseTaskID,omitempty"`
-	FilteredSearchResults []hera_search.SearchResult                    `json:"filteredSearchResults,omitempty"`
-	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition `json:"jsonResponseResults,omitempty"`
+	Prompt                map[string]string                              `json:"prompt"`
+	Params                hera_openai.OpenAIParams                       `json:"params"`
+	Schemas               []*artemis_orchestrations.JsonSchemaDefinition `json:"schemas"`
+	EvalResultID          int                                            `json:"evalResultID,omitempty"`
+	WorkflowResultID      int                                            `json:"workflowResultID,omitempty"`
+	Response              openai.ChatCompletionResponse                  `json:"response"`
+	ResponseID            int                                            `json:"responseID,omitempty"`
+	ResponseTaskID        int                                            `json:"responseTaskID,omitempty"`
+	FilteredSearchResults []hera_search.SearchResult                     `json:"filteredSearchResults,omitempty"`
+	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition  `json:"jsonResponseResults,omitempty"`
 }
 
 func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.JsonSchemaDefinition) bool {

@@ -133,7 +133,10 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		} else {
 			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			wfa.SkipAnalysis = false
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, wfa, aiResp.JsonResponseResults).Get(recordTaskCtx, &aiResp.WorkflowResultID)
+			ia := InputDataAnalysisToAgg{
+				ChatCompletionQueryResponse: aiResp,
+			}
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, wfa, mb, ia).Get(recordTaskCtx, &aiResp.WorkflowResultID)
 			if err != nil {
 				logger.Error("failed to save task output", "Error", err)
 				return nil, err

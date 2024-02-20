@@ -91,7 +91,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				switch analysisInst.AnalysisResponseFormat {
 				case jsonFormat, socialMediaExtractionResponseFormat:
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-						WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d-chunk-%d", analysisInst.AnalysisResponseFormat, i, chunkOffset)),
+						WorkflowID:               oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d-chunk-%d", analysisInst.AnalysisResponseFormat, i, chunkOffset),
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 						RetryPolicy:              ao.RetryPolicy,
 					}
@@ -126,8 +126,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
 						ResponseID:            analysisRespId,
 					}
+					ia := InputDataAnalysisToAgg{
+						ChatCompletionQueryResponse: aiResp,
+					}
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, aiResp).Get(recordAnalysisCtx, &aiResp.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, ia).Get(recordAnalysisCtx, &aiResp.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save analysis", "Error", err)
 						return err
@@ -145,7 +148,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					}
 					if i%evalAnalysisOnlyCycle == 0 {
 						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-							WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-eval-fn" + strconv.Itoa(evalFn.EvalID) + "-ind-" + strconv.Itoa(ind)),
+							WorkflowID:               oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-eval-fn" + strconv.Itoa(evalFn.EvalID) + "-ind-" + strconv.Itoa(ind),
 							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 							RetryPolicy:              ao.RetryPolicy,
 						}

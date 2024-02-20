@@ -493,7 +493,18 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 	return cp, nil
 }
 
-func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, dataIn any) (int, error) {
+func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, cp *MbChildSubProcessParams, dataIn InputDataAnalysisToAgg) (int, error) {
+	if cp == nil {
+		return 0, fmt.Errorf("SaveTaskOutput: cp is nil")
+	}
+	wio, werr := gws(ctx, cp.Wsr.InputID)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return 0, werr
+	}
+	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
+		dataIn.SearchResultGroup = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
+	}
 	if wr == nil {
 		return 0, nil
 	}

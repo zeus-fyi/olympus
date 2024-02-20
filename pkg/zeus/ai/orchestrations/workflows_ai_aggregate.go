@@ -83,7 +83,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				cp.Wsr.ChunkOffset = chunkOffset
 				switch aws.StringValue(aggInst.AggResponseFormat) {
 				case jsonFormat:
-					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: CreateExecAiWfId(oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i)), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
+					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 					childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
 					err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, cp).Get(childAggWfCtx, &cp)
@@ -116,8 +116,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
 						ResponseID:            aggRespId,
 					}
+					ia := InputDataAnalysisToAgg{
+						ChatCompletionQueryResponse: aiAggResp,
+					}
 					recordAggCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, aiAggResp).Get(recordAggCtx, &aiAggResp.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAggCtx, &aiAggResp.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save aggregation resp", "Error", err)
 						return err
@@ -127,7 +130,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]
 					if i%evalAggCycle == 0 {
 						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-							WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-ind-" + strconv.Itoa(ind)),
+							WorkflowID:               oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-ind-" + strconv.Itoa(ind),
 							RetryPolicy:              ao.RetryPolicy,
 							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 						}

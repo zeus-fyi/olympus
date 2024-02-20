@@ -83,7 +83,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 			mb.Tc.EvalID = aws.IntValue(evalFnsAgg[evFnIndex].EvalID)
 			mb.Tc.EvalSchemas = evalFnsAgg[evFnIndex].Schemas
 			mb.Tc.EvalModel = aws.StringValue(evalFnsAgg[evFnIndex].EvalModel)
-			mb.Wsr.ChildWfID = CreateExecAiWfId(mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.Wsr.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex))
+			mb.Wsr.ChildWfID = mb.Oj.OrchestrationName + "-automated-model-scored-evals-" + strconv.Itoa(mb.Wsr.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex)
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: mb.Wsr.ChildWfID, WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: aoAiAct.RetryPolicy}
 			childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 			err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, mb).Get(childAnalysisCtx, &mb)
@@ -104,7 +104,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		case evalModelScoredViaApi:
 		}
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               CreateExecAiWfId(mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.Wsr.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex)),
+			WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.Wsr.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex),
 			WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 			RetryPolicy:              aoAiAct.RetryPolicy,
 		}

@@ -40,15 +40,12 @@ func InsertWorkflowStageReference(ctx context.Context, wfStageIO *WorkflowStageR
 	if wfStageIO.InputID == 0 {
 		wfStageIO.InputID = ts.UnixTimeStampNow()
 	}
-	var jsonb pgtype.JSONB
-	jsonb.Bytes = sanitizeBytesUTF8(wfStageIO.InputData)
-	jsonb.Status = IsNull(wfStageIO.InputData)
-
 	wfStageIO.LogsStr = strings.Join(wfStageIO.Logs, ",")
 	// Executing the query
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wfStageIO.InputID, wfStageIO.WorkflowRunID, wfStageIO.ChildWfID, wfStageIO.RunCycle, jsonb, wfStageIO.LogsStr).Scan(&wfStageIO.InputID, &wfStageIO.InputStrID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wfStageIO.InputID, wfStageIO.WorkflowRunID, wfStageIO.ChildWfID, wfStageIO.RunCycle,
+		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(wfStageIO.InputData), Status: IsNull(sanitizeBytesUTF8(wfStageIO.InputData))}, wfStageIO.LogsStr).Scan(&wfStageIO.InputID, &wfStageIO.InputStrID)
 	if err != nil {
-		log.Err(err).Msg("failed to execute query for InsertWorkflowStageReference")
+		log.Err(err).Interface("wfStageIO", wfStageIO).Interface("jsonb", wfStageIO.InputData).Msg("failed to execute query for InsertWorkflowStageReference")
 		return err
 	}
 	return nil

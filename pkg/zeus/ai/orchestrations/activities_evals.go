@@ -26,7 +26,7 @@ func gws(ctx context.Context, inputID int) (WorkflowStageIO, error) {
 	act := NewZeusAiPlatformActivities()
 	wio, err := act.SelectWorkflowIO(ctx, inputID)
 	if err != nil {
-		log.Err(err).Msg("SaveEvalResponseOutput: failed to select workflow io")
+		log.Err(err).Msg("gws: failed to SelectWorkflowIO")
 		return wio, err
 	}
 	return wio, err
@@ -40,7 +40,7 @@ func sws(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error) 
 	act := NewZeusAiPlatformActivities()
 	wio, err := act.SaveWorkflowIO(ctx, input)
 	if err != nil {
-		log.Err(err).Msg("SaveEvalResponseOutput: failed to select workflow io")
+		log.Err(err).Msg("sws: failed to SaveWorkflowIO")
 		return wio, err
 	}
 	return wio, err
@@ -88,7 +88,7 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 	act := NewZeusAiPlatformActivities()
 	wio, err := act.SelectWorkflowIO(ctx, cp.Wsr.InputID)
 	if err != nil {
-		log.Err(err).Msg("SaveEvalResponseOutput: failed to select workflow io")
+		log.Err(err).Msg("EvalModelScoredJsonOutput: failed to select workflow io")
 		return nil, err
 	}
 	emr := &artemis_orchestrations.EvalMetricsResults{

@@ -48,7 +48,7 @@ type WorkflowStageIO struct {
 }
 
 type WorkflowStageInfo struct {
-	TaskToExecute                      *TaskToExecute                      `json:"tte,omitempty"`
 	RunAiWorkflowAutoEvalProcessInputs *RunAiWorkflowAutoEvalProcessInputs `json:"runAiWorkflowAutoEvalProcessInputs,omitempty"`
 	CreateTriggerActionsWorkflowInputs *CreateTriggerActionsWorkflowInputs `json:"createTriggerActionsWorkflowInputs,omitempty"`
+	PromptReduction                    *PromptReduction                    `json:"promptReduction,omitempty"`
 }

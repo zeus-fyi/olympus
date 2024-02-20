@@ -67,8 +67,6 @@ type SearchResultGroup struct {
 	PlatformName                   string                        `json:"platformName"`
 	SourceTaskID                   int                           `json:"sourceTaskID,omitempty"`
 	ExtractionPromptExt            string                        `json:"extractionPromptExt,omitempty"`
-	Model                          string                        `json:"model,omitempty"`
-	ResponseFormat                 string                        `json:"responseFormat,omitempty"`
 	BodyPrompt                     string                        `json:"bodyPrompt,omitempty"`
 	ResponseBody                   string                        `json:"responseBody,omitempty"`
 	ApiResponseResults             []SearchResult                `json:"apiResponseResults,omitempty"`

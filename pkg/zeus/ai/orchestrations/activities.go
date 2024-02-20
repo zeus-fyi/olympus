@@ -51,7 +51,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.AiWebRetrievalGetRoutesTask, z.ApiCallRequestTask, z.CreateRedditJob,
 		z.SelectActiveSearchIndexerJobs, z.StartIndexingJob, z.CancelRun, z.PlatformIndexerGroupStatusUpdate,
 		z.SelectDiscordSearchQueryByGuildChannel, z.CreateJsonOutputModelResponse, z.EvalLookup,
-		z.SendResponseToApiForScoresInJson, z.EvalModelScoredJsonOutput, z.SaveEvalMetricResults,
+		z.SendResponseToApiForScoresInJson, z.EvalModelScoredJsonOutput,
 		z.SendTriggerActionRequestForApproval, z.CreateOrUpdateTriggerActionToExec,
 		z.CheckEvalTriggerCondition, z.LookupEvalTriggerConditions,
 		z.SocialRedditTask, z.SocialDiscordTask, z.SocialTelegramTask,
@@ -330,17 +330,19 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		Group:       aws.StringValue(retInst.WebFilters.RoutingGroup),
 		WebResponse: wr,
 	}
-	//fmt.Println("sres", sres)
 	return sres, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_users.OrgUser,
-	retrieval artemis_orchestrations.RetrievalItem, window artemis_orchestrations.Window) (*hera_search.SearchResultGroup, error) {
+func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbChildSubProcessParams) (*int, error) {
+	retrieval := cp.Tc.Retrieval
+	ou := cp.Ou
+	window := cp.Window
 	if retrieval.RetrievalPlatform == "" || retrieval.RetrievalName == "" {
 		return nil, nil
 	}
 	sg := &hera_search.SearchResultGroup{
 		PlatformName: retrieval.RetrievalPlatform,
+		Window:       window,
 	}
 	sp := hera_search.AiSearchParams{
 		Retrieval: artemis_orchestrations.RetrievalItem{
@@ -361,8 +363,29 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 		if len(resp) > 50 {
 			resp = resp[:50]
 		}
+
 		sg.SearchResults = resp
-		return sg, nil
+		sg.SourceTaskID = cp.Tc.TaskID
+		wio := WorkflowStageIO{
+			WorkflowStageReference: cp.Wsr,
+			WorkflowStageInfo: WorkflowStageInfo{
+				PromptReduction: &PromptReduction{
+					MarginBuffer:          cp.Tc.MarginBuffer,
+					Model:                 cp.Tc.Model,
+					TokenOverflowStrategy: cp.Tc.TokenOverflowStrategy,
+					PromptReductionSearchResults: &PromptReductionSearchResults{
+						InPromptBody:  cp.Tc.Prompt,
+						InSearchGroup: sg,
+					},
+				},
+			},
+		}
+		wid, err := sws(ctx, &wio)
+		if err != nil {
+			log.Err(err).Msg("AiRetrievalTask: failed")
+			return nil, err
+		}
+		return &wid.InputID, nil
 	}
 
 	var resp []hera_search.SearchResult
@@ -384,7 +407,27 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, ou org_u
 		return nil, err
 	}
 	sg.SearchResults = resp
-	return sg, nil
+	sg.SourceTaskID = cp.Tc.TaskID
+	wio := WorkflowStageIO{
+		WorkflowStageReference: cp.Wsr,
+		WorkflowStageInfo: WorkflowStageInfo{
+			PromptReduction: &PromptReduction{
+				MarginBuffer:          cp.Tc.MarginBuffer,
+				Model:                 cp.Tc.Model,
+				TokenOverflowStrategy: cp.Tc.TokenOverflowStrategy,
+				PromptReductionSearchResults: &PromptReductionSearchResults{
+					InPromptBody:  cp.Tc.Prompt,
+					InSearchGroup: sg,
+				},
+			},
+		},
+	}
+	wid, err := sws(ctx, &wio)
+	if err != nil {
+		log.Err(err).Msg("AiRetrievalTask: failed")
+		return nil, err
+	}
+	return &wid.InputID, nil
 }
 
 func (z *ZeusAiPlatformActivities) RecordCompletionResponse(ctx context.Context, ou org_users.OrgUser, resp *ChatCompletionQueryResponse) (int, error) {
@@ -409,8 +452,8 @@ type AggRetResp struct {
 	InputDataAnalysisToAggSlice   []InputDataAnalysisToAgg
 }
 
-func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.Context, window artemis_orchestrations.Window, ojIDs, sourceTaskIds []int) (*AggRetResp, error) {
-	results, err := artemis_orchestrations.SelectAiWorkflowAnalysisResults(ctx, window, ojIDs, sourceTaskIds)
+func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.Context, cp *MbChildSubProcessParams, sourceTaskIds []int) (*MbChildSubProcessParams, error) {
+	results, err := artemis_orchestrations.SelectAiWorkflowAnalysisResults(ctx, cp.Window, []int{cp.Oj.OrchestrationID}, sourceTaskIds)
 	if err != nil {
 		log.Err(err).Msg("AiAggregateAnalysisRetrievalTask: failed")
 		return nil, err
@@ -430,13 +473,40 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 		}
 		resp = append(resp, tmp)
 	}
-	return &AggRetResp{
-		AIWorkflowAnalysisResultSlice: results,
-		InputDataAnalysisToAggSlice:   resp,
-	}, nil
+	wio := WorkflowStageIO{
+		WorkflowStageReference: cp.Wsr,
+		WorkflowStageInfo: WorkflowStageInfo{
+			PromptReduction: &PromptReduction{
+				MarginBuffer:              cp.Tc.MarginBuffer,
+				Model:                     cp.Tc.Model,
+				TokenOverflowStrategy:     cp.Tc.TokenOverflowStrategy,
+				DataInAnalysisAggregation: resp,
+			},
+		},
+	}
+	wid, err := sws(ctx, &wio)
+	if err != nil {
+		log.Err(err).Msg("AiRetrievalTask: failed")
+		return nil, err
+	}
+	cp.Wsr.InputID = wid.InputID
+	return cp, nil
 }
 
-func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, dataIn any) (int, error) {
+func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, cp *MbChildSubProcessParams, dataIn InputDataAnalysisToAgg) (int, error) {
+	if cp == nil {
+		return 0, fmt.Errorf("SaveTaskOutput: cp is nil")
+	}
+	wio, werr := gws(ctx, cp.Wsr.InputID)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return 0, werr
+	}
+	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
+		if cp.Wsr.ChunkOffset < len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) {
+			dataIn.SearchResultGroup = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
+		}
+	}
 	if wr == nil {
 		return 0, nil
 	}
@@ -455,10 +525,12 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 }
 
 // UpdateTaskOutput updates the task output, but it only intended for json output results
-func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, jro JsonResponseGroupsByOutcomeMap, sg *hera_search.SearchResultGroup) ([]artemis_orchestrations.JsonSchemaDefinition, error) {
-	if wr == nil || len(jro) <= 0 {
+func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbChildSubProcessParams) ([]artemis_orchestrations.JsonSchemaDefinition, error) {
+	if cp == nil || len(cp.Tc.JsonResponseResults) <= 0 {
 		return nil, nil
 	}
+	var skipAnalysis bool
+	jro := FilterPassingEvalPassingResponses(cp.Tc.JsonResponseResults)
 	var md []byte
 	var err error
 	var filteredJsonResponses []artemis_orchestrations.JsonSchemaDefinition
@@ -467,52 +539,64 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *art
 		switch evalState {
 		case filterState:
 			filteredJsonResponses = v.Passed
+			log.Info().Interface("v.Passed", len(v.Passed)).Interface("v.Failed", len(v.Failed)).Msg("UpdateTaskOutput: filterState")
 		case infoState:
 			if len(v.Failed) > 0 {
-				wr.SkipAnalysis = true
+				skipAnalysis = true
 			} else {
 				infoJsonResponses = v.Passed
+				log.Info().Interface("v.Passed", len(v.Passed)).Msg("UpdateTaskOutput: infoState")
 			}
 		case errorState:
 			// TODO: stop workflow?
 		}
 	}
+	var sg *hera_search.SearchResultGroup
+	wio, werr := gws(ctx, cp.Wsr.InputID)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return nil, werr
+	}
+	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
+		if cp.Wsr.ChunkOffset < len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) {
+			sg = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
+		}
+	}
 	var res []artemis_orchestrations.JsonSchemaDefinition
 	if len(filteredJsonResponses) <= 0 && len(infoJsonResponses) <= 0 {
-		wr.SkipAnalysis = true
+		skipAnalysis = true
 		md, err = json.Marshal(jro)
 		if err != nil {
-			log.Err(err).Interface("jro", jro).Interface("wr", wr).Msg("UpdateTaskOutput: failed")
+			log.Err(err).Interface("jro", jro).Msg("UpdateTaskOutput: failed")
 			return nil, err
 		}
 	} else if len(filteredJsonResponses) > 0 {
 		res = filteredJsonResponses
 		tmp := InputDataAnalysisToAgg{
+			SearchResultGroup: sg,
 			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
 				JsonResponseResults: res,
 			},
-			SearchResultGroup: sg,
 		}
 		md, err = json.Marshal(tmp)
 		if err != nil {
-			log.Err(err).Interface("infoJsonResponses", infoJsonResponses).Interface("jro", jro).Interface("wr", wr).Msg("UpdateTaskOutput: failed")
+			log.Err(err).Interface("infoJsonResponses", infoJsonResponses).Interface("jro", jro).Msg("UpdateTaskOutput: failed")
 			return nil, err
 		}
 	} else {
 		res = infoJsonResponses
 		tmp := InputDataAnalysisToAgg{
+			SearchResultGroup: sg,
 			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
 				JsonResponseResults: res,
 			},
-			SearchResultGroup: sg,
 		}
 		md, err = json.Marshal(tmp)
 		if err != nil {
-			log.Err(err).Interface("infoJsonResponses", infoJsonResponses).Interface("jro", jro).Interface("wr", wr).Msg("UpdateTaskOutput: failed")
+			log.Err(err).Interface("infoJsonResponses", infoJsonResponses).Interface("jro", jro).Msg("UpdateTaskOutput: failed")
 			return nil, err
 		}
 	}
-	// TODO refactor or deprecate vvv
 	if res != nil && sg != nil && sg.SearchResults != nil {
 		seen := make(map[int]bool)
 		for _, jr := range res {
@@ -533,8 +617,19 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *art
 			}
 		}
 	}
-	// TODO refactor or deprecate ^^^
-	wr.Metadata = md
+	wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
+		WorkflowResultID:      cp.Tc.WorkflowResultID,
+		ResponseID:            cp.Tc.ResponseID,
+		OrchestrationID:       cp.Oj.OrchestrationID,
+		SourceTaskID:          cp.Tc.TaskID,
+		IterationCount:        cp.Wsr.IterationCount,
+		ChunkOffset:           cp.Wsr.ChunkOffset,
+		RunningCycleNumber:    cp.Wsr.RunCycle,
+		SearchWindowUnixStart: cp.Window.UnixStartTime,
+		SearchWindowUnixEnd:   cp.Window.UnixEndTime,
+		Metadata:              md,
+		SkipAnalysis:          skipAnalysis,
+	}
 	err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 	if err != nil {
 		log.Err(err).Interface("filteredJsonResponses", filteredJsonResponses).Interface("jro", jro).Interface("wr", wr).Msg("UpdateTaskOutput: failed")
@@ -542,3 +637,8 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, wr *art
 	}
 	return res, nil
 }
+
+/*
+	// TODO refactor or deprecate vvv
+
+*/

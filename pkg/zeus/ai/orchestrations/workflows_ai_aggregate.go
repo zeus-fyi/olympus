@@ -1,12 +1,10 @@
 package ai_platform_service_orchestrations
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"go.temporal.io/sdk/temporal"
@@ -25,7 +23,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 	wfExecParams := cp.WfExecParams
 	ou := cp.Ou
 	oj := cp.Oj
-	runCycle := cp.RunCycle
+	runCycle := cp.Wsr.RunCycle
 
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	logger := workflow.GetLogger(ctx)
@@ -49,178 +47,95 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 		aggCycle := wfExecParams.CycleCountTaskRelative.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 		if i%aggCycle == 0 {
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
+			cp.Window = window
+			cp.Tc = TaskContext{
+				TaskType:              AggTask,
+				Model:                 aws.StringValue(aggInst.AggModel),
+				TaskID:                aws.IntValue(aggInst.AggTaskID),
+				ResponseFormat:        aws.StringValue(aggInst.AggResponseFormat),
+				Prompt:                aws.StringValue(aggInst.AggPrompt),
+				WorkflowTemplateData:  aggInst,
+				TokenOverflowStrategy: aws.StringValue(aggInst.AggTokenOverflowStrategy),
+				MarginBuffer:          aws.Float64Value(aggInst.AggMarginBuffer),
+				Temperature:           float32(aws.Float64Value(aggInst.AggTemperature)),
+			}
 			depM := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 			var analysisDep []int
 			for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
 				analysisDep = append(analysisDep, k)
 			}
-			var aggRet AggRetResp
 			aggRetrievalCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, window, []int{oj.OrchestrationID}, analysisDep).Get(aggRetrievalCtx, &aggRet)
+			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, cp, analysisDep).Get(aggRetrievalCtx, &cp)
 			if err != nil {
 				logger.Error("failed to run aggregate retrieval", "Error", err)
 				return err
 			}
 			md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
-			wr := &artemis_orchestrations.AIWorkflowAnalysisResult{OrchestrationID: oj.OrchestrationID, SourceTaskID: aws.IntValue(aggInst.AggTaskID), RunningCycleNumber: i, SearchWindowUnixStart: window.UnixStartTime, SearchWindowUnixEnd: window.UnixEndTime}
-			tte := TaskToExecute{
-				Ou:  ou,
-				Wft: aggInst,
-				Sg: &hera_search.SearchResultGroup{
-					SourceTaskID:   aws.IntValue(aggInst.AggTaskID),
-					Model:          aws.StringValue(aggInst.AggModel),
-					ResponseFormat: aws.StringValue(aggInst.AggResponseFormat),
-				},
-				Wr: wr,
-			}
-			pr := &PromptReduction{
-				Model:                     aws.StringValue(aggInst.AggModel),
-				TokenOverflowStrategy:     aws.StringValue(aggInst.AggTokenOverflowStrategy),
-				MarginBuffer:              aws.Float64Value(aggInst.AggMarginBuffer),
-				DataInAnalysisAggregation: aggRet.InputDataAnalysisToAggSlice,
-				AIWorkflowAnalysisResults: aggRet.AIWorkflowAnalysisResultSlice,
-				PromptReductionSearchResults: &PromptReductionSearchResults{
-					InPromptBody: aws.StringValue(aggInst.AggPrompt),
-				},
-				PromptReductionText: &PromptReductionText{
-					InPromptSystem: aws.StringValue(aggInst.AggPrompt),
-				},
-			}
-			// todo, maybe can deprecate tte.Sg.FilteredSearchResults == nil
-			if len(aggRet.InputDataAnalysisToAggSlice) == 0 && len(aggRet.AIWorkflowAnalysisResultSlice) == 0 && tte.Sg.FilteredSearchResults == nil {
-				logger.Info("no data in for agg", "aggInst", aggInst)
-				continue
-			}
+			var chunkIterator int
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, ou, pr).Get(chunkedTaskCtx, &pr)
+			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp.Wsr.InputID).Get(chunkedTaskCtx, &chunkIterator)
 			if err != nil {
 				logger.Error("failed to run agg token overflow reduction task", "Error", err)
 				return err
 			}
-			chunkIterator := getChunkIteratorLen(pr)
-			tte.Tc = TaskContext{TaskName: aws.StringValue(aggInst.AggTaskName), TaskType: AggTask, ResponseFormat: aws.StringValue(aggInst.AggResponseFormat), Model: aws.StringValue(aggInst.AggModel), TaskID: aws.IntValue(aggInst.AggTaskID)}
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				logger.Info("RunAiChildAggAnalysisProcessWorkflow: chunkOffset", chunkOffset)
-				wr.ChunkOffset = chunkOffset
-				tte.WfID = oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i) + "-" + strconv.Itoa(chunkOffset)
-				var sg *hera_search.SearchResultGroup
-				if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && chunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
-					sg = pr.PromptReductionSearchResults.OutSearchGroups[chunkOffset]
-					sg.Model = aws.StringValue(aggInst.AggModel)
-					sg.ResponseFormat = aws.StringValue(aggInst.AggResponseFormat)
-					if chunkOffset < len(pr.PromptReductionText.OutPromptChunks) {
-						sg.BodyPrompt = pr.PromptReductionText.OutPromptChunks[chunkOffset]
-					}
-				} else {
-					sg = &hera_search.SearchResultGroup{
-						Model:          aws.StringValue(aggInst.AggModel),
-						ResponseFormat: aws.StringValue(aggInst.AggResponseFormat),
-						BodyPrompt:     pr.PromptReductionText.OutPromptChunks[chunkOffset],
-						SearchResults:  []hera_search.SearchResult{},
-					}
-				}
-				tte.Sg = sg
-				var aiAggResp *ChatCompletionQueryResponse
+				cp.Wsr.ChunkOffset = chunkOffset
 				switch aws.StringValue(aggInst.AggResponseFormat) {
 				case jsonFormat:
-					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: CreateExecAiWfId(oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i)), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
-					var fullTaskDef []artemis_orchestrations.AITaskLibrary
-					selectTaskCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(selectTaskCtx, z.SelectTaskDefinition, tte.Ou, aws.IntValue(aggInst.AggTaskID)).Get(selectTaskCtx, &fullTaskDef)
-					if err != nil {
-						logger.Error("failed to run task", "Error", err)
-						return err
-					}
-					if len(fullTaskDef) == 0 {
-						return nil
-					}
-					var jdef []*artemis_orchestrations.JsonSchemaDefinition
-					for _, taskDef := range fullTaskDef {
-						jdef = append(jdef, taskDef.Schemas...)
-					}
-					tte.Tc.Schemas = jdef
-					if aggInst.AggTemperature != nil {
-						tte.Tc.Temperature = float32(*aggInst.AggTemperature)
-					} else {
-						tte.Tc.Temperature = 0.5
-					}
+					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 					childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-					err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, tte).Get(childAggWfCtx, &aiAggResp)
+					cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
+					err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, cp).Get(childAggWfCtx, &cp)
 					if err != nil {
 						logger.Error("failed to execute json agg workflow", "Error", err)
 						return err
 					}
-					wr.ResponseID = aiAggResp.ResponseID
-					wr.WorkflowResultID = aiAggResp.WorkflowResultID
-					if len(aiAggResp.JsonResponseResults) <= 0 {
-						logger.Warn("no json response results", "aiAggResp", aiAggResp)
-						continue
-					}
 				default:
+					var aiAggResp *ChatCompletionQueryResponse
 					aggCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, tte.Sg).Get(aggCtx, &aiAggResp)
+					err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, cp).Get(aggCtx, &aiAggResp)
 					if err != nil {
 						logger.Error("failed to run aggregation", "Error", err)
 						return err
 					}
-					var aggRespId int
 					aggCompCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &aggRespId)
+					err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &cp.Tc.ResponseID)
 					if err != nil {
 						logger.Error("failed to save agg response", "Error", err)
 						return err
 					}
-					wr.ResponseID = aggRespId
+					wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
+						OrchestrationID:       cp.Oj.OrchestrationID,
+						SourceTaskID:          cp.Tc.TaskID,
+						IterationCount:        0,
+						ChunkOffset:           chunkOffset,
+						RunningCycleNumber:    cp.Wsr.RunCycle,
+						SearchWindowUnixStart: cp.Window.UnixStartTime,
+						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
+						ResponseID:            cp.Tc.ResponseID,
+					}
+					ia := InputDataAnalysisToAgg{
+						ChatCompletionQueryResponse: aiAggResp,
+					}
 					recordAggCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, aiAggResp).Get(recordAggCtx, &aiAggResp.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAggCtx, &cp.Tc.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save aggregation resp", "Error", err)
 						return err
 					}
 				}
-				if aiAggResp == nil || len(aiAggResp.Response.Choices) == 0 || aggInst.AggEvalFns == nil || len(aggInst.AggEvalFns) == 0 {
-					log.Warn().Interface("aiAggResp", aiAggResp).Msg("RunAiChildAggAnalysisProcessWorkflow: aiAggResp")
-					continue
-				}
 				for ind, evalFn := range aggInst.AggEvalFns {
 					evalAggCycle := wfExecParams.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[*aggInst.AggTaskID][evalFn.EvalID]
 					if i%evalAggCycle == 0 {
 						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-							WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-ind-" + strconv.Itoa(ind)),
+							WorkflowID:               oj.OrchestrationName + "-agg-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-ind-" + strconv.Itoa(ind),
 							RetryPolicy:              ao.RetryPolicy,
 							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 						}
-						aiAggResp.ResponseTaskID = aws.IntValue(aggInst.AggTaskID)
-						cp.Window = window
-						cp.WfID = childAnalysisWorkflowOptions.WorkflowID
-						cp.WorkflowResult = *wr
-						ea := &EvalActionParams{WorkflowTemplateData: aggInst, ParentOutputToEval: aiAggResp, EvalFns: aggInst.AggEvalFns, SearchResultGroup: tte.Sg, TaskToExecute: tte}
-						wio := &WorkflowStageIO{
-							WorkflowStageReference: artemis_orchestrations.WorkflowStageReference{
-								WorkflowRunID: oj.OrchestrationID,
-								ChildWfID:     childAnalysisWorkflowOptions.WorkflowID,
-								RunCycle:      runCycle,
-							},
-							WorkflowStageInfo: WorkflowStageInfo{
-								RunAiWorkflowAutoEvalProcessInputs: &RunAiWorkflowAutoEvalProcessInputs{
-									Mb:  cp,
-									Cpe: ea,
-								},
-							},
-						}
-						saveWfStageIOCtx := workflow.WithActivityOptions(ctx, ao)
-						err = workflow.ExecuteActivity(saveWfStageIOCtx, z.SaveWorkflowIO, wio).Get(saveWfStageIOCtx, &wio)
-						if err != nil {
-							logger.Error("failed to saveWfStageIOCtx results", "Error", err)
-							return err
-						}
-						if wio == nil || wio.InputID == 0 {
-							err = fmt.Errorf("wio.InputID is 0 in analysis eval")
-							logger.Warn("wio.InputID is 0 in analysis eval", "Error", err)
-							return err
-						}
+						cp.Tc.EvalID = evalFn.EvalID
 						childAggEvalWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-						err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, wio.InputID).Get(childAggEvalWfCtx, nil)
+						err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, cp).Get(childAggEvalWfCtx, nil)
 						if err != nil {
 							logger.Error("failed to execute child agg eval workflow", "Error", err)
 							return err

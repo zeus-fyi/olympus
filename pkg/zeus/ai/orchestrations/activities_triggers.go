@@ -58,11 +58,21 @@ type JsonResponseGroupsByOutcome struct {
 
 type JsonResponseGroupsByOutcomeMap map[string]JsonResponseGroupsByOutcome
 
-func (z *ZeusAiPlatformActivities) FilterEvalJsonResponses(ctx context.Context, act *artemis_orchestrations.TriggerAction, emr *artemis_orchestrations.EvalMetricsResults) (JsonResponseGroupsByOutcomeMap, error) {
+func (z *ZeusAiPlatformActivities) FilterEvalJsonResponses(ctx context.Context, cp *MbChildSubProcessParams, act *artemis_orchestrations.TriggerAction) (JsonResponseGroupsByOutcomeMap, error) {
 	var jro JsonResponseGroupsByOutcomeMap
-	if act == nil || emr == nil || emr.EvalMetricsResults == nil {
+
+	wi, err := gws(ctx, cp.Wsr.InputID)
+	if err != nil {
+		log.Err(err).Interface("cp", cp).Msg("FilterEvalJsonResponses: failed to get workflow input")
+		return jro, err
+	}
+	if wi.CreateTriggerActionsWorkflowInputs == nil || wi.CreateTriggerActionsWorkflowInputs.Emr == nil {
 		return jro, nil
 	}
+	if act == nil || wi.CreateTriggerActionsWorkflowInputs.Emr == nil || wi.CreateTriggerActionsWorkflowInputs.Emr.EvalMetricsResults == nil {
+		return jro, nil
+	}
+	emr := wi.CreateTriggerActionsWorkflowInputs.Emr
 	jro = make(map[string]JsonResponseGroupsByOutcome)
 
 	// init for all the state of the trigger actions, removes duplicate states via map key

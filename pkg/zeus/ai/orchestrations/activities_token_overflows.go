@@ -7,7 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 const (
@@ -57,10 +56,19 @@ const (
 	OverflowStrategyDeduce   = "deduce"
 )
 
-func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, ou org_users.OrgUser, pr *PromptReduction) (*PromptReduction, error) {
-	if pr == nil {
-		return nil, nil
+func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, inputID int) (int, error) {
+	if inputID <= 0 {
+		return 0, nil
 	}
+	wio, werr := gws(ctx, inputID)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return 0, werr
+	}
+	if wio.PromptReduction == nil {
+		return 0, nil
+	}
+	pr := wio.PromptReduction
 	if pr.DataInAnalysisAggregation != nil {
 		pr.PromptReductionSearchResults = &PromptReductionSearchResults{
 			InSearchGroup: &hera_search.SearchResultGroup{
@@ -136,23 +144,29 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, o
 	err := TokenOverflowSearchResults(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowSearchResults")
-		return nil, err
+		return 0, err
 	}
 	err = TokenOverflowString(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowString")
-		return nil, err
+		return 0, err
 	}
 
 	tmp := pr.PromptReductionSearchResults
 	if tmp != nil && tmp.OutSearchGroups != nil && len(tmp.OutSearchGroups) > 0 {
 		log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Interface("len(tmp.OutSearchGroups)", len(tmp.OutSearchGroups)).Msg("TokenOverflowReductioDone")
 	}
-
 	if pr.PromptReductionText != nil {
 		log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Interface("pr.PromptReductionText.OutPromptChunks", len(pr.PromptReductionText.OutPromptChunks)).Msg("TokenOverflowReductionDone")
 	}
-	return pr, nil
+	wio.PromptReduction = pr
+	_, werr = sws(ctx, &wio)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
+		return 0, werr
+	}
+	chunkIterator := getChunkIteratorLen(pr)
+	return chunkIterator, nil
 }
 
 func TokenOverflowSearchResults(ctx context.Context, pr *PromptReduction) error {

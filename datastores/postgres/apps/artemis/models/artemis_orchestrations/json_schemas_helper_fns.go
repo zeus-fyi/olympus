@@ -233,11 +233,11 @@ func CopyJsonSchemaFieldsSlice(sz JsonSchemaDefinition) JsonSchemaDefinition {
 	var tmp []JsonSchemaField
 	for _, f := range sz.Fields {
 		tmp = append(tmp, JsonSchemaField{
-			FieldID:          f.FieldID,
-			FieldStrID:       f.FieldStrID,
-			FieldName:        f.FieldName,
-			FieldDescription: f.FieldDescription,
-			DataType:         f.DataType,
+			FieldID:    f.FieldID,
+			FieldStrID: f.FieldStrID,
+			FieldName:  f.FieldName,
+			//FieldDescription: f.FieldDescription, this adds too much extra data
+			DataType: f.DataType,
 			FieldValue: FieldValue{
 				IntegerValue:      nil,
 				StringValue:       nil,

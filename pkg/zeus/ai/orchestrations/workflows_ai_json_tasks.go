@@ -6,8 +6,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -19,31 +17,51 @@ const (
 )
 
 type TaskToExecute struct {
-	WfID        string                                           `json:"wfID"`
-	Ou          org_users.OrgUser                                `json:"ou"`
-	Ec          artemis_orchestrations.EvalContext               `json:"ec"`
-	Tc          TaskContext                                      `json:"taskContext"`
-	Wft         artemis_orchestrations.WorkflowTemplateData      `json:"wft"`
-	Sg          *hera_search.SearchResultGroup                   `json:"sg"`
-	Wr          *artemis_orchestrations.AIWorkflowAnalysisResult `json:"wr"`
-	RetryPolicy *temporal.RetryPolicy                            `json:"retryPolicy"`
+	Ec  artemis_orchestrations.EvalContext               `json:"ec"`
+	Wft artemis_orchestrations.WorkflowTemplateData      `json:"wft"`
+	Wr  *artemis_orchestrations.AIWorkflowAnalysisResult `json:"wr"`
 }
 
 type TaskContext struct {
-	TaskName                           string                                        `json:"taskName"`
-	TaskType                           string                                        `json:"taskType"`
-	Temperature                        float32                                       `json:"temperature"`
-	ResponseFormat                     string                                        `json:"responseFormat"`
-	Model                              string                                        `json:"model"`
-	TaskID                             int                                           `json:"taskID"`
-	EvalID                             int                                           `json:"evalID,omitempty"`
-	Retrieval                          artemis_orchestrations.RetrievalItem          `json:"retrieval,omitempty"`
-	TriggerActionsApproval             artemis_orchestrations.TriggerActionsApproval `json:"triggerActionsApproval,omitempty"`
-	AIWorkflowTriggerResultApiResponse artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse
-	Schemas                            []*artemis_orchestrations.JsonSchemaDefinition
+	TaskName                           string                                                       `json:"taskName"`
+	TaskType                           string                                                       `json:"taskType"`
+	Temperature                        float32                                                      `json:"temperature"`
+	MarginBuffer                       float64                                                      `json:"marginBuffer"`
+	Prompt                             string                                                       `json:"prompt,omitempty"`
+	TokenOverflowStrategy              string                                                       `json:"tokenOverflowStrategy"`
+	ResponseFormat                     string                                                       `json:"responseFormat"`
+	Model                              string                                                       `json:"model"`
+	EvalModel                          string                                                       `json:"evalModel"`
+	WorkflowResultID                   int                                                          `json:"workflowResultID"`
+	TaskID                             int                                                          `json:"taskID"`
+	EvalID                             int                                                          `json:"evalID,omitempty"`
+	EvalResultID                       int                                                          `json:"evalResultID,omitempty"`
+	ResponseID                         int                                                          `json:"responseID,omitempty"`
+	Retrieval                          artemis_orchestrations.RetrievalItem                         `json:"retrieval,omitempty"`
+	TriggerActionsApproval             artemis_orchestrations.TriggerActionsApproval                `json:"triggerActionsApproval,omitempty"`
+	AIWorkflowTriggerResultApiResponse artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse `json:"aiWorkflowTriggerResultApiResponse,omitempty"`
+	EvalSchemas                        []*artemis_orchestrations.JsonSchemaDefinition               `json:"evalSchemas,omitempty"`
+	Schemas                            []*artemis_orchestrations.JsonSchemaDefinition               `json:"schemas,omitempty"`
+	JsonResponseResults                []artemis_orchestrations.JsonSchemaDefinition                `json:"jsonResponseResults,omitempty"`
+	RetryPolicy                        *temporal.RetryPolicy                                        `json:"retryPolicy"`
+	WorkflowTemplateData               artemis_orchestrations.WorkflowTemplateData                  `json:"workflowTemplateData"`
 }
 
-func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, tte TaskToExecute) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Context, mb *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
+	var canSkip bool
+	if mb.Tc.JsonResponseResults != nil && len(mb.Tc.JsonResponseResults) > 0 && len(mb.Tc.EvalSchemas) > 0 {
+		jrs := mb.Tc.JsonResponseResults
+		canSkip = mb.Tc.EvalModel == mb.Tc.Model
+		for _, sv := range mb.Tc.EvalSchemas {
+			if !CheckSchemaIDsAndValidFields(sv.SchemaID, jrs) {
+				canSkip = false
+				break
+			}
+		}
+	}
+	if canSkip {
+		return mb, nil
+	}
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
@@ -53,149 +71,88 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			MaximumAttempts:    25,
 		},
 	}
-	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(tte.Ou.OrgID, tte.WfID, "ZeusAiPlatformServiceWorkflows", "JsonOutputTaskWorkflow")
+	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(mb.Ou.OrgID, mb.Wsr.ChildWfID, "ZeusAiPlatformServiceWorkflows", "JsonOutputTaskWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
 	if err != nil {
 		logger.Error("failed to update ai orch services", "Error", err)
 		return nil, err
 	}
-
 	jsonTaskCtx := workflow.WithActivityOptions(ctx, ao)
 	maxAttempts := ao.RetryPolicy.MaximumAttempts
 	var aiResp *ChatCompletionQueryResponse
 	var feedback error
-
 	for attempt := 0; attempt < int(maxAttempts); attempt++ {
 		log.Info().Int("attempt", attempt).Msg("JsonOutputTaskWorkflow: attempt")
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
-		fd := artemis_orchestrations.ConvertToFuncDef(tte.Tc.Schemas)
 		feedbackPrompt := ""
 		if feedback != nil {
 			feedbackPrompt = fmt.Sprintf("Please fix your answer or make best assumptions on data structure to fix this error: %s. This is attempt number: %d", feedback.Error(), attempt)
 			feedback = nil
 		}
 		params := hera_openai.OpenAIParams{
-			Model:              tte.Tc.Model,
-			Prompt:             tte.Sg.GetPromptBody(),
-			FunctionDefinition: fd,
-			Temperature:        tte.Tc.Temperature,
+			Model:              mb.Tc.Model,
+			FunctionDefinition: artemis_orchestrations.ConvertToFuncDef(mb.Tc.Schemas),
+			Temperature:        mb.Tc.Temperature,
 			SystemPromptExt:    feedbackPrompt,
 		}
-		jsd := tte.Tc.Schemas
-		tte.Wr.IterationCount = attempt
-		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, tte.Ou, params).Get(jsonTaskCtx, &aiResp)
+		mb.Wsr.IterationCount = attempt
+		wfa := artemis_orchestrations.AIWorkflowAnalysisResult{
+			OrchestrationID:       mb.Oj.OrchestrationID,
+			SourceTaskID:          mb.Tc.TaskID,
+			IterationCount:        attempt,
+			ChunkOffset:           mb.Wsr.ChunkOffset,
+			RunningCycleNumber:    mb.Wsr.RunCycle,
+			SearchWindowUnixStart: mb.Window.UnixStartTime,
+			SearchWindowUnixEnd:   mb.Window.UnixEndTime,
+		}
+		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, mb, params).Get(jsonTaskCtx, &aiResp)
 		if err != nil {
 			logger.Error("failed to run analysis json", "Error", err)
-			return nil, err
-		}
-		analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, tte.Ou, aiResp).Get(analysisCompCtx, &aiResp.ResponseID)
-		if err != nil {
-			logger.Error("failed to record completion response", "Error", err)
-			return nil, err
-		}
-		wr := tte.Wr
-		wr.SourceTaskID = tte.Tc.TaskID
-		wr.IterationCount = attempt
-		wr.ResponseID = aiResp.ResponseID
-		var m any
-		var anyErr error
-		if len(aiResp.Response.Choices) > 0 && len(aiResp.Response.Choices[0].Message.ToolCalls) > 0 {
-			m, anyErr = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, aiResp)
-			// ok no err
-			if anyErr != nil {
-				log.Err(anyErr).Interface("m", m).Interface("resp", aiResp.Response.Choices).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
-				logger.Error("1_UnmarshallFilteredMsgIdsFromAiJson", "Error", err, "m", m, "resp", aiResp.Response.Choices)
-			}
-		} else {
-			m, anyErr = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, aiResp)
-			if anyErr != nil {
-				log.Err(anyErr).Interface("m", m).Interface("resp", aiResp.Response.Choices).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
-				logger.Error("2_UnmarshallFilteredMsgIdsFromAiJson", "Error", err, "m", m, "resp", aiResp.Response.Choices)
-			}
-		}
-		var tmpResp []artemis_orchestrations.JsonSchemaDefinition
-		if anyErr == nil {
-			tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
-			if anyErr != nil {
-				log.Err(anyErr).Interface("m", m).Interface("jsd", jsd).Msg("AssignMapValuesMultipleJsonSchemasSlice: UnmarshallOpenAiJsonInterface failed")
-				feedback = anyErr
-			}
-		} else {
-			feedback = anyErr
-		}
-		if anyErr == nil {
-			aiResp.JsonResponseResults = tmpResp
-		}
-		if anyErr != nil {
-			log.Err(anyErr).Interface("m", m).Msg("JsonOutputTaskWorkflow: AssignMapValuesMultipleJsonSchemasSlice: failed")
-			tte.Wr.SkipAnalysis = true
-			if tte.Tc.EvalID > 0 {
-				evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
-					EvalID:             tte.Tc.EvalID,
-					WorkflowResultID:   wr.WorkflowResultID,
-					ResponseID:         wr.ResponseID,
-					EvalIterationCount: wr.IterationCount,
-				}
-				tte.Ec.AIWorkflowEvalResultResponse = evrr
-				recordEvalResCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordEvalResCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResCtx, &aiResp.EvalResultID)
-				if err != nil {
-					logger.Error("failed to save eval resp id", "Error", err)
-					return nil, err
-				}
-				continue
-			} else {
-				afv := InputDataAnalysisToAgg{
-					ChatCompletionQueryResponse: aiResp,
-					SearchResultGroup:           tte.Sg,
-				}
-				recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, afv).Get(recordTaskCtx, &aiResp.WorkflowResultID)
-				if err != nil {
-					logger.Error("failed to save task output", "Error", err)
-					return nil, err
-				}
-			}
+			feedback = err
 			continue
 		}
-		aiResp.JsonResponseResults = tmpResp
+		wfa.ResponseID = aiResp.ResponseID
+		aiResp.WorkflowResultID = wfa.WorkflowResultID
 		log.Info().Int("attempt", attempt).Interface("len(aiResp.JsonResponseResults)", len(aiResp.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
-		if tte.Tc.EvalID > 0 {
+		if mb.Tc.EvalID > 0 {
 			evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
-				EvalID:             tte.Tc.EvalID,
-				WorkflowResultID:   wr.WorkflowResultID,
-				ResponseID:         wr.ResponseID,
-				EvalIterationCount: wr.IterationCount,
+				EvalID:             mb.Tc.EvalID,
+				WorkflowResultID:   wfa.WorkflowResultID,
+				ResponseID:         wfa.ResponseID,
+				EvalIterationCount: wfa.IterationCount,
 			}
+			mb.Wsr.EvalIterationCount = wfa.IterationCount
 			recordEvalResCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(recordEvalResCtx, z.SaveEvalResponseOutput, evrr).Get(recordEvalResCtx, &aiResp.EvalResultID)
 			if err != nil {
 				logger.Error("failed to save eval resp id", "Error", err)
 				return nil, err
 			}
+			mb.Tc.WorkflowResultID = aiResp.EvalResultID
 		} else {
 			recordTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			tte.Wr.SkipAnalysis = false
-			afv := InputDataAnalysisToAgg{
+			wfa.SkipAnalysis = false
+			ia := InputDataAnalysisToAgg{
 				ChatCompletionQueryResponse: aiResp,
-				SearchResultGroup:           tte.Sg,
 			}
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, tte.Wr, afv).Get(recordTaskCtx, &aiResp.WorkflowResultID)
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, wfa, mb, ia).Get(recordTaskCtx, &aiResp.WorkflowResultID)
 			if err != nil {
 				logger.Error("failed to save task output", "Error", err)
 				return nil, err
 			}
+			mb.Tc.WorkflowResultID = aiResp.WorkflowResultID
 		}
 		break
 	}
-
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)
 	if err != nil {
 		logger.Error("failed to update cache for qn services", "Error", err)
 		return nil, err
 	}
-	return aiResp, nil
+	mb.Tc.JsonResponseResults = aiResp.JsonResponseResults
+	mb.Tc.Schemas = aiResp.Schemas
+	mb.Tc.ResponseID = aiResp.ResponseID
+	return mb, nil
 }

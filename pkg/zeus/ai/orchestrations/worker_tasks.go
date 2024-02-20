@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowChildAnalysisProcess(ctx context.Context, tte TaskToExecute) (*MbChildSubProcessParams, error) {
+func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowChildAnalysisProcess(ctx context.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -18,9 +18,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowChildAnalysisProcess(
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.RunAiChildAnalysisProcessWorkflow
-	var cp *MbChildSubProcessParams
-	tte.WfID = workflowOptions.ID
-	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, tte)
+	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, cp)
 	if err != nil {
 		log.Err(err).Msg("ExecuteRunAiWorkflowChildAnalysisProcess")
 		return nil, err

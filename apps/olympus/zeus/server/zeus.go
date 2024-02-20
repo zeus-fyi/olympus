@@ -76,7 +76,6 @@ func Zeus() {
 			HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
 		}
 		topology_auths.KeysCfg = authCfg
-		topology_auths.K8Util = cfg.K8sUtil
 		dynMemFs, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		dynamic_secrets.AegisInMemSecrets = dynMemFs
 		cmd := exec.Command("doctl", "auth", "init", "-t", sw.DoctlToken)
@@ -146,6 +145,7 @@ func Zeus() {
 			log.Fatal().Err(err).Msg("Zeus: InitRedditClient failed")
 			misc.DelayedPanic(err)
 		}
+		topology_auths.K8Util = cfg.K8sUtil
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		base_deploy_params.BaseURL = "http://localhost:9001"

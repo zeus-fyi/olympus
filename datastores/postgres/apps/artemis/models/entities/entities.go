@@ -102,31 +102,3 @@ func InsertUserEntityLabeledMetadata(ctx context.Context, ue *UserEntityWrapper)
 	}
 	return nil
 }
-
-//func SelectUserMetadataByLabelsIdRange(ctx context.Context, ou org_users.OrgUser, ) ([], error) {
-//	args := []interface{}{ou.OrgID}
-//
-//	query := `
-//        SELECT
-//        FROM public.ai_retrieval_library
-//        WHERE org_id = $1 ` + queryAddOn
-//	// Executing the query
-//	rows, err := apps.Pg.Query(ctx, query, args...)
-//	if err != nil {
-//		if err == pgx.ErrNoRows {
-//			return nil, nil
-//		}
-//		return nil, err
-//	}
-//	defer rows.Close()
-//	// Iterating over the result set
-//	for rows.Next() {
-//		err = rows.Scan(
-//
-//	}
-//	if err = rows.Err(); err != nil {
-//		log.Err(err).Msg("error iterating retrieval rows")
-//		return nil, err
-//	}
-//	return , nil
-//}

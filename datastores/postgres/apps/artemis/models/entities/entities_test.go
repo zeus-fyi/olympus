@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 type EntitiesTestSuite struct {
@@ -15,6 +16,21 @@ type EntitiesTestSuite struct {
 }
 
 var ctx = context.Background()
+
+func (s *EntitiesTestSuite) TestSelectUserEntityWithMd() {
+	res, err := SelectUserMetadataByNicknameAndPlatform(ctx,
+		"test-nickname", "test-platform", []string{"test-label1", "test-label2"},
+		1)
+	s.Require().Nil(err)
+	s.Require().Len(res, 1)
+
+	tsNow := chronos.Chronos{}
+	res, err = SelectUserMetadataByNicknameAndPlatform(ctx,
+		"test-nickname", "test-platform", []string{"test-label1", "test-label2"},
+		tsNow.UnixTimeStampNow())
+	s.Require().Nil(err)
+	s.Require().Len(res, 0)
+}
 
 func (s *EntitiesTestSuite) TestInsertUserEntity() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)

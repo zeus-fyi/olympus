@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/cloud_ctx_logs"
 )
 
 const (
@@ -38,7 +39,17 @@ func (k *KronosActivities) GetActivities() ActivitiesSlice {
 		k.StartCronJobWorkflow,
 		k.SelectOrchestrationsByGroupName,
 		k.RecycleMockingbird,
+		k.InsertClusterLogs,
+		k.UpsertAssignmentV2,
 	}
+}
+
+func (k *KronosActivities) InsertClusterLogs(ctx context.Context, ojl *cloud_ctx_logs.CloudCtxNsLogs) error {
+	err := cloud_ctx_logs.InsertCloudCtxNsLog(ctx, ojl)
+	if err != nil {
+		log.Err(err).Interface("oj", ojl).Msg("UpsertAssignment: InsertCloudCtxNsLog failed")
+	}
+	return nil
 }
 
 func (k *KronosActivities) Recycle(ctx context.Context) error {
@@ -56,6 +67,15 @@ func (k *KronosActivities) UpsertAssignment(ctx context.Context, oj artemis_orch
 		return err
 	}
 	return nil
+}
+
+func (k *KronosActivities) UpsertAssignmentV2(ctx context.Context, oj *artemis_orchestrations.OrchestrationJob) (*artemis_orchestrations.OrchestrationJob, error) {
+	err := oj.UpsertOrchestrationWithInstructions(ctx)
+	if err != nil {
+		log.Err(err).Interface("oj", oj).Msg("UpsertAssignment: UpsertOrchestrationWithInstructions failed")
+		return nil, err
+	}
+	return oj, nil
 }
 
 func (k *KronosActivities) GetInternalAssignments(ctx context.Context) ([]artemis_orchestrations.OrchestrationJob, error) {

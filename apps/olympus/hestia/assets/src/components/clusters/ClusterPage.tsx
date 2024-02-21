@@ -52,7 +52,8 @@ function ClustersPageContent() {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
-    return (
+
+        return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />

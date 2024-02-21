@@ -2,7 +2,7 @@ import {useParams} from "react-router-dom";
 import * as React from "react";
 import {useEffect, useState} from "react";
 import {clustersApiGateway} from "../../gateway/clusters";
-import {Box, Button, FormControl, MenuItem, Select, TableContainer, TableRow} from "@mui/material";
+import {Box, Button, FormControl, MenuItem, Select, Tab, TableContainer, TableRow, Tabs} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -23,7 +23,11 @@ export function PodsPageTable() {
     const [pods, setPods] = useState([{}]);
     const [code, setCode] = useState('');
     const [selectedContainers, setSelectedContainers] = useState<Array<string>>([]);
-
+    const [selectedMainTab, setSelectedMainTab] = useState(0);
+    const [clusterLogs, setClusterLogs] = useState('');
+    const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setSelectedMainTab(newValue);
+    }
     const handleContainerChange = (event: any, rowIndex: number) => {
         const selectedContainer = event.target.value as string;
         setSelectedContainers((prevSelectedContainers) => {
@@ -78,6 +82,24 @@ export function PodsPageTable() {
     useEffect(() => {
     }, [pods, selectedContainers]);
 
+    useEffect(() => {
+        const fetchData = async (params: any) => {
+            try {
+                const response = await clustersApiGateway.getClusterLogs(params.id);
+                if (response.status !== 200) {
+                    return;
+                }
+                setClusterLogs(response.data);
+            } catch (error) {
+                console.log("error", error);
+            }}
+        fetchData(params).then(r =>
+            console.log("")
+        );
+    }, []);
+    useEffect(() => {
+    }, []);
+
     return (
         <div>
             {pods && (
@@ -131,9 +153,22 @@ export function PodsPageTable() {
                     </Table>
                 </TableContainer>
             )}
-            <Box mt={4}>
-                <PodLogStreamClusterPage code={code} setCode={setCode} />
+            <Box sx={{ mb: 2, mt: 2, ml: 0, mr:0  }}>
+                <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
+                    <Tab label="Pod Logs"/>
+                    <Tab label="Cluster Logs" />
+                </Tabs>
             </Box>
+            {selectedMainTab === 0 && (
+                <Box mt={4}>
+                    <PodLogStreamClusterPage code={code} setCode={setCode} />
+                </Box>
+            )}
+            {selectedMainTab === 1 && (
+                <Box mt={4}>
+                <PodLogStreamClusterPage code={clusterLogs} setCode={setClusterLogs} />
+            </Box>)
+            }
         </div>
     );
 }

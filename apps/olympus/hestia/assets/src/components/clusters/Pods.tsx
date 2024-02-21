@@ -165,7 +165,7 @@ export function PodsPageTable() {
                 </Box>
             )}
             <Box mt={4}>
-                <PodLogStreamClusterPage code={clusterLogs} setCode={setCode} />
+                <PodLogStreamClusterPage code={clusterLogs} setCode={setClusterLogs} />
             </Box>
         </div>
     );

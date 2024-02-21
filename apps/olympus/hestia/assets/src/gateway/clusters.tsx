@@ -204,6 +204,24 @@ class ClustersApiGateway {
             return exc
         }
     }
+    async getClusterLogs(clusterID: any): Promise<any>  {
+        const url = `/v1/cluster/logs`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                    'CloudCtxNsID': `${clusterID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending get cluster topologies at cloud ctx ns request');
+            console.error(exc);
+            return exc
+        }
+    }
     async getClusterPodsAudit(clusterID: any): Promise<any>  {
         const url = `/v1/pods`;
         try {

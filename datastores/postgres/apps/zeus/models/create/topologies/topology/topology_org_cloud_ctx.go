@@ -46,7 +46,7 @@ func (c *CreateTopologiesOrgCloudCtxNs) InsertTopologyAccessCloudCtxNs(ctx conte
 	log.Debug().Interface("InsertTopologyAccessCloudCtxNs:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context, cloudCtxNs.Namespace, cloudCtxNs.Alias).Scan(&c.CloudCtxNsID)
 	if err == pgx.ErrNoRows {
-		log.Ctx(ctx).Info().Msg("InsertTopologyAccessCloudCtxNs: no rows to insert")
+		log.Info().Msg("InsertTopologyAccessCloudCtxNs: no rows to insert")
 		return nil
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))

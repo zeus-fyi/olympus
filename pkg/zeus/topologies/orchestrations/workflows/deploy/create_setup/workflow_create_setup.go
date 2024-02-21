@@ -180,6 +180,9 @@ func (c *ClusterSetupWorkflows) DeployClusterSetupWorkflow(ctx workflow.Context,
 		MaximumInterval:    time.Second * 60,
 	}
 	authCloudCtxNsCtxOptions.RetryPolicy = retryPolicy
+
+	// get cloud ctx ns number
+	// use for adding cluster level event logs
 	authCloudCtxNsCtx := workflow.WithActivityOptions(ctx, authCloudCtxNsCtxOptions)
 	err := workflow.ExecuteActivity(authCloudCtxNsCtx, c.CreateSetupTopologyActivities.AddAuthCtxNsOrg, params).Get(authCloudCtxNsCtx, nil)
 	if err != nil {

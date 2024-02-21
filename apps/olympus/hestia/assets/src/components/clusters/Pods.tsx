@@ -164,9 +164,11 @@ export function PodsPageTable() {
                     <PodLogStreamClusterPage code={code} setCode={setCode} />
                 </Box>
             )}
-            <Box mt={4}>
+            {selectedMainTab === 1 && (
+                <Box mt={4}>
                 <PodLogStreamClusterPage code={clusterLogs} setCode={setClusterLogs} />
-            </Box>
+            </Box>)
+            }
         </div>
     );
 }

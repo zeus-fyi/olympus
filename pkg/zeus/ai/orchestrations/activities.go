@@ -352,9 +352,11 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			return nil, jer
 		}
 		value = fmt.Sprintf("%s", b)
-	} else if wr.RawMessage != nil {
+	} else if wr.RawMessage != nil && len(req.RegexFilters) > 0 {
 		value = fmt.Sprintf("%s", wr.RawMessage)
+		wr.RegexFilteredBody = value
 	} else if wr.Body != nil && wr.RawMessage != nil {
+		// todo & redundant
 		value = fmt.Sprintf("%s", wr.RawMessage)
 	}
 

@@ -336,8 +336,8 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			return nil, jer
 		}
 
-		if retInst.WebFilters.RegexPatterns != nil {
-			extractedParams, err := ExtractParams(retInst.WebFilters.RegexPatterns, b)
+		if retInst.WebFilters.RegexPatterns != nil && wr.RawMessage != nil {
+			extractedParams, err := ExtractParams(retInst.WebFilters.RegexPatterns, wr.RawMessage)
 			if err != nil {
 				log.Err(err).Msg("ApiCallRequestTask: failed to extract params")
 				return nil, err

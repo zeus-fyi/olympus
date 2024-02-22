@@ -260,6 +260,19 @@ type RouteTask struct {
 	Headers   http.Header                          `json:"headers"`
 }
 
+func FixRegexInput(input string) string {
+	if len(input) > 0 {
+		// Check if the first character is a backtick and replace it with a double quote
+		if input[0] == '`' {
+			input = "\"" + input[1:]
+		}
+		// Check if the last character is a backtick and replace it with a double quote
+		if input[len(input)-1] == '`' {
+			input = input[:len(input)-1] + "\""
+		}
+	}
+	return input
+}
 func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r RouteTask, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	retInst := r.Retrieval
 	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
@@ -298,6 +311,11 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 	}
 	secretNameRefApi := fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)
+
+	var regexPatterns []string
+	for _, rgp := range retInst.WebFilters.RegexPatterns {
+		regexPatterns = append(regexPatterns, FixRegexInput(rgp))
+	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             r.RouteInfo.RoutePath,
@@ -308,6 +326,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		Payloads:        r.Payloads,
 		PayloadTypeREST: restMethod,
 		RequestHeaders:  r.Headers,
+		RegexFilters:    regexPatterns,
 		SecretNameRef:   secretNameRefApi,
 	}
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
@@ -326,28 +345,17 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		RawMessage: rr.RawResponse,
 	}
 	value := ""
-	if wr.RawMessage != nil && wr.Body == nil {
-		value = fmt.Sprintf("%s", wr.RawMessage)
-	}
-	if wr.Body != nil {
+	if wr.Body != nil && wr.RawMessage == nil {
 		b, jer := json.Marshal(wr.Body)
 		if jer != nil {
 			log.Err(jer).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
 			return nil, jer
 		}
-
-		if retInst.WebFilters.RegexPatterns != nil && wr.RawMessage != nil {
-			extractedParams, err := ExtractParams(retInst.WebFilters.RegexPatterns, wr.RawMessage)
-			if err != nil {
-				log.Err(err).Msg("ApiCallRequestTask: failed to extract params")
-				return nil, err
-			}
-			log.Info().Interface("extractedParams", extractedParams).Msg("ApiCallRequestTask: extracted params")
-			wr.RegexFilteredBody = strings.Join(extractedParams, ",")
-			value = wr.RegexFilteredBody
-		} else {
-			value = fmt.Sprintf("%s", b)
-		}
+		value = fmt.Sprintf("%s", b)
+	} else if wr.RawMessage != nil {
+		value = fmt.Sprintf("%s", wr.RawMessage)
+	} else if wr.Body != nil && wr.RawMessage != nil {
+		value = fmt.Sprintf("%s", wr.RawMessage)
 	}
 
 	sres := hera_search.SearchResult{

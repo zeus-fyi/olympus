@@ -124,7 +124,7 @@ func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg() {
 		PackageName: "",
 		DirIn:       "/Users/alex/PycharmProjects/scratchPad/scrape",
 		DirOut:      "",
-		FnIn:        "google_search.txt",
+		FnIn:        "google_search2.txt",
 		FnOut:       "",
 		Env:         "",
 		FilterFiles: nil,
@@ -140,11 +140,11 @@ func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg() {
 	for ri, rp := range ret.WebFilters.RegexPatterns {
 		fmt.Println("RegexPattern:", rp, "ind", ri)
 		ret.WebFilters.RegexPatterns[ri] = FixRegexInput(rp)
-		params, perr := ExtractParams([]string{ret.WebFilters.RegexPatterns[ri]}, b)
-		t.Require().Nil(perr)
-		t.Require().NotEmpty(params)
-		fmt.Println("Extracted parameters:", strings.Join(params, ", "))
 	}
+	params, perr := ExtractParams(ret.WebFilters.RegexPatterns, b)
+	t.Require().Nil(perr)
+	t.Require().NotEmpty(params)
+	fmt.Println("Extracted parameters:", strings.Join(params, ", "))
 }
 
 func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg2() {
@@ -163,20 +163,6 @@ func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg2() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(params)
 	fmt.Println("Extracted parameters:", strings.Join(params, ", "))
-}
-
-func FixRegexInput(input string) string {
-	if len(input) > 0 {
-		// Check if the first character is a backtick and replace it with a double quote
-		if input[0] == '`' {
-			input = "\"" + input[1:]
-		}
-		// Check if the last character is a backtick and replace it with a double quote
-		if input[len(input)-1] == '`' {
-			input = input[:len(input)-1] + "\""
-		}
-	}
-	return input
 }
 
 const ex = `

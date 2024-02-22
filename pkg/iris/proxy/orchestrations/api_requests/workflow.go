@@ -55,6 +55,7 @@ type ApiProxyRequest struct {
 	ResponseHeaders      http.Header
 	FinalResponseHeaders http.Header
 	RawResponse          []byte
+	RegexFilters         []string
 	StatusCode           int
 	IsInternal           bool
 	MaxTries             int

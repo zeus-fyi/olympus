@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -305,6 +306,15 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		if pr.IsInternal {
 			pr.RawResponse = resp.Body()
 		}
+		if pr.RegexFilters != nil {
+			tmp, rerr := ExtractParams(pr.RegexFilters, resp.Body())
+			if rerr != nil {
+				log.Err(rerr).Msg("sendRequest: failed to extract params")
+				return resp, rerr
+			}
+			pr.RawResponse = []byte(strings.Join(tmp, ", "))
+		}
+
 	}
 	return resp, nil
 }
@@ -317,4 +327,22 @@ func filterHeaders(headers http.Header) http.Header {
 		}
 	}
 	return filteredHeaders
+}
+func ExtractParams(regexStrs []string, strContent []byte) ([]string, error) {
+	// Split the regexStr into individual patterns
+	var combinedParams []string
+	for _, pattern := range regexStrs {
+		// Compile and execute each pattern
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			return nil, err // Return an error if the regular expression compilation fails
+		}
+		// Find all matches and extract the parameter names
+		matches := re.FindAll(strContent, -1)
+		for _, match := range matches {
+			combinedParams = append(combinedParams, string(match))
+		}
+	}
+
+	return combinedParams, nil
 }

@@ -149,10 +149,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				}
 				logger.Info("analysis: len(evalFns)", len(analysisInst.AnalysisTaskDB.AnalysisEvalFns))
 				for ind, evalFn := range analysisInst.AnalysisTaskDB.AnalysisEvalFns {
-					logger.Info("analysis: eval", evalFn.EvalID)
 					if evalFn.EvalID == 0 {
 						continue
 					}
+					logger.Info("analysis: eval", evalFn.EvalID)
 					var evalAnalysisOnlyCycle int
 					if analysisInst.AggTaskID != nil {
 						evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[*analysisInst.AggTaskID][analysisInst.AnalysisTaskID][evalFn.EvalID]
@@ -176,6 +176,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					}
 				}
 			}
+			logger.Info("analysis: evalFns complete")
 		}
 	}
 	return nil

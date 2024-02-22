@@ -78,7 +78,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				}
 				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] = false
 			}
-
 			pr := &PromptReduction{
 				MarginBuffer:          analysisInst.AnalysisMarginBuffer,
 				Model:                 analysisInst.AnalysisModel,
@@ -89,11 +88,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			}
 			var chunkIterator int
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp.Wsr.InputID, pr).Get(chunkedTaskCtx, &chunkIterator)
+			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp, pr).Get(chunkedTaskCtx, &cp)
 			if err != nil {
-				logger.Error("failed to run analysis json", "Error", err)
+				logger.Error("failed to run analysis token overflow", "Error", err)
 				return err
 			}
+			chunkIterator = cp.Tc.ChunkIterator
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				cp.Wsr.ChunkOffset = chunkOffset
 				switch analysisInst.AnalysisResponseFormat {

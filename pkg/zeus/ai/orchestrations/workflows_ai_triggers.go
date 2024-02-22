@@ -13,8 +13,7 @@ import (
 )
 
 type CreateTriggerActionsWorkflowInputs struct {
-	Emr                                *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
-	RunAiWorkflowAutoEvalProcessInputs *RunAiWorkflowAutoEvalProcessInputs        `json:"runAiWorkflowAutoEvalProcessInputs,omitempty"`
+	Emr *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
 }
 
 const (

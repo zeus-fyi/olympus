@@ -192,9 +192,10 @@ type RedditMetadata struct {
 }
 
 type WebResponse struct {
-	WebFilters *artemis_orchestrations.WebFilters `json:"webFilters,omitempty"`
-	Body       echo.Map                           `json:"body"`
-	RawMessage []byte                             `json:"rawMessage"`
+	WebFilters        *artemis_orchestrations.WebFilters `json:"webFilters,omitempty"`
+	Body              echo.Map                           `json:"body"`
+	RawMessage        []byte                             `json:"rawMessage"`
+	RegexFilteredBody string                             `json:"regexFilteredBody"`
 }
 
 type ByTimestamp []SearchResult

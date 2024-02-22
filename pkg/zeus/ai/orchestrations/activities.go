@@ -326,6 +326,9 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		RawMessage: rr.RawResponse,
 	}
 	value := ""
+	if wr.RawMessage != nil && wr.Body == nil {
+		value = fmt.Sprintf("%s", wr.RawMessage)
+	}
 	if wr.Body != nil {
 		b, jer := json.Marshal(wr.Body)
 		if jer != nil {
@@ -334,21 +337,19 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		}
 
 		if retInst.WebFilters.RegexPatterns != nil {
-			extractedParams, err := ExtractParams(*retInst.WebFilters.RegexPatterns, string(b))
+			extractedParams, err := ExtractParams(retInst.WebFilters.RegexPatterns, b)
 			if err != nil {
 				log.Err(err).Msg("ApiCallRequestTask: failed to extract params")
 				return nil, err
 			}
 			log.Info().Interface("extractedParams", extractedParams).Msg("ApiCallRequestTask: extracted params")
-			value = fmt.Sprintf("%s", strings.Join(extractedParams, "\n"))
+			wr.RegexFilteredBody = strings.Join(extractedParams, ",")
+			value = wr.RegexFilteredBody
 		} else {
 			value = fmt.Sprintf("%s", b)
 		}
+	}
 
-	}
-	if wr.RawMessage != nil && wr.Body == nil {
-		value = fmt.Sprintf("%s", wr.RawMessage)
-	}
 	sres := hera_search.SearchResult{
 		Source:      rr.Url,
 		Value:       value,

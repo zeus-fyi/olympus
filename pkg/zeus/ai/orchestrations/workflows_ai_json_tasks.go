@@ -17,12 +17,6 @@ const (
 	AggTask      = "aggregation"
 )
 
-type TaskToExecute struct {
-	Ec  artemis_orchestrations.EvalContext               `json:"ec"`
-	Wft artemis_orchestrations.WorkflowTemplateData      `json:"wft"`
-	Wr  *artemis_orchestrations.AIWorkflowAnalysisResult `json:"wr"`
-}
-
 type TaskContext struct {
 	TaskName                           string                               `json:"taskName"`
 	TaskType                           string                               `json:"taskType"`
@@ -39,6 +33,7 @@ type TaskContext struct {
 	EvalResultID                       int                                  `json:"evalResultID,omitempty"`
 	ResponseID                         int                                  `json:"responseID,omitempty"`
 	WebPayload                         any                                  `json:"webPayload,omitempty"`
+	ChunkIterator                      int                                  `json:"chunkIterator"`
 	RetSearchResults                   []hera_search.SearchResult           `json:"searchResults,omitempty"`
 	Retrieval                          artemis_orchestrations.RetrievalItem `json:"retrieval,omitempty"`
 	ApiResponseResults                 []artemis_orchestrations.JsonSchemaDefinition

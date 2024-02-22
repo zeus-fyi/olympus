@@ -44,7 +44,7 @@ type WebFilters struct {
 	EndpointRoutePath    *string  `json:"endpointRoutePath,omitempty"`
 	EndpointREST         *string  `json:"endpointREST,omitempty"`
 	PayloadPreProcessing *string  `json:"payloadPreProcessing,omitempty"`
-	RegexPatterns        *string  `json:"regexPatterns,omitempty"`
+	RegexPatterns        []string `json:"regexPatterns,omitempty"`
 }
 
 type DiscordFilters struct {
@@ -54,6 +54,9 @@ type DiscordFilters struct {
 }
 
 func SetInstructions(r *RetrievalItem) error {
+	if r == nil {
+		return nil
+	}
 	b, err := json.Marshal(r.RetrievalItemInstruction)
 	if err != nil {
 		log.Err(err).Msg("failed to marshal retrieval instructions")

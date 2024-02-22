@@ -31,6 +31,7 @@ type PromptReduction struct {
 	MarginBuffer          float64 `json:"marginBuffer,omitempty"`
 	Model                 string  `json:"model"`
 	TokenOverflowStrategy string  `json:"tokenOverflowStrategy"`
+	ChunkIterator         int     `json:"chunkIterator,omitempty"`
 
 	AIWorkflowAnalysisResults    []artemis_orchestrations.AIWorkflowAnalysisResult `json:"dataInAnalysisResults,omitempty"`
 	DataInAnalysisAggregation    []InputDataAnalysisToAgg                          `json:"dataInAnalysisAggregation,omitempty"`
@@ -56,21 +57,21 @@ const (
 	OverflowStrategyDeduce   = "deduce"
 )
 
-func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, inputID int, promptExt *PromptReduction) (int, error) {
+func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, cp *MbChildSubProcessParams, promptExt *PromptReduction) (*MbChildSubProcessParams, error) {
 	var wioPtr *WorkflowStageIO
 	var pr *PromptReduction
-	if inputID <= 0 && promptExt == nil {
-		return 0, nil
-	} else if inputID <= 0 {
+	if cp.Wsr.InputID <= 0 && promptExt == nil {
+		return nil, nil
+	} else if cp.Wsr.InputID <= 0 {
 		pr = promptExt
-	} else {
-		wio, werr := gws(ctx, inputID)
+	} else if cp.Wsr.InputID > 0 {
+		wio, werr := gws(ctx, cp.Wsr.InputID)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
-			return 0, werr
+			return nil, werr
 		}
 		if wio.PromptReduction == nil {
-			return 0, nil
+			return nil, nil
 		}
 		pr = wio.PromptReduction
 		if promptExt != nil {
@@ -78,6 +79,8 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, i
 		}
 		wio.PromptReduction = pr
 		wioPtr = &wio
+	} else {
+		return nil, nil
 	}
 	if pr.DataInAnalysisAggregation != nil {
 		pr.PromptReductionSearchResults = &PromptReductionSearchResults{
@@ -154,12 +157,12 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, i
 	err := TokenOverflowSearchResults(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowSearchResults")
-		return 0, err
+		return nil, err
 	}
 	err = TokenOverflowString(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowString")
-		return 0, err
+		return nil, err
 	}
 
 	tmp := pr.PromptReductionSearchResults
@@ -169,16 +172,30 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, i
 	if pr.PromptReductionText != nil {
 		log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Interface("pr.PromptReductionText.OutPromptChunks", len(pr.PromptReductionText.OutPromptChunks)).Msg("TokenOverflowReductionDone")
 	}
-	if wioPtr != nil {
+	if cp.Wsr.InputID > 0 && wioPtr != nil {
 		wioPtr.PromptReduction = pr
 		_, werr := sws(ctx, wioPtr)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
-			return 0, werr
+			return nil, werr
 		}
+	} else {
+		wio := WorkflowStageIO{
+			WorkflowStageReference: cp.Wsr,
+			WorkflowStageInfo: WorkflowStageInfo{
+				PromptReduction: pr,
+			},
+		}
+		wo, werr := sws(ctx, &wio)
+		if werr != nil {
+			log.Err(werr).Msg("AiRetrievalTask: failed")
+			return nil, werr
+		}
+		cp.Wsr.InputID = wo.InputID
 	}
 	chunkIterator := getChunkIteratorLen(pr)
-	return chunkIterator, nil
+	cp.Tc.ChunkIterator = chunkIterator
+	return cp, nil
 }
 
 func TokenOverflowSearchResults(ctx context.Context, pr *PromptReduction) error {

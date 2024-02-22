@@ -79,25 +79,28 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		for _, route := range routes {
 			rt := RouteTask{
 				Ou:        cp.Ou,
-				Retrieval: cp.Tc.Retrieval,
 				RouteInfo: route,
 			}
 			if cp.Tc.WebPayload != nil {
-				em, ok := cp.Tc.WebPayload.(echo.Map)
-				if ok {
-					rt.RouteInfo.RoutePath, err = ReplaceParams(route.RoutePath, em)
-					if err != nil {
-						logger.Error("failed to replace route path params", "Error", err)
-						return nil, err
+				em, ok := cp.Tc.WebPayload.(map[string]interface{})
+				if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
+					qpRoute, qerr := ReplaceParams(*cp.Tc.Retrieval.WebFilters.EndpointRoutePath, em)
+					if qerr != nil {
+						logger.Error("failed to replace route path params", "Error", qerr)
+						return nil, qerr
 					}
+					cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &qpRoute
 					if len(em) == 0 {
-						rt.Payload = nil
+						em = nil
 					}
 					rt.Payload = em
 				}
-				ems, ok := cp.Tc.WebPayload.([]echo.Map)
+				rt.Retrieval = cp.Tc.Retrieval
+				ems, ok := cp.Tc.WebPayload.([]map[string]interface{})
 				if ok {
-					rt.Payloads = ems
+					for _, emv := range ems {
+						rt.Payloads = append(rt.Payloads, emv)
+					}
 				}
 			}
 			apiCallCtx := workflow.WithActivityOptions(ctx, ao)
@@ -231,28 +234,19 @@ func GetRetryPolicy(ret artemis_orchestrations.RetrievalItem, maxRunTime time.Du
 
 // ExtractParams takes a string of comma-separated regex patterns and a target string.
 // It applies each regex pattern to the target string and accumulates all matched groups from each pattern into a single slice.
-func ExtractParams(regexStr, strContent string) ([]string, error) {
+func ExtractParams(regexStrs []string, strContent []byte) ([]string, error) {
 	// Split the regexStr into individual patterns
-	patterns := strings.Split(regexStr, ",")
-
 	var combinedParams []string
-	for _, pattern := range patterns {
-		// Trim surrounding whitespace and quotes from each pattern
-		pattern = strings.TrimSpace(pattern)
-		pattern = strings.Trim(pattern, "`")
-
+	for _, pattern := range regexStrs {
 		// Compile and execute each pattern
 		re, err := regexp.Compile(pattern)
 		if err != nil {
 			return nil, err // Return an error if the regular expression compilation fails
 		}
-
 		// Find all matches and extract the parameter names
-		matches := re.FindAllStringSubmatch(strContent, -1)
+		matches := re.FindAll(strContent, -1)
 		for _, match := range matches {
-			for i := 1; i < len(match); i++ { // Start from 1 to skip the full match and only include capturing groups
-				combinedParams = append(combinedParams, match[i])
-			}
+			combinedParams = append(combinedParams, string(match))
 		}
 	}
 

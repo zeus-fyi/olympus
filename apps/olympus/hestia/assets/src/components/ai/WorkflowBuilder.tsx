@@ -162,6 +162,46 @@ function WorkflowEngineBuilder(props: any) {
     const editAggregateTask = useSelector((state: any) => state.ai.editAggregateTask);
     const selectedAnalysisForRetrieval = useSelector((state: any) => state.ai.selectedAnalysisForRetrieval);
     const selectedRetrievalForAnalysis = useSelector((state: any) => state.ai.selectedRetrievalForAnalysis);
+    const [regexStr, setRegexStr] = useState('');
+
+    const handleAddRegex = () => {
+        if (regexStr.length <= 0) {
+            return;
+        }
+        const currentPatterns = retrieval.retrievalItemInstruction.webFilters?.regexPatterns;
+        let regexPatterns = Array.isArray(currentPatterns) ? [...currentPatterns] : [];
+        regexPatterns.push(regexStr); // Add an empty string as a placeholder for new input
+        const updatedRetrieval = {
+            ...retrieval,
+            retrievalItemInstruction: {
+                ...retrieval.retrievalItemInstruction,
+                webFilters: {
+                    ...retrieval.retrievalItemInstruction.webFilters,
+                    regexPatterns: regexPatterns, // Correctly update the selection
+                }
+            }
+        }
+        setRegexStr('')
+        dispatch(setRetrieval(updatedRetrieval));
+    };
+
+    const handleRemoveRegex = (index: number) => {
+        let regexPatterns = retrieval.retrievalItemInstruction.webFilters?.regexPatterns || [];
+        regexPatterns = Array.isArray(regexPatterns) ? [...regexPatterns] : [];
+        regexPatterns.splice(index, 1); // Remove the selected index
+        const updatedRetrieval = {
+            ...retrieval,
+            retrievalItemInstruction: {
+                ...retrieval.retrievalItemInstruction,
+                webFilters: {
+                    ...retrieval.retrievalItemInstruction.webFilters,
+                    regexPatterns: regexPatterns, // Correctly update the selection
+                }
+            }
+        }
+        dispatch(setRetrieval(updatedRetrieval));
+    };
+
     const handleRetrievalChange = (event: any) => {
         // Set the selected retrieval ID for analysis
         const selectedRet = retrievalStages.find(ret => ret.retrievalStrID === event.target.value);
@@ -2319,7 +2359,7 @@ function WorkflowEngineBuilder(props: any) {
                                                 :
                                                 <div></div>
                                             }
-                                            <Box  sx={{ mb: 2, mt: -2 }}>
+                                            <Box  sx={{ mb: 2, mt: 0 }}>
                                                 <TextareaAutosize
                                                     minRows={18}
                                                     value={editAnalysisTask.prompt}
@@ -2772,33 +2812,44 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </FormControl>
                                                             </Box>
                                                         </Stack>
+                                                        <Typography variant="h6" color="text.secondary">
+                                                            Use Python-style regex notation: r'{`https?://[^\s<>"]+|www\.[^\s<>"]+`}'
+                                                        </Typography>
+                                                        <Stack direction="row">
                                                         <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
-                                                            <Typography variant="h6" color="text.secondary">
-                                                                Use commas to to match multiple patterns: r`expr1`, r`expr2`
-                                                                Otherwise just use r`regex`. Each regex to be enclosed in backticks with r prefix.
-                                                            </Typography>
                                                             <TextField
                                                                 fullWidth
                                                                 id="regex-patterns-input"
                                                                 label="Regex Patterns"
                                                                 variant="outlined"
-                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
-                                                                && retrieval.retrievalItemInstruction.webFilters.regexPatterns ? retrieval.retrievalItemInstruction.webFilters.regexPatterns : ''}
-                                                                onChange={(e) => {
-                                                                    const updatedRetrieval = {
-                                                                        ...retrieval,
-                                                                        retrievalItemInstruction: {
-                                                                            ...retrieval.retrievalItemInstruction,
-                                                                            webFilters: {
-                                                                                ...retrieval.retrievalItemInstruction.webFilters,
-                                                                                regexPatterns: e.target.value, // Correctly update the routingGroup field
-                                                                            }
-                                                                        }
-                                                                    };
-                                                                    dispatch(setRetrieval(updatedRetrieval));
-                                                                }}
+                                                                value={regexStr}
+                                                                onChange={(event) => setRegexStr(event.target.value)} // Inline function for handling change
                                                             />
                                                         </Box>
+                                                        <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 3}}>
+                                                            <Button onClick={handleAddRegex} variant="contained">Add Regex</Button>
+                                                        </Box>
+                                                        </Stack>
+
+                                                        {retrieval.retrievalItemInstruction.webFilters && Array.isArray(retrieval.retrievalItemInstruction.webFilters.regexPatterns) && retrieval.retrievalItemInstruction.webFilters.regexPatterns.map((pattern, index) => (
+                                                            <Stack direction="row">
+                                                            <Box key={index} flexGrow={1} sx={{ mb: 1, ml: 0, mr: 0, mt: 2 }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id={`regex-pattern-${index}`}
+                                                                        label={`Regex Pattern ${index + 1}`}
+                                                                        variant="outlined"
+                                                                        value={pattern}
+                                                                        InputProps={{
+                                                                            readOnly: true,
+                                                                        }}
+                                                                    />
+                                                                </Box>
+                                                                <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 3}}>
+                                                                    <Button variant="contained" color="error" onClick={() => handleRemoveRegex(index)}>Remove</Button>
+                                                                </Box>
+                                                            </Stack>
+                                                            ))}
                                                     </div>
                                                 }
                                                     { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'discord' &&

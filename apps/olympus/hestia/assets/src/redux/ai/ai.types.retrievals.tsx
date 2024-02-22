@@ -38,7 +38,7 @@ export interface WebFilters {
     endpointRoutePath?: string;
     endpointREST?: string;
     payloadPreProcessing?: string;
-    regexPatterns?: string;
+    regexPatterns?: string[];
 }
 
 export interface Retrieval {

@@ -73,11 +73,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
 			var chunkIterator int
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp.Wsr.InputID, nil).Get(chunkedTaskCtx, &chunkIterator)
+			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp, nil).Get(chunkedTaskCtx, &cp)
 			if err != nil {
 				logger.Error("failed to run agg token overflow reduction task", "Error", err)
 				return err
 			}
+			chunkIterator = cp.Tc.ChunkIterator
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				logger.Info("RunAiChildAggAnalysisProcessWorkflow: chunkOffset", chunkOffset)
 				cp.Wsr.ChunkOffset = chunkOffset

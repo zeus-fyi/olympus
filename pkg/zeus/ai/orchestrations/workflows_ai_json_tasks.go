@@ -38,6 +38,7 @@ type TaskContext struct {
 	EvalID                             int                                  `json:"evalID,omitempty"`
 	EvalResultID                       int                                  `json:"evalResultID,omitempty"`
 	ResponseID                         int                                  `json:"responseID,omitempty"`
+	WebPayload                         any                                  `json:"webPayload,omitempty"`
 	RetSearchResults                   []hera_search.SearchResult           `json:"searchResults,omitempty"`
 	Retrieval                          artemis_orchestrations.RetrievalItem `json:"retrieval,omitempty"`
 	ApiResponseResults                 []artemis_orchestrations.JsonSchemaDefinition

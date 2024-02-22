@@ -2974,7 +2974,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="api">API Approval</MenuItem>
-                                                                    {/*<MenuItem value="social-media-engagement">Social Media Engagement Approval</MenuItem>*/}
+                                                                    <MenuItem value="api-retrieval">API Retrieval</MenuItem>
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
                                                                 </Select>
@@ -3060,7 +3060,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                     </Stack>
                                                     }
-                                                    { !loading && action.triggerAction === 'api' &&
+                                                    { !loading && (action.triggerAction === 'api'|| action.triggerAction === 'api-retrieval') &&
                                                         <div>
                                                             <Typography gutterBottom variant="h5" component="div">
                                                                 API Trigger Settings

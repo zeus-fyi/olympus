@@ -80,6 +80,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				Retrieval: cp.Tc.Retrieval,
 				RouteInfo: route,
 			}
+			if cp.Tc.WebPayload != nil {
+				em, ok := cp.Tc.WebPayload.(echo.Map)
+				if ok {
+					rt.Payload = em
+				}
+				ems, ok := cp.Tc.WebPayload.([]echo.Map)
+				if ok {
+					rt.Payloads = ems
+				}
+			}
 			apiCallCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp)
 			if err != nil {

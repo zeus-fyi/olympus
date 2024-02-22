@@ -228,20 +228,37 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 	if pr.ExtRoutePath != "" {
 		ext = pr.ExtRoutePath
 	}
-	if pr.Payload != nil {
-		switch method {
-		case "GET":
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(ext)
-		case "OPTIONS":
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Options(ext)
-		case "PUT":
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Put(ext)
-		case "DELETE":
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Delete(ext)
-		case "POST":
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(ext)
-		default:
-			resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(ext)
+	if pr.Payload != nil || pr.Payloads != nil {
+		if pr.Payloads != nil && pr.Payload == nil {
+			switch method {
+			case "GET":
+				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Get(ext)
+			case "OPTIONS":
+				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Options(ext)
+			case "PUT":
+				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Put(ext)
+			case "DELETE":
+				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Delete(ext)
+			case "POST":
+				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Post(ext)
+			default:
+				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Post(ext)
+			}
+		} else {
+			switch method {
+			case "GET":
+				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(ext)
+			case "OPTIONS":
+				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Options(ext)
+			case "PUT":
+				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Put(ext)
+			case "DELETE":
+				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Delete(ext)
+			case "POST":
+				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(ext)
+			default:
+				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(ext)
+			}
 		}
 	} else {
 		switch method {

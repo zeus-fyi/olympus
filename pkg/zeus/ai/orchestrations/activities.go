@@ -294,6 +294,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		UserID:          r.Ou.UserID,
 		ExtRoutePath:    routeExt,
 		Payload:         r.Payload,
+		Payloads:        r.Payloads,
 		PayloadTypeREST: restMethod,
 		RequestHeaders:  r.Headers,
 		SecretNameRef:   secretNameRefApi,

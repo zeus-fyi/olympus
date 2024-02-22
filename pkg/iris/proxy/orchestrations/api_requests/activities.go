@@ -228,6 +228,10 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 	if pr.ExtRoutePath != "" {
 		ext = pr.ExtRoutePath
 	}
+	if len(pr.Payload) == 0 {
+		pr.Payload = nil
+	}
+
 	if pr.Payload != nil || pr.Payloads != nil {
 		if pr.Payloads != nil && pr.Payload == nil {
 			switch method {

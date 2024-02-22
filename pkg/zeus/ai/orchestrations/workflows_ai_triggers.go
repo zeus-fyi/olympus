@@ -104,7 +104,6 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				if len(rets) <= 0 {
 					continue
 				}
-
 				/*
 					1. get query params if/any from json payload in ext api call
 					2. call ret wf to get data
@@ -137,7 +136,6 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 						return err
 					}
 				}
-
 				updateTaskCtx = workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, cp).Get(updateTaskCtx, nil)
 				if err != nil {

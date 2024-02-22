@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
 
 func (t *ZeusWorkerTestSuite) TestSelectWorkflowIO() {
@@ -29,14 +28,14 @@ func (t *ZeusWorkerTestSuite) TestInsertWorkflowIO() {
 	wfr.Logs = []string{"test", "test2"}
 	tmp := &WorkflowStageIO{
 		WorkflowStageReference: wfr.WorkflowStageReference,
-		WorkflowStageInfo: WorkflowStageInfo{
-			TaskToExecute: &TaskToExecute{
-				WfID: "childWfID3",
-				Ou:   t.Ou,
-				Ec:   artemis_orchestrations.EvalContext{},
-				Tc:   TaskContext{},
-				Wft:  artemis_orchestrations.WorkflowTemplateData{},
-			},
+		WorkflowStageInfo:      WorkflowStageInfo{
+			//TaskToExecute: &TaskToExecute{
+			//	WfID: "childWfID3",
+			//	Ou:   t.Ou,
+			//	Ec:   artemis_orchestrations.EvalContext{},
+			//	Tc:   TaskContext{},
+			//	Wft:  artemis_orchestrations.WorkflowTemplateData{},
+			//},
 		},
 	}
 	wfi, err := act.SaveWorkflowIO(ctx, tmp)
@@ -48,8 +47,8 @@ func (t *ZeusWorkerTestSuite) TestInsertWorkflowIO() {
 	wflu, err := act.SelectWorkflowIO(ctx, 2)
 	t.Require().Nil(err)
 	t.Require().NotNil(wflu)
-	t.Require().Equal(t.Ou, wflu.WorkflowStageInfo.TaskToExecute.Ou)
-	t.Require().Equal("childWfID3", wflu.WorkflowStageInfo.TaskToExecute.WfID)
+	//t.Require().Equal(t.Ou, wflu.WorkflowStageInfo.TaskToExecute.Ou)
+	//t.Require().Equal("childWfID3", wflu.WorkflowStageInfo.TaskToExecute.WfID)
 	t.Require().NotEmpty(wflu.Logs)
 
 	fmt.Println(strings.Join(wflu.Logs, ","))

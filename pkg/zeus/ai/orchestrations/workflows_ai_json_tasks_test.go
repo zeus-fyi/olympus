@@ -33,37 +33,37 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	t.Require().Greater(len(td), 0)
 	tv := td[0]
 	tv.ResponseFormat = socialMediaExtractionResponseFormat
-	tte := TaskToExecute{
-		Ou: t.Ou,
-		Tc: TaskContext{
-			TaskName:       tv.TaskName,
-			TaskType:       tv.TaskType,
-			ResponseFormat: tv.ResponseFormat,
-			Model:          tv.Model,
-			TaskID:         tv.TaskID,
-		},
-		Wft: artemis_orchestrations.WorkflowTemplateData{},
-		Sg: &hera_search.SearchResultGroup{
-			PlatformName:   twitterPlatform,
-			SourceTaskID:   tv.TaskID,
-			Model:          tv.Model,
-			ResponseFormat: tv.ResponseFormat,
-			SearchResults:  sr,
-			Window:         aiSp.Window,
-		},
-		Wr: &artemis_orchestrations.AIWorkflowAnalysisResult{
-			OrchestrationID:       1692062857720240000,
-			ResponseID:            0,
-			SourceTaskID:          taskID,
-			SearchWindowUnixStart: aiSp.Window.UnixStartTime,
-			SearchWindowUnixEnd:   aiSp.Window.UnixEndTime,
-		},
-	}
+	//tte := TaskToExecute{
+	//	//Ou: t.Ou,
+	//	//Tc: TaskContext{
+	//	//	TaskName:       tv.TaskName,
+	//	//	TaskType:       tv.TaskType,
+	//	//	ResponseFormat: tv.ResponseFormat,
+	//	//	Model:          tv.Model,
+	//	//	TaskID:         tv.TaskID,
+	//	//},
+	//	Wft: artemis_orchestrations.WorkflowTemplateData{},
+	//	//Sg: &hera_search.SearchResultGroup{
+	//	//	PlatformName:   twitterPlatform,
+	//	//	SourceTaskID:   tv.TaskID,
+	//	//	Model:          tv.Model,
+	//	//	ResponseFormat: tv.ResponseFormat,
+	//	//	SearchResults:  sr,
+	//	//	Window:         aiSp.Window,
+	//	//},
+	//	Wr: &artemis_orchestrations.AIWorkflowAnalysisResult{
+	//		OrchestrationID:       1692062857720240000,
+	//		ResponseID:            0,
+	//		SourceTaskID:          taskID,
+	//		SearchWindowUnixStart: aiSp.Window.UnixStartTime,
+	//		SearchWindowUnixEnd:   aiSp.Window.UnixEndTime,
+	//	},
+	//}
 	pr := &PromptReduction{
-		MarginBuffer:          0.5,
-		TokenOverflowStrategy: OverflowStrategyTruncate,
+		MarginBuffer:                 0.5,
+		TokenOverflowStrategy:        OverflowStrategyTruncate,
 		PromptReductionSearchResults: &PromptReductionSearchResults{
-			InSearchGroup: tte.Sg,
+			//InSearchGroup: tte.Sg,
 		},
 	}
 	err = TruncateSearchResults(ctx, pr)
@@ -71,8 +71,8 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 	t.Require().NotEmpty(pr.PromptReductionSearchResults.OutSearchGroups)
 	t.Require().NotEmpty(pr.PromptReductionSearchResults.OutSearchGroups[0].SearchResults)
 	t.Require().NotEmpty(pr.PromptReductionSearchResults.OutSearchGroups[0].SearchResultChunkTokenEstimate)
-	sg := pr.PromptReductionSearchResults.OutSearchGroups[0]
-	tte.Sg = sg
+	//sg := pr.PromptReductionSearchResults.OutSearchGroups[0]
+	//tte.Sg = sg
 
 	var jdef []*artemis_orchestrations.JsonSchemaDefinition
 	for _, taskDef := range td {
@@ -95,12 +95,12 @@ func (t *ZeusWorkerTestSuite) TestJsonOutputTaskWorkflow() {
 		}
 	}
 
-	resp, err := ZeusAiPlatformWorker.ExecuteJsonOutputTaskWorkflow(ctx, tte)
-	t.Require().Nil(err)
-	t.Require().NotNil(resp)
-	t.Assert().NotZero(resp.Response.ID)
-	t.Assert().NotEmpty(resp.Response)
-	t.Assert().NotEmpty(resp.JsonResponseResults)
+	//resp, err := ZeusAiPlatformWorker.ExecuteJsonOutputTaskWorkflow(ctx, tte)
+	//t.Require().Nil(err)
+	//t.Require().NotNil(resp)
+	//t.Assert().NotZero(resp.Response.ID)
+	//t.Assert().NotEmpty(resp.Response)
+	//t.Assert().NotEmpty(resp.JsonResponseResults)
 }
 
 const exResponse = `

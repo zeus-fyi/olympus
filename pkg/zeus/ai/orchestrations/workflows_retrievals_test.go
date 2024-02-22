@@ -1,6 +1,8 @@
 package ai_platform_service_orchestrations
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -98,4 +100,19 @@ func (t *ZeusWorkerTestSuite) TestRetrievalsWorkflow() {
 
 	_, err = ZeusAiPlatformWorker.ExecuteRetrievalsWorkflow(ctx, cp)
 	t.Require().Nil(err)
+}
+
+func (t *ZeusWorkerTestSuite) TestRetrievalsExtract() {
+	m := echo.Map{
+		"q":        "best book",
+		"category": "fiction books",
+	}
+
+	route := "customsearch/h/v1?q={q}&category={category}"
+	ps, err := ReplaceParams(route, m)
+	t.Require().Nil(err)
+
+	expected := "customsearch/h/v1?q=best+book&category=fiction+books" // Expect spaces to be replaced with '+'
+	t.Require().Equal(expected, ps)
+	fmt.Println(ps)
 }

@@ -3,6 +3,8 @@ package ai_platform_service_orchestrations
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -85,6 +87,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				if ok {
 					rt.Payload = em
 				}
+
 				ems, ok := cp.Tc.WebPayload.([]echo.Map)
 				if ok {
 					rt.Payloads = ems
@@ -131,6 +134,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 						}
 						payload = newPayload
 					}
+				}
+				route.RoutePath, err = ReplaceParams(route.RoutePath, payload)
+				if err != nil {
+					logger.Error("failed to replace route path params", "Error", err)
+					return nil, err
 				}
 				rt := RouteTask{
 					Ou:        cp.Ou,
@@ -211,4 +219,50 @@ func GetRetryPolicy(ret artemis_orchestrations.RetrievalItem, maxRunTime time.Du
 		retry.MaximumAttempts = int32(*ret.WebFilters.MaxRetries)
 	}
 	return retry
+}
+
+func ExtractParams(regexStr, strContent string) ([]string, error) {
+	// Compile a regular expression to find {param} patterns
+	re, err := regexp.Compile(regexStr)
+	if err != nil {
+		return nil, err // Return an error if the regular expression compilation fails
+	}
+
+	// Find all matches and extract the parameter names
+	matches := re.FindAllStringSubmatch(strContent, -1)
+	var params []string
+	for _, match := range matches {
+		if len(match) > 1 { // Check if there's a capturing group match
+			params = append(params, match[1]) // Add the parameter name to the slice
+		}
+	}
+
+	return params, nil
+}
+
+// ReplaceParams replaces placeholders in the route with URL-encoded values from the provided map.
+func ReplaceParams(route string, params echo.Map) (string, error) {
+	// Compile a regular expression to find {param} patterns
+	re, err := regexp.Compile(`\{([^\{\}]+)\}`)
+	if err != nil {
+		log.Err(err).Msg("failed to compile regular expression")
+		return "", err // Return an error if the regular expression compilation fails
+	}
+
+	// Replace each placeholder with the corresponding URL-encoded value from the map
+	replacedRoute := re.ReplaceAllStringFunc(route, func(match string) string {
+		// Extract the parameter name from the match, excluding the surrounding braces
+		paramName := match[1 : len(match)-1]
+		// Look up the paramName in the params map
+		if value, ok := params[paramName]; ok {
+			// Delete the matched entry from the map
+			delete(params, paramName)
+			// If the value exists, convert it to a string and URL-encode it
+			return url.QueryEscape(fmt.Sprint(value))
+		}
+		// If no matching paramName is found in the map, return the match unchanged
+		return match
+	})
+
+	return replacedRoute, nil
 }

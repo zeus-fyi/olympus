@@ -2317,17 +2317,19 @@ function WorkflowEngineBuilder(props: any) {
                                                     }
                                                 </div>
                                                 :
-                                                <Box  sx={{ mb: 2, mt: -2 }}>
-                                                    <TextareaAutosize
-                                                        minRows={18}
-                                                        value={editAnalysisTask.prompt}
-                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, prompt: event.target.value }))} // Dispatch action directly
-                                                        style={{ resize: "both", width: "100%" }}
-                                                    />
-                                                </Box>
+                                                <div></div>
                                             }
+                                            <Box  sx={{ mb: 2, mt: -2 }}>
+                                                <TextareaAutosize
+                                                    minRows={18}
+                                                    value={editAnalysisTask.prompt}
+                                                    onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, prompt: event.target.value }))} // Dispatch action directly
+                                                    style={{ resize: "both", width: "100%" }}
+                                                />
+                                            </Box>
                                         </div>
                                     }
+
                                     { !addAggregateView && !addAnalysisView && !addRetrievalView && !addEvalsView && selectedMainTabBuilder === 2 &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">

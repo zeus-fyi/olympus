@@ -56,19 +56,29 @@ const (
 	OverflowStrategyDeduce   = "deduce"
 )
 
-func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, inputID int) (int, error) {
-	if inputID <= 0 {
+func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, inputID int, promptExt *PromptReduction) (int, error) {
+	var wioPtr *WorkflowStageIO
+	var pr *PromptReduction
+	if inputID <= 0 && promptExt == nil {
 		return 0, nil
+	} else if inputID <= 0 {
+		pr = promptExt
+	} else {
+		wio, werr := gws(ctx, inputID)
+		if werr != nil {
+			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+			return 0, werr
+		}
+		if wio.PromptReduction == nil {
+			return 0, nil
+		}
+		pr = wio.PromptReduction
+		if promptExt != nil {
+			pr.PromptReductionText = promptExt.PromptReductionText
+		}
+		wio.PromptReduction = pr
+		wioPtr = &wio
 	}
-	wio, werr := gws(ctx, inputID)
-	if werr != nil {
-		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
-		return 0, werr
-	}
-	if wio.PromptReduction == nil {
-		return 0, nil
-	}
-	pr := wio.PromptReduction
 	if pr.DataInAnalysisAggregation != nil {
 		pr.PromptReductionSearchResults = &PromptReductionSearchResults{
 			InSearchGroup: &hera_search.SearchResultGroup{
@@ -159,11 +169,13 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, i
 	if pr.PromptReductionText != nil {
 		log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Interface("pr.PromptReductionText.OutPromptChunks", len(pr.PromptReductionText.OutPromptChunks)).Msg("TokenOverflowReductionDone")
 	}
-	wio.PromptReduction = pr
-	_, werr = sws(ctx, &wio)
-	if werr != nil {
-		log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
-		return 0, werr
+	if wioPtr != nil {
+		wioPtr.PromptReduction = pr
+		_, werr := sws(ctx, wioPtr)
+		if werr != nil {
+			log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
+			return 0, werr
+		}
 	}
 	chunkIterator := getChunkIteratorLen(pr)
 	return chunkIterator, nil

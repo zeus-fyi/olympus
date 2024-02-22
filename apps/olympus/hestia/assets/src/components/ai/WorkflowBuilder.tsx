@@ -2770,6 +2770,33 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </FormControl>
                                                             </Box>
                                                         </Stack>
+                                                        <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
+                                                            <Typography variant="h6" color="text.secondary">
+                                                                Use commas to to match multiple patterns: r`expr1`, r`expr2`
+                                                                Otherwise just use r`regex`. Each regex to be enclosed in backticks with r prefix.
+                                                            </Typography>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="regex-patterns-input"
+                                                                label="Regex Patterns"
+                                                                variant="outlined"
+                                                                value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.webFilters
+                                                                && retrieval.retrievalItemInstruction.webFilters.regexPatterns ? retrieval.retrievalItemInstruction.webFilters.regexPatterns : ''}
+                                                                onChange={(e) => {
+                                                                    const updatedRetrieval = {
+                                                                        ...retrieval,
+                                                                        retrievalItemInstruction: {
+                                                                            ...retrieval.retrievalItemInstruction,
+                                                                            webFilters: {
+                                                                                ...retrieval.retrievalItemInstruction.webFilters,
+                                                                                regexPatterns: e.target.value, // Correctly update the routingGroup field
+                                                                            }
+                                                                        }
+                                                                    };
+                                                                    dispatch(setRetrieval(updatedRetrieval));
+                                                                }}
+                                                            />
+                                                        </Box>
                                                     </div>
                                                 }
                                                     { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'discord' &&
@@ -2980,41 +3007,55 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
-                                                        <Box sx={{ width: '15%' }}> {/* Adjusted Box for TextField */}
-                                                            <TextField
-                                                                type="number"
-                                                                label="Expiration Duration"
-                                                                variant="outlined"
-                                                                inputProps={{ min: 0 }}  // Set minimum value to 1
-                                                                value={action.triggerExpirationDuration}
-                                                                onChange={(e) => dispatch(setTriggerAction({
-                                                                    ...action,
-                                                                    triggerExpirationDuration: Number(e.target.value),
-                                                                }))}
-                                                                fullWidth
-                                                            />
-                                                        </Box>
-                                                        <Box sx={{ width: '15%' }}> {/* Adjusted Box for FormControl */}
-                                                            <FormControl fullWidth>
-                                                                <InputLabel id="time-unit-label">Expiration Time Unit</InputLabel>
-                                                                <Select
-                                                                    labelId="time-unit-label"
-                                                                    id="time-unit-select"
-                                                                    value={action.triggerExpirationTimeUnit}
-                                                                    label="Time Unit"
-                                                                    onChange={(e) => dispatch(setTriggerAction({
-                                                                        ...action,
-                                                                        triggerExpirationTimeUnit: e.target.value,
-                                                                    }))}
-                                                                >
-                                                                    <MenuItem value="minutes">Minutes</MenuItem>
-                                                                    <MenuItem value="hours">Hours</MenuItem>
-                                                                    <MenuItem value="days">Days</MenuItem>
-                                                                    <MenuItem value="weeks">Weeks</MenuItem>
-                                                                </Select>
-                                                            </FormControl>
-                                                        </Box>
+
+
+                                                        {
+                                                            (action.triggerAction === 'api') &&
+                                                            (
+                                                                <div>
+                                                                    <Stack direction="row" spacing={2} sx={{ mt: 0, mb: 0 }}>
+
+                                                                    <Box> {/* Adjusted Box for TextField */}
+                                                                        <TextField
+                                                                            type="number"
+                                                                            label="Expiration Duration"
+                                                                            variant="outlined"
+                                                                            inputProps={{ min: 0 }}  // Set minimum value to 1
+                                                                            value={action.triggerExpirationDuration}
+                                                                            onChange={(e) => dispatch(setTriggerAction({
+                                                                                ...action,
+                                                                                triggerExpirationDuration: Number(e.target.value),
+                                                                            }))}
+                                                                            fullWidth
+                                                                        />
+                                                                    </Box>
+                                                                        <Box sx={{ width: '50%' }}> {/* Adjusted Box for FormControl */}
+                                                                        <FormControl fullWidth>
+                                                                            <InputLabel id="time-unit-label">Expiration Time Unit</InputLabel>
+                                                                            <Select
+                                                                                fullWidth
+                                                                                labelId="time-unit-label"
+                                                                                id="time-unit-select"
+                                                                                value={action.triggerExpirationTimeUnit}
+                                                                                label="Time Unit"
+                                                                                onChange={(e) => dispatch(setTriggerAction({
+                                                                                    ...action,
+                                                                                    triggerExpirationTimeUnit: e.target.value,
+                                                                                }))}
+                                                                            >
+                                                                                <MenuItem value="minutes">Minutes</MenuItem>
+                                                                                <MenuItem value="hours">Hours</MenuItem>
+                                                                                <MenuItem value="days">Days</MenuItem>
+                                                                                <MenuItem value="weeks">Weeks</MenuItem>
+                                                                            </Select>
+                                                                        </FormControl>
+                                                                    </Box>
+                                                                    </Stack>
+                                                                </div>)
+                                                        }
                                                     </Stack>
+
+
                                                     { !loading &&
                                                     <Stack direction="row" >
                                                         <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>

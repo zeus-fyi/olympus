@@ -142,11 +142,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 						payload = newPayload
 					}
 				}
-				route.RoutePath, err = ReplaceParams(route.RoutePath, payload)
-				if err != nil {
-					logger.Error("failed to replace route path params", "Error", err)
-					return nil, err
-				}
+				// test others first
+				//route.RoutePath, err = ReplaceParams(route.RoutePath, payload)
+				//if err != nil {
+				//	logger.Error("failed to replace route path params", "Error", err)
+				//	return nil, err
+				//}
 				rt := RouteTask{
 					Ou:        cp.Ou,
 					Retrieval: cp.Tc.Retrieval,
@@ -228,23 +229,34 @@ func GetRetryPolicy(ret artemis_orchestrations.RetrievalItem, maxRunTime time.Du
 	return retry
 }
 
+// ExtractParams takes a string of comma-separated regex patterns and a target string.
+// It applies each regex pattern to the target string and accumulates all matched groups from each pattern into a single slice.
 func ExtractParams(regexStr, strContent string) ([]string, error) {
-	// Compile a regular expression to find {param} patterns
-	re, err := regexp.Compile(regexStr)
-	if err != nil {
-		return nil, err // Return an error if the regular expression compilation fails
-	}
+	// Split the regexStr into individual patterns
+	patterns := strings.Split(regexStr, ",")
 
-	// Find all matches and extract the parameter names
-	matches := re.FindAllStringSubmatch(strContent, -1)
-	var params []string
-	for _, match := range matches {
-		if len(match) > 1 { // Check if there's a capturing group match
-			params = append(params, match[1]) // Add the parameter name to the slice
+	var combinedParams []string
+	for _, pattern := range patterns {
+		// Trim surrounding whitespace and quotes from each pattern
+		pattern = strings.TrimSpace(pattern)
+		pattern = strings.Trim(pattern, "`")
+
+		// Compile and execute each pattern
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			return nil, err // Return an error if the regular expression compilation fails
+		}
+
+		// Find all matches and extract the parameter names
+		matches := re.FindAllStringSubmatch(strContent, -1)
+		for _, match := range matches {
+			for i := 1; i < len(match); i++ { // Start from 1 to skip the full match and only include capturing groups
+				combinedParams = append(combinedParams, match[i])
+			}
 		}
 	}
 
-	return params, nil
+	return combinedParams, nil
 }
 
 // ReplaceParams replaces placeholders in the route with URL-encoded values from the provided map.

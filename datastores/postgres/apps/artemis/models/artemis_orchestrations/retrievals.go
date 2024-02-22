@@ -44,6 +44,7 @@ type WebFilters struct {
 	EndpointRoutePath    *string  `json:"endpointRoutePath,omitempty"`
 	EndpointREST         *string  `json:"endpointREST,omitempty"`
 	PayloadPreProcessing *string  `json:"payloadPreProcessing,omitempty"`
+	RegexPatterns        *string  `json:"regexPatterns,omitempty"`
 }
 
 type DiscordFilters struct {

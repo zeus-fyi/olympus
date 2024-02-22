@@ -116,6 +116,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				}
 				cp.Tc.Retrieval = rets[0]
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
+				cp.Tc.Retrieval.RetrievalPlatform = webPlatform
 				switch *ret.WebFilters.PayloadPreProcessing {
 				case "iterate":
 					for _, ple := range echoReqs {

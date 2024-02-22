@@ -332,7 +332,19 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			log.Err(jer).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
 			return nil, jer
 		}
-		value = fmt.Sprintf("%s", b)
+
+		if retInst.WebFilters.RegexPatterns != nil {
+			extractedParams, err := ExtractParams(*retInst.WebFilters.RegexPatterns, string(b))
+			if err != nil {
+				log.Err(err).Msg("ApiCallRequestTask: failed to extract params")
+				return nil, err
+			}
+			log.Info().Interface("extractedParams", extractedParams).Msg("ApiCallRequestTask: extracted params")
+			value = fmt.Sprintf("%s", strings.Join(extractedParams, "\n"))
+		} else {
+			value = fmt.Sprintf("%s", b)
+		}
+
 	}
 	if wr.RawMessage != nil && wr.Body == nil {
 		value = fmt.Sprintf("%s", wr.RawMessage)

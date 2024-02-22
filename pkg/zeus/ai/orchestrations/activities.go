@@ -282,6 +282,17 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			restMethod = http.MethodGet
 		}
 	}
+	if r.Payload != nil {
+		rp, err := ReplaceParams(r.RouteInfo.RoutePath, r.Payload)
+		if err != nil {
+			log.Err(err).Msg("ApiCallRequestTask: failed to replace route path params")
+			return nil, err
+		}
+		r.RouteInfo.RoutePath = rp
+		if len(r.Payload) == 0 {
+			r.Payload = nil
+		}
+	}
 	var routeExt string
 	if retInst.WebFilters.EndpointREST != nil {
 		routeExt = *retInst.WebFilters.EndpointRoutePath

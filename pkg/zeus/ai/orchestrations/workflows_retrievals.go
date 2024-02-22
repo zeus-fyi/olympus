@@ -85,9 +85,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			if cp.Tc.WebPayload != nil {
 				em, ok := cp.Tc.WebPayload.(echo.Map)
 				if ok {
+					rt.RouteInfo.RoutePath, err = ReplaceParams(route.RoutePath, em)
+					if err != nil {
+						logger.Error("failed to replace route path params", "Error", err)
+						return nil, err
+					}
+					if len(em) == 0 {
+						rt.Payload = nil
+					}
 					rt.Payload = em
 				}
-
 				ems, ok := cp.Tc.WebPayload.([]echo.Map)
 				if ok {
 					rt.Payloads = ems

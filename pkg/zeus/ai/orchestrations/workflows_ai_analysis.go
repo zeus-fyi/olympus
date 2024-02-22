@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -86,6 +87,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					InPromptBody: analysisInst.AnalysisPrompt,
 				},
 			}
+			log.Info().Msg("analysis: running token overflow reduction")
 			var chunkIterator int
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp, pr).Get(chunkedTaskCtx, &cp)
@@ -94,10 +96,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				return err
 			}
 			chunkIterator = cp.Tc.ChunkIterator
+			log.Info().Int("chunkIterator", chunkIterator).Msg("analysis: chunkIterator")
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				cp.Wsr.ChunkOffset = chunkOffset
 				switch analysisInst.AnalysisResponseFormat {
-				case jsonFormat, socialMediaExtractionResponseFormat:
+				case jsonFormat:
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 						WorkflowID:               oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d-chunk-%d", analysisInst.AnalysisResponseFormat, i, chunkOffset),
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
@@ -144,7 +147,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						return err
 					}
 				}
+				logger.Info("analysis: len(evalFns)", len(analysisInst.AnalysisTaskDB.AnalysisEvalFns))
 				for ind, evalFn := range analysisInst.AnalysisTaskDB.AnalysisEvalFns {
+					logger.Info("analysis: eval", evalFn.EvalID)
 					if evalFn.EvalID == 0 {
 						continue
 					}
@@ -161,6 +166,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 							RetryPolicy:              ao.RetryPolicy,
 						}
 						cp.Tc.EvalID = evalFn.EvalID
+						log.Info().Msg("running analysis eval")
 						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp).Get(childAnalysisCtx, nil)
 						if err != nil {

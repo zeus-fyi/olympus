@@ -344,6 +344,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		Body:       rr.Response,
 		RawMessage: rr.RawResponse,
 	}
+
 	value := ""
 	if wr.Body != nil && wr.RawMessage == nil {
 		b, jer := json.Marshal(wr.Body)
@@ -704,6 +705,13 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 				JsonResponseResults: res,
 			},
 		}
+		if cp.Tc.RetSearchResults != nil {
+			tmpText := ""
+			for _, sr := range cp.Tc.RetSearchResults {
+				tmpText += sr.Value
+			}
+			tmp.TextInput = aws.String(tmpText)
+		}
 		md, err = json.Marshal(tmp)
 		if err != nil {
 			log.Err(err).Interface("infoJsonResponses", infoJsonResponses).Interface("jro", jro).Msg("UpdateTaskOutput: failed")
@@ -716,6 +724,13 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
 				JsonResponseResults: res,
 			},
+		}
+		if cp.Tc.RetSearchResults != nil {
+			tmpText := ""
+			for _, sr := range cp.Tc.RetSearchResults {
+				tmpText += sr.Value
+			}
+			tmp.TextInput = aws.String(tmpText)
 		}
 		md, err = json.Marshal(tmp)
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"go.temporal.io/sdk/temporal"
@@ -12,6 +13,7 @@ import (
 )
 
 type InputDataAnalysisToAgg struct {
+	TextInput                   *string                        `json:"textInput,omitempty"`
 	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
 	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`
 }
@@ -46,6 +48,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 		}
 		aggCycle := wfExecParams.CycleCountTaskRelative.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 		if i%aggCycle == 0 {
+			logger.Info("aggregation: taskID", *aggInst.AggTaskID)
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			cp.Window = window
 			cp.Tc = TaskContext{
@@ -71,6 +74,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				return err
 			}
 			md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
+			log.Info().Msg("aggregation: running token overflow reduction")
 			var chunkIterator int
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp, nil).Get(chunkedTaskCtx, &cp)
@@ -79,8 +83,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				return err
 			}
 			chunkIterator = cp.Tc.ChunkIterator
+			logger.Info("aggregation: chunkIterator", chunkIterator)
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
-				logger.Info("RunAiChildAggAnalysisProcessWorkflow: chunkOffset", chunkOffset)
+				logger.Info("aggregation: chunkOffset", chunkOffset)
 				cp.Wsr.ChunkOffset = chunkOffset
 				switch aws.StringValue(aggInst.AggResponseFormat) {
 				case jsonFormat:

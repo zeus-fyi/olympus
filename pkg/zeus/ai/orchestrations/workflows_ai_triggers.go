@@ -70,6 +70,8 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			logger.Error("failed to check eval trigger condition", "Error", err)
 			return err
 		}
+
+		log.Info().Msg("CreateTriggerActionsWorkflow: UpdateTaskOutput for trigger actions")
 		var payloadJsonSlice []artemis_orchestrations.JsonSchemaDefinition
 		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, cp).Get(updateTaskCtx, &payloadJsonSlice)
@@ -83,6 +85,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 		}
 		switch ta.TriggerAction {
 		case apiRetrieval:
+			log.Info().Msg("CreateTriggerActionsWorkflow: UpdateTaskOutput for api retrieval starting")
 			var echoReqs []echo.Map
 			payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(payloadJsonSlice)
 			for _, m := range payloadMaps {
@@ -109,7 +112,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 					3. update task with results
 				*/
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               CreateExecAiWfId(cp.Oj.OrchestrationName + "-api-ret-" + strconv.Itoa(ri) + "-" + strconv.Itoa(cp.WfExecParams.WorkflowExecTimekeepingParams.CurrentCycleCount)),
+					WorkflowID:               cp.Oj.OrchestrationName + "-api-ret-" + strconv.Itoa(ri) + "-" + strconv.Itoa(cp.WfExecParams.WorkflowExecTimekeepingParams.CurrentCycleCount),
 					WorkflowExecutionTimeout: cp.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					RetryPolicy:              aoAiAct.RetryPolicy,
 				}
@@ -136,13 +139,14 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 						return err
 					}
 				}
-				updateTaskCtx = workflow.WithActivityOptions(ctx, aoAiAct)
-				err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, cp).Get(updateTaskCtx, nil)
-				if err != nil {
-					logger.Error("failed to update task", "Error", err)
-					return err
-				}
 			}
+			updateTaskCtx = workflow.WithActivityOptions(ctx, aoAiAct)
+			err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, cp).Get(updateTaskCtx, nil)
+			if err != nil {
+				logger.Error("failed to update task", "Error", err)
+				return err
+			}
+			log.Info().Msg("CreateTriggerActionsWorkflow: UpdateTaskOutput for api retrieval complete")
 		case apiApproval:
 			/*
 					EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"` // eg. info, filter, etc

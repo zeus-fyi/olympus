@@ -90,13 +90,20 @@ export const prettyPrintPromptJSON = (json: any): string => {
         if (typeof json === 'string') {
             json = JSON.parse(json);
         }
-        return JSON.stringify(json.prompt, null, 2)
+        // Determine if json is an object or an array and format accordingly
+        if (Array.isArray(json)) {
+            return JSON.stringify(json, null, 2);
+        } else {
+            return JSON.stringify(json.prompt, null, 2);
+        }
 
     } catch (error) {
+        console.log('json:', json);
         console.error('Error parsing or formatting JSON:', error);
         return ''; // Return an empty string in case of error
     }
 };
+
 
 export const prettyPrintPromptContentJSON = (json: any): string => {
     try {

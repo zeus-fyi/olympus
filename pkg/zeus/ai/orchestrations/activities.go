@@ -278,7 +278,6 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
 		return nil, nil
 	}
-	cp.Tc.RetSearchResults = make([]hera_search.SearchResult, 0)
 	restMethod := http.MethodGet
 	if retInst.WebFilters.EndpointREST != nil {
 		restMethod = *retInst.WebFilters.EndpointREST
@@ -371,8 +370,11 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		Window:       cp.Window,
 	}
 	sg.ApiResponseResults = []hera_search.SearchResult{sres}
-	cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sres)
-
+	if req.RegexFilters != nil && len(req.RegexFilters) > 0 {
+		cp.Tc.RegexSearchResults = append(cp.Tc.RegexSearchResults, sres)
+	} else {
+		cp.Tc.ApiResponseResults = append(cp.Tc.ApiResponseResults, sres)
+	}
 	sg.SourceTaskID = cp.Tc.TaskID
 	if cp.Wsr.InputID == 0 {
 		wio := WorkflowStageIO{
@@ -436,7 +438,6 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbCh
 	retrieval := cp.Tc.Retrieval
 	ou := cp.Ou
 	window := cp.Window
-	cp.Tc.RetSearchResults = make([]hera_search.SearchResult, 0)
 
 	if retrieval.RetrievalPlatform == "" || retrieval.RetrievalName == "" {
 		return nil, nil
@@ -487,7 +488,6 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbCh
 			return nil, err
 		}
 		cp.Wsr.InputID = wid.InputID
-		cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 		return cp, nil
 	}
 
@@ -525,7 +525,6 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbCh
 			},
 		},
 	}
-	cp.Tc.RetSearchResults = append(cp.Tc.RetSearchResults, sg.SearchResults...)
 	wid, err := sws(ctx, &wio)
 	if err != nil {
 		log.Err(err).Msg("AiRetrievalTask: failed")
@@ -702,6 +701,7 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 			SearchResultGroup: sg,
 			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
 				JsonResponseResults: res,
+				RegexSearchResults:  cp.Tc.RegexSearchResults,
 			},
 		}
 		md, err = json.Marshal(tmp)
@@ -715,14 +715,8 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 			SearchResultGroup: sg,
 			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
 				JsonResponseResults: res,
+				RegexSearchResults:  cp.Tc.RegexSearchResults,
 			},
-		}
-		if cp.Tc.RetSearchResults != nil {
-			tmpText := ""
-			for _, sr := range cp.Tc.RetSearchResults {
-				tmpText += sr.Value
-			}
-			tmp.TextInput = aws.String(tmpText)
 		}
 		md, err = json.Marshal(tmp)
 		if err != nil {

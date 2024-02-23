@@ -11,5 +11,5 @@ CREATE TABLE public.ai_workflow_stage_references (
          REFERENCES public.ai_workflow_runs(workflow_run_id)
 );
 
-CREATE UNIQUE INDEX idx_child_wf_id ON public.ai_workflow_stage_references(child_wf_id);
+CREATE UNIQUE INDEX idx_child_wf_id ON public.ai_workflow_stage_references(input_id, child_wf_id);
 CREATE INDEX idx_workflow_run_id ON public.ai_workflow_stage_references(workflow_run_id);

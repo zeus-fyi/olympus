@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -24,22 +23,13 @@ type MbChildSubProcessParams struct {
 	Tc           TaskContext                                   `json:"taskContext"`
 }
 
-type EvalActionParams struct {
-	WorkflowTemplateData artemis_orchestrations.WorkflowTemplateData `json:"parentProcess"`
-	ParentOutputToEval   *ChatCompletionQueryResponse                `json:"parentOutputToEval"`
-	EvalFns              []artemis_orchestrations.EvalFnDB           `json:"evalFns"`
-	SearchResultGroup    *hera_search.SearchResultGroup              `json:"searchResultsGroup,omitempty"`
-	TaskToExecute        TaskToExecute                               `json:"tte,omitempty"`
-}
-
 const (
 	evalModelScoredJsonOutput = "model"
 	evalModelScoredViaApi     = "api"
 )
 
 type RunAiWorkflowAutoEvalProcessInputs struct {
-	Mb  *MbChildSubProcessParams `json:"mb,omitempty"`
-	Cpe *EvalActionParams        `json:"cpe,omitempty"`
+	Mb *MbChildSubProcessParams `json:"mb,omitempty"`
 }
 
 func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams) error {
@@ -58,7 +48,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 	}
 	evalsFnsMap := make(map[int]*artemis_orchestrations.EvalFn)
 	var evalFnsAgg []artemis_orchestrations.EvalFn
-	log.Info().Int("evalID", mb.Tc.EvalID).Msg("RunAiWorkflowAutoEvalProcess: evalID")
+	log.Info().Int("evalID", mb.Tc.EvalID).Interface("taskType", mb.Tc.TaskType).Msg("RunAiWorkflowAutoEvalProcess: evalID")
 	var efs []artemis_orchestrations.EvalFn
 	evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 	err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, mb.Tc.EvalID).Get(evalFnMetricsLookupCtx, &efs)

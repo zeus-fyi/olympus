@@ -31,6 +31,7 @@ type PromptReduction struct {
 	MarginBuffer          float64 `json:"marginBuffer,omitempty"`
 	Model                 string  `json:"model"`
 	TokenOverflowStrategy string  `json:"tokenOverflowStrategy"`
+	ChunkIterator         int     `json:"chunkIterator,omitempty"`
 
 	AIWorkflowAnalysisResults    []artemis_orchestrations.AIWorkflowAnalysisResult `json:"dataInAnalysisResults,omitempty"`
 	DataInAnalysisAggregation    []InputDataAnalysisToAgg                          `json:"dataInAnalysisAggregation,omitempty"`
@@ -56,19 +57,31 @@ const (
 	OverflowStrategyDeduce   = "deduce"
 )
 
-func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, inputID int) (int, error) {
-	if inputID <= 0 {
-		return 0, nil
+func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, cp *MbChildSubProcessParams, promptExt *PromptReduction) (*MbChildSubProcessParams, error) {
+	var wioPtr *WorkflowStageIO
+	var pr *PromptReduction
+	if cp.Wsr.InputID <= 0 && promptExt == nil {
+		return nil, nil
+	} else if cp.Wsr.InputID <= 0 {
+		pr = promptExt
+	} else if cp.Wsr.InputID > 0 {
+		wio, werr := gws(ctx, cp.Wsr.InputID)
+		if werr != nil {
+			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+			return nil, werr
+		}
+		if wio.PromptReduction == nil {
+			return nil, nil
+		}
+		pr = wio.PromptReduction
+		if promptExt != nil {
+			pr.PromptReductionText = promptExt.PromptReductionText
+		}
+		wio.PromptReduction = pr
+		wioPtr = &wio
+	} else {
+		return nil, nil
 	}
-	wio, werr := gws(ctx, inputID)
-	if werr != nil {
-		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
-		return 0, werr
-	}
-	if wio.PromptReduction == nil {
-		return 0, nil
-	}
-	pr := wio.PromptReduction
 	if pr.DataInAnalysisAggregation != nil {
 		pr.PromptReductionSearchResults = &PromptReductionSearchResults{
 			InSearchGroup: &hera_search.SearchResultGroup{
@@ -78,7 +91,11 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, i
 			},
 		}
 		for _, d := range pr.DataInAnalysisAggregation {
-			if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
+			if d.TextInput != nil && pr != nil {
+				pr.PromptReductionText = &PromptReductionText{
+					InPromptBody: *d.TextInput,
+				}
+			} else if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
 				switch d.SearchResultGroup.PlatformName {
 				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:
@@ -144,12 +161,12 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, i
 	err := TokenOverflowSearchResults(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowSearchResults")
-		return 0, err
+		return nil, err
 	}
 	err = TokenOverflowString(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowString")
-		return 0, err
+		return nil, err
 	}
 
 	tmp := pr.PromptReductionSearchResults
@@ -159,14 +176,30 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, i
 	if pr.PromptReductionText != nil {
 		log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Interface("pr.PromptReductionText.OutPromptChunks", len(pr.PromptReductionText.OutPromptChunks)).Msg("TokenOverflowReductionDone")
 	}
-	wio.PromptReduction = pr
-	_, werr = sws(ctx, &wio)
-	if werr != nil {
-		log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
-		return 0, werr
+	if cp.Wsr.InputID > 0 && wioPtr != nil {
+		wioPtr.PromptReduction = pr
+		_, werr := sws(ctx, wioPtr)
+		if werr != nil {
+			log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
+			return nil, werr
+		}
+	} else {
+		wio := WorkflowStageIO{
+			WorkflowStageReference: cp.Wsr,
+			WorkflowStageInfo: WorkflowStageInfo{
+				PromptReduction: pr,
+			},
+		}
+		wo, werr := sws(ctx, &wio)
+		if werr != nil {
+			log.Err(werr).Msg("AiRetrievalTask: failed")
+			return nil, werr
+		}
+		cp.Wsr.InputID = wo.InputID
 	}
 	chunkIterator := getChunkIteratorLen(pr)
-	return chunkIterator, nil
+	cp.Tc.ChunkIterator = chunkIterator
+	return cp, nil
 }
 
 func TokenOverflowSearchResults(ctx context.Context, pr *PromptReduction) error {
@@ -473,8 +506,10 @@ func validateMarginBufferLimits(marginBuffer float64) float64 {
 
 func GetModelTokenContextLimit(m string) int {
 	switch m {
-	case modelGpt4Vision, modelGpt4TurboPreview:
+	case modelGpt4Vision, modelGpt4TurboPreview, modelGpt4JanPreview:
 		return 128000
+	case modelGpt35JanPreview:
+		return 16385
 	case modelGpt4, modelGpt40613:
 		return 8192
 	case modelGpt432k, modelGpt432k0613:

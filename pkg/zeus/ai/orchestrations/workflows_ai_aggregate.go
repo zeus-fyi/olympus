@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"go.temporal.io/sdk/temporal"
@@ -12,6 +13,7 @@ import (
 )
 
 type InputDataAnalysisToAgg struct {
+	TextInput                   *string                        `json:"textInput,omitempty"`
 	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
 	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`
 }
@@ -38,6 +40,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 	}
 	i := runCycle
 	for _, aggInst := range wfExecParams.WorkflowTasks {
+		log.Info().Interface("runCycle", runCycle).Msg("aggregation: runCycle")
 		if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggPrompt == nil || aggInst.AggModel == nil || wfExecParams.WorkflowTaskRelationships.AggAnalysisTasks == nil {
 			continue
 		}
@@ -46,6 +49,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 		}
 		aggCycle := wfExecParams.CycleCountTaskRelative.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 		if i%aggCycle == 0 {
+			logger.Info("aggregation: taskID", *aggInst.AggTaskID)
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			cp.Window = window
 			cp.Tc = TaskContext{
@@ -71,18 +75,22 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				return err
 			}
 			md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] = false
+			log.Info().Msg("aggregation: running token overflow reduction")
 			var chunkIterator int
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp.Wsr.InputID).Get(chunkedTaskCtx, &chunkIterator)
+			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp, nil).Get(chunkedTaskCtx, &cp)
 			if err != nil {
 				logger.Error("failed to run agg token overflow reduction task", "Error", err)
 				return err
 			}
+			chunkIterator = cp.Tc.ChunkIterator
+			log.Info().Interface("chunkIterator", chunkIterator).Msg("agg: chunkIterator")
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
-				logger.Info("RunAiChildAggAnalysisProcessWorkflow: chunkOffset", chunkOffset)
+				log.Info().Interface("chunkOffset", chunkOffset).Msg("agg: chunkOffset")
 				cp.Wsr.ChunkOffset = chunkOffset
 				switch aws.StringValue(aggInst.AggResponseFormat) {
 				case jsonFormat:
+					log.Info().Interface("jsonFormat", jsonFormat).Msg("agg: jsonFormat")
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 					childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 					cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
@@ -92,6 +100,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						return err
 					}
 				default:
+					log.Info().Interface("textFormat", text).Msg("agg: textFormat")
 					var aiAggResp *ChatCompletionQueryResponse
 					aggCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, cp).Get(aggCtx, &aiAggResp)
@@ -134,6 +143,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 						}
 						cp.Tc.EvalID = evalFn.EvalID
+						log.Info().Interface("evalFn.EvalID", evalFn.EvalID).Msg("agg: eval")
 						childAggEvalWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 						err = workflow.ExecuteChildWorkflow(childAggEvalWfCtx, z.RunAiWorkflowAutoEvalProcess, cp).Get(childAggEvalWfCtx, nil)
 						if err != nil {
@@ -157,6 +167,7 @@ func getChunkIteratorLen(pr *PromptReduction) int {
 		return len(pr.PromptReductionSearchResults.OutSearchGroups)
 	}
 	if pr.PromptReductionText != nil && pr.PromptReductionText.OutPromptChunks != nil && len(pr.PromptReductionText.OutPromptChunks) > chunkIterator {
+		log.Info().Interface("len(pr.PromptReductionText.OutPromptChunks)", len(pr.PromptReductionText.OutPromptChunks)).Msg("getChunkIteratorLen: PromptReductionText")
 		return len(pr.PromptReductionText.OutPromptChunks)
 	}
 	return chunkIterator

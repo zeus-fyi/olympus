@@ -3,6 +3,8 @@ package ai_platform_service_orchestrations
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -61,7 +63,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	switch platform {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		retrievalCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, cp).Get(retrievalCtx, &cp.Wsr.InputID)
+		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, cp).Get(retrievalCtx, &cp)
 		if err != nil {
 			logger.Error("failed to run retrieval", "Error", err)
 			return nil, err
@@ -77,8 +79,29 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		for _, route := range routes {
 			rt := RouteTask{
 				Ou:        cp.Ou,
-				Retrieval: cp.Tc.Retrieval,
 				RouteInfo: route,
+			}
+			if cp.Tc.WebPayload != nil {
+				em, ok := cp.Tc.WebPayload.(map[string]interface{})
+				if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
+					qpRoute, qerr := ReplaceParams(*cp.Tc.Retrieval.WebFilters.EndpointRoutePath, em)
+					if qerr != nil {
+						logger.Error("failed to replace route path params", "Error", qerr)
+						return nil, qerr
+					}
+					cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &qpRoute
+					if len(em) == 0 {
+						em = nil
+					}
+					rt.Payload = em
+				}
+				rt.Retrieval = cp.Tc.Retrieval
+				ems, ok := cp.Tc.WebPayload.([]map[string]interface{})
+				if ok {
+					for _, emv := range ems {
+						rt.Payloads = append(rt.Payloads, emv)
+					}
+				}
 			}
 			apiCallCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp)
@@ -122,6 +145,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 						payload = newPayload
 					}
 				}
+				// test others first
+				//route.RoutePath, err = ReplaceParams(route.RoutePath, payload)
+				//if err != nil {
+				//	logger.Error("failed to replace route path params", "Error", err)
+				//	return nil, err
+				//}
 				rt := RouteTask{
 					Ou:        cp.Ou,
 					Retrieval: cp.Tc.Retrieval,
@@ -201,4 +230,52 @@ func GetRetryPolicy(ret artemis_orchestrations.RetrievalItem, maxRunTime time.Du
 		retry.MaximumAttempts = int32(*ret.WebFilters.MaxRetries)
 	}
 	return retry
+}
+
+// ExtractParams takes a string of comma-separated regex patterns and a target string.
+// It applies each regex pattern to the target string and accumulates all matched groups from each pattern into a single slice.
+func ExtractParams(regexStrs []string, strContent []byte) ([]string, error) {
+	// Split the regexStr into individual patterns
+	var combinedParams []string
+	for _, pattern := range regexStrs {
+		// Compile and execute each pattern
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			return nil, err // Return an error if the regular expression compilation fails
+		}
+		// Find all matches and extract the parameter names
+		matches := re.FindAll(strContent, -1)
+		for _, match := range matches {
+			combinedParams = append(combinedParams, string(match))
+		}
+	}
+
+	return combinedParams, nil
+}
+
+// ReplaceParams replaces placeholders in the route with URL-encoded values from the provided map.
+func ReplaceParams(route string, params echo.Map) (string, error) {
+	// Compile a regular expression to find {param} patterns
+	re, err := regexp.Compile(`\{([^\{\}]+)\}`)
+	if err != nil {
+		log.Err(err).Msg("failed to compile regular expression")
+		return "", err // Return an error if the regular expression compilation fails
+	}
+
+	// Replace each placeholder with the corresponding URL-encoded value from the map
+	replacedRoute := re.ReplaceAllStringFunc(route, func(match string) string {
+		// Extract the parameter name from the match, excluding the surrounding braces
+		paramName := match[1 : len(match)-1]
+		// Look up the paramName in the params map
+		if value, ok := params[paramName]; ok {
+			// Delete the matched entry from the map
+			delete(params, paramName)
+			// If the value exists, convert it to a string and URL-encode it
+			return url.QueryEscape(fmt.Sprint(value))
+		}
+		// If no matching paramName is found in the map, return the match unchanged
+		return match
+	})
+
+	return replacedRoute, nil
 }

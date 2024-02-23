@@ -113,17 +113,20 @@ func FormatApiSearchResultSliceToString(results []SearchResult) string {
 	var sb strings.Builder
 
 	for _, result := range results {
-		if result.WebResponse.Body == nil {
-			continue
+		if result.WebResponse.RegexFilteredBody != "" {
+			sb.WriteString(result.WebResponse.RegexFilteredBody)
+			sb.WriteString("\n")
+		} else if result.WebResponse.Body != nil {
+			bodyString, err := json.Marshal(result.WebResponse.Body)
+			if err != nil {
+				log.Err(err).Msg("FormatApiSearchResultSliceToString: Error marshalling web response body")
+				// Handle error, maybe log it or use a default error message in place of the body
+				// TODO? maybe deprecate or refactor
+				continue // or handle it differently
+			}
+			sb.WriteString(string(bodyString))
+			sb.WriteString("\n") // Add a newline after each result's body
 		}
-		bodyString, err := json.Marshal(result.WebResponse.Body)
-		if err != nil {
-			// Handle error, maybe log it or use a default error message in place of the body
-			continue // or handle it differently
-		}
-
-		sb.WriteString(string(bodyString))
-		sb.WriteString("\n") // Add a newline after each result's body
 	}
 
 	return sb.String()
@@ -192,9 +195,10 @@ type RedditMetadata struct {
 }
 
 type WebResponse struct {
-	WebFilters *artemis_orchestrations.WebFilters `json:"webFilters,omitempty"`
-	Body       echo.Map                           `json:"body"`
-	RawMessage []byte                             `json:"rawMessage"`
+	WebFilters        *artemis_orchestrations.WebFilters `json:"webFilters,omitempty"`
+	Body              echo.Map                           `json:"body"`
+	RawMessage        []byte                             `json:"rawMessage"`
+	RegexFilteredBody string                             `json:"regexFilteredBody"`
 }
 
 type ByTimestamp []SearchResult
@@ -455,7 +459,13 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	}
 	var newResults []interface{}
 	for _, result := range results {
-		if result.WebResponse.Body != nil {
+		if result.WebResponse.RegexFilteredBody != "" {
+			if result.Value != "" {
+				result.WebResponse.Body = echo.Map{
+					"msg_body": result.Value,
+				}
+			}
+		} else if result.WebResponse.Body != nil {
 			if result.Value != "" {
 				result.WebResponse.Body["msg_body"] = result.Value
 			}

@@ -6,6 +6,20 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
+func (s *OrchestrationsTestSuite) TestSelect() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	qp := TriggersWorkflowQueryParams{
+		Ou:                 s.Ou,
+		EvalID:             1708580672263367000,
+		TaskID:             1708585225847375000,
+		WorkflowTemplateID: 1708586665057802000,
+	}
+
+	res2, err := SelectTriggerActionsByOrgAndOptParams(ctx, qp)
+	s.Require().Nil(err)
+	s.Require().NotNil(res2)
+}
+
 func (s *OrchestrationsTestSuite) TestTriggerInserts() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
@@ -104,7 +118,6 @@ func (s *OrchestrationsTestSuite) TestSelectAll() {
 	res2, err := SelectTriggerActionsByOrgAndOptParams(ctx, qp)
 	s.Require().Nil(err)
 	s.Require().NotNil(res2)
-
 }
 
 func (s *OrchestrationsTestSuite) TestCreateTriggerApiRetrieval1() {

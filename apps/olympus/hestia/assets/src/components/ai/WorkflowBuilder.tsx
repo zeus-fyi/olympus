@@ -162,6 +162,46 @@ function WorkflowEngineBuilder(props: any) {
     const editAggregateTask = useSelector((state: any) => state.ai.editAggregateTask);
     const selectedAnalysisForRetrieval = useSelector((state: any) => state.ai.selectedAnalysisForRetrieval);
     const selectedRetrievalForAnalysis = useSelector((state: any) => state.ai.selectedRetrievalForAnalysis);
+    const [regexStr, setRegexStr] = useState('');
+
+    const handleAddRegex = () => {
+        if (regexStr.length <= 0) {
+            return;
+        }
+        const currentPatterns = retrieval.retrievalItemInstruction.webFilters?.regexPatterns;
+        let regexPatterns = Array.isArray(currentPatterns) ? [...currentPatterns] : [];
+        regexPatterns.push(regexStr); // Add an empty string as a placeholder for new input
+        const updatedRetrieval = {
+            ...retrieval,
+            retrievalItemInstruction: {
+                ...retrieval.retrievalItemInstruction,
+                webFilters: {
+                    ...retrieval.retrievalItemInstruction.webFilters,
+                    regexPatterns: regexPatterns, // Correctly update the selection
+                }
+            }
+        }
+        setRegexStr('')
+        dispatch(setRetrieval(updatedRetrieval));
+    };
+
+    const handleRemoveRegex = (index: number) => {
+        let regexPatterns = retrieval.retrievalItemInstruction.webFilters?.regexPatterns || [];
+        regexPatterns = Array.isArray(regexPatterns) ? [...regexPatterns] : [];
+        regexPatterns.splice(index, 1); // Remove the selected index
+        const updatedRetrieval = {
+            ...retrieval,
+            retrievalItemInstruction: {
+                ...retrieval.retrievalItemInstruction,
+                webFilters: {
+                    ...retrieval.retrievalItemInstruction.webFilters,
+                    regexPatterns: regexPatterns, // Correctly update the selection
+                }
+            }
+        }
+        dispatch(setRetrieval(updatedRetrieval));
+    };
+
     const handleRetrievalChange = (event: any) => {
         // Set the selected retrieval ID for analysis
         const selectedRet = retrievalStages.find(ret => ret.retrievalStrID === event.target.value);
@@ -2317,17 +2357,19 @@ function WorkflowEngineBuilder(props: any) {
                                                     }
                                                 </div>
                                                 :
-                                                <Box  sx={{ mb: 2, mt: -2 }}>
-                                                    <TextareaAutosize
-                                                        minRows={18}
-                                                        value={editAnalysisTask.prompt}
-                                                        onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, prompt: event.target.value }))} // Dispatch action directly
-                                                        style={{ resize: "both", width: "100%" }}
-                                                    />
-                                                </Box>
+                                                <div></div>
                                             }
+                                            <Box  sx={{ mb: 2, mt: 0 }}>
+                                                <TextareaAutosize
+                                                    minRows={18}
+                                                    value={editAnalysisTask.prompt}
+                                                    onChange={(event) => dispatch(setEditAnalysisTask({ ...editAnalysisTask, prompt: event.target.value }))} // Dispatch action directly
+                                                    style={{ resize: "both", width: "100%" }}
+                                                />
+                                            </Box>
                                         </div>
                                     }
+
                                     { !addAggregateView && !addAnalysisView && !addRetrievalView && !addEvalsView && selectedMainTabBuilder === 2 &&
                                         <div>
                                             <Typography gutterBottom variant="h5" component="div">
@@ -2770,6 +2812,44 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </FormControl>
                                                             </Box>
                                                         </Stack>
+                                                        <Typography variant="h6" color="text.secondary">
+                                                            Use Python-style regex notation: r'{`https?://[^\s<>"]+|www\.[^\s<>"]+`}'
+                                                        </Typography>
+                                                        <Stack direction="row">
+                                                        <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
+                                                            <TextField
+                                                                fullWidth
+                                                                id="regex-patterns-input"
+                                                                label="Regex Patterns"
+                                                                variant="outlined"
+                                                                value={regexStr}
+                                                                onChange={(event) => setRegexStr(event.target.value)} // Inline function for handling change
+                                                            />
+                                                        </Box>
+                                                        <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 3}}>
+                                                            <Button onClick={handleAddRegex} variant="contained">Add Regex</Button>
+                                                        </Box>
+                                                        </Stack>
+
+                                                        {retrieval.retrievalItemInstruction.webFilters && Array.isArray(retrieval.retrievalItemInstruction.webFilters.regexPatterns) && retrieval.retrievalItemInstruction.webFilters.regexPatterns.map((pattern, index) => (
+                                                            <Stack direction="row">
+                                                            <Box key={index} flexGrow={1} sx={{ mb: 1, ml: 0, mr: 0, mt: 2 }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id={`regex-pattern-${index}`}
+                                                                        label={`Regex Pattern ${index + 1}`}
+                                                                        variant="outlined"
+                                                                        value={pattern}
+                                                                        InputProps={{
+                                                                            readOnly: true,
+                                                                        }}
+                                                                    />
+                                                                </Box>
+                                                                <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 3}}>
+                                                                    <Button variant="contained" color="error" onClick={() => handleRemoveRegex(index)}>Remove</Button>
+                                                                </Box>
+                                                            </Stack>
+                                                            ))}
                                                     </div>
                                                 }
                                                     { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'discord' &&
@@ -2974,47 +3054,61 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }))}
                                                                 >
                                                                     <MenuItem value="api">API Approval</MenuItem>
-                                                                    {/*<MenuItem value="social-media-engagement">Social Media Engagement Approval</MenuItem>*/}
+                                                                    <MenuItem value="api-retrieval">API Retrieval</MenuItem>
                                                                     {/*<MenuItem value="email">Email</MenuItem>*/}
                                                                     {/*<MenuItem value="text">Text</MenuItem>*/}
                                                                 </Select>
                                                             </FormControl>
                                                         </Box>
-                                                        <Box sx={{ width: '15%' }}> {/* Adjusted Box for TextField */}
-                                                            <TextField
-                                                                type="number"
-                                                                label="Expiration Duration"
-                                                                variant="outlined"
-                                                                inputProps={{ min: 0 }}  // Set minimum value to 1
-                                                                value={action.triggerExpirationDuration}
-                                                                onChange={(e) => dispatch(setTriggerAction({
-                                                                    ...action,
-                                                                    triggerExpirationDuration: Number(e.target.value),
-                                                                }))}
-                                                                fullWidth
-                                                            />
-                                                        </Box>
-                                                        <Box sx={{ width: '15%' }}> {/* Adjusted Box for FormControl */}
-                                                            <FormControl fullWidth>
-                                                                <InputLabel id="time-unit-label">Expiration Time Unit</InputLabel>
-                                                                <Select
-                                                                    labelId="time-unit-label"
-                                                                    id="time-unit-select"
-                                                                    value={action.triggerExpirationTimeUnit}
-                                                                    label="Time Unit"
-                                                                    onChange={(e) => dispatch(setTriggerAction({
-                                                                        ...action,
-                                                                        triggerExpirationTimeUnit: e.target.value,
-                                                                    }))}
-                                                                >
-                                                                    <MenuItem value="minutes">Minutes</MenuItem>
-                                                                    <MenuItem value="hours">Hours</MenuItem>
-                                                                    <MenuItem value="days">Days</MenuItem>
-                                                                    <MenuItem value="weeks">Weeks</MenuItem>
-                                                                </Select>
-                                                            </FormControl>
-                                                        </Box>
+
+
+                                                        {
+                                                            (action.triggerAction === 'api') &&
+                                                            (
+                                                                <div>
+                                                                    <Stack direction="row" spacing={2} sx={{ mt: 0, mb: 0 }}>
+
+                                                                    <Box> {/* Adjusted Box for TextField */}
+                                                                        <TextField
+                                                                            type="number"
+                                                                            label="Expiration Duration"
+                                                                            variant="outlined"
+                                                                            inputProps={{ min: 0 }}  // Set minimum value to 1
+                                                                            value={action.triggerExpirationDuration}
+                                                                            onChange={(e) => dispatch(setTriggerAction({
+                                                                                ...action,
+                                                                                triggerExpirationDuration: Number(e.target.value),
+                                                                            }))}
+                                                                            fullWidth
+                                                                        />
+                                                                    </Box>
+                                                                        <Box sx={{ width: '50%' }}> {/* Adjusted Box for FormControl */}
+                                                                        <FormControl fullWidth>
+                                                                            <InputLabel id="time-unit-label">Expiration Time Unit</InputLabel>
+                                                                            <Select
+                                                                                fullWidth
+                                                                                labelId="time-unit-label"
+                                                                                id="time-unit-select"
+                                                                                value={action.triggerExpirationTimeUnit}
+                                                                                label="Time Unit"
+                                                                                onChange={(e) => dispatch(setTriggerAction({
+                                                                                    ...action,
+                                                                                    triggerExpirationTimeUnit: e.target.value,
+                                                                                }))}
+                                                                            >
+                                                                                <MenuItem value="minutes">Minutes</MenuItem>
+                                                                                <MenuItem value="hours">Hours</MenuItem>
+                                                                                <MenuItem value="days">Days</MenuItem>
+                                                                                <MenuItem value="weeks">Weeks</MenuItem>
+                                                                            </Select>
+                                                                        </FormControl>
+                                                                    </Box>
+                                                                    </Stack>
+                                                                </div>)
+                                                        }
                                                     </Stack>
+
+
                                                     { !loading &&
                                                     <Stack direction="row" >
                                                         <Box flexGrow={1} sx={{ mb: 0,ml: 0, mr:2  }}>
@@ -3060,7 +3154,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Box>
                                                     </Stack>
                                                     }
-                                                    { !loading && action.triggerAction === 'api' &&
+                                                    { !loading && (action.triggerAction === 'api'|| action.triggerAction === 'api-retrieval') &&
                                                         <div>
                                                             <Typography gutterBottom variant="h5" component="div">
                                                                 API Trigger Settings

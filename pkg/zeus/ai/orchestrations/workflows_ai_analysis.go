@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -31,10 +32,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	i := runCycle
 	for _, analysisInst := range wfExecParams.WorkflowTasks {
+		if analysisInst.AggTaskID != nil {
+			continue
+		}
+		log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle")
 		if runCycle%analysisInst.AnalysisCycleCount == 0 {
 			if md.AnalysisRetrievals[analysisInst.AnalysisTaskID] == nil {
 				continue
 			}
+			log.Info().Interface("taskID", analysisInst.AnalysisTaskID).Msg("analysis: taskID")
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime,
 				i-analysisInst.AnalysisCycleCount, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			cp.Window = window
@@ -64,7 +70,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					continue
 				}
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-analysis-ret-" + strconv.Itoa(i)),
+					WorkflowID:               oj.OrchestrationName + "-analysis-ret-" + strconv.Itoa(i),
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					RetryPolicy:              ao.RetryPolicy,
 				}
@@ -78,17 +84,29 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				}
 				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] = false
 			}
+			pr := &PromptReduction{
+				MarginBuffer:          analysisInst.AnalysisMarginBuffer,
+				Model:                 analysisInst.AnalysisModel,
+				TokenOverflowStrategy: analysisInst.AnalysisTokenOverflowStrategy,
+				PromptReductionText: &PromptReductionText{
+					InPromptBody: analysisInst.AnalysisPrompt,
+				},
+			}
+			log.Info().Msg("analysis: running token overflow reduction")
 			var chunkIterator int
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp.Wsr.InputID).Get(chunkedTaskCtx, &chunkIterator)
+			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp, pr).Get(chunkedTaskCtx, &cp)
 			if err != nil {
-				logger.Error("failed to run analysis json", "Error", err)
+				logger.Error("failed to run analysis token overflow", "Error", err)
 				return err
 			}
+			chunkIterator = cp.Tc.ChunkIterator
+			log.Info().Int("chunkIterator", chunkIterator).Msg("analysis: chunkIterator")
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				cp.Wsr.ChunkOffset = chunkOffset
+				log.Info().Interface("chunkOffset", chunkOffset).Msg("analysis: chunkOffset")
 				switch analysisInst.AnalysisResponseFormat {
-				case jsonFormat, socialMediaExtractionResponseFormat:
+				case jsonFormat:
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 						WorkflowID:               oj.OrchestrationName + fmt.Sprintf("-analysis-%s-task-%d-chunk-%d", analysisInst.AnalysisResponseFormat, i, chunkOffset),
 						WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
@@ -135,10 +153,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						return err
 					}
 				}
+				logger.Info("analysis: len(evalFns)", len(analysisInst.AnalysisTaskDB.AnalysisEvalFns))
 				for ind, evalFn := range analysisInst.AnalysisTaskDB.AnalysisEvalFns {
 					if evalFn.EvalID == 0 {
 						continue
 					}
+					logger.Info("analysis: eval", evalFn.EvalID)
 					var evalAnalysisOnlyCycle int
 					if analysisInst.AggTaskID != nil {
 						evalAnalysisOnlyCycle = wfExecParams.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[*analysisInst.AggTaskID][analysisInst.AnalysisTaskID][evalFn.EvalID]
@@ -152,6 +172,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 							RetryPolicy:              ao.RetryPolicy,
 						}
 						cp.Tc.EvalID = evalFn.EvalID
+						log.Info().Msg("running analysis eval")
 						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiWorkflowAutoEvalProcess, cp).Get(childAnalysisCtx, nil)
 						if err != nil {
@@ -161,7 +182,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					}
 				}
 			}
+			log.Info().Msg("analysis: evalFns complete")
 		}
+		log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle done")
 	}
 	return nil
 }

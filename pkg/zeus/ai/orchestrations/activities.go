@@ -260,6 +260,19 @@ type RouteTask struct {
 	Headers   http.Header                          `json:"headers"`
 }
 
+func FixRegexInput(input string) string {
+	if len(input) > 0 {
+		// Check if the first character is a backtick and replace it with a double quote
+		if input[0] == '`' {
+			input = "\"" + input[1:]
+		}
+		// Check if the last character is a backtick and replace it with a double quote
+		if input[len(input)-1] == '`' {
+			input = input[:len(input)-1] + "\""
+		}
+	}
+	return input
+}
 func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r RouteTask, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	retInst := r.Retrieval
 	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
@@ -282,11 +295,27 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			restMethod = http.MethodGet
 		}
 	}
+	if r.Payload != nil {
+		rp, err := ReplaceParams(r.RouteInfo.RoutePath, r.Payload)
+		if err != nil {
+			log.Err(err).Msg("ApiCallRequestTask: failed to replace route path params")
+			return nil, err
+		}
+		r.RouteInfo.RoutePath = rp
+		if len(r.Payload) == 0 {
+			r.Payload = nil
+		}
+	}
 	var routeExt string
 	if retInst.WebFilters.EndpointREST != nil {
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 	}
 	secretNameRefApi := fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)
+
+	var regexPatterns []string
+	for _, rgp := range retInst.WebFilters.RegexPatterns {
+		regexPatterns = append(regexPatterns, FixRegexInput(rgp))
+	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:             r.RouteInfo.RoutePath,
@@ -294,8 +323,10 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		UserID:          r.Ou.UserID,
 		ExtRoutePath:    routeExt,
 		Payload:         r.Payload,
+		Payloads:        r.Payloads,
 		PayloadTypeREST: restMethod,
 		RequestHeaders:  r.Headers,
+		RegexFilters:    regexPatterns,
 		SecretNameRef:   secretNameRefApi,
 	}
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
@@ -313,18 +344,23 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		Body:       rr.Response,
 		RawMessage: rr.RawResponse,
 	}
+
 	value := ""
-	if wr.Body != nil {
+	if wr.Body != nil && wr.RawMessage == nil {
 		b, jer := json.Marshal(wr.Body)
 		if jer != nil {
 			log.Err(jer).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
 			return nil, jer
 		}
 		value = fmt.Sprintf("%s", b)
-	}
-	if wr.RawMessage != nil && wr.Body == nil {
+	} else if wr.RawMessage != nil && len(req.RegexFilters) > 0 {
+		value = fmt.Sprintf("%s", wr.RawMessage)
+		wr.RegexFilteredBody = value
+	} else if wr.Body != nil && wr.RawMessage != nil {
+		// todo & redundant
 		value = fmt.Sprintf("%s", wr.RawMessage)
 	}
+
 	sres := hera_search.SearchResult{
 		Source:      rr.Url,
 		Value:       value,
@@ -669,6 +705,13 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 				JsonResponseResults: res,
 			},
 		}
+		if cp.Tc.RetSearchResults != nil {
+			tmpText := ""
+			for _, sr := range cp.Tc.RetSearchResults {
+				tmpText += sr.Value
+			}
+			tmp.TextInput = aws.String(tmpText)
+		}
 		md, err = json.Marshal(tmp)
 		if err != nil {
 			log.Err(err).Interface("infoJsonResponses", infoJsonResponses).Interface("jro", jro).Msg("UpdateTaskOutput: failed")
@@ -681,6 +724,13 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
 				JsonResponseResults: res,
 			},
+		}
+		if cp.Tc.RetSearchResults != nil {
+			tmpText := ""
+			for _, sr := range cp.Tc.RetSearchResults {
+				tmpText += sr.Value
+			}
+			tmp.TextInput = aws.String(tmpText)
 		}
 		md, err = json.Marshal(tmp)
 		if err != nil {

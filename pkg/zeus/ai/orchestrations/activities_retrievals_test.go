@@ -25,7 +25,7 @@ func (t *ZeusWorkerTestSuite) TestApiCallRequestTask() {
 			RoutePath: aws.ToString(&tmp),
 		},
 	}
-	td, err := act.ApiCallRequestTask(ctx, r)
+	td, err := act.ApiCallRequestTask(ctx, r, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(td)
 }

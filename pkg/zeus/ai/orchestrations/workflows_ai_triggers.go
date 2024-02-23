@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -12,12 +13,12 @@ import (
 )
 
 type CreateTriggerActionsWorkflowInputs struct {
-	Emr                                *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
-	RunAiWorkflowAutoEvalProcessInputs *RunAiWorkflowAutoEvalProcessInputs        `json:"runAiWorkflowAutoEvalProcessInputs,omitempty"`
+	Emr *artemis_orchestrations.EvalMetricsResults `json:"emr,omitempty"`
 }
 
 const (
-	apiApproval = "api"
+	apiApproval  = "api"
+	apiRetrieval = "api-retrieval"
 )
 
 func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) error {
@@ -69,6 +70,8 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			logger.Error("failed to check eval trigger condition", "Error", err)
 			return err
 		}
+
+		log.Info().Msg("CreateTriggerActionsWorkflow: UpdateTaskOutput for trigger actions")
 		var payloadJsonSlice []artemis_orchestrations.JsonSchemaDefinition
 		updateTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 		err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, cp).Get(updateTaskCtx, &payloadJsonSlice)
@@ -81,6 +84,69 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			continue
 		}
 		switch ta.TriggerAction {
+		case apiRetrieval:
+			log.Info().Msg("CreateTriggerActionsWorkflow: UpdateTaskOutput for api retrieval starting")
+			var echoReqs []echo.Map
+			payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(payloadJsonSlice)
+			for _, m := range payloadMaps {
+				echoMap := echo.Map{}
+				for k, v := range m {
+					echoMap[k] = v
+				}
+				echoReqs = append(echoReqs, echoMap)
+			}
+			for ri, ret := range ta.TriggerRetrievals {
+				var rets []artemis_orchestrations.RetrievalItem
+				chunkedTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+				err = workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, cp.Ou, ret.RetrievalID).Get(chunkedTaskCtx, &rets)
+				if err != nil {
+					logger.Error("failed to run ret task", "Error", err)
+					return err
+				}
+				if len(rets) <= 0 {
+					continue
+				}
+				/*
+					1. get query params if/any from json payload in ext api call
+					2. call ret wf to get data
+					3. update task with results
+				*/
+				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+					WorkflowID:               cp.Oj.OrchestrationName + "-api-ret-" + strconv.Itoa(ri) + "-" + strconv.Itoa(cp.WfExecParams.WorkflowExecTimekeepingParams.CurrentCycleCount),
+					WorkflowExecutionTimeout: cp.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
+					RetryPolicy:              aoAiAct.RetryPolicy,
+				}
+				cp.Tc.Retrieval = rets[0]
+				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
+				cp.Tc.Retrieval.RetrievalPlatform = webPlatform
+				switch *ret.WebFilters.PayloadPreProcessing {
+				case "iterate":
+					for _, ple := range echoReqs {
+						cp.Tc.WebPayload = ple
+						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)
+						if err != nil {
+							logger.Error("failed to execute child retrieval workflow", "Error", err)
+							return err
+						}
+					}
+				case "bulk":
+					cp.Tc.WebPayload = echoReqs
+					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)
+					if err != nil {
+						logger.Error("failed to execute child retrieval workflow", "Error", err)
+						return err
+					}
+				}
+			}
+			updateTaskCtx = workflow.WithActivityOptions(ctx, aoAiAct)
+			err = workflow.ExecuteActivity(updateTaskCtx, z.UpdateTaskOutput, cp).Get(updateTaskCtx, nil)
+			if err != nil {
+				logger.Error("failed to update task", "Error", err)
+				return err
+			}
+			log.Info().Msg("CreateTriggerActionsWorkflow: UpdateTaskOutput for api retrieval complete")
 		case apiApproval:
 			/*
 					EvalTriggerState     string `db:"eval_trigger_state" json:"evalTriggerState"` // eg. info, filter, etc

@@ -49,11 +49,13 @@ type ApiProxyRequest struct {
 	Referrers            []string
 	QueryParams          url.Values
 	Payload              echo.Map
+	Payloads             []echo.Map
 	Response             echo.Map
 	RequestHeaders       http.Header
 	ResponseHeaders      http.Header
 	FinalResponseHeaders http.Header
 	RawResponse          []byte
+	RegexFilters         []string
 	StatusCode           int
 	IsInternal           bool
 	MaxTries             int

@@ -64,11 +64,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				return err
 			}
 		}
-		wfChildID := CreateExecAiWfId(oj.OrchestrationName + "-analysis-" + strconv.Itoa(i))
-		childParams := &MbChildSubProcessParams{WfID: wfChildID, Ou: ou, WfExecParams: wfExecParams, Oj: oj,
+		childParams := &MbChildSubProcessParams{WfID: oj.OrchestrationName + "-analysis-" + strconv.Itoa(i), Ou: ou, WfExecParams: wfExecParams, Oj: oj,
 			Wsr: artemis_orchestrations.WorkflowStageReference{
 				WorkflowRunID: oj.OrchestrationID,
-				ChildWfID:     CreateExecAiWfId(oj.OrchestrationName + "-analysis-" + strconv.Itoa(i)),
+				ChildWfID:     oj.OrchestrationName + "-analysis-" + strconv.Itoa(i),
 				RunCycle:      i,
 				ChunkOffset:   0,
 			}}
@@ -81,7 +80,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		}
 		logger.Info("RunAiWorkflowProcess: all child analysis workflow executed", "RunCycle", i)
 		// Execute child workflow for aggregation
-		wfAggChildID := CreateExecAiWfId(oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i))
+		wfAggChildID := oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i)
 		childAggAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 			WorkflowID:               wfAggChildID,
 			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,

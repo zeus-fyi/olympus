@@ -45,11 +45,18 @@ func (z *ZeusAiPlatformServiceWorkflows) TriggerActionsWorkflow(ctx workflow.Con
 		},
 	}
 
+	//fExec.WorkflowTemplate.WorkflowGroup, wfExec.WorkflowTemplate.WorkflowName,
+	wfExecParams := artemis_orchestrations.WorkflowExecParams{
+		WorkflowTemplate: artemis_orchestrations.WorkflowTemplate{
+			WorkflowName:  approvalTaskGroup.WfID,
+			WorkflowGroup: "ZeusAiPlatformServiceWorkflows",
+		},
+	}
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(approvalTaskGroup.Ou.OrgID, approvalTaskGroup.WfID, "ZeusAiPlatformServiceWorkflows", "TriggerActionsWorkflow")
-	alertCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
+	ojCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+	err := workflow.ExecuteActivity(ojCtx, z.UpsertAiOrchestration, approvalTaskGroup.Ou, approvalTaskGroup.WfID, wfExecParams).Get(ojCtx, &oj.OrchestrationID)
 	if err != nil {
-		logger.Error("failed to update ai trigger hil action", "Error", err)
+		logger.Error("failed to TriggerActionsWorkflow UpsertAiOrchestration", "Error", err)
 		return err
 	}
 	if approvalTaskGroup.RequestedState == requestRejectedState {

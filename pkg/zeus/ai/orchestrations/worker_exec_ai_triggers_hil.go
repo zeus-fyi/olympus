@@ -13,7 +13,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteTriggerActionsWorkflow(ctx context
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: z.TaskQueueName,
-		ID:        uuid.New().String(),
+		ID:        "TriggerActionsWorkflow-" + uuid.New().String(),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.TriggerActionsWorkflow

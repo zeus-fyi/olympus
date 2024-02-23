@@ -31,7 +31,7 @@ func InsertWorkflowStageReference(ctx context.Context, wfStageIO *WorkflowStageR
 	q.RawQuery = `
 			INSERT INTO public.ai_workflow_stage_references (input_id, workflow_run_id, child_wf_id, run_cycle, input_data, logs)
 			VALUES ($1, $2, $3, $4, $5, $6)
-			ON CONFLICT (input_id) DO UPDATE
+			ON CONFLICT (input_id, child_wf_id) DO UPDATE
 			SET input_data = EXCLUDED.input_data,
 				logs = EXCLUDED.logs
 			RETURNING input_id, input_id::text;

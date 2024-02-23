@@ -506,8 +506,10 @@ func validateMarginBufferLimits(marginBuffer float64) float64 {
 
 func GetModelTokenContextLimit(m string) int {
 	switch m {
-	case modelGpt4Vision, modelGpt4TurboPreview:
+	case modelGpt4Vision, modelGpt4TurboPreview, modelGpt4JanPreview:
 		return 128000
+	case modelGpt35JanPreview:
+		return 16385
 	case modelGpt4, modelGpt40613:
 		return 8192
 	case modelGpt432k, modelGpt432k0613:

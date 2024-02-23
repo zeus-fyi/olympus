@@ -32,10 +32,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	i := runCycle
 	for _, analysisInst := range wfExecParams.WorkflowTasks {
+		if analysisInst.AggTaskID != nil {
+			continue
+		}
+		log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle")
 		if runCycle%analysisInst.AnalysisCycleCount == 0 {
 			if md.AnalysisRetrievals[analysisInst.AnalysisTaskID] == nil {
 				continue
 			}
+			log.Info().Interface("taskID", analysisInst.AnalysisTaskID).Msg("analysis: taskID")
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime,
 				i-analysisInst.AnalysisCycleCount, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			cp.Window = window
@@ -99,6 +104,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			log.Info().Int("chunkIterator", chunkIterator).Msg("analysis: chunkIterator")
 			for chunkOffset := 0; chunkOffset < chunkIterator; chunkOffset++ {
 				cp.Wsr.ChunkOffset = chunkOffset
+				log.Info().Interface("chunkOffset", chunkOffset).Msg("analysis: chunkOffset")
 				switch analysisInst.AnalysisResponseFormat {
 				case jsonFormat:
 					childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
@@ -176,8 +182,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					}
 				}
 			}
-			logger.Info("analysis: evalFns complete")
+			log.Info().Msg("analysis: evalFns complete")
 		}
+		log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle done")
 	}
 	return nil
 }

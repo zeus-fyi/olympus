@@ -91,11 +91,9 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 			},
 		}
 		for _, d := range pr.DataInAnalysisAggregation {
-			if d.TextInput != nil {
-				pr = &PromptReduction{
-					PromptReductionText: &PromptReductionText{
-						InPromptBody: *d.TextInput,
-					},
+			if d.TextInput != nil && pr != nil {
+				pr.PromptReductionText = &PromptReductionText{
+					InPromptBody: *d.TextInput,
 				}
 			} else if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)

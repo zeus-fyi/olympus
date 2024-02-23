@@ -70,7 +70,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					continue
 				}
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               CreateExecAiWfId(oj.OrchestrationName + "-analysis-ret-" + strconv.Itoa(i)),
+					WorkflowID:               oj.OrchestrationName + "-analysis-ret-" + strconv.Itoa(i),
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					RetryPolicy:              ao.RetryPolicy,
 				}

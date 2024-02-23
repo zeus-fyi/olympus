@@ -73,7 +73,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 						FROM 
 							cte_a o 
 						JOIN
-								public.ai_workflow_analysis_results ai_res ON ai_res.orchestration_id = o.orchestration_id
+							public.ai_workflow_analysis_results ai_res ON ai_res.orchestration_id = o.orchestration_id
 						WHERE 
 							o.org_id = $1 
 						GROUP BY 								

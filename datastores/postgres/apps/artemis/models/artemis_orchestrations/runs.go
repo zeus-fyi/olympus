@@ -49,10 +49,13 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 							o.org_id
 						FROM 
 							public.ai_workflow_runs AS ar 
-					  JOIN
+					  	JOIN
 							public.orchestrations AS o ON o.orchestration_id = ar.orchestration_id
 						WHERE 
-							o.org_id = $1 
+							o.org_id = $1
+						ORDER BY
+							o.orchestration_id DESC
+						LIMIT 100
 					), cte_0 AS (
 						SELECT
 							o.orchestration_id,

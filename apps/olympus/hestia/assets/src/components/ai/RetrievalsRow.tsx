@@ -99,27 +99,27 @@ export const prettyPrintPromptJSON = (json: any): string => {
 
     } catch (error) {
         console.log('json:', json);
-        console.error('Error parsing or formatting JSON:', error);
-        return ''; // Return an empty string in case of error
+        console.error('Error parsing or formatting prettyPrintPromptJSON:', error);
+        return json; // Return an empty string in case of error
     }
 };
 
 
 export const prettyPrintPromptContentJSON = (json: any): string => {
+    console.log('prettyPrintPromptContentJSON:', json);
     try {
         // Check if the input is a string that needs to be parsed
         if (typeof json === 'string') {
             json = JSON.parse(json);
         }
-        // Check if json.content is undefined before proceeding
-        if (json.content === undefined) {
-            return ''; // Return an empty string if json.content is undefined
+        if (Array.isArray(json)) {
+            return JSON.stringify(json, null, 2);
+        } else {
+            return JSON.stringify(json.content, null, 2);
         }
-        return JSON.stringify(json.content, null, 2); // Directly stringify json.content with formatting
-
     } catch (error) {
-        console.error('Error parsing or formatting JSON:', error);
-        return ''; // Return an empty string in case of error
+        console.error('Error parsing or formatting prettyPrintPromptContentJSON:', error);
+        return json; // Return an empty string in case of error
     }
 };
 
@@ -129,9 +129,13 @@ export const prettyPrintJSON = (json: any): string => {
         if (typeof json === 'string') {
             json = JSON.parse(json);
         }
-        return JSON.stringify(json, null, 2)
+        if (Array.isArray(json)) {
+            return JSON.stringify(json, null, 2);
+        } else {
+            return JSON.stringify(json, null, 2);
+        }
     } catch (error) {
-        console.error('Error parsing or formatting JSON:', error);
-        return ''; // Return an empty string in case of error
+        console.error('Error parsing or formatting prettyPrintJSON:', error);
+        return json; // Return an empty string in case of error
     }
 };

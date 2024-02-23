@@ -91,10 +91,16 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 			},
 		}
 		for _, d := range pr.DataInAnalysisAggregation {
-			if d.TextInput != nil && pr != nil {
-				pr.PromptReductionText = &PromptReductionText{
-					InPromptBody: *d.TextInput,
+			if d.ChatCompletionQueryResponse != nil && pr != nil && d.ChatCompletionQueryResponse.RegexSearchResults != nil {
+				log.Info().Msg("TokenOverflowReduction: ChatCompletionQueryResponse.RegexSearchResults")
+				var inBody string
+				for _, sv := range d.ChatCompletionQueryResponse.RegexSearchResults {
+					inBody += sv.Value + "\n"
 				}
+				pr.PromptReductionText = &PromptReductionText{
+					InPromptBody: inBody,
+				}
+				pr.PromptReductionSearchResults = nil
 			} else if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
 				switch d.SearchResultGroup.PlatformName {
@@ -175,6 +181,9 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	}
 	if pr.PromptReductionText != nil {
 		log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Interface("pr.PromptReductionText.OutPromptChunks", len(pr.PromptReductionText.OutPromptChunks)).Msg("TokenOverflowReductionDone")
+	}
+	if pr.PromptReductionSearchResults != nil && (pr.PromptReductionSearchResults.OutSearchGroups == nil || len(pr.PromptReductionSearchResults.OutSearchGroups) <= 0) && pr.PromptReductionText != nil && len(pr.PromptReductionText.OutPromptChunks) > 0 {
+		pr.PromptReductionSearchResults = nil
 	}
 	if cp.Wsr.InputID > 0 && wioPtr != nil {
 		wioPtr.PromptReduction = pr

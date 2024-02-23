@@ -181,6 +181,7 @@ type ChatCompletionQueryResponse struct {
 	Response              openai.ChatCompletionResponse                  `json:"response"`
 	ResponseID            int                                            `json:"responseID,omitempty"`
 	ResponseTaskID        int                                            `json:"responseTaskID,omitempty"`
+	RegexSearchResults    []hera_search.SearchResult                     `json:"regexSearchResults,omitempty"`
 	FilteredSearchResults []hera_search.SearchResult                     `json:"filteredSearchResults,omitempty"`
 	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition  `json:"jsonResponseResults,omitempty"`
 }
@@ -221,8 +222,10 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 			}
 		}
 		content = sg.GetPromptBody()
+		log.Info().Interface("len(content)", len(content)).Msg("AiAggregateTask: content text")
 	}
 	if len(content) <= 0 || aggInst.AggPrompt == nil || aggInst.AggModel == nil || aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || len(*aggInst.AggPrompt) <= 0 {
+		log.Warn().Msg("AiAggregateTask: invalid content or aggInst")
 		return nil, nil
 	}
 	temp := 1.0

@@ -18,25 +18,25 @@ const (
 )
 
 type TaskContext struct {
-	TaskName                           string                               `json:"taskName"`
-	TaskType                           string                               `json:"taskType"`
-	Temperature                        float32                              `json:"temperature"`
-	MarginBuffer                       float64                              `json:"marginBuffer"`
-	Prompt                             string                               `json:"prompt,omitempty"`
-	TokenOverflowStrategy              string                               `json:"tokenOverflowStrategy"`
-	ResponseFormat                     string                               `json:"responseFormat"`
-	Model                              string                               `json:"model"`
-	EvalModel                          string                               `json:"evalModel"`
-	WorkflowResultID                   int                                  `json:"workflowResultID"`
-	TaskID                             int                                  `json:"taskID"`
-	EvalID                             int                                  `json:"evalID,omitempty"`
-	EvalResultID                       int                                  `json:"evalResultID,omitempty"`
-	ResponseID                         int                                  `json:"responseID,omitempty"`
-	WebPayload                         any                                  `json:"webPayload,omitempty"`
-	ChunkIterator                      int                                  `json:"chunkIterator"`
-	RetSearchResults                   []hera_search.SearchResult           `json:"searchResults,omitempty"`
-	Retrieval                          artemis_orchestrations.RetrievalItem `json:"retrieval,omitempty"`
-	ApiResponseResults                 []artemis_orchestrations.JsonSchemaDefinition
+	TaskName                           string                                                       `json:"taskName"`
+	TaskType                           string                                                       `json:"taskType"`
+	Temperature                        float32                                                      `json:"temperature"`
+	MarginBuffer                       float64                                                      `json:"marginBuffer"`
+	Prompt                             string                                                       `json:"prompt,omitempty"`
+	TokenOverflowStrategy              string                                                       `json:"tokenOverflowStrategy"`
+	ResponseFormat                     string                                                       `json:"responseFormat"`
+	Model                              string                                                       `json:"model"`
+	EvalModel                          string                                                       `json:"evalModel"`
+	WorkflowResultID                   int                                                          `json:"workflowResultID"`
+	TaskID                             int                                                          `json:"taskID"`
+	EvalID                             int                                                          `json:"evalID,omitempty"`
+	EvalResultID                       int                                                          `json:"evalResultID,omitempty"`
+	ResponseID                         int                                                          `json:"responseID,omitempty"`
+	WebPayload                         any                                                          `json:"webPayload,omitempty"`
+	ChunkIterator                      int                                                          `json:"chunkIterator"`
+	RegexSearchResults                 []hera_search.SearchResult                                   `json:"searchResults,omitempty"`
+	Retrieval                          artemis_orchestrations.RetrievalItem                         `json:"retrieval,omitempty"`
+	ApiResponseResults                 []hera_search.SearchResult                                   `json:"apiResponseResults,omitempty"`
 	TriggerActionsApproval             artemis_orchestrations.TriggerActionsApproval                `json:"triggerActionsApproval,omitempty"`
 	AIWorkflowTriggerResultApiResponse artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse `json:"aiWorkflowTriggerResultApiResponse,omitempty"`
 	EvalSchemas                        []*artemis_orchestrations.JsonSchemaDefinition               `json:"evalSchemas,omitempty"`
@@ -65,7 +65,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
-			BackoffCoefficient: 2.0,
+			BackoffCoefficient: 1.0,
 			MaximumInterval:    time.Minute * 10,
 			MaximumAttempts:    25,
 		},
@@ -107,17 +107,17 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 		}
 		err = workflow.ExecuteActivity(jsonTaskCtx, z.CreateJsonOutputModelResponse, mb, params).Get(jsonTaskCtx, &aiResp)
 		if err != nil {
+			log.Warn().Interface("attempt", attempt).Msg("JsonOutputTaskWorkflow: failed to run analysis json")
 			logger.Error("failed to run analysis json", "Error", err)
 			feedback = err
 			continue
 		}
 		wfa.ResponseID = aiResp.ResponseID
-		aiResp.WorkflowResultID = wfa.WorkflowResultID
+		if mb.Tc.WorkflowResultID > 0 {
+			wfa.WorkflowResultID = mb.Tc.WorkflowResultID
+		}
 		log.Info().Int("attempt", attempt).Interface("len(aiResp.JsonResponseResults)", len(aiResp.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 		if mb.Tc.EvalID > 0 {
-			if mb.Tc.WorkflowResultID > 0 {
-				wfa.WorkflowResultID = mb.Tc.WorkflowResultID
-			}
 			evrr := artemis_orchestrations.AIWorkflowEvalResultResponse{
 				EvalID:             mb.Tc.EvalID,
 				WorkflowResultID:   wfa.WorkflowResultID,
@@ -138,12 +138,11 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 			ia := InputDataAnalysisToAgg{
 				ChatCompletionQueryResponse: aiResp,
 			}
-			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, wfa, mb, ia).Get(recordTaskCtx, &aiResp.WorkflowResultID)
+			err = workflow.ExecuteActivity(recordTaskCtx, z.SaveTaskOutput, wfa, mb, ia).Get(recordTaskCtx, &mb.Tc.WorkflowResultID)
 			if err != nil {
 				logger.Error("failed to save task output", "Error", err)
 				return nil, err
 			}
-			mb.Tc.WorkflowResultID = aiResp.WorkflowResultID
 		}
 		break
 	}
@@ -156,5 +155,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	mb.Tc.JsonResponseResults = aiResp.JsonResponseResults
 	mb.Tc.Schemas = aiResp.Schemas
 	mb.Tc.ResponseID = aiResp.ResponseID
+
+	log.Info().Interface("wfResultID", mb.Tc.WorkflowResultID).Interface("respID", mb.Tc.ResponseID).Interface("len(mb.Tc.JsonResponseResults)", len(mb.Tc.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 	return mb, nil
 }

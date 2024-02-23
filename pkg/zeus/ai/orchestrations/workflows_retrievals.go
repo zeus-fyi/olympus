@@ -110,7 +110,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				return nil, err
 			}
 			if cp.Tc.Retrieval.WebFilters != nil && aws.ToString(cp.Tc.Retrieval.WebFilters.LbStrategy) != lbStrategyPollTable && cp.Wsr.InputID > 0 {
-				if cp.Tc.RetSearchResults != nil && len(cp.Tc.RetSearchResults) > 0 {
+				if len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 && (cp.Tc.RegexSearchResults != nil && len(cp.Tc.RegexSearchResults) > 0) {
+					break
+				} else if cp.Tc.ApiResponseResults != nil && len(cp.Tc.ApiResponseResults) > 0 {
 					break
 				}
 			}
@@ -164,8 +166,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					return nil, err
 				}
 				var fetchedResult hera_search.SearchResult
-				if cp.Tc.RetSearchResults != nil && len(cp.Tc.RetSearchResults) > 0 {
-					fetchedResult = cp.Tc.RetSearchResults[0]
+				if cp.Tc.ApiResponseResults != nil && len(cp.Tc.ApiResponseResults) > 0 {
+					fetchedResult = cp.Tc.ApiResponseResults[0]
 					if fetchedResult.WebResponse.Body == nil {
 						fetchedResult.WebResponse.Body = echo.Map{}
 					}

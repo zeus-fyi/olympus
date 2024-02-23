@@ -311,7 +311,6 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 	}
 	secretNameRefApi := fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)
-
 	var regexPatterns []string
 	for _, rgp := range retInst.WebFilters.RegexPatterns {
 		regexPatterns = append(regexPatterns, FixRegexInput(rgp))
@@ -704,13 +703,6 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 			ChatCompletionQueryResponse: &ChatCompletionQueryResponse{
 				JsonResponseResults: res,
 			},
-		}
-		if cp.Tc.RetSearchResults != nil {
-			tmpText := ""
-			for _, sr := range cp.Tc.RetSearchResults {
-				tmpText += sr.Value
-			}
-			tmp.TextInput = aws.String(tmpText)
 		}
 		md, err = json.Marshal(tmp)
 		if err != nil {

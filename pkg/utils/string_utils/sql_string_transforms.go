@@ -112,7 +112,6 @@ func DelimitedSliceStrBuilderSQLRows(prefix string, entries apps.RowEntries) str
 	for count, row := range entries.Rows {
 
 		sb.WriteString("(")
-		// fucck this bullshit
 
 		for i, val := range row {
 			switch val.(type) {

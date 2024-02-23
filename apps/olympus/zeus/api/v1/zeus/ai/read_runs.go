@@ -1,6 +1,7 @@
 package zeus_v1_ai
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -32,7 +33,7 @@ func (w *RunsActionsRequest) GetRuns(c echo.Context) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(c.Request().Context(), ou)
+	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(context.Background(), ou)
 	if err != nil {
 		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)

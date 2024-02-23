@@ -98,8 +98,8 @@ export const prettyPrintPromptJSON = (json: any): string => {
         }
 
     } catch (error) {
-        console.log('json:', json);
-        console.error('Error parsing or formatting prettyPrintPromptJSON:', error);
+        // console.log('json:', json);
+        // console.error('Error parsing or formatting prettyPrintPromptJSON:', error);
         return json; // Return an empty string in case of error
     }
 };

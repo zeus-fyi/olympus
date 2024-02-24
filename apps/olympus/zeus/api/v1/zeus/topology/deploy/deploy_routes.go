@@ -24,6 +24,7 @@ func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 	e.POST("/deploy/cluster", create_or_update_deploy.ClusterTopologyDeploymentHandler)
 	e.POST("/deploy", create_or_update_deploy.TopologyDeploymentHandler)
 	e.POST("/deploy/ui/app", create_or_update_deploy.SetupClusterTopologyDeploymentHandler)
+	e.POST("/deploy/app", create_or_update_deploy.SetupClusterTopologyDeploymentHandler)
 	e.POST("/deploy/clean/namespace", clean_deploy_request.TopologyCleanNamespaceHandler)
 	e.POST("/deploy/replace", deploy_updates.TopologyDeploymentReplaceHandler)
 	e.POST("/deploy/status", deployment_status.TopologyDeploymentStatusHandler)
@@ -31,12 +32,18 @@ func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 
 	// UPDATE
 	e.POST("/deploy/ui/update", deploy_updates.DeployUIClusterUpdateRequestHandler)
+
+	// single workload, uses header for cloudCtxNsID
 	e.POST("/deploy/ui/update/restart", deploy_updates.DeployUIClusterRolloutRestartRequestHandler)
+	e.POST("/deploy/update/restart", deploy_updates.DeployApiClusterRolloutRestartRequestHandler)
 
 	// Fleet Upgrades
 	e.POST("/deploy/ui/update/fleet", deploy_updates.FleetUpgradeRequestHandler)
+	e.POST("/deploy/update/fleet", deploy_updates.FleetUpgradeRequestHandler)
+
 	// Fleet restarts
 	e.POST("/deploy/ui/update/restart/fleet", deploy_updates.FleetRolloutRequestHandler)
+	e.POST("/deploy/update/restart/fleet", deploy_updates.FleetRolloutRequestHandler)
 
 	// DELETE
 	e.POST("/deploy/destroy", destroy_deploy_request.TopologyDestroyDeploymentHandler)

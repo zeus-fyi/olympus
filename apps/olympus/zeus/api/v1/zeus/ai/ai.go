@@ -12,7 +12,7 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 	e.POST("/search/indexer/actions", SearchIndexerActionsRequestHandler)
 
 	// schemas
-	e.GET("/schemas/ai", AiSchemaHHandler)
+	e.GET("/schemas/ai", AiSchemaHandler)
 	e.POST("/schemas/ai", AiSchemasHandler)
 
 	e.POST("/assistants/ai", CreateOrUpdateAssistantRequestHandler)

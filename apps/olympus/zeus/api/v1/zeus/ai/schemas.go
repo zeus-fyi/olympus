@@ -68,7 +68,7 @@ func CreateOrUpdateSchema(c echo.Context, js *artemis_orchestrations.JsonSchemaD
 type JsonSchemaDefinitionsReader struct {
 }
 
-func AiSchemaHHandler(c echo.Context) error {
+func AiSchemaHandler(c echo.Context) error {
 	request := new(JsonSchemaDefinitionsReader)
 	if err := c.Bind(request); err != nil {
 		return err
@@ -99,3 +99,38 @@ func GetSchemas(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, jsds)
 }
+
+//type GetSchemaRequest struct {
+//}
+//
+//func GetSchemaRequestHandler(c echo.Context) error {
+//	request := new(GetSchemaRequest)
+//	if err := c.Bind(request); err != nil {
+//		return err
+//	}
+//	// Extracting the :id parameter from the route
+//	idParam := c.Param("id")
+//	id, err := strconv.Atoi(idParam)
+//	if err != nil {
+//		log.Err(err).Msg("invalid ID parameter")
+//		return c.JSON(http.StatusBadRequest, "invalid ID parameter")
+//	}
+//	return request.GetSchemaByID(c, id)
+//}
+//
+//func (t *GetSchemaRequest) GetSchemaByID(c echo.Context, id int) error {
+//	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+//	if !ok {
+//		return c.JSON(http.StatusInternalServerError, nil)
+//	}
+//	if ou.OrgID <= 0 || ou.UserID <= 0 {
+//		return c.JSON(http.StatusInternalServerError, nil)
+//	}
+//
+//	ret, err := artemis_orchestrations.SelectJsonSchemaByOrg(c.Request().Context(), ou, id)
+//	if err != nil {
+//		log.Err(err).Msg("failed to get retrievals")
+//		return c.JSON(http.StatusInternalServerError, nil)
+//	}
+//	return c.JSON(http.StatusOK, ret)
+//}

@@ -13,15 +13,15 @@ import (
 )
 
 type JsonSchemaDefinition struct {
-	SchemaID          int               `db:"schema_id" json:"schemaID"`
-	SchemaStrID       string            `db:"-" json:"schemaStrID,omitempty"`
-	SchemaName        string            `db:"schema_name" json:"schemaName"`
-	SchemaGroup       string            `db:"schema_group" json:"schemaGroup"`
-	SchemaDescription string            `db:"schema_description" json:"schemaDescription"`
-	IsObjArray        bool              `db:"is_obj_array" json:"isObjArray"`
-	Fields            []JsonSchemaField `db:"-" json:"fields"`
-	FieldsMap         map[string]*JsonSchemaField
-	ScoredEvalMetrics []*EvalMetric `db:"-" json:"totalEvalMetrics,omitempty"`
+	SchemaID          int                         `db:"schema_id" json:"schemaID"`
+	SchemaStrID       string                      `db:"-" json:"schemaStrID,omitempty"`
+	SchemaName        string                      `db:"schema_name" json:"schemaName"`
+	SchemaGroup       string                      `db:"schema_group" json:"schemaGroup"`
+	SchemaDescription string                      `db:"schema_description" json:"schemaDescription"`
+	IsObjArray        bool                        `db:"is_obj_array" json:"isObjArray"`
+	Fields            []JsonSchemaField           `db:"-" json:"fields"`
+	FieldsMap         map[string]*JsonSchemaField `db:"-" json:"fieldsMap,omitempty"`
+	ScoredEvalMetrics []*EvalMetric               `db:"-" json:"totalEvalMetrics,omitempty"`
 }
 
 func ValidateSchemas(jss []JsonSchemaDefinition) bool {

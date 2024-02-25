@@ -10,18 +10,17 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
-type GetEvalsRequest struct {
+type GetRetrievalsRequest struct {
 }
 
-func GetEvalsRequestHandler(c echo.Context) error {
-	request := new(GetEvalsRequest)
+func GetRetrievalsRequestHandler(c echo.Context) error {
+	request := new(GetRetrievalsRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.GetEvalFns(c)
+	return request.GetRetrievals(c)
 }
-
-func (t *GetEvalsRequest) GetEvalFns(c echo.Context) error {
+func (t *GetRetrievalsRequest) GetRetrievals(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -30,31 +29,30 @@ func (t *GetEvalsRequest) GetEvalFns(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 
-	evalFns, err := artemis_orchestrations.SelectEvalFnsByOrgIDAndID(c.Request().Context(), ou, 0)
+	ret, err := artemis_orchestrations.SelectRetrievals(c.Request().Context(), ou, 0)
 	if err != nil {
-		log.Err(err).Msg("failed to get evals")
+		log.Err(err).Msg("failed to get retrievals")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, evalFns)
+	return c.JSON(http.StatusOK, ret)
 }
 
-func GetEvalRequestHandler(c echo.Context) error {
-	// Extracting the ID from the route parameter
+func GetRetrievalRequestHandler(c echo.Context) error {
+	request := new(GetRetrievalsRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	// Extracting the :id parameter from the route
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		log.Err(err).Msg("invalid ID parameter")
 		return c.JSON(http.StatusBadRequest, "invalid ID parameter")
 	}
-
-	request := new(GetEvalsRequest)
-	if err := c.Bind(request); err != nil {
-		return err
-	}
-	return request.GetEvalFn(c, id) // Pass the ID to the method
+	return request.GetRetrieval(c, id)
 }
 
-func (t *GetEvalsRequest) GetEvalFn(c echo.Context, id int) error {
+func (t *GetRetrievalsRequest) GetRetrieval(c echo.Context, id int) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -63,11 +61,10 @@ func (t *GetEvalsRequest) GetEvalFn(c echo.Context, id int) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 
-	// Use the provided ID in the SelectEvalFnsByOrgIDAndID call
-	evalFns, err := artemis_orchestrations.SelectEvalFnsByOrgIDAndID(c.Request().Context(), ou, id)
+	ret, err := artemis_orchestrations.SelectRetrievals(c.Request().Context(), ou, id)
 	if err != nil {
-		log.Err(err).Msg("failed to get evals")
+		log.Err(err).Msg("failed to get retrievals")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, evalFns)
+	return c.JSON(http.StatusOK, ret)
 }

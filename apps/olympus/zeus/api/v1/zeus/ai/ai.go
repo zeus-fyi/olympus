@@ -20,12 +20,16 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 	e.GET("/entities/ai", SelectEntitiesRequestHandler)
 	e.POST("/entities/ai", CreateOrUpdateEntitiesRequestHandler)
 
-	// tasks
+	e.GET("/task/ai/:id", GetTaskRequestHandler)
 	e.GET("/tasks/ai", GetTasksRequestHandler)
 	e.POST("/tasks/ai", CreateOrUpdateTaskRequestHandler)
 
+	e.GET("/evals/ai/:id", GetEvalRequestHandler)
 	e.GET("/evals/ai", GetEvalsRequestHandler)
 	e.POST("/evals/ai", CreateOrUpdateEvalsRequestHandler)
+
+	e.GET("/retrievals/ai", GetRetrievalsRequestHandler)
+	e.GET("/retrieval/ai/:id", GetRetrievalRequestHandler)
 
 	e.POST("/retrievals/ai", CreateOrUpdateRetrievalRequestHandler)
 

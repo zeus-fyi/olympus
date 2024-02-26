@@ -48,7 +48,7 @@ func GetEvalRequestHandler(c echo.Context) error {
 	}
 
 	request := new(GetEvalsRequest)
-	if err := c.Bind(request); err != nil {
+	if err = c.Bind(request); err != nil {
 		return err
 	}
 	return request.GetEvalFn(c, id) // Pass the ID to the method

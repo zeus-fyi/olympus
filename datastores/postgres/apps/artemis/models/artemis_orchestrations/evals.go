@@ -45,10 +45,10 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
             eval_group_name = EXCLUDED.eval_group_name,
             eval_model = EXCLUDED.eval_model,
             eval_format = EXCLUDED.eval_format
-        RETURNING eval_id;`
+        RETURNING eval_id, eval_id::text;`
 	err = tx.QueryRow(ctx, evalFnInsertOrUpdateQuery, evalFn.EvalID, evalFn.OrgID,
 		evalFn.UserID, evalFn.EvalName, evalFn.EvalType, evalFn.EvalGroupName,
-		evalFn.EvalModel, evalFn.EvalFormat).Scan(&evalFn.EvalID)
+		evalFn.EvalModel, evalFn.EvalFormat).Scan(&evalFn.EvalID, &evalFn.EvalStrID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert or update eval_fns")
 		return err

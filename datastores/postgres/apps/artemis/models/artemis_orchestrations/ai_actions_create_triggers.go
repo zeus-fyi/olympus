@@ -35,7 +35,7 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
             trigger_action = EXCLUDED.trigger_action,
             trigger_group = EXCLUDED.trigger_group,
         	expires_after_seconds = EXCLUDED.expires_after_seconds
-        RETURNING trigger_id;`
+        RETURNING trigger_id, trigger_id::text;`
 
 	if trigger.TriggerExpirationDuration > 0 && trigger.TriggerExpirationTimeUnit != "" {
 		trigger.TriggerExpiresAfterSeconds = CalculateStepSizeUnix(int(trigger.TriggerExpirationDuration), trigger.TriggerExpirationTimeUnit)
@@ -44,12 +44,12 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 	}
 	err = tx.QueryRow(ctx, q.RawQuery, ou.OrgID, ou.UserID, trigger.TriggerName,
 		trigger.TriggerGroup, trigger.TriggerAction, trigger.TriggerExpiresAfterSeconds,
-	).Scan(&trigger.TriggerID)
+	).Scan(&trigger.TriggerID, &trigger.TriggerStrID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert ai trigger action")
 		return err
 	}
-	for _, eta := range trigger.EvalTriggerActions {
+	for ein, eta := range trigger.EvalTriggerActions {
 		q.RawQuery = `
             INSERT INTO public.ai_trigger_eval(trigger_id, eval_trigger_state, eval_results_trigger_on)
             VALUES ($1, $2, $3)
@@ -62,7 +62,7 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 			log.Err(err).Msg("failed to insert eval trigger action")
 			return err
 		}
-		if eta.EvalID != 0 {
+		if eta.EvalID != 0 || eta.EvalStrID != "" {
 			if eta.EvalStrID != "" {
 				ei, aerr := strconv.Atoi(eta.EvalStrID)
 				if aerr != nil {
@@ -70,6 +70,7 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 					return aerr
 				}
 				eta.EvalID = ei
+				trigger.EvalTriggerActions[ein].EvalID = ei
 			}
 
 			q.RawQuery = `

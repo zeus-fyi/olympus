@@ -50,6 +50,9 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 		return err
 	}
 	for ein, eta := range trigger.EvalTriggerActions {
+		if eta.EvalResultsTriggerOn == "" || eta.EvalTriggerState == "" {
+			continue
+		}
 		q.RawQuery = `
             INSERT INTO public.ai_trigger_eval(trigger_id, eval_trigger_state, eval_results_trigger_on)
             VALUES ($1, $2, $3)

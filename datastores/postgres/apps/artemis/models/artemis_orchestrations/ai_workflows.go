@@ -94,9 +94,26 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 		log.Err(err).Msg("failed to insert workflow template")
 		return err
 	}
-	for _, at := range tasks.AnalysisOnlyTasks {
+	for i, at := range tasks.AnalysisOnlyTasks {
 		// Link component to the workflow template
-		for _, rd := range at.RetrievalDependencies {
+		if at.TaskID == 0 && at.TaskStrID != "" {
+			at.TaskID, err = strconv.Atoi(at.TaskStrID)
+			if err != nil {
+				log.Err(err).Msg("failed to parse int")
+				return err
+			}
+			tasks.AnalysisOnlyTasks[i].TaskID = at.TaskID
+		}
+		for ir, rd := range at.RetrievalDependencies {
+			if aws.ToInt(rd.RetrievalID) == 0 && aws.ToString(rd.RetrievalStrID) != "" {
+				rid, rerr := strconv.Atoi(aws.ToString(rd.RetrievalStrID))
+				if rerr != nil {
+					log.Err(rerr).Msg("failed to parse int")
+					return rerr
+				}
+				rd.RetrievalID = aws.Int(rid)
+				at.RetrievalDependencies[ir].RetrievalID = aws.Int(rid)
+			}
 			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_analysis_tasks(workflow_template_id, task_id, retrieval_id, cycle_count)
 										VALUES ($1, $2, $3, $4)
 										ON CONFLICT (workflow_template_id, task_id, retrieval_id)

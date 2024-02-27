@@ -2,7 +2,9 @@ package artemis_orchestrations
 
 import (
 	"context"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
@@ -58,7 +60,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 				if metric == nil {
 					continue
 				}
-				if metric.EvalMetricID == nil {
+				if metric.EvalMetricID == nil || aws.ToInt(metric.EvalMetricID) == 0 {
 					tv := ts.UnixTimeStampNow()
 					metric.EvalMetricID = &tv
 				}
@@ -99,7 +101,15 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 			}
 		}
 	}
-	for _, eta := range evalFn.TriggerActions {
+	for ei, eta := range evalFn.TriggerActions {
+		if eta.TriggerStrID != "" {
+			eta.TriggerID, err = strconv.Atoi(eta.TriggerStrID)
+			if err != nil {
+				log.Err(err).Msg("failed to parse int")
+				return err
+			}
+			evalFn.TriggerActions[ei].TriggerID = eta.TriggerID
+		}
 		for _, evTrig := range eta.EvalTriggerActions {
 			query := `
             INSERT INTO ai_trigger_actions_evals(eval_id, trigger_id)

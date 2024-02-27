@@ -168,7 +168,15 @@ func InsertWorkflowWithComponents(ctx context.Context, ou org_users.OrgUser, wor
 	for _, aggTask := range tasks.AggTasks {
 		// Link aggregation tasks to eval functions
 
-		for _, aggt := range aggTask.Tasks {
+		for ai, aggt := range aggTask.Tasks {
+			if aggt.TaskID == 0 && aggt.TaskStrID != "" {
+				aggt.TaskID, err = strconv.Atoi(aggt.TaskStrID)
+				if err != nil {
+					log.Err(err).Msg("failed to parse int")
+					return err
+				}
+				aggTask.Tasks[ai].TaskID = aggt.TaskID
+			}
 			err = tx.QueryRow(ctx, `INSERT INTO ai_workflow_template_agg_tasks(agg_task_id, workflow_template_id, analysis_task_id, cycle_count)
 											VALUES ($1, $2, $3, $4)
 											ON CONFLICT (workflow_template_id, agg_task_id, analysis_task_id)

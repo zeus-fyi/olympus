@@ -10,7 +10,17 @@ func (s *OrchestrationsTestSuite) TestSelectRuns() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-	ojs, err := SelectAiSystemOrchestrations(ctx, ou)
+	ojs, err := SelectAiSystemOrchestrations(ctx, ou, 0)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(ojs)
+}
+
+func (s *OrchestrationsTestSuite) TestSelectRun() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	ojs, err := SelectAiSystemOrchestrations(ctx, ou, 1709076571395743000)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(ojs)
 }

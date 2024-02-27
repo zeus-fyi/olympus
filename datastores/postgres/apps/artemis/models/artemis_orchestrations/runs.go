@@ -34,9 +34,16 @@ type OrchestrationsAnalysis struct {
 	artemis_autogen_bases.Orchestrations `json:"orchestration,omitempty"`
 }
 
-func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]OrchestrationsAnalysis, error) {
+func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid int) ([]OrchestrationsAnalysis, error) {
 	var ojs []OrchestrationsAnalysis
 	q := sql_query_templates.QueryParams{}
+	args := []interface{}{ou.OrgID}
+
+	queryByRunID := ""
+	if rid > 0 {
+		queryByRunID = " AND ar.workflow_run_id = $2"
+		args = append(args, rid)
+	}
 
 	// uses main for unique id, so type == real name for related workflow
 	q.RawQuery = `WITH cte_a AS (
@@ -52,7 +59,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 					  	JOIN
 							public.orchestrations AS o ON o.orchestration_id = ar.orchestration_id
 						WHERE 
-							o.org_id = $1
+							o.org_id = $1 ` + queryByRunID + ` 
 						ORDER BY
 							o.orchestration_id DESC
 						LIMIT 100
@@ -217,7 +224,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser) ([]
 							  ORDER BY ca.orchestration_id DESC;`
 
 	log.Debug().Interface("SelectSystemOrchestrationsWithInstructionsByGroup", q.LogHeader(Orchestrations))
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, ou.OrgID)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, args...)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return nil, err
 	}

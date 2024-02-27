@@ -34,7 +34,7 @@ func (w *RunsActionsRequest) GetRuns(c echo.Context) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(context.Background(), ou)
+	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(context.Background(), ou, 0)
 	if err != nil {
 		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -75,7 +75,7 @@ func (w *GetRunsActionsRequest) GetRun(c echo.Context, id int) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(context.Background(), ou)
+	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(context.Background(), ou, 0)
 	if err != nil {
 		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)

@@ -28,7 +28,7 @@ func (s *OrchestrationsTestSuite) TestSelectAiSystemOrchestrationsWithInstructio
 	// get internal assignments
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
-	ojs, err := SelectAiSystemOrchestrations(ctx, ou)
+	ojs, err := SelectAiSystemOrchestrations(ctx, ou, 0)
 	s.Require().Nil(err)
 	fmt.Println(ojs)
 }

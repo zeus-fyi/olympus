@@ -31,7 +31,7 @@ func InsertOrUpdateEvalFnWithMetrics(ctx context.Context, ou org_users.OrgUser, 
 		}
 	}
 	ts := chronos.Chronos{}
-	if evalFn.EvalID == nil {
+	if evalFn.EvalID == nil || aws.ToInt(evalFn.EvalID) == 0 {
 		tv := ts.UnixTimeStampNow()
 		evalFn.EvalID = &tv
 	}

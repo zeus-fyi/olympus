@@ -1,6 +1,7 @@
 package zeus_v1_ai
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -48,6 +49,7 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
 
+	var rid int
 	if w.CustomBasePeriod && w.CustomBasePeriodStepSize > 0 && w.CustomBasePeriodStepSizeUnit != "" {
 		for i, _ := range w.Workflows {
 			w.Workflows[i].FundamentalPeriod = w.CustomBasePeriodStepSize
@@ -117,7 +119,7 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			if isCycleStepped {
 				resp[ri].WorkflowExecTimekeepingParams.RunCycles = w.Duration
 			}
-			err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
+			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")
 				return c.JSON(http.StatusInternalServerError, nil)
@@ -125,7 +127,6 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		}
 	case "stop":
 		// do y
-
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, fmt.Sprintf("%d", rid))
 }

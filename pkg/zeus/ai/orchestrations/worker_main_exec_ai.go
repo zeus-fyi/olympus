@@ -14,7 +14,7 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowProcess(ctx context.Context, ou org_users.OrgUser, params artemis_orchestrations.WorkflowExecParams) error {
+func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowProcess(ctx context.Context, ou org_users.OrgUser, params artemis_orchestrations.WorkflowExecParams) (int, error) {
 	tc := z.ConnectTemporalClient()
 	defer tc.Close()
 	wfID := CreateExecAiWfId(params.WorkflowTemplate.WorkflowName)
@@ -27,17 +27,23 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowProcess(ctx context.C
 		// Check if the workflow is in a running state.
 		if resp.WorkflowExecutionInfo.Status == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 			log.Warn().Msg("ExecuteRunAiWorkflowProcess: workflow already running")
-			return nil
+			return -1, nil
 		}
 	}
+	id, err := artemis_orchestrations.UpsertAiOrchestration(ctx, ou, wfID, params)
+	if err != nil {
+		log.Err(err).Msg("UpsertAiOrchestration: activity failed")
+		return -1, err
+	}
+	fmt.Println("UpsertAiOrchestration: activity succeeded", id)
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.RunAiWorkflowProcess
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, wfID, ou, params)
+	_, err = tc.ExecuteWorkflow(ctx, workflowOptions, wf, wfID, ou, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteRunAiWorkflowProcess")
-		return err
+		return -1, err
 	}
-	return err
+	return id, err
 }
 
 func (z *ZeusAiPlatformServicesWorker) EarlyStart(ctx context.Context, orchestrationName string) error {

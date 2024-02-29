@@ -120,7 +120,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
 				cp.Tc.Retrieval.RetrievalPlatform = webPlatform
 				switch *ret.WebFilters.PayloadPreProcessing {
-				case "iterate":
+				case "iterate", "iterate-qp-only":
 					for _, ple := range echoReqs {
 						cp.Tc.WebPayload = ple
 						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
@@ -169,7 +169,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				var apiTrgs []*artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse
 				if ret.WebFilters != nil && ret.WebFilters.PayloadPreProcessing != nil && len(payloadMaps) > 0 {
 					switch *ret.WebFilters.PayloadPreProcessing {
-					case "iterate":
+					case "iterate", "iterate-qp-only":
 						for _, ple := range echoReqs {
 							trrr := &artemis_orchestrations.AIWorkflowTriggerResultApiReqResponse{
 								TriggerID:   ta.TriggerID,

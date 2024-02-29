@@ -2806,7 +2806,8 @@ function WorkflowEngineBuilder(props: any) {
                                                                             dispatch(setRetrieval(updatedRetrieval));
                                                                         }}
                                                                     >
-                                                                        <MenuItem value="iterate">Send Each Element Separately</MenuItem>
+                                                                        <MenuItem value="iterate">Iterate Each Element Separately</MenuItem>
+                                                                        <MenuItem value="iterate-qp-only">Iterate Matched Query Params Only</MenuItem>
                                                                         <MenuItem value="bulk">Send Entire Payload</MenuItem>
                                                                     </Select>
                                                                 </FormControl>

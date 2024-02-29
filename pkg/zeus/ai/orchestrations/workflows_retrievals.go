@@ -93,7 +93,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					if len(em) == 0 {
 						em = nil
 					}
-					rt.Payload = em
+					if "iterate-qp-only" == aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing) {
+						rt.Payload = nil
+					} else {
+						rt.Payload = em
+					}
 				}
 				rt.Retrieval = cp.Tc.Retrieval
 				ems, ok := cp.Tc.WebPayload.([]map[string]interface{})

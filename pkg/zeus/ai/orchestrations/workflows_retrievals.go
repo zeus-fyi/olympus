@@ -152,11 +152,14 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					}
 				}
 				// test others first
-				//route.RoutePath, err = ReplaceParams(route.RoutePath, payload)
-				//if err != nil {
-				//	logger.Error("failed to replace route path params", "Error", err)
-				//	return nil, err
-				//}
+				route.RoutePath, err = ReplaceParams(route.RoutePath, payload)
+				if err != nil {
+					logger.Error("failed to replace route path params", "Error", err)
+					return nil, err
+				}
+				if cp.Tc.Retrieval.WebFilters != nil && "iterate-qp-only" == aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing) {
+					payload = nil
+				}
 				rt := RouteTask{
 					Ou:        cp.Ou,
 					Retrieval: cp.Tc.Retrieval,

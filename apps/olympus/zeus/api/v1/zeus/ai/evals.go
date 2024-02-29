@@ -44,6 +44,8 @@ func (t *CreateOrUpdateEvalsRequest) CreateOrUpdateEval(c echo.Context) error {
 		log.Err(err).Msg("failed to insert evals")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	t.OrgID = 0
+	t.UserID = 0
 	return c.JSON(http.StatusOK, t.EvalFn)
 }
 

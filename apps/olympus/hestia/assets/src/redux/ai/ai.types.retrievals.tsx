@@ -39,6 +39,7 @@ export interface WebFilters {
     endpointREST?: string;
     payloadPreProcessing?: string;
     regexPatterns?: string[];
+    payloadKeys?: string[];
 }
 
 export interface Retrieval {

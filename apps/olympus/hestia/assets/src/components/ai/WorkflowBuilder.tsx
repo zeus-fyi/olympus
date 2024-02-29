@@ -163,7 +163,44 @@ function WorkflowEngineBuilder(props: any) {
     const selectedAnalysisForRetrieval = useSelector((state: any) => state.ai.selectedAnalysisForRetrieval);
     const selectedRetrievalForAnalysis = useSelector((state: any) => state.ai.selectedRetrievalForAnalysis);
     const [regexStr, setRegexStr] = useState('');
+    const [payloadKey, setPayloadKey] = useState('');
 
+    const handleAddPayloadKey = () => {
+        if (payloadKey.length <= 0) {
+            return;
+        }
+        const currentPatterns = retrieval.retrievalItemInstruction.webFilters?.payloadKeys;
+        let payloadKeysArr = Array.isArray(currentPatterns) ? [...currentPatterns] : [];
+        payloadKeysArr.push(payloadKey); // Add an empty string as a placeholder for new input
+        const updatedRetrieval = {
+            ...retrieval,
+            retrievalItemInstruction: {
+                ...retrieval.retrievalItemInstruction,
+                webFilters: {
+                    ...retrieval.retrievalItemInstruction.webFilters,
+                    payloadKeys: payloadKeysArr, // Correctly update the selection
+                }
+            }
+        }
+        setPayloadKey('')
+        dispatch(setRetrieval(updatedRetrieval));
+    };
+    const handleRemovePayloadKey = (index: number) => {
+        let payloadKeys = retrieval.retrievalItemInstruction.webFilters?.payloadKeys || [];
+        payloadKeys = Array.isArray(payloadKeys) ? [...payloadKeys] : [];
+        payloadKeys.splice(index, 1); // Remove the selected index
+        const updatedRetrieval = {
+            ...retrieval,
+            retrievalItemInstruction: {
+                ...retrieval.retrievalItemInstruction,
+                webFilters: {
+                    ...retrieval.retrievalItemInstruction.webFilters,
+                    payloadKeys: payloadKeys, // Correctly update the selection
+                }
+            }
+        }
+        dispatch(setRetrieval(updatedRetrieval));
+    };
     const handleAddRegex = () => {
         if (regexStr.length <= 0) {
             return;
@@ -2813,11 +2850,52 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </FormControl>
                                                             </Box>
                                                         </Stack>
-                                                        <Typography variant="h6" color="text.secondary">
-                                                            Use Python-style regex notation: r'{`https?://[^\s<>"]+|www\.[^\s<>"]+`}'
-                                                        </Typography>
+                                                        <Box sx={{ mb: 0, ml: 0, mr: 0, mt: 1 }}>
+                                                            <Typography variant="h6" color="text.secondary">
+                                                                Specify payload keys. This will filter out any keys that are not specified here before sending the payload to the endpoint.
+                                                            </Typography>
+                                                        </Box>
                                                         <Stack direction="row">
-                                                        <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 1}}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="key-input"
+                                                                    label="Payload Key"
+                                                                    variant="outlined"
+                                                                    value={payloadKey}
+                                                                    onChange={(event) => setPayloadKey(event.target.value)} // Inline function for handling change
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 3}}>
+                                                                <Button onClick={handleAddPayloadKey} variant="contained">Add Key</Button>
+                                                            </Box>
+                                                        </Stack>
+                                                        {retrieval.retrievalItemInstruction.webFilters && Array.isArray(retrieval.retrievalItemInstruction.webFilters.payloadKeys) && retrieval.retrievalItemInstruction.webFilters.payloadKeys.map((pattern, index) => (
+                                                            <Stack direction="row">
+                                                                <Box key={index} flexGrow={1} sx={{ mb: 1, ml: 0, mr: 0, mt: 2 }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id={`key-${index}`}
+                                                                        label={`Key ${index + 1}`}
+                                                                        variant="outlined"
+                                                                        value={pattern}
+                                                                        InputProps={{
+                                                                            readOnly: true,
+                                                                        }}
+                                                                    />
+                                                                </Box>
+                                                                <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 3}}>
+                                                                    <Button variant="contained" color="error" onClick={() => handleRemovePayloadKey(index)}>Remove</Button>
+                                                                </Box>
+                                                            </Stack>
+                                                        ))}
+                                                        <Box sx={{ mb: 0, ml: 0, mr: 0, mt: 1 }}>
+                                                            <Typography variant="h6" color="text.secondary">
+                                                                Use Python-style regex notation: r'{`https?://[^\s<>"]+|www\.[^\s<>"]+`}'
+                                                            </Typography>
+                                                        </Box>
+                                                        <Stack direction="row">
+                                                        <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 1}}>
                                                             <TextField
                                                                 fullWidth
                                                                 id="regex-patterns-input"

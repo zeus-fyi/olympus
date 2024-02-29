@@ -23,6 +23,10 @@ const (
 	lbStrategyRoundRobin = "round-robin"
 )
 
+const (
+	iterateQpOnly = "iterate-qp-only"
+)
+
 func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	if cp == nil {
 		err := fmt.Errorf("wsr is nil")
@@ -93,7 +97,14 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 					if len(em) == 0 {
 						em = nil
 					}
-					if "iterate-qp-only" == aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing) {
+					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
+						nem := make(map[string]interface{})
+						for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
+							nem[key] = em[key]
+						}
+						em = nem
+					}
+					if iterateQpOnly == aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing) {
 						rt.Payload = nil
 					} else {
 						rt.Payload = em
@@ -138,6 +149,17 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			var payload echo.Map
 			if i < len(cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads) {
 				payload = cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads[i]
+			}
+			if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && payload != nil {
+				nem := make(map[string]bool)
+				for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
+					nem[key] = true
+				}
+				for k, _ := range payload {
+					if _, ok := nem[k]; !ok {
+						delete(payload, k)
+					}
+				}
 			}
 			for _, route := range routes {
 				if strings.HasPrefix(route.RoutePath, "https://api.twitter.com/2") {

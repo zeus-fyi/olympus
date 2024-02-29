@@ -45,6 +45,7 @@ type WebFilters struct {
 	EndpointREST         *string  `json:"endpointREST,omitempty"`
 	PayloadPreProcessing *string  `json:"payloadPreProcessing,omitempty"`
 	RegexPatterns        []string `json:"regexPatterns,omitempty"`
+	PayloadKeys          []string `json:"payloadKeys,omitempty"`
 }
 
 type DiscordFilters struct {

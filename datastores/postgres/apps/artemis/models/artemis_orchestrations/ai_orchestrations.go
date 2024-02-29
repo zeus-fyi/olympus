@@ -123,6 +123,8 @@ func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, window 
 		wf.WorkflowTemplateStrID = wfTimeParams.WorkflowTemplate.WorkflowTemplateStrID
 		wf.WorkflowGroup = wfTimeParams.WorkflowTemplate.WorkflowGroup
 		wf.WorkflowName = wfTimeParams.WorkflowTemplate.WorkflowName
+		wf.FundamentalPeriod = wfTimeParams.WorkflowTemplate.FundamentalPeriod
+		wf.FundamentalPeriodTimeUnit = wfTimeParams.WorkflowTemplate.FundamentalPeriodTimeUnit
 		wfTimeParams.WorkflowTemplate = wf
 		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime = window.UnixStartTime
 		wfTimeParams.WorkflowExecTimekeepingParams.RunWindow.Start = time.Unix(int64(window.UnixStartTime), 0)

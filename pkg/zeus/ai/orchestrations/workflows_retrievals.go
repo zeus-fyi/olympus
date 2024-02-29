@@ -113,6 +113,19 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				rt.Retrieval = cp.Tc.Retrieval
 				ems, ok := cp.Tc.WebPayload.([]map[string]interface{})
 				if ok {
+					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
+						nem := make(map[string]bool)
+						for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
+							nem[key] = true
+						}
+						for _, emv := range ems {
+							for k, _ := range emv {
+								if _, bok := nem[k]; !bok {
+									delete(emv, k)
+								}
+							}
+						}
+					}
 					for _, emv := range ems {
 						rt.Payloads = append(rt.Payloads, emv)
 					}
@@ -144,22 +157,23 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		count := len(cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads)
 		if count <= 0 {
 			count = 1
+		} else if count > 0 && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.PayloadKeys != nil {
+			nem := make(map[string]bool)
+			for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
+				nem[key] = true
+			}
+			for ind, pl := range cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads {
+				for k, _ := range pl {
+					if _, ok := nem[k]; !ok {
+						delete(cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads[ind], k)
+					}
+				}
+			}
 		}
 		for i := 0; i < count; i++ {
 			var payload echo.Map
 			if i < len(cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads) {
 				payload = cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads[i]
-			}
-			if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && payload != nil {
-				nem := make(map[string]bool)
-				for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
-					nem[key] = true
-				}
-				for k, _ := range payload {
-					if _, ok := nem[k]; !ok {
-						delete(payload, k)
-					}
-				}
 			}
 			for _, route := range routes {
 				if strings.HasPrefix(route.RoutePath, "https://api.twitter.com/2") {

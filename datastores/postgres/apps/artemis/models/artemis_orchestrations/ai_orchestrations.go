@@ -277,7 +277,7 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 	}
 	wf.WorkflowTemplateStrID = wfValue.WorkflowTemplateStrID
 	wf.WorkflowTemplateID = wfValue.WorkflowTemplateID
-
+	wf.WorkflowGroup = wfValue.WorkflowGroup
 	wte := WorkflowExecParams{
 		WorkflowTemplate: wf,
 		WorkflowExecTimekeepingParams: WorkflowExecTimekeepingParams{

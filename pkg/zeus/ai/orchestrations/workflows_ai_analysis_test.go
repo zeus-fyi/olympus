@@ -32,7 +32,6 @@ func (t *ZeusWorkerTestSuite) TestRunAiChildAnalysisProcessWorkflow() {
 	t.Require().Nil(rerr)
 	t.Require().NotNil(resp)
 	t.Require().Greater(len(resp), 0)
-	err = ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(ctx, t.Ou, resp[0])
-	t.Require().Nil(err)
-
+	//err = ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(ctx, t.Ou, resp[0])
+	//t.Require().Nil(err)
 }

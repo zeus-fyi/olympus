@@ -271,6 +271,13 @@ func ConvertTemplateValuesToWorkflowTemplateData(wf WorkflowTemplate, wfValue Wo
 			analysisEvalNormalizedCycles[analysisTask.AnalysisTaskID][evalFn.EvalID] = evalFn.EvalCycleCount * analysisTask.AnalysisCycleCount
 		}
 	}
+	if wf.FundamentalPeriod == 0 {
+		wf.FundamentalPeriod = wfValue.FundamentalPeriod
+		wf.FundamentalPeriodTimeUnit = wfValue.FundamentalPeriodTimeUnit
+	}
+	wf.WorkflowTemplateStrID = wfValue.WorkflowTemplateStrID
+	wf.WorkflowTemplateID = wfValue.WorkflowTemplateID
+
 	wte := WorkflowExecParams{
 		WorkflowTemplate: wf,
 		WorkflowExecTimekeepingParams: WorkflowExecTimekeepingParams{

@@ -110,28 +110,28 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 				return pr, rrr
 			}
 			switch pr.PayloadTypeREST {
-			case "GET":
+			case "GET", "get":
 				resp, rerr := rc.GetRedditReq(ctx, pr.ExtRoutePath, &pr.Response, pr.QueryParams)
 				if rerr != nil {
 					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to get reddit request")
 					return pr, rerr
 				}
 				return pr, nil
-			case "POST":
+			case "POST", "post":
 				resp, rerr := rc.PostRedditReq(ctx, pr.ExtRoutePath, pr.Payload, &pr.Response)
 				if rerr != nil {
 					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to post reddit request")
 					return pr, rerr
 				}
 				return pr, nil
-			case "PUT":
+			case "PUT", "put":
 				resp, rerr := rc.PutRedditReq(ctx, pr.ExtRoutePath, pr.Payload, &pr.Response)
 				if rerr != nil {
 					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to put reddit request")
 					return pr, rerr
 				}
 				return pr, nil
-			case "DELETE":
+			case "DELETE", "delete":
 				resp, rerr := rc.DeleteRedditReq(ctx, pr.ExtRoutePath, pr.Payload, &pr.Response)
 				if rerr != nil {
 					log.Err(rerr).Interface("resp", resp).Msg("ProcessRpcLoadBalancerRequest: failed to delete reddit request")
@@ -197,15 +197,15 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 
 	var resp *resty.Response
 	switch pr.PayloadTypeREST {
-	case "GET":
+	case "GET", "get":
 		resp, err = sendRequest(r.R(), pr, "GET")
-	case "PUT":
+	case "PUT", "put":
 		resp, err = sendRequest(r.R(), pr, "PUT")
-	case "DELETE":
+	case "DELETE", "delete":
 		resp, err = sendRequest(r.R(), pr, "DELETE")
-	case "POST":
+	case "POST", "post":
 		resp, err = sendRequest(r.R(), pr, "POST")
-	case "OPTIONS":
+	case "OPTIONS", "options":
 		resp, err = sendRequest(r.R(), pr, "OPTIONS")
 	default:
 		resp, err = sendRequest(r.R(), pr, "POST")
@@ -214,11 +214,20 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		log.Err(err).Msg("ExtLoadBalancerRequest: Failed to relay api request")
 		return pr, fmt.Errorf("failed to relay api request")
 	}
-	if pr.StatusCode >= 400 {
+	if pr.StatusCode >= 400 && !skipErrorOnStatusCodes(pr.StatusCode, pr.SkipErrorOnStatusCodes) {
 		log.Err(err).Msg("IrisApiRequestsActivities: failed to relay api request")
 		return pr, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
 	}
 	return pr, err
+}
+
+func skipErrorOnStatusCodes(statusCode int, skipErrorOnStatusCodes []int) bool {
+	for _, code := range skipErrorOnStatusCodes {
+		if statusCode == code {
+			return true
+		}
+	}
+	return false
 }
 
 func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*resty.Response, error) {
@@ -236,30 +245,30 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 	if pr.Payload != nil || pr.Payloads != nil {
 		if pr.Payloads != nil && pr.Payload == nil {
 			switch method {
-			case "GET":
+			case "GET", "get":
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Get(ext)
-			case "OPTIONS":
+			case "OPTIONS", "options":
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Options(ext)
-			case "PUT":
+			case "PUT", "put":
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Put(ext)
-			case "DELETE":
+			case "DELETE", "delete":
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Delete(ext)
-			case "POST":
+			case "POST", "post":
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Post(ext)
 			default:
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Post(ext)
 			}
 		} else {
 			switch method {
-			case "GET":
+			case "GET", "get":
 				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(ext)
-			case "OPTIONS":
+			case "OPTIONS", "options":
 				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Options(ext)
-			case "PUT":
+			case "PUT", "put":
 				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Put(ext)
-			case "DELETE":
+			case "DELETE", "delete":
 				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Delete(ext)
-			case "POST":
+			case "POST", "post":
 				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(ext)
 			default:
 				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Post(ext)
@@ -267,15 +276,15 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		}
 	} else {
 		switch method {
-		case "OPTIONS":
+		case "OPTIONS", "options":
 			resp, err = request.SetResult(&pr.Response).Options(ext)
-		case "GET":
+		case "GET", "get":
 			resp, err = request.SetResult(&pr.Response).Get(ext)
-		case "PUT":
+		case "PUT", "put":
 			resp, err = request.SetResult(&pr.Response).Put(ext)
-		case "DELETE":
+		case "DELETE", "delete":
 			resp, err = request.SetResult(&pr.Response).Delete(ext)
-		case "POST":
+		case "POST", "post":
 			resp, err = request.SetResult(&pr.Response).Post(ext)
 		default:
 			resp, err = request.SetResult(&pr.Response).Post(ext)

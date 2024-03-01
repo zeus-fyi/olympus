@@ -164,6 +164,58 @@ function WorkflowEngineBuilder(props: any) {
     const selectedRetrievalForAnalysis = useSelector((state: any) => state.ai.selectedRetrievalForAnalysis);
     const [regexStr, setRegexStr] = useState('');
     const [payloadKey, setPayloadKey] = useState('');
+    const [statusHttpCode, setStatusHttpCode] = useState(0);
+
+    const handleAddStatusCode = () => {
+        // Validate statusHttpCode to be within the range of error codes (400-599) and not NaN
+        if (isNaN(statusHttpCode) || statusHttpCode < 400 || statusHttpCode > 599) {
+            return; // Exit if the status code is not an error code
+        }
+        // Retrieve the current dontRetryStatusCodes from the retrieval object, if they exist
+        const currentPatterns = retrieval.retrievalItemInstruction.webFilters?.dontRetryStatusCodes;
+        // Ensure we're working with an array, copying the existing values if present
+        let dontRetryStatusCodesArr = Array.isArray(currentPatterns) ? [...currentPatterns] : [];
+        // Check if statusHttpCode is already in the array to avoid duplicates
+        if (!dontRetryStatusCodesArr.includes(statusHttpCode)) {
+            // Add the current statusHttpCode to the array if not already present
+            dontRetryStatusCodesArr.push(statusHttpCode);
+            // Create a new updatedRetrieval object with the updated dontRetryStatusCodes array
+            const updatedRetrieval = {
+                ...retrieval,
+                retrievalItemInstruction: {
+                    ...retrieval.retrievalItemInstruction,
+                    webFilters: {
+                        ...retrieval.retrievalItemInstruction.webFilters,
+                        dontRetryStatusCodes: dontRetryStatusCodesArr,
+                    }
+                }
+            };
+            // Reset the statusHttpCode to a neutral value or to undefined, depending on your logic
+            setStatusHttpCode(0); // Consider using a more suitable default value or null
+            // Dispatch the action to update the retrieval object in your state
+            dispatch(setRetrieval(updatedRetrieval));
+        }
+    };
+
+    const handleRemoveStatusCode = (statusCodeToRemove: number) => {
+        // Retrieve the current dontRetryStatusCodes, defaulting to an empty array if undefined
+        const dontRetryStatusCodes = retrieval.retrievalItemInstruction.webFilters?.dontRetryStatusCodes || [];
+        // Filter out the statusCodeToRemove
+        const filteredStatusCodes = dontRetryStatusCodes.filter(code => code !== statusCodeToRemove);
+        // Prepare the updatedRetrieval object with the filtered dontRetryStatusCodes array
+        const updatedRetrieval = {
+            ...retrieval,
+            retrievalItemInstruction: {
+                ...retrieval.retrievalItemInstruction,
+                webFilters: {
+                    ...retrieval.retrievalItemInstruction.webFilters,
+                    dontRetryStatusCodes: filteredStatusCodes,
+                }
+            }
+        };
+        // Dispatch the update to your state management
+        dispatch(setRetrieval(updatedRetrieval));
+    };
 
     const handleAddPayloadKey = () => {
         if (payloadKey.length <= 0) {
@@ -2850,6 +2902,48 @@ function WorkflowEngineBuilder(props: any) {
                                                                 </FormControl>
                                                             </Box>
                                                         </Stack>
+                                                        <Box sx={{ mb: 0, ml: 0, mr: 0, mt: 1 }}>
+                                                            <Typography variant="h6" color="text.secondary">
+                                                                Specify status codes to skip retries on. This will skip retries on the specified status codes. Codes
+                                                                must be {'>='} 400 and {'<'} 600.
+                                                            </Typography>
+                                                        </Box>
+                                                        <Stack direction="row">
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 1}}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="http-code-input"
+                                                                    label="Http Status Code"
+                                                                    variant="outlined"
+                                                                    type={'number'}
+                                                                    inputProps={{ min: 400, max: 599, step: 1 }} // Added step: 1 here
+                                                                    value={statusHttpCode}
+                                                                    onChange={(event) => setStatusHttpCode(Number(event.target.value))} // Inline function for handling change
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 3}}>
+                                                                <Button onClick={handleAddStatusCode} variant="contained">Add Code</Button>
+                                                            </Box>
+                                                        </Stack>
+                                                        {retrieval.retrievalItemInstruction.webFilters && Array.isArray(retrieval.retrievalItemInstruction.webFilters.dontRetryStatusCodes) && retrieval.retrievalItemInstruction.webFilters.dontRetryStatusCodes.map((pattern, index) => (
+                                                            <Stack key={pattern} direction="row"> {/* Use `pattern` as key if unique, otherwise consider another unique identifier */}
+                                                                <Box flexGrow={1} sx={{ mb: 1, ml: 0, mr: 0, mt: 2 }}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        id={`code-${index}`}
+                                                                        label={`Code ${index + 1}`}
+                                                                        variant="outlined"
+                                                                        value={pattern}
+                                                                        InputProps={{
+                                                                            readOnly: true,
+                                                                        }}
+                                                                    />
+                                                                </Box>
+                                                                <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 3}}>
+                                                                    <Button variant="contained" color="error" onClick={() => handleRemoveStatusCode(pattern)}>Remove</Button>
+                                                                </Box>
+                                                            </Stack>
+                                                            ))}
                                                         <Box sx={{ mb: 0, ml: 0, mr: 0, mt: 1 }}>
                                                             <Typography variant="h6" color="text.secondary">
                                                                 Specify payload keys. This will filter out any keys that are not specified here before sending the payload to the endpoint.

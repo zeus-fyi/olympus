@@ -46,6 +46,7 @@ type WebFilters struct {
 	PayloadPreProcessing *string  `json:"payloadPreProcessing,omitempty"`
 	RegexPatterns        []string `json:"regexPatterns,omitempty"`
 	PayloadKeys          []string `json:"payloadKeys,omitempty"`
+	DontRetryStatusCodes []int    `json:"dontRetryStatusCodes,omitempty"`
 }
 
 type DiscordFilters struct {

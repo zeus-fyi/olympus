@@ -40,6 +40,7 @@ export interface WebFilters {
     payloadPreProcessing?: string;
     regexPatterns?: string[];
     payloadKeys?: string[];
+    dontRetryStatusCodes?: number[];
 }
 
 export interface Retrieval {

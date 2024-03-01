@@ -37,34 +37,35 @@ func (i *IrisApiRequestsWorkflow) GetWorkflows() []interface{} {
 }
 
 type ApiProxyRequest struct {
-	Url                  string
-	OrgID                int
-	UserID               int
-	Routes               []iris_models.RouteInfo
-	AdaptiveKeyName      string
-	MetricName           string
-	ExtRoutePath         string
-	ServicePlan          string
-	PayloadTypeREST      string
-	Referrers            []string
-	QueryParams          url.Values
-	Payload              echo.Map
-	Payloads             []echo.Map
-	Response             echo.Map
-	RequestHeaders       http.Header
-	ResponseHeaders      http.Header
-	FinalResponseHeaders http.Header
-	RawResponse          []byte
-	RegexFilters         []string
-	StatusCode           int
-	IsInternal           bool
-	MaxTries             int
-	Timeout              time.Duration
-	ReceivedAt           time.Time
-	Latency              time.Duration
-	Procedure            iris_programmable_proxy_v1_beta.IrisRoutingProcedure
-	PayloadSizeMeter     *iris_usage_meters.PayloadSizeMeter
-	SecretNameRef        string
+	Url                    string
+	OrgID                  int
+	UserID                 int
+	Routes                 []iris_models.RouteInfo
+	AdaptiveKeyName        string
+	MetricName             string
+	ExtRoutePath           string
+	ServicePlan            string
+	PayloadTypeREST        string
+	Referrers              []string
+	QueryParams            url.Values
+	Payload                echo.Map
+	Payloads               []echo.Map
+	Response               echo.Map
+	RequestHeaders         http.Header
+	ResponseHeaders        http.Header
+	FinalResponseHeaders   http.Header
+	RawResponse            []byte
+	RegexFilters           []string
+	StatusCode             int
+	SkipErrorOnStatusCodes []int
+	IsInternal             bool
+	MaxTries               int
+	Timeout                time.Duration
+	ReceivedAt             time.Time
+	Latency                time.Duration
+	Procedure              iris_programmable_proxy_v1_beta.IrisRoutingProcedure
+	PayloadSizeMeter       *iris_usage_meters.PayloadSizeMeter
+	SecretNameRef          string
 }
 
 func (i *IrisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {

@@ -280,7 +280,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	}
 	restMethod := http.MethodGet
 	if retInst.WebFilters.EndpointREST != nil {
-		restMethod = *retInst.WebFilters.EndpointREST
+		restMethod = strings.ToLower(*retInst.WebFilters.EndpointREST)
 		switch restMethod {
 		case "post":
 			restMethod = http.MethodPost
@@ -309,6 +309,10 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if retInst.WebFilters.EndpointREST != nil {
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 	}
+	var sec []int
+	if retInst.WebFilters.DontRetryStatusCodes != nil {
+		sec = retInst.WebFilters.DontRetryStatusCodes
+	}
 	secretNameRefApi := fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)
 	var regexPatterns []string
 	for _, rgp := range retInst.WebFilters.RegexPatterns {
@@ -316,16 +320,17 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	}
 	rw := iris_api_requests.NewIrisApiRequestsActivities()
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:             r.RouteInfo.RoutePath,
-		OrgID:           r.Ou.OrgID,
-		UserID:          r.Ou.UserID,
-		ExtRoutePath:    routeExt,
-		Payload:         r.Payload,
-		Payloads:        r.Payloads,
-		PayloadTypeREST: restMethod,
-		RequestHeaders:  r.Headers,
-		RegexFilters:    regexPatterns,
-		SecretNameRef:   secretNameRefApi,
+		Url:                    r.RouteInfo.RoutePath,
+		OrgID:                  r.Ou.OrgID,
+		UserID:                 r.Ou.UserID,
+		ExtRoutePath:           routeExt,
+		Payload:                r.Payload,
+		Payloads:               r.Payloads,
+		PayloadTypeREST:        restMethod,
+		RequestHeaders:         r.Headers,
+		RegexFilters:           regexPatterns,
+		SkipErrorOnStatusCodes: sec,
+		SecretNameRef:          secretNameRefApi,
 	}
 	rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
 	if rrerr != nil {

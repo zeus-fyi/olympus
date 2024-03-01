@@ -37,7 +37,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
-			BackoffCoefficient: 2.0,
+			BackoffCoefficient: 2.5,
 			MaximumInterval:    time.Minute * 5,
 			MaximumAttempts:    10,
 		},

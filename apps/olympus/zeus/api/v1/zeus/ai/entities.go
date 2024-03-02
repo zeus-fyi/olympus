@@ -12,7 +12,7 @@ import (
 )
 
 type CreateOrUpdateEntitiesRequest struct {
-	artemis_entities.EntitiesFilter
+	Entities []artemis_entities.EntitiesFilter `json:",inline"`
 }
 
 func CreateOrUpdateEntitiesRequestHandler(c echo.Context) error {
@@ -20,10 +20,69 @@ func CreateOrUpdateEntitiesRequestHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
+	return request.CreateOrUpdateEntities(c)
+}
+
+func (es *CreateOrUpdateEntitiesRequest) CreateOrUpdateEntities(c echo.Context) error {
+	ou, ok := c.Get("orgUser").(org_users.OrgUser)
+	if !ok {
+		log.Info().Interface("ou", ou)
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to check if user has billing method")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if !isBillingSetup {
+		return c.JSON(http.StatusPreconditionFailed, nil)
+	}
+	for _, e := range es.Entities {
+		mdb := artemis_entities.UserEntityMetadata{
+			JsonData: e.MetadataJsonb,
+			TextData: aws.String(e.MetadataText),
+			Labels:   []artemis_entities.UserEntityMetadataLabel{},
+		}
+		var labels []artemis_entities.UserEntityMetadataLabel
+		for _, lv := range e.Labels {
+			labels = append(labels, artemis_entities.UserEntityMetadataLabel{
+				Label: lv,
+			})
+		}
+		mdb.Labels = labels
+		urw := &artemis_entities.UserEntityWrapper{
+			UserEntity: artemis_entities.UserEntity{
+				Nickname:  e.Nickname,
+				Platform:  e.Platform,
+				FirstName: e.FirstName,
+				LastName:  e.LastName,
+				MdSlice: []artemis_entities.UserEntityMetadata{
+					mdb,
+				},
+			},
+			Ou: ou,
+		}
+		err = artemis_entities.InsertUserEntityLabeledMetadata(c.Request().Context(), urw)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+	}
+	return c.JSON(http.StatusOK, nil)
+}
+
+type CreateOrUpdateEntityRequest struct {
+	artemis_entities.EntitiesFilter
+}
+
+func CreateOrUpdateEntityRequestHandler(c echo.Context) error {
+	request := new(CreateOrUpdateEntityRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
 	return request.CreateOrUpdateEntity(c)
 }
 
-func (e *CreateOrUpdateEntitiesRequest) CreateOrUpdateEntity(c echo.Context) error {
+func (e *CreateOrUpdateEntityRequest) CreateOrUpdateEntity(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		log.Info().Interface("ou", ou)
@@ -68,19 +127,19 @@ func (e *CreateOrUpdateEntitiesRequest) CreateOrUpdateEntity(c echo.Context) err
 	return c.JSON(http.StatusOK, urw)
 }
 
-type SelectEntitiesRequest struct {
+type SearchEntitiesRequest struct {
 	artemis_entities.EntitiesFilter
 }
 
 func SelectEntitiesRequestHandler(c echo.Context) error {
-	request := new(SelectEntitiesRequest)
+	request := new(SearchEntitiesRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
 	return request.SelectEntities(c)
 }
 
-func (e *SelectEntitiesRequest) SelectEntities(c echo.Context) error {
+func (e *SearchEntitiesRequest) SelectEntities(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		log.Info().Interface("ou", ou)
@@ -94,7 +153,7 @@ func (e *SelectEntitiesRequest) SelectEntities(c echo.Context) error {
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-	evs, err := artemis_entities.SelectUserMetadataByNicknameAndPlatform(c.Request().Context(), e.Nickname, e.Platform, e.Labels, e.SinceUnixTimestamp)
+	evs, err := artemis_entities.SelectUserMetadataByProvidedFields(c.Request().Context(), ou, e.Nickname, e.Platform, e.Labels, e.SinceUnixTimestamp)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}

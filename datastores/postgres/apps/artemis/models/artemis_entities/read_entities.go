@@ -8,6 +8,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 type EntitiesFilter struct {
@@ -21,32 +22,37 @@ type EntitiesFilter struct {
 	SinceUnixTimestamp int             `json:"sinceTimestampUnix,omitempty"`
 }
 
-func SelectUserMetadataByNicknameAndPlatform(ctx context.Context, nickname, platform string, labels []string, sinceUnixTimestamp int) ([]UserEntityWrapper, error) {
-	var wrappers []UserEntityWrapper
+func SelectUserMetadataByProvidedFields(ctx context.Context, ous org_users.OrgUser, nickname, platform string, labels []string, sinceUnixTimestamp int) ([]UserEntity, error) {
+	var wrappers []UserEntity
 
 	baseQuery := `
         SELECT ue.entity_id, ue.nickname, ue.platform, ue.first_name, ue.last_name, umd.entity_metadata_id, umd.json_data, umd.text_data, umdl.label, umdl.entity_metadata_label_id
         FROM public.user_entities ue
         LEFT JOIN public.user_entities_md umd ON ue.entity_id = umd.entity_id
         LEFT JOIN public.user_entities_md_labels umdl ON umd.entity_metadata_id = umdl.entity_metadata_id
-        WHERE ue.nickname = $1 AND ue.platform = $2`
+        WHERE ue.org_id = $1
+        `
 
-	args := []interface{}{nickname, platform}
-	argCounter := 2 // Keeps track of the argument index
-
+	args := []interface{}{ous.OrgID}
+	if len(nickname) > 0 {
+		args = append(args, nickname)
+		baseQuery += fmt.Sprintf(" AND ue.nickname = $%d", len(args))
+	}
+	if len(platform) > 0 {
+		args = append(args, platform)
+		baseQuery += fmt.Sprintf(" AND ue.platform = $%d", len(args))
+	}
 	if len(labels) > 0 {
-		argCounter++
-		baseQuery += fmt.Sprintf(" AND umdl.label = ANY($%d)", argCounter)
 		args = append(args, pq.Array(labels)) // Using pq.Array to ensure the slice is passed correctly
+		baseQuery += fmt.Sprintf(" AND umdl.label = ANY($%d)", len(args))
 	}
 	if sinceUnixTimestamp > 0 {
-		argCounter++
-		baseQuery += fmt.Sprintf(" AND umdl.entity_metadata_label_id > $%d", argCounter)
 		args = append(args, sinceUnixTimestamp)
+		baseQuery += fmt.Sprintf(" AND umdl.entity_metadata_label_id > $%d", len(args))
 	}
 
 	// Append ORDER BY clause at the end of the query
-	finalQuery := baseQuery + " ORDER BY umdl.entity_metadata_label_id DESC"
+	finalQuery := baseQuery + " ORDER BY umdl.entity_metadata_label_id DESC LIMIT 10000"
 
 	rows, err := apps.Pg.Query(ctx, finalQuery, args...)
 	if err != nil {
@@ -109,7 +115,7 @@ func SelectUserMetadataByNicknameAndPlatform(ctx context.Context, nickname, plat
 
 	// Convert map to slice
 	for _, wrapper := range tempMap {
-		wrappers = append(wrappers, *wrapper)
+		wrappers = append(wrappers, wrapper.UserEntity)
 	}
 
 	return wrappers, nil

@@ -18,18 +18,26 @@ type EntitiesTestSuite struct {
 var ctx = context.Background()
 
 func (s *EntitiesTestSuite) TestSelectUserEntityWithMd() {
-	res, err := SelectUserMetadataByNicknameAndPlatform(ctx,
+	res, err := SelectUserMetadataByProvidedFields(ctx, s.Ou,
 		"test-nickname", "test-platform", []string{"test-label1", "test-label2"},
 		1)
 	s.Require().Nil(err)
 	s.Require().Len(res, 1)
 
 	tsNow := chronos.Chronos{}
-	res, err = SelectUserMetadataByNicknameAndPlatform(ctx,
+	res, err = SelectUserMetadataByProvidedFields(ctx, s.Ou,
 		"test-nickname", "test-platform", []string{"test-label1", "test-label2"},
 		tsNow.UnixTimeStampNow())
 	s.Require().Nil(err)
 	s.Require().Len(res, 0)
+}
+
+func (s *EntitiesTestSuite) TestSelectEntitiesWithAnyData() {
+	res, err := SelectUserMetadataByProvidedFields(ctx, s.Ou,
+		"", "email", nil, 0)
+
+	s.Require().Nil(err)
+	s.Require().NotEmpty(res)
 }
 
 func (s *EntitiesTestSuite) TestInsertUserEntity() {
@@ -37,15 +45,15 @@ func (s *EntitiesTestSuite) TestInsertUserEntity() {
 	// Test data for insertion
 	testUserEntity := UserEntityWrapper{
 		UserEntity: UserEntity{
-			Nickname: "nickname",
+			Nickname: "ageorge010@vt.edu",
 			Platform: "email",
 			MdSlice: []UserEntityMetadata{
 				{
-					JsonData: json.RawMessage(`{"key_b": "value_b"}`),
+					JsonData: json.RawMessage(`{"vt": "me"}`),
 					TextData: nil, // Demonstrating handling of NULL
 					Labels: []UserEntityMetadataLabel{
-						{Label: "test-label_c"},
-						{Label: "test-label_c2"},
+						{Label: "virginia-tech"},
+						{Label: "student"},
 					},
 				},
 			},

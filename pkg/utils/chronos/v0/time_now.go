@@ -86,3 +86,14 @@ func (c *LibV0) ConvertRedditIDToUnixTimestamp(redditID string) (int, error) {
 	// Convert to Unix timestamp.
 	return int(decodedID.Int64()), nil
 }
+
+func (c *LibV0) AdjustedUnixTimestampNowRaw(sinceUnixTimestamp int) int {
+	// Convert sinceUnixTimestamp from seconds to duration in nanoseconds
+	adjustmentDuration := time.Duration(sinceUnixTimestamp) * time.Second
+
+	// Get the current time and apply the adjustment
+	adjustedTime := time.Now().Add(adjustmentDuration)
+
+	// Return the adjusted time in Unix nanoseconds
+	return int(adjustedTime.UnixNano())
+}

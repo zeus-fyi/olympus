@@ -34,7 +34,7 @@ func (s *EntitiesTestSuite) TestSelectUserEntityWithMd() {
 
 func (s *EntitiesTestSuite) TestSelectEntitiesWithAnyData() {
 	res, err := SelectUserMetadataByProvidedFields(ctx, s.Ou,
-		"", "email", nil, 0)
+		"", "email", nil, -36000)
 
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)

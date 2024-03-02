@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 type EntitiesFilter struct {
@@ -46,11 +47,12 @@ func SelectUserMetadataByProvidedFields(ctx context.Context, ous org_users.OrgUs
 		args = append(args, pq.Array(labels)) // Using pq.Array to ensure the slice is passed correctly
 		baseQuery += fmt.Sprintf(" AND umdl.label = ANY($%d)", len(args))
 	}
-	if sinceUnixTimestamp > 0 {
+	ch := chronos.Chronos{}
+	if sinceUnixTimestamp > 0 || sinceUnixTimestamp < 0 {
+		sinceUnixTimestamp = ch.AdjustedUnixTimestampNowRaw(sinceUnixTimestamp)
 		args = append(args, sinceUnixTimestamp)
 		baseQuery += fmt.Sprintf(" AND umdl.entity_metadata_label_id > $%d", len(args))
 	}
-
 	// Append ORDER BY clause at the end of the query
 	finalQuery := baseQuery + " ORDER BY umdl.entity_metadata_label_id DESC LIMIT 10000"
 

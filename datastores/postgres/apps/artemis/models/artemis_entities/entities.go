@@ -13,11 +13,11 @@ import (
 
 type UserEntityWrapper struct {
 	UserEntity
-	Ou org_users.OrgUser
+	Ou org_users.OrgUser `json:"-"`
 }
 
 type UserEntity struct {
-	EntityID  int     `json:"entityId" db:"entity_id"`
+	EntityID  int     `json:"entityID" db:"entity_id"`
 	Nickname  string  `json:"nickname" db:"nickname"`
 	Platform  string  `json:"platform" db:"platform"`
 	FirstName *string `json:"firstName,omitempty" db:"first_name"` // Pointer used to handle NULL, omitempty for JSON if nil
@@ -26,16 +26,16 @@ type UserEntity struct {
 }
 
 type UserEntityMetadata struct {
-	EntityMetadataID int                       `json:"entityMetadataId" db:"entity_metadata_id"`
-	EntityID         int                       `json:"entityId" db:"entity_id"`
+	EntityMetadataID int                       `json:"entityMetadataID" db:"entity_metadata_id"`
+	EntityID         int                       `json:"entityID" db:"entity_id"`
 	JsonData         json.RawMessage           `json:"jsonData,omitempty" db:"json_data"` // Using json.RawMessage for JSONB
 	TextData         *string                   `json:"textData,omitempty" db:"text_data"` // Pointer used to handle NULL, omitempty for JSON if nil
 	Labels           []UserEntityMetadataLabel `json:"labels,omitempty" db:"labels"`
 }
 
 type UserEntityMetadataLabel struct {
-	EntityMetadataLabelID int    `json:"entityMetadataLabelId" db:"entity_metadata_label_id"`
-	EntityMetadataID      int    `json:"entityMetadataId" db:"entity_metadata_id"`
+	EntityMetadataLabelID int    `json:"entityMetadataLabelID" db:"entity_metadata_label_id"`
+	EntityMetadataID      int    `json:"entityMetadataID" db:"entity_metadata_id"`
 	Label                 string `json:"label" db:"label"`
 }
 

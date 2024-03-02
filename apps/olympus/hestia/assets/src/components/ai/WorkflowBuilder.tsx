@@ -4047,6 +4047,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                                     <MenuItem value="does-not-start-with-any">{'does-not-start-with'}</MenuItem>
                                                                                     <MenuItem value="does-not-include">{'does-not-include'}</MenuItem>
                                                                                     <MenuItem value="equals">{'equals'}</MenuItem>
+                                                                                    <MenuItem value="equals-one-from-list">{'equals-one-from-list'}</MenuItem>
                                                                                     <MenuItem value="length-less-than">{'length-less-than'}</MenuItem>
                                                                                     <MenuItem value="length-less-than-eq">{'length-less-than-eq'}</MenuItem>
                                                                                     <MenuItem value="length-greater-than">{'length-greater-than'}</MenuItem>

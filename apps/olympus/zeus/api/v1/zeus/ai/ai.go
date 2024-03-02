@@ -17,7 +17,7 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 
 	e.POST("/assistants/ai", CreateOrUpdateAssistantRequestHandler)
 
-	e.POST("/entities/ai/search", SelectEntitiesRequestHandler)
+	e.POST("/search/entities/ai", SelectEntitiesRequestHandler)
 	e.POST("/entity/ai", CreateOrUpdateEntityRequestHandler)
 	e.POST("/entities/ai", CreateOrUpdateEntitiesRequestHandler)
 

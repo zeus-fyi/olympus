@@ -91,8 +91,13 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 		}
 		switch m.TaskType {
 		case "aggregation":
+			ait, zerr := strconv.Atoi(taskStrID)
+			if zerr != nil {
+				log.Err(zerr).Msg("failed to parse int")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
 			agt := artemis_orchestrations.AggTask{
-				AggId:      m.TaskID,
+				AggId:      ait,
 				CycleCount: m.CycleCount,
 				Tasks:      []artemis_orchestrations.AITaskLibrary{},
 			}
@@ -173,7 +178,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 	err = artemis_orchestrations.InsertWorkflowWithComponents(c.Request().Context(), ou, &wt, wft)
 	if err != nil {
 		log.Err(err).Msg("failed to insert workflow")
-		return c.JSON(http.StatusInternalServerError, nil)
+		return c.JSON(http.StatusBadRequest, nil)
 	}
 	return c.JSON(http.StatusOK, wt)
 }

@@ -61,8 +61,6 @@ func ValidateStrArrayPayload(em *artemis_orchestrations.EvalMetric) error {
 	if fv < 0 {
 		return errors.New("invalid value")
 	}
-	em.EvalMetricComparisonValues.EvalComparisonNumber = &fv
-	em.EvalMetricComparisonValues.EvalComparisonString = nil
 	return nil
 }
 

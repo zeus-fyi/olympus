@@ -87,10 +87,10 @@ func InsertRetrieval(ctx context.Context, ou org_users.OrgUser, item *RetrievalI
             retrieval_group = EXCLUDED.retrieval_group,
             retrieval_platform = EXCLUDED.retrieval_platform,
             instructions = EXCLUDED.instructions
-        RETURNING retrieval_id;`
+        RETURNING retrieval_id, retrieval_id::text;`
 	// Executing the query
 	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, item.RetrievalName, item.RetrievalGroup, item.RetrievalPlatform,
-		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(item.Instructions), Status: IsNull(item.Instructions)}).Scan(&item.RetrievalID)
+		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(item.Instructions), Status: IsNull(item.Instructions)}).Scan(&item.RetrievalID, &item.RetrievalStrID)
 	if err != nil {
 		log.Err(err).Msg("failed to insert retrieval")
 		return err

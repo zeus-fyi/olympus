@@ -34,7 +34,7 @@ func (t *CreateOrUpdateRetrievalRequest) CreateOrUpdateRetrieval(c echo.Context)
 	if t.RetrievalName == "" || t.RetrievalPlatform == "" || (aws.StringValue(t.RetrievalKeywords) == "" && aws.StringValue(t.RetrievalPrompt) == "" && t.RetrievalGroup == "") {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	if t.RetrievalStrID != nil {
+	if t.RetrievalStrID != nil && aws.StringValue(t.RetrievalStrID) != "" {
 		rid, err := strconv.Atoi(*t.RetrievalStrID)
 		if err != nil {
 			log.Err(err).Msg("failed to parse int")

@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/api/enums/v1"
@@ -58,10 +59,19 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 	for i := 1; i < wfExecParams.WorkflowExecTimekeepingParams.RunCycles+1; i++ {
 		startTime := wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start.Add(time.Duration(i) * wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 		if time.Now().Before(startTime) && !wfExecParams.WorkflowExecTimekeepingParams.IsCycleStepped && !wfExecParams.WorkflowExecTimekeepingParams.IsStrictTimeWindow {
-			err = workflow.Sleep(ctx, startTime.Sub(time.Now()))
-			if err != nil {
-				logger.Error("failed to sleep", "Error", err)
-				return err
+			if wfExecParams.WorkflowExecTimekeepingParams.IsStrictTimeWindow {
+				log.Info().Msg("RunAiWorkflowProcess: sleeping until start time")
+				err = workflow.Sleep(ctx, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
+				if err != nil {
+					logger.Error("failed to sleep", "Error", err)
+					return err
+				}
+			} else {
+				err = workflow.Sleep(ctx, startTime.Sub(time.Now()))
+				if err != nil {
+					logger.Error("failed to sleep", "Error", err)
+					return err
+				}
 			}
 		}
 		childParams := &MbChildSubProcessParams{WfID: oj.OrchestrationName + "-analysis-" + strconv.Itoa(i), Ou: ou, WfExecParams: wfExecParams, Oj: oj,

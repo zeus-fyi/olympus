@@ -57,7 +57,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 	}
 	for i := 1; i < wfExecParams.WorkflowExecTimekeepingParams.RunCycles+1; i++ {
 		startTime := wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start.Add(time.Duration(i) * wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
-		if time.Now().Before(startTime) && !wfExecParams.WorkflowExecTimekeepingParams.IsCycleStepped {
+		if time.Now().Before(startTime) && !wfExecParams.WorkflowExecTimekeepingParams.IsCycleStepped && !wfExecParams.WorkflowExecTimekeepingParams.IsStrictTimeWindow {
 			err = workflow.Sleep(ctx, startTime.Sub(time.Now()))
 			if err != nil {
 				logger.Error("failed to sleep", "Error", err)

@@ -26,6 +26,7 @@ type WorkflowExecTimekeepingParams struct {
 	CurrentCycleCount                           int           `json:"currentCycleCount"`
 	RunWindow                                   Window        `json:"runWindow"`
 	RunTimeDuration                             time.Duration `json:"runTimeDuration"`
+	IsStrictTimeWindow                          bool          `json:"isStrictTimeWindow"`
 	IsCycleStepped                              bool          `json:"isCycleStepped"`
 	RunCycles                                   int           `json:"runCycles"`
 	TimeStepSize                                time.Duration `json:"unixTimeStepSize"`

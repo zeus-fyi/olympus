@@ -115,7 +115,7 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 				if k == taskStrID {
 					for at, isTrue := range v {
 						if isTrue {
-							ait, zerr := strconv.Atoi(at)
+							ait, zerr = strconv.Atoi(at)
 							if zerr != nil {
 								log.Err(zerr).Msg("failed to parse int")
 								return c.JSON(http.StatusBadRequest, nil)

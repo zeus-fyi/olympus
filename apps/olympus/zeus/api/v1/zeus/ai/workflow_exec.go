@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -20,10 +21,16 @@ type WorkflowsActionsRequest struct {
 	Duration      int    `json:"duration,omitempty"`
 	DurationUnit  string `json:"durationUnit,omitempty"`
 
+	IsStrictTimeWindow           bool                                      `json:"isStrictTimeWindow,omitempty"`
 	CustomBasePeriod             bool                                      `json:"customBasePeriod,omitempty"`
 	CustomBasePeriodStepSize     int                                       `json:"customBasePeriodStepSize,omitempty"`
 	CustomBasePeriodStepSizeUnit string                                    `json:"customBasePeriodStepSizeUnit,omitempty"`
+	TaskOverrides                map[string]TaskOverride                   `json:"taskOverrides,omitempty"`
 	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
+}
+
+type TaskOverride struct {
+	ReplacePrompt string `json:"replacePrompt,omitempty"`
 }
 
 func WorkflowsActionsRequestHandler(c echo.Context) error {
@@ -119,6 +126,19 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			if isCycleStepped {
 				resp[ri].WorkflowExecTimekeepingParams.RunCycles = w.Duration
 			}
+			for ti, task := range resp[ri].WorkflowTasks {
+				tov, tok := w.TaskOverrides[task.AnalysisTaskName]
+				if tok {
+					resp[ri].WorkflowTasks[ti].AnalysisPrompt = tov.ReplacePrompt
+				}
+				if task.AggTaskID != nil && *task.AggTaskID > 0 {
+					tov, tok = w.TaskOverrides[strconv.Itoa(*task.AggTaskID)]
+					if tok {
+						resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
+					}
+				}
+			}
+			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")

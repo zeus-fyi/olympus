@@ -63,6 +63,23 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiTelegramWorkflow(ctx context.Con
 	return nil
 }
 
+func (z *ZeusAiPlatformServicesWorker) ExecuteAiTwillioWorkflow(ctx context.Context, ou org_users.OrgUser, msgs []hera_openai_dbmodels.TelegramMessage) error {
+	tc := z.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: z.TaskQueueName,
+		ID:        fmt.Sprintf("twillio-%s", uuid.New().String()),
+	}
+	txWf := NewZeusPlatformServiceWorkflows()
+	wf := txWf.AiIngestTelegramWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, msgs)
+	if err != nil {
+		log.Err(err).Msg("ExecuteAiTelegramWorkflow")
+		return err
+	}
+	return nil
+}
+
 func (z *ZeusAiPlatformServicesWorker) ExecuteAiTwitterWorkflow(ctx context.Context, ou org_users.OrgUser, searchGroupName string) error {
 	tc := z.ConnectTemporalClient()
 	defer tc.Close()

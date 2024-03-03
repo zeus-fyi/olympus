@@ -124,6 +124,15 @@ func (z *ZeusAiPlatformActivities) UpsertAiOrchestration(ctx context.Context, ou
 	return id, nil
 }
 
+func (z *ZeusAiPlatformActivities) InsertTwillioAsEntityMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg hera_search.TelegramMessage) (int, error) {
+	tgId, err := hera_search.InsertNewTgMessages(ctx, ou, msg)
+	if err != nil {
+		log.Err(err).Interface("msg", msg).Msg("InsertTelegramMessageIfNew: failed")
+		return 0, err
+	}
+	return tgId, nil
+}
+
 func (z *ZeusAiPlatformActivities) InsertTelegramMessageIfNew(ctx context.Context, ou org_users.OrgUser, msg hera_search.TelegramMessage) (int, error) {
 	tgId, err := hera_search.InsertNewTgMessages(ctx, ou, msg)
 	if err != nil {

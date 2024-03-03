@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
@@ -26,35 +27,53 @@ type EntitiesFilter struct {
 func SelectUserMetadataByProvidedFields(ctx context.Context, ous org_users.OrgUser, nickname, platform string, labels []string, sinceUnixTimestamp int) ([]UserEntity, error) {
 	var wrappers []UserEntity
 
-	baseQuery := `
-        SELECT ue.entity_id, ue.nickname, ue.platform, ue.first_name, ue.last_name, umd.entity_metadata_id, umd.json_data, umd.text_data, umdl.label, umdl.entity_metadata_label_id
-        FROM public.user_entities ue
-        LEFT JOIN public.user_entities_md umd ON ue.entity_id = umd.entity_id
-        LEFT JOIN public.user_entities_md_labels umdl ON umd.entity_metadata_id = umdl.entity_metadata_id
-        WHERE ue.org_id = $1
-        `
-
+	wc := "WHERE ue.org_id = $1"
 	args := []interface{}{ous.OrgID}
 	if len(nickname) > 0 {
 		args = append(args, nickname)
-		baseQuery += fmt.Sprintf(" AND ue.nickname = $%d", len(args))
+		wc += fmt.Sprintf(" AND ue.nickname = $%d", len(args))
 	}
 	if len(platform) > 0 {
 		args = append(args, platform)
-		baseQuery += fmt.Sprintf(" AND ue.platform = $%d", len(args))
+		wc += fmt.Sprintf(" AND ue.platform = $%d", len(args))
 	}
 	if len(labels) > 0 {
 		args = append(args, pq.Array(labels)) // Using pq.Array to ensure the slice is passed correctly
-		baseQuery += fmt.Sprintf(" AND umdl.label = ANY($%d)", len(args))
+		wc += fmt.Sprintf(" AND umdl.label = ANY($%d)", len(args))
 	}
 	ch := chronos.Chronos{}
 	if sinceUnixTimestamp > 0 || sinceUnixTimestamp < 0 {
 		sinceUnixTimestamp = ch.AdjustedUnixTimestampNowRaw(sinceUnixTimestamp)
 		args = append(args, sinceUnixTimestamp)
-		baseQuery += fmt.Sprintf(" AND umdl.entity_metadata_label_id > $%d", len(args))
+		wc += fmt.Sprintf(" AND umdl.entity_metadata_label_id > $%d", len(args))
 	}
+	baseQuery := `
+		SELECT 
+			ue.entity_id, 
+			ue.nickname, 
+			ue.platform, 
+			ue.first_name, 
+			ue.last_name, 
+			umd.entity_metadata_id, 
+			umd.json_data, 
+			umd.text_data, 
+			STRING_AGG(umdl.label, ', ') AS labels
+        FROM public.user_entities ue
+        LEFT JOIN public.user_entities_md umd ON ue.entity_id = umd.entity_id
+        LEFT JOIN public.user_entities_md_labels umdl ON umd.entity_metadata_id = umdl.entity_metadata_id
+        ` + wc + `
+		GROUP BY 
+    ue.entity_id, 
+    ue.nickname, 
+    ue.platform, 
+    ue.first_name, 
+    ue.last_name, 
+    umd.entity_metadata_id, 
+    umd.json_data, 
+    umd.text_data `
+
 	// Append ORDER BY clause at the end of the query
-	finalQuery := baseQuery + " ORDER BY umdl.entity_metadata_label_id DESC LIMIT 10000"
+	finalQuery := baseQuery + " ORDER BY ue.platform DESC LIMIT 10000"
 
 	rows, err := apps.Pg.Query(ctx, finalQuery, args...)
 	if err != nil {
@@ -70,12 +89,11 @@ func SelectUserMetadataByProvidedFields(ctx context.Context, ous org_users.OrgUs
 			entityID, metadataID int
 			jsonData             json.RawMessage
 			textData, label      *string
-			labelID              *int
 			userEntity           UserEntity
 		)
 
 		// Scan the row into local variables
-		err = rows.Scan(&entityID, &userEntity.Nickname, &userEntity.Platform, &userEntity.FirstName, &userEntity.LastName, &metadataID, &jsonData, &textData, &label, &labelID)
+		err = rows.Scan(&entityID, &userEntity.Nickname, &userEntity.Platform, &userEntity.FirstName, &userEntity.LastName, &metadataID, &jsonData, &textData, &label)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to scan row")
 			return nil, err
@@ -98,13 +116,20 @@ func SelectUserMetadataByProvidedFields(ctx context.Context, ous org_users.OrgUs
 				TextData:         textData,
 				Labels:           make([]UserEntityMetadataLabel, 0),
 			}
-			if label != nil && labelID != nil {
-				metadataLabel := UserEntityMetadataLabel{
-					EntityMetadataLabelID: *labelID,
-					Label:                 *label,
+
+			// Split the label string and process if it's not nil
+			if label != nil {
+				labelsSlice := strings.Split(*label, ", ")
+				// Process labelsSlice as needed
+				for _, lbl := range labelsSlice {
+					lbl = strings.TrimSpace(lbl) // Trim any leading/trailing space from each label
+					metadataLabel := UserEntityMetadataLabel{
+						Label: lbl,
+					}
+					metadata.Labels = append(metadata.Labels, metadataLabel)
 				}
-				metadata.Labels = append(metadata.Labels, metadataLabel)
 			}
+
 			wrapper.UserEntity.MdSlice = append(wrapper.UserEntity.MdSlice, metadata)
 		}
 	}

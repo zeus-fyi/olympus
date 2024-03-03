@@ -90,7 +90,7 @@ func GetStringEvalComparisonResult(operator string, actual, expected string) boo
 	case "equals-one-from-list":
 		acceptable := strings.Split(expected, ",")
 		for _, a := range acceptable {
-			if actual == a {
+			if strings.TrimSpace(actual) == strings.TrimSpace(a) {
 				return true
 			}
 		}

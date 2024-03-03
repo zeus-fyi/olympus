@@ -11,19 +11,15 @@ import (
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 )
 
-type CreateOrUpdateEntitiesRequest struct {
-	Entities []artemis_entities.EntitiesFilter `json:",inline"`
-}
-
 func CreateOrUpdateEntitiesRequestHandler(c echo.Context) error {
-	request := new(CreateOrUpdateEntitiesRequest)
-	if err := c.Bind(request); err != nil {
-		return err
+	var entitiesFilters []artemis_entities.EntitiesFilter
+	if err := c.Bind(&entitiesFilters); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	return request.CreateOrUpdateEntities(c)
+	return CreateOrUpdateEntities(c, entitiesFilters)
 }
 
-func (es *CreateOrUpdateEntitiesRequest) CreateOrUpdateEntities(c echo.Context) error {
+func CreateOrUpdateEntities(c echo.Context, ef []artemis_entities.EntitiesFilter) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		log.Info().Interface("ou", ou)
@@ -37,7 +33,7 @@ func (es *CreateOrUpdateEntitiesRequest) CreateOrUpdateEntities(c echo.Context) 
 	if !isBillingSetup {
 		return c.JSON(http.StatusPreconditionFailed, nil)
 	}
-	for _, e := range es.Entities {
+	for _, e := range ef {
 		mdb := artemis_entities.UserEntityMetadata{
 			JsonData: e.MetadataJsonb,
 			TextData: aws.String(e.MetadataText),

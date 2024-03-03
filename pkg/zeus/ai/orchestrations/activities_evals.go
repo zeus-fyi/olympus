@@ -131,6 +131,10 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 				if ef.SchemasMap[cp.Tc.JsonResponseResults[i].SchemaStrID].Fields[fj].EvalMetrics[emi] == nil {
 					continue
 				}
+				if ef.SchemasMap[cp.Tc.JsonResponseResults[i].SchemaStrID].Fields[fj].EvalMetrics[emi].EvalExpectedResultState == "ignore" {
+					log.Info().Msg("EvalModelScoredJsonOutput: ignoring eval metric")
+					continue
+				}
 				evm := *ef.SchemasMap[cp.Tc.JsonResponseResults[i].SchemaStrID].Fields[fj].EvalMetrics[emi]
 				cp.Tc.JsonResponseResults[i].ScoredEvalMetrics = append(cp.Tc.JsonResponseResults[i].ScoredEvalMetrics, &evm)
 				emr.EvalMetricsResults = append(emr.EvalMetricsResults, &evm)

@@ -88,14 +88,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			if cp.Tc.WebPayload != nil {
 				em, ok := cp.Tc.WebPayload.(map[string]interface{})
 				if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
-					qpRoute, qerr := ReplaceParams(*cp.Tc.Retrieval.WebFilters.EndpointRoutePath, em)
-					if qerr != nil {
-						logger.Error("failed to replace route path params", "Error", qerr)
-						return nil, qerr
-					}
-					cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &qpRoute
-					if len(em) == 0 {
-						em = nil
+					if cp.Tc.Retrieval.WebFilters.RegexPatterns != nil && len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 {
+						qpRoute, qerr := ReplaceParams(*cp.Tc.Retrieval.WebFilters.EndpointRoutePath, em)
+						if qerr != nil {
+							logger.Error("failed to replace route path params", "Error", qerr)
+							return nil, qerr
+						}
+						cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &qpRoute
+						if len(em) == 0 {
+							em = nil
+						}
 					}
 					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
 						nem := make(map[string]interface{})
@@ -110,15 +112,28 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 						rt.Payload = em
 					}
 				}
-				rt.Retrieval = cp.Tc.Retrieval
+				var plSlice []map[string]interface{}
 				ems, ok := cp.Tc.WebPayload.([]map[string]interface{})
 				if ok {
+					plSlice = ems
+				} else if slice, ok1 := cp.Tc.WebPayload.([]interface{}); ok1 {
+					for _, item := range slice {
+						if m, ok2 := item.(map[string]interface{}); ok2 {
+							// m is now a map[string]interface{}, you can work with it
+							// For example, assigning to rt.Payload if that's what you need
+							plSlice = append(plSlice, m)
+						}
+					}
+				}
+
+				rt.Retrieval = cp.Tc.Retrieval
+				if len(plSlice) > 0 {
 					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
 						nem := make(map[string]bool)
 						for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
 							nem[key] = true
 						}
-						for _, emv := range ems {
+						for _, emv := range plSlice {
 							for k, _ := range emv {
 								if _, bok := nem[k]; !bok {
 									delete(emv, k)
@@ -126,7 +141,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 							}
 						}
 					}
-					for _, emv := range ems {
+					for _, emv := range plSlice {
 						rt.Payloads = append(rt.Payloads, emv)
 					}
 				}

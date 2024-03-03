@@ -96,6 +96,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				echoReqs = append(echoReqs, echoMap)
 			}
 			for ri, ret := range ta.TriggerRetrievals {
+				log.Info().Interface("retID", ret.RetrievalID).Msg("apiRetrieval: ret ID for api retrieval")
 				var rets []artemis_orchestrations.RetrievalItem
 				chunkedTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
 				err = workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, cp.Ou, ret.RetrievalID).Get(chunkedTaskCtx, &rets)

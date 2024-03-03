@@ -14,19 +14,23 @@ import (
 )
 
 func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Context, mb *MbChildSubProcessParams, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
-	tv, err := artemis_orchestrations.SelectTask(ctx, mb.Ou, mb.Tc.TaskID)
-	if err != nil {
-		log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
-		return nil, err
-	}
-	if len(tv) == 0 {
-		err = fmt.Errorf("failed to get task definition for task id: %d", mb.Tc.TaskID)
-		log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
-		return nil, err
-	}
 	var jsd []*artemis_orchestrations.JsonSchemaDefinition
-	for _, taskDef := range tv {
-		jsd = append(jsd, taskDef.Schemas...)
+	if mb.Tc.EvalID > 0 && mb.Tc.EvalSchemas != nil && len(mb.Tc.EvalSchemas) > 0 {
+		jsd = append(jsd, mb.Tc.EvalSchemas...)
+	} else {
+		tv, err := artemis_orchestrations.SelectTask(ctx, mb.Ou, mb.Tc.TaskID)
+		if err != nil {
+			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
+			return nil, err
+		}
+		if len(tv) == 0 {
+			err = fmt.Errorf("failed to get task definition for task id: %d", mb.Tc.TaskID)
+			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
+			return nil, err
+		}
+		for _, taskDef := range tv {
+			jsd = append(jsd, taskDef.Schemas...)
+		}
 	}
 	params.FunctionDefinition = artemis_orchestrations.ConvertToFuncDef(jsd)
 	in, err := gws(ctx, mb.Wsr.InputID)
@@ -36,7 +40,11 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	}
 	pr := in.WorkflowStageInfo.PromptReduction
 	var sg *hera_search.SearchResultGroup
-	if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && mb.Wsr.ChunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
+	if in.WorkflowStageInfo.PromptTextFromTextStage != "" {
+		sg = &hera_search.SearchResultGroup{
+			BodyPrompt: in.WorkflowStageInfo.PromptTextFromTextStage,
+		}
+	} else if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && mb.Wsr.ChunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
 		sg = pr.PromptReductionSearchResults.OutSearchGroups[mb.Wsr.ChunkOffset]
 	} else {
 		sg = &hera_search.SearchResultGroup{
@@ -82,20 +90,20 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	if len(cr.Response.Choices) > 0 && len(cr.Response.Choices[0].Message.ToolCalls) > 0 {
 		m, anyErr = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, cr)
 		if anyErr != nil {
-			log.Err(anyErr).Interface("m", m).Interface("resp", cr.Response.Choices).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
+			log.Err(anyErr).Interface("m", m).Interface("resp", cr.Response.Choices).Interface("prompt", sg.GetPromptBody()).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
 			return nil, anyErr
 		}
 	} else {
 		m, anyErr = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, cr)
 		if anyErr != nil {
-			log.Err(anyErr).Interface("m", m).Interface("resp", cr.Response.Choices).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+			log.Err(anyErr).Interface("m", m).Interface("resp", cr.Response.Choices).Interface("prompt", sg.GetPromptBody()).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
 			return nil, anyErr
 		}
 	}
 	var tmpResp []artemis_orchestrations.JsonSchemaDefinition
 	tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
 	if anyErr != nil {
-		log.Err(anyErr).Interface("m", m).Interface("jsd", jsd).Msg("AssignMapValuesMultipleJsonSchemasSlice: UnmarshallOpenAiJsonInterface failed")
+		log.Err(anyErr).Interface("m", m).Interface("jsd", jsd).Interface("prompt", sg.GetPromptBody()).Msg("AssignMapValuesMultipleJsonSchemasSlice: UnmarshallOpenAiJsonInterface failed")
 		return nil, anyErr
 	}
 	if tmpResp != nil {

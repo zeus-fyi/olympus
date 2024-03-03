@@ -51,4 +51,5 @@ type WorkflowStageInfo struct {
 	RunAiWorkflowAutoEvalProcessInputs *RunAiWorkflowAutoEvalProcessInputs `json:"runAiWorkflowAutoEvalProcessInputs,omitempty"`
 	CreateTriggerActionsWorkflowInputs *CreateTriggerActionsWorkflowInputs `json:"createTriggerActionsWorkflowInputs,omitempty"`
 	PromptReduction                    *PromptReduction                    `json:"promptReduction,omitempty"`
+	PromptTextFromTextStage            string                              `json:"promptTextFromTextStage,omitempty"`
 }

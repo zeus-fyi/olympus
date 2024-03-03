@@ -294,7 +294,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			restMethod = http.MethodGet
 		}
 	}
-	if r.Payload != nil {
+	if r.Payload != nil && retInst.WebFilters.RegexPatterns != nil {
 		rp, err := ReplaceParams(r.RouteInfo.RoutePath, r.Payload)
 		if err != nil {
 			log.Err(err).Msg("ApiCallRequestTask: failed to replace route path params")
@@ -629,6 +629,15 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 	if err != nil {
 		log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
 		return 0, err
+	}
+
+	if dataIn.TextInput != nil {
+		wio.PromptTextFromTextStage += *dataIn.TextInput
+		_, eerr := sws(ctx, &wio)
+		if eerr != nil {
+			log.Err(err).Msg("SaveTaskOutput: failed")
+			return -1, eerr
+		}
 	}
 	return wr.WorkflowResultID, nil
 }

@@ -33,6 +33,7 @@ type TaskContext struct {
 	EvalResultID                       int                                                          `json:"evalResultID,omitempty"`
 	ResponseID                         int                                                          `json:"responseID,omitempty"`
 	WebPayload                         any                                                          `json:"webPayload,omitempty"`
+	TextResponse                       string                                                       `json:"textResponse,omitempty"`
 	ChunkIterator                      int                                                          `json:"chunkIterator"`
 	RegexSearchResults                 []hera_search.SearchResult                                   `json:"searchResults,omitempty"`
 	Retrieval                          artemis_orchestrations.RetrievalItem                         `json:"retrieval,omitempty"`
@@ -65,7 +66,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
-			BackoffCoefficient: 1.0,
+			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 10,
 			MaximumAttempts:    25,
 		},

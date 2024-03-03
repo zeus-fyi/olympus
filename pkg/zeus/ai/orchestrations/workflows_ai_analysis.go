@@ -144,8 +144,14 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						ResponseID:            cp.Tc.ResponseID,
 					}
 					ia := InputDataAnalysisToAgg{
+						TextInput:                   nil,
 						ChatCompletionQueryResponse: aiResp,
 					}
+					var tmp string
+					for _, cv := range aiResp.Response.Choices {
+						tmp += cv.Message.Content + "\n"
+					}
+					ia.TextInput = &tmp
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
 					if err != nil {

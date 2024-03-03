@@ -58,15 +58,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 	}
 	for i := 1; i < wfExecParams.WorkflowExecTimekeepingParams.RunCycles+1; i++ {
 		startTime := wfExecParams.WorkflowExecTimekeepingParams.RunWindow.Start.Add(time.Duration(i) * wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
-		if time.Now().Before(startTime) && !wfExecParams.WorkflowExecTimekeepingParams.IsCycleStepped && !wfExecParams.WorkflowExecTimekeepingParams.IsStrictTimeWindow {
-			if wfExecParams.WorkflowExecTimekeepingParams.IsStrictTimeWindow {
-				log.Info().Msg("RunAiWorkflowProcess: sleeping until start time")
-				err = workflow.Sleep(ctx, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
-				if err != nil {
-					logger.Error("failed to sleep", "Error", err)
-					return err
-				}
-			} else {
+		if wfExecParams.WorkflowExecTimekeepingParams.IsStrictTimeWindow {
+			log.Info().Msg("RunAiWorkflowProcess: sleeping IsStrictTimeWindow")
+			err = workflow.Sleep(ctx, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
+			if err != nil {
+				logger.Error("failed to sleep", "Error", err)
+				return err
+			} else if time.Now().Before(startTime) && !wfExecParams.WorkflowExecTimekeepingParams.IsCycleStepped {
 				err = workflow.Sleep(ctx, startTime.Sub(time.Now()))
 				if err != nil {
 					logger.Error("failed to sleep", "Error", err)
@@ -74,6 +72,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				}
 			}
 		}
+
 		childParams := &MbChildSubProcessParams{WfID: oj.OrchestrationName + "-analysis-" + strconv.Itoa(i), Ou: ou, WfExecParams: wfExecParams, Oj: oj,
 			Wsr: artemis_orchestrations.WorkflowStageReference{
 				WorkflowRunID: oj.OrchestrationID,

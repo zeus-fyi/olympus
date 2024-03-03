@@ -107,6 +107,33 @@ func (m *IrisCache) RecordRequestUsageRatesCheckLimitAndNextRoute(ctx context.Co
 		}, nil
 }
 
+const (
+	initServerlessZU = 250
+)
+
+func (m *IrisCache) RecordNewServerlessRequestUsage(ctx context.Context, orgID int) error {
+	// Generate the rate limiter key with the Unix timestamp
+	rateLimiterKey := getOrgRateLimitKey(orgID)
+	orgRequestsTotal := getOrgTotalRequestsKey(orgID)
+	month := time.Now().UTC().Month().String()
+	orgRequestsMonthly := getOrgMonthlyUsageKey(orgID, month)
+	// Use Redis transaction (pipeline) to perform all operations atomically
+	pipe := m.Writer.TxPipeline()
+	// Increment the payload size meter
+	_ = pipe.IncrByFloat(ctx, orgRequestsTotal, initServerlessZU)
+	_ = pipe.IncrByFloat(ctx, orgRequestsMonthly, initServerlessZU)
+	// Increment the rate limiter key
+	_ = pipe.IncrByFloat(ctx, rateLimiterKey, initServerlessZU)
+	// rate limiter key expires after 3 seconds
+	pipe.Expire(ctx, rateLimiterKey, time.Second*3)
+	// Execute the pipeline
+	_, err := pipe.Exec(ctx)
+	if err == redis.Nil {
+		err = nil
+	}
+	return err
+}
+
 func (m *IrisCache) RecordRequestUsage(ctx context.Context, orgID int, meter *iris_usage_meters.PayloadSizeMeter) error {
 	// Generate the rate limiter key with the Unix timestamp
 	if meter == nil {

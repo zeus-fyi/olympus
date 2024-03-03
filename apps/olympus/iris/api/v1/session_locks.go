@@ -148,6 +148,16 @@ func (p *ProxyRequest) ProcessLockedSessionRoute(c echo.Context, orgID int, sess
 		routeURL = "http://localhost:8888"
 	}
 
+	if isNewSession {
+		log.Info().Str("routeGroup", routeGroup).Msg("ProcessLockedSessionRoute: isNewSession")
+		go func(orgID int) {
+			err = iris_redis.IrisRedisClient.RecordNewServerlessRequestUsage(context.Background(), orgID)
+			if err != nil {
+				log.Err(err).Interface("orgID", orgID).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.RecordNewServerlessRequestUsage")
+			}
+		}(orgID)
+	}
+
 	if isNewSession && routeGroup != "" {
 		// todo, just for anvil
 		wa := web3_client.NewWeb3ClientFakeSigner(routeURL)

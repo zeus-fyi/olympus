@@ -1,10 +1,12 @@
 package artemis_entities
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 
+	"github.com/jackc/pgtype"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -73,7 +75,7 @@ func InsertUserEntityLabeledMetadata(ctx context.Context, ue *UserEntityWrapper)
 		VALUES ($1, $2, $3)
 		RETURNING entity_metadata_id;`
 
-		err = tx.QueryRow(ctx, insertMetadataQuery, ue.EntityID, md.JsonData, md.TextData).Scan(&ue.MdSlice[mi].EntityMetadataID)
+		err = tx.QueryRow(ctx, insertMetadataQuery, ue.EntityID, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(md.JsonData), Status: IsNull(md.JsonData)}, md.TextData).Scan(&ue.MdSlice[mi].EntityMetadataID)
 		if err != nil {
 			log.Printf("Failed to insert user entity metadata: %v", err)
 			return err
@@ -101,4 +103,16 @@ func InsertUserEntityLabeledMetadata(ctx context.Context, ue *UserEntityWrapper)
 		return err
 	}
 	return nil
+}
+
+func IsNull(b []byte) pgtype.Status {
+	if b == nil {
+		return pgtype.Null
+	}
+	return pgtype.Present
+}
+
+func sanitizeBytesUTF8(b []byte) []byte {
+	bs := bytes.ReplaceAll(b, []byte{0}, []byte{})
+	return bs
 }

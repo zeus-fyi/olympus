@@ -282,9 +282,9 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if retInst.WebFilters.EndpointREST != nil {
 		restMethod = strings.ToLower(*retInst.WebFilters.EndpointREST)
 		switch restMethod {
-		case "post":
+		case "post", "POST":
 			restMethod = http.MethodPost
-		case "put":
+		case "put", "PUT":
 			restMethod = http.MethodPut
 		case "delete":
 			restMethod = http.MethodDelete

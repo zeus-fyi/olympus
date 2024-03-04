@@ -105,23 +105,6 @@ export const prettyPrintPromptJSON = (json: any): string => {
 };
 
 
-export const prettyPrintPromptContentJSON = (json: any): string => {
-    console.log('prettyPrintPromptContentJSON:', json);
-    try {
-        // Check if the input is a string that needs to be parsed
-        if (typeof json === 'string') {
-            json = JSON.parse(json);
-        }
-        if (Array.isArray(json)) {
-            return JSON.stringify(json, null, 2);
-        } else {
-            return JSON.stringify(json.content, null, 2);
-        }
-    } catch (error) {
-        console.error('Error parsing or formatting prettyPrintPromptContentJSON:', error);
-        return json; // Return an empty string in case of error
-    }
-};
 
 export const prettyPrintJSON = (json: any): string => {
     try {
@@ -130,9 +113,52 @@ export const prettyPrintJSON = (json: any): string => {
             json = JSON.parse(json);
         }
         if (Array.isArray(json)) {
-            return JSON.stringify(json, null, 2);
+            return json.map(obj => prettyPrintJSON(obj)).join('\n');
         } else {
             return JSON.stringify(json, null, 2);
+        }
+    } catch (error) {
+        console.error('Error parsing or formatting prettyPrintJSON:', error);
+        return json; // Return an empty string in case of error
+    }
+};
+
+
+const prettyPrintObject = (obj: any) => {
+    // If 'message' is a string that needs to be parsed
+    try {
+        if (obj.prompt) {
+            return prettyPrintWfRunRowJSON(obj.prompt);
+        } else if (obj.content) {
+            return prettyPrintWfRunRowJSON(obj.content);
+        } else if (obj.tool_calls) {
+            return prettyPrintWfRunRowJSON(obj.tool_calls);
+        } else if (obj.tool_uses) {
+            return prettyPrintWfRunRowJSON(obj.tool_uses);
+        } else if (obj.message) {
+            return prettyPrintWfRunRowJSON(obj.message);
+        } else if (obj.function) {
+            return prettyPrintWfRunRowJSON(obj.function);
+        } else {
+            return JSON.stringify(obj, null, 2);
+        }
+    } catch (error) {
+        // Return the original string if it can't be parsed
+        return obj;
+    }
+};
+
+export const prettyPrintWfRunRowJSON = (json: any): string => {
+    try {
+        // Determine if json is an array and format each object accordingly
+        if (Array.isArray(json)) {
+            return json.map(obj => prettyPrintWfRunRowJSON(obj)).join('\n');
+        } else if (typeof json === 'string') {
+            return prettyPrintWfRunRowJSON(JSON.parse(json))
+        } else if (typeof json === 'object') {
+            return prettyPrintObject(json);
+        } else {
+            return json; // Return an empty string in case of error
         }
     } catch (error) {
         console.error('Error parsing or formatting prettyPrintJSON:', error);

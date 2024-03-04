@@ -53,6 +53,11 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		}
 	}
 	params.Prompt = sg.GetPromptBody()
+	if len(params.Prompt) == 0 {
+		log.Warn().Interface("mb.Tc.TaskName", mb.Tc.TaskName).Msg("CreateJsonOutputModelResponse: prompt is empty")
+		return nil, fmt.Errorf("CreateJsonOutputModelResponse: prompt is empty")
+	}
+
 	var resp openai.ChatCompletionResponse
 	ps, err := GetMockingBirdSecrets(ctx, mb.Ou)
 	if err != nil || ps == nil || ps.ApiKey == "" {

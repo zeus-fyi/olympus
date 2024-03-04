@@ -58,6 +58,8 @@ func (t *CreateOrUpdateTaskRequest) CreateOrUpdateTask(c echo.Context) error {
 		log.Err(err).Msg("failed to insert task")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	t.OrgID = 0
+	t.UserID = 0
 	return c.JSON(http.StatusOK, t)
 }
 

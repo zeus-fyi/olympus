@@ -95,6 +95,6 @@ func MempoolPlan(plan string) string {
 	case "enterprise", "standard", "performance", "lite", "discovery", "discover":
 		return plan
 	default:
-		return ""
+		return "standard"
 	}
 }

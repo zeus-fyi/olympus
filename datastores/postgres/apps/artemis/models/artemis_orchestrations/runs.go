@@ -39,10 +39,13 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 	q := sql_query_templates.QueryParams{}
 	args := []interface{}{ou.OrgID}
 
+	var limit string
 	queryByRunID := ""
 	if rid > 0 {
 		queryByRunID = " AND ar.workflow_run_id = $2"
 		args = append(args, rid)
+	} else {
+		limit = " LIMIT 100"
 	}
 
 	// uses main for unique id, so type == real name for related workflow
@@ -62,7 +65,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 							o.org_id = $1 ` + queryByRunID + ` 
 						ORDER BY
 							o.orchestration_id DESC
-						LIMIT 100
+						` + limit + `
 					), cte_0 AS (
 						SELECT
 							o.orchestration_id,

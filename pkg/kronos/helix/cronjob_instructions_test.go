@@ -17,7 +17,7 @@ func (t *KronosWorkerTestSuite) TestInsertCronJobScratchPad() {
 		Type:      cronjob,
 		CronJob: CronJobInstructions{
 			Endpoint:     fmt.Sprintf("https://api.zeus.fyi/v1/webhooks/twillio"),
-			PollInterval: 5 * time.Minute,
+			PollInterval: 1 * time.Minute,
 		},
 	}
 	b, err := json.Marshal(inst)

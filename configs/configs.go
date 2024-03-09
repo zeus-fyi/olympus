@@ -39,6 +39,7 @@ type TestContainer struct {
 	TelegramApiToken string
 	AwsS3AccessKey   string
 	AwsS3SecretKey   string
+	TwillioAuth      string
 
 	QuickNodeMarketplace        QuickNodeMarketplace
 	ZeroXApiKey                 string
@@ -240,6 +241,7 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.AtlassianKeys.ApiKey = viper.GetString("ATLASSIAN_API_KEY")
 	testCont.AtlassianKeys.OrgId = viper.GetString("ATLASSIAN_ORG_ID")
 
+	testCont.TwillioAuth = viper.GetString("TWILLIO_AUTH")
 	testCont.AwsS3AccessKey = viper.GetString("AWS_S3_ACCESS_KEY")
 	testCont.AwsS3SecretKey = viper.GetString("AWS_S3_SECRET_KEY")
 

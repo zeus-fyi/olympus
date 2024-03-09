@@ -82,7 +82,7 @@ func (z *ZeusAiPlatformServiceWorkflows) AiIngestTwillioWorkflow(ctx workflow.Co
 	for _, msg := range msgs {
 		var msgID int
 		insertMsgCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(insertMsgCtx, z.InsertTelegramMessageIfNew, ou, msg).Get(insertMsgCtx, &msgID)
+		err = workflow.ExecuteActivity(insertMsgCtx, z.InsertTwillioAsEntityMessageIfNew, ou, msg).Get(insertMsgCtx, &msgID)
 		if err != nil {
 			logger.Error("failed to execute InsertEmailIfNew", "Error", err)
 			// You can decide if you want to return the error or continue monitoring.

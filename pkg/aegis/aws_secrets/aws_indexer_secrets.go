@@ -248,6 +248,13 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 		//fmt.Println(mkeyName, "mkey")
 		svItem, sok := m[mkeyName]
 		if sok && svItem.Key == mockingbird {
+			if strings.Contains(mkeyName, "twillio") {
+				ss := strings.Split(mkeyName, ":")
+				if len(ss) == 2 {
+					op.TwillioAccount = ss[0]
+					op.TwillioAuth = ss[1]
+				}
+			}
 			if mkeyName == fmt.Sprintf("%s-oauth2-public", platform) {
 				op.OAuth2Public = svItem.Value
 			}
@@ -303,6 +310,8 @@ func MockingBirdPlatformNames(platform string) map[string]string {
 }
 
 type OAuth2PlatformSecret struct {
+	TwillioAccount    string `json:"twillioAccount"`
+	TwillioAuth       string `json:"twillioAuth"`
 	ConsumerPublic    string `json:"consumerPublic"`
 	ConsumerSecret    string `json:"consumerSecret"`
 	Platform          string `json:"platform"`

@@ -24,6 +24,7 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc)
 	log.Debug().Msgf("InitRouter")
 	// Routes
 	e.GET("/health", Health)
+	e.POST("/twillio/sms/Ts0ll1cz2gI5JO&1^vRH6GY@m0rDz&4u8sA3BFBN", zeus_webhooks.SupportAcknowledgeTwillioTaskHandler)
 
 	// external
 	InitV1Routes(e, k8Cfg, mw)
@@ -158,7 +159,6 @@ func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-
 	eg = zeus_v1_router.V1InternalRoutes(eg, k8Cfg)
 }
 

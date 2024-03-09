@@ -60,6 +60,7 @@ func CreateOrUpdateEntities(c echo.Context, ef []artemis_entities.EntitiesFilter
 		}
 		err = artemis_entities.InsertUserEntityLabeledMetadata(c.Request().Context(), urw)
 		if err != nil {
+			log.Err(err).Msg("failed to insert user entity")
 			return c.JSON(http.StatusBadRequest, nil)
 		}
 	}

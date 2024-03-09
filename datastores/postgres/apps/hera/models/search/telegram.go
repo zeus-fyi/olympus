@@ -70,6 +70,7 @@ func (t *TelegramMetadata) Sanitize() {
 	t.Phone = sanitizeUTF8(t.Phone)
 	t.Username = sanitizeUTF8(t.Username)
 }
+
 func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, msg TelegramMessage) (int, error) {
 	q := filterSeenTgMsgIds()
 	var msgID int
@@ -91,6 +92,7 @@ func InsertNewTgMessages(ctx context.Context, ou org_users.OrgUser, msg Telegram
 	}
 	return msgID, nil
 }
+
 func sanitizeUTF8(s string) string {
 	bs := bytes.ReplaceAll([]byte(s), []byte{0}, []byte{})
 	return strings.ToValidUTF8(string(bs), "")

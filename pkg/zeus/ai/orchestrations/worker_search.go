@@ -71,10 +71,10 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteAiTwillioWorkflow(ctx context.Cont
 		ID:        fmt.Sprintf("twillio-%s", uuid.New().String()),
 	}
 	txWf := NewZeusPlatformServiceWorkflows()
-	wf := txWf.AiIngestTelegramWorkflow
+	wf := txWf.AiIngestTwillioWorkflow
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, workflowOptions.ID, ou, msgs)
 	if err != nil {
-		log.Err(err).Msg("ExecuteAiTelegramWorkflow")
+		log.Err(err).Msg("ExecuteAiTwillioWorkflow")
 		return err
 	}
 	return nil

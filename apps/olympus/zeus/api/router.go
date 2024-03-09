@@ -24,7 +24,6 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc)
 	log.Debug().Msgf("InitRouter")
 	// Routes
 	e.GET("/health", Health)
-	e.POST("/twillio/sms/Ts0ll1cz2gI5JO&1^vRH6GY@m0rDz&4u8sA3BFBN", zeus_webhooks.SupportAcknowledgeTwillioTaskHandler)
 
 	// external
 	InitV1Routes(e, k8Cfg, mw)
@@ -179,6 +178,8 @@ func InitV1WebhooksRoutes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+
+	eg.GET("/twillio", zeus_webhooks.SupportAcknowledgeTwillioTaskHandler)
 	eg.GET("/emails/support", zeus_webhooks.SupportEmailAIServiceTaskRequestHandler)
 	eg.GET("/emails/alex", zeus_webhooks.AlexEmailAIServiceTaskRequestHandler)
 	eg.GET("/emails/ai", zeus_webhooks.AiEmailAIServiceTaskRequestHandler)
@@ -237,7 +238,3 @@ func InitVZWebhooksRoutes(e *echo.Echo) {
 func Health(c echo.Context) error {
 	return c.String(http.StatusOK, "Healthy")
 }
-
-/*
-
- */

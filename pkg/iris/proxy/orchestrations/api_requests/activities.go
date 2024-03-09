@@ -89,6 +89,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		return pr, err
 	}
 	var bearer string
+	var user, pw string
 	if pr.SecretNameRef != "" {
 		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(pr.OrgID, pr.UserID), pr.SecretNameRef)
 		if ps != nil && ps.BearerToken != "" {
@@ -97,7 +98,12 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 			log.Err(err).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
 			return pr, err
 		}
-
+		if len(ps.TwillioAccount) > 0 {
+			user = ps.TwillioAccount
+		}
+		if len(ps.TwillioAuth) > 0 {
+			pw = ps.TwillioAuth
+		}
 		if strings.HasPrefix(pr.Url, "https://oauth.reddit.com") {
 			ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(pr.OrgID, pr.UserID), "reddit")
 			if err != nil {
@@ -154,7 +160,10 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		r.SetAuthToken(bearer)
 		log.Info().Msg("ExtLoadBalancerRequest: setting bearer token")
 	}
-
+	if len(user) > 0 && len(pw) > 0 {
+		r.SetBasicAuth(user, pw)
+		log.Info().Msg("ExtLoadBalancerRequest: setting basic auth")
+	}
 	parsedURL, err := url.Parse(pr.Url)
 	if err != nil {
 		log.Err(err).Msg("ExtLoadBalancerRequest: failed to parse url")
@@ -253,6 +262,12 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Put(ext)
 			case "DELETE", "delete":
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Delete(ext)
+			case "POST-form", "post-form":
+				fbp := make(map[string]string)
+				for k, v := range pr.Payload {
+					fbp[k] = fmt.Sprintf("%v", v)
+				}
+				resp, err = request.SetFormData(fbp).SetResult(&pr.Response).Post(ext)
 			case "POST", "post":
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Post(ext)
 			default:

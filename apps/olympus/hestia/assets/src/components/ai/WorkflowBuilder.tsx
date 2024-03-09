@@ -2867,6 +2867,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     }}
                                                                     >
                                                                         <MenuItem value="post">{'POST'}</MenuItem>
+                                                                        <MenuItem value="post-form">{'POST x-www-form-urlencoded'}</MenuItem>
                                                                         <MenuItem value="get">{'GET'}</MenuItem>
                                                                         <MenuItem value="put">{'PUT'}</MenuItem>
                                                                         <MenuItem value="delete">{'DELETE'}</MenuItem>

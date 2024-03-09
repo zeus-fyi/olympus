@@ -63,14 +63,14 @@ func SelectUserMetadataByProvidedFields(ctx context.Context, ous org_users.OrgUs
         LEFT JOIN public.user_entities_md_labels umdl ON umd.entity_metadata_id = umdl.entity_metadata_id
         ` + wc + `
 		GROUP BY 
-    ue.entity_id, 
-    ue.nickname, 
-    ue.platform, 
-    ue.first_name, 
-    ue.last_name, 
-    umd.entity_metadata_id, 
-    umd.json_data, 
-    umd.text_data `
+			ue.entity_id, 
+			ue.nickname, 
+			ue.platform, 
+			ue.first_name, 
+			ue.last_name, 
+			umd.entity_metadata_id, 
+			umd.json_data, 
+			umd.text_data `
 
 	// Append ORDER BY clause at the end of the query
 	finalQuery := baseQuery + " ORDER BY ue.platform DESC LIMIT 10000"
@@ -93,7 +93,7 @@ func SelectUserMetadataByProvidedFields(ctx context.Context, ous org_users.OrgUs
 		)
 
 		// Scan the row into local variables
-		err = rows.Scan(&entityID, &userEntity.Nickname, &userEntity.Platform, &userEntity.FirstName, &userEntity.LastName, &metadataID, &jsonData, &textData, &label)
+		err = rows.Scan(&userEntity.EntityID, &userEntity.Nickname, &userEntity.Platform, &userEntity.FirstName, &userEntity.LastName, &metadataID, &jsonData, &textData, &label)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to scan row")
 			return nil, err

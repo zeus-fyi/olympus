@@ -216,9 +216,9 @@ func (z *ZeusAiPlatformActivities) SendTaskResponseEmail(ctx context.Context, em
 }
 
 func (z *ZeusAiPlatformActivities) SearchTwitterUsingQuery(ctx context.Context, ou org_users.OrgUser, sp *hera_search.TwitterSearchQuery) ([]*twitter.Tweet, error) {
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, "twitter")
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, twitterPlatform)
 	if err != nil {
-		log.Err(err).Msg("SearchRedditNewPostsUsingSubreddit: failed to get mockingbird secrets")
+		log.Err(err).Msg("SearchTwitterUsingQuery: failed to get mockingbird secrets")
 		return nil, err
 	}
 	if ps == nil || ps.OAuth2Public == "" || ps.OAuth2Secret == "" {
@@ -292,6 +292,8 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			restMethod = http.MethodPatch
 		case "get":
 			restMethod = http.MethodGet
+		default:
+			log.Info().Str("restMethod", restMethod).Msg("ApiCallRequestTask: rest method")
 		}
 	}
 	if r.Payload != nil && retInst.WebFilters.RegexPatterns != nil {

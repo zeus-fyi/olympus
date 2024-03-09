@@ -82,6 +82,31 @@ func (k *OrgUserKey) GetUserFromEmail(ctx context.Context, email string) error {
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
+func (k *OrgUserKey) QueryUserByPhone() sql_query_templates.QueryParams {
+	var q sql_query_templates.QueryParams
+	query := fmt.Sprintf(`
+	SELECT ou.org_id, ou.user_id
+	FROM users u
+	INNER JOIN org_users ou ON ou.user_id = u.user_id
+	INNER JOIN users_keys usk ON usk.user_id = ou.user_id
+	WHERE u.phone_number = $1
+	LIMIT 1
+	`)
+	q.RawQuery = query
+	return q
+}
+
+func (k *OrgUserKey) GetUserFromPhone(ctx context.Context, phone string) error {
+	q := k.QueryUserByEmail()
+	log.Debug().Interface("GetUserFromPhone:", q.LogHeader(Sn))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, phone).Scan(&k.OrgID, &k.UserID)
+	if err != nil {
+		log.Err(err).Msg("GetUserFromPhone error")
+		return err
+	}
+	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
 func (k *OrgUserKey) VerifyQuickNodeToken(ctx context.Context) error {
 	var q sql_query_templates.QueryParams
 	query := fmt.Sprintf(`

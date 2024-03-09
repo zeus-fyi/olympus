@@ -168,7 +168,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			logger.Error("failed to run retrieval", "Error", err)
 			return nil, err
 		}
-
 		count := len(cp.Tc.AIWorkflowTriggerResultApiResponse.ReqPayloads)
 		if count <= 0 {
 			count = 1

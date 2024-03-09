@@ -3,6 +3,7 @@ package artemis_entities
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -46,15 +47,17 @@ func (s *EntitiesTestSuite) TestInsertUserEntity() {
 	// Test data for insertion
 	testUserEntity := UserEntityWrapper{
 		UserEntity: UserEntity{
-			Nickname: "ageorge010@vt.edu",
-			Platform: "email",
+			Nickname: "+17575828406",
+			Platform: "twillio",
 			MdSlice: []UserEntityMetadata{
 				{
 					JsonData: json.RawMessage(`{"vt": "me"}`),
 					TextData: nil, // Demonstrating handling of NULL
 					Labels: []UserEntityMetadataLabel{
 						{Label: "virginia-tech"},
-						{Label: "student"},
+						{Label: "mockingbird"},
+						{Label: "twillio"},
+						{Label: "indexer:twillio"},
 					},
 				},
 			},
@@ -65,6 +68,19 @@ func (s *EntitiesTestSuite) TestInsertUserEntity() {
 	err := InsertUserEntityLabeledMetadata(ctx, &testUserEntity)
 	s.Require().Nil(err)
 	s.Require().NotZero(testUserEntity.EntityID)
+}
+
+func (s *EntitiesTestSuite) TestSelectLatestTwillioIndexTime() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+
+	res, err := SelectHighestLabelIdForLabelAndPlatform(ctx, s.Ou, "twillio", "indexer:twillio")
+	s.Require().Nil(err)
+	s.Require().NotZero(res)
+
+	ch := chronos.Chronos{}
+
+	tv := ch.ConvertUnixTimeStampToDate(res)
+	fmt.Println(tv.String())
 }
 
 func TestEntitiesTestSuite(t *testing.T) {

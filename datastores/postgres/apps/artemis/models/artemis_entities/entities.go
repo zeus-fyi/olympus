@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -115,4 +116,27 @@ func IsNull(b []byte) pgtype.Status {
 func sanitizeBytesUTF8(b []byte) []byte {
 	bs := bytes.ReplaceAll(b, []byte{0}, []byte{})
 	return bs
+}
+
+func SelectHighestLabelIdForLabelAndPlatform(ctx context.Context, ou org_users.OrgUser, platform, label string) (int, error) {
+	var highestLabelId int
+
+	query := `
+		SELECT MAX(COALESCE(umdl.entity_metadata_label_id, 0)) 
+		FROM public.user_entities_md_labels umdl
+		JOIN public.user_entities_md umd ON umdl.entity_metadata_id = umd.entity_metadata_id
+		JOIN public.user_entities ue ON umd.entity_id = ue.entity_id
+		WHERE label = $1 AND platform = $2 AND ue.org_id = $3
+		LIMIT 1;`
+
+	err := apps.Pg.QueryRowWArgs(ctx, query, label, platform, ou.OrgID).Scan(&highestLabelId)
+	if err == pgx.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		log.Err(err).Msg("SelectHighestLabelIdForLabelAndPlatform: Failed to execute query")
+		return 0, err
+	}
+
+	return highestLabelId, nil
 }

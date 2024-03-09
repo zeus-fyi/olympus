@@ -249,7 +249,7 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 		svItem, sok := m[mkeyName]
 		if sok && svItem.Key == mockingbird {
 			if strings.Contains(mkeyName, "twillio") {
-				ss := strings.Split(mkeyName, ":")
+				ss := strings.Split(svItem.Value, ":")
 				if len(ss) == 2 {
 					op.TwillioAccount = ss[0]
 					op.TwillioAuth = ss[1]

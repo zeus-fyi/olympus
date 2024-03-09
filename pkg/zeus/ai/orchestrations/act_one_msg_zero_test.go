@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -9,11 +10,25 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/twilio/twilio-go"
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 )
 
 // if api-twillio, split sptring
 
 func (t *ZeusWorkerTestSuite) TestDo() {
+	sn := "api-twillio"
+	var pw, user string
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(internalOrgID, internalOrgID), sn)
+	if len(ps.TwillioAccount) > 0 {
+		user = ps.TwillioAccount
+	}
+	if len(ps.TwillioAuth) > 0 {
+		pw = ps.TwillioAuth
+	}
+	t.Require().NotEmpty(user)
+	t.Require().NotEmpty(pw)
+
 	accountSid := fmt.Sprintf("AC3dd03d09b1ffc5ddff47e451b93f542a:%s", t.Tc.TwillioAuth)
 	ss := strings.Split(accountSid, ":")
 	fmt.Println(ss[0])

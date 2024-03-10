@@ -69,7 +69,7 @@ func SupportAcknowledgeTwillioTask(c echo.Context) error {
 		key := read_keys.NewKeyReader()
 		err = key.GetUserFromPhone(c.Request().Context(), aws.ToString(record.From))
 		var ou org_users.OrgUser
-		if err != nil && key.OrgID > 0 && key.UserID > 0 {
+		if err == nil && key.OrgID > 0 && key.UserID > 0 {
 			ou = org_users.NewOrgUserWithID(key.OrgID, key.UserID)
 		} else {
 			log.Info().Interface("msg", record).Msg("Zeus: SupportAcknowledgeTwillioTask: no user found")

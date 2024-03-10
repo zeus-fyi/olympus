@@ -14,10 +14,12 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/orgs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/users"
+	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/transformations"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -44,6 +46,12 @@ func (b *BaseHestiaTestSuite) SetupTest() {
 	b.Yr = transformations.YamlFileIO{}
 	b.InitLocalConfigs()
 	b.SetupPGConn()
+	auth := aegis_aws_auth.AuthAWS{
+		Region:    "us-west-1",
+		AccessKey: b.Tc.AwsAccessKeySecretManager,
+		SecretKey: b.Tc.AwsSecretKeySecretManager,
+	}
+	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(context.Background(), auth)
 }
 
 func (b *BaseHestiaTestSuite) NewTestUser() int {

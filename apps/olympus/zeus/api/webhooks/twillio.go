@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
@@ -46,6 +47,9 @@ func SupportAcknowledgeTwillioTask(c echo.Context) error {
 	if err != nil {
 		log.Err(err).Msg("Zeus: SupportAcknowledgeTwillioTask")
 		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if tvUnix == 0 {
+		tvUnix = int(time.Now().Add(-time.Hour * 24 * 7).UnixNano())
 	}
 	ch := chronos.Chronos{}
 	tv := ch.ConvertUnixTimeStampToDate(tvUnix)

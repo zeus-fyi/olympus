@@ -97,7 +97,7 @@ func (k *OrgUserKey) QueryUserByPhone() sql_query_templates.QueryParams {
 }
 
 func (k *OrgUserKey) GetUserFromPhone(ctx context.Context, phone string) error {
-	q := k.QueryUserByEmail()
+	q := k.QueryUserByPhone()
 	log.Debug().Interface("GetUserFromPhone:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, phone).Scan(&k.OrgID, &k.UserID)
 	if err != nil {

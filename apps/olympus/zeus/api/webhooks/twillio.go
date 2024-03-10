@@ -61,6 +61,7 @@ func SupportAcknowledgeTwillioTask(c echo.Context) error {
 			log.Err(jerr).Msg("Zeus: SupportAcknowledgeTwillioTask")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
+		log.Info().Interface("msg", aws.ToString(record.From)).Msg("Zeus: SupportAcknowledgeTwillioTask: From")
 		key := read_keys.NewKeyReader()
 		err = key.GetUserFromPhone(c.Request().Context(), aws.ToString(record.From))
 		var ou org_users.OrgUser

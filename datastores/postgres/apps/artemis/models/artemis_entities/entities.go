@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -119,7 +120,7 @@ func sanitizeBytesUTF8(b []byte) []byte {
 }
 
 func SelectHighestLabelIdForLabelAndPlatform(ctx context.Context, ou org_users.OrgUser, platform, label string) (int, error) {
-	var highestLabelId int
+	var highestLabelId *int
 
 	query := `
 		SELECT MAX(COALESCE(umdl.entity_metadata_label_id, 0)) 
@@ -138,5 +139,5 @@ func SelectHighestLabelIdForLabelAndPlatform(ctx context.Context, ou org_users.O
 		return 0, err
 	}
 
-	return highestLabelId, nil
+	return aws.ToInt(highestLabelId), nil
 }

@@ -71,7 +71,7 @@ func (s *EntitiesTestSuite) TestInsertUserEntity() {
 }
 
 func (s *EntitiesTestSuite) TestSelectLatestTwillioIndexTime() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	res, err := SelectHighestLabelIdForLabelAndPlatform(ctx, s.Ou, "twillio", "indexer:twillio")
 	s.Require().Nil(err)

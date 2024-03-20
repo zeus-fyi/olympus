@@ -43,8 +43,8 @@ export const App = () => {
                             <Route path="ai" element={<ProtectedLayout children={<AiWorkflowsDashboard />}/>}/>
                             <Route path="ai/workflow/builder" element={<ProtectedLayout children={<AiWorkflowsEngineBuilderDashboard />}/>}/>
                             <Route path="billing" element={<ProtectedLayout children={<Billing />}/>}/>
-                            <Route path="access"  element={<ProtectedLayout children={<Access />}/>}/>
-                            <Route path="secrets"  element={<ProtectedLayout children={<Secrets />}/>}/>
+                            <Route path="access" element={<ProtectedLayout children={<Access />}/>}/>
+                            <Route path="secrets" element={<ProtectedLayout children={<Secrets />}/>}/>
                         </Route>
                     </Routes>
                 </BrowserRouter>

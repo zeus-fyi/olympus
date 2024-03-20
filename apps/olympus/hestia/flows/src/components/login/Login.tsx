@@ -53,7 +53,7 @@ const Login = () => {
     }
     useEffect(() => {
         if (requestStatus === 'success') {
-            navigate('/apps');
+            navigate('/ai');
         }
     }, [requestStatus]);
 

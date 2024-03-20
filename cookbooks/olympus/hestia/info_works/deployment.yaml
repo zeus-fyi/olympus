@@ -21,7 +21,7 @@ spec:
         - name: zeus-fyi-ext
       containers:
         - name: "info-flows"
-          image: "registry.digitalocean.com/zeus-fyi/info-flows:latest"
+          image: "registry.digitalocean.com/zeus-fyi/flows:latest"
           imagePullPolicy: Always
           env:
             - name: REACT_APP_BACKEND_ENDPOINT

@@ -15,7 +15,6 @@ on:
       - ai-triggers
       - add-flows
 
-
 permissions:
   contents: read
   id-token: write

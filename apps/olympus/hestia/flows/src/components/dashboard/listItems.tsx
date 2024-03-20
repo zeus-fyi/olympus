@@ -18,6 +18,7 @@ import {
     setOpenClustersPanel,
     setOpenComputePanel
 } from "../../redux/menus/menus.reducer";
+import AutoFixNormalIcon from '@mui/icons-material/AutoFixNormal';
 
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(false);
@@ -68,6 +69,14 @@ export default function MainListItems() {
                                 <ConstructionIcon />
                             </ListItemIcon>
                             <ListItemText primary="Builder" />
+                        </ListItemButton>
+                    </List>
+                    <List component="div" disablePadding>
+                        <ListItemButton sx={{ pl: 4 }} component={Link} to="/ai/workflow/wizard">
+                            <ListItemIcon>
+                                <AutoFixNormalIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Flow Wizard" />
                         </ListItemButton>
                     </List>
                 </Collapse>

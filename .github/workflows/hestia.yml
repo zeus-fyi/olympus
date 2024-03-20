@@ -13,6 +13,8 @@ on:
     branches:
       - main
       - ai-triggers
+      - add-flows
+
 
 permissions:
   contents: read

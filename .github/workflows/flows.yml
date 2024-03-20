@@ -1,9 +1,9 @@
-name: Build Flow App
+name: Build Flows App
 
 on:
   push:
     paths:
-      - .github/workflows/flow.yml
+      - .github/workflows/flows.yml
       - apps/olympus/hestia/**
     branches:
       - main
@@ -15,7 +15,7 @@ permissions:
 
 env:
   REPO: registry.digitalocean.com/zeus-fyi
-  NAME: flow
+  NAME: flows
   TAG: latest
   GOOS: linux
   GOARCH: amd64
@@ -52,7 +52,7 @@ jobs:
           wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
           tar xf doctl.tar.gz -C /usr/local/bin
 
-      - name: Build And Publish Flow App
+      - name: Build And Publish Flows App
         run: |
           sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
@@ -61,5 +61,5 @@ jobs:
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           --token ${{ secrets.DEPOT_TOKEN }} \
           --provenance=false \
-          -f docker/flow/Dockerfile . --push
+          -f docker/flows/Dockerfile . --push
 

@@ -3,13 +3,13 @@ FROM node:16-buster AS src_builder
 WORKDIR /app
 
 # Copy the package.json and package-lock.json files into the container
-COPY apps/olympus/hestia/assets/package*.json ./
+COPY apps/olympus/hestia/flows/package*.json ./
 
 # Install any needed packages
 RUN npm ci
 
 # Copy the rest of the application code into the container
-COPY apps/olympus/hestia/flow/ ./
+COPY apps/olympus/hestia/flows/ ./
 
 # Build the React app for production
 RUN npm run build --nomaps

@@ -14,6 +14,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -161,16 +162,17 @@ func FormatSearchResultsV4(filteredMap map[int]*SearchResult, results []SearchRe
 }
 
 type SearchResult struct {
-	UnixTimestamp   int              `json:"unixTimestamp"`
-	Source          string           `json:"source"`
-	Value           string           `json:"value"`
-	Group           string           `json:"group"`
-	Verified        *bool            `json:"verified,omitempty"`
-	Metadata        TelegramMetadata `json:"metadata,omitempty"`
-	DiscordMetadata DiscordMetadata  `json:"discordMetadata"`
-	RedditMetadata  RedditMetadata   `json:"redditMetadata"`
-	TwitterMetadata *TwitterMetadata `json:"twitterMetadata,omitempty"`
-	WebResponse     WebResponse      `json:"webResponses,omitempty"`
+	UnixTimestamp   int                           `json:"unixTimestamp"`
+	Source          string                        `json:"source"`
+	Value           string                        `json:"value"`
+	Group           string                        `json:"group"`
+	Verified        *bool                         `json:"verified,omitempty"`
+	Metadata        TelegramMetadata              `json:"metadata,omitempty"`
+	DiscordMetadata DiscordMetadata               `json:"discordMetadata"`
+	RedditMetadata  RedditMetadata                `json:"redditMetadata"`
+	TwitterMetadata *TwitterMetadata              `json:"twitterMetadata,omitempty"`
+	WebResponse     WebResponse                   `json:"webResponses,omitempty"`
+	UserEntities    []artemis_entities.UserEntity `json:"userEntity,omitempty"`
 }
 
 type TwitterMetadata struct {
@@ -370,6 +372,22 @@ func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSea
 		res = append(res, resReddit...)
 	}
 
+	if strings.Contains(platform, "entities") || len(platform) == 0 {
+		ep := ""
+		if sp.Retrieval.EntitiesIndexerOpts != nil {
+			ep = sp.Retrieval.EntitiesIndexerOpts.EntityPlatform
+		}
+		evs, err := artemis_entities.SelectUserMetadataByProvidedFields(ctx, ou, "", ep, nil, 0)
+		if err != nil {
+			return nil, err
+		}
+		srs, err := FormatEntities(evs)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, srs...)
+	}
+
 	//if strings.Contains(platform, "web") {
 	//	resWeb, err := SearchReddit(ctx, ou, sp)
 	//	if err != nil {
@@ -398,7 +416,9 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		if result.TwitterMetadata != nil && result.TwitterMetadata.TweetStrID != "" {
 			parts = append(parts, result.TwitterMetadata.TweetStrID)
 		} else {
-			parts = append(parts, fmt.Sprintf("%d", result.UnixTimestamp))
+			if result.UnixTimestamp > 0 {
+				parts = append(parts, fmt.Sprintf("%d", result.UnixTimestamp))
+			}
 		}
 		// Conditionally append other fields if they are not empty
 		if result.Source != "" {
@@ -494,6 +514,24 @@ func FormatSearchResultsV5(results []SearchResult) string {
 		return ""
 	}
 	return string(b)
+}
+
+func FormatEntities(ent []artemis_entities.UserEntity) ([]SearchResult, error) {
+	var srs []SearchResult
+	for _, r := range ent {
+		for _, md := range r.MdSlice {
+			b, err := json.MarshalIndent(md, "", "  ")
+			if err != nil {
+				log.Err(err).Msg("FormatEntities: Error marshalling entity metadata")
+				return nil, err
+			}
+			sr := SearchResult{
+				Value: fmt.Sprintf("%s", b),
+			}
+			srs = append(srs, sr)
+		}
+	}
+	return srs, nil
 }
 
 type SimplifiedSearchResultJSON struct {

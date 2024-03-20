@@ -289,7 +289,7 @@ func Zeus() {
 
 	if env == "local" || env == "production-local" {
 		mw := middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"http://localhost:3000"},
+			AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3010"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding", "CloudCtxNsID"},
 			AllowCredentials: true,

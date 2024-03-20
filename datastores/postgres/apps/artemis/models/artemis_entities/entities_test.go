@@ -41,7 +41,7 @@ func (s *EntitiesTestSuite) TestSelectUserEntityWithMd() {
 func (s *EntitiesTestSuite) TestSelectEntitiesWithAnyData() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	res, err := SelectUserMetadataByProvidedFields(ctx, s.Ou,
-		"", "", nil, -36000)
+		"", "", nil, 0)
 
 	s.Require().Nil(err)
 	s.Require().NotEmpty(res)

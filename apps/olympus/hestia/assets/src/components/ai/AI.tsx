@@ -65,6 +65,8 @@ import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../red
 import {accessApiGateway} from "../../gateway/access";
 import {IrisApiGateway} from "../../gateway/iris";
 import axios from 'axios';
+import {MbTaskCmdPrompt} from "../chatgpt/ChatGPT";
+import {prettyPrintWfRunRowJSON} from "./RetrievalsRow";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -79,6 +81,7 @@ function AiWorkflowsDashboardContent(props: any) {
     const runs = useSelector((state: any) => state.ai.runs);
     const actions = useSelector((state: RootState) => state.ai.triggerActions);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
+    const [taskInst, setTaskInst] = useState('');
     const [code, setCode] = useState('');
     const [unixStartTime, setUnixStartTime] = useState(0);
     const [stepSize, setStepSize] = useState(1);
@@ -520,7 +523,7 @@ function AiWorkflowsDashboardContent(props: any) {
                         noWrap
                         sx={{ flexGrow: 1 }}
                     >
-                        Mockingbird — An Intelligently Designed AI Systems Coordinator
+                        Mockingbird — Model Supervised Intelligent Network
                     </Typography>
                     <Button
                         color="inherit"
@@ -582,7 +585,7 @@ function AiWorkflowsDashboardContent(props: any) {
                             <Card sx={{ minWidth: 100, maxWidth: 600 }}>
                                 <CardContent>
                                     <Typography gutterBottom variant="h5" component="div">
-                                        Search Previews
+                                        Command & Control
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
                                         This allows you to search across platforms for data. Use this
@@ -636,6 +639,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                                         }}
                                                     >
                                                         <MenuItem value="api">API</MenuItem>
+                                                        <MenuItem value="entities">Entities</MenuItem>
                                                         <MenuItem value="reddit">Reddit</MenuItem>
                                                         <MenuItem value="twitter">Twitter</MenuItem>
                                                         <MenuItem value="discord">Discord</MenuItem>
@@ -645,7 +649,7 @@ function AiWorkflowsDashboardContent(props: any) {
                                             </Box>
 
                                             { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform !== 'web' &&
-                                                retrieval.retrievalItemInstruction.retrievalPlatform !== 'api' &&
+                                                retrieval.retrievalItemInstruction.retrievalPlatform !== 'api' &&  retrieval.retrievalItemInstruction.retrievalPlatform !== 'entities' &&
                                                 <Box flexGrow={1} sx={{ mb: 2, ml: 4, mr:4  }}>
                                                     <TextField
                                                         fullWidth
@@ -659,6 +663,31 @@ function AiWorkflowsDashboardContent(props: any) {
                                                                 retrievalItemInstruction: {
                                                                     ...retrieval.retrievalItemInstruction,
                                                                     retrievalPlatformGroups: e.target.value
+                                                                }
+                                                            };
+                                                            dispatch(setRetrieval(updatedRetrieval));
+                                                        }}
+                                                    />
+                                                </Box>
+                                            }
+                                            { retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.retrievalPlatform === 'entities' &&
+                                                <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="entity-input"
+                                                        label="Entity Platform"
+                                                        variant="outlined"
+                                                        value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.entitiesFilter ? retrieval.retrievalItemInstruction.entitiesFilter.platform : ''}
+                                                        onChange={(e) => {
+                                                            const platform = e.target.value || ''; // Provide a default empty string if e.target.value is undefined
+                                                            const updatedRetrieval = {
+                                                                ...retrieval,
+                                                                retrievalItemInstruction: {
+                                                                    ...retrieval.retrievalItemInstruction,
+                                                                    entitiesFilter: {
+                                                                        ...retrieval.retrievalItemInstruction.entitiesFilter,
+                                                                        platform: platform, // Use the nicknameValue which is guaranteed to be a string
+                                                                    }
                                                                 }
                                                             };
                                                             dispatch(setRetrieval(updatedRetrieval));
@@ -801,7 +830,37 @@ function AiWorkflowsDashboardContent(props: any) {
                                                 </Box>
                                             </div>
                                             }
-                                            { retrieval.retrievalItemInstruction.retrievalPlatform !== 'api' &&
+                                            { retrieval.retrievalItemInstruction.retrievalPlatform === 'entities' &&
+                                                <div>
+                                                    <Typography variant="h6" color="text.secondary">
+                                                        Entities Filter
+                                                    </Typography>
+                                                    <Box flexGrow={1} sx={{ mt: 2, mb: 2,ml: 0, mr:0  }}>
+                                                        <TextField
+                                                            fullWidth
+                                                            id="entity-input"
+                                                            label="Entity Nickname"
+                                                            variant="outlined"
+                                                            value={retrieval.retrievalItemInstruction && retrieval.retrievalItemInstruction.entitiesFilter ? retrieval.retrievalItemInstruction.entitiesFilter.nickname : ''}
+                                                            onChange={(e) => {
+                                                                const nicknameValue = e.target.value || ''; // Provide a default empty string if e.target.value is undefined
+                                                                const updatedRetrieval = {
+                                                                    ...retrieval,
+                                                                    retrievalItemInstruction: {
+                                                                        ...retrieval.retrievalItemInstruction,
+                                                                        entitiesFilter: {
+                                                                            ...retrieval.retrievalItemInstruction.entitiesFilter,
+                                                                            nickname: nicknameValue, // Use the nicknameValue which is guaranteed to be a string
+                                                                        }
+                                                                    }
+                                                                };
+                                                                dispatch(setRetrieval(updatedRetrieval));
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                </div>
+                                            }
+                                            { retrieval.retrievalItemInstruction.retrievalPlatform !== 'api' && retrieval.retrievalItemInstruction.retrievalPlatform !== 'entities' &&
                                                 <div>
                                                     <Typography variant="h6" color="text.secondary">
                                                     Search keywords using comma separated values below.
@@ -1435,9 +1494,29 @@ function AiWorkflowsDashboardContent(props: any) {
                         </Container>
                     )}
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <div>
+                                <Box flexGrow={3} sx={{ mb: 2, ml: 1, mr: 1 }}>
+                                    <Typography variant="h6" color="text.secondary">
+                                        Mockingbird Network Tasking Prompt
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ mb: 2, mt: 2 }}>
+                                    <MbTaskCmdPrompt language={"plaintext"} code={prettyPrintWfRunRowJSON(taskInst)} onChange={setTaskInst} height={"200px"} width={"1200px"}/>
+                                </Box>
+                                <Stack direction={"row"} >
+                                    <Box sx={{ mb: 2, mr: 2}}>
+                                        <Button variant="outlined">Execute Network Task</Button>
+                                    </Box>
+                                    <Box sx={{ mb: 2, mr: 2}}>
+                                        <Button variant="outlined">Preview Task Planner Output</Button>
+                                    </Box>
+                                </Stack>
+                            </div>
+                        </Container>
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
-                                <Tab label="Search" />
+                                <Tab label="Command" />
                                 <Tab className="onboarding-card-highlight-all-search-indexer" label="Indexer"/>
                                 <Tab className="onboarding-card-highlight-all-workflows" label="Workflows"/>
                                 <Tab className="onboarding-card-highlight-all-workflows-runs" label="Runs"/>
@@ -1447,7 +1526,9 @@ function AiWorkflowsDashboardContent(props: any) {
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         { (selectedMainTab === 0) &&
-                            <AiSearchAnalysis code={code} onChange={onChangeText} />
+                            <div>
+                                <AiSearchAnalysis code={code} onChange={onChangeText} />
+                            </div>
                         }
 
                         { selectedSearchIndexers && selectedSearchIndexers.length > 0  &&

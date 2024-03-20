@@ -24,16 +24,25 @@ type RetrievalItem struct {
 }
 
 type RetrievalItemInstruction struct {
-	RetrievalPlatform         string          `json:"retrievalPlatform"`
-	RetrievalPrompt           *string         `json:"retrievalPrompt,omitempty"`           // Prompt for the retrieval
-	RetrievalPlatformGroups   *string         `json:"retrievalPlatformGroups,omitempty"`   // Platform groups for the retrieval
-	RetrievalKeywords         *string         `json:"retrievalKeywords,omitempty"`         // Keywords for the retrieval
-	RetrievalNegativeKeywords *string         `json:"retrievalNegativeKeywords,omitempty"` // Keywords for the retrieval
-	RetrievalUsernames        *string         `json:"retrievalUsernames,omitempty"`        // Usernames for the retrieval
-	DiscordFilters            *DiscordFilters `json:"discordFilters,omitempty"`            // Discord filters for the retrieval
-	WebFilters                *WebFilters     `json:"webFilters,omitempty"`                // Web filters for the retrieval
+	RetrievalPlatform         string               `json:"retrievalPlatform"`
+	RetrievalPrompt           *string              `json:"retrievalPrompt,omitempty"`           // Prompt for the retrieval
+	RetrievalPlatformGroups   *string              `json:"retrievalPlatformGroups,omitempty"`   // Platform groups for the retrieval
+	RetrievalKeywords         *string              `json:"retrievalKeywords,omitempty"`         // Keywords for the retrieval
+	RetrievalNegativeKeywords *string              `json:"retrievalNegativeKeywords,omitempty"` // Keywords for the retrieval
+	RetrievalUsernames        *string              `json:"retrievalUsernames,omitempty"`        // Usernames for the retrieval
+	DiscordFilters            *DiscordFilters      `json:"discordFilters,omitempty"`            // Discord filters for the retrieval
+	WebFilters                *WebFilters          `json:"webFilters,omitempty"`                // Web filters for the retrieval
+	EntitiesIndexerOpts       *EntitiesIndexerOpts `json:"entitiesFilter,omitempty"`            // Entities indexer options
 
 	Instructions json.RawMessage `json:"instructions,omitempty"` // Instructions for the retrieval
+}
+
+type EntitiesIndexerOpts struct {
+	Nickname       string   `json:"nickname" db:"nickname"`
+	EntityPlatform string   `json:"platform" db:"platform"`
+	FirstName      *string  `json:"firstName,omitempty"`
+	LastName       *string  `json:"lastName,omitempty"`
+	Labels         []string `json:"labels"`
 }
 
 type WebFilters struct {

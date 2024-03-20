@@ -1497,7 +1497,7 @@ function WorkflowEngineBuilder(props: any) {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Mockingbird — An Intelligently Designed AI Systems Coordinator
+                            Mockingbird — Model Supervised Intelligent Network
                         </Typography>
                         <Button
                             color="inherit"

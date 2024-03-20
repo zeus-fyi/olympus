@@ -11,8 +11,10 @@ import mevReducer from "./mev/mev.reducer";
 import aiReducer from "./ai/ai.reducer";
 import menusReducer from "./menus/menus.reducer";
 import clustersConfigsReducer from "./clusters/clusters.configs.reducer";
+import flowsReducer from "./flows/flows.reducer";
 
 const rootReducer = combineReducers({
+    flows: flowsReducer,
     sessionState: sessionReducer,
     mev: mevReducer,
     apps: appsReducer,

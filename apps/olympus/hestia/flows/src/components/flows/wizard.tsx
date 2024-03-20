@@ -21,6 +21,7 @@ import authProvider from "../../redux/auth/auth.actions";
 import {RootState} from "../../redux/store";
 import MainListItems from "../dashboard/listItems";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
+import {CsvUploadActionAreaCard} from "./upload";
 
 const drawerWidth: number = 240;
 
@@ -183,6 +184,7 @@ function BizAutomation() {
                                 </Typography>
                             </CardContent>
                             <CardContent>
+                                <CsvUploadActionAreaCard />
                             </CardContent>
                         </Card>
                     </Container>

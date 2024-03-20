@@ -77,7 +77,7 @@ const Login = () => {
                     dispatch(setIsBillingSetup(true));
                 }
                 dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
-                navigate('/apps');
+                navigate('/ai');
             } else {
                 dispatch(setSessionAuth(false))
                 dispatch({type: 'LOGIN_FAIL', payload: res.data})

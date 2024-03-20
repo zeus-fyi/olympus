@@ -13,13 +13,8 @@ import (
 )
 
 func (t *ZeusCloudCookbookTestSuite) TestDeployZeusCloud() {
-	//_, err := ZeusCloudClusterDef.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
-	//t.Require().Nil(err)
-	//
-	//cdep := ZeusCloudClusterDef.GenerateDeploymentRequest()
-	//resp, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
-	//t.Require().Nil(err)
-	//t.Assert().NotEmpty(resp)
+	_, err := ZeusCloudClusterDef.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
+	t.Require().Nil(err)
 }
 
 func (t *ZeusCloudCookbookTestSuite) TestZeusCloudClusterSetup() {
@@ -34,10 +29,13 @@ func (t *ZeusCloudCookbookTestSuite) TestZeusCloudClusterSetup() {
 	sbDefs, err := ZeusCloudClusterDef.GenerateSkeletonBaseCharts()
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(sbDefs)
+
+	err = gcd.CreateClusterClassDefinitions(ctx, t.ZeusTestClient)
+	t.Require().Nil(err)
 }
 
 func (t *ZeusCloudCookbookTestSuite) TestCreateClusterBase() {
-	basesInsert := []string{"zeusCloud"}
+	basesInsert := []string{"info-flows"}
 	cc := zeus_req_types.TopologyCreateOrAddComponentBasesToClassesRequest{
 		ClusterClassName:   clusterClassName,
 		ComponentBaseNames: basesInsert,

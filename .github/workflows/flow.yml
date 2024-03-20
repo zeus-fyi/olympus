@@ -7,7 +7,7 @@ on:
       - apps/olympus/hestia/**
     branches:
       - main
-      - add-flow
+      - add-flows
 
 permissions:
   contents: read

@@ -7,11 +7,19 @@ import Button from "@mui/material/Button";
 import {SetupCard} from "./Setup";
 
 export function Commands(props: any) {
+    const [checked, setChecked] = React.useState(false);
+    const [gs, setGsChecked] = React.useState(false);
+    const handleChangeGs = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
+        setGsChecked(event.target.checked);
+    };
+    const handleChange = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
+        setChecked(event.target.checked);
+    };
     const [code, setCode] = React.useState("");
     return (
         <div>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'center', mb: 2 }}>
-                <SetupCard />
+                <SetupCard checked={checked} handleChangeGs={handleChangeGs} handleChange={handleChange} />
             </Box>
             <Card sx={{ maxWidth: 1200, justifyContent: 'center' }}>
             <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large',fontWeight: 'thin', marginRight: '15x', color: '#151C2F'}}>

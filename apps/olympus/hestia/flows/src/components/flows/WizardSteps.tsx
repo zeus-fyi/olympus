@@ -9,6 +9,7 @@ import Container from "@mui/material/Container";
 import {CsvUploadActionAreaCard} from "./Upload";
 import {AnalyzeActionAreaCard} from "./Analyze";
 import {Commands} from "./Commands";
+import {Results} from "./Results";
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -29,6 +30,7 @@ function stepComponents(activeStep: number,
         <CsvUploadActionAreaCard />,
         <AnalyzeActionAreaCard />,
         <Commands />,
+        <Results />,
     ];
     return steps[activeStep]
 }

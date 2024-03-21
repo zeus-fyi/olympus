@@ -16,14 +16,17 @@ const flowsSlice = createSlice({
         },
         setPromptHeaders: (state, action: PayloadAction<string[]>) => {
             state.promptHeaders = action.payload;
+        },
+        setResults: (state, action: PayloadAction<any[]>) => {
+            state.results = action.payload;
         }
     }
 });
-
 export const {
     setCsvHeaders,
     setUploadContacts,
     setUploadTasksContent,
-    setPromptHeaders
+    setPromptHeaders,
+    setResults
 } = flowsSlice.actions;
 export default flowsSlice.reducer

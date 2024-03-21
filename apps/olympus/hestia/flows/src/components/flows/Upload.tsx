@@ -7,6 +7,8 @@ import * as React from "react";
 import {useDispatch} from "react-redux";
 import {setCsvHeaders, setUploadContent} from "../../redux/flows/flows.reducer";
 import Checkbox from "@mui/material/Checkbox";
+import {TextFieldRows} from "./UploadFieldMap";
+import Container from "@mui/material/Container";
 
 export function CsvUploadActionAreaCard(props: any) {
     const [checked, setChecked] = React.useState(false);
@@ -60,21 +62,27 @@ export function CsvUploadActionAreaCard(props: any) {
         reader.readAsText(file);
     };
     return (
-        <Card sx={{ maxWidth: 320 }}>
-            <CardActionArea>
-                <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                    <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large',fontWeight: 'thin', marginRight: '15x', color: '#151C2F'}}>
-                        Upload CSV
-                    </Typography>
-                    <UploadButton onUpload={onUpload}/>
-                    <Checkbox
-                        checked={checked}
-                        onChange={handleChange}
-                        inputProps={{ 'aria-label': 'controlled' }}
-                    />
-                </CardContent>
-            </CardActionArea>
-        </Card>
+        <div>
+            <Card sx={{ maxWidth: 320 }}>
+                <CardActionArea>
+                    <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                        <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large',fontWeight: 'thin', marginRight: '15x', color: '#151C2F'}}>
+                            Upload CSV
+                        </Typography>
+                        <UploadButton onUpload={onUpload}/>
+                        <Checkbox
+                            checked={checked}
+                            onChange={handleChange}
+                            inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                    </CardContent>
+                </CardActionArea>
+            </Card>
+            <Container maxWidth="xl" sx={{ ml: -5, mt: 4}}>
+                <TextFieldRows/>
+            </Container>
+
+        </div>
     );
 }
 export function UploadButton(props: any) {

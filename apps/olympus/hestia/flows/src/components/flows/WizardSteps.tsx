@@ -6,8 +6,6 @@ import StepButton from '@mui/material/StepButton';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Container from "@mui/material/Container";
-
-import {Stack, Switch} from "@mui/material";
 import {CsvUploadActionAreaCard} from "./Upload";
 import {SetupCard} from "./Setup";
 
@@ -175,20 +173,20 @@ export const PageToggleView = (props: any) => {
 
     return (
         <div>
-            <Stack direction={"row"} spacing={2} alignItems={"center"}>
-                {pageView ? (
-                    <p>Advanced View</p>
-                ) : (
-                    <p>Simplified View</p>
-                )}
-                <Switch
-                    checked={pageView}
-                    onChange={handleChange}
-                    color="primary"
-                    name="pageView"
-                    inputProps={{ 'aria-label': 'toggle page view' }}
-                />
-            </Stack>
+            {/*<Stack direction={"row"} spacing={2} alignItems={"center"}>*/}
+            {/*    {pageView ? (*/}
+            {/*        <p>Advanced View</p>*/}
+            {/*    ) : (*/}
+            {/*        <p>Simplified View</p>*/}
+            {/*    )}*/}
+            {/*    <Switch*/}
+            {/*        checked={pageView}*/}
+            {/*        onChange={handleChange}*/}
+            {/*        color="primary"*/}
+            {/*        name="pageView"*/}
+            {/*        inputProps={{ 'aria-label': 'toggle page view' }}*/}
+            {/*    />*/}
+            {/*</Stack>*/}
         </div>
     );
 };

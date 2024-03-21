@@ -7,8 +7,8 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Container from "@mui/material/Container";
 import {CsvUploadActionAreaCard} from "./Upload";
-import {SetupCard} from "./Setup";
 import {AnalyzeActionAreaCard} from "./Analyze";
+import {Commands} from "./Commands";
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -16,9 +16,9 @@ const steps = [
 ];
 
 const stepsSimplified = [
-    'Setup',
-    'Upload',
-    'Analyze',
+    'Contacts',
+    'Prompts',
+    'Analysis',
     'Results',
 ];
 
@@ -26,9 +26,9 @@ function stepComponents(activeStep: number,
                         pageView: any,
 ) {
     const steps = [
-        <SetupCard />,
         <CsvUploadActionAreaCard />,
         <AnalyzeActionAreaCard />,
+        <Commands />,
     ];
     return steps[activeStep]
 }

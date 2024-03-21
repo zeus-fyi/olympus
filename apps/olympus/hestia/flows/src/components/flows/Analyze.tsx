@@ -4,17 +4,14 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import * as React from "react";
-import {useDispatch, useSelector} from "react-redux";
-import {setCsvHeaders, setUploadContacts} from "../../redux/flows/flows.reducer";
+import {useDispatch} from "react-redux";
+import {setPromptHeaders, setUploadTasksContent} from "../../redux/flows/flows.reducer";
 import Container from "@mui/material/Container";
-import {ContactsTable} from "./ContactsTable";
-import {RootState} from "../../redux/store";
-import {ContactsTextFieldRows} from "./UploadFieldMap";
+import {TaskPromptsTable} from "./PromptTable";
+import {PromptsTextFieldRows} from "./UploadFieldMap";
 
-export function CsvUploadActionAreaCard(props: any) {
+export function AnalyzeActionAreaCard(props: any) {
     const dispatch = useDispatch();
-    const contacts = useSelector((state: RootState) => state.flows.uploadContentTasks);
-
     const onUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         const file = files?.item(0);
@@ -47,7 +44,7 @@ export function CsvUploadActionAreaCard(props: any) {
                     data = parseResult.data;
                     headers = parseResult.fields;
                     console.log(data, headers);
-                    dispatch(setCsvHeaders(headers));
+                    dispatch(setPromptHeaders(headers));
                 } catch (error) {
                     console.error("Error parsing CSV file:", error);
                     return;
@@ -56,7 +53,7 @@ export function CsvUploadActionAreaCard(props: any) {
                 console.error("Unsupported file type:", file.type);
                 return;
             }
-            dispatch(setUploadContacts(data));
+            dispatch(setUploadTasksContent(data));
         };
         reader.readAsText(file);
     };
@@ -66,17 +63,17 @@ export function CsvUploadActionAreaCard(props: any) {
                 <CardActionArea>
                     <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
                         <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large',fontWeight: 'thin', marginRight: '15x', color: '#151C2F'}}>
-                            Upload User Contacts CSV
+                            Upload Prompts CSV
                         </Typography>
                         <UploadButton onUpload={onUpload}/>
                     </CardContent>
                 </CardActionArea>
             </Card>
             <Container maxWidth="xl" sx={{ ml: -5, mt: 4}}>
-                <ContactsTextFieldRows/>
+                <PromptsTextFieldRows/>
             </Container>
             <Container maxWidth="xl" sx={{ ml: -5, mt: 4}}>
-                <ContactsTable contacts={contacts}/>
+                <TaskPromptsTable/>
             </Container>
 
         </div>

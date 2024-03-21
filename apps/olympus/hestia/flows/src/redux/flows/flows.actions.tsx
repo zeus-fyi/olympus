@@ -1,9 +1,13 @@
 export interface FlowState {
-    uploadContent: any;
+    uploadContentContacts: any;
+    uploadContentTasks: any,
     csvHeaders: string[];
+    promptHeaders: string[];
 }
 
 export const initialState: FlowState = {
-    uploadContent: '',
-    csvHeaders: []
+    uploadContentContacts: '',
+    uploadContentTasks: '',
+    csvHeaders: [],
+    promptHeaders: []
 }

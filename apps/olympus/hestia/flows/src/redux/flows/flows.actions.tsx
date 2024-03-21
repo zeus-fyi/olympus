@@ -1,24 +1,27 @@
 export interface FlowState {
-    uploadContentContacts: string;
-    uploadContentTasks: string,
+    uploadContentContacts: [];
+    uploadContentTasks: [],
     csvHeaders: string[];
     promptHeaders: string[];
     results: [];
-    stages: [];
+    stages: {};
+    commandPrompts: {}
 }
 
 export const initialState: FlowState = {
-    uploadContentContacts: '',
-    uploadContentTasks: '',
+    uploadContentContacts: [],
+    uploadContentTasks: [],
     csvHeaders: [],
     promptHeaders: [],
     results: [],
-    stages: []
+    stages: {},
+    commandPrompts: {}
 }
 
 export interface FlowAction {
-    promptsCsv: string;
-    contentContactsCsv: string;
+    promptsCsv: [];
+    contentContactsCsv: [];
     stages: {};
+    contentContactsFieldMaps: {};
     commandPrompts: {}
 }

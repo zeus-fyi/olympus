@@ -5,10 +5,10 @@ const flowsSlice = createSlice({
     name: 'flows',
     initialState,
     reducers: {
-        setUploadTasksContent: (state, action: PayloadAction<any>) => {
+        setUploadTasksContent: (state, action: PayloadAction<[]>) => {
             state.uploadContentTasks = action.payload;
         },
-        setUploadContacts: (state, action: PayloadAction<any>) => {
+        setUploadContacts: (state, action: PayloadAction<[]>) => {
             state.uploadContentContacts = action.payload;
         },
         setCsvHeaders: (state, action: PayloadAction<string[]>) => {

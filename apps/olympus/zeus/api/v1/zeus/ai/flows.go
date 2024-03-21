@@ -9,10 +9,11 @@ import (
 )
 
 type FlowsActionsRequest struct {
-	ContactsCsv    string            `json:"contentContactsCsv"`
-	PromptsCsv     string            `json:"promptsCsv"`
-	Stages         []string          `json:"stages"`
-	CommandPrompts map[string]string `json:"commandPrompts"`
+	ContactsCsv []map[string]string `json:"contentContactsCsv"`
+	//ContactsFieldsMaps map[string]string   `json:"contactsFieldsMaps,omitempty"`
+	PromptsCsv     []map[string]string `json:"promptsCsv,omitempty"`
+	Stages         map[string]bool     `json:"stages"`
+	CommandPrompts map[string]string   `json:"commandPrompts"`
 }
 
 func FlowsActionsRequestHandler(c echo.Context) error {

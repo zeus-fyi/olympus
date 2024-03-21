@@ -58,15 +58,15 @@ export function Commands(props: any) {
                 contentContactsCsv: contacts,
                 promptsCsv: bodyPrompts,
                 stages: {
-                    linkedin: checked,
+                    linkedIn: checked,
                     googleSearch: gs
                 },
                 commandPrompts: {
                     linkedin: '',
                     googleSearch: code
-
                 }
             }
+            console.log(fa,'fa')
             let res: any = await aiApiGateway.flowsRequest(fa)
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {

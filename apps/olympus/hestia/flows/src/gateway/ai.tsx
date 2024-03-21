@@ -220,6 +220,7 @@ class AiApiGateway {
         return await zeusApi.post(url, params, config)
     }
     async flowsRequest(params: FlowAction): Promise<any> {
+        console.log(params,'params')
         const url = `/v1/flows`;
         const sessionID = inMemoryJWT.getToken();
         let config = {
@@ -228,9 +229,7 @@ class AiApiGateway {
             },
             withCredentials: true,
         }
-        const payload = {params
-        }
-        return await zeusApi.post(url, payload, config)
+        return await zeusApi.post(url, params, config)
     }
 }
 

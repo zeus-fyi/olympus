@@ -11,10 +11,11 @@ import {RootState} from "../../redux/store";
 export function ContactsTable(props: any) {
     const {} = props;
     const contacts = useSelector((state: RootState) => state.flows.uploadContentContacts);
+    const csvHeaders = useSelector((state: RootState) => state.flows.csvHeaders);
+
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     // Extract CSV headers if contacts is not empty
-    const csvHeaders = contacts.length > 0 ? Object.keys(contacts[0]) : [];
 
     const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
         setPage(newPage);

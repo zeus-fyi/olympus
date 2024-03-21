@@ -10,10 +10,10 @@ import TableBody from "@mui/material/TableBody";
 
 export function TaskPromptsTable(props: any) {
     const {} = props;
+    const csvHeaders = useSelector((state: RootState) => state.flows.promptHeaders);
     const prompts = useSelector((state: RootState) => state.flows.uploadContentTasks);
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
-    const csvHeaders = prompts.length > 0 ? Object.keys(prompts[0]) : [];
 
     const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
         setPage(newPage);

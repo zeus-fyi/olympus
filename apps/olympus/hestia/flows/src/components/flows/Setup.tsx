@@ -2,6 +2,7 @@ import {Card, CardContent, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
 import Checkbox from "@mui/material/Checkbox";
+import Box from "@mui/material/Box";
 
 export function SetupCard(props: any) {
     const { checked, handleChange, gs, handleChangeGs} = props;
@@ -19,8 +20,10 @@ export function SetupCard(props: any) {
                     onChange={handleChange}
                 />
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2}}>
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 2}}>
                 <Typography variant="body1">Google Search</Typography>
+               <Box sx={{ml: 2, mb: 2}}>
+               </Box>
                 <Checkbox
                     checked={gs}
                     onChange={handleChangeGs}

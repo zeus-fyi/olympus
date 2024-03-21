@@ -20,8 +20,11 @@ const flowsSlice = createSlice({
         setResults: (state, action: PayloadAction<[]>) => {
             state.results = action.payload;
         },
-        setStages: (state, action: PayloadAction<[]>) => {
-            state.stages = action.payload;
+        setStages: (state, action: PayloadAction<{ [key: string]: boolean }>) => {
+            state.stages = {
+                ...state.stages,
+                ...action.payload
+            };
         }
     }
 });

@@ -4,7 +4,10 @@ export interface FlowState {
     csvHeaders: string[];
     promptHeaders: string[];
     results: [];
-    stages: {};
+    stages: {
+        linkedIn: boolean;
+        googleSearch: boolean;
+    };
     commandPrompts: {}
 }
 
@@ -14,8 +17,14 @@ export const initialState: FlowState = {
     csvHeaders: [],
     promptHeaders: [],
     results: [],
-    stages: {},
-    commandPrompts: {}
+    stages: {
+        linkedIn: false,
+        googleSearch: false
+    },
+    commandPrompts: {
+        linkedin: '',
+        googleSearch: ''
+    }
 }
 
 // [key: string]: string;

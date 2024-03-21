@@ -18,7 +18,7 @@ import AiWorkflowsDashboard from "../components/ai/AI";
 import Secrets from "../components/secrets/Secrets";
 import AiWorkflowsEngineBuilderDashboard from "../components/ai/WorkflowBuilder";
 import {TwitterLogin} from "../components/login/TwitterLogin";
-import BizAutomationWizard from "../components/flows/wizard";
+import BizAutomationWizard from "../components/flows/Wizard";
 
 export const App = () => {
     ReactGA.initialize([

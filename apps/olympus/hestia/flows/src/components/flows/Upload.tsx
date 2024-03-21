@@ -4,10 +4,17 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import * as React from "react";
+import {useDispatch} from "react-redux";
+import {setCsvHeaders, setUploadContent} from "../../redux/flows/flows.reducer";
+import Checkbox from "@mui/material/Checkbox";
 
 export function CsvUploadActionAreaCard(props: any) {
+    const [checked, setChecked] = React.useState(false);
+    const handleChange = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
+        setChecked(event.target.checked);
+    };
+    const dispatch = useDispatch();
     const onUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        console.log('onUpload', 'event', event.target.files);
         const files = event.target.files;
         const file = files?.item(0);
         if (!file) return;
@@ -19,18 +26,27 @@ export function CsvUploadActionAreaCard(props: any) {
                 console.error("File read resulted in null.");
                 return;
             }
-
             let data;
+            let headers;
             if (file.type === "application/json") {
                 try {
                     data = JSON.parse(result as string);
+                    // Assuming you want to set headers for JSON as well,
+                    // you might need to derive them from the data structure
+                    // For example, if data is an array of objects:
+                    // headers = Object.keys(data[0]);
                 } catch (error) {
                     console.error("Error parsing JSON file:", error);
                     return;
                 }
             } else if (file.type === "text/csv") {
                 try {
-                    data = parseCSV(result as string);
+                    // Correctly destructure data and headers from the parseCSV result
+                    const parseResult = parseCSV(result as string);
+                    data = parseResult.data;
+                    headers = parseResult.fields;
+                    console.log(data, headers);
+                    dispatch(setCsvHeaders(headers));
                 } catch (error) {
                     console.error("Error parsing CSV file:", error);
                     return;
@@ -39,8 +55,8 @@ export function CsvUploadActionAreaCard(props: any) {
                 console.error("Unsupported file type:", file.type);
                 return;
             }
+            dispatch(setUploadContent(data));
         };
-
         reader.readAsText(file);
     };
     return (
@@ -51,6 +67,11 @@ export function CsvUploadActionAreaCard(props: any) {
                         Upload CSV
                     </Typography>
                     <UploadButton onUpload={onUpload}/>
+                    <Checkbox
+                        checked={checked}
+                        onChange={handleChange}
+                        inputProps={{ 'aria-label': 'controlled' }}
+                    />
                 </CardContent>
             </CardActionArea>
         </Card>
@@ -74,17 +95,26 @@ export function UploadButton(props: any) {
     );
 }
 
-
-
-
-const parseCSV = (csvText: string): any[] => {
+type CsvDataRow = {
+    [key: string]: string;
+};
+const parseCSV = (csvText: string): { data: CsvDataRow[], fields: string[] } => {
     const lines = csvText.split(/\r\n|\n/);
+    // Ensure there's at least one line for headers
+    if (lines.length === 0) {
+        return { data: [], fields: [] };
+    }
+
     const headers = lines[0].split(',');
-    return lines.slice(1).map((line: string) => {
-        const data = line.split(',');
-        return headers.reduce((obj: { [key: string]: string }, nextKey: string, index: number) => {
-            obj[nextKey] = data[index];
-            return obj;
-        }, {});
+    const data = lines.slice(1).filter(line => line).map(line => {
+        const values = line.split(',');
+        // Use the CsvDataRow type for the object
+        const rowData: CsvDataRow = {};
+        headers.forEach((header, index) => {
+            rowData[header] = values[index] || ''; // Assign empty string if value is undefined
+        });
+        return rowData;
     });
+
+    return { data, fields: headers };
 };

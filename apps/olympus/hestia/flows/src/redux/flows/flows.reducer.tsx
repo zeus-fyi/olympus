@@ -8,10 +8,14 @@ const flowsSlice = createSlice({
         setUploadContent: (state, action: PayloadAction<any>) => {
             state.uploadContent = action.payload;
         },
+        setCsvHeaders: (state, action: PayloadAction<string[]>) => {
+            state.csvHeaders = action.payload;
+        }
     }
 });
 
 export const {
+    setCsvHeaders,
     setUploadContent
 } = flowsSlice.actions;
 export default flowsSlice.reducer

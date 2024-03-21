@@ -15,13 +15,11 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
-import {useDispatch, useSelector} from "react-redux";
-import {Card, CardContent} from "@mui/material";
+import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import {RootState} from "../../redux/store";
 import MainListItems from "../dashboard/listItems";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
-import {CsvUploadActionAreaCard} from "./upload";
+import WizardPanel from "./WizardSteps";
 
 const drawerWidth: number = 240;
 
@@ -83,14 +81,6 @@ function BizAutomation() {
     let navigate = useNavigate();
     const dispatch = useDispatch();
     const [loading, setIsLoading] = useState(false);
-    const resources = useSelector((state: RootState) => state.resources.searchResources);
-    const [minVcpus, setMinVcpus] = useState("0");
-    const [maxVcpus, setMaxVcpus] = useState("0");
-    const [minMemory, setMinMemory] = useState("0");
-    const [maxMemory, setMaxMemory] = useState("0");
-    const [minCostMonthly, setMinCostMonthly] = useState(0);
-    const [maxCostMonthly, setMaxCostMonthly] = useState(0);
-
 
     const handleLogout = async (event: any) => {
         event.preventDefault();
@@ -175,18 +165,7 @@ function BizAutomation() {
                 >
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <Card sx={{ maxWidth: 700 }}>
-                            <CardContent>
-                                <Typography gutterBottom variant="h5" component="div">
-                                    Biz Automation Templates
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                </Typography>
-                            </CardContent>
-                            <CardContent>
-                                <CsvUploadActionAreaCard />
-                            </CardContent>
-                        </Card>
+                        <WizardPanel />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>
@@ -196,5 +175,6 @@ function BizAutomation() {
 }
 
 export default function BizAutomationWizard() {
+
     return <BizAutomation />;
 }

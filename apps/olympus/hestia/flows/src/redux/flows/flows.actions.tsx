@@ -18,6 +18,8 @@ export const initialState: FlowState = {
     commandPrompts: {}
 }
 
+// [key: string]: string;
+
 export interface FlowAction {
     promptsCsv: [];
     contentContactsCsv: [];

@@ -12,7 +12,6 @@ import {useSelector} from "react-redux";
 export function Commands(props: any) {
     const bodyPrompts = useSelector((state: any) => state.flows.uploadContentTasks);
     const contacts = useSelector((state: any) => state.flows.uploadContentContacts);
-
     const [checked, setChecked] = React.useState(false);
     const [gs, setGsChecked] = React.useState(false);
     const handleChangeGs = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
@@ -56,6 +55,7 @@ export function Commands(props: any) {
             setFlowsRequestStatus('pending');
             const fa = {
                 contentContactsCsv: contacts,
+                contentContactsFieldMaps: {},
                 promptsCsv: bodyPrompts,
                 stages: {
                     linkedIn: checked,
@@ -66,7 +66,6 @@ export function Commands(props: any) {
                     googleSearch: code
                 }
             }
-            console.log(fa,'fa')
             let res: any = await aiApiGateway.flowsRequest(fa)
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {

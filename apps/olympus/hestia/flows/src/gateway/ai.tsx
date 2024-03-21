@@ -14,6 +14,7 @@ import {Assistant, Retrieval} from "../redux/ai/ai.types.retrievals";
 import {JsonSchemaDefinition} from "../redux/ai/ai.types.schemas";
 import {EvalFn} from "../redux/ai/ai.types.evals";
 import {TriggerAction, TriggerActionApprovalPutRequest} from "../redux/ai/ai.types.triggers";
+import {FlowAction} from "../redux/flows/flows.actions";
 
 class AiApiGateway {
     async searchRequest(params: AiSearchParams): Promise<any> {
@@ -217,6 +218,19 @@ class AiApiGateway {
             withCredentials: true,
         }
         return await zeusApi.post(url, params, config)
+    }
+    async flowsRequest(params: FlowAction): Promise<any> {
+        const url = `/v1/flows`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        }
+        const payload = {params
+        }
+        return await zeusApi.post(url, payload, config)
     }
 }
 

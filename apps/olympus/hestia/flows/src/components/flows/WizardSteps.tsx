@@ -12,8 +12,10 @@ import {Commands} from "./Commands";
 import {Results} from "./Results";
 
 const steps = [
-    'AWS Auth & Internal User Roles',
-    'Create Internal Lambdas',
+    'Contacts',
+    'Prompts',
+    'Analysis',
+    'Results',
 ];
 
 const stepsSimplified = [

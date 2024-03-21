@@ -75,7 +75,6 @@ export function AnalyzeActionAreaCard(props: any) {
             <Container maxWidth="xl" sx={{ ml: -5, mt: 4}}>
                 <TaskPromptsTable/>
             </Container>
-
         </div>
     );
 }

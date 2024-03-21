@@ -5,7 +5,6 @@ import setTheme = editor.setTheme;
 
 export function MbTaskCmdPrompt(props: any) {
     const {code, setCode, height, width, language, onChange} = props;
-    console.log(code)
     const themeRef = useRef<string>()
     function onSelectThemeChange(e: React.ChangeEvent<HTMLSelectElement>) {
         e.persist();

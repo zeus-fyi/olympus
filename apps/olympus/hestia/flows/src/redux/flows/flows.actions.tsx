@@ -28,6 +28,6 @@ export interface FlowAction {
     commandPrompts: {}
 }
 
-/*
-    TaskOverrides  map[string]TaskOverride
- */
+export const googleSearchPromptOverride = {
+    'biz-lead-google-search-summary': '', // use the settings for tasks
+}

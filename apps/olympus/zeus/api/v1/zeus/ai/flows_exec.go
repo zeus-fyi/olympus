@@ -14,35 +14,45 @@ import (
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
-//type WorkflowsActionsRequest struct {
-//	Action        string `json:"action"`
-//	UnixStartTime int    `json:"unixStartTime,omitempty"`
-//	Duration      int    `json:"duration,omitempty"`
-//	DurationUnit  string `json:"durationUnit,omitempty"`
-//
-//	IsStrictTimeWindow           bool                                      `json:"isStrictTimeWindow,omitempty"`
-//	CustomBasePeriod             bool                                      `json:"customBasePeriod,omitempty"`
-//	CustomBasePeriodStepSize     int                                       `json:"customBasePeriodStepSize,omitempty"`
-//	CustomBasePeriodStepSizeUnit string                                    `json:"customBasePeriodStepSizeUnit,omitempty"`
-//	TaskOverrides                map[string]TaskOverride                   `json:"taskOverrides,omitempty"`
-//	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
-//}
-//
-//type TaskOverride struct {
-//	ReplacePrompt string `json:"replacePrompt,omitempty"`
-//}
+type ExecFlowsActionsRequest struct {
+	Action        string `json:"action"`
+	UnixStartTime int    `json:"unixStartTime,omitempty"`
+	Duration      int    `json:"duration,omitempty"`
+	DurationUnit  string `json:"durationUnit,omitempty"`
 
+	IsStrictTimeWindow           bool                                      `json:"isStrictTimeWindow,omitempty"`
+	CustomBasePeriod             bool                                      `json:"customBasePeriod,omitempty"`
+	CustomBasePeriodStepSize     int                                       `json:"customBasePeriodStepSize,omitempty"`
+	CustomBasePeriodStepSizeUnit string                                    `json:"customBasePeriodStepSizeUnit,omitempty"`
+	TaskOverrides                map[string]TaskOverride                   `json:"taskOverrides,omitempty"`
+	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
+
+	FlowsActionsRequest `json:",inline"`
+}
+
+// TODO package into search
+
+func (w *ExecFlowsActionsRequest) GoogleSearchSetup() {
+	for _, cont := range w.ContactsCsv {
+		fmt.Println(cont)
+		// build verbatim search
+		// run for each
+	}
+	if v, ok := w.CommandPrompts["google"]; ok {
+		w.TaskOverrides["biz-lead-google-search-summary"] = TaskOverride{ReplacePrompt: v}
+	}
+}
 func FlowsExecActionsRequestHandler(c echo.Context) error {
-	request := new(WorkflowsActionsRequest)
+	request := new(ExecFlowsActionsRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.Process(c)
+	return request.ProcessFlow(c)
 }
 
 // TODO: use internal lookup: replace, then use user's org override
 
-func (w *WorkflowsActionsRequest) ProcessFlow(c echo.Context) error {
+func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		log.Info().Interface("ou", ou)
@@ -56,6 +66,21 @@ func (w *WorkflowsActionsRequest) ProcessFlow(c echo.Context) error {
 	//if !isBillingSetup {
 	//	return c.JSON(http.StatusPreconditionFailed, nil)
 	//}
+
+	/*
+	 tmp = {}
+	    if prompt:
+	        tmp['zeusfyi-verbatim'] = {'replacePrompt': prompt}
+	    if agg_prompt:
+	        tmp['biz-lead-google-search-summary'] = {'replacePrompt': agg_prompt}
+
+	    if tmp:
+	        wf_exec['taskOverrides'] = tmp
+	    wf_item = {
+	        'workflowName': 'google-query-regex-index-wf',
+	    }
+	    wf_exec['workflows'] = [wf_item]
+	*/
 
 	var rid int
 	if w.CustomBasePeriod && w.CustomBasePeriodStepSize > 0 && w.CustomBasePeriodStepSizeUnit != "" {

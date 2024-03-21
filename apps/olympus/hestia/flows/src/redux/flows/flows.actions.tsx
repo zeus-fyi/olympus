@@ -27,3 +27,7 @@ export interface FlowAction {
     contentContactsFieldMaps: {};
     commandPrompts: {}
 }
+
+/*
+    TaskOverrides  map[string]TaskOverride
+ */

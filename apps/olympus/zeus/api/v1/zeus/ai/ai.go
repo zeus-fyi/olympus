@@ -49,6 +49,7 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 	e.GET("/runs/ai", GetRunReportsRequestHandler)
 
 	e.POST("/flows", FlowsActionsRequestHandler)
+	e.POST("/flows/runs", FlowsExecActionsRequestHandler)
 
 	// destructive
 	e.DELETE("/workflows/ai", WorkflowsDeletionRequestHandler)

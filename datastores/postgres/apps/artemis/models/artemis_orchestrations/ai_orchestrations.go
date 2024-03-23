@@ -156,6 +156,7 @@ func CalculateStepSizeUnix(stepSize int, stepUnit string) int {
 	}
 	return 0
 }
+
 func ConvertSecondsToLargestUnit(seconds int) (int, string) {
 	// Define conversion factors
 	const (
@@ -180,6 +181,7 @@ func ConvertSecondsToLargestUnit(seconds int) (int, string) {
 		return seconds, "seconds"
 	}
 }
+
 func CalculateAggCycleCount(aggBaseCycleCount int, analysisCycleCounts int) int {
 	if analysisCycleCounts > aggBaseCycleCount {
 		aggBaseCycleCount = analysisCycleCounts

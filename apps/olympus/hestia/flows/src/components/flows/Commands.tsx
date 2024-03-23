@@ -1,26 +1,55 @@
 import * as React from "react";
 import {useState} from "react";
-import {Card, CardActionArea, CircularProgress} from "@mui/material";
+import {Card, CircularProgress, Tab, Tabs} from "@mui/material";
 import {MbTaskCmdPrompt} from "./CommandPrompt";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import {SetupCard} from "./Setup";
 import {aiApiGateway} from "../../gateway/ai";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {setCommandPrompt} from "../../redux/flows/flows.reducer";
 
 export function Commands(props: any) {
     const bodyPrompts = useSelector((state: any) => state.flows.uploadContentTasks);
     const contacts = useSelector((state: any) => state.flows.uploadContentContacts);
+    const cmds = useSelector((state: any) => state.flows.commandPrompts);
     const [checked, setChecked] = React.useState(false);
     const [gs, setGsChecked] = React.useState(false);
+    const [selectedMainTab, setSelectedMainTab] = useState(0);
+    const dispatch = useDispatch();
+    const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setSelectedMainTab(newValue);
+    }
     const handleChangeGs = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
         setGsChecked(event.target.checked);
     };
     const handleChange = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
         setChecked(event.target.checked);
     };
-    const [code, setCode] = React.useState("");
+
+    const handleChangeGoogleSearchPrompt = (event: string) => {
+        // Construct the new commandPrompts object
+        const newCommandPrompts = {
+            ...cmds,
+            googleSearch: event
+        };
+        // Dispatch an action to update the state with the new commandPrompts object
+        dispatch(setCommandPrompt(newCommandPrompts));
+    };
+
+    const handleChangeLinkedInPrompt = (event: string) => {
+        // Construct the new commandPrompts object
+        const newCommandPrompts = {
+            ...cmds,
+            linkedIn: event
+        };
+        console.log(newCommandPrompts)
+        // Dispatch an action to update the state with the new commandPrompts object
+        dispatch(setCommandPrompt(newCommandPrompts));
+    };
+
+
     let buttonLabelCreate;
     let buttonDisabledCreate;
     let statusMessageCreate;
@@ -61,10 +90,7 @@ export function Commands(props: any) {
                     linkedIn: checked,
                     googleSearch: gs
                 },
-                commandPrompts: {
-                    linkedin: '',
-                    googleSearch: code
-                }
+               commandPrompts: cmds
             }
             let res: any = await aiApiGateway.flowsRequest(fa)
             const statusCode = res.status;
@@ -92,26 +118,33 @@ export function Commands(props: any) {
             <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large',fontWeight: 'thin', marginRight: '15x', color: '#151C2F'}}>
                 Agent Tasking Commands
             </Typography>
-                <CardActionArea>
-                    <MbTaskCmdPrompt language={"plaintext"} code={code} onChange={setCode} height={"200px"} width={"1200px"}/>
-                    <Box mt={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'right' }}>
-                        <Button
-                            variant="contained"
-                            onClick={onClickSubmit}
-                            // disabled={buttonDisabledCreate}
-                            sx={{ backgroundColor: '#00C48C', '&:hover': { backgroundColor: '#00A678' }}}
-                        >
-                            Submit
-                        </Button>
-                        {statusMessageCreate && (
-                            <Typography variant="body2" color={flowsRequestStatus === 'error' ? 'error' : 'success'}>
-                                {statusMessageCreate}
-                            </Typography>
-                        )}
-                    </Box>
-                </CardActionArea>
+            {selectedMainTab === 0 && (
+                <MbTaskCmdPrompt language={"plaintext"} code={cmds.googleSearch} onChange={handleChangeGoogleSearchPrompt} height={"200px"} width={"1200px"}/>
+            )}
+            {selectedMainTab === 1 && (
+                <MbTaskCmdPrompt language={"plaintext"} code={cmds.linkedIn} onChange={handleChangeLinkedInPrompt} height={"200px"} width={"1200px"}/>
+            )}
+            <Box mt={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'right' }}>
+                <Button
+                    variant="contained"
+                    onClick={() => onClickSubmit()}
+                    sx={{ backgroundColor: '#00C48C', '&:hover': { backgroundColor: '#00A678' }}}
+                >
+                    Submit
+                </Button>
+                {statusMessageCreate && (
+                    <Typography variant="body2" color={flowsRequestStatus === 'error' ? 'error' : 'success'}>
+                        {statusMessageCreate}
+                    </Typography>
+                )}
+            </Box>
             </Card>
-
+            <Box sx={{ mb: 2, mt: 2, ml: 0, mr:0  }}>
+                <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
+                    <Tab label="Google Search"/>
+                    <Tab label="LinkedIn" />
+                </Tabs>
+            </Box>
         </div>
     );
 }

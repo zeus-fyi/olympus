@@ -1,6 +1,7 @@
 package zeus_v1_ai
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -32,15 +33,42 @@ type ExecFlowsActionsRequest struct {
 
 // TODO package into search
 
-func (w *ExecFlowsActionsRequest) GoogleSearchSetup() {
-	for _, cont := range w.ContactsCsv {
-		fmt.Println(cont)
-		// build verbatim search
-		// run for each
+func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
+	if v, ok := w.Stages["googleSearch"]; !ok || !v {
+		return nil
 	}
-	if v, ok := w.CommandPrompts["google"]; ok {
+	b, err := json.Marshal(w.ContactsCsv)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal gs")
+		return err
+	}
+	if w.TaskOverrides == nil {
+		w.TaskOverrides = make(map[string]TaskOverride)
+	}
+	w.TaskOverrides["zeusfyi-verbatim"] = TaskOverride{ReplacePrompt: string(b)}
+	if v, ok := w.CommandPrompts["googleSearch"]; ok {
 		w.TaskOverrides["biz-lead-google-search-summary"] = TaskOverride{ReplacePrompt: v}
 	}
+	return nil
+}
+
+func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
+	if v, ok := w.Stages["linkedIn"]; !ok || !v {
+		return nil
+	}
+	b, err := json.Marshal(w.ContactsCsv)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal li")
+		return err
+	}
+	if w.TaskOverrides == nil {
+		w.TaskOverrides = make(map[string]TaskOverride)
+	}
+	w.TaskOverrides["zeusfyi-verbatim"] = TaskOverride{ReplacePrompt: string(b)}
+	if v, ok := w.CommandPrompts["linkedIn"]; ok {
+		w.TaskOverrides["biz-lead-linkedIn-summary"] = TaskOverride{ReplacePrompt: v}
+	}
+	return nil
 }
 func FlowsExecActionsRequestHandler(c echo.Context) error {
 	request := new(ExecFlowsActionsRequest)
@@ -58,6 +86,10 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	err := w.GoogleSearchSetup()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
 	//if err != nil {
 	//	log.Error().Err(err).Msg("failed to check if user has billing method")
@@ -66,21 +98,6 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	//if !isBillingSetup {
 	//	return c.JSON(http.StatusPreconditionFailed, nil)
 	//}
-
-	/*
-	 tmp = {}
-	    if prompt:
-	        tmp['zeusfyi-verbatim'] = {'replacePrompt': prompt}
-	    if agg_prompt:
-	        tmp['biz-lead-google-search-summary'] = {'replacePrompt': agg_prompt}
-
-	    if tmp:
-	        wf_exec['taskOverrides'] = tmp
-	    wf_item = {
-	        'workflowName': 'google-query-regex-index-wf',
-	    }
-	    wf_exec['workflows'] = [wf_item]
-	*/
 
 	var rid int
 	if w.CustomBasePeriod && w.CustomBasePeriodStepSize > 0 && w.CustomBasePeriodStepSizeUnit != "" {
@@ -165,7 +182,6 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 					}
 				}
 			}
-			var err error
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {

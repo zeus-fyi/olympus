@@ -25,7 +25,7 @@ export function MbTaskCmdPrompt(props: any) {
                 width={width}
                 language={language}
                 theme={'vs-dark'}
-                onChange={(event) => onChange(event)}
+                onChange={onChange}
                 value={code}
                 options={{
                     wordWrap: "on"

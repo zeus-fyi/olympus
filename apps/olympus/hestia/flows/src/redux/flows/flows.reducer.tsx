@@ -25,6 +25,12 @@ const flowsSlice = createSlice({
                 ...state.stages,
                 ...action.payload
             };
+        },
+        setCommandPrompt: (state, action: PayloadAction<{ [key: string]: string }>) => {
+            state.commandPrompts = {
+                ...state.commandPrompts,
+                ...action.payload
+            };
         }
     }
 });
@@ -35,6 +41,7 @@ export const {
     setUploadTasksContent,
     setPromptHeaders,
     setResults,
-    setStages
+    setStages,
+    setCommandPrompt
 } = flowsSlice.actions;
 export default flowsSlice.reducer

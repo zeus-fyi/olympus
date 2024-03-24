@@ -33,6 +33,7 @@ type TaskContext struct {
 	EvalResultID                       int                                                          `json:"evalResultID,omitempty"`
 	ResponseID                         int                                                          `json:"responseID,omitempty"`
 	WebPayload                         any                                                          `json:"webPayload,omitempty"`
+	QueryParams                        []string                                                     `json:"queryParams,omitempty"`
 	TextResponse                       string                                                       `json:"textResponse,omitempty"`
 	ChunkIterator                      int                                                          `json:"chunkIterator"`
 	RegexSearchResults                 []hera_search.SearchResult                                   `json:"searchResults,omitempty"`

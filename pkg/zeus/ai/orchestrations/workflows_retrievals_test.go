@@ -165,6 +165,18 @@ func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg2() {
 	fmt.Println("Extracted parameters:", strings.Join(params, ", "))
 }
 
+func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg3() {
+	ep := "customsearch/v1?q={q}&cx=sdffs"
+
+	pl := echo.Map{
+		"q": "Alex George Zeusfyi",
+	}
+	pp, qp, err := ReplaceAndPassParams(ep, pl)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(pp)
+	t.Require().NotEmpty(qp)
+}
+
 const ex = `
 {
   "context": {

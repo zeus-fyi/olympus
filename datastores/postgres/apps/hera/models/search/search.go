@@ -164,6 +164,7 @@ func FormatSearchResultsV4(filteredMap map[int]*SearchResult, results []SearchRe
 type SearchResult struct {
 	UnixTimestamp   int                           `json:"unixTimestamp"`
 	Source          string                        `json:"source"`
+	QueryParams     []string                      `json:"queryParams,omitempty"`
 	Value           string                        `json:"value"`
 	Group           string                        `json:"group"`
 	Verified        *bool                         `json:"verified,omitempty"`

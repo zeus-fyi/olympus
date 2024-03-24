@@ -89,21 +89,22 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				Ou:        cp.Ou,
 				RouteInfo: route,
 			}
-			startingPath := *cp.Tc.Retrieval.WebFilters.EndpointRoutePath
-			log.Info().Str("startingPath", startingPath).Msg("startingPath")
+			//startingPath := *cp.Tc.Retrieval.WebFilters.EndpointRoutePath
+			//log.Info().Str("startingPath", startingPath).Msg("startingPath")
 			if cp.Tc.WebPayload != nil {
 				em, ok := cp.Tc.WebPayload.(map[string]interface{})
 				if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
 					if cp.Tc.Retrieval.WebFilters.RegexPatterns != nil && len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 {
-						qpRoute, qerr := ReplaceParams(*cp.Tc.Retrieval.WebFilters.EndpointRoutePath, em)
-						if qerr != nil {
-							logger.Error("failed to replace route path params", "Error", qerr)
-							return nil, qerr
-						}
-						cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &qpRoute
-						if len(em) == 0 {
-							em = nil
-						}
+						//qpRoute, qerr := ReplaceParams(*cp.Tc.Retrieval.WebFilters.EndpointRoutePath, em)
+						//if qerr != nil {
+						//	logger.Error("failed to replace route path params", "Error", qerr)
+						//	return nil, qerr
+						//}
+						//
+						//cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &qpRoute
+						//if len(em) == 0 {
+						//	em = nil
+						//}
 					}
 					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
 						nem := make(map[string]interface{})
@@ -158,7 +159,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				logger.Error("failed to run api call request task retrieval", "Error", err)
 				return nil, err
 			}
-			cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &startingPath
+			//cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &startingPath
 			if cp.Tc.Retrieval.WebFilters != nil && aws.ToString(cp.Tc.Retrieval.WebFilters.LbStrategy) != lbStrategyPollTable && cp.Wsr.InputID > 0 {
 				if len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 && (cp.Tc.RegexSearchResults != nil && len(cp.Tc.RegexSearchResults) > 0) {
 					break
@@ -348,4 +349,34 @@ func ReplaceParams(route string, params echo.Map) (string, error) {
 	})
 
 	return replacedRoute, nil
+}
+
+// ReplaceAndPassParams replaces placeholders in the route with URL-encoded values from the provided map.
+func ReplaceAndPassParams(route string, params echo.Map) (string, []string, error) {
+	// Compile a regular expression to find {param} patterns
+	re, err := regexp.Compile(`\{([^\{\}]+)\}`)
+	if err != nil {
+		log.Err(err).Msg("failed to compile regular expression")
+		return "", nil, err // Return an error if the regular expression compilation fails
+	}
+	var qps []string
+	// Replace each placeholder with the corresponding URL-encoded value from the map
+	replacedRoute := re.ReplaceAllStringFunc(route, func(match string) string {
+		// Extract the parameter name from the match, excluding the surrounding braces
+		paramName := match[1 : len(match)-1]
+		// Look up the paramName in the params map
+		if value, ok := params[paramName]; ok {
+			// Delete the matched entry from the map
+			if rs, rok := value.(string); rok {
+				qps = append(qps, rs)
+			}
+			delete(params, paramName)
+			// If the value exists, convert it to a string and URL-encode it
+			return url.QueryEscape(fmt.Sprint(value))
+		}
+		// If no matching paramName is found in the map, return the match unchanged
+		return match
+	})
+
+	return replacedRoute, qps, nil
 }

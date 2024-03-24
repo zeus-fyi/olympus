@@ -296,21 +296,28 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			log.Info().Str("restMethod", restMethod).Msg("ApiCallRequestTask: rest method")
 		}
 	}
+	var routeExt string
+	var orgRouteExt string
+	if retInst.WebFilters.EndpointREST != nil {
+		routeExt = *retInst.WebFilters.EndpointRoutePath
+	}
+	var extractedQpsVals []string
 	if r.Payload != nil && retInst.WebFilters.RegexPatterns != nil {
-		rp, err := ReplaceParams(r.RouteInfo.RoutePath, r.Payload)
+		rp, qps, err := ReplaceAndPassParams(routeExt, r.Payload)
 		if err != nil {
 			log.Err(err).Msg("ApiCallRequestTask: failed to replace route path params")
 			return nil, err
 		}
-		r.RouteInfo.RoutePath = rp
+
+		log.Info().Interface("qps", qps).Msg("ApiCallRequestTask: qps")
+		extractedQpsVals = qps
+		orgRouteExt = routeExt
+		routeExt = rp
 		if len(r.Payload) == 0 {
 			r.Payload = nil
 		}
 	}
-	var routeExt string
-	if retInst.WebFilters.EndpointREST != nil {
-		routeExt = *retInst.WebFilters.EndpointRoutePath
-	}
+
 	var sec []int
 	if retInst.WebFilters.DontRetryStatusCodes != nil {
 		sec = retInst.WebFilters.DontRetryStatusCodes
@@ -344,6 +351,8 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		log.Err(rrerr).Interface("payload", r.Payload).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
 		return nil, rrerr
 	}
+	rr.ExtRoutePath = orgRouteExt
+	req.ExtRoutePath = orgRouteExt
 	wr := hera_search.WebResponse{
 		WebFilters: retInst.WebFilters,
 		Body:       rr.Response,
@@ -369,6 +378,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	sres := hera_search.SearchResult{
 		Source:      rr.Url,
 		Value:       value,
+		QueryParams: extractedQpsVals,
 		Group:       aws.StringValue(retInst.WebFilters.RoutingGroup),
 		WebResponse: wr,
 	}

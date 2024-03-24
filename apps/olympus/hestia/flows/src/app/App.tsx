@@ -19,6 +19,7 @@ import Secrets from "../components/secrets/Secrets";
 import AiWorkflowsEngineBuilderDashboard from "../components/ai/WorkflowBuilder";
 import {TwitterLogin} from "../components/login/TwitterLogin";
 import BizAutomationWizard from "../components/flows/Wizard";
+import LoadBalancingDashboard from "../components/loadbalancing/LoadBalancingDashboard";
 
 export const App = () => {
     ReactGA.initialize([
@@ -48,6 +49,7 @@ export const App = () => {
                             <Route path="access" element={<ProtectedLayout children={<Access />}/>}/>
                             <Route path="secrets" element={<ProtectedLayout children={<Secrets />}/>}/>
                         </Route>
+                        <Route path="loadbalancing/dashboard" element={<ProtectedLayout children={<LoadBalancingDashboard />}/>}/>
                     </Routes>
                 </BrowserRouter>
             </Provider>

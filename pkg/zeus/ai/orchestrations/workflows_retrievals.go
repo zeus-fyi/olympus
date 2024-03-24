@@ -167,7 +167,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	case apiApproval:
 		var routes []iris_models.RouteInfo
 		retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, cp.Ou, cp.Tc.Retrieval).Get(retrievalWebCtx, &routes)
+		tmpOu := cp.Ou
+		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+			tmpOu.OrgID = FlowsOrgID
+		}
+		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tmpOu, cp.Tc.Retrieval).Get(retrievalWebCtx, &routes)
 		if err != nil {
 			logger.Error("failed to run retrieval", "Error", err)
 			return nil, err

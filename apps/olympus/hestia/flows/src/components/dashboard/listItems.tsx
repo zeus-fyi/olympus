@@ -20,6 +20,10 @@ import {
 } from "../../redux/menus/menus.reducer";
 import AutoFixNormalIcon from '@mui/icons-material/AutoFixNormal';
 
+function SwapCallsIcon() {
+    return null;
+}
+
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(false);
     const openClusters = useSelector((state: RootState) => state.menus.openClustersPanel);
@@ -178,6 +182,12 @@ export default function MainListItems() {
             {/*        </ListItemButton>*/}
             {/*    </List>*/}
             {/*</Collapse>*/}
+            <ListItemButton component={Link} to="/loadbalancing/dashboard">
+                <ListItemIcon>
+                    <SwapCallsIcon />
+                </ListItemIcon>
+                <ListItemText primary="Load Balancing" />
+            </ListItemButton>
             <ListItemButton component={Link} to="/billing">
                 <ListItemIcon>
                     <CreditCardIcon />

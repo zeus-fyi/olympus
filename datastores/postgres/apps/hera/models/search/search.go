@@ -73,6 +73,7 @@ type SearchResultGroup struct {
 	ApiResponseResults             []SearchResult                `json:"apiResponseResults,omitempty"`
 	SearchResults                  []SearchResult                `json:"searchResults"`
 	FilteredSearchResults          []SearchResult                `json:"filteredSearchResults,omitempty"`
+	RegexSearchResults             []SearchResult                `json:"regexSearchResults,omitempty"`
 	FilteredSearchResultMap        map[int]*SearchResult         `json:"filteredSearchResultsMap"`
 	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
 	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
@@ -91,6 +92,9 @@ func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
 func (sg *SearchResultGroup) GetPromptBody() string {
 	if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) == 0 {
 		return sg.BodyPrompt + "\n" + sg.ResponseBody
+	}
+	if len(sg.RegexSearchResults) > 0 {
+		return FormatSearchResultsV5(sg.RegexSearchResults)
 	}
 	var ret string
 	if len(sg.ApiResponseResults) > 0 {
@@ -482,11 +486,13 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	for _, result := range results {
 		if result.WebResponse.RegexFilteredBody != "" {
 			m := map[string]interface{}{
-				"msg_id":   fmt.Sprintf("%d", result.UnixTimestamp),
 				"msg_body": result.Value,
 			}
 			if result.QueryParams != nil {
 				m["msg_qps"] = result.QueryParams
+			}
+			if result.UnixTimestamp > 0 {
+				m["msg_id"] = fmt.Sprintf("%d", result.UnixTimestamp)
 			}
 			newResults = append(newResults, m)
 		} else if result.WebResponse.Body != nil {

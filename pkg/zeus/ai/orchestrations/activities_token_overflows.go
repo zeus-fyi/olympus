@@ -75,7 +75,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 				if d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.RegexSearchResults != nil {
 					wio.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
 						InSearchGroup: &hera_search.SearchResultGroup{
-							SearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
+							RegexSearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
 						},
 					}
 				}
@@ -99,13 +99,14 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 				SearchResults:         make([]hera_search.SearchResult, 0),
 				ApiResponseResults:    make([]hera_search.SearchResult, 0),
 				FilteredSearchResults: make([]hera_search.SearchResult, 0),
+				RegexSearchResults:    make([]hera_search.SearchResult, 0),
 			},
 		}
 		for _, d := range pr.DataInAnalysisAggregation {
 			if d.ChatCompletionQueryResponse != nil && pr != nil && d.ChatCompletionQueryResponse.RegexSearchResults != nil {
 				log.Info().Msg("TokenOverflowReduction: ChatCompletionQueryResponse.RegexSearchResults")
 				sk := &hera_search.SearchResultGroup{
-					SearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
+					RegexSearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
 				}
 				pr.PromptReductionSearchResults = &PromptReductionSearchResults{
 					InSearchGroup: sk,
@@ -147,6 +148,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 							SearchResults:         make([]hera_search.SearchResult, 0),
 							ApiResponseResults:    make([]hera_search.SearchResult, 0),
 							FilteredSearchResults: make([]hera_search.SearchResult, 0),
+							RegexSearchResults:    make([]hera_search.SearchResult, 0),
 						},
 					}
 				}
@@ -225,7 +227,7 @@ func TokenOverflowSearchResults(ctx context.Context, pr *PromptReduction) error 
 		log.Info().Msg("TokenOverflowSearchResults: no search results")
 		return nil
 	}
-	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults == nil && pr.PromptReductionSearchResults.InSearchGroup.SearchResults == nil {
+	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults == nil && pr.PromptReductionSearchResults.InSearchGroup.SearchResults == nil && pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults == nil {
 		log.Info().Msg("TokenOverflowSearchResults: no search results or api responses")
 		return nil
 	}
@@ -267,14 +269,15 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
 		compressedSearchStr += hera_search.FormatApiSearchResultSliceToString(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
 	}
-	if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
+	if pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults != nil {
+		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults)
+	} else if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
 	}
 	if pr.PromptReductionText != nil {
 		compressedSearchStr += pr.PromptReductionText.InPromptSystem
 		compressedSearchStr += pr.PromptReductionText.InPromptBody
 	}
-
 	needsReduction, tokenEstimate, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)
 	if err != nil {
 		log.Err(err).Interface("tokenEstimate", tokenEstimate).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")

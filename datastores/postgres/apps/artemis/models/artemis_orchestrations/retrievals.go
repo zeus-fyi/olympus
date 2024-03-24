@@ -56,7 +56,7 @@ type WebFilters struct {
 	RegexPatterns        []string          `json:"regexPatterns,omitempty"`
 	PayloadKeys          []string          `json:"payloadKeys,omitempty"`
 	DontRetryStatusCodes []int             `json:"dontRetryStatusCodes,omitempty"`
-	RequestHeaders       map[string]string `json:"requestHeaders,omitempty"`
+	RequestHeaders       map[string]string `json:"headers,omitempty"`
 }
 
 type DiscordFilters struct {

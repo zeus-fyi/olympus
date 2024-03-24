@@ -12,7 +12,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
 type ExecFlowsActionsRequest struct {
@@ -49,6 +48,9 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 	if v, ok := w.CommandPrompts["googleSearch"]; ok {
 		w.TaskOverrides["biz-lead-google-search-summary"] = TaskOverride{ReplacePrompt: v}
 	}
+	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
+		WorkflowName: "google-query-regex-index-wf",
+	})
 	return nil
 }
 
@@ -68,6 +70,9 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
 	if v, ok := w.CommandPrompts["linkedIn"]; ok {
 		w.TaskOverrides["biz-lead-linkedIn-summary"] = TaskOverride{ReplacePrompt: v}
 	}
+	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
+		WorkflowName: "linkedin-regex-index-wf",
+	})
 	return nil
 }
 func FlowsExecActionsRequestHandler(c echo.Context) error {
@@ -75,10 +80,9 @@ func FlowsExecActionsRequestHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
+
 	return request.ProcessFlow(c)
 }
-
-// TODO: use internal lookup: replace, then use user's org override
 
 func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
@@ -90,15 +94,15 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
-	//if err != nil {
-	//	log.Error().Err(err).Msg("failed to check if user has billing method")
-	//	return c.JSON(http.StatusInternalServerError, nil)
-	//}
-	//if !isBillingSetup {
-	//	return c.JSON(http.StatusPreconditionFailed, nil)
-	//}
-
+	err = w.LinkedInScraperSetup()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if len(w.Workflows) > 0 {
+		w.Action = "start"
+	}
+	w.Duration = 1
+	w.DurationUnit = "cycles"
 	var rid int
 	if w.CustomBasePeriod && w.CustomBasePeriodStepSize > 0 && w.CustomBasePeriodStepSizeUnit != "" {
 		for i, _ := range w.Workflows {
@@ -159,8 +163,17 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 				w.Workflows[wfi].WorkflowTemplateID = wid
 			}
 		}
-		// TODO: require whitelisted wf names
-		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, &window, w.Workflows)
+		for _, wfn := range w.Workflows {
+			switch wfn.WorkflowName {
+			case "google-query-regex-index-wf":
+			case "linkedin-regex-index-wf":
+			default:
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+		}
+		tmpOu := ou
+		tmpOu.OrgID = 1685378241971196000
+		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), tmpOu, &window, w.Workflows)
 		if rerr != nil {
 			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)
@@ -183,7 +196,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 				}
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
-			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
+			//rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")
 				return c.JSON(http.StatusInternalServerError, nil)

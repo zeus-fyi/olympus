@@ -43,6 +43,7 @@ export interface WebFilters {
     regexPatterns?: string[];
     payloadKeys?: string[];
     dontRetryStatusCodes?: number[];
+    headers?: RequestHeaders;
 }
 
 export interface Retrieval {
@@ -51,3 +52,8 @@ export interface Retrieval {
     retrievalGroup: string;
     retrievalItemInstruction: RetrievalItemInstruction;
 }
+
+export interface RequestHeaders {
+    [key: string]: string;
+}
+

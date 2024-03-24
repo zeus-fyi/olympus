@@ -46,16 +46,17 @@ type EntitiesIndexerOpts struct {
 }
 
 type WebFilters struct {
-	RoutingGroup         *string  `json:"routingGroup,omitempty"`
-	LbStrategy           *string  `json:"lbStrategy,omitempty"`
-	MaxRetries           *int     `json:"maxRetries,omitempty"`
-	BackoffCoefficient   *float64 `json:"backoffCoefficient,omitempty"`
-	EndpointRoutePath    *string  `json:"endpointRoutePath,omitempty"`
-	EndpointREST         *string  `json:"endpointREST,omitempty"`
-	PayloadPreProcessing *string  `json:"payloadPreProcessing,omitempty"`
-	RegexPatterns        []string `json:"regexPatterns,omitempty"`
-	PayloadKeys          []string `json:"payloadKeys,omitempty"`
-	DontRetryStatusCodes []int    `json:"dontRetryStatusCodes,omitempty"`
+	RoutingGroup         *string           `json:"routingGroup,omitempty"`
+	LbStrategy           *string           `json:"lbStrategy,omitempty"`
+	MaxRetries           *int              `json:"maxRetries,omitempty"`
+	BackoffCoefficient   *float64          `json:"backoffCoefficient,omitempty"`
+	EndpointRoutePath    *string           `json:"endpointRoutePath,omitempty"`
+	EndpointREST         *string           `json:"endpointREST,omitempty"`
+	PayloadPreProcessing *string           `json:"payloadPreProcessing,omitempty"`
+	RegexPatterns        []string          `json:"regexPatterns,omitempty"`
+	PayloadKeys          []string          `json:"payloadKeys,omitempty"`
+	DontRetryStatusCodes []int             `json:"dontRetryStatusCodes,omitempty"`
+	RequestHeaders       map[string]string `json:"requestHeaders,omitempty"`
 }
 
 type DiscordFilters struct {

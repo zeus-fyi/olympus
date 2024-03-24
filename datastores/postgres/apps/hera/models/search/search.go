@@ -90,11 +90,12 @@ func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
 }
 
 func (sg *SearchResultGroup) GetPromptBody() string {
-	if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) == 0 {
+	if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) == 0 && len(sg.RegexSearchResults) == 0 {
 		return sg.BodyPrompt + "\n" + sg.ResponseBody
 	}
 	if len(sg.RegexSearchResults) > 0 {
-		return FormatSearchResultsV5(sg.RegexSearchResults)
+		tmp := FormatSearchResultsV5(sg.RegexSearchResults)
+		return tmp
 	}
 	var ret string
 	if len(sg.ApiResponseResults) > 0 {

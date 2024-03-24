@@ -70,6 +70,14 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
 		}
+		if wio.WorkflowStageInfo.PromptReduction != nil && wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation != nil {
+
+			for _, d := range wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation {
+				if d.ChatCompletionQueryResponse != nil {
+
+				}
+			}
+		}
 		if wio.PromptReduction == nil {
 			return nil, nil
 		}
@@ -93,14 +101,12 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 		for _, d := range pr.DataInAnalysisAggregation {
 			if d.ChatCompletionQueryResponse != nil && pr != nil && d.ChatCompletionQueryResponse.RegexSearchResults != nil {
 				log.Info().Msg("TokenOverflowReduction: ChatCompletionQueryResponse.RegexSearchResults")
-				var inBody string
-				for _, sv := range d.ChatCompletionQueryResponse.RegexSearchResults {
-					inBody += sv.Value + "\n"
+				sk := &hera_search.SearchResultGroup{
+					SearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
 				}
-				pr.PromptReductionText = &PromptReductionText{
-					InPromptBody: inBody,
+				pr.PromptReductionSearchResults = &PromptReductionSearchResults{
+					InSearchGroup: sk,
 				}
-				pr.PromptReductionSearchResults = nil
 			} else if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
 				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
 				switch d.SearchResultGroup.PlatformName {

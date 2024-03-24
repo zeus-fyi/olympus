@@ -132,7 +132,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 						}
 					}
 				}
-
 				rt.Retrieval = cp.Tc.Retrieval
 				if len(plSlice) > 0 {
 					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {

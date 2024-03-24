@@ -579,6 +579,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 		log.Err(err).Msg("AiAggregateAnalysisRetrievalTask: failed")
 		return nil, err
 	}
+	log.Info().Interface("results", results).Msg("AiAggregateAnalysisRetrievalTask")
 	var resp []InputDataAnalysisToAgg
 	for _, r := range results {
 		b, berr := json.Marshal(r.Metadata)

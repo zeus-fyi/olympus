@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
 type ExecFlowsActionsRequest struct {
@@ -45,7 +46,7 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 		w.TaskOverrides = make(map[string]TaskOverride)
 	}
 	w.TaskOverrides["zeusfyi-verbatim"] = TaskOverride{ReplacePrompt: string(b)}
-	if v, ok := w.CommandPrompts["googleSearch"]; ok {
+	if v, ok := w.CommandPrompts["googleSearch"]; ok && v != "" {
 		w.TaskOverrides["biz-lead-google-search-summary"] = TaskOverride{ReplacePrompt: v}
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
@@ -67,7 +68,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
 		w.TaskOverrides = make(map[string]TaskOverride)
 	}
 	w.TaskOverrides["zeusfyi-verbatim"] = TaskOverride{ReplacePrompt: string(b)}
-	if v, ok := w.CommandPrompts["linkedIn"]; ok {
+	if v, ok := w.CommandPrompts["linkedIn"]; ok && v != "" {
 		w.TaskOverrides["biz-lead-linkedIn-summary"] = TaskOverride{ReplacePrompt: v}
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
@@ -196,7 +197,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 				}
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
-			//rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
+			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")
 				return c.JSON(http.StatusInternalServerError, nil)

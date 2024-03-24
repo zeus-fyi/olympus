@@ -65,7 +65,7 @@ func CreateOrUpdateTriggerAction(ctx context.Context, ou org_users.OrgUser, trig
 			log.Err(err).Msg("failed to insert eval trigger action")
 			return err
 		}
-		if eta.EvalID != 0 || eta.EvalStrID != "" {
+		if eta.EvalID != 0 || eta.EvalStrID != "" && eta.EvalStrID != "0" {
 			if eta.EvalStrID != "" {
 				ei, aerr := strconv.Atoi(eta.EvalStrID)
 				if aerr != nil {

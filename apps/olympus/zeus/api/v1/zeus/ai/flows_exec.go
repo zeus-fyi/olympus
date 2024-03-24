@@ -62,12 +62,17 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]TaskOverride)
 	}
-	w.TaskOverrides["zeusfyi-verbatim"] = TaskOverride{ReplacePrompt: string(b)}
+	w.TaskOverrides["linkedin-profiles-rapid-api-qps"] = TaskOverride{ReplacePrompt: string(b)}
 	if v, ok := w.CommandPrompts["linkedIn"]; ok && v != "" {
-		w.TaskOverrides["biz-lead-linkedIn-summary"] = TaskOverride{ReplacePrompt: v}
+		if w.SchemaFieldOverrides == nil {
+			w.SchemaFieldOverrides = make(map[string]map[string]string)
+			w.SchemaFieldOverrides["results-agg"] = map[string]string{
+				"summary": v,
+			}
+		}
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: "linkedin-regex-index-wf",
+		WorkflowName: "linkedin-rapid-api-profiles-wf",
 	})
 	return nil
 }

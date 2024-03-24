@@ -317,7 +317,11 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			r.Payload = nil
 		}
 	}
-
+	if retInst.WebFilters.RequestHeaders != nil {
+		for k, v := range retInst.WebFilters.RequestHeaders {
+			r.Headers.Set(k, v)
+		}
+	}
 	var sec []int
 	if retInst.WebFilters.DontRetryStatusCodes != nil {
 		sec = retInst.WebFilters.DontRetryStatusCodes

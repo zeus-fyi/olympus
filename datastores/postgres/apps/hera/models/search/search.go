@@ -481,11 +481,14 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	var newResults []interface{}
 	for _, result := range results {
 		if result.WebResponse.RegexFilteredBody != "" {
-			if result.Value != "" {
-				result.WebResponse.Body = echo.Map{
-					"msg_body": result.Value,
-				}
+			m := map[string]interface{}{
+				"msg_id":   fmt.Sprintf("%d", result.UnixTimestamp),
+				"msg_body": result.Value,
 			}
+			if result.QueryParams != nil {
+				m["msg_qps"] = result.QueryParams
+			}
+			newResults = append(newResults, m)
 		} else if result.WebResponse.Body != nil {
 			if result.Value != "" {
 				result.WebResponse.Body["msg_body"] = result.Value

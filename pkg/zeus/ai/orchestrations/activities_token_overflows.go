@@ -71,10 +71,13 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 			return nil, werr
 		}
 		if wio.WorkflowStageInfo.PromptReduction != nil && wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation != nil {
-
 			for _, d := range wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation {
-				if d.ChatCompletionQueryResponse != nil {
-
+				if d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.RegexSearchResults != nil {
+					wio.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
+						InSearchGroup: &hera_search.SearchResultGroup{
+							SearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
+						},
+					}
 				}
 			}
 		}

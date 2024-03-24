@@ -20,6 +20,11 @@ type WorkflowExecParams struct {
 	CycleCountTaskRelative        CycleCountTaskRelative        `json:"cycleCountTaskRelative"`
 	WorkflowTaskRelationships     WorkflowTaskRelationships     `json:"workflowTaskRelationships"`
 	WorkflowTasks                 []WorkflowTemplateData        `json:"workflowTasks"`
+	WorkflowOverrides             WorkflowOverrides             `json:"workflowOverrides"`
+}
+
+type WorkflowOverrides struct {
+	IsUsingFlows bool `json:"isUsingFlows"`
 }
 
 type WorkflowExecTimekeepingParams struct {

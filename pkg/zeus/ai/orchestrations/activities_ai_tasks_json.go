@@ -18,7 +18,11 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	if mb.Tc.EvalID > 0 && mb.Tc.EvalSchemas != nil && len(mb.Tc.EvalSchemas) > 0 {
 		jsd = append(jsd, mb.Tc.EvalSchemas...)
 	} else {
-		tv, err := artemis_orchestrations.SelectTask(ctx, mb.Ou, mb.Tc.TaskID)
+		tmpOu := mb.Ou
+		if mb.WfExecParams.WorkflowOverrides.IsUsingFlows {
+			tmpOu.OrgID = 1685378241971196000
+		}
+		tv, err := artemis_orchestrations.SelectTask(ctx, tmpOu, mb.Tc.TaskID)
 		if err != nil {
 			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
 			return nil, err

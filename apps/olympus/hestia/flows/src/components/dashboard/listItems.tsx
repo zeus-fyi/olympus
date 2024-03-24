@@ -19,10 +19,8 @@ import {
     setOpenComputePanel
 } from "../../redux/menus/menus.reducer";
 import AutoFixNormalIcon from '@mui/icons-material/AutoFixNormal';
+import SwapCallsIcon from '@mui/icons-material/SwapCalls';
 
-function SwapCallsIcon() {
-    return null;
-}
 
 export default function MainListItems() {
     const [openServices, setOpenServices] = React.useState(false);

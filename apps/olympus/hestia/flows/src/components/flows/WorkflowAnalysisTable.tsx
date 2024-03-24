@@ -24,6 +24,7 @@ import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
 import {WorkflowAnalysisRow} from "./WorkflowAnalysisRow";
 
 export function WorkflowAnalysisTable(props: any) {
+    const { csvExport } = props;
     const [page, setPage] = React.useState(0);
     const selectedRuns = useSelector((state: any) => state.ai.selectedRuns);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
@@ -135,6 +136,8 @@ export function WorkflowAnalysisTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Active</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Run Cycles</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Total Token Usage</TableCell>
+                        {csvExport && <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Export</TableCell>
+                        }
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -143,6 +146,7 @@ export function WorkflowAnalysisTable(props: any) {
                             key={index}
                             row={row}
                             index={index}
+                            csvExport={csvExport}
                             handleClick={handleClick}
                             checked={selectedRuns.indexOf(index) >= 0 || false}
                         />

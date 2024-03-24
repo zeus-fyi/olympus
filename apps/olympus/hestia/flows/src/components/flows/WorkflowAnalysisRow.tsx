@@ -10,10 +10,11 @@ import TableBody from "@mui/material/TableBody";
 import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
 import TableHead from "@mui/material/TableHead";
 import {prettyPrintWfRunRowJSON} from "../ai/RetrievalsRow";
+import {CsvExportButton} from "./CsvHelpers";
 
 
-export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean}) {
-    const { row, index, handleClick, checked } = props;
+export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean, csvExport: boolean }) {
+    const {csvExport, row, index, handleClick, checked } = props;
     const [open, setOpen] = React.useState(false);
 
     return (
@@ -42,6 +43,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                 <TableCell align="left">{row.orchestration.active ? 'Yes' : 'No'}</TableCell>
                 <TableCell align="left">{row.runCycles}</TableCell>
                 <TableCell align="left">{row.totalWorkflowTokenUsage}</TableCell>
+                { csvExport && <CsvExportButton />}
             </TableRow>
             {row.aggregatedEvalResults && row.aggregatedEvalResults.length > 0 && (
                 <TableRow>

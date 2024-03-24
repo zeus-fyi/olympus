@@ -17,7 +17,7 @@ export function Results(props: any) {
                 </CardContent>
             </Card>
             <Box sx={{ mt: 4 }}>
-                <WorkflowAnalysisTable />
+                <WorkflowAnalysisTable csvExport={true} />
             </Box>
         </div>
     );

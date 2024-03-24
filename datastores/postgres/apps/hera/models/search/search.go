@@ -490,7 +490,7 @@ func FormatSearchResultsV5(results []SearchResult) string {
 				"msg_body": result.Value,
 			}
 			if result.QueryParams != nil {
-				m["msg_qps"] = result.QueryParams
+				m["entity"] = result.QueryParams
 			}
 			if result.UnixTimestamp > 0 {
 				m["msg_id"] = fmt.Sprintf("%d", result.UnixTimestamp)

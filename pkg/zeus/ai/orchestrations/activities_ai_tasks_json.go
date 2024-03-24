@@ -13,6 +13,8 @@ import (
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 )
 
+const FlowsOrgID = 1685378241971196000
+
 func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Context, mb *MbChildSubProcessParams, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
 	var jsd []*artemis_orchestrations.JsonSchemaDefinition
 	if mb.Tc.EvalID > 0 && mb.Tc.EvalSchemas != nil && len(mb.Tc.EvalSchemas) > 0 {
@@ -20,7 +22,7 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	} else {
 		tmpOu := mb.Ou
 		if mb.WfExecParams.WorkflowOverrides.IsUsingFlows {
-			tmpOu.OrgID = 1685378241971196000
+			tmpOu.OrgID = FlowsOrgID
 		}
 		tv, err := artemis_orchestrations.SelectTask(ctx, tmpOu, mb.Tc.TaskID)
 		if err != nil {

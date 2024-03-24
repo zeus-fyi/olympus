@@ -61,6 +61,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				}
 				var rets []artemis_orchestrations.RetrievalItem
 				chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
+				tmpOu := ou
+				if wfExecParams.WorkflowOverrides.IsUsingFlows {
+					tmpOu.OrgID = FlowsOrgID
+				}
 				err := workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, ou, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
 				if err != nil {
 					logger.Error("failed to run analysis json", "Error", err)

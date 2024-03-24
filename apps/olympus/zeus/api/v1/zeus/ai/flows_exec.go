@@ -16,19 +16,8 @@ import (
 )
 
 type ExecFlowsActionsRequest struct {
-	Action        string `json:"action"`
-	UnixStartTime int    `json:"unixStartTime,omitempty"`
-	Duration      int    `json:"duration,omitempty"`
-	DurationUnit  string `json:"durationUnit,omitempty"`
-
-	IsStrictTimeWindow           bool                                      `json:"isStrictTimeWindow,omitempty"`
-	CustomBasePeriod             bool                                      `json:"customBasePeriod,omitempty"`
-	CustomBasePeriodStepSize     int                                       `json:"customBasePeriodStepSize,omitempty"`
-	CustomBasePeriodStepSizeUnit string                                    `json:"customBasePeriodStepSizeUnit,omitempty"`
-	TaskOverrides                map[string]TaskOverride                   `json:"taskOverrides,omitempty"`
-	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
-
-	FlowsActionsRequest `json:",inline"`
+	WorkflowsActionsRequest `json:",inline"`
+	FlowsActionsRequest     `json:",inline"`
 }
 
 // TODO package into search
@@ -47,11 +36,17 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 	}
 	w.TaskOverrides["zeusfyi-verbatim"] = TaskOverride{ReplacePrompt: string(b)}
 	if v, ok := w.CommandPrompts["googleSearch"]; ok && v != "" {
-		w.TaskOverrides["biz-lead-google-search-summary"] = TaskOverride{ReplacePrompt: v}
+		if w.SchemaFieldOverrides == nil {
+			w.SchemaFieldOverrides = make(map[string]map[string]string)
+			w.SchemaFieldOverrides["google-results-agg"] = map[string]string{
+				"summary": v,
+			}
+		}
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: "google-query-regex-index-wf",
 	})
+
 	return nil
 }
 
@@ -195,6 +190,9 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 						resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
 					}
 				}
+			}
+			if w.SchemaFieldOverrides != nil {
+				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			resp[ri].WorkflowOverrides.IsUsingFlows = true

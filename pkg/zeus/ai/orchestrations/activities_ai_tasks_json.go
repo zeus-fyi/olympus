@@ -29,12 +29,27 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
 			return nil, err
 		}
+
 		if len(tv) == 0 {
 			err = fmt.Errorf("failed to get task definition for task id: %d", mb.Tc.TaskID)
 			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
 			return nil, err
 		}
 		for _, taskDef := range tv {
+			for _, sv := range taskDef.Schemas {
+				if mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides != nil {
+					if _, ok := mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName]; !ok {
+						continue
+					}
+				}
+				for _, sf := range sv.Fields {
+					if mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName] != nil {
+						if fo, ok := mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName][sf.FieldName]; ok {
+							sf.FieldDescription = fo
+						}
+					}
+				}
+			}
 			jsd = append(jsd, taskDef.Schemas...)
 		}
 	}

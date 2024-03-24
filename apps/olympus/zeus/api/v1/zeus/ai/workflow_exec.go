@@ -26,6 +26,7 @@ type WorkflowsActionsRequest struct {
 	CustomBasePeriodStepSize     int                                       `json:"customBasePeriodStepSize,omitempty"`
 	CustomBasePeriodStepSizeUnit string                                    `json:"customBasePeriodStepSizeUnit,omitempty"`
 	TaskOverrides                map[string]TaskOverride                   `json:"taskOverrides,omitempty"`
+	SchemaFieldOverrides         map[string]map[string]string              `json:"schemaFieldOverrides,omitempty"`
 	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
 }
 
@@ -137,6 +138,9 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 						resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
 					}
 				}
+			}
+			if w.SchemaFieldOverrides != nil {
+				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])

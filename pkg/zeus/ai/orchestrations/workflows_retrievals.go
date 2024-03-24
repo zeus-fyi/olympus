@@ -89,6 +89,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				Ou:        cp.Ou,
 				RouteInfo: route,
 			}
+			startingPath := *cp.Tc.Retrieval.WebFilters.EndpointRoutePath
+			log.Info().Str("startingPath", startingPath).Msg("startingPath")
 			if cp.Tc.WebPayload != nil {
 				em, ok := cp.Tc.WebPayload.(map[string]interface{})
 				if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
@@ -156,6 +158,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				logger.Error("failed to run api call request task retrieval", "Error", err)
 				return nil, err
 			}
+			cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &startingPath
 			if cp.Tc.Retrieval.WebFilters != nil && aws.ToString(cp.Tc.Retrieval.WebFilters.LbStrategy) != lbStrategyPollTable && cp.Wsr.InputID > 0 {
 				if len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 && (cp.Tc.RegexSearchResults != nil && len(cp.Tc.RegexSearchResults) > 0) {
 					break

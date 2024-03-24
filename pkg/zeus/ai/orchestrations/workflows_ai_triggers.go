@@ -133,6 +133,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				switch *ret.WebFilters.PayloadPreProcessing {
 				case "iterate", "iterate-qp-only":
 					for _, ple := range echoReqs {
+						//log.Info().Int("i", i).Interface("ple", ple).Msg("apiRetrieval: ple")
 						cp.Tc.WebPayload = ple
 						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)

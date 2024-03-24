@@ -45,11 +45,17 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 	}
 	var triggerActions []artemis_orchestrations.TriggerAction
 	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+	tmpOu := cp.Ou
+	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+		tmpOu.OrgID = FlowsOrgID
+		tq.Ou = tmpOu
+	}
 	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tq).Get(triggerEvalsLookupCtx, &triggerActions)
 	if err != nil {
 		logger.Error("failed to get eval trigger info", "Error", err)
 		return err
 	}
+
 	// if there are no trigger actions to execute, check if conditions are met for execution for filter
 	if len(triggerActions) == 0 && cp.Tc.JsonResponseResults != nil {
 		// just filter passing to next stage then if no trigger action with specific pass/fail conditions
@@ -97,7 +103,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			}
 			for ri, ret := range ta.TriggerRetrievals {
 				log.Info().Interface("retID", ret.RetrievalID).Msg("apiRetrieval: ret ID for api retrieval")
-				tmpOu := cp.Ou
+				tmpOu = cp.Ou
 				if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
 					tmpOu.OrgID = FlowsOrgID
 				}

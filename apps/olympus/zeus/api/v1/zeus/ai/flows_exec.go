@@ -80,6 +80,34 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
 	})
 	return nil
 }
+
+func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup() error {
+	if v, ok := w.Stages["linkedInBiz"]; !ok || !v {
+		return nil
+	}
+	b, err := json.Marshal(w.ContactsCsv)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal li")
+		return err
+	}
+	if w.TaskOverrides == nil {
+		w.TaskOverrides = make(map[string]TaskOverride)
+	}
+	w.TaskOverrides["linkedin-biz-profiles-rapid-api-qps"] = TaskOverride{ReplacePrompt: string(b)}
+	if v, ok := w.CommandPrompts["linkedIn"]; ok && v != "" {
+		if w.SchemaFieldOverrides == nil {
+			w.SchemaFieldOverrides = make(map[string]map[string]string)
+			w.SchemaFieldOverrides["results-agg"] = map[string]string{
+				"summary": v,
+			}
+		}
+	}
+	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
+		WorkflowName: liWf,
+	})
+	return nil
+}
+
 func FlowsExecActionsRequestHandler(c echo.Context) error {
 	request := new(ExecFlowsActionsRequest)
 	if err := c.Bind(request); err != nil {

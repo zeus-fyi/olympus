@@ -6,7 +6,7 @@ import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 
 export function SetupCard(props: any) {
-    const { checked, handleChange, gs, handleChangeGs} = props;
+    const { checked, checkedLi, handleChangeLi, handleChange, gs, handleChangeGs} = props;
     return (
         <Card sx={{ maxWidth: 320 }}>
                 <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -18,20 +18,25 @@ export function SetupCard(props: any) {
 
              <Divider  />
             </Box>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2}}>
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>
                 <Typography variant="body1">Google Search</Typography>
-                <Box sx={{ml: 2, mb: 2}}>
-                </Box>
-                <Checkbox
-                    checked={gs}
-                    onChange={handleChangeGs}
-                />
+                    <Checkbox
+                        checked={gs}
+                        onChange={handleChangeGs}
+                    />
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 2}}>
-                <Typography variant="body1">LinkedIn</Typography>
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>
+                <Typography variant="body1">LinkedIn Personal</Typography>
                 <Checkbox
                     checked={checked}
                     onChange={handleChange}
+                />
+            </Stack>
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 2}}>
+                <Typography variant="body1">LinkedIn Business</Typography>
+                <Checkbox
+                    checked={checkedLi}
+                    onChange={handleChangeLi}
                 />
             </Stack>
         </Card>

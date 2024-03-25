@@ -15,11 +15,15 @@ export function Commands(props: any) {
     const contacts = useSelector((state: any) => state.flows.uploadContentContacts);
     const cmds = useSelector((state: any) => state.flows.commandPrompts);
     const [checked, setChecked] = React.useState(false);
+    const [checkedLi, setCheckedLi] = React.useState(false);
     const [gs, setGsChecked] = React.useState(false);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
     const dispatch = useDispatch();
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
+    }
+    const handleChangeLi = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
+        setCheckedLi(event.target.checked);
     }
     const handleChangeGs = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
         setGsChecked(event.target.checked);
@@ -88,6 +92,7 @@ export function Commands(props: any) {
                 promptsCsv: bodyPrompts,
                 stages: {
                     linkedIn: checked,
+                    linkedInBiz: checkedLi,
                     googleSearch: gs
                 },
                commandPrompts: cmds
@@ -122,7 +127,7 @@ export function Commands(props: any) {
     return (
         <div>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'center', mb: 2 }}>
-                <SetupCard checked={checked} gs={gs} handleChangeGs={handleChangeGs} handleChange={handleChange} />
+                <SetupCard checkedLi={checkedLi} handleChangeLi={handleChangeLi} checked={checked} gs={gs} handleChangeGs={handleChangeGs} handleChange={handleChange} />
             </Box>
             <Card sx={{ maxWidth: 1200, justifyContent: 'center' }}>
             <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large', fontWeight: 'thin', marginRight: '15px', color: '#151C2F' }}>

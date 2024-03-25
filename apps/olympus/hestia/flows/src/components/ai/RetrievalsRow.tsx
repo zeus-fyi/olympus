@@ -118,7 +118,7 @@ export const prettyPrintJSON = (json: any): string => {
             return JSON.stringify(json, null, 2);
         }
     } catch (error) {
-        console.error('Error parsing or formatting prettyPrintJSON:', error);
+        // console.error('Error parsing or formatting prettyPrintJSON:', error);
         return json; // Return an empty string in case of error
     }
 };
@@ -162,7 +162,7 @@ export const prettyPrintWfRunRowJSON = (json: any): string => {
             return json; // Return an empty string in case of error
         }
     } catch (error) {
-        console.error('Error parsing or formatting prettyPrintJSON:', error);
+        // console.error('Error parsing or formatting prettyPrintJSON:', error);
         return json; // Return an empty string in case of error
     }
 };

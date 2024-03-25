@@ -45,7 +45,6 @@ export function CsvUploadActionAreaCard(props: any) {
                     const parseResult = parseCSV(result as string);
                     data = parseResult.data;
                     headers = parseResult.fields;
-                    console.log(data, headers);
                     dispatch(setCsvHeaders(headers));
                 } catch (error) {
                     console.error("Error parsing CSV file:", error);

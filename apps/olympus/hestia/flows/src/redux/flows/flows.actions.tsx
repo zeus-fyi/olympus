@@ -22,7 +22,7 @@ export const initialState: FlowState = {
         googleSearch: false
     },
     commandPrompts: {
-        linkedIn: '',
+        linkedIn: 'Can you tell me their role and responsibilities?',
         googleSearch: ''
     }
 }

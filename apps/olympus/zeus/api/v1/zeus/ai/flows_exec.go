@@ -20,8 +20,6 @@ type ExecFlowsActionsRequest struct {
 	FlowsActionsRequest     `json:",inline"`
 }
 
-// TODO package into search
-
 const (
 	googWf = "google-query-regex-index-wf"
 	liWf   = "linkedin-rapid-api-profiles-wf"
@@ -51,7 +49,6 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: googWf,
 	})
-
 	return nil
 }
 

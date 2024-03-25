@@ -37,8 +37,9 @@ export default CsvExportButton;
 
 export const parseJSONAndCreateCSV = (name: string, data: any) => {
     const processedData = prettyPrintObject(data);
-    const nnn =  stringToJsonArray(processedData)
-    const csvContent = jsonArrayToCSV(nnn);
+
+    const sja =  stringToJsonArray(processedData)
+    const csvContent = jsonArrayToCSV(sja);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     downloadBlobAsFile( name+'.csv', blob)
 };
@@ -89,6 +90,10 @@ export const prettyPrintObject = (obj: any): string => {
             return prettyPrintObject(obj.message);
         } else if (obj.function) {
             return prettyPrintObject(obj.function);
+        } else if (obj.parameters) {
+            return prettyPrintObject(obj.parameters);
+        } else if (obj['google-search-results-agg']) {
+            return prettyPrintObject(obj['google-search-results-agg']);
         } else if (obj['results-agg']) {
             return prettyPrintObject(obj['results-agg']);
         } else {

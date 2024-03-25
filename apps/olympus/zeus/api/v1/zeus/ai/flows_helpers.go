@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	emailVdWf = "emails-validation-wf"
+	emailVdWf = "validate-emails-wf"
 	googWf    = "google-query-regex-index-wf"
 	liWf      = "linkedin-rapid-api-profiles-wf"
 	liBizWf   = "linkedin-rapid-api-biz-profiles-wf"

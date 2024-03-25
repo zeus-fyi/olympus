@@ -62,7 +62,6 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 	if w.WorkflowName == "" || len(w.Models) == 0 {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-
 	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
 	if err != nil {
 		log.Err(err).Msg("failed to check if user has billing method")
@@ -84,7 +83,6 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 		AggTasks:          []artemis_orchestrations.AggTask{},
 		AnalysisOnlyTasks: []artemis_orchestrations.AITaskLibrary{},
 	}
-
 	for taskStrID, m := range w.Models {
 		if m.CycleCount < 1 {
 			m.CycleCount = 1
@@ -110,7 +108,6 @@ func (w *PostWorkflowsRequest) CreateOrUpdateWorkflow(c echo.Context) error {
 					}
 				}
 			}
-
 			for k, v := range w.AggregateSubTasksMap {
 				if k == taskStrID {
 					for at, isTrue := range v {

@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -75,8 +76,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if len(rets) <= 0 {
 					continue
 				}
-
-				//if wfExecParams.WorkflowOverrides.
 				var echoReqs []echo.Map
 				if cp.WfExecParams.WorkflowOverrides.RetrievalOverrides != nil {
 					if v, ok := cp.WfExecParams.WorkflowOverrides.RetrievalOverrides[cp.Tc.Retrieval.RetrievalName]; ok {
@@ -163,9 +162,23 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						return err
 					}
 				case readOnlyFormat:
-					/*
-						1. get retrieval data, then format it
-					*/
+					aiResp := &ChatCompletionQueryResponse{
+						Prompt: make(map[string]string),
+						Response: openai.ChatCompletionResponse{
+							Model: "none",
+							Usage: openai.Usage{
+								PromptTokens:     0,
+								CompletionTokens: 0,
+								TotalTokens:      0,
+							},
+						},
+					}
+					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &cp.Tc.ResponseID)
+					if err != nil {
+						logger.Error("failed to save analysis read only response", "Error", err)
+						return err
+					}
 					wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
 						OrchestrationID:       cp.Oj.OrchestrationID,
 						SourceTaskID:          cp.Tc.TaskID,
@@ -176,15 +189,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
 						ResponseID:            cp.Tc.ResponseID,
 					}
-					ia := InputDataAnalysisToAgg{
-						TextInput: nil,
-						//ChatCompletionQueryResponse: aiResp,
-					}
-					var tmp string
-					//for _, cv := range aiResp.Response.Choices {
-					//	tmp += cv.Message.Content + "\n"
-					//}
-					ia.TextInput = &tmp
+					cp.Tc.ResponseFormat = readOnlyFormat
+					ia := InputDataAnalysisToAgg{}
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
 					if err != nil {

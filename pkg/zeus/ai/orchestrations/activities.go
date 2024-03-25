@@ -633,7 +633,15 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 		return 0, werr
 	}
-	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
+	if cp.Tc.ResponseFormat == readOnlyFormat {
+		var sr []hera_search.SearchResult
+		for _, r := range wio.PromptReduction.DataInAnalysisAggregation {
+			sr = append(sr, r.SearchResultGroup.RegexSearchResults...)
+		}
+		dataIn.SearchResultGroup = &hera_search.SearchResultGroup{
+			RegexSearchResults: sr,
+		}
+	} else if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
 		if cp.Wsr.ChunkOffset < len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) {
 			dataIn.SearchResultGroup = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
 		}

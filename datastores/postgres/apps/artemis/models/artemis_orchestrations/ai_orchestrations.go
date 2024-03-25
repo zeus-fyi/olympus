@@ -24,8 +24,9 @@ type WorkflowExecParams struct {
 }
 
 type WorkflowOverrides struct {
-	IsUsingFlows         bool                         `json:"isUsingFlows"`
-	SchemaFieldOverrides map[string]map[string]string `json:"schemaFieldOverrides"`
+	IsUsingFlows         bool               `json:"isUsingFlows"`
+	SchemaFieldOverrides SchemaOverrides    `json:"schemaFieldOverrides"`
+	RetrievalOverrides   RetrievalOverrides `json:"retrievalOverride"`
 }
 
 type WorkflowExecTimekeepingParams struct {

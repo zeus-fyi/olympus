@@ -73,6 +73,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if len(rets) <= 0 {
 					continue
 				}
+
+				//if wfExecParams.WorkflowOverrides.
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 					WorkflowID:               oj.OrchestrationName + "-analysis-ret-" + strconv.Itoa(i),
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
@@ -123,6 +125,35 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						logger.Error("failed to execute analysis json workflow", "Error", err)
 						return err
 					}
+				case readOnlyFormat:
+					/*
+						1. get retrieval data, then format it
+					*/
+				//	wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
+				//		OrchestrationID:       cp.Oj.OrchestrationID,
+				//		SourceTaskID:          cp.Tc.TaskID,
+				//		IterationCount:        0,
+				//		ChunkOffset:           chunkOffset,
+				//		RunningCycleNumber:    cp.Wsr.RunCycle,
+				//		SearchWindowUnixStart: cp.Window.UnixStartTime,
+				//		SearchWindowUnixEnd:   cp.Window.UnixEndTime,
+				//		ResponseID:            cp.Tc.ResponseID,
+				//	}
+				//ia := InputDataAnalysisToAgg{
+				//	TextInput:                   nil,
+				//	ChatCompletionQueryResponse: aiResp,
+				//}
+				//var tmp string
+				//for _, cv := range aiResp.Response.Choices {
+				//	tmp += cv.Message.Content + "\n"
+				//}
+				//ia.TextInput = &tmp
+				//recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
+				//err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
+				//if err != nil {
+				//	logger.Error("failed to save analysis", "Error", err)
+				//	return err
+				//}
 				default:
 					var aiResp *ChatCompletionQueryResponse
 					analysisCtx := workflow.WithActivityOptions(ctx, ao)

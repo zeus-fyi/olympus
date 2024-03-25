@@ -20,6 +20,20 @@ type WorkflowTemplate struct {
 	FundamentalPeriodTimeUnit string `json:"fundamentalPeriodTimeUnit"`
 	Tasks                     []Task `json:"tasks"` // Array of Task to hold the JSON aggregated tasks
 }
+type SchemaOverrides map[string]map[string]string
+
+type RetrievalOverrides map[string]RetrievalOverride
+
+type RetrievalOverride struct {
+	Payload  map[string]interface{}   `json:"retrievalPayload,omitempty"`
+	Payloads []map[string]interface{} `json:"retrievalPayloads,omitempty"`
+}
+
+type TaskOverrides map[string]TaskOverride
+type TaskOverride struct {
+	ReplacePrompt string `json:"replacePrompt,omitempty"`
+}
+
 type Task struct {
 	TaskStrID         string     `json:"taskStrID,omitempty"`
 	TaskID            int        `json:"taskID"`

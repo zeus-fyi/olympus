@@ -26,20 +26,11 @@ type WorkflowsActionsRequest struct {
 	CustomBasePeriodStepSize     int    `json:"customBasePeriodStepSize,omitempty"`
 	CustomBasePeriodStepSizeUnit string `json:"customBasePeriodStepSizeUnit,omitempty"`
 
-	RetrievalOverrides   map[string]RetrievalOverride `json:"retrievalPayloadOverrides,omitempty"`
-	TaskOverrides        map[string]TaskOverride      `json:"taskOverrides,omitempty"`
-	SchemaFieldOverrides map[string]map[string]string `json:"schemaFieldOverrides,omitempty"`
+	RetrievalOverrides   artemis_orchestrations.RetrievalOverrides `json:"retrievalPayloadOverrides,omitempty"`
+	TaskOverrides        artemis_orchestrations.TaskOverrides      `json:"taskOverrides,omitempty"`
+	SchemaFieldOverrides artemis_orchestrations.SchemaOverrides    `json:"schemaFieldOverrides,omitempty"`
 
 	Workflows []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
-}
-
-type RetrievalOverride struct {
-	Payload  map[string]interface{}   `json:"retrievalPayload,omitempty"`
-	Payloads []map[string]interface{} `json:"retrievalPayloads,omitempty"`
-}
-
-type TaskOverride struct {
-	ReplacePrompt string `json:"replacePrompt,omitempty"`
 }
 
 func WorkflowsActionsRequestHandler(c echo.Context) error {
@@ -149,6 +140,9 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			}
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
+			}
+			if w.RetrievalOverrides != nil {
+				resp[ri].WorkflowOverrides.RetrievalOverrides = w.RetrievalOverrides
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])

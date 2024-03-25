@@ -31,12 +31,12 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 		}
 	}
 	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]TaskOverride)
+		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
 	if w.RetrievalOverrides == nil {
-		w.RetrievalOverrides = make(map[string]RetrievalOverride)
+		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
 	}
-	w.RetrievalOverrides["validemail-query-params"] = RetrievalOverride{Payloads: pls}
+	w.RetrievalOverrides["validemail-query-params"] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: emailVdWf,
 	})
@@ -53,9 +53,9 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 		return err
 	}
 	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]TaskOverride)
+		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
-	w.TaskOverrides["zeusfyi-verbatim"] = TaskOverride{ReplacePrompt: string(b)}
+	w.TaskOverrides["zeusfyi-verbatim"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
 	if v, ok := w.CommandPrompts["googleSearch"]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)
@@ -82,9 +82,9 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
 		return err
 	}
 	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]TaskOverride)
+		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
-	w.TaskOverrides["linkedin-profiles-rapid-api-qps"] = TaskOverride{ReplacePrompt: string(b)}
+	w.TaskOverrides["linkedin-profiles-rapid-api-qps"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
 	if v, ok := w.CommandPrompts["linkedIn"]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)
@@ -109,9 +109,9 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup() error {
 		return err
 	}
 	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]TaskOverride)
+		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
-	w.TaskOverrides["linkedin-biz-profiles-rapid-api-qps"] = TaskOverride{ReplacePrompt: string(b)}
+	w.TaskOverrides["linkedin-biz-profiles-rapid-api-qps"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
 	if v, ok := w.CommandPrompts["linkedInBiz"]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)

@@ -76,6 +76,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if len(rets) <= 0 {
 					continue
 				}
+				cp.Tc.Retrieval = rets[0]
 				var echoReqs []echo.Map
 				if cp.WfExecParams.WorkflowOverrides.RetrievalOverrides != nil {
 					if v, ok := cp.WfExecParams.WorkflowOverrides.RetrievalOverrides[cp.Tc.Retrieval.RetrievalName]; ok {
@@ -89,7 +90,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					RetryPolicy:              ao.RetryPolicy,
 				}
-				cp.Tc.Retrieval = rets[0]
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
 				retOpt := "default"
 				if cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.PayloadPreProcessing != nil && len(echoReqs) > 0 {

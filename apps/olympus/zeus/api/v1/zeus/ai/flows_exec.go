@@ -113,9 +113,8 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		}
 		for _, wfn := range w.Workflows {
 			switch wfn.WorkflowName {
-			case googWf:
-			case liWf:
-			case liBizWf, emailVdWf:
+			case googWf, liWf, emailVdWf:
+			case liBizWf:
 				return c.JSON(http.StatusNotImplemented, nil)
 			default:
 				return c.JSON(http.StatusBadRequest, nil)
@@ -147,6 +146,9 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			}
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
+			}
+			if w.RetrievalOverrides != nil {
+				resp[ri].WorkflowOverrides.RetrievalOverrides = w.RetrievalOverrides
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			resp[ri].WorkflowOverrides.IsUsingFlows = true

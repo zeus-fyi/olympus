@@ -302,7 +302,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 	}
 	var extractedQpsVals []string
-	if r.Payload != nil && retInst.WebFilters.RegexPatterns != nil {
+	if r.Payload != nil {
 		rp, qps, err := ReplaceAndPassParams(routeExt, r.Payload)
 		if err != nil {
 			log.Err(err).Msg("ApiCallRequestTask: failed to replace route path params")
@@ -318,6 +318,9 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		}
 	}
 	if retInst.WebFilters.RequestHeaders != nil {
+		if r.Headers == nil {
+			r.Headers = make(http.Header)
+		}
 		for k, v := range retInst.WebFilters.RequestHeaders {
 			r.Headers.Set(k, v)
 		}

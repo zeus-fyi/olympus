@@ -22,6 +22,11 @@ type ExecFlowsActionsRequest struct {
 
 // TODO package into search
 
+const (
+	googWf = "google-query-regex-index-wf"
+	liWf   = "linkedin-rapid-api-profiles-wf"
+)
+
 func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 	if v, ok := w.Stages["googleSearch"]; !ok || !v {
 		return nil
@@ -44,11 +49,13 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 		}
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: "google-query-regex-index-wf",
+		WorkflowName: googWf,
 	})
 
 	return nil
 }
+
+// Can you tell me what this person does in their current role; and the company they work at now?
 
 func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
 	if v, ok := w.Stages["linkedIn"]; !ok || !v {
@@ -72,7 +79,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
 		}
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: "linkedin-rapid-api-profiles-wf",
+		WorkflowName: liWf,
 	})
 	return nil
 }
@@ -166,8 +173,8 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		}
 		for _, wfn := range w.Workflows {
 			switch wfn.WorkflowName {
-			case "google-query-regex-index-wf":
-			case "linkedin-regex-index-wf":
+			case googWf:
+			case liWf:
 			default:
 				return c.JSON(http.StatusBadRequest, nil)
 			}

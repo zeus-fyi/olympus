@@ -84,6 +84,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			logger.Error("failed to run get retrieval routes", "Error", err)
 			return nil, err
 		}
+
 		for _, route := range routes {
 			rt := RouteTask{
 				Ou:        cp.Ou,
@@ -94,18 +95,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			if cp.Tc.WebPayload != nil {
 				em, ok := cp.Tc.WebPayload.(map[string]interface{})
 				if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
-					if cp.Tc.Retrieval.WebFilters.RegexPatterns != nil && len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 {
-						//qpRoute, qerr := ReplaceParams(*cp.Tc.Retrieval.WebFilters.EndpointRoutePath, em)
-						//if qerr != nil {
-						//	logger.Error("failed to replace route path params", "Error", qerr)
-						//	return nil, qerr
-						//}
-						//
-						//cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &qpRoute
-						//if len(em) == 0 {
-						//	em = nil
-						//}
-					}
 					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
 						nem := make(map[string]interface{})
 						for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {

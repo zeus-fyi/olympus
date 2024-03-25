@@ -242,6 +242,18 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
 			return nil, rowErr
 		}
+		for i, _ := range agdd {
+			if len(agdd[i].CompletionChoices) == 4 {
+				b, berr := agdd[i].CompletionChoices.MarshalJSON()
+				if berr != nil {
+					log.Err(berr).Msg("failed to marshal completion choices")
+					return nil, berr
+				}
+				if string(b) == "null" {
+					agdd[i].CompletionChoices = agdd[i].Metadata
+				}
+			}
+		}
 		oj.AggregatedData = agdd
 		var filteredResults []EvalMetric
 		seen := make(map[int]bool)

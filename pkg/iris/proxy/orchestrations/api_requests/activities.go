@@ -185,7 +185,6 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	if len(pr.QueryParams) > 0 {
 		r.QueryParam = pr.QueryParams
 	}
-
 	for k, v := range pr.RequestHeaders {
 		switch k {
 		case "Authorization":

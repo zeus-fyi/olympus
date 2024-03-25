@@ -1,11 +1,8 @@
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import CloudDownloadIcon from "@mui/icons-material/CloudUpload";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import * as React from "react";
-import {useState} from "react";
 
-// TODO: Implement export function from results
 const filterAggregationTypes = (data: any) => {
     if (!data || !data.aggregatedData) {
         // Return an empty array or handle the error as appropriate
@@ -17,9 +14,26 @@ const filterAggregationTypes = (data: any) => {
         .map((item: any) => item.completionChoices);
 };
 
+const filterAnalysisTypes = (data: any) => {
+    if (!data || !data.aggregatedData) {
+        // Return an empty array or handle the error as appropriate
+        return [];
+    }
+    return data.aggregatedData
+        .filter((item: any) => item.taskType === "analysis")
+        .map((item: any) => item.completionChoices);
+};
+
 const CsvExportButton = (props: any) => {
     const { name, results } = props;
-    const [data, setData] =  useState(filterAggregationTypes(results));
+    let data: any
+    if (results.orchestration.type === 'validate-emails-wf') {
+        data = filterAnalysisTypes(results)
+        console.log('results:', data);
+    } else {
+        data = filterAggregationTypes(results)
+    }
+
     return (
         <Stack direction="row" alignItems="center" spacing={2} sx={{mt: 2}}>
             <Button
@@ -32,24 +46,6 @@ const CsvExportButton = (props: any) => {
         </Stack>
     );
 };
-
-export function UploadButton(props: any) {
-    const { onUpload } = props;
-
-    return (
-        <Stack direction="row" alignItems="center" spacing={2}>
-            <Button variant="contained" component="label" style={{  backgroundColor: '#4fd3ad', color: '#FFF' }}>
-                <CloudUploadIcon />
-                <input
-                    hidden
-                    accept="text/csv, application/json"
-                    type="file"
-                    onChange={onUpload}
-                />
-            </Button>
-        </Stack>
-    );
-}
 
 type CsvDataRow = {
     [key: string]: string;
@@ -80,8 +76,12 @@ export const parseCSV = (csvText: string): { data: CsvDataRow[], fields: string[
 export default CsvExportButton;
 
 export const parseJSONAndCreateCSV = (name: string, data: any) => {
+
     const processedData = prettyPrintObject(data);
 
+    if (processedData === '') {
+        return;
+    }
     const sja =  stringToJsonArray(processedData)
     const csvContent = jsonArrayToCSV(sja);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -104,6 +104,7 @@ const jsonArrayToCSV = (jsonArray: any[]): string => {
 
     return [headers, ...rows].join('\n');
 };
+
 function stringToJsonArray(jsonString: string) {
     // Assuming each JSON object is separated by a newline
     // Split the string by newline to get an array of strings, each representing a JSON object

@@ -109,16 +109,26 @@ export function Commands(props: any) {
             }
         }
     }
+    const getTabName = (selectedTab: number): string => {
+        if (selectedTab === 0) {
+            return 'Google Search: ';
+        } else if (selectedTab === 1) {
+            return 'LinkedIn: ';
+        } else {
+            return '';
+        }
+    }
+
     return (
         <div>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'center', mb: 2 }}>
                 <SetupCard checked={checked} gs={gs} handleChangeGs={handleChangeGs} handleChange={handleChange} />
             </Box>
             <Card sx={{ maxWidth: 1200, justifyContent: 'center' }}>
-            <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large',fontWeight: 'thin', marginRight: '15x', color: '#151C2F'}}>
-                Agent Tasking Commands
+            <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large', fontWeight: 'thin', marginRight: '15px', color: '#151C2F' }}>
+                <span style={{ fontSize: 'large', fontWeight: 'thin', color: '#151C2F' }}>{getTabName(selectedMainTab)}</span> Agent Tasking Commands
             </Typography>
-            {selectedMainTab === 0 && (
+                {selectedMainTab === 0 && (
                 <MbTaskCmdPrompt language={"plaintext"} code={cmds.googleSearch} onChange={handleChangeGoogleSearchPrompt} height={"200px"} width={"1200px"}/>
             )}
             {selectedMainTab === 1 && (

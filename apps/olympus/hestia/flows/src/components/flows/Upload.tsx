@@ -1,8 +1,5 @@
 import {Card, CardActionArea, CardContent} from "@mui/material";
 import Typography from "@mui/material/Typography";
-import Stack from "@mui/material/Stack";
-import Button from "@mui/material/Button";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import * as React from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {setCsvHeaders, setUploadContacts} from "../../redux/flows/flows.reducer";
@@ -10,6 +7,8 @@ import Container from "@mui/material/Container";
 import {ContactsTable} from "./ContactsTable";
 import {RootState} from "../../redux/store";
 import {ContactsTextFieldRows} from "./UploadFieldMap";
+import {UploadButton} from "./Analyze";
+import {parseCSV} from "./CsvHelpers";
 
 export function CsvUploadActionAreaCard(props: any) {
     const dispatch = useDispatch();
@@ -82,44 +81,3 @@ export function CsvUploadActionAreaCard(props: any) {
         </div>
     );
 }
-export function UploadButton(props: any) {
-    const { onUpload } = props;
-
-    return (
-        <Stack direction="row" alignItems="center" spacing={2}>
-            <Button variant="contained" component="label" style={{  backgroundColor: '#4CAF50', color: '#FFF' }}>
-                <CloudUploadIcon />
-                <input
-                    hidden
-                    accept="text/csv, application/json"
-                    type="file"
-                    onChange={onUpload}
-                />
-            </Button>
-        </Stack>
-    );
-}
-
-type CsvDataRow = {
-    [key: string]: string;
-};
-const parseCSV = (csvText: string): { data: CsvDataRow[], fields: string[] } => {
-    const lines = csvText.split(/\r\n|\n/);
-    // Ensure there's at least one line for headers
-    if (lines.length === 0) {
-        return { data: [], fields: [] };
-    }
-
-    const headers = lines[0].split(',');
-    const data = lines.slice(1).filter(line => line).map(line => {
-        const values = line.split(',');
-        // Use the CsvDataRow type for the object
-        const rowData: CsvDataRow = {};
-        headers.forEach((header, index) => {
-            rowData[header] = values[index] || ''; // Assign empty string if value is undefined
-        });
-        return rowData;
-    });
-
-    return { data, fields: headers };
-};

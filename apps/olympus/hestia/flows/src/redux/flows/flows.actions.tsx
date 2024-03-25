@@ -6,7 +6,9 @@ export interface FlowState {
     results: [];
     stages: {
         linkedIn: boolean;
+        linkedInBiz: boolean;
         googleSearch: boolean;
+        validateEmails: boolean;
     };
     commandPrompts: {}
 }
@@ -19,7 +21,9 @@ export const initialState: FlowState = {
     results: [],
     stages: {
         linkedIn: false,
-        googleSearch: false
+        linkedInBiz: false,
+        googleSearch: false,
+        validateEmails: false
     },
     commandPrompts: {
         linkedIn: 'Can you tell me their role and responsibilities?',

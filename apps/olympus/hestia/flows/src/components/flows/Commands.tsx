@@ -16,11 +16,16 @@ export function Commands(props: any) {
     const cmds = useSelector((state: any) => state.flows.commandPrompts);
     const [checked, setChecked] = React.useState(false);
     const [checkedLi, setCheckedLi] = React.useState(false);
+    const [multiPromptOn, setMultiPromptOn] = React.useState(false);
     const [gs, setGsChecked] = React.useState(false);
+    const [vesChecked, setVesChecked] = React.useState(false);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
     const dispatch = useDispatch();
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
+    }
+    const handleChangeVesChecked = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
+        setVesChecked(event.target.checked);
     }
     const handleChangeLi = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
         setCheckedLi(event.target.checked);
@@ -31,7 +36,9 @@ export function Commands(props: any) {
     const handleChange = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
         setChecked(event.target.checked);
     };
-
+    const handleChangeMultiPromptOn = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
+        setMultiPromptOn(event.target.checked);
+    }
     const handleChangeGoogleSearchPrompt = (event: string) => {
         // Construct the new commandPrompts object
         const newCommandPrompts = {
@@ -93,7 +100,8 @@ export function Commands(props: any) {
                 stages: {
                     linkedIn: checked,
                     linkedInBiz: checkedLi,
-                    googleSearch: gs
+                    googleSearch: gs,
+                    validateEmails: vesChecked
                 },
                commandPrompts: cmds
             }
@@ -127,7 +135,12 @@ export function Commands(props: any) {
     return (
         <div>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'center', mb: 2 }}>
-                <SetupCard checkedLi={checkedLi} handleChangeLi={handleChangeLi} checked={checked} gs={gs} handleChangeGs={handleChangeGs} handleChange={handleChange} />
+                <SetupCard
+                    vesChecked={vesChecked} handleChangeVesChecked={handleChangeVesChecked}
+                    multiPromptOn={multiPromptOn} handleChangeMultiPromptOn={handleChangeMultiPromptOn}
+                    checkedLi={checkedLi} handleChangeLi={handleChangeLi}
+                    checked={checked} gs={gs} handleChangeGs={handleChangeGs}
+                    handleChange={handleChange} />
             </Box>
             <Card sx={{ maxWidth: 1200, justifyContent: 'center' }}>
             <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large', fontWeight: 'thin', marginRight: '15px', color: '#151C2F' }}>

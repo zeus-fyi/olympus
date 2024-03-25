@@ -21,13 +21,21 @@ type WorkflowsActionsRequest struct {
 	Duration      int    `json:"duration,omitempty"`
 	DurationUnit  string `json:"durationUnit,omitempty"`
 
-	IsStrictTimeWindow           bool                                      `json:"isStrictTimeWindow,omitempty"`
-	CustomBasePeriod             bool                                      `json:"customBasePeriod,omitempty"`
-	CustomBasePeriodStepSize     int                                       `json:"customBasePeriodStepSize,omitempty"`
-	CustomBasePeriodStepSizeUnit string                                    `json:"customBasePeriodStepSizeUnit,omitempty"`
-	TaskOverrides                map[string]TaskOverride                   `json:"taskOverrides,omitempty"`
-	SchemaFieldOverrides         map[string]map[string]string              `json:"schemaFieldOverrides,omitempty"`
-	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
+	IsStrictTimeWindow           bool   `json:"isStrictTimeWindow,omitempty"`
+	CustomBasePeriod             bool   `json:"customBasePeriod,omitempty"`
+	CustomBasePeriodStepSize     int    `json:"customBasePeriodStepSize,omitempty"`
+	CustomBasePeriodStepSizeUnit string `json:"customBasePeriodStepSizeUnit,omitempty"`
+
+	RetrievalOverrides   map[string]RetrievalOverride `json:"retrievalPayloadOverrides,omitempty"`
+	TaskOverrides        map[string]TaskOverride      `json:"taskOverrides,omitempty"`
+	SchemaFieldOverrides map[string]map[string]string `json:"schemaFieldOverrides,omitempty"`
+
+	Workflows []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
+}
+
+type RetrievalOverride struct {
+	Payload  map[string]interface{}   `json:"retrievalPayload,omitempty"`
+	Payloads []map[string]interface{} `json:"retrievalPayloads,omitempty"`
 }
 
 type TaskOverride struct {

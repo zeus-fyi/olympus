@@ -485,7 +485,7 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	}
 	var newResults []interface{}
 	for _, result := range results {
-		if result.WebResponse.RegexFilteredBody != "" {
+		if result.WebResponse.RegexFilteredBody != "" || len(result.QueryParams) > 0 {
 			m := map[string]interface{}{
 				"msg_body": result.Value,
 			}

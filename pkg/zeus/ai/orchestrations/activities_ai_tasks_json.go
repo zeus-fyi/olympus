@@ -42,10 +42,10 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 						continue
 					}
 				}
-				for _, sf := range sv.Fields {
+				for si, sf := range sv.Fields {
 					if mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName] != nil {
 						if fo, ok := mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName][sf.FieldName]; ok {
-							sf.FieldDescription = fo
+							sv.Fields[si].FieldDescription = fo
 						}
 					}
 				}

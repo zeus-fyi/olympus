@@ -396,6 +396,8 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	sg.ApiResponseResults = []hera_search.SearchResult{sres}
 	if req.RegexFilters != nil && len(req.RegexFilters) > 0 {
 		cp.Tc.RegexSearchResults = append(cp.Tc.RegexSearchResults, sres)
+	} else if len(extractedQpsVals) > 0 {
+		cp.Tc.RegexSearchResults = append(cp.Tc.RegexSearchResults, sres)
 	} else {
 		cp.Tc.ApiResponseResults = append(cp.Tc.ApiResponseResults, sres)
 	}

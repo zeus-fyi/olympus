@@ -94,7 +94,7 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup() error {
 		w.TaskOverrides = make(map[string]TaskOverride)
 	}
 	w.TaskOverrides["linkedin-biz-profiles-rapid-api-qps"] = TaskOverride{ReplacePrompt: string(b)}
-	if v, ok := w.CommandPrompts["linkedIn"]; ok && v != "" {
+	if v, ok := w.CommandPrompts["linkedInBiz"]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)
 			w.SchemaFieldOverrides["results-agg"] = map[string]string{

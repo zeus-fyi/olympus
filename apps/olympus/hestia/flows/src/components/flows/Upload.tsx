@@ -87,7 +87,7 @@ export function UploadButton(props: any) {
 
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <Button variant="contained" component="label" style={{ backgroundColor: '#8991B0', color: '#151C2F' }}>
+            <Button variant="contained" component="label" style={{  backgroundColor: '#4CAF50', color: '#FFF' }}>
                 <CloudUploadIcon />
                 <input
                     hidden

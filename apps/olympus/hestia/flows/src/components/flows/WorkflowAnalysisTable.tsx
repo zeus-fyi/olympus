@@ -135,7 +135,7 @@ export function WorkflowAnalysisTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Type</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Active</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Run Cycles</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Token Usage</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Tokens Used</TableCell>
                         {csvExport && <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Export</TableCell>
                         }
                     </TableRow>

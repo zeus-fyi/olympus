@@ -124,7 +124,7 @@ export const prettyPrintJSON = (json: any): string => {
 };
 
 
-const prettyPrintObject = (obj: any) => {
+export const prettyPrintObject = (obj: any) => {
     // If 'message' is a string that needs to be parsed
     try {
         if (obj.prompt) {

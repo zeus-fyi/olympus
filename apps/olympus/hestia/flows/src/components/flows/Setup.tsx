@@ -23,7 +23,6 @@ export function SetupCard(props: any) {
                         </Typography>
                     </CardContent>
                     <Box sx={{mb: 2}}>
-
                         <Divider/>
                     </Box>
                     <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>

@@ -17,7 +17,7 @@ const (
 )
 
 func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
-	if v, ok := w.Stages["siteFetch"]; !ok || !v {
+	if v, ok := w.Stages["websiteScrape"]; !ok || !v {
 		return nil
 	}
 

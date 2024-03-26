@@ -59,11 +59,19 @@ export function Commands(props: any) {
             ...cmds,
             linkedIn: event
         };
-        console.log(newCommandPrompts)
         // Dispatch an action to update the state with the new commandPrompts object
         dispatch(setCommandPrompt(newCommandPrompts));
     };
 
+    const handleChangeWebScrapePrompt = (event: string) => {
+        // Construct the new commandPrompts object
+        const newCommandPrompts = {
+            ...cmds,
+            websiteScrape: event
+        };
+        // Dispatch an action to update the state with the new commandPrompts object
+        dispatch(setCommandPrompt(newCommandPrompts));
+    };
 
     let buttonLabelCreate;
     let buttonDisabledCreate;
@@ -105,7 +113,8 @@ export function Commands(props: any) {
                     linkedIn: checked,
                     linkedInBiz: checkedLi,
                     googleSearch: gs,
-                    validateEmails: vesChecked
+                    validateEmails: vesChecked,
+                    websiteScrape: webChecked
                 },
                commandPrompts: cmds
             }
@@ -128,9 +137,11 @@ export function Commands(props: any) {
     }
     const getTabName = (selectedTab: number): string => {
         if (selectedTab === 0) {
-            return 'Google Search: ';
+            return 'Google Search ';
         } else if (selectedTab === 1) {
-            return 'LinkedIn: ';
+            return 'LinkedIn ';
+        } else if (selectedTab === 2) {
+            return 'Website ';
         } else {
             return '';
         }
@@ -157,6 +168,9 @@ export function Commands(props: any) {
             {selectedMainTab === 1 && (
                 <MbTaskCmdPrompt language={"plaintext"} code={cmds.linkedIn} onChange={handleChangeLinkedInPrompt} height={"200px"} width={"1200px"}/>
             )}
+            {selectedMainTab === 2 && (
+                <MbTaskCmdPrompt language={"plaintext"} code={cmds.websiteScrape} onChange={handleChangeWebScrapePrompt} height={"200px"} width={"1200px"}/>
+            )}
             <Box mt={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'right' }}>
                 <Button
                     variant="contained"
@@ -176,6 +190,7 @@ export function Commands(props: any) {
                 <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
                     <Tab label="Google Search"/>
                     <Tab label="LinkedIn" />
+                    <Tab label="Website" />
                 </Tabs>
             </Box>
         </div>

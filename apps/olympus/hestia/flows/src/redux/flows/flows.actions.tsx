@@ -9,6 +9,7 @@ export interface FlowState {
         linkedInBiz: boolean;
         googleSearch: boolean;
         validateEmails: boolean;
+        websiteScrape: boolean;
     };
     commandPrompts: {}
 }
@@ -23,11 +24,13 @@ export const initialState: FlowState = {
         linkedIn: false,
         linkedInBiz: false,
         googleSearch: false,
-        validateEmails: false
+        validateEmails: false,
+        websiteScrape: false
     },
     commandPrompts: {
         linkedIn: 'Can you tell me their role and responsibilities?',
-        googleSearch: ''
+        googleSearch: '',
+        websiteScrape: ''
     }
 }
 
@@ -39,8 +42,4 @@ export interface FlowAction {
     stages: {};
     contentContactsFieldMaps: {};
     commandPrompts: {}
-}
-
-export const googleSearchPromptOverride = {
-    'biz-lead-google-search-summary': '', // use the settings for tasks
 }

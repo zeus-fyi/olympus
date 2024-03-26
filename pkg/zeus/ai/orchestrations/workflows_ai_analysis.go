@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -77,53 +75,29 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					continue
 				}
 				cp.Tc.Retrieval = rets[0]
-				var echoReqs []echo.Map
-				if cp.WfExecParams.WorkflowOverrides.RetrievalOverrides != nil {
-					if v, ok := cp.WfExecParams.WorkflowOverrides.RetrievalOverrides[cp.Tc.Retrieval.RetrievalName]; ok {
-						for _, pl := range v.Payloads {
-							echoReqs = append(echoReqs, pl)
-						}
-					}
+				aoRet := workflow.ActivityOptions{
+					StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
+					RetryPolicy: &temporal.RetryPolicy{
+						InitialInterval:    time.Second * 3,
+						BackoffCoefficient: 2.0,
+						MaximumInterval:    time.Minute * 5,
+						MaximumAttempts:    10000,
+					},
 				}
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 					WorkflowID:               oj.OrchestrationName + "-analysis-ret-cycle-" + strconv.Itoa(runCycle),
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-					RetryPolicy:              ao.RetryPolicy,
+					RetryPolicy:              aoRet.RetryPolicy,
 				}
+
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
-				retOpt := "default"
-				if cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.PayloadPreProcessing != nil && len(echoReqs) > 0 {
-					retOpt = aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing)
+				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
+				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)
+				if err != nil {
+					logger.Error("failed to execute child retrieval workflow", "Error", err)
+					return err
 				}
-				switch retOpt {
-				case "iterate", "iterate-qp-only":
-					for pi, ple := range echoReqs {
-						//log.Info().Int("i", i).Interface("ple", ple).Msg("apiRetrieval: ple")
-						cp.Tc.WebPayload = ple
-						childAnalysisWorkflowOptions.WorkflowID = oj.OrchestrationName + "-analysis-ret-cycle-" + strconv.Itoa(runCycle) + "-iteration-" + strconv.Itoa(pi)
-						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)
-						if err != nil {
-							logger.Error("failed to execute child retrieval workflow", "Error", err)
-							return err
-						}
-					}
-				case "bulk":
-					cp.Tc.WebPayload = echoReqs
-					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)
-					if err != nil {
-						logger.Error("failed to execute child retrieval workflow", "Error", err)
-						return err
-					}
-				default:
-					childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
-					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)
-					if err != nil {
-						logger.Error("failed to execute child retrieval workflow", "Error", err)
-						return err
-					}
-				}
+
 				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] = false
 			}
 			pr := &PromptReduction{

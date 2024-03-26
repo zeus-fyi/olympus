@@ -84,77 +84,169 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			logger.Error("failed to run get retrieval routes", "Error", err)
 			return nil, err
 		}
-
-		for _, route := range routes {
-			rt := RouteTask{
-				Ou:        cp.Ou,
-				RouteInfo: route,
+		var echoReqs []echo.Map
+		if cp.WfExecParams.WorkflowOverrides.RetrievalOverrides != nil {
+			if v, ok := cp.WfExecParams.WorkflowOverrides.RetrievalOverrides[cp.Tc.Retrieval.RetrievalName]; ok {
+				for _, pl := range v.Payloads {
+					echoReqs = append(echoReqs, pl)
+				}
 			}
-			//startingPath := *cp.Tc.Retrieval.WebFilters.EndpointRoutePath
-			//log.Info().Str("startingPath", startingPath).Msg("startingPath")
-			if cp.Tc.WebPayload != nil {
-				em, ok := cp.Tc.WebPayload.(map[string]interface{})
-				if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
-					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
-						nem := make(map[string]interface{})
-						for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
-							nem[key] = em[key]
-						}
-						em = nem
+		}
+		retOpt := "default"
+		if cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.PayloadPreProcessing != nil && len(echoReqs) > 0 {
+			retOpt = aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing)
+		}
+		switch retOpt {
+		case "iterate", "iterate-qp-only":
+			for pi, ple := range echoReqs {
+				log.Info().Int("i", pi).Interface("ple", ple).Msg("apiRetrieval: ple")
+				cp.Tc.WebPayload = ple
+				for _, route := range routes {
+					rt := RouteTask{
+						Ou:        cp.Ou,
+						RouteInfo: route,
 					}
-					if iterateQpOnly == aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing) {
-						rt.Payload = nil
-					} else {
-						rt.Payload = em
-					}
-				}
-				var plSlice []map[string]interface{}
-				ems, ok := cp.Tc.WebPayload.([]map[string]interface{})
-				if ok {
-					plSlice = ems
-				} else if slice, ok1 := cp.Tc.WebPayload.([]interface{}); ok1 {
-					for _, item := range slice {
-						if m, ok2 := item.(map[string]interface{}); ok2 {
-							// m is now a map[string]interface{}, you can work with it
-							// For example, assigning to rt.Payload if that's what you need
-							plSlice = append(plSlice, m)
+					//startingPath := *cp.Tc.Retrieval.WebFilters.EndpointRoutePath
+					//log.Info().Str("startingPath", startingPath).Msg("startingPath")
+					if cp.Tc.WebPayload != nil {
+						em, ok := cp.Tc.WebPayload.(map[string]interface{})
+						if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
+							if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
+								nem := make(map[string]interface{})
+								for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
+									nem[key] = em[key]
+								}
+								em = nem
+							}
+							if iterateQpOnly == aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing) {
+								rt.Payload = nil
+							} else {
+								rt.Payload = em
+							}
 						}
-					}
-				}
-				rt.Retrieval = cp.Tc.Retrieval
-				if len(plSlice) > 0 {
-					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
-						nem := make(map[string]bool)
-						for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
-							nem[key] = true
-						}
-						for _, emv := range plSlice {
-							for k, _ := range emv {
-								if _, bok := nem[k]; !bok {
-									delete(emv, k)
+						var plSlice []map[string]interface{}
+						ems, ok := cp.Tc.WebPayload.([]map[string]interface{})
+						if ok {
+							plSlice = ems
+						} else if slice, ok1 := cp.Tc.WebPayload.([]interface{}); ok1 {
+							for _, item := range slice {
+								if m, ok2 := item.(map[string]interface{}); ok2 {
+									// m is now a map[string]interface{}, you can work with it
+									// For example, assigning to rt.Payload if that's what you need
+									plSlice = append(plSlice, m)
 								}
 							}
 						}
+						rt.Retrieval = cp.Tc.Retrieval
+						if len(plSlice) > 0 {
+							if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
+								nem := make(map[string]bool)
+								for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
+									nem[key] = true
+								}
+								for _, emv := range plSlice {
+									for k, _ := range emv {
+										if _, bok := nem[k]; !bok {
+											delete(emv, k)
+										}
+									}
+								}
+							}
+							for _, emv := range plSlice {
+								rt.Payloads = append(rt.Payloads, emv)
+							}
+						}
 					}
-					for _, emv := range plSlice {
-						rt.Payloads = append(rt.Payloads, emv)
+					apiCallCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp)
+					if err != nil {
+						logger.Error("failed to run api call request task retrieval", "Error", err)
+						return nil, err
+					}
+					//cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &startingPath
+					if cp.Tc.Retrieval.WebFilters != nil && aws.ToString(cp.Tc.Retrieval.WebFilters.LbStrategy) != lbStrategyPollTable && cp.Wsr.InputID > 0 {
+						if len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 && (cp.Tc.RegexSearchResults != nil && len(cp.Tc.RegexSearchResults) > 0) {
+							break
+						} else if cp.Tc.ApiResponseResults != nil && len(cp.Tc.ApiResponseResults) > 0 {
+							break
+						}
 					}
 				}
 			}
-			apiCallCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp)
-			if err != nil {
-				logger.Error("failed to run api call request task retrieval", "Error", err)
-				return nil, err
-			}
-			//cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &startingPath
-			if cp.Tc.Retrieval.WebFilters != nil && aws.ToString(cp.Tc.Retrieval.WebFilters.LbStrategy) != lbStrategyPollTable && cp.Wsr.InputID > 0 {
-				if len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 && (cp.Tc.RegexSearchResults != nil && len(cp.Tc.RegexSearchResults) > 0) {
-					break
-				} else if cp.Tc.ApiResponseResults != nil && len(cp.Tc.ApiResponseResults) > 0 {
-					break
+		case "bulk":
+			cp.Tc.WebPayload = echoReqs
+			for _, route := range routes {
+				rt := RouteTask{
+					Ou:        cp.Ou,
+					RouteInfo: route,
+				}
+				//startingPath := *cp.Tc.Retrieval.WebFilters.EndpointRoutePath
+				//log.Info().Str("startingPath", startingPath).Msg("startingPath")
+				if cp.Tc.WebPayload != nil {
+					em, ok := cp.Tc.WebPayload.(map[string]interface{})
+					if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
+						if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
+							nem := make(map[string]interface{})
+							for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
+								nem[key] = em[key]
+							}
+							em = nem
+						}
+						if iterateQpOnly == aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing) {
+							rt.Payload = nil
+						} else {
+							rt.Payload = em
+						}
+					}
+					var plSlice []map[string]interface{}
+					ems, ok := cp.Tc.WebPayload.([]map[string]interface{})
+					if ok {
+						plSlice = ems
+					} else if slice, ok1 := cp.Tc.WebPayload.([]interface{}); ok1 {
+						for _, item := range slice {
+							if m, ok2 := item.(map[string]interface{}); ok2 {
+								// m is now a map[string]interface{}, you can work with it
+								// For example, assigning to rt.Payload if that's what you need
+								plSlice = append(plSlice, m)
+							}
+						}
+					}
+					rt.Retrieval = cp.Tc.Retrieval
+					if len(plSlice) > 0 {
+						if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
+							nem := make(map[string]bool)
+							for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
+								nem[key] = true
+							}
+							for _, emv := range plSlice {
+								for k, _ := range emv {
+									if _, bok := nem[k]; !bok {
+										delete(emv, k)
+									}
+								}
+							}
+						}
+						for _, emv := range plSlice {
+							rt.Payloads = append(rt.Payloads, emv)
+						}
+					}
+				}
+				apiCallCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp)
+				if err != nil {
+					logger.Error("failed to run api call request task retrieval", "Error", err)
+					return nil, err
+				}
+				//cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &startingPath
+				if cp.Tc.Retrieval.WebFilters != nil && aws.ToString(cp.Tc.Retrieval.WebFilters.LbStrategy) != lbStrategyPollTable && cp.Wsr.InputID > 0 {
+					if len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 && (cp.Tc.RegexSearchResults != nil && len(cp.Tc.RegexSearchResults) > 0) {
+						break
+					} else if cp.Tc.ApiResponseResults != nil && len(cp.Tc.ApiResponseResults) > 0 {
+						break
+					}
 				}
 			}
+		default:
 		}
 	case apiApproval:
 		var routes []iris_models.RouteInfo

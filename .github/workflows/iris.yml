@@ -12,6 +12,7 @@ on:
       - dev
       - iris-updates
       - ai-triggers
+      - add-flows
 
 permissions:
   contents: read

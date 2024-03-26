@@ -5,14 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 	"unicode/utf8"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -324,11 +322,11 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			err = json.Unmarshal(resp.Body(), &pr.Response)
 			if err != nil {
 				log.Warn().Err(err).Msg("sendRequest: failed to unmarshal response body")
-				tv := resp.String()
-				tv = strings.TrimPrefix(tv, "\"")
-				tv = strings.TrimSuffix(tv, "\"")
-				tv = unescapeUnicode(tv)
-				tv = html.UnescapeString(tv)
+				//tv := resp.String()
+				//tv = strings.TrimPrefix(tv, "\"")
+				//tv = strings.TrimSuffix(tv, "\"")
+				//tv = unescapeUnicode(tv)
+				//tv = html.UnescapeString(tv)
 				//doc, err := goquery.NewDocumentFromReader(strings.NewReader(tv))
 				//if err != nil {
 				//	log.Err(err).Msg("sendRequest: failed to parse response body")
@@ -361,17 +359,17 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			pr.RawResponse = resp.Body()
 		}
 		if pr.RegexFilters != nil {
-			tv := resp.String()
-			tv = strings.TrimPrefix(tv, "\"")
-			tv = strings.TrimSuffix(tv, "\"")
-			tv = unescapeUnicode(tv)
-			tv = html.UnescapeString(tv)
-			doc, err := goquery.NewDocumentFromReader(strings.NewReader(tv))
-			if err != nil {
-				log.Err(err).Msg("sendRequest: failed to parse response body")
-				return resp, err
-			}
-			tmp, rerr := ExtractParams(pr.RegexFilters, []byte(doc.Text()))
+			//tv := resp.String()
+			//tv = strings.TrimPrefix(tv, "\"")
+			//tv = strings.TrimSuffix(tv, "\"")
+			//tv = unescapeUnicode(tv)
+			//tv = html.UnescapeString(tv)
+			//doc, err := goquery.NewDocumentFromReader(strings.NewReader(tv))
+			//if err != nil {
+			//	log.Err(err).Msg("sendRequest: failed to parse response body")
+			//	return resp, err
+			//}
+			tmp, rerr := ExtractParams(pr.RegexFilters, resp.Body())
 			if rerr != nil {
 				log.Err(rerr).Msg("sendRequest: failed to extract params")
 				return resp, rerr

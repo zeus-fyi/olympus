@@ -638,9 +638,25 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 		for _, r := range wio.PromptReduction.DataInAnalysisAggregation {
 			sr = append(sr, r.SearchResultGroup.RegexSearchResults...)
 		}
-		dataIn.SearchResultGroup = &hera_search.SearchResultGroup{
-			RegexSearchResults: sr,
+		if len(sr) <= 0 && len(cp.Tc.RegexSearchResults) > 0 {
+			sr = cp.Tc.RegexSearchResults
 		}
+		var sv []map[string]interface{}
+		for _, s := range sr {
+			sv = append(sv, s.WebResponse.Body)
+		}
+		md, err := json.Marshal(sv)
+		if err != nil {
+			log.Err(err).Interface("dataIn", sv).Interface("wr", wr).Msg("SaveTaskOutput: failed")
+			return 0, err
+		}
+		wr.Metadata = md
+		err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
+		if err != nil {
+			log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
+			return 0, err
+		}
+
 	} else if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
 		if cp.Wsr.ChunkOffset < len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) {
 			dataIn.SearchResultGroup = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]

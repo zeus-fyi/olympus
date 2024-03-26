@@ -46,6 +46,10 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
+	err = w.ScrapeRegularWebsiteSetup()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	if len(w.Workflows) > 0 {
 		w.Action = "start"
 	}

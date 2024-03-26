@@ -49,14 +49,14 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 		return nil
 	}
 
-	seen := make(map[string]bool)
+	//seen := make(map[string]bool)
 	var pls []map[string]interface{}
 	for _, cv := range w.ContactsCsv {
 		for em, emv := range cv {
 			tv := strings.ToLower(emv)
-			if _, ok := seen[tv]; ok {
-				continue
-			}
+			//if _, ok := seen[tv]; ok {
+			//	continue
+			//}
 			if strings.HasPrefix(em, "https://www.linkedin.com") || strings.HasPrefix(em, "https://linkedin.com") {
 				continue
 			}
@@ -70,7 +70,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 				pl["url"] = uv
 				pls = append(pls, pl)
 			}
-			seen[tv] = true
+			//seen[tv] = true
 		}
 	}
 	if len(pls) == 0 {
@@ -107,7 +107,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 	for _, cv := range w.ContactsCsv {
 		for em, emv := range cv {
 			tv := strings.ToLower(em)
-			if _, ok := seen[tv]; ok {
+			if _, ok := seen[emv]; ok {
 				continue
 			}
 			if strings.Contains(tv, "email") && len(emv) > 0 {
@@ -115,7 +115,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 				pl["email"] = emv
 				pls = append(pls, pl)
 			}
-			seen[tv] = true
+			seen[emv] = true
 		}
 	}
 	if len(pls) == 0 {

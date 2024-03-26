@@ -30,7 +30,7 @@ export const initialState: FlowState = {
     commandPrompts: {
         linkedIn: 'Can you tell me their role and responsibilities?',
         googleSearch: '',
-        websiteScrape: ''
+        websiteScrape: 'Can you tell me what the company does, and the industry they work in?'
     }
 }
 

@@ -117,7 +117,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		}
 		for _, wfn := range w.Workflows {
 			switch wfn.WorkflowName {
-			case googWf, liWf, emailVdWf:
+			case googWf, liWf, emailVdWf, webFetchWf:
 			case liBizWf:
 				return c.JSON(http.StatusNotImplemented, nil)
 			default:

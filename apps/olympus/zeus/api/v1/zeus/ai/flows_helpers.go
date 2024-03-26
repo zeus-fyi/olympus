@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	siteFetchWf = "analysis-website-wf"
-	emailVdWf   = "validate-emails-wf"
-	googWf      = "google-query-regex-index-wf"
-	liWf        = "linkedin-rapid-api-profiles-wf"
-	liBizWf     = "linkedin-rapid-api-biz-profiles-wf"
+	webFetchWf = "analysis-website-wf"
+	emailVdWf  = "validate-emails-wf"
+	googWf     = "google-query-regex-index-wf"
+	liWf       = "linkedin-rapid-api-profiles-wf"
+	liBizWf    = "linkedin-rapid-api-biz-profiles-wf"
 )
 
 func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
@@ -57,7 +57,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 	}
 	w.RetrievalOverrides["website-analysis"] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: siteFetchWf,
+		WorkflowName: webFetchWf,
 	})
 	return nil
 }

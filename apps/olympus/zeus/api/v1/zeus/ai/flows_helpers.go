@@ -9,11 +9,40 @@ import (
 )
 
 const (
-	emailVdWf = "validate-emails-wf"
-	googWf    = "google-query-regex-index-wf"
-	liWf      = "linkedin-rapid-api-profiles-wf"
-	liBizWf   = "linkedin-rapid-api-biz-profiles-wf"
+	siteFetchWf = "analysis-website-wf"
+	emailVdWf   = "validate-emails-wf"
+	googWf      = "google-query-regex-index-wf"
+	liWf        = "linkedin-rapid-api-profiles-wf"
+	liBizWf     = "linkedin-rapid-api-biz-profiles-wf"
 )
+
+func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
+	if v, ok := w.Stages["siteFetch"]; !ok || !v {
+		return nil
+	}
+
+	var pls []map[string]interface{}
+	for _, cv := range w.ContactsCsv {
+		for em, emv := range cv {
+			if strings.Contains(strings.ToLower(em), "email") && len(emv) > 0 {
+				pl := make(map[string]interface{})
+				pl["email"] = emv
+				pls = append(pls, pl)
+			}
+		}
+	}
+	if w.TaskOverrides == nil {
+		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
+	}
+	if w.RetrievalOverrides == nil {
+		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
+	}
+	//w.RetrievalOverrides["validemail-query-params"] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
+	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
+		WorkflowName: siteFetchWf,
+	})
+	return nil
+}
 
 func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 	if v, ok := w.Stages["validateEmails"]; !ok || !v {

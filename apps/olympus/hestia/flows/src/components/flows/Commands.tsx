@@ -18,11 +18,15 @@ export function Commands(props: any) {
     const [checkedLi, setCheckedLi] = React.useState(false);
     const [multiPromptOn, setMultiPromptOn] = React.useState(false);
     const [gs, setGsChecked] = React.useState(false);
+    const [webChecked, setWebChecked] = React.useState(false);
     const [vesChecked, setVesChecked] = React.useState(false);
     const [selectedMainTab, setSelectedMainTab] = useState(0);
     const dispatch = useDispatch();
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
+    }
+    const handleChangeWebChecked = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
+        setWebChecked(event.target.checked);
     }
     const handleChangeVesChecked = (event: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
         setVesChecked(event.target.checked);
@@ -136,6 +140,7 @@ export function Commands(props: any) {
         <div>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'center', mb: 2 }}>
                 <SetupCard
+                    webChecked={webChecked} handleChangeWebChecked={handleChangeWebChecked}
                     vesChecked={vesChecked} handleChangeVesChecked={handleChangeVesChecked}
                     multiPromptOn={multiPromptOn} handleChangeMultiPromptOn={handleChangeMultiPromptOn}
                     checkedLi={checkedLi} handleChangeLi={handleChangeLi}

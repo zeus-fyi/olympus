@@ -13,11 +13,12 @@ import (
 var BillingCache = cache.New(time.Hour, cache.DefaultExpiration)
 
 const (
-	InternalUserID = 7138958574876245565
+	InternalUserID  = 7138958574876245565
+	InternalUserID2 = 1710298581127603000
 )
 
 func CheckBillingCache(ctx context.Context, userID int) bool {
-	if userID == InternalUserID {
+	if userID == InternalUserID || userID == InternalUserID2 {
 		return true
 	}
 	billingExists, ok := BillingCache.Get(fmt.Sprintf("%d", userID))

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	webFetchWf = "analysis-website-wf"
+	webFetchWf = "website-analysis-wf"
 	emailVdWf  = "validate-emails-wf"
 	googWf     = "google-query-regex-index-wf"
 	liWf       = "linkedin-rapid-api-profiles-wf"

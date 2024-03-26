@@ -43,13 +43,14 @@ func CreateCustomer(ctx context.Context, userID int, firstName, lastName, email 
 }
 
 const (
-	InternalUserID  = 7138958574876245565
-	InternalUserID1 = 7138958574876245567
-	InternalUserID2 = 1699642242976434000
+	InternalUserID        = 7138958574876245565
+	InternalUserID1       = 7138958574876245567
+	InternalUserID2       = 1699642242976434000
+	InternalSharedUserID3 = 1710298581127603000
 )
 
 func DoesUserHaveBillingMethod(ctx context.Context, userID int) (bool, error) {
-	if userID == InternalUserID || userID == InternalUserID1 || userID == InternalUserID2 {
+	if userID == InternalUserID || userID == InternalUserID1 || userID == InternalUserID2 || userID == InternalSharedUserID3 {
 		return true, nil
 	}
 	cID, err := QueryGetCustomerStripeID(ctx, userID)

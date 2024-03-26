@@ -21,15 +21,20 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 		return nil
 	}
 
+	seen := make(map[string]bool)
 	var pls []map[string]interface{}
 	for _, cv := range w.ContactsCsv {
 		for em, emv := range cv {
 			tv := strings.ToLower(em)
+			if _, ok := seen[tv]; ok {
+				continue
+			}
 			if (strings.Contains(tv, "web") || strings.Contains(tv, "url") || strings.Contains(tv, "link") || strings.Contains(tv, "site")) && len(emv) > 0 {
 				pl := make(map[string]interface{})
 				pl["url"] = emv
 				pls = append(pls, pl)
 			}
+			seen[tv] = true
 		}
 	}
 	if len(pls) == 0 {
@@ -61,15 +66,20 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 	if v, ok := w.Stages["validateEmails"]; !ok || !v {
 		return nil
 	}
-
+	seen := make(map[string]bool)
 	var pls []map[string]interface{}
 	for _, cv := range w.ContactsCsv {
 		for em, emv := range cv {
-			if strings.Contains(strings.ToLower(em), "email") && len(emv) > 0 {
+			tv := strings.ToLower(em)
+			if _, ok := seen[tv]; ok {
+				continue
+			}
+			if strings.Contains(tv, "email") && len(emv) > 0 {
 				pl := make(map[string]interface{})
 				pl["email"] = emv
 				pls = append(pls, pl)
 			}
+			seen[tv] = true
 		}
 	}
 	if w.TaskOverrides == nil {

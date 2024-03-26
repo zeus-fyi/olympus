@@ -25,11 +25,14 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 	var pls []map[string]interface{}
 	for _, cv := range w.ContactsCsv {
 		for em, emv := range cv {
-			tv := strings.ToLower(em)
+			tv := strings.ToLower(emv)
 			if _, ok := seen[tv]; ok {
 				continue
 			}
-			if (strings.Contains(tv, "web") || strings.Contains(tv, "url") || strings.Contains(tv, "link") || strings.Contains(tv, "site")) && len(emv) > 0 {
+			if strings.HasPrefix(em, "https://www.linkedin.com") || strings.HasPrefix(em, "https://linkedin.com") {
+				continue
+			}
+			if (strings.Contains(tv, "web") || strings.Contains(em, "url") || strings.Contains(em, "link") || strings.Contains(em, "site")) && len(emv) > 0 {
 				pl := make(map[string]interface{})
 				pl["url"] = emv
 				pls = append(pls, pl)
@@ -81,6 +84,10 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 			}
 			seen[tv] = true
 		}
+	}
+	if len(pls) == 0 {
+		log.Warn().Msg("no emails found")
+		return nil
 	}
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)

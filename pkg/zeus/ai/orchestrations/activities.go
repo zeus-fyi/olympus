@@ -657,7 +657,7 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 			log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
 			return 0, err
 		}
-
+		return wr.WorkflowResultID, nil
 	} else if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
 		if cp.Wsr.ChunkOffset < len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) {
 			dataIn.SearchResultGroup = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]

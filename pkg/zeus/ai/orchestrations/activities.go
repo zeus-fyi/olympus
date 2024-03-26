@@ -651,6 +651,7 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 			return 0, err
 		}
 		wr.Metadata = md
+		wr.CompletionChoices = md
 		err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 		if err != nil {
 			log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")

@@ -235,6 +235,9 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	}
 	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
 	qps := c.QueryParams()
+	if len(route) > 0 {
+		qps.Del("url")
+	}
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
 		ServicePlan:      plan,

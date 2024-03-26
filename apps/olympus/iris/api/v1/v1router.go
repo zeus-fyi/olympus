@@ -125,7 +125,9 @@ func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {
 		//fmt.Println(capturedPath)
 		c.Set("capturedPath", capturedPath)
 		paramValue := c.QueryParam("url")
-		c.Set("proxy", paramValue)
+		if paramValue != "" {
+			c.Set("proxy", paramValue)
+		}
 
 		// Then do something with the captured path...
 		return handler(c)

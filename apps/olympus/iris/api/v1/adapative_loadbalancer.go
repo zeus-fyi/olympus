@@ -19,8 +19,16 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 	if procName != "" {
 		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName, metricName, adaptiveKeyName)
 	}
+	route := ""
+	routeHost := c.Get("proxy")
+	if routeHost != nil {
+		tmp, ok := routeHost.(string)
+		if ok {
+			route = tmp
+		}
+	}
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
-	if routeGroup == "" {
+	if routeGroup == "" && route == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
 	}
 	ou := org_users.OrgUser{}
@@ -66,10 +74,12 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	path, ok := tableStats.MemberRankScoreOut.Member.(string)
-	if !ok {
+	if !ok && route == "" {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
+	if route != "" {
+		path = route
+	}
 	payloadSizingMeter.Reset()
 	headers := make(http.Header)
 	for k, v := range c.Request().Header {
@@ -90,6 +100,9 @@ func (p *ProxyRequest) ProcessAdaptiveLoadBalancerRequest(c echo.Context, payloa
 
 	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
 	qps := c.QueryParams()
+	if len(route) > 0 {
+		qps.Del("url")
+	}
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
 		ServicePlan:      plan,

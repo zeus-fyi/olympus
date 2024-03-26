@@ -100,7 +100,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					for pi, ple := range echoReqs {
 						//log.Info().Int("i", i).Interface("ple", ple).Msg("apiRetrieval: ple")
 						cp.Tc.WebPayload = ple
-						childAnalysisWorkflowOptions.WorkflowID += "-iteration-" + strconv.Itoa(pi)
+						childAnalysisWorkflowOptions.WorkflowID = oj.OrchestrationName + "-analysis-ret-cycle-" + strconv.Itoa(runCycle) + "-iteration-" + strconv.Itoa(pi)
 						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)
 						if err != nil {

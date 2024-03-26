@@ -24,12 +24,17 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 	var pls []map[string]interface{}
 	for _, cv := range w.ContactsCsv {
 		for em, emv := range cv {
-			if strings.Contains(strings.ToLower(em), "email") && len(emv) > 0 {
+			tv := strings.ToLower(em)
+			if (strings.Contains(tv, "web") || strings.Contains(tv, "url") || strings.Contains(tv, "link") || strings.Contains(tv, "site")) && len(emv) > 0 {
 				pl := make(map[string]interface{})
-				pl["email"] = emv
+				pl["url"] = emv
 				pls = append(pls, pl)
 			}
 		}
+	}
+	if len(pls) == 0 {
+		log.Warn().Msg("no urls found")
+		return nil
 	}
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
@@ -37,7 +42,15 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 	if w.RetrievalOverrides == nil {
 		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
 	}
-	//w.RetrievalOverrides["validemail-query-params"] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
+	if v, ok := w.CommandPrompts["websiteScrape"]; ok && v != "" {
+		if w.SchemaFieldOverrides == nil {
+			w.SchemaFieldOverrides = make(map[string]map[string]string)
+			w.SchemaFieldOverrides["website-analysis"] = map[string]string{
+				"summary": v,
+			}
+		}
+	}
+	w.RetrievalOverrides["website-analysis"] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: siteFetchWf,
 	})

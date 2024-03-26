@@ -2,6 +2,8 @@ package zeus_v1_ai
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -15,6 +17,32 @@ const (
 	liWf       = "linkedin-rapid-api-profiles-wf"
 	liBizWf    = "linkedin-rapid-api-biz-profiles-wf"
 )
+
+func isValidURL(inputURL string) (*url.URL, error) {
+	u, err := url.Parse(inputURL)
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL: %w", err)
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return nil, fmt.Errorf("URL must be http or https, got: %s", u.Scheme)
+	}
+	if u.Host == "" {
+		return nil, fmt.Errorf("URL must have a host")
+	}
+	return u, nil
+}
+func convertToHTTPS(inputURL string) (string, error) {
+	u, err := isValidURL(inputURL)
+	if err != nil {
+		return "", err
+	}
+
+	if u.Scheme == "http" {
+		u.Scheme = "https"
+	}
+
+	return u.String(), nil
+}
 
 func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 	if v, ok := w.Stages["websiteScrape"]; !ok || !v {
@@ -34,7 +62,12 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 			}
 			if (strings.Contains(tv, "web") || strings.Contains(em, "url") || strings.Contains(em, "link") || strings.Contains(em, "site")) && len(emv) > 0 {
 				pl := make(map[string]interface{})
-				pl["url"] = emv
+				uv, err := convertToHTTPS(emv)
+				if err != nil {
+					log.Err(err).Msg("failed to convert url to https")
+					continue
+				}
+				pl["url"] = uv
 				pls = append(pls, pl)
 			}
 			seen[tv] = true

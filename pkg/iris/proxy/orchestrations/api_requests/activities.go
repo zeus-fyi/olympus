@@ -2,6 +2,7 @@ package iris_api_requests
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -254,7 +255,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		if pr.Payloads != nil && pr.Payload == nil {
 			switch method {
 			case "GET", "get":
-				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Get(ext)
+				resp, err = request.SetBody(&pr.Payloads).Get(ext)
 			case "OPTIONS", "options":
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Options(ext)
 			case "PUT", "put":
@@ -275,7 +276,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		} else {
 			switch method {
 			case "GET", "get":
-				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(ext)
+				resp, err = request.SetBody(&pr.Payload).Get(ext)
 			case "OPTIONS", "options":
 				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Options(ext)
 			case "PUT", "put":
@@ -293,7 +294,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		case "OPTIONS", "options":
 			resp, err = request.SetResult(&pr.Response).Options(ext)
 		case "GET", "get":
-			resp, err = request.SetResult(&pr.Response).Get(ext)
+			resp, err = request.Get(ext)
 		case "PUT", "put":
 			resp, err = request.SetResult(&pr.Response).Put(ext)
 		case "DELETE", "delete":
@@ -316,7 +317,13 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		if pr.PayloadSizeMeter == nil {
 			pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 		}
-
+		if method == "GET" {
+			err = json.Unmarshal(resp.Body(), &pr.Response)
+			if err != nil {
+				log.Err(err).Msg("sendRequest: failed to unmarshal response")
+				err = nil
+			}
+		}
 		pr.PayloadSizeMeter.Add(resp.Size())
 		pr.StatusCode = resp.StatusCode()
 		if resp.StatusCode() >= 400 || pr.Response == nil {

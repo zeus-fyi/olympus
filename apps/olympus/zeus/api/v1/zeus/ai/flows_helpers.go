@@ -110,7 +110,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 			if _, ok := seen[emv]; ok {
 				continue
 			}
-			if strings.Contains(tv, "email") && len(emv) > 0 {
+			if strings.Contains(tv, "email") && len(emv) > 0 && strings.Contains(emv, "@") {
 				pl := make(map[string]interface{})
 				pl["email"] = emv
 				pls = append(pls, pl)

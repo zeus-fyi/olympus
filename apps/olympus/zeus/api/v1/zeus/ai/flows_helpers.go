@@ -49,24 +49,28 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 		return nil
 	}
 
-	//seen := make(map[string]bool)
+	seen := make(map[string]bool)
 	var pls []map[string]interface{}
 	for _, cv := range w.ContactsCsv {
 		for em, emv := range cv {
-			tv := strings.ToLower(emv)
 			//if _, ok := seen[tv]; ok {
 			//	continue
 			//}
-			if strings.HasPrefix(emv, "https://www.linkedin.com") || strings.HasPrefix(emv, "https://linkedin.com") {
-				continue
-			}
-			if (strings.Contains(tv, "web") || strings.Contains(em, "url") || strings.Contains(em, "link") || strings.Contains(em, "site")) && len(emv) > 0 {
+
+			if (strings.Contains(em, "web") || strings.Contains(em, "url") || strings.Contains(em, "link") || strings.Contains(em, "site")) && len(emv) > 0 {
 				pl := make(map[string]interface{})
 				uv, err := convertToHTTPS(emv)
 				if err != nil {
 					log.Err(err).Msg("failed to convert url to https")
 					continue
 				}
+				if _, ok := seen[uv]; ok {
+					continue
+				}
+				if strings.HasPrefix(uv, "https://www.linkedin.com") || strings.HasPrefix(uv, "https://linkedin.com") {
+					continue
+				}
+				seen[uv] = true
 				pl["url"] = uv
 				pls = append(pls, pl)
 			}
@@ -128,6 +132,9 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 	if w.RetrievalOverrides == nil {
 		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
 	}
+	w.CustomBasePeriodStepSize = 24
+	w.CustomBasePeriodStepSizeUnit = "hours"
+	w.CustomBasePeriod = true
 	w.RetrievalOverrides["validemail-query-params"] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: emailVdWf,

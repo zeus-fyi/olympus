@@ -36,6 +36,7 @@ type TaskContext struct {
 	QueryParams                        []string                                                     `json:"queryParams,omitempty"`
 	TextResponse                       string                                                       `json:"textResponse,omitempty"`
 	ChunkIterator                      int                                                          `json:"chunkIterator"`
+	ApiIterationCount                  int                                                          `json:"apiIterationCount"`
 	RegexSearchResults                 []hera_search.SearchResult                                   `json:"searchResults,omitempty"`
 	Retrieval                          artemis_orchestrations.RetrievalItem                         `json:"retrieval,omitempty"`
 	ApiResponseResults                 []hera_search.SearchResult                                   `json:"apiResponseResults,omitempty"`

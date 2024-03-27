@@ -26,6 +26,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"go.temporal.io/sdk/activity"
 )
 
 type ZeusAiPlatformActivities struct {
@@ -289,6 +290,15 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 	if cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.PayloadPreProcessing != nil && len(echoReqs) > 0 {
 		retOpt = *cp.Tc.Retrieval.WebFilters.PayloadPreProcessing
 	}
+	var iterCount int
+	if cp.Wsr.InputID > 0 {
+		wio, werr := gws(ctx, cp.Wsr.InputID)
+		if werr != nil {
+			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+			return nil, werr
+		}
+		iterCount = wio.WorkflowStageInfo.ApiIterationCount
+	}
 	for _, rtas := range rts {
 		rt := RouteTask{
 			Ou:        cp.Ou,
@@ -298,6 +308,10 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 		switch retOpt {
 		case "iterate", "iterate-qp-only":
 			for pi, ple := range echoReqs {
+				if pi <= iterCount {
+					continue
+				}
+				cp.Tc.ApiIterationCount = pi
 				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: ple")
 				rt.RouteInfo.Payload = ple
 				_, err := na.ApiCallRequestTask(ctx, rt, cp)
@@ -305,6 +319,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 					log.Err(err).Msg("FanOutApiCallRequestTask: failed")
 					return nil, err
 				}
+				activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%cd", pi))
 			}
 		case "bulk":
 			rt.RouteInfo.Payloads = echoReqs
@@ -313,6 +328,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 				log.Err(err).Msg("FanOutApiCallRequestTask: bulk failed")
 				return nil, err
 			}
+			activity.RecordHeartbeat(ctx, fmt.Sprintf("bulk"))
 		default:
 			if len(echoReqs) > 1 {
 				rt.RouteInfo.Payloads = echoReqs
@@ -324,6 +340,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 				log.Err(err).Msg("FanOutApiCallRequestTask: default failed")
 				return nil, err
 			}
+			activity.RecordHeartbeat(ctx, fmt.Sprintf("default"))
 		}
 	}
 	return cp, nil
@@ -531,10 +548,10 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		cp.Tc.ApiResponseResults = append(cp.Tc.ApiResponseResults, sres)
 	}
 	sg.SourceTaskID = cp.Tc.TaskID
-	return SaveResult(ctx, cp, sg, sres, reqHash)
+	return SaveResult(ctx, cp, sg, sres, reqHash, cp.Tc.ApiIterationCount)
 }
 
-func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_search.SearchResultGroup, sres hera_search.SearchResult, reqHash string) (*MbChildSubProcessParams, error) {
+func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_search.SearchResultGroup, sres hera_search.SearchResult, reqHash string, iteration int) (*MbChildSubProcessParams, error) {
 	if cp == nil || sg == nil {
 		log.Warn().Msg("SaveResult: cp or sg is nil")
 		return nil, nil
@@ -548,6 +565,7 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 			WorkflowStageReference: cp.Wsr,
 			WorkflowStageInfo: WorkflowStageInfo{
 				WorkflowInCacheHash: icm,
+				ApiIterationCount:   iteration,
 				PromptReduction: &PromptReduction{
 					MarginBuffer:          cp.Tc.MarginBuffer,
 					Model:                 cp.Tc.Model,
@@ -584,6 +602,7 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 				wio.WorkflowStageInfo.WorkflowInCacheHash = icm
 			}
 		}
+		wio.ApiIterationCount = iteration
 		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.PromptReduction == nil {
 			wio.WorkflowStageInfo.PromptReduction = &PromptReduction{
 				MarginBuffer:          cp.Tc.MarginBuffer,

@@ -123,9 +123,9 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 					3. update task with results
 				*/
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               cp.Oj.OrchestrationName + "-api-ret-" + strconv.Itoa(ri) + "-" + strconv.Itoa(cp.WfExecParams.WorkflowExecTimekeepingParams.CurrentCycleCount),
-					WorkflowExecutionTimeout: aoAiAct.ScheduleToCloseTimeout,
-					RetryPolicy:              aoAiAct.RetryPolicy,
+					WorkflowID:         cp.Oj.OrchestrationName + "-api-ret-" + strconv.Itoa(ri) + "-" + strconv.Itoa(cp.WfExecParams.WorkflowExecTimekeepingParams.CurrentCycleCount),
+					WorkflowRunTimeout: aoAiAct.ScheduleToCloseTimeout,
+					RetryPolicy:        aoAiAct.RetryPolicy,
 				}
 				cp.Tc.Retrieval = rets[0]
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID

@@ -85,9 +85,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					},
 				}
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               oj.OrchestrationName + "-analysis-ret-cycle-" + strconv.Itoa(runCycle),
-					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-					RetryPolicy:              aoRet.RetryPolicy,
+					WorkflowID:         oj.OrchestrationName + "-analysis-ret-cycle-" + strconv.Itoa(runCycle),
+					WorkflowRunTimeout: ao.ScheduleToCloseTimeout,
+					RetryPolicy:        aoRet.RetryPolicy,
 				}
 
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID

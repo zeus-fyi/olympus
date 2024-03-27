@@ -309,6 +309,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 				if pi <= cp.Tc.ApiIterationCount {
 					continue
 				}
+				cp.Tc.ApiIterationCount = pi
 				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: ple")
 				rt.RouteInfo.Payload = ple
 				_, err := na.ApiCallRequestTask(ctx, rt, cp)
@@ -586,6 +587,7 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
 		}
+		wio.ApiIterationCount = iteration
 		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash != nil && len(reqHash) > 0 {
 			if _, ok := wio.WorkflowStageInfo.WorkflowInCacheHash[reqHash]; ok {
 				log.Info().Interface("reqHash", reqHash).Msg("SaveResult: reqHash found in cache; skip adding again to wf result")
@@ -599,7 +601,6 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 				wio.WorkflowStageInfo.WorkflowInCacheHash = icm
 			}
 		}
-		wio.ApiIterationCount = iteration
 		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.PromptReduction == nil {
 			wio.WorkflowStageInfo.PromptReduction = &PromptReduction{
 				MarginBuffer:          cp.Tc.MarginBuffer,

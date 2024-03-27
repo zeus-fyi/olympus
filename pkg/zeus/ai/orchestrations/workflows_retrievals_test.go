@@ -111,7 +111,7 @@ func (t *ZeusWorkerTestSuite) TestRetrievalsExtract() {
 	}
 
 	route := "customsearch/h/v1?q={q}&category={category}"
-	ps, err := ReplaceParams(route, m)
+	ps, _, err := ReplaceAndPassParams(route, m)
 	t.Require().Nil(err)
 
 	expected := "customsearch/h/v1?q=best+book&category=fiction+books" // Expect spaces to be replaced with '+'

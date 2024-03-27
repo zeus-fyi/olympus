@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/cvcio/twitter"
-	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -61,7 +60,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SelectTriggerActionToExec, z.SelectTriggerActionApiApprovalWithReqResponses,
 		z.CreateOrUpdateTriggerActionApprovalWithApiReq, z.UpdateTriggerActionApproval,
 		z.FilterEvalJsonResponses, z.UpdateTaskOutput,
-		z.SelectWorkflowIO, z.SaveWorkflowIO,
+		z.SelectWorkflowIO, z.SaveWorkflowIO, z.FanOutApiCallRequestTask,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -242,6 +241,7 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Conte
 	if retrieval.WebFilters == nil || retrieval.WebFilters.RoutingGroup == nil || len(*retrieval.WebFilters.RoutingGroup) <= 0 {
 		return nil, nil
 	}
+
 	ogr, rerr := iris_models.SelectOrgGroupRoutes(ctx, ou.OrgID, *retrieval.WebFilters.RoutingGroup)
 	if rerr != nil {
 		log.Err(rerr).Msg("AiRetrievalTask: failed to select org routes")
@@ -255,8 +255,6 @@ type RouteTask struct {
 	Ou        org_users.OrgUser                    `json:"orgUser"`
 	Retrieval artemis_orchestrations.RetrievalItem `json:"retrieval"`
 	RouteInfo iris_models.RouteInfo                `json:"routeInfo"`
-	Payload   echo.Map                             `json:"payload"`
-	Payloads  []echo.Map                           `json:"payloads"`
 	Headers   http.Header                          `json:"headers"`
 }
 
@@ -273,11 +271,72 @@ func FixRegexInput(input string) string {
 	}
 	return input
 }
+
+func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context, rts []iris_models.RouteInfo, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
+	var echoReqs []map[string]interface{}
+	if cp.WfExecParams.WorkflowOverrides.RetrievalOverrides != nil {
+		if v, ok := cp.WfExecParams.WorkflowOverrides.RetrievalOverrides[cp.Tc.Retrieval.RetrievalName]; ok {
+			for _, pl := range v.Payloads {
+				echoReqs = append(echoReqs, pl)
+			}
+		}
+	}
+	na := NewZeusAiPlatformActivities()
+	retOpt := "default"
+	if cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.PayloadPreProcessing != nil && len(echoReqs) > 0 {
+		retOpt = *cp.Tc.Retrieval.WebFilters.PayloadPreProcessing
+	}
+	var extRoutePath string
+	if cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
+		extRoutePath = *cp.Tc.Retrieval.WebFilters.EndpointRoutePath
+	}
+	for _, rtas := range rts {
+		rtas.RouteExt = extRoutePath
+		rt := RouteTask{
+			Ou:        cp.Ou,
+			Retrieval: cp.Tc.Retrieval,
+			RouteInfo: rtas,
+		}
+		switch retOpt {
+		case "iterate", "iterate-qp-only":
+			for pi, ple := range echoReqs {
+				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: ple")
+				rt.RouteInfo.Payload = ple
+				_, err := na.ApiCallRequestTask(ctx, rt, cp)
+				if err != nil {
+					log.Err(err).Msg("FanOutApiCallRequestTask: failed")
+					return nil, err
+				}
+			}
+		case "bulk":
+			rt.RouteInfo.Payloads = echoReqs
+			_, err := na.ApiCallRequestTask(ctx, rt, cp)
+			if err != nil {
+				log.Err(err).Msg("FanOutApiCallRequestTask: bulk failed")
+				return nil, err
+			}
+		default:
+			if len(echoReqs) > 2 {
+				rt.RouteInfo.Payloads = echoReqs
+			} else if len(echoReqs) == 1 {
+				rt.RouteInfo.Payload = echoReqs[0]
+			}
+			_, err := na.ApiCallRequestTask(ctx, rt, cp)
+			if err != nil {
+				log.Err(err).Msg("FanOutApiCallRequestTask: default failed")
+				return nil, err
+			}
+		}
+	}
+	return cp, nil
+}
+
 func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r RouteTask, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	retInst := r.Retrieval
 	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
 		return nil, nil
 	}
+
 	restMethod := http.MethodGet
 	if retInst.WebFilters.EndpointREST != nil {
 		restMethod = strings.ToLower(*retInst.WebFilters.EndpointREST)
@@ -302,8 +361,8 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 	}
 	var extractedQpsVals []string
-	if r.Payload != nil {
-		rp, qps, err := ReplaceAndPassParams(routeExt, r.Payload)
+	if r.RouteInfo.Payload != nil {
+		rp, qps, err := ReplaceAndPassParams(routeExt, r.RouteInfo.Payload)
 		if err != nil {
 			log.Err(err).Msg("ApiCallRequestTask: failed to replace route path params")
 			return nil, err
@@ -313,8 +372,8 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		extractedQpsVals = qps
 		orgRouteExt = routeExt
 		routeExt = rp
-		if len(r.Payload) == 0 {
-			r.Payload = nil
+		if len(r.RouteInfo.Payload) == 0 {
+			r.RouteInfo.Payload = nil
 		}
 	}
 	if retInst.WebFilters.RequestHeaders != nil {
@@ -340,8 +399,8 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		OrgID:                  r.Ou.OrgID,
 		UserID:                 r.Ou.UserID,
 		ExtRoutePath:           routeExt,
-		Payload:                r.Payload,
-		Payloads:               r.Payloads,
+		Payload:                r.RouteInfo.Payload,
+		Payloads:               r.RouteInfo.Payloads,
 		PayloadTypeREST:        restMethod,
 		RequestHeaders:         r.Headers,
 		RegexFilters:           regexPatterns,
@@ -355,7 +414,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			log.Warn().Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Int("statusCode", req.StatusCode).Msg("ApiCallRequestTask: clearing org secret cache")
 			aws_secrets.ClearOrgSecretCache(r.Ou)
 		}
-		log.Err(rrerr).Interface("payload", r.Payload).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
+		log.Err(rrerr).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
 		return nil, rrerr
 	}
 	rr.ExtRoutePath = orgRouteExt

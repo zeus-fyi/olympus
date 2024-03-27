@@ -49,7 +49,7 @@ type ApiProxyRequest struct {
 	Referrers              []string
 	QueryParams            url.Values
 	Payload                echo.Map
-	Payloads               []echo.Map
+	Payloads               []map[string]interface{}
 	Response               echo.Map
 	RequestHeaders         http.Header
 	ResponseHeaders        http.Header

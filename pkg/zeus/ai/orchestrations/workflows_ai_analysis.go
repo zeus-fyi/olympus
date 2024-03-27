@@ -18,12 +18,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 	}
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 3,
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    25,
+			MaximumAttempts:    100,
 		},
 	}
 	wfExecParams := cp.WfExecParams
@@ -76,7 +76,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				}
 				cp.Tc.Retrieval = rets[0]
 				aoRet := workflow.ActivityOptions{
-					StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
+					StartToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
 					RetryPolicy: &temporal.RetryPolicy{
 						InitialInterval:    time.Second * 3,
 						BackoffCoefficient: 2.0,

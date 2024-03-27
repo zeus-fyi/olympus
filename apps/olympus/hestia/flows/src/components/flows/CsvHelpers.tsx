@@ -29,7 +29,7 @@ const CsvExportButton = (props: any) => {
     let data: any
     if (results.orchestration.type === 'validate-emails-wf') {
         data = filterAnalysisTypes(results)
-        console.log('results:', data);
+        // console.log('results:', data);
     } else {
         data = filterAggregationTypes(results)
     }
@@ -76,9 +76,7 @@ export const parseCSV = (csvText: string): { data: CsvDataRow[], fields: string[
 export default CsvExportButton;
 
 export const parseJSONAndCreateCSV = (name: string, data: any) => {
-
     const processedData = prettyPrintObject(data);
-
     if (processedData === '') {
         return;
     }
@@ -91,15 +89,22 @@ export const parseJSONAndCreateCSV = (name: string, data: any) => {
 const jsonArrayToCSV = (jsonArray: any[]): string => {
     if (jsonArray.length === 0) return '';
 
+    // console.log('jsonArray:', jsonArray);
     // Extract headers
     const headers = Object.keys(jsonArray[0])
         .map(key => key.charAt(0).toUpperCase() + key.slice(1)) // Capitalize the first letter
         .join(',');
     // Extract rows
     const rows = jsonArray.map(obj =>
-        Object.values(obj).map((value: any) =>
-            `"${value.toString().replace(/"/g, '""')}"` // Escape double quotes
-        ).join(',')
+        Object.values(obj).map((value: any) => {
+            // Handle null and undefined values, else escape double quotes
+            if (value === null || value === undefined) {
+                return '""'; // Represent null and undefined as empty strings in CSV
+            } else {
+                // Escape double quotes and convert to string
+                return `"${value.toString().replace(/"/g, '""')}"`;
+            }
+        }).join(',')
     );
 
     return [headers, ...rows].join('\n');

@@ -243,7 +243,6 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Conte
 	if retrieval.WebFilters == nil || retrieval.WebFilters.RoutingGroup == nil || len(*retrieval.WebFilters.RoutingGroup) <= 0 {
 		return nil, nil
 	}
-
 	ogr, rerr := iris_models.SelectOrgGroupRoutes(ctx, ou.OrgID, *retrieval.WebFilters.RoutingGroup)
 	if rerr != nil {
 		log.Err(rerr).Msg("AiRetrievalTask: failed to select org routes")
@@ -290,14 +289,13 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 	if cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.PayloadPreProcessing != nil && len(echoReqs) > 0 {
 		retOpt = *cp.Tc.Retrieval.WebFilters.PayloadPreProcessing
 	}
-	var iterCount int
 	if cp.Wsr.InputID > 0 {
 		wio, werr := gws(ctx, cp.Wsr.InputID)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
 		}
-		iterCount = wio.WorkflowStageInfo.ApiIterationCount
+		cp.Tc.ApiIterationCount = wio.WorkflowStageInfo.ApiIterationCount
 	}
 	for _, rtas := range rts {
 		rt := RouteTask{
@@ -308,10 +306,9 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 		switch retOpt {
 		case "iterate", "iterate-qp-only":
 			for pi, ple := range echoReqs {
-				if pi <= iterCount {
+				if pi <= cp.Tc.ApiIterationCount {
 					continue
 				}
-				cp.Tc.ApiIterationCount = pi
 				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: ple")
 				rt.RouteInfo.Payload = ple
 				_, err := na.ApiCallRequestTask(ctx, rt, cp)

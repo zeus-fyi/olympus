@@ -48,6 +48,7 @@ type WorkflowStageIO struct {
 }
 
 type WorkflowStageInfo struct {
+	WorkflowInCacheHash                map[string]bool                     `json:"workflowInCacheHash,omitempty"`
 	RunAiWorkflowAutoEvalProcessInputs *RunAiWorkflowAutoEvalProcessInputs `json:"runAiWorkflowAutoEvalProcessInputs,omitempty"`
 	CreateTriggerActionsWorkflowInputs *CreateTriggerActionsWorkflowInputs `json:"createTriggerActionsWorkflowInputs,omitempty"`
 	PromptReduction                    *PromptReduction                    `json:"promptReduction,omitempty"`

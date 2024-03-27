@@ -457,6 +457,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		}
 		req = rr
 	}
+	var reqHash string
 	if req.StatusCode >= 200 && req.StatusCode < 300 && cp.WfExecParams.WorkflowOverrides.IsUsingFlows && !reqCached {
 		ht, err := artemis_entities.HashWebRequestResultsAndParams(r.Ou, r.RouteInfo)
 		if err != nil {
@@ -464,6 +465,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		}
 		log.Info().Interface("hash", ht.RequestCache).Msg("ApiCallRequestTask: request cache end")
 		if ht.RequestCache != "" {
+			reqHash = ht.RequestCache
 			uew := &artemis_entities.UserEntityWrapper{
 				UserEntity: artemis_entities.UserEntity{
 					Nickname: ht.RequestCache,
@@ -529,14 +531,23 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		cp.Tc.ApiResponseResults = append(cp.Tc.ApiResponseResults, sres)
 	}
 	sg.SourceTaskID = cp.Tc.TaskID
-	return SaveResult(ctx, cp, sg, sres)
+	return SaveResult(ctx, cp, sg, sres, reqHash)
 }
 
-func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_search.SearchResultGroup, sres hera_search.SearchResult) (*MbChildSubProcessParams, error) {
+func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_search.SearchResultGroup, sres hera_search.SearchResult, reqHash string) (*MbChildSubProcessParams, error) {
+	if cp == nil || sg == nil {
+		log.Warn().Msg("SaveResult: cp or sg is nil")
+		return nil, nil
+	}
 	if cp.Wsr.InputID == 0 {
+		icm := make(map[string]bool)
+		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && len(reqHash) > 0 {
+			icm[reqHash] = true
+		}
 		wio := WorkflowStageIO{
 			WorkflowStageReference: cp.Wsr,
 			WorkflowStageInfo: WorkflowStageInfo{
+				WorkflowInCacheHash: icm,
 				PromptReduction: &PromptReduction{
 					MarginBuffer:          cp.Tc.MarginBuffer,
 					Model:                 cp.Tc.Model,
@@ -560,7 +571,20 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
 		}
-		if wio.WorkflowStageInfo.PromptReduction == nil {
+		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash != nil && len(reqHash) > 0 {
+			if _, ok := wio.WorkflowStageInfo.WorkflowInCacheHash[reqHash]; ok {
+				log.Info().Interface("reqHash", reqHash).Msg("SaveResult: reqHash found in cache; skip adding again to wf result")
+				return cp, nil
+			}
+		}
+		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash == nil {
+			icm := make(map[string]bool)
+			if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && len(reqHash) > 0 {
+				icm[reqHash] = true
+				wio.WorkflowStageInfo.WorkflowInCacheHash = icm
+			}
+		}
+		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.PromptReduction == nil {
 			wio.WorkflowStageInfo.PromptReduction = &PromptReduction{
 				MarginBuffer:          cp.Tc.MarginBuffer,
 				Model:                 cp.Tc.Model,

@@ -61,31 +61,23 @@ func SelectEntityLastMetadataData(ctx context.Context, ue *UserEntityWrapper, ef
 	args := []interface{}{ue.Ou.OrgID, ef.Platform}
 	if ef.SinceUnixTimestamp != 0 {
 		args = append(args, ef.SinceUnixTimestamp)
-		qa += fmt.Sprintf(" AND umd.entity_metadata_id >= $%d::int8", len(args))
+		qa += fmt.Sprintf(" AND umd.entity_metadata_id >= $%d", len(args))
 	}
 	if ef.Nickname != "" {
 		args = append(args, ef.Nickname)
 		qa += fmt.Sprintf(" AND ue.nickname = $%d", len(args))
 	}
 	query := `
-		  WITH max_metadata AS (
-            SELECT umd.entity_id, MAX(umd.entity_metadata_id) as max_metadata_id
-            FROM public.user_entities_md_labels umdl
-            JOIN public.user_entities_md umd ON umdl.entity_metadata_id = umd.entity_metadata_id
-            JOIN public.user_entities ue ON umd.entity_id = ue.entity_id
+			SELECT umd.entity_id, umd.text_data, umd.json_data
+            FROM public.user_entities ue
+            JOIN public.user_entities_md umd ON ue.entity_id = umd.entity_id
             WHERE ue.org_id = $1 AND ue.platform = $2 ` + qa + `
-            GROUP BY umd.entity_id
-        )
-        SELECT ue.entity_id, umd.text_data, umd.json_data
-        FROM max_metadata mm
-        JOIN public.user_entities_md umd ON mm.max_metadata_id = umd.entity_metadata_id
-        JOIN public.user_entities ue ON umd.entity_id = ue.entity_id
-        JOIN public.user_entities_md_labels umdl ON umd.entity_metadata_id = umdl.entity_metadata_id
-        WHERE ue.entity_id = mm.entity_id
-	;`
+			ORDER BY umd.entity_metadata_id DESC
+			LIMIT 1;`
 
 	um := UserEntityMetadata{}
 	ue.MdSlice = []UserEntityMetadata{}
+	um.JsonData = json.RawMessage{}
 	err := apps.Pg.QueryRowWArgs(ctx, query, args...).Scan(&ue.EntityID, &um.TextData, &um.JsonData)
 	if err == pgx.ErrNoRows {
 		return nil

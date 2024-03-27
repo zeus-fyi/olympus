@@ -258,6 +258,8 @@ type RouteTask struct {
 	Retrieval artemis_orchestrations.RetrievalItem `json:"retrieval"`
 	RouteInfo iris_models.RouteInfo                `json:"routeInfo"`
 	Headers   http.Header                          `json:"headers"`
+	Qps       []string                             `json:"qps"`
+	PrevRoute string                               `json:"prevRoute,omitempty"`
 }
 
 func FixRegexInput(input string) string {
@@ -304,41 +306,57 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 			for pi, ple := range echoReqs {
 				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: ple")
 				rt.RouteInfo.Payload = ple
-				ht, err := artemis_entities.HashWebRequestResultsAndParams(rt.Ou, rt.RouteInfo)
-				if err != nil {
-					log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
-					return nil, err
-				}
-				log.Info().Interface("pi", pi).Interface("hash", ht.RequestCache).Msg("start")
-				if ht.RequestCache != "" && cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
-					uew := &artemis_entities.UserEntityWrapper{
-						UserEntity: artemis_entities.UserEntity{
-							Nickname: ht.RequestCache,
-						},
-						Ou: rt.Ou,
-					}
-					ef := artemis_entities.EntitiesFilter{
-						Nickname: ht.RequestCache,
-						Platform: "mb-cache",
-					}
-					ef.SetSinceOffsetNowTimestamp("days", 30)
-					err = artemis_entities.SelectEntitiesCaches(ctx, uew, ef)
+				if rt.RouteInfo.Payload != nil {
+					rp, qps, err := ReplaceAndPassParams(rtas.RouteExt, rt.RouteInfo.Payload)
 					if err != nil {
-						log.Err(err).Msg("ApiCallRequestTask: failed to select entities caches")
+						log.Err(err).Msg("ApiCallRequestTask: failed to replace route path params")
+						return nil, err
 					}
-					byt := bytes.Buffer{}
-					log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
-					if len(uew.MdSlice) > 0 {
-						_, err = byt.Read(uew.MdSlice[0].JsonData)
+					log.Info().Interface("qps", qps).Msg("ApiCallRequestTask: qps")
+					rt.Qps = qps
+					rt.RouteInfo.RouteExt = rp
+					if len(rt.RouteInfo.Payload) == 0 {
+						rt.RouteInfo.Payload = nil
+					}
+				}
+				if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+					ht, err := artemis_entities.HashWebRequestResultsAndParams(rt.Ou, rt.RouteInfo)
+					if err != nil {
+						log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
+						return nil, err
+					}
+					log.Info().Interface("pi", pi).Interface("hash", ht.RequestCache).Msg("start")
+					if len(ht.RequestCache) > 0 {
+						uew := &artemis_entities.UserEntityWrapper{
+							UserEntity: artemis_entities.UserEntity{
+								Nickname: ht.RequestCache,
+							},
+							Ou: rt.Ou,
+						}
+						ef := artemis_entities.EntitiesFilter{
+							Nickname: ht.RequestCache,
+							Platform: "mb-cache",
+						}
+						ef.SetSinceOffsetNowTimestamp("days", 30)
+						err = artemis_entities.SelectEntitiesCaches(ctx, uew, ef)
 						if err != nil {
-							log.Err(err).Msg("ApiCallRequestTask: failed to read json data")
+							log.Err(err).Msg("ApiCallRequestTask: failed to select entities caches")
+						}
+						byt := bytes.Buffer{}
+						log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
+						if len(uew.MdSlice) > 0 {
+							_, err = byt.Read(uew.MdSlice[0].JsonData)
+							if err != nil {
+								log.Err(err).Msg("ApiCallRequestTask: failed to read json data")
+							}
+						}
+						if byt.Len() > 0 {
+							log.Info().Interface("byt.Len()", byt.Len()).Msg("FanOutApiCallRequestTask: uew")
+							continue
 						}
 					}
-					if byt.Len() > 0 {
-						continue
-					}
 				}
-				_, err = na.ApiCallRequestTask(ctx, rt, cp)
+				_, err := na.ApiCallRequestTask(ctx, rt, cp)
 				if err != nil {
 					log.Err(err).Msg("FanOutApiCallRequestTask: failed")
 					return nil, err
@@ -372,7 +390,6 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
 		return nil, nil
 	}
-
 	restMethod := http.MethodGet
 	if retInst.WebFilters.EndpointREST != nil {
 		restMethod = strings.ToLower(*retInst.WebFilters.EndpointREST)
@@ -395,22 +412,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	var orgRouteExt string
 	if retInst.WebFilters.EndpointREST != nil {
 		routeExt = *retInst.WebFilters.EndpointRoutePath
-	}
-	var extractedQpsVals []string
-	if r.RouteInfo.Payload != nil {
-		rp, qps, err := ReplaceAndPassParams(routeExt, r.RouteInfo.Payload)
-		if err != nil {
-			log.Err(err).Msg("ApiCallRequestTask: failed to replace route path params")
-			return nil, err
-		}
-
-		log.Info().Interface("qps", qps).Msg("ApiCallRequestTask: qps")
-		extractedQpsVals = qps
 		orgRouteExt = routeExt
-		routeExt = rp
-		if len(r.RouteInfo.Payload) == 0 {
-			r.RouteInfo.Payload = nil
-		}
 	}
 	if retInst.WebFilters.RequestHeaders != nil {
 		if r.Headers == nil {
@@ -453,10 +455,8 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		log.Err(rrerr).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
 		return nil, rrerr
 	}
-	rr.ExtRoutePath = orgRouteExt
-	req.ExtRoutePath = orgRouteExt
+
 	if req.StatusCode >= 200 && req.StatusCode < 300 && cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
-		// TODO verify all: if the request is successful, hash the request and store it in the cache
 		ht, err := artemis_entities.HashWebRequestResultsAndParams(r.Ou, r.RouteInfo)
 		if err != nil {
 			log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
@@ -470,15 +470,23 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 				},
 				Ou: r.Ou,
 			}
-			uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
-				JsonData: rr.RawResponse,
-			})
+			if len(req.Response) > 0 {
+				b, cerr := json.Marshal(req.Response)
+				if cerr != nil {
+					log.Err(cerr).Msg("ApiCallRequestTask: failed to marshal response")
+				}
+				uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
+					JsonData: b,
+				})
+			}
 			_, err = artemis_entities.InsertEntitiesCaches(ctx, uew)
 			if err != nil {
 				log.Err(err).Msg("ApiCallRequestTask: failed to insert entities caches")
 			}
 		}
 	}
+	rr.ExtRoutePath = orgRouteExt
+	req.ExtRoutePath = orgRouteExt
 	wr := hera_search.WebResponse{
 		WebFilters: retInst.WebFilters,
 		Body:       rr.Response,
@@ -504,7 +512,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	sres := hera_search.SearchResult{
 		Source:      rr.Url,
 		Value:       value,
-		QueryParams: extractedQpsVals,
+		QueryParams: r.Qps,
 		Group:       aws.StringValue(retInst.WebFilters.RoutingGroup),
 		WebResponse: wr,
 	}
@@ -515,7 +523,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	sg.ApiResponseResults = []hera_search.SearchResult{sres}
 	if req.RegexFilters != nil && len(req.RegexFilters) > 0 {
 		cp.Tc.RegexSearchResults = append(cp.Tc.RegexSearchResults, sres)
-	} else if len(extractedQpsVals) > 0 {
+	} else if len(r.Qps) > 0 {
 		cp.Tc.RegexSearchResults = append(cp.Tc.RegexSearchResults, sres)
 	} else {
 		cp.Tc.ApiResponseResults = append(cp.Tc.ApiResponseResults, sres)

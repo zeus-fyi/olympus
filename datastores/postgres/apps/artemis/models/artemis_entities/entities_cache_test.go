@@ -9,30 +9,31 @@ import (
 )
 
 func (s *EntitiesTestSuite) TestSelectUserEntityCache() {
-	apps.Pg.InitPG(ctx, s.Tc.ProdDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	// Test data for insertion
 
-	rt := iris_models.RouteInfo{
-		RoutePath: "https://example.com",
-		RouteExt:  "/?url={q}",
-		Payload: map[string]interface{}{
-			"key": "value",
-		},
-	}
-
+	//rt := iris_models.RouteInfo{
+	//	RoutePath: "https://example.com",
+	//	RouteExt:  "/?url={q}",
+	//	Payload: map[string]interface{}{
+	//		"key": "value",
+	//	},
+	//}
+	//
 	//ht, err := HashWebRequestResultsAndParams(s.Ou, rt)
-	s.Require().Nil(err)
+	//s.Require().Nil(err)
 	uew := &UserEntityWrapper{
 		UserEntity: UserEntity{
+			Nickname: "17848f7a3d99c0e2fae7b0d474d054aa37b40849b01f0ea941707329f91110bf17848f7a3d99c0e2fae7b0d474d054aa37b40849b01f0ea941707329f91110bf",
 			Platform: "mb-cache",
 		},
 		Ou: s.Ou,
 	}
-
+	uew.Ou.OrgID = 1685378241971196000
 	ef := EntitiesFilter{
 		Platform: "mb-cache",
 	}
-	et := ef.SetSinceOffsetNowTimestamp("hours", 1)
+	et := ef.SetSinceOffsetNowTimestamp("hours", 3)
 	fmt.Println(et)
 	s.Require().NotZero(et)
 	// ef 1711511508136852000

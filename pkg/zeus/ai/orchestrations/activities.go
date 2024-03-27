@@ -305,6 +305,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 			for pi, ple := range echoReqs {
 				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: ple")
 				rt.RouteInfo.Payload = ple
+				tmp := rt.RouteInfo.RouteExt
 				if rt.RouteInfo.Payload != nil {
 					rp, qps, err := ReplaceAndPassParams(rtas.RouteExt, rt.RouteInfo.Payload)
 					if err != nil {
@@ -342,8 +343,8 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 							log.Err(err).Msg("ApiCallRequestTask: failed to select entities caches")
 						}
 						log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
-						if len(uew.MdSlice) > 0 {
-							log.Info().Interface("pi", pi).Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: skipping")
+						if len(uew.MdSlice) > 0 && uew.MdSlice[0].JsonData != nil {
+							log.Info().Interface("pi", pi).Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].JsonData).Msg("FanOutApiCallRequestTask: skipping")
 							continue
 						}
 					}
@@ -353,6 +354,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 					log.Err(err).Msg("FanOutApiCallRequestTask: failed")
 					return nil, err
 				}
+				rt.RouteInfo.RouteExt = tmp
 			}
 		case "bulk":
 			rt.RouteInfo.Payloads = echoReqs
@@ -402,9 +404,11 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	}
 	var routeExt string
 	var orgRouteExt string
-	if retInst.WebFilters.EndpointREST != nil {
+	if retInst.WebFilters.EndpointREST != nil && r.RouteInfo.RouteExt == "" {
 		routeExt = *retInst.WebFilters.EndpointRoutePath
 		orgRouteExt = routeExt
+	} else {
+		routeExt = r.RouteInfo.RouteExt
 	}
 	if retInst.WebFilters.RequestHeaders != nil {
 		if r.Headers == nil {
@@ -453,7 +457,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		if err != nil {
 			log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
 		}
-		log.Info().Interface("hash", ht.RequestCache).Msg("ApiCallRequestTask: request cache")
+		log.Info().Interface("hash", ht.RequestCache).Msg("ApiCallRequestTask: request cache end")
 		if ht.RequestCache != "" {
 			uew := &artemis_entities.UserEntityWrapper{
 				UserEntity: artemis_entities.UserEntity{
@@ -471,6 +475,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 					JsonData: b,
 				})
 			}
+			log.Info().Interface("req.Response", req.Response).Msg("ApiCallRequestTask: uew")
 			_, err = artemis_entities.InsertEntitiesCaches(ctx, uew)
 			if err != nil {
 				log.Err(err).Msg("ApiCallRequestTask: failed to insert entities caches")

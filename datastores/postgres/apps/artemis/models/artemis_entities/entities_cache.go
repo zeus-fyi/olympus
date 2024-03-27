@@ -37,6 +37,7 @@ func HashWebRequestResultsAndParams(ou org_users.OrgUser, rt iris_models.RouteIn
 func InsertEntitiesCaches(ctx context.Context, ue *UserEntityWrapper) (*HashedRequestCache, error) {
 	err := InsertUserEntityLabeledMetadata(ctx, ue)
 	if err != nil {
+		log.Err(err).Msg("InsertEntitiesCaches: Failed to insert user entity")
 		return nil, err
 	}
 	return nil, nil

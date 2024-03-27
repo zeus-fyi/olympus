@@ -35,11 +35,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	}
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+		StartToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			BackoffCoefficient: 2.5,
 			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    10,
+			MaximumAttempts:    100,
 		},
 	}
 
@@ -91,6 +91,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			routes = routes[0:1]
 		}
 		cao := ao
+		cao.StartToCloseTimeout = time.Hour * 48
 		cao.RetryPolicy = GetRetryPolicy(cp.Tc.Retrieval, time.Hour*48)
 		cao.RetryPolicy.MaximumAttempts = 1000000
 		apiCallCtx := workflow.WithActivityOptions(ctx, cao)

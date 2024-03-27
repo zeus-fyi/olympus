@@ -99,9 +99,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		case evalModelScoredViaApi:
 		}
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.Wsr.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex),
-			WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-			RetryPolicy:              aoAiAct.RetryPolicy,
+			WorkflowID:         mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.Wsr.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex),
+			WorkflowRunTimeout: aoAiAct.ScheduleToCloseTimeout,
+			RetryPolicy:        aoAiAct.RetryPolicy,
 		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, mb).Get(childAnalysisCtx, nil)

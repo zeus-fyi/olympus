@@ -18,7 +18,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 	}
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
+		ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 3,
 			BackoffCoefficient: 2.0,
@@ -76,7 +76,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				}
 				cp.Tc.Retrieval = rets[0]
 				aoRet := workflow.ActivityOptions{
-					StartToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
+					ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
 					RetryPolicy: &temporal.RetryPolicy{
 						InitialInterval:    time.Second * 3,
 						BackoffCoefficient: 2.0,
@@ -225,9 +225,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					}
 					if i%evalAnalysisOnlyCycle == 0 {
 						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-							WorkflowID:               oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-eval-fn" + strconv.Itoa(evalFn.EvalID) + "-ind-" + strconv.Itoa(ind),
-							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-							RetryPolicy:              ao.RetryPolicy,
+							WorkflowID:         oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-eval-fn" + strconv.Itoa(evalFn.EvalID) + "-ind-" + strconv.Itoa(ind),
+							WorkflowRunTimeout: ao.ScheduleToCloseTimeout,
+							RetryPolicy:        ao.RetryPolicy,
 						}
 						cp.Tc.EvalID = evalFn.EvalID
 						log.Info().Msg("running analysis eval")

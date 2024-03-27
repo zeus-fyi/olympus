@@ -9,7 +9,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 )
 
 func GetRunReportsRequestHandler(c echo.Context) error {
@@ -67,14 +66,14 @@ func (w *GetRunsActionsRequest) GetRun(c echo.Context, id int) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to check if user has billing method")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	if !isBillingSetup {
-		return c.JSON(http.StatusPreconditionFailed, nil)
-	}
+	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	//if err != nil {
+	//	log.Error().Err(err).Msg("failed to check if user has billing method")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//if !isBillingSetup {
+	//	return c.JSON(http.StatusPreconditionFailed, nil)
+	//}
 	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(context.Background(), ou, id)
 	if err != nil {
 		log.Err(err).Msg("failed to get runs")

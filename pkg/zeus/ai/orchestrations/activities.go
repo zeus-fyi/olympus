@@ -1,7 +1,6 @@
 package ai_platform_service_orchestrations
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -342,16 +341,9 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 						if err != nil {
 							log.Err(err).Msg("ApiCallRequestTask: failed to select entities caches")
 						}
-						byt := bytes.Buffer{}
 						log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
 						if len(uew.MdSlice) > 0 {
-							_, err = byt.Read(uew.MdSlice[0].JsonData)
-							if err != nil {
-								log.Err(err).Msg("ApiCallRequestTask: failed to read json data")
-							}
-						}
-						if byt.Len() > 0 {
-							log.Info().Interface("byt.Len()", byt.Len()).Msg("FanOutApiCallRequestTask: uew")
+							log.Info().Interface("len(uew.MdSlice)", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
 							continue
 						}
 					}

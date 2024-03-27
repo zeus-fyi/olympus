@@ -229,7 +229,7 @@ function WorkflowEngineBuilder(props: any) {
 
     const handleAddStatusCode = () => {
         // Validate statusHttpCode to be within the range of error codes (400-599) and not NaN
-        if (isNaN(statusHttpCode) || statusHttpCode < 400 || statusHttpCode > 599) {
+        if (isNaN(statusHttpCode) || statusHttpCode < 400 || statusHttpCode > 999) {
             return; // Exit if the status code is not an error code
         }
         // Retrieve the current dontRetryStatusCodes from the retrieval object, if they exist
@@ -3029,7 +3029,7 @@ function WorkflowEngineBuilder(props: any) {
                                                         <Box sx={{ mb: 0, ml: 0, mr: 0, mt: 1 }}>
                                                             <Typography variant="h6" color="text.secondary">
                                                                 Specify status codes to skip retries on. This will skip retries on the specified status codes. Codes
-                                                                must be {'>='} 400 and {'<'} 600.
+                                                                must be {'>='} 400 and {'<'} 1000.
                                                             </Typography>
                                                         </Box>
                                                         <Stack direction="row">
@@ -3040,7 +3040,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     label="Http Status Code"
                                                                     variant="outlined"
                                                                     type={'number'}
-                                                                    inputProps={{ min: 400, max: 599, step: 1 }} // Added step: 1 here
+                                                                    inputProps={{ min: 400, max: 999, step: 1 }} // Added step: 1 here
                                                                     value={statusHttpCode}
                                                                     onChange={(event) => setStatusHttpCode(Number(event.target.value))} // Inline function for handling change
                                                                 />

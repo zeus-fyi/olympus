@@ -57,7 +57,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 			//if _, ok := seen[tv]; ok {
 			//	continue
 			//}
-			if strings.HasPrefix(em, "https://www.linkedin.com") || strings.HasPrefix(em, "https://linkedin.com") {
+			if strings.HasPrefix(emv, "https://www.linkedin.com") || strings.HasPrefix(emv, "https://linkedin.com") {
 				continue
 			}
 			if (strings.Contains(tv, "web") || strings.Contains(em, "url") || strings.Contains(em, "link") || strings.Contains(em, "site")) && len(emv) > 0 {

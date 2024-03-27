@@ -174,10 +174,11 @@ export function Commands(props: any) {
             <Box mt={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'right' }}>
                 <Button
                     variant="contained"
+                    disabled={buttonDisabledCreate}
                     onClick={() => onClickSubmit()}
                     sx={{ backgroundColor: '#00C48C', '&:hover': { backgroundColor: '#00A678' }}}
                 >
-                    Submit
+                    {buttonLabelCreate}
                 </Button>
                 {statusMessageCreate && (
                     <Typography variant="body2" color={flowsRequestStatus === 'error' ? 'error' : 'success'}>

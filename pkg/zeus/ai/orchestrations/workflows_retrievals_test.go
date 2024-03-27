@@ -2,14 +2,12 @@ package ai_platform_service_orchestrations
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
-	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 func (t *ZeusWorkerTestSuite) TestRetrievalsWorkflowTask() {
@@ -119,51 +117,52 @@ func (t *ZeusWorkerTestSuite) TestRetrievalsExtract() {
 	fmt.Println(ps)
 
 }
-func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg() {
-	fp := filepaths.Path{
-		PackageName: "",
-		DirIn:       "/Users/alex/PycharmProjects/scratchPad/scrape",
-		DirOut:      "",
-		FnIn:        "google_search2.txt",
-		FnOut:       "",
-		Env:         "",
-		FilterFiles: nil,
-	}
-	b := fp.ReadFileInPath()
-	act := NewZeusAiPlatformActivities()
-	rets, err := act.SelectRetrievalTask(ctx, t.Ou, 1708579569890359000)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(rets)
-	ret := rets[0]
-	t.Require().NotNil(ret.WebFilters)
-	t.Require().NotNil(ret.WebFilters.RegexPatterns)
-	for ri, rp := range ret.WebFilters.RegexPatterns {
-		fmt.Println("RegexPattern:", rp, "ind", ri)
-		ret.WebFilters.RegexPatterns[ri] = FixRegexInput(rp)
-	}
-	params, perr := ExtractParams(ret.WebFilters.RegexPatterns, b)
-	t.Require().Nil(perr)
-	t.Require().NotEmpty(params)
-	fmt.Println("Extracted parameters:", strings.Join(params, ", "))
-}
 
-func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg2() {
-	fp := filepaths.Path{
-		PackageName: "",
-		DirIn:       "/Users/alex/PycharmProjects/scratchPad/scrape",
-		DirOut:      "",
-		FnIn:        "google_search.txt",
-		FnOut:       "",
-		Env:         "",
-		FilterFiles: nil,
-	}
-	b := fp.ReadFileInPath()
-
-	params, err := ExtractParams([]string{`"https?:\/\/[^\"]+"`}, b)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(params)
-	fmt.Println("Extracted parameters:", strings.Join(params, ", "))
-}
+//func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg() {
+//	fp := filepaths.Path{
+//		PackageName: "",
+//		DirIn:       "/Users/alex/PycharmProjects/scratchPad/scrape",
+//		DirOut:      "",
+//		FnIn:        "google_search2.txt",
+//		FnOut:       "",
+//		Env:         "",
+//		FilterFiles: nil,
+//	}
+//	b := fp.ReadFileInPath()
+//	act := NewZeusAiPlatformActivities()
+//	rets, err := act.SelectRetrievalTask(ctx, t.Ou, 1708579569890359000)
+//	t.Require().Nil(err)
+//	t.Require().NotEmpty(rets)
+//	ret := rets[0]
+//	t.Require().NotNil(ret.WebFilters)
+//	t.Require().NotNil(ret.WebFilters.RegexPatterns)
+//	for ri, rp := range ret.WebFilters.RegexPatterns {
+//		fmt.Println("RegexPattern:", rp, "ind", ri)
+//		ret.WebFilters.RegexPatterns[ri] = FixRegexInput(rp)
+//	}
+//	params, perr := ExtractParams(ret.WebFilters.RegexPatterns, b)
+//	t.Require().Nil(perr)
+//	t.Require().NotEmpty(params)
+//	fmt.Println("Extracted parameters:", strings.Join(params, ", "))
+//}
+//
+//func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg2() {
+//	fp := filepaths.Path{
+//		PackageName: "",
+//		DirIn:       "/Users/alex/PycharmProjects/scratchPad/scrape",
+//		DirOut:      "",
+//		FnIn:        "google_search.txt",
+//		FnOut:       "",
+//		Env:         "",
+//		FilterFiles: nil,
+//	}
+//	b := fp.ReadFileInPath()
+//
+//	params, err := ExtractParams([]string{`"https?:\/\/[^\"]+"`}, b)
+//	t.Require().Nil(err)
+//	t.Require().NotEmpty(params)
+//	fmt.Println("Extracted parameters:", strings.Join(params, ", "))
+//}
 
 func (t *ZeusWorkerTestSuite) TestRetrievalsExtractStrReg3() {
 	ep := "customsearch/v1?q={q}&cx=sdffs"

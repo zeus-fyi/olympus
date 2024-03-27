@@ -1,6 +1,8 @@
 package artemis_entities
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
@@ -20,7 +22,6 @@ func (s *EntitiesTestSuite) TestSelectUserEntityCache() {
 
 	ht, err := HashWebRequestResultsAndParams(s.Ou, rt)
 	s.Require().Nil(err)
-	mockFakeResp := "fake"
 	uew := &UserEntityWrapper{
 		UserEntity: UserEntity{
 			Nickname: ht.RequestCache,
@@ -28,11 +29,24 @@ func (s *EntitiesTestSuite) TestSelectUserEntityCache() {
 		},
 		Ou: s.Ou,
 	}
-	err = SelectEntitiesCaches(ctx, uew)
+
+	ef := EntitiesFilter{
+		Nickname:           ht.RequestCache,
+		Platform:           "mb-cache",
+		SinceUnixTimestamp: 0,
+	}
+	et := ef.SetSinceOffsetNowTimestamp("hours", 3)
+	fmt.Println(et)
+	s.Require().NotZero(et)
+	// ef 1711511508136852000
+
+	// db 1711504617297472000
+	err = SelectEntitiesCaches(ctx, uew, ef)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(uew.MdSlice)
-
+	//
 	s.Require().Len(uew.MdSlice, 1)
+	mockFakeResp := "fake"
 	s.Equal(uew.MdSlice[0].TextData, aws.String(mockFakeResp))
 }
 

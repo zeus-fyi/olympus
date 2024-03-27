@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
@@ -31,14 +30,14 @@ func (w *RunsActionsRequest) Process(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to check if user has billing method")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	if !isBillingSetup {
-		return c.JSON(http.StatusPreconditionFailed, nil)
-	}
+	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	//if err != nil {
+	//	log.Error().Err(err).Msg("failed to check if user has billing method")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//if !isBillingSetup {
+	//	return c.JSON(http.StatusPreconditionFailed, nil)
+	//}
 
 	switch w.Action {
 	case "start":
@@ -55,7 +54,7 @@ func (w *RunsActionsRequest) Process(c echo.Context) error {
 			}
 			runIDs = append(runIDs, run.OrchestrationName)
 		}
-		err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteCancelWorkflowRuns(c.Request().Context(), ou, runIDs)
+		err := ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteCancelWorkflowRuns(c.Request().Context(), ou, runIDs)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to cancel workflow runs")
 			return c.JSON(http.StatusInternalServerError, nil)

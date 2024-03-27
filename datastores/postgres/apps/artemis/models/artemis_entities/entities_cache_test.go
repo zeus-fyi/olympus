@@ -9,7 +9,7 @@ import (
 )
 
 func (s *EntitiesTestSuite) TestSelectUserEntityCache() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdDbPgconn)
 	// Test data for insertion
 
 	rt := iris_models.RouteInfo{
@@ -20,28 +20,25 @@ func (s *EntitiesTestSuite) TestSelectUserEntityCache() {
 		},
 	}
 
-	ht, err := HashWebRequestResultsAndParams(s.Ou, rt)
+	//ht, err := HashWebRequestResultsAndParams(s.Ou, rt)
 	s.Require().Nil(err)
 	uew := &UserEntityWrapper{
 		UserEntity: UserEntity{
-			Nickname: ht.RequestCache,
 			Platform: "mb-cache",
 		},
 		Ou: s.Ou,
 	}
 
 	ef := EntitiesFilter{
-		Nickname:           ht.RequestCache,
-		Platform:           "mb-cache",
-		SinceUnixTimestamp: 0,
+		Platform: "mb-cache",
 	}
-	et := ef.SetSinceOffsetNowTimestamp("hours", 3)
+	et := ef.SetSinceOffsetNowTimestamp("hours", 1)
 	fmt.Println(et)
 	s.Require().NotZero(et)
 	// ef 1711511508136852000
 
 	// db 1711504617297472000
-	err = SelectEntitiesCaches(ctx, uew, ef)
+	err := SelectEntitiesCaches(ctx, uew, ef)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(uew.MdSlice)
 	//

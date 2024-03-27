@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"github.com/cvcio/twitter"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -302,7 +304,41 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 			for pi, ple := range echoReqs {
 				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: ple")
 				rt.RouteInfo.Payload = ple
-				_, err := na.ApiCallRequestTask(ctx, rt, cp)
+				ht, err := artemis_entities.HashWebRequestResultsAndParams(rt.Ou, rt.RouteInfo)
+				if err != nil {
+					log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
+					return nil, err
+				}
+				log.Info().Interface("pi", pi).Interface("hash", ht.RequestCache).Msg("start")
+				if ht.RequestCache != "" && cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+					uew := &artemis_entities.UserEntityWrapper{
+						UserEntity: artemis_entities.UserEntity{
+							Nickname: ht.RequestCache,
+						},
+						Ou: rt.Ou,
+					}
+					ef := artemis_entities.EntitiesFilter{
+						Nickname: ht.RequestCache,
+						Platform: "mb-cache",
+					}
+					ef.SetSinceOffsetNowTimestamp("days", 30)
+					err = artemis_entities.SelectEntitiesCaches(ctx, uew, ef)
+					if err != nil {
+						log.Err(err).Msg("ApiCallRequestTask: failed to select entities caches")
+					}
+					byt := bytes.Buffer{}
+					log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
+					if len(uew.MdSlice) > 0 {
+						_, err = byt.Read(uew.MdSlice[0].JsonData)
+						if err != nil {
+							log.Err(err).Msg("ApiCallRequestTask: failed to read json data")
+						}
+					}
+					if byt.Len() > 0 {
+						continue
+					}
+				}
+				_, err = na.ApiCallRequestTask(ctx, rt, cp)
 				if err != nil {
 					log.Err(err).Msg("FanOutApiCallRequestTask: failed")
 					return nil, err
@@ -419,6 +455,30 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	}
 	rr.ExtRoutePath = orgRouteExt
 	req.ExtRoutePath = orgRouteExt
+	if req.StatusCode >= 200 && req.StatusCode < 300 && cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+		// TODO verify all: if the request is successful, hash the request and store it in the cache
+		ht, err := artemis_entities.HashWebRequestResultsAndParams(r.Ou, r.RouteInfo)
+		if err != nil {
+			log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
+		}
+		log.Info().Interface("hash", ht.RequestCache).Msg("ApiCallRequestTask: request cache")
+		if ht.RequestCache != "" {
+			uew := &artemis_entities.UserEntityWrapper{
+				UserEntity: artemis_entities.UserEntity{
+					Nickname: ht.RequestCache,
+					Platform: "mb-cache",
+				},
+				Ou: r.Ou,
+			}
+			uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
+				JsonData: rr.RawResponse,
+			})
+			_, err = artemis_entities.InsertEntitiesCaches(ctx, uew)
+			if err != nil {
+				log.Err(err).Msg("ApiCallRequestTask: failed to insert entities caches")
+			}
+		}
+	}
 	wr := hera_search.WebResponse{
 		WebFilters: retInst.WebFilters,
 		Body:       rr.Response,

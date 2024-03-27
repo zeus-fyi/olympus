@@ -23,6 +23,8 @@ type EntitiesFilter struct {
 	MetadataJsonb      json.RawMessage `json:"metadataJsonb,omitempty"`
 	MetadataText       string          `json:"metadataText,omitempty"`
 	SinceUnixTimestamp int             `json:"sinceTimestampUnix,omitempty"`
+	SinceTimeUnit      string          `json:"sinceTimeUnit,omitempty"`
+	SinceTimeDuration  int             `json:"sinceTimeAmount,omitempty"`
 }
 
 func (ef *EntitiesFilter) SetSinceOffsetNowTimestamp(durationUnit string, durationAmount int) int {

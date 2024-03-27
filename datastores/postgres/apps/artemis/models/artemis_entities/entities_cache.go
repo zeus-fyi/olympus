@@ -58,19 +58,22 @@ func SelectEntityLastMetadataData(ctx context.Context, ue *UserEntityWrapper, ef
 		return nil
 	}
 	var qa string
-	args := []interface{}{ue.Ou.OrgID, ef.Nickname, ef.Platform}
+	args := []interface{}{ue.Ou.OrgID, ef.Platform}
 	if ef.SinceUnixTimestamp != 0 {
 		args = append(args, ef.SinceUnixTimestamp)
-		qa = fmt.Sprintf(" AND umd.entity_metadata_id > $%d", len(args))
+		qa += fmt.Sprintf(" AND umd.entity_metadata_id >= $%d::int8", len(args))
 	}
-
+	if ef.Nickname != "" {
+		args = append(args, ef.Nickname)
+		qa += fmt.Sprintf(" AND ue.nickname = $%d", len(args))
+	}
 	query := `
 		  WITH max_metadata AS (
             SELECT umd.entity_id, MAX(umd.entity_metadata_id) as max_metadata_id
             FROM public.user_entities_md_labels umdl
             JOIN public.user_entities_md umd ON umdl.entity_metadata_id = umd.entity_metadata_id
             JOIN public.user_entities ue ON umd.entity_id = ue.entity_id
-            WHERE ue.org_id = $1 AND ue.nickname = $2 AND ue.platform = $3 ` + qa + `
+            WHERE ue.org_id = $1 AND ue.platform = $2 ` + qa + `
             GROUP BY umd.entity_id
         )
         SELECT ue.entity_id, umd.text_data, umd.json_data

@@ -51,7 +51,7 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 
 	e.POST("/flows", FlowsActionsRequestHandler)
 	// for a 10M for 10 MB limit
-	e.POST("/flows/exec", FlowsExecActionsRequestHandler, middleware.BodyLimit("20M"))
+	e.POST("/flows/exec", FlowsExecActionsRequestHandler, middleware.BodyLimit("100M"))
 
 	// destructive
 	e.DELETE("/workflows/ai", WorkflowsDeletionRequestHandler)

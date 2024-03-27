@@ -4,6 +4,7 @@ metadata:
   name: "zeus"
   namespace: "zeus"
   annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: "nginx"

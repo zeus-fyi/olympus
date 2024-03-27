@@ -343,7 +343,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 						}
 						log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
 						if len(uew.MdSlice) > 0 {
-							log.Info().Interface("len(uew.MdSlice)", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
+							log.Info().Interface("pi", pi).Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: skipping")
 							continue
 						}
 					}

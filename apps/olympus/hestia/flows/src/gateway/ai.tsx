@@ -224,6 +224,7 @@ class AiApiGateway {
         const sessionID = inMemoryJWT.getToken();
         let config = {
             headers: {
+                'Access-Control-Allow-Origin': 'https://flows.zeus.fyi',
                 'Authorization': `Bearer ${sessionID}`
             },
             withCredentials: true,

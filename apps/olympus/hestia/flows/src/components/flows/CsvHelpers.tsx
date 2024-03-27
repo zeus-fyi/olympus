@@ -89,27 +89,34 @@ export const parseJSONAndCreateCSV = (name: string, data: any) => {
 const jsonArrayToCSV = (jsonArray: any[]): string => {
     if (jsonArray.length === 0) return '';
 
-    // console.log('jsonArray:', jsonArray);
-    // Extract headers
     const headers = Object.keys(jsonArray[0])
-        .map(key => key.charAt(0).toUpperCase() + key.slice(1)) // Capitalize the first letter
+        .map(key => key.charAt(0).toUpperCase() + key.slice(1)) // Capitalize first letter
         .join(',');
-    // Extract rows
-    const rows = jsonArray.map(obj =>
-        Object.values(obj).map((value: any) => {
-            // Handle null and undefined values, else escape double quotes
+
+    const rows = jsonArray.map(obj => {
+        const values = Object.values(obj).map((value: any) => {
             if (value === null || value === undefined) {
-                return '""'; // Represent null and undefined as empty strings in CSV
+                return '""'; // Represent as empty strings in CSV
+            } else if (typeof value === 'object') {
+                // If value is an object or array, serialize it
+                return `"${serializeNestedObject(value)}"`;
             } else {
                 // Escape double quotes and convert to string
                 return `"${value.toString().replace(/"/g, '""')}"`;
             }
-        }).join(',')
-    );
+        });
+        return values.join(',');
+    });
 
     return [headers, ...rows].join('\n');
 };
-
+const serializeNestedObject = (value: any): string => {
+    if (Array.isArray(value) || typeof value === 'object') {
+        // Convert object/array to a JSON string or any other serialization logic
+        return JSON.stringify(value).replace(/"/g, '""'); // Escape double quotes for CSV compatibility
+    }
+    return value.toString();
+};
 function stringToJsonArray(jsonString: string) {
     // Assuming each JSON object is separated by a newline
     // Split the string by newline to get an array of strings, each representing a JSON object

@@ -5,13 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
-	"unicode/utf8"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/go-resty/resty/v2"
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
@@ -319,31 +321,24 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 		}
 		if method == "GET" {
-			err = json.Unmarshal(resp.Body(), &pr.Response)
-			if err != nil {
-				log.Warn().Err(err).Msg("sendRequest: failed to unmarshal response body")
-				//tv := resp.String()
-				//tv = strings.TrimPrefix(tv, "\"")
-				//tv = strings.TrimSuffix(tv, "\"")
-				//tv = unescapeUnicode(tv)
-				//tv = html.UnescapeString(tv)
-				//doc, err := goquery.NewDocumentFromReader(strings.NewReader(tv))
-				//if err != nil {
-				//	log.Err(err).Msg("sendRequest: failed to parse response body")
-				//	return resp, err
-				//}
-				//// Find all meta tags and print their attributes
-				//doc.Find("meta").Each(func(i int, s *goquery.Selection) {
-				//	// For each item found, get the html
-				//	name, _ := s.Attr("name")
-				//	property, _ := s.Attr("property")
-				//	content, _ := s.Attr("content")
-				//	fmt.Printf("Meta tag found: name=%s, property=%s, content=%s\n", name, property, content)
-				//})
-				//pr.Response = echo.Map{
-				//	"msg_body": mb,
-				//}
-				err = nil
+			if pr.RequestHeaders != nil && pr.RequestHeaders["X-Scrape-Html"] != nil {
+				tv := resp.String()
+				tv = strings.TrimPrefix(tv, "\"")
+				tv = strings.TrimSuffix(tv, "\"")
+				tv = unescapeUnicode(tv)
+				tv = html.UnescapeString(tv)
+				doc, herr := goquery.NewDocumentFromReader(strings.NewReader(tv))
+				if herr != nil {
+					log.Err(herr).Msg("sendRequest: failed to parse response body")
+					return resp, herr
+				}
+				pr.Response = extractAndRespond(doc)
+			} else {
+				err = json.Unmarshal(resp.Body(), &pr.Response)
+				if err != nil {
+					log.Warn().Err(err).Msg("sendRequest: failed to unmarshal response body")
+					err = nil
+				}
 			}
 		}
 		pr.PayloadSizeMeter.Add(resp.Size())
@@ -359,24 +354,33 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			pr.RawResponse = resp.Body()
 		}
 		if pr.RegexFilters != nil {
-			//tv := resp.String()
-			//tv = strings.TrimPrefix(tv, "\"")
-			//tv = strings.TrimSuffix(tv, "\"")
-			//tv = unescapeUnicode(tv)
-			//tv = html.UnescapeString(tv)
-			//doc, err := goquery.NewDocumentFromReader(strings.NewReader(tv))
-			//if err != nil {
-			//	log.Err(err).Msg("sendRequest: failed to parse response body")
-			//	return resp, err
-			//}
-			tmp, rerr := ExtractParams(pr.RegexFilters, resp.Body())
+			br := resp.Body()
+			if pr.RequestHeaders != nil && pr.RequestHeaders["X-Scrape-Html"] != nil {
+				tv := resp.String()
+				tv = strings.TrimPrefix(tv, "\"")
+				tv = strings.TrimSuffix(tv, "\"")
+				tv = unescapeUnicode(tv)
+				tv = html.UnescapeString(tv)
+				doc, herr := goquery.NewDocumentFromReader(strings.NewReader(tv))
+				if herr != nil {
+					log.Err(herr).Msg("sendRequest: failed to parse response body")
+					return resp, herr
+				}
+				pr.Response = extractAndRespond(doc)
+				brs, berr := json.Marshal(pr.Response)
+				if berr != nil {
+					log.Err(err).Msg("sendRequest: failed to marshal response body")
+				} else {
+					br = brs
+				}
+			}
+			tmp, rerr := ExtractParams(pr.RegexFilters, br)
 			if rerr != nil {
 				log.Err(rerr).Msg("sendRequest: failed to extract params")
 				return resp, rerr
 			}
 			pr.RawResponse = []byte(strings.Join(tmp, ", "))
 		}
-
 	}
 	return resp, nil
 }
@@ -434,215 +438,53 @@ func ExtractParams(regexStrs []string, strContent []byte) ([]string, error) {
 	return combinedParams, nil
 }
 
-func Unescape(value string, isBytes bool) (string, error) {
-	// All strings normalize newlines to the \n representation.
-	value = newlineNormalizer.Replace(value)
-	n := len(value)
+func extractAndRespond(doc *goquery.Document) echo.Map {
+	var elements []map[string]string
 
-	// Nothing to unescape / decode.
-	if n < 2 {
-		return value, fmt.Errorf("unable to unescape string")
-	}
+	// Extract meta tags
+	doc.Find("meta").Each(func(i int, s *goquery.Selection) {
+		element := make(map[string]string)
+		if name, exists := s.Attr("name"); exists {
+			element["name"] = name
+		}
+		if property, exists := s.Attr("property"); exists {
+			element["property"] = property
+		}
+		if content, exists := s.Attr("content"); exists {
+			element["content"] = content
+		}
+		element["type"] = "meta"
+		elements = append(elements, element)
+	})
 
-	// Raw string preceded by the 'r|R' prefix.
-	isRawLiteral := false
-	if value[0] == 'r' || value[0] == 'R' {
-		value = value[1:]
-		n = len(value)
-		isRawLiteral = true
-	}
-
-	// Quoted string of some form, must have same first and last char.
-	if value[0] != value[n-1] || (value[0] != '"' && value[0] != '\'') {
-		return value, fmt.Errorf("unable to unescape string")
-	}
-
-	// Normalize the multi-line CEL string representation to a standard
-	// Go quoted string.
-	if n >= 6 {
-		if strings.HasPrefix(value, "'''") {
-			if !strings.HasSuffix(value, "'''") {
-				return value, fmt.Errorf("unable to unescape string")
+	// Extract h1-h6 tags
+	for _, tag := range []string{"h1", "h2", "h3", "h4", "h5", "h6"} {
+		doc.Find(tag).Each(func(i int, s *goquery.Selection) {
+			tv := s.Text()
+			if len(tv) == 0 {
+				return
 			}
-			value = "\"" + value[3:n-3] + "\""
-		} else if strings.HasPrefix(value, `"""`) {
-			if !strings.HasSuffix(value, `"""`) {
-				return value, fmt.Errorf("unable to unescape string")
+			element := map[string]string{
+				"type":    tag,
+				"content": tv,
 			}
-			value = "\"" + value[3:n-3] + "\""
-		}
-		n = len(value)
-	}
-	value = value[1 : n-1]
-	// If there is nothing to escape, then return.
-	if isRawLiteral || !strings.ContainsRune(value, '\\') {
-		return value, nil
+			elements = append(elements, element)
+		})
 	}
 
-	// Otherwise the string contains escape characters.
-	// The following logic is adapted from `strconv/quote.go`
-	var runeTmp [utf8.UTFMax]byte
-	buf := make([]byte, 0, 3*n/2)
-	for len(value) > 0 {
-		c, encode, rest, err := unescapeChar(value, isBytes)
-		if err != nil {
-			return "", err
+	// Extract p tags
+	doc.Find("p").Each(func(i int, s *goquery.Selection) {
+		tv := s.Text()
+		if len(tv) == 0 {
+			return
 		}
-		value = rest
-		if c < utf8.RuneSelf || !encode {
-			buf = append(buf, byte(c))
-		} else {
-			n := utf8.EncodeRune(runeTmp[:], c)
-			buf = append(buf, runeTmp[:n]...)
+		element := map[string]string{
+			"type":    "p",
+			"content": tv,
 		}
+		elements = append(elements, element)
+	})
+	return echo.Map{
+		"msg_body": elements,
 	}
-	return string(buf), nil
 }
-
-// unescapeChar takes a string input and returns the following info:
-//
-//	value - the escaped unicode rune at the front of the string.
-//	encode - the value should be unicode-encoded
-//	tail - the remainder of the input string.
-//	err - error value, if the character could not be unescaped.
-//
-// When encode is true the return value may still fit within a single byte,
-// but unicode encoding is attempted which is more expensive than when the
-// value is known to self-represent as a single byte.
-//
-// If isBytes is set, unescape as a bytes literal so octal and hex escapes
-// represent byte values, not unicode code points.
-func unescapeChar(s string, isBytes bool) (value rune, encode bool, tail string, err error) {
-	// 1. Character is not an escape sequence.
-	switch c := s[0]; {
-	case c >= utf8.RuneSelf:
-		r, size := utf8.DecodeRuneInString(s)
-		return r, true, s[size:], nil
-	case c != '\\':
-		return rune(s[0]), false, s[1:], nil
-	}
-
-	// 2. Last character is the start of an escape sequence.
-	if len(s) <= 1 {
-		err = fmt.Errorf("unable to unescape string, found '\\' as last character")
-		return
-	}
-
-	c := s[1]
-	s = s[2:]
-	// 3. Common escape sequences shared with Google SQL
-	switch c {
-	case 'a':
-		value = '\a'
-	case 'b':
-		value = '\b'
-	case 'f':
-		value = '\f'
-	case 'n':
-		value = '\n'
-	case 'r':
-		value = '\r'
-	case 't':
-		value = '\t'
-	case 'v':
-		value = '\v'
-	case '\\':
-		value = '\\'
-	case '\'':
-		value = '\''
-	case '"':
-		value = '"'
-	case '`':
-		value = '`'
-	case '?':
-		value = '?'
-
-	// 4. Unicode escape sequences, reproduced from `strconv/quote.go`
-	case 'x', 'X', 'u', 'U':
-		n := 0
-		encode = true
-		switch c {
-		case 'x', 'X':
-			n = 2
-			encode = !isBytes
-		case 'u':
-			n = 4
-			if isBytes {
-				err = fmt.Errorf("unable to unescape string")
-				return
-			}
-		case 'U':
-			n = 8
-			if isBytes {
-				err = fmt.Errorf("unable to unescape string")
-				return
-			}
-		}
-		var v rune
-		if len(s) < n {
-			err = fmt.Errorf("unable to unescape string")
-			return
-		}
-		for j := 0; j < n; j++ {
-			x, ok := unhex(s[j])
-			if !ok {
-				err = fmt.Errorf("unable to unescape string")
-				return
-			}
-			v = v<<4 | x
-		}
-		s = s[n:]
-		if !isBytes && v > utf8.MaxRune {
-			err = fmt.Errorf("unable to unescape string")
-			return
-		}
-		value = v
-
-	// 5. Octal escape sequences, must be three digits \[0-3][0-7][0-7]
-	case '0', '1', '2', '3':
-		if len(s) < 2 {
-			err = fmt.Errorf("unable to unescape octal sequence in string")
-			return
-		}
-		v := rune(c - '0')
-		for j := 0; j < 2; j++ {
-			x := s[j]
-			if x < '0' || x > '7' {
-				err = fmt.Errorf("unable to unescape octal sequence in string")
-				return
-			}
-			v = v*8 + rune(x-'0')
-		}
-		if !isBytes && v > utf8.MaxRune {
-			err = fmt.Errorf("unable to unescape string")
-			return
-		}
-		value = v
-		s = s[2:]
-		encode = !isBytes
-
-		// Unknown escape sequence.
-	default:
-		err = fmt.Errorf("unable to unescape string")
-	}
-
-	tail = s
-	return
-}
-
-func unhex(b byte) (rune, bool) {
-	c := rune(b)
-	switch {
-	case '0' <= c && c <= '9':
-		return c - '0', true
-	case 'a' <= c && c <= 'f':
-		return c - 'a' + 10, true
-	case 'A' <= c && c <= 'F':
-		return c - 'A' + 10, true
-	}
-	return 0, false
-}
-
-var (
-	newlineNormalizer = strings.NewReplacer("\r\n", "\n", "\r", "\n")
-)

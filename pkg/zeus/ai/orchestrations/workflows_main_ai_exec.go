@@ -20,7 +20,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 15,
-			MaximumAttempts:    25,
+			MaximumAttempts:    1000,
 		},
 	}
 
@@ -96,8 +96,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		childAggAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
 			WorkflowID:               wfAggChildID,
 			WorkflowExecutionTimeout: ao.StartToCloseTimeout,
-			ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
 			RetryPolicy:              ao.RetryPolicy,
+			ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
 		aggChildParams := &MbChildSubProcessParams{WfID: wfAggChildID, Ou: ou, WfExecParams: wfExecParams, Oj: oj,
 			Wsr: artemis_orchestrations.WorkflowStageReference{

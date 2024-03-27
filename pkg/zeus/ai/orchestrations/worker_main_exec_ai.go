@@ -19,8 +19,9 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowProcess(ctx context.C
 	defer tc.Close()
 	wfID := CreateExecAiWfId(params.WorkflowTemplate.WorkflowName)
 	workflowOptions := client.StartWorkflowOptions{
-		ID:        wfID,
-		TaskQueue: z.TaskQueueName,
+		ID:                       wfID,
+		TaskQueue:                z.TaskQueueName,
+		WorkflowExecutionTimeout: defaultTimeout,
 	}
 	resp, _ := tc.DescribeWorkflowExecution(ctx, wfID, "")
 	if resp != nil {

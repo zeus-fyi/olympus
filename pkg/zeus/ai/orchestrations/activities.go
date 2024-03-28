@@ -320,7 +320,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 					log.Err(err).Msg("FanOutApiCallRequestTask: failed")
 					return nil, err
 				}
-				activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%cd", pi))
+				activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%d", pi))
 			}
 		case "bulk":
 			rt.RouteInfo.Payloads = echoReqs

@@ -61,7 +61,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SaveTriggerApiRequestResp, z.SelectRetrievalTask,
 		z.SelectTriggerActionToExec, z.SelectTriggerActionApiApprovalWithReqResponses,
 		z.CreateOrUpdateTriggerActionApprovalWithApiReq, z.UpdateTriggerActionApproval,
-		z.FilterEvalJsonResponses, z.UpdateTaskOutput,
+		z.FilterEvalJsonResponses, z.UpdateTaskOutput, z.CreateWsr,
 		z.SelectWorkflowIO, z.SaveWorkflowIO, z.FanOutApiCallRequestTask,
 	}
 	return append(actSlice, ka.GetActivities()...)
@@ -295,7 +295,10 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
 		}
-		cp.Tc.ApiIterationCount = wio.WorkflowStageInfo.ApiIterationCount
+		log.Info().Interface("inputID", cp.Wsr.InputID).Interface("wio.WorkflowStageInfo.ApiIterationCount", wio.WorkflowStageInfo.ApiIterationCount).Msg("TokenOverflowReduction: wio")
+		if wio.WorkflowStageInfo.ApiIterationCount > 0 {
+			cp.Tc.ApiIterationCount = wio.WorkflowStageInfo.ApiIterationCount
+		}
 	}
 	for _, rtas := range rts {
 		rt := RouteTask{
@@ -546,10 +549,10 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		cp.Tc.ApiResponseResults = append(cp.Tc.ApiResponseResults, sres)
 	}
 	sg.SourceTaskID = cp.Tc.TaskID
-	return SaveResult(ctx, cp, sg, sres, reqHash, cp.Tc.ApiIterationCount)
+	return SaveResult(ctx, cp, sg, sres, reqHash)
 }
 
-func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_search.SearchResultGroup, sres hera_search.SearchResult, reqHash string, iteration int) (*MbChildSubProcessParams, error) {
+func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_search.SearchResultGroup, sres hera_search.SearchResult, reqHash string) (*MbChildSubProcessParams, error) {
 	if cp == nil || sg == nil {
 		log.Warn().Msg("SaveResult: cp or sg is nil")
 		return nil, nil
@@ -563,7 +566,7 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 			WorkflowStageReference: cp.Wsr,
 			WorkflowStageInfo: WorkflowStageInfo{
 				WorkflowInCacheHash: icm,
-				ApiIterationCount:   iteration,
+				ApiIterationCount:   cp.Tc.ApiIterationCount,
 				PromptReduction: &PromptReduction{
 					MarginBuffer:          cp.Tc.MarginBuffer,
 					Model:                 cp.Tc.Model,
@@ -587,7 +590,7 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
 		}
-		wio.ApiIterationCount = iteration
+		wio.ApiIterationCount = cp.Tc.ApiIterationCount
 		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash != nil && len(reqHash) > 0 {
 			if _, ok := wio.WorkflowStageInfo.WorkflowInCacheHash[reqHash]; ok {
 				log.Info().Interface("reqHash", reqHash).Msg("SaveResult: reqHash found in cache; skip adding again to wf result")
@@ -599,9 +602,11 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 			if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && len(reqHash) > 0 {
 				icm[reqHash] = true
 				wio.WorkflowStageInfo.WorkflowInCacheHash = icm
+				wio.ApiIterationCount = cp.Tc.ApiIterationCount
 			}
 		}
 		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.PromptReduction == nil {
+			wio.ApiIterationCount = cp.Tc.ApiIterationCount
 			wio.WorkflowStageInfo.PromptReduction = &PromptReduction{
 				MarginBuffer:          cp.Tc.MarginBuffer,
 				Model:                 cp.Tc.Model,
@@ -612,11 +617,13 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 				},
 			}
 		} else if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults == nil || wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup == nil {
+			wio.ApiIterationCount = cp.Tc.ApiIterationCount
 			wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
 				InPromptBody:  cp.Tc.Prompt,
 				InSearchGroup: sg,
 			}
 		} else {
+			wio.ApiIterationCount = cp.Tc.ApiIterationCount
 			if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults == nil {
 				wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = make([]hera_search.SearchResult, 0)
 			}

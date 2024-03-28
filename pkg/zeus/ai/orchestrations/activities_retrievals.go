@@ -16,3 +16,21 @@ func (z *ZeusAiPlatformActivities) SelectRetrievalTask(ctx context.Context, ou o
 	}
 	return resp, nil
 }
+
+func (z *ZeusAiPlatformActivities) CreateWsr(ctx context.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
+	if cp.Wsr.InputID <= 0 {
+		wio := WorkflowStageIO{
+			WorkflowStageReference: cp.Wsr,
+			WorkflowStageInfo: WorkflowStageInfo{
+				PromptReduction: &PromptReduction{},
+			},
+		}
+		wid, err := sws(ctx, &wio)
+		if err != nil {
+			log.Err(err).Msg("AiRetrievalTask: failed")
+			return nil, err
+		}
+		cp.Wsr.InputID = wid.InputID
+	}
+	return cp, nil
+}

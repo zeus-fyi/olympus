@@ -1,7 +1,6 @@
 package ai_platform_service_orchestrations
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -85,24 +84,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			logger.Error("failed to run get retrieval routes", "Error", err)
 			return nil, err
 		}
-
+		wsrCraeteCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(wsrCraeteCtx, z.CreateWsr, cp).Get(wsrCraeteCtx, &cp)
+		if err != nil {
+			logger.Error("failed to run get retrieval routes", "Error", err)
+			return nil, err
+		}
 		if cp.Tc.Retrieval.RetrievalItemInstruction.WebFilters != nil &&
 			cp.Tc.Retrieval.RetrievalItemInstruction.WebFilters.LbStrategy != nil &&
 			*cp.Tc.Retrieval.RetrievalItemInstruction.WebFilters.LbStrategy != lbStrategyPollTable && len(routes) > 1 {
 			routes = routes[0:1]
-		}
-		if cp.Wsr.InputID == 0 {
-			wid, werr := sws(context.Background(), &WorkflowStageIO{
-				WorkflowStageReference: cp.Wsr,
-				WorkflowStageInfo: WorkflowStageInfo{
-					ApiIterationCount: 0,
-				},
-			})
-			if werr != nil {
-				log.Err(err).Msg("AiRetrievalTask: Wsr create failed")
-				return nil, werr
-			}
-			cp.Wsr.InputID = wid.InputID
 		}
 		cao := ao
 		cao.HeartbeatTimeout = time.Minute * 5

@@ -450,12 +450,15 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			}
 			log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
 			if len(uew.MdSlice) > 0 && uew.MdSlice[0].JsonData != nil {
-				err = json.Unmarshal(uew.MdSlice[0].JsonData, &req.Response)
-				if err != nil {
-					log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
-				} else {
-					reqCached = true
-					log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].JsonData).Msg("FanOutApiCallRequestTask: json cache found skipping")
+				tmp := uew.MdSlice[0].JsonData
+				if string(tmp) != "null" {
+					err = json.Unmarshal(uew.MdSlice[0].JsonData, &req.Response)
+					if err != nil {
+						log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
+					} else {
+						log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].JsonData).Msg("FanOutApiCallRequestTask: json cache found skipping")
+						reqCached = true
+					}
 				}
 			}
 			if len(uew.MdSlice) > 0 && uew.MdSlice[0].TextData != nil && *uew.MdSlice[0].TextData != "" {
@@ -499,14 +502,18 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 				if cerr != nil {
 					log.Err(cerr).Msg("ApiCallRequestTask: failed to marshal response")
 				}
-				uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
-					JsonData: b,
-				})
+				if b != nil {
+					uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
+						JsonData: b,
+					})
+				}
 			}
 			log.Info().Interface("req.Response", req.Response).Msg("ApiCallRequestTask: uew")
-			_, err = artemis_entities.InsertEntitiesCaches(ctx, uew)
-			if err != nil {
-				log.Err(err).Msg("ApiCallRequestTask: failed to insert entities caches")
+			if len(uew.MdSlice) > 0 {
+				_, err = artemis_entities.InsertEntitiesCaches(ctx, uew)
+				if err != nil {
+					log.Err(err).Msg("ApiCallRequestTask: failed to insert entities caches")
+				}
 			}
 		}
 	}

@@ -97,10 +97,11 @@ func (sg *SearchResultGroup) GetPromptBody() string {
 		tmp := FormatSearchResultsV5(sg.RegexSearchResults)
 		return tmp
 	}
-	var ret string
 	if len(sg.ApiResponseResults) > 0 {
-		ret += FormatApiSearchResultSliceToString(sg.ApiResponseResults)
+		tmp := FormatSearchResultsV5(sg.ApiResponseResults)
+		return tmp
 	}
+	var ret string
 	if len(sg.BodyPrompt) > 0 {
 		ret += "\n" + sg.BodyPrompt
 	}
@@ -485,7 +486,15 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	}
 	var newResults []interface{}
 	for _, result := range results {
-		if result.WebResponse.RegexFilteredBody != "" || len(result.QueryParams) > 0 {
+		if result.WebResponse.Body != nil && len(result.QueryParams) > 0 {
+			m := map[string]interface{}{
+				"msg_body": result.Value,
+			}
+			if result.QueryParams != nil {
+				m["entity"] = result.QueryParams
+			}
+			newResults = append(newResults, m)
+		} else if result.WebResponse.RegexFilteredBody != "" || len(result.QueryParams) > 0 {
 			m := map[string]interface{}{
 				"msg_body": result.Value,
 			}

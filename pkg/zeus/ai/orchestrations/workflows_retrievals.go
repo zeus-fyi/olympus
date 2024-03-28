@@ -98,7 +98,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		cao := ao
 		cao.HeartbeatTimeout = time.Minute * 5
 		cao.RetryPolicy = GetRetryPolicy(cp.Tc.Retrieval, time.Hour*24)
-		cao.RetryPolicy.MaximumAttempts = 1000000
+		cao.RetryPolicy.MaximumAttempts = 10000
 		apiCallCtx := workflow.WithActivityOptions(ctx, cao)
 		err = workflow.ExecuteActivity(apiCallCtx, z.FanOutApiCallRequestTask, routes, cp).Get(apiCallCtx, &cp)
 		if err != nil {

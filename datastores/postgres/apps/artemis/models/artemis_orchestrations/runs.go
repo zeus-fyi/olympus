@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
@@ -314,5 +315,11 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 		}
 		ojsRunsActions = append(ojsRunsActions, oj)
 	}
+	sortRunsByID(ojsRunsActions)
 	return ojsRunsActions, err
+}
+func sortRunsByID(rs []OrchestrationsAnalysis) {
+	sort.Slice(rs, func(i, j int) bool {
+		return rs[i].OrchestrationID > rs[j].OrchestrationID
+	})
 }

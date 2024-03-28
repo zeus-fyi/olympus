@@ -47,6 +47,7 @@ type ApiProxyRequest struct {
 	ServicePlan            string
 	PayloadTypeREST        string
 	Referrers              []string
+	IsFlowRequest          bool
 	QueryParams            url.Values
 	Payload                echo.Map
 	Payloads               []map[string]interface{}

@@ -249,7 +249,6 @@ func (z *ZeusAiPlatformActivities) AiWebRetrievalGetRoutesTask(ctx context.Conte
 		return nil, rerr
 	}
 	return ogr, nil
-
 }
 
 type RouteTask struct {
@@ -423,6 +422,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		RegexFilters:           regexPatterns,
 		SkipErrorOnStatusCodes: sec,
 		SecretNameRef:          secretNameRefApi,
+		IsFlowRequest:          cp.WfExecParams.WorkflowOverrides.IsUsingFlows,
 	}
 	reqCached := false
 	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {

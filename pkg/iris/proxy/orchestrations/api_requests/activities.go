@@ -86,16 +86,25 @@ func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context
 	return i.ExtLoadBalancerRequest(ctx, pr)
 }
 
+const (
+	flowsSecretsOrgID = 1710298581127603000
+)
+
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	if pr.Url == "" {
 		err := fmt.Errorf("error: URL is required")
 		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
 		return pr, err
 	}
+
+	to := pr.OrgID
+	if pr.IsFlowRequest && pr.SecretNameRef == "api-iris" {
+		to = flowsSecretsOrgID
+	}
 	var bearer string
 	var user, pw string
 	if pr.SecretNameRef != "" {
-		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(pr.OrgID, pr.UserID), pr.SecretNameRef)
+		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(to, pr.UserID), pr.SecretNameRef)
 		if ps != nil && ps.BearerToken != "" {
 			bearer = ps.BearerToken
 		} else if err != nil {

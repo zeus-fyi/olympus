@@ -307,5 +307,12 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 		oj.AggregatedEvalResults = filteredResults
 		ojs = append(ojs, oj)
 	}
-	return ojs, err
+	var ojsRunsActions []OrchestrationsAnalysis
+	for _, oj := range ojs {
+		if !oj.Active && oj.RunCycles == 0 && oj.TotalWorkflowTokenUsage == 0 {
+			continue
+		}
+		ojsRunsActions = append(ojsRunsActions, oj)
+	}
+	return ojsRunsActions, err
 }

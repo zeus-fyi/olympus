@@ -63,7 +63,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 					  	JOIN
 							public.orchestrations AS o ON o.orchestration_id = ar.orchestration_id
 						WHERE 
-							o.org_id = $1 ` + queryByRunID + ` 
+							o.org_id = $1 AND ar.is_archived = false` + queryByRunID + ` 
 						ORDER BY
 							o.orchestration_id DESC
 						` + limit + `

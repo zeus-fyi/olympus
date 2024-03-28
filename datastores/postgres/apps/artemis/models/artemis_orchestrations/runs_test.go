@@ -5,6 +5,15 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
+func (s *OrchestrationsTestSuite) TestArchiveRuns() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	err := UpdateOrchestrationsToArchive(ctx, ou, []string{"ai-workflow"}, true)
+	s.Require().Nil(err)
+}
+
 func (s *OrchestrationsTestSuite) TestSelectRuns() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}

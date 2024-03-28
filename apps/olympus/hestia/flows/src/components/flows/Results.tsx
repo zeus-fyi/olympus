@@ -1,6 +1,6 @@
 import * as React from "react";
 import {useState} from "react";
-import {Card, CardContent} from "@mui/material";
+import {Card, CardContent, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import {useDispatch, useSelector} from "react-redux";
@@ -68,12 +68,19 @@ export function Results(props: any) {
                 )}
                 { selectedRuns && selectedRuns.length > 0  &&
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <Box sx={{ mb: 2 }}>
-                            <span>({selectedRuns.length} Selected Runs)</span>
-                            <Button variant="outlined" color="secondary" onClick={(event) => handleRunsActionRequest(event, 'stop')} style={{marginLeft: '10px'}}>
-                                Stop { selectedRuns.length === 1 ? 'Run' : 'Runs' }
-                            </Button>
-                        </Box>
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ mb: 2 }}>
+                                <span>({selectedRuns.length} Selected Runs)</span>
+                                <Button variant="outlined" color="secondary" onClick={(event) => handleRunsActionRequest(event, 'stop')} style={{marginLeft: '10px'}}>
+                                    Stop { selectedRuns.length === 1 ? 'Run' : 'Runs' }
+                                </Button>
+                            </Box>
+                            <Box sx={{ ml: -2, mb: 2 }}>
+                                <Button variant="outlined" color="secondary" onClick={(event) => handleRunsActionRequest(event, 'archive')} style={{marginLeft: '10px'}}>
+                                    Archive { selectedRuns.length === 1 ? 'Run' : 'Runs' }
+                                </Button>
+                            </Box>
+                        </Stack>
                     </Container>
                 }
                 <WorkflowAnalysisTable csvExport={true} />

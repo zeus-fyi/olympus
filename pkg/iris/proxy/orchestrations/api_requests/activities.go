@@ -493,6 +493,10 @@ func extractAndRespond(doc *goquery.Document) echo.Map {
 		}
 		elements = append(elements, element)
 	})
+
+	if len(elements) == 0 {
+		return nil
+	}
 	return echo.Map{
 		"msg_body": elements,
 	}

@@ -502,7 +502,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 				if cerr != nil {
 					log.Err(cerr).Msg("ApiCallRequestTask: failed to marshal response")
 				}
-				if b != nil {
+				if b != nil && string(b) != "null" {
 					uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
 						JsonData: b,
 					})

@@ -344,6 +344,12 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("default"))
 		}
 	}
+
+	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+		cp.Tc.RegexSearchResults = nil
+		cp.Tc.ApiResponseResults = nil
+		cp.Tc.JsonResponseResults = nil
+	}
 	return cp, nil
 }
 
@@ -819,6 +825,15 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 		}
 		if len(sr) <= 0 && len(cp.Tc.RegexSearchResults) > 0 {
 			sr = cp.Tc.RegexSearchResults
+		}
+		if len(sr) <= 0 && wio.PromptReduction != nil {
+			if wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil {
+				for _, s := range wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups {
+					if s.ApiResponseResults != nil {
+						sr = append(sr, s.ApiResponseResults...)
+					}
+				}
+			}
 		}
 		var sv []map[string]interface{}
 		for _, s := range sr {

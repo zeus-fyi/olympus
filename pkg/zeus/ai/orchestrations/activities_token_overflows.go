@@ -245,6 +245,12 @@ func TokenOverflowSearchResults(ctx context.Context, pr *PromptReduction) error 
 			log.Err(err).Msg("TokenOverflowSearchResults: ChunkSearchResults")
 			return err
 		}
+	default:
+		err := ChunkSearchResults(ctx, pr)
+		if err != nil {
+			log.Err(err).Msg("TokenOverflowSearchResults: ChunkSearchResults")
+			return err
+		}
 	}
 	return nil
 }
@@ -426,6 +432,13 @@ func TokenOverflowString(ctx context.Context, pr *PromptReduction) error {
 		if len(chunks) > 0 {
 			pr.PromptReductionText.OutPromptTruncated = chunks[0]
 		}
+	default:
+		chunks, err = ChunkPromptToSlices(ctx, model, pr.PromptReductionText.InPromptBody, margin)
+		if err != nil {
+			log.Err(err).Msg("TokenOverflowSearchResults: ChunkPromptToSlices")
+			return err
+		}
+		pr.PromptReductionText.OutPromptChunks = chunks
 	}
 	return nil
 }

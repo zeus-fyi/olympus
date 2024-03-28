@@ -68,7 +68,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 				err := workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, tmpOu, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
 				if err != nil {
-					logger.Error("failed to run analysis json", "Error", err)
+					logger.Error("failed to run analysis retrieval", "Error", err)
 					return err
 				}
 				if len(rets) <= 0 {

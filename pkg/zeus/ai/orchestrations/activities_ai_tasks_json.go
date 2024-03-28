@@ -11,6 +11,7 @@ import (
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	"go.temporal.io/sdk/activity"
 )
 
 const FlowsOrgID = 1685378241971196000
@@ -135,5 +136,6 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	if tmpResp != nil {
 		cr.JsonResponseResults = tmpResp
 	}
+	activity.RecordHeartbeat(ctx, cr.Response.ID)
 	return cr, nil
 }

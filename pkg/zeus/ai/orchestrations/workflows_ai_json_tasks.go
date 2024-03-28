@@ -66,7 +66,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	}
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
+		ScheduleToCloseTimeout: time.Hour * 12, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 10,
@@ -86,6 +86,8 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	var feedback error
 	for attempt := 0; attempt < int(maxAttempts); attempt++ {
 		log.Info().Int("attempt", attempt).Msg("JsonOutputTaskWorkflow: attempt")
+		cao := ao
+		cao.HeartbeatTimeout = time.Minute * 10
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
 		feedbackPrompt := ""
 		if feedback != nil {

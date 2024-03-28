@@ -344,12 +344,9 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("default"))
 		}
 	}
-
-	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
-		cp.Tc.RegexSearchResults = nil
-		cp.Tc.ApiResponseResults = nil
-		cp.Tc.JsonResponseResults = nil
-	}
+	cp.Tc.RegexSearchResults = nil
+	cp.Tc.ApiResponseResults = nil
+	cp.Tc.JsonResponseResults = nil
 	return cp, nil
 }
 

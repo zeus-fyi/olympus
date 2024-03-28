@@ -309,7 +309,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 		switch retOpt {
 		case "iterate", "iterate-qp-only":
 			for pi, ple := range echoReqs {
-				if pi <= cp.Tc.ApiIterationCount {
+				if pi <= cp.Tc.ApiIterationCount && cp.Tc.ApiIterationCount > 0 {
 					continue
 				}
 				cp.Tc.ApiIterationCount = pi

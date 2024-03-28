@@ -341,8 +341,10 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 					log.Err(herr).Msg("sendRequest: failed to parse response body")
 					return resp, herr
 				}
-				pr.Response = extractAndRespond(doc)
-			} else {
+				plMap := extractAndRespond(doc)
+				pr.Response = plMap
+			}
+			if pr.Response == nil {
 				err = json.Unmarshal(resp.Body(), &pr.Response)
 				if err != nil {
 					log.Warn().Err(err).Msg("sendRequest: failed to unmarshal response body")
@@ -495,6 +497,7 @@ func extractAndRespond(doc *goquery.Document) echo.Map {
 	})
 
 	if len(elements) == 0 {
+		log.Info().Interface("doc", doc.Text())
 		return nil
 	}
 	return echo.Map{

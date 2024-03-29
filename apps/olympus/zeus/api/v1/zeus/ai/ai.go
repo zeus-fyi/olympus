@@ -47,6 +47,7 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 
 	// runs
 	e.GET("/run/ai/:id", GetRunActionsRequestHandler)
+	e.GET("/runs/ai/ui", GetUIRunReportsRequestHandler)
 	e.GET("/runs/ai", GetRunReportsRequestHandler)
 
 	e.POST("/flows", FlowsActionsRequestHandler)

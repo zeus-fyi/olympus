@@ -33,3 +33,13 @@ func (s *OrchestrationsTestSuite) TestSelectRun() {
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(ojs)
 }
+
+func (s *OrchestrationsTestSuite) TestSelectRunsUI() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = 1710298581127603000
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	ojs, err := SelectAiSystemOrchestrationsUI(ctx, ou, 0)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(ojs)
+}

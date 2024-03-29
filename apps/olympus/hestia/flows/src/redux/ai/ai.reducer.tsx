@@ -1,8 +1,10 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     AiState,
+    OrchDetailsMap,
     PlatformSecretReference,
     RowIndexOpen,
+    RowIndexOpenMap,
     SearchIndexerParams,
     TaskModelInstructions,
     UpdateTaskCycleCountPayload,
@@ -19,6 +21,8 @@ const initialState: AiState = {
         rowIndex: 0,
         open: false
     },
+    orchDetails: {},
+    openRunsRow: {},
     selectedRetrievalForAnalysis: {
         retrievalStrID: '',
         retrievalName: '',
@@ -202,7 +206,6 @@ const initialState: AiState = {
         schemas: [],
         schemasMap: {},
     },
-
     evalFns: [],
     editAnalysisTask: {taskName: '', taskType: '',   taskGroup: '', model: '', prompt: '', schemas: [],
         marginBuffer: 0.5, temperature: 1.0,
@@ -244,6 +247,13 @@ const aiSlice = createSlice({
         },
         setSelectedRetrievalForAnalysis: (state, action: PayloadAction<Retrieval>) => {
             state.selectedRetrievalForAnalysis = action.payload;
+        },
+        setOpenRunsRow(state, action: PayloadAction<RowIndexOpenMap>) {
+            state.openRunsRow = action.payload;
+        },
+        setOrchDetails(state, action: PayloadAction<OrchDetailsMap>) {
+            // Merge new details into existing map without overwriting unrelated entries
+            state.orchDetails = { ...state.orchDetails, ...action.payload };
         },
         setOpenActionApprovalRow(state, action: PayloadAction<RowIndexOpen>) {
             state.openActionApprovalRow = action.payload;
@@ -634,6 +644,8 @@ export const {
     setSchemaField,
     setAddSchemasView,
     setOpenActionApprovalRow,
-    setAddTriggerRetrievalView
+    setAddTriggerRetrievalView,
+    setOpenRunsRow,
+    setOrchDetails
 } = aiSlice.actions;
 export default aiSlice.reducer;

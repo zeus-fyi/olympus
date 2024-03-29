@@ -191,7 +191,7 @@ function AiWorkflowsDashboardContent(props: any) {
             if (statusCode < 400) {
                 const data = response.data;
                 dispatch(setSelectedRuns([]));
-                setRequestRunsStatus('Run cancellation submitted successfully')
+                setRequestRunsStatus('Run ' + action + ' submitted successfully')
                 setRequestRunsStatusError('success')
             }
         } catch (error: any) {

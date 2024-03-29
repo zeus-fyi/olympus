@@ -4,13 +4,23 @@ import {EvalFn, EvalFnMap, EvalMap, EvalMetric} from "./ai.types.evals";
 import {OrchestrationsAnalysis} from "./ai.types.runs";
 import {TriggerAction} from "./ai.types.triggers";
 
+export interface RowIndexOpenMap {
+    [index: number]: boolean;
+}
 
 export interface RowIndexOpen {
     rowIndex: number;
     open: boolean;
 }
+
+export interface OrchDetailsMap {
+    [index: string]: OrchestrationsAnalysis;
+}
+
 export interface AiState {
+    openRunsRow: RowIndexOpenMap;
     openActionApprovalRow: RowIndexOpen;
+    orchDetails: OrchDetailsMap;
     addSchemasView: boolean;
     schema: JsonSchemaDefinition;
     schemas: JsonSchemaDefinition[];
@@ -175,6 +185,7 @@ export type Task = {
 
 export type Orchestration = {
     orchestrationID: number;
+    orchestrationStrID: string;
     active: boolean;
     groupName: string;
     type: string;

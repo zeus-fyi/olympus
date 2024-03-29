@@ -29,6 +29,8 @@ const CsvExportButton = (props: any) => {
     let data: any
     if (results.orchestration.type === 'validate-emails-wf') {
         data = filterAnalysisTypes(results)
+    } else if (results.orchestration.type === 'website-analysis-wf') {
+        data = filterAnalysisTypes(results)
         // console.log('results:', data);
     } else {
         data = filterAggregationTypes(results)

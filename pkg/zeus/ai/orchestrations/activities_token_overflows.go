@@ -61,9 +61,6 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	if cp == nil {
 		return nil, nil
 	}
-	if cp.Tc.ResponseFormat == readOnlyFormat {
-		return cp, nil
-	}
 	var wioPtr *WorkflowStageIO
 	var pr *PromptReduction
 	if cp.Wsr.InputID <= 0 && promptExt == nil {

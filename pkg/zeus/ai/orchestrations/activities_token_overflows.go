@@ -58,6 +58,12 @@ const (
 )
 
 func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, cp *MbChildSubProcessParams, promptExt *PromptReduction) (*MbChildSubProcessParams, error) {
+	if cp == nil {
+		return nil, nil
+	}
+	if cp.Tc.ResponseFormat == readOnlyFormat {
+		return cp, nil
+	}
 	var wioPtr *WorkflowStageIO
 	var pr *PromptReduction
 	if cp.Wsr.InputID <= 0 && promptExt == nil {
@@ -289,7 +295,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	}
 	needsReduction, tokenEstimate, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)
 	if err != nil {
-		log.Err(err).Interface("tokenEstimate", tokenEstimate).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
+		log.Err(err).Interface("tokenEstimate", tokenEstimate).Interface("compressedSearchStr", compressedSearchStr).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 		return err
 	}
 	if !needsReduction {
@@ -515,7 +521,7 @@ func CheckTokenContextMargin(ctx context.Context, model, promptStr string, margi
 	}
 	tokenEstimate, err := GetTokenCountEstimate(ctx, model, promptStr)
 	if err != nil {
-		log.Err(err).Msg("TokenOverflowReduction: GetTokenCountEstimate")
+		log.Err(err).Interface("promptStr", promptStr).Msg("TokenOverflowReduction: GetTokenCountEstimate")
 		return false, tokenEstimate, err
 	}
 	if tokenEstimate < 0 {

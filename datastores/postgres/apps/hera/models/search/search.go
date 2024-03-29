@@ -486,7 +486,7 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	}
 	var newResults []interface{}
 	for _, result := range results {
-		if result.WebResponse.Body != nil && len(result.QueryParams) > 0 {
+		if result.WebResponse.Body != nil && len(result.QueryParams) > 0 && result.WebResponse.RegexFilteredBody == "" {
 			if _, ok := result.WebResponse.Body["msg_body"]; !ok {
 				result.WebResponse.Body["msg_body"] = result.Value
 			}

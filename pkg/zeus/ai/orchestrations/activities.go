@@ -536,8 +536,6 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		wr.RegexFilteredBody = value
 	} else if wr.Body != nil && wr.RawMessage != nil {
 		value = fmt.Sprintf("%s", wr.RawMessage)
-	} else {
-		value = fmt.Sprintf("%s", wr.RawMessage)
 	}
 
 	sres := hera_search.SearchResult{

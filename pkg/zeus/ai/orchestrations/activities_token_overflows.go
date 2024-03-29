@@ -271,12 +271,15 @@ func TruncateSearchResults(ctx context.Context, pr *PromptReduction) error {
 func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	marginBuffer := validateMarginBufferLimits(pr.MarginBuffer)
 	model := pr.Model
+	totalSearchResults := pr.PromptReductionSearchResults.InSearchGroup.SearchResults
 	var compressedSearchStr string
 	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
+		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults
 	}
 	if pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults != nil {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults)
+		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults
 	} else if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
 	}
@@ -296,7 +299,6 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		}
 		return nil
 	}
-	totalSearchResults := pr.PromptReductionSearchResults.InSearchGroup.SearchResults
 
 	if len(totalSearchResults) <= 0 && len(compressedSearchStr) > 0 && needsReduction {
 		// Treat compressedSearchStr as if it was an input string that can be chunked
@@ -350,7 +352,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 func validateChunkTokenLimits(ctx context.Context, model string, marginBuffer float64, srs [][]hera_search.SearchResult) (bool, []int, error) {
 	var tokenEstimates []int
 	for _, chunk := range srs {
-		compressedSearchStr := hera_search.FormatSearchResultsV3(chunk)
+		compressedSearchStr := hera_search.FormatSearchResultsV5(chunk)
 		needsReduction, tokenEstimate, err := CheckTokenContextMargin(ctx, model, compressedSearchStr, marginBuffer)
 		if err != nil {
 			log.Err(err).Interface("tokenEstimate", tokenEstimate).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")

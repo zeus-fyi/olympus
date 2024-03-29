@@ -22,7 +22,11 @@ func (z *ZeusAiPlatformActivities) CreateWsr(ctx context.Context, cp *MbChildSub
 		wio := WorkflowStageIO{
 			WorkflowStageReference: cp.Wsr,
 			WorkflowStageInfo: WorkflowStageInfo{
-				PromptReduction: &PromptReduction{},
+				PromptReduction: &PromptReduction{
+					MarginBuffer:          cp.Tc.MarginBuffer,
+					Model:                 cp.Tc.Model,
+					TokenOverflowStrategy: cp.Tc.TokenOverflowStrategy,
+				},
 			},
 		}
 		wid, err := sws(ctx, &wio)

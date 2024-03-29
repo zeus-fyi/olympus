@@ -36,18 +36,22 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	}
 	err := w.EmailsValidatorSetup()
 	if err != nil {
+		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	err = w.GoogleSearchSetup()
 	if err != nil {
+		log.Err(err).Interface("w", w).Msg("GoogleSearchSetup failed")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	err = w.LinkedInScraperSetup()
 	if err != nil {
+		log.Err(err).Interface("w", w).Msg("LinkedInScraperSetup failed")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	err = w.ScrapeRegularWebsiteSetup()
 	if err != nil {
+		log.Err(err).Interface("w", w).Msg("ScrapeRegularWebsiteSetup failed")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	if len(w.Workflows) > 0 {

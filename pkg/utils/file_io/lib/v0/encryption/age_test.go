@@ -28,10 +28,10 @@ func (s *AgeEncryptionTestSuite) SetupTest() {
 func (s *AgeEncryptionTestSuite) TestEncryption() {
 	p := filepaths.Path{
 		PackageName: "",
-		DirIn:       "./",
-		DirOut:      "./",
-		FnIn:        "kube.tar.gz",
-		FnOut:       "",
+		DirIn:       "/Users/alex/go/Olympus/olympus/pkg/utils/file_io/lib/v0/encryption",
+		DirOut:      "/Users/alex/go/Olympus/olympus/pkg/utils/file_io/lib/v0/encryption",
+		FnIn:        "cmds.txt",
+		FnOut:       "cmds.txt",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}

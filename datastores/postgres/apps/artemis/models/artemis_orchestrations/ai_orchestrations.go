@@ -20,6 +20,13 @@ type WorkflowExecParams struct {
 	CycleCountTaskRelative        CycleCountTaskRelative        `json:"cycleCountTaskRelative"`
 	WorkflowTaskRelationships     WorkflowTaskRelationships     `json:"workflowTaskRelationships"`
 	WorkflowTasks                 []WorkflowTemplateData        `json:"workflowTasks"`
+	WorkflowOverrides             WorkflowOverrides             `json:"workflowOverrides"`
+}
+
+type WorkflowOverrides struct {
+	IsUsingFlows         bool               `json:"isUsingFlows"`
+	SchemaFieldOverrides SchemaOverrides    `json:"schemaFieldOverrides"`
+	RetrievalOverrides   RetrievalOverrides `json:"retrievalOverride"`
 }
 
 type WorkflowExecTimekeepingParams struct {
@@ -119,7 +126,6 @@ func GetAiOrchestrationParams(ctx context.Context, ou org_users.OrgUser, window 
 		if window.UnixEndTime == 0 {
 			window.UnixEndTime = window.UnixStartTime + int(wfTimeParams.WorkflowExecTimekeepingParams.TotalCyclesPerOneCompleteWorkflowAsDuration.Seconds())
 		}
-
 		wf.WorkflowTemplateID = wfTimeParams.WorkflowTemplate.WorkflowTemplateID
 		wf.WorkflowTemplateStrID = wfTimeParams.WorkflowTemplate.WorkflowTemplateStrID
 		wf.WorkflowGroup = wfTimeParams.WorkflowTemplate.WorkflowGroup
@@ -156,6 +162,7 @@ func CalculateStepSizeUnix(stepSize int, stepUnit string) int {
 	}
 	return 0
 }
+
 func ConvertSecondsToLargestUnit(seconds int) (int, string) {
 	// Define conversion factors
 	const (
@@ -180,6 +187,7 @@ func ConvertSecondsToLargestUnit(seconds int) (int, string) {
 		return seconds, "seconds"
 	}
 }
+
 func CalculateAggCycleCount(aggBaseCycleCount int, analysisCycleCounts int) int {
 	if analysisCycleCounts > aggBaseCycleCount {
 		aggBaseCycleCount = analysisCycleCounts

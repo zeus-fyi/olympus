@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -17,12 +18,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 	}
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
+		ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 3,
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    25,
+			MaximumAttempts:    100,
 		},
 	}
 	wfExecParams := cp.WfExecParams
@@ -60,21 +61,37 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					continue
 				}
 				var rets []artemis_orchestrations.RetrievalItem
+				tmpOu := ou
+				if wfExecParams.WorkflowOverrides.IsUsingFlows {
+					tmpOu.OrgID = FlowsOrgID
+				}
 				chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-				err := workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, ou, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
+				err := workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, tmpOu, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
 				if err != nil {
-					logger.Error("failed to run analysis json", "Error", err)
+					logger.Error("failed to run analysis retrieval", "Error", err)
 					return err
 				}
 				if len(rets) <= 0 {
 					continue
 				}
-				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               oj.OrchestrationName + "-analysis-ret-" + strconv.Itoa(i),
-					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-					RetryPolicy:              ao.RetryPolicy,
-				}
+				cp.Tc.TokenOverflowStrategy = analysisInst.AnalysisTokenOverflowStrategy
+				cp.Tc.Model = analysisInst.AnalysisModel
+				cp.Tc.MarginBuffer = analysisInst.AnalysisMarginBuffer
 				cp.Tc.Retrieval = rets[0]
+				aoRet := workflow.ActivityOptions{
+					ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
+					RetryPolicy: &temporal.RetryPolicy{
+						InitialInterval:    time.Second * 3,
+						BackoffCoefficient: 2.0,
+						MaximumInterval:    time.Minute * 5,
+						MaximumAttempts:    10000,
+					},
+				}
+				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
+					WorkflowID:         oj.OrchestrationName + "-analysis-ret-cycle-" + strconv.Itoa(runCycle),
+					WorkflowRunTimeout: ao.ScheduleToCloseTimeout,
+					RetryPolicy:        aoRet.RetryPolicy,
+				}
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)
@@ -82,6 +99,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					logger.Error("failed to execute child retrieval workflow", "Error", err)
 					return err
 				}
+
 				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] = false
 			}
 			pr := &PromptReduction{
@@ -117,6 +135,42 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cp).Get(childAnalysisCtx, &cp)
 					if err != nil {
 						logger.Error("failed to execute analysis json workflow", "Error", err)
+						return err
+					}
+				case readOnlyFormat:
+					aiResp := &ChatCompletionQueryResponse{
+						Prompt: make(map[string]string),
+						Response: openai.ChatCompletionResponse{
+							Model: "none",
+							Usage: openai.Usage{
+								PromptTokens:     0,
+								CompletionTokens: 0,
+								TotalTokens:      0,
+							},
+						},
+					}
+					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &cp.Tc.ResponseID)
+					if err != nil {
+						logger.Error("failed to save analysis read only response", "Error", err)
+						return err
+					}
+					wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
+						OrchestrationID:       cp.Oj.OrchestrationID,
+						SourceTaskID:          cp.Tc.TaskID,
+						IterationCount:        0,
+						ChunkOffset:           chunkOffset,
+						RunningCycleNumber:    cp.Wsr.RunCycle,
+						SearchWindowUnixStart: cp.Window.UnixStartTime,
+						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
+						ResponseID:            cp.Tc.ResponseID,
+					}
+					cp.Tc.ResponseFormat = readOnlyFormat
+					ia := InputDataAnalysisToAgg{}
+					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
+					if err != nil {
+						logger.Error("failed to save analysis", "Error", err)
 						return err
 					}
 				default:
@@ -173,9 +227,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					}
 					if i%evalAnalysisOnlyCycle == 0 {
 						childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-							WorkflowID:               oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-eval-fn" + strconv.Itoa(evalFn.EvalID) + "-ind-" + strconv.Itoa(ind),
-							WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-							RetryPolicy:              ao.RetryPolicy,
+							WorkflowID:         oj.OrchestrationName + "-analysis-eval-" + strconv.Itoa(i) + "-chunk-" + strconv.Itoa(chunkOffset) + "-eval-fn" + strconv.Itoa(evalFn.EvalID) + "-ind-" + strconv.Itoa(ind),
+							WorkflowRunTimeout: ao.ScheduleToCloseTimeout,
+							RetryPolicy:        ao.RetryPolicy,
 						}
 						cp.Tc.EvalID = evalFn.EvalID
 						log.Info().Msg("running analysis eval")

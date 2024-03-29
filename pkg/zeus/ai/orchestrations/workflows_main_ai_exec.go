@@ -15,13 +15,14 @@ import (
 func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Context, wfID string, ou org_users.OrgUser, wfExecParams artemis_orchestrations.WorkflowExecParams) error {
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
+		ScheduleToCloseTimeout: time.Hour * 24,
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 15,
-			MaximumAttempts:    25,
+			MaximumAttempts:    1000,
 		},
+		DisableEagerExecution: false,
 	}
 
 	ojCtx := workflow.WithActivityOptions(ctx, ao)
@@ -80,7 +81,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				RunCycle:      i,
 				ChunkOffset:   0,
 			}}
-		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: childParams.WfID, WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
+		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: childParams.WfID,
+			WorkflowRunTimeout: ao.ScheduleToCloseTimeout,
+			RetryPolicy:        ao.RetryPolicy,
+		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RunAiChildAnalysisProcessWorkflow, childParams).Get(childAnalysisCtx, nil)
 		if err != nil {
@@ -91,10 +95,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		// Execute child workflow for aggregation
 		wfAggChildID := oj.OrchestrationName + "-agg-analysis-" + strconv.Itoa(i)
 		childAggAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               wfAggChildID,
-			WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-			ParentClosePolicy:        enums.PARENT_CLOSE_POLICY_ABANDON,
-			RetryPolicy:              ao.RetryPolicy,
+			WorkflowID:         wfAggChildID,
+			WorkflowRunTimeout: ao.ScheduleToCloseTimeout,
+			RetryPolicy:        ao.RetryPolicy,
+			ParentClosePolicy:  enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
 		aggChildParams := &MbChildSubProcessParams{WfID: wfAggChildID, Ou: ou, WfExecParams: wfExecParams, Oj: oj,
 			Wsr: artemis_orchestrations.WorkflowStageReference{

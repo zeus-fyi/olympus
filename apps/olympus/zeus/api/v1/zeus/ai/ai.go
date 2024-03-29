@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func AiV1Routes(e *echo.Group) *echo.Group {
@@ -47,6 +48,10 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 	// runs
 	e.GET("/run/ai/:id", GetRunActionsRequestHandler)
 	e.GET("/runs/ai", GetRunReportsRequestHandler)
+
+	e.POST("/flows", FlowsActionsRequestHandler)
+	// for a 10M for 10 MB limit
+	e.POST("/flows/exec", FlowsExecActionsRequestHandler, middleware.BodyLimit("100M"))
 
 	// destructive
 	e.DELETE("/workflows/ai", WorkflowsDeletionRequestHandler)

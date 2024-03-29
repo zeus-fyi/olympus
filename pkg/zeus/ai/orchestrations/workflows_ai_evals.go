@@ -38,20 +38,25 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 	}
 	logger := workflow.GetLogger(ctx)
 	aoAiAct := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
+		ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    25,
+			MaximumAttempts:    100,
 		},
 	}
 	evalsFnsMap := make(map[int]*artemis_orchestrations.EvalFn)
 	var evalFnsAgg []artemis_orchestrations.EvalFn
 	log.Info().Int("evalID", mb.Tc.EvalID).Interface("taskType", mb.Tc.TaskType).Msg("RunAiWorkflowAutoEvalProcess: evalID")
+
+	tmpOu := mb.Ou
+	if mb.WfExecParams.WorkflowOverrides.IsUsingFlows {
+		tmpOu.OrgID = FlowsOrgID
+	}
 	var efs []artemis_orchestrations.EvalFn
 	evalFnMetricsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-	err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, mb.Ou, mb.Tc.EvalID).Get(evalFnMetricsLookupCtx, &efs)
+	err := workflow.ExecuteActivity(evalFnMetricsLookupCtx, z.EvalLookup, tmpOu, mb.Tc.EvalID).Get(evalFnMetricsLookupCtx, &efs)
 	if err != nil {
 		logger.Error("failed to get eval info", "Error", err)
 		return err
@@ -94,9 +99,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workfl
 		case evalModelScoredViaApi:
 		}
 		childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID:               mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.Wsr.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex),
-			WorkflowExecutionTimeout: mb.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-			RetryPolicy:              aoAiAct.RetryPolicy,
+			WorkflowID:         mb.Oj.OrchestrationName + "-eval-trigger-" + strconv.Itoa(mb.Wsr.RunCycle) + "-ind-" + strconv.Itoa(evFnIndex),
+			WorkflowRunTimeout: aoAiAct.ScheduleToCloseTimeout,
+			RetryPolicy:        aoAiAct.RetryPolicy,
 		}
 		childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 		err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.CreateTriggerActionsWorkflow, mb).Get(childAnalysisCtx, nil)

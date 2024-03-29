@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 )
 
 func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowProcess(ctx context.Context, ou org_users.OrgUser, params artemis_orchestrations.WorkflowExecParams) (int, error) {
@@ -19,8 +20,16 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowProcess(ctx context.C
 	defer tc.Close()
 	wfID := CreateExecAiWfId(params.WorkflowTemplate.WorkflowName)
 	workflowOptions := client.StartWorkflowOptions{
-		ID:        wfID,
-		TaskQueue: z.TaskQueueName,
+		ID:                                       wfID,
+		TaskQueue:                                z.TaskQueueName,
+		WorkflowRunTimeout:                       defaultTimeout,
+		WorkflowExecutionErrorWhenAlreadyStarted: false,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 100,
+		},
+		CronSchedule:     "",
+		Memo:             nil,
+		SearchAttributes: nil,
 	}
 	resp, _ := tc.DescribeWorkflowExecution(ctx, wfID, "")
 	if resp != nil {

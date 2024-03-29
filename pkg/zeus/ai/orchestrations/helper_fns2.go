@@ -17,6 +17,7 @@ const (
 	inReplyToTweetID                    = "in_reply_to_tweet_id"
 	socialMediaEngagementResponseFormat = "social-media-engagement"
 	socialMediaExtractionResponseFormat = "social-media-extraction"
+	readOnlyFormat                      = "read-only"
 	jsonFormat                          = "json"
 	twitterPlatform                     = "twitter"
 	redditPlatform                      = "reddit"

@@ -2,7 +2,6 @@ package hestia_login
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -35,12 +34,12 @@ func (t *LoginTestSuite) TestLogin() {
 		},
 	}
 	TwitterOAuthConfig = conf
-	stateNonce := GenerateNonce()
+	//stateNonce := GenerateNonce()
 	//verifier := GenerateCodeVerifier(128)
-	challengeOpt := oauth2.SetAuthURLParam("code_challenge", PkCEChallengeWithSHA256(verifier))
-	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "s256")
-	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
-	fmt.Println(redirectURL)
+	//	challengeOpt := oauth2.SetAuthURLParam("code_challenge", PkCEChallengeWithSHA256(verifier))
+	//	challengeMethodOpt := oauth2.SetAuthURLParam("code_challenge_method", "s256")
+	//	redirectURL := TwitterOAuthConfig.AuthCodeURL(stateNonce, challengeOpt, challengeMethodOpt)
+	//	fmt.Println(redirectURL)
 }
 
 func (t *LoginTestSuite) TestFetchToken() {

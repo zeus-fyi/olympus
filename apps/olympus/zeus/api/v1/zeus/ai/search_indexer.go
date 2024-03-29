@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
@@ -19,7 +20,16 @@ type AiSearchIndexerRequest struct {
 
 type SearchIndexerParamsWrapper struct {
 	hera_search.SearchIndexerParams
-	DiscordIndexerOpts `json:"discordOpts,omitempty"`
+	DiscordIndexerOpts  `json:"discordOpts,omitempty"`
+	EntitiesIndexerOpts `json:"entitiesOpts,omitempty"`
+}
+
+type EntitiesIndexerOpts struct {
+	Nickname       string   `json:"nickname" db:"nickname"`
+	EntityPlatform string   `json:"platform" db:"platform"`
+	FirstName      *string  `json:"firstName,omitempty"`
+	LastName       *string  `json:"lastName,omitempty"`
+	Labels         []string `json:"labels"`
 }
 
 type DiscordIndexerOpts struct {
@@ -90,6 +100,13 @@ func (r *AiSearchIndexerRequest) CreateOrUpdateSearchIndex(c echo.Context) error
 		}
 		return c.JSON(http.StatusOK, resp)
 	case "telegram":
+	case "entities":
+		eo := r.EntitiesIndexerOpts
+		evs, err := artemis_entities.SelectUserMetadataByProvidedFields(c.Request().Context(), ou, eo.Nickname, eo.EntityPlatform, eo.Labels, 0)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, nil)
+		}
+		return c.JSON(http.StatusOK, evs)
 	}
 	return c.JSON(http.StatusOK, nil)
 }

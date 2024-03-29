@@ -5,6 +5,15 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
+func (s *OrchestrationsTestSuite) TestArchiveRuns() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	err := UpdateOrchestrationsToArchive(ctx, ou, []string{"ai-workflow"}, true)
+	s.Require().Nil(err)
+}
+
 func (s *OrchestrationsTestSuite) TestSelectRuns() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
@@ -18,9 +27,9 @@ func (s *OrchestrationsTestSuite) TestSelectRuns() {
 func (s *OrchestrationsTestSuite) TestSelectRun() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
-	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.OrgID = 1710298581127603000
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-	ojs, err := SelectAiSystemOrchestrations(ctx, ou, 1709076571395743000)
+	ojs, err := SelectAiSystemOrchestrations(ctx, ou, 1711605286285315000)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(ojs)
 }

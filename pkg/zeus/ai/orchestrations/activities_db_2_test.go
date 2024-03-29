@@ -9,10 +9,10 @@ import (
 )
 
 func (t *ZeusWorkerTestSuite) TestSelectWorkflowIO() {
-	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	act := NewZeusAiPlatformActivities()
 
-	wfr, err := act.SelectWorkflowIO(ctx, 2)
+	wfr, err := act.SelectWorkflowIO(ctx, 1711583373616565000)
 	t.Require().Nil(err)
 	t.Require().NotNil(wfr)
 }

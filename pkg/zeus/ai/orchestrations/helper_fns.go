@@ -80,13 +80,14 @@ func GetTokenCountEstimate(ctx context.Context, model, text string) (int, error)
 	res := resty_base.GetBaseRestyClient(apiReq.Url, artemis_orchestration_auth.Bearer)
 	resp, err := res.R().SetBody(&apiReq.Payload).SetResult(&tc).Post("tokenize")
 	if err != nil {
-		log.Err(err).Msg("Zeus: GetTokenCountEstimate")
+		log.Err(err).Interface("&apiReq.Payload)", &apiReq.Payload).Msg("Zeus: GetTokenCountEstimate")
 		return -1, err
 	}
 	if resp != nil && resp.StatusCode() >= 400 {
 		if err != nil {
 			err = fmt.Errorf("GetTokenCountEstimate: failed to relay api request: status code %d", resp.StatusCode())
 		}
+		log.Err(err).Interface("&apiReq.Payload)", &apiReq.Payload).Msg("Zeus: GetTokenCountEstimate")
 		return -1, err
 	}
 	return tc.Count, nil

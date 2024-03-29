@@ -89,7 +89,7 @@ import {defaultEvalMetric, EvalsTable} from "./EvalsTable";
 import {Assistants} from "./Assistants";
 import {AssistantsTable} from "./AssistantsTable";
 import {ActionsTable} from "./ActionsTable";
-import {Retrieval} from "../../redux/ai/ai.types.retrievals";
+import {RequestHeaders, Retrieval} from "../../redux/ai/ai.types.retrievals";
 import {SchemasTable} from "./SchemasTable";
 import {Schemas} from "./Schemas";
 import {JsonSchemaDefinition, JsonSchemaField} from "../../redux/ai/ai.types.schemas";
@@ -165,10 +165,71 @@ function WorkflowEngineBuilder(props: any) {
     const [regexStr, setRegexStr] = useState('');
     const [payloadKey, setPayloadKey] = useState('');
     const [statusHttpCode, setStatusHttpCode] = useState(0);
+    const [payloadHeaderKey, setPayloadHeaderKey] = useState('');
+    const [payloadHeaderValue, setPayloadHeaderValue] = useState('');
+
+    const handleAddHeader = () => {
+        // Check if both key and value are provided
+        if (payloadHeaderKey.length === 0 || payloadHeaderValue.length === 0) {
+            return; // Exit if either key or value is not provided
+        }
+
+        // Retrieve the current headers from the webFilters, if they exist
+        const currentHeaders = retrieval.retrievalItemInstruction.webFilters?.headers || {};
+
+        // Update the headers object with the new key-value pair
+        const updatedHeaders = {
+            ...currentHeaders,
+            [payloadHeaderKey]: payloadHeaderValue, // Dynamically set the new header
+        };
+
+        // Create a new updatedRetrieval object with the updated headers
+        const updatedRetrieval = {
+            ...retrieval,
+            retrievalItemInstruction: {
+                ...retrieval.retrievalItemInstruction,
+                webFilters: {
+                    ...retrieval.retrievalItemInstruction.webFilters,
+                    headers: updatedHeaders,
+                }
+            }
+        };
+
+        // Clear the input fields for the next header addition
+        setPayloadHeaderKey('');
+        setPayloadHeaderValue('');
+
+        // Dispatch the updated retrieval object
+        dispatch(setRetrieval(updatedRetrieval));
+    };
+    const handleRemoveHeader = (headerKeyToRemove: string): void => {
+        // Retrieve the current headers, defaulting to an empty object if undefined
+        const currentHeaders: RequestHeaders = retrieval.retrievalItemInstruction.webFilters?.headers || {};
+        // Use Object.entries to filter out the headerKeyToRemove
+        const filteredHeaders: RequestHeaders = Object.entries(currentHeaders).reduce((acc: RequestHeaders, [key, value]: [string, string]) => {
+            if (key !== headerKeyToRemove) {
+                acc[key] = value; // Keep the header if the key does not match the one to remove
+            }
+            return acc;
+        }, {} as RequestHeaders);
+        // Prepare the updatedRetrieval object with the filtered headers
+        const updatedRetrieval = {
+            ...retrieval,
+            retrievalItemInstruction: {
+                ...retrieval.retrievalItemInstruction,
+                webFilters: {
+                    ...retrieval.retrievalItemInstruction.webFilters,
+                    headers: filteredHeaders,
+                }
+            }
+        };
+        // Dispatch the update to your state management
+        dispatch(setRetrieval(updatedRetrieval));
+    };
 
     const handleAddStatusCode = () => {
         // Validate statusHttpCode to be within the range of error codes (400-599) and not NaN
-        if (isNaN(statusHttpCode) || statusHttpCode < 400 || statusHttpCode > 599) {
+        if (isNaN(statusHttpCode) || statusHttpCode < 400 || statusHttpCode > 999) {
             return; // Exit if the status code is not an error code
         }
         // Retrieve the current dontRetryStatusCodes from the retrieval object, if they exist
@@ -1497,7 +1558,7 @@ function WorkflowEngineBuilder(props: any) {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Mockingbird — An Intelligently Designed AI Systems Coordinator
+                            Mockingbird — Model Supervised Intelligent Network
                         </Typography>
                         <Button
                             color="inherit"
@@ -2905,8 +2966,70 @@ function WorkflowEngineBuilder(props: any) {
                                                         </Stack>
                                                         <Box sx={{ mb: 0, ml: 0, mr: 0, mt: 1 }}>
                                                             <Typography variant="h6" color="text.secondary">
+                                                                Specify headers to include on requests. This will add the specified headers to every request.
+                                                            </Typography>
+                                                        </Box>
+                                                        <Stack direction="row">
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 1.5}}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="header-key"
+                                                                    label="Header Key"
+                                                                    variant="outlined"
+                                                                    value={payloadHeaderKey}
+                                                                    onChange={(event) => setPayloadHeaderKey(event.target.value)} // Update to handle header key
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 1.5}}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    id="header-value"
+                                                                    label="Header Value"
+                                                                    variant="outlined"
+                                                                    value={payloadHeaderValue}
+                                                                    onChange={(event) => setPayloadHeaderValue(event.target.value)} // Update to handle header value
+                                                                />
+                                                            </Box>
+                                                            <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 3}}>
+                                                                <Button onClick={handleAddHeader} variant="contained">Add Header</Button>
+                                                            </Box>
+                                                        </Stack>
+                                                        {retrieval.retrievalItemInstruction.webFilters && retrieval.retrievalItemInstruction.webFilters.headers &&
+                                                            Object.entries(retrieval.retrievalItemInstruction.webFilters.headers).map(([key, value], index) => (
+                                                                <Box key={index} sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
+                                                                    <Box flexGrow={1} sx={{mb: 0, ml: 0, mr: 0, mt: 2}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="header-value"
+                                                                            label="Header Value"
+                                                                            variant="outlined"
+                                                                            inputProps={{ readOnly: true }}
+                                                                            value={key}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{mb: 0, ml: 2, mr: 0, mt: 1.5}}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            id="header-value"
+                                                                            label="Header Value"
+                                                                            variant="outlined"
+                                                                            inputProps={{ readOnly: true }}
+                                                                            value={value}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box flexGrow={1} sx={{ mb: 0, ml: 2 }}>
+                                                                        <Button
+                                                                            variant="contained"
+                                                                            color="error"
+                                                                            onClick={() => handleRemoveHeader(key)}>Remove
+                                                                        </Button>
+                                                                    </Box>
+                                                                </Box>
+                                                            ))}
+                                                        <Box sx={{ mb: 0, ml: 0, mr: 0, mt: 1 }}>
+                                                            <Typography variant="h6" color="text.secondary">
                                                                 Specify status codes to skip retries on. This will skip retries on the specified status codes. Codes
-                                                                must be {'>='} 400 and {'<'} 600.
+                                                                must be {'>='} 400 and {'<'} 1000.
                                                             </Typography>
                                                         </Box>
                                                         <Stack direction="row">
@@ -2917,7 +3040,7 @@ function WorkflowEngineBuilder(props: any) {
                                                                     label="Http Status Code"
                                                                     variant="outlined"
                                                                     type={'number'}
-                                                                    inputProps={{ min: 400, max: 599, step: 1 }} // Added step: 1 here
+                                                                    inputProps={{ min: 400, max: 999, step: 1 }} // Added step: 1 here
                                                                     value={statusHttpCode}
                                                                     onChange={(event) => setStatusHttpCode(Number(event.target.value))} // Inline function for handling change
                                                                 />

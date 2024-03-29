@@ -2,7 +2,6 @@ package v1_iris
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -123,8 +122,12 @@ func wrapHandlerWithCapture(handler echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// c.Param("*") will contain the captured path
 		capturedPath := c.Param("*")
-		fmt.Println(capturedPath)
+		//fmt.Println(capturedPath)
 		c.Set("capturedPath", capturedPath)
+		paramValue := c.QueryParam("url")
+		if paramValue != "" {
+			c.Set("proxy", paramValue)
+		}
 
 		// Then do something with the captured path...
 		return handler(c)

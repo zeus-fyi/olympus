@@ -21,16 +21,16 @@ type WorkflowsActionsRequest struct {
 	Duration      int    `json:"duration,omitempty"`
 	DurationUnit  string `json:"durationUnit,omitempty"`
 
-	IsStrictTimeWindow           bool                                      `json:"isStrictTimeWindow,omitempty"`
-	CustomBasePeriod             bool                                      `json:"customBasePeriod,omitempty"`
-	CustomBasePeriodStepSize     int                                       `json:"customBasePeriodStepSize,omitempty"`
-	CustomBasePeriodStepSizeUnit string                                    `json:"customBasePeriodStepSizeUnit,omitempty"`
-	TaskOverrides                map[string]TaskOverride                   `json:"taskOverrides,omitempty"`
-	Workflows                    []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
-}
+	IsStrictTimeWindow           bool   `json:"isStrictTimeWindow,omitempty"`
+	CustomBasePeriod             bool   `json:"customBasePeriod,omitempty"`
+	CustomBasePeriodStepSize     int    `json:"customBasePeriodStepSize,omitempty"`
+	CustomBasePeriodStepSizeUnit string `json:"customBasePeriodStepSizeUnit,omitempty"`
 
-type TaskOverride struct {
-	ReplacePrompt string `json:"replacePrompt,omitempty"`
+	RetrievalOverrides   artemis_orchestrations.RetrievalOverrides `json:"retrievalPayloadOverrides,omitempty"`
+	TaskOverrides        artemis_orchestrations.TaskOverrides      `json:"taskOverrides,omitempty"`
+	SchemaFieldOverrides artemis_orchestrations.SchemaOverrides    `json:"schemaFieldOverrides,omitempty"`
+
+	Workflows []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
 }
 
 func WorkflowsActionsRequestHandler(c echo.Context) error {
@@ -137,6 +137,12 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 						resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
 					}
 				}
+			}
+			if w.SchemaFieldOverrides != nil {
+				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
+			}
+			if w.RetrievalOverrides != nil {
+				resp[ri].WorkflowOverrides.RetrievalOverrides = w.RetrievalOverrides
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])

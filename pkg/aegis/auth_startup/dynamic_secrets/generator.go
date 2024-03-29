@@ -42,6 +42,10 @@ func GetAccount(val zeus_ecdsa.AddressGenerator) (accounts.Account, error) {
 	if err != nil {
 		return accounts.Account{}, err
 	}
+	tmp := acc.PrivateKey()
+	if tmp == "" {
+		return accounts.Account{}, errors.New("private key is nil")
+	}
 	return *acc, nil
 }
 func genAddresses(count int) (zeus_ecdsa.AddressGenerator, error) {

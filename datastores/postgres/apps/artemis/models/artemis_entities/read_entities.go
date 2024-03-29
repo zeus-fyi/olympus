@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
@@ -22,6 +23,28 @@ type EntitiesFilter struct {
 	MetadataJsonb      json.RawMessage `json:"metadataJsonb,omitempty"`
 	MetadataText       string          `json:"metadataText,omitempty"`
 	SinceUnixTimestamp int             `json:"sinceTimestampUnix,omitempty"`
+	SinceTimeUnit      string          `json:"sinceTimeUnit,omitempty"`
+	SinceTimeDuration  int             `json:"sinceTimeAmount,omitempty"`
+}
+
+func (ef *EntitiesFilter) SetSinceOffsetNowTimestamp(durationUnit string, durationAmount int) int {
+	//ch := chronos.Chronos{}
+	ts := time.Now() // Capturing the current time.
+	// Adjusting ts based on the specified duration.
+	switch durationUnit {
+	case "minutes", "minute":
+		ts = ts.Add(time.Duration(-durationAmount) * time.Minute)
+	case "hours", "hour", "hrs", "hr":
+		ts = ts.Add(time.Duration(-durationAmount) * time.Hour)
+	case "days", "day":
+		ts = ts.Add(time.Duration(-durationAmount) * 24 * time.Hour)
+	case "weeks", "week":
+		ts = ts.Add(time.Duration(-durationAmount) * 7 * 24 * time.Hour)
+	default:
+		// Handling unknown durationUnit appropriately.
+	}
+	ef.SinceUnixTimestamp = int(ts.UnixNano())
+	return ef.SinceUnixTimestamp
 }
 
 func SelectUserMetadataByProvidedFields(ctx context.Context, ous org_users.OrgUser, nickname, platform string, labels []string, sinceUnixTimestamp int) ([]UserEntity, error) {

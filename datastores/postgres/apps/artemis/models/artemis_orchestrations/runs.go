@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
@@ -62,7 +63,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 					  	JOIN
 							public.orchestrations AS o ON o.orchestration_id = ar.orchestration_id
 						WHERE 
-							o.org_id = $1 ` + queryByRunID + ` 
+							o.org_id = $1 AND ar.is_archived = false` + queryByRunID + ` 
 						ORDER BY
 							o.orchestration_id DESC
 						` + limit + `
@@ -242,6 +243,18 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
 			return nil, rowErr
 		}
+		for i, _ := range agdd {
+			if len(agdd[i].CompletionChoices) == 4 {
+				b, berr := agdd[i].CompletionChoices.MarshalJSON()
+				if berr != nil {
+					log.Err(berr).Msg("failed to marshal completion choices")
+					return nil, berr
+				}
+				if string(b) == "null" {
+					agdd[i].CompletionChoices = agdd[i].Metadata
+				}
+			}
+		}
 		oj.AggregatedData = agdd
 		var filteredResults []EvalMetric
 		seen := make(map[int]bool)
@@ -295,5 +308,18 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 		oj.AggregatedEvalResults = filteredResults
 		ojs = append(ojs, oj)
 	}
-	return ojs, err
+	var ojsRunsActions []OrchestrationsAnalysis
+	for _, oj := range ojs {
+		if !oj.Active && oj.RunCycles == 0 && oj.TotalWorkflowTokenUsage == 0 {
+			continue
+		}
+		ojsRunsActions = append(ojsRunsActions, oj)
+	}
+	sortRunsByID(ojsRunsActions)
+	return ojsRunsActions, err
+}
+func sortRunsByID(rs []OrchestrationsAnalysis) {
+	sort.Slice(rs, func(i, j int) bool {
+		return rs[i].OrchestrationID > rs[j].OrchestrationID
+	})
 }

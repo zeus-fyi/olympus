@@ -169,8 +169,17 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if procName != "" {
 		return p.ProcessBroadcastETLRequest(c, payloadSizingMeter, restType, procName, "", "")
 	}
+
+	route := ""
+	routeHost := c.Get("proxy")
+	if routeHost != nil {
+		tmp, ok := routeHost.(string)
+		if ok {
+			route = tmp
+		}
+	}
 	routeGroup := c.Request().Header.Get(RouteGroupHeader)
-	if routeGroup == "" {
+	if routeGroup == "" && route == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
 	}
 	ou := org_users.OrgUser{}
@@ -203,6 +212,9 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		log.Err(err).Interface("ou", ou).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.CheckRateLimit")
 		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
 	}
+	if route != "" {
+		routeInfo.RoutePath = route
+	}
 	path := routeInfo.RoutePath
 	payloadSizingMeter.Reset()
 	headers := make(http.Header)
@@ -223,6 +235,9 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	}
 	secretNameRefApi := fmt.Sprintf("api-%s", routeGroup)
 	qps := c.QueryParams()
+	if len(route) > 0 {
+		qps.Del("url")
+	}
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              path,
 		ServicePlan:      plan,

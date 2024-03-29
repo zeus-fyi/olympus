@@ -1,6 +1,10 @@
 CREATE TABLE public.ai_workflow_runs(
     workflow_run_id int8 NOT NULL DEFAULT next_id() PRIMARY KEY,
-    orchestration_id int8 NOT NULL REFERENCES orchestrations(orchestration_id)
+    orchestration_id int8 NOT NULL REFERENCES orchestrations(orchestration_id),
+    is_archived bool NOT NULL DEFAULT false
+
 );
 CREATE INDEX runs_ai_workflow_runs_orch_idx ON public.ai_workflow_runs("orchestration_id");
 CREATE INDEX runs_ai_workflow_runs_run_idx ON public.ai_workflow_runs("workflow_run_id");
+CREATE INDEX runs_ai_workflow_runs_archive_idx ON public.ai_workflow_runs("is_archived");
+

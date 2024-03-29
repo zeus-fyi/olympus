@@ -24,29 +24,39 @@ type RetrievalItem struct {
 }
 
 type RetrievalItemInstruction struct {
-	RetrievalPlatform         string          `json:"retrievalPlatform"`
-	RetrievalPrompt           *string         `json:"retrievalPrompt,omitempty"`           // Prompt for the retrieval
-	RetrievalPlatformGroups   *string         `json:"retrievalPlatformGroups,omitempty"`   // Platform groups for the retrieval
-	RetrievalKeywords         *string         `json:"retrievalKeywords,omitempty"`         // Keywords for the retrieval
-	RetrievalNegativeKeywords *string         `json:"retrievalNegativeKeywords,omitempty"` // Keywords for the retrieval
-	RetrievalUsernames        *string         `json:"retrievalUsernames,omitempty"`        // Usernames for the retrieval
-	DiscordFilters            *DiscordFilters `json:"discordFilters,omitempty"`            // Discord filters for the retrieval
-	WebFilters                *WebFilters     `json:"webFilters,omitempty"`                // Web filters for the retrieval
+	RetrievalPlatform         string               `json:"retrievalPlatform"`
+	RetrievalPrompt           *string              `json:"retrievalPrompt,omitempty"`           // Prompt for the retrieval
+	RetrievalPlatformGroups   *string              `json:"retrievalPlatformGroups,omitempty"`   // Platform groups for the retrieval
+	RetrievalKeywords         *string              `json:"retrievalKeywords,omitempty"`         // Keywords for the retrieval
+	RetrievalNegativeKeywords *string              `json:"retrievalNegativeKeywords,omitempty"` // Keywords for the retrieval
+	RetrievalUsernames        *string              `json:"retrievalUsernames,omitempty"`        // Usernames for the retrieval
+	DiscordFilters            *DiscordFilters      `json:"discordFilters,omitempty"`            // Discord filters for the retrieval
+	WebFilters                *WebFilters          `json:"webFilters,omitempty"`                // Web filters for the retrieval
+	EntitiesIndexerOpts       *EntitiesIndexerOpts `json:"entitiesFilter,omitempty"`            // Entities indexer options
 
 	Instructions json.RawMessage `json:"instructions,omitempty"` // Instructions for the retrieval
 }
 
+type EntitiesIndexerOpts struct {
+	Nickname       string   `json:"nickname" db:"nickname"`
+	EntityPlatform string   `json:"platform" db:"platform"`
+	FirstName      *string  `json:"firstName,omitempty"`
+	LastName       *string  `json:"lastName,omitempty"`
+	Labels         []string `json:"labels"`
+}
+
 type WebFilters struct {
-	RoutingGroup         *string  `json:"routingGroup,omitempty"`
-	LbStrategy           *string  `json:"lbStrategy,omitempty"`
-	MaxRetries           *int     `json:"maxRetries,omitempty"`
-	BackoffCoefficient   *float64 `json:"backoffCoefficient,omitempty"`
-	EndpointRoutePath    *string  `json:"endpointRoutePath,omitempty"`
-	EndpointREST         *string  `json:"endpointREST,omitempty"`
-	PayloadPreProcessing *string  `json:"payloadPreProcessing,omitempty"`
-	RegexPatterns        []string `json:"regexPatterns,omitempty"`
-	PayloadKeys          []string `json:"payloadKeys,omitempty"`
-	DontRetryStatusCodes []int    `json:"dontRetryStatusCodes,omitempty"`
+	RoutingGroup         *string           `json:"routingGroup,omitempty"`
+	LbStrategy           *string           `json:"lbStrategy,omitempty"`
+	MaxRetries           *int              `json:"maxRetries,omitempty"`
+	BackoffCoefficient   *float64          `json:"backoffCoefficient,omitempty"`
+	EndpointRoutePath    *string           `json:"endpointRoutePath,omitempty"`
+	EndpointREST         *string           `json:"endpointREST,omitempty"`
+	PayloadPreProcessing *string           `json:"payloadPreProcessing,omitempty"`
+	RegexPatterns        []string          `json:"regexPatterns,omitempty"`
+	PayloadKeys          []string          `json:"payloadKeys,omitempty"`
+	DontRetryStatusCodes []int             `json:"dontRetryStatusCodes,omitempty"`
+	RequestHeaders       map[string]string `json:"headers,omitempty"`
 }
 
 type DiscordFilters struct {

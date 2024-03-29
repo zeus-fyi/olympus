@@ -2,14 +2,18 @@ package iris_api_requests
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/go-resty/resty/v2"
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
@@ -82,16 +86,25 @@ func (i *IrisApiRequestsActivities) ExtToAnvilInternalSimForkRequest(ctx context
 	return i.ExtLoadBalancerRequest(ctx, pr)
 }
 
+const (
+	flowsSecretsOrgID = 1710298581127603000
+)
+
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	if pr.Url == "" {
 		err := fmt.Errorf("error: URL is required")
 		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
 		return pr, err
 	}
+
+	to := pr.OrgID
+	if pr.IsFlowRequest && pr.SecretNameRef == "api-iris" {
+		to = flowsSecretsOrgID
+	}
 	var bearer string
 	var user, pw string
 	if pr.SecretNameRef != "" {
-		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(pr.OrgID, pr.UserID), pr.SecretNameRef)
+		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(to, pr.UserID), pr.SecretNameRef)
 		if ps != nil && ps.BearerToken != "" {
 			bearer = ps.BearerToken
 		} else if err != nil {
@@ -185,7 +198,6 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	if len(pr.QueryParams) > 0 {
 		r.QueryParam = pr.QueryParams
 	}
-
 	for k, v := range pr.RequestHeaders {
 		switch k {
 		case "Authorization":
@@ -255,7 +267,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		if pr.Payloads != nil && pr.Payload == nil {
 			switch method {
 			case "GET", "get":
-				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Get(ext)
+				resp, err = request.SetBody(&pr.Payloads).Get(ext)
 			case "OPTIONS", "options":
 				resp, err = request.SetBody(&pr.Payloads).SetResult(&pr.Response).Options(ext)
 			case "PUT", "put":
@@ -276,7 +288,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		} else {
 			switch method {
 			case "GET", "get":
-				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Get(ext)
+				resp, err = request.SetBody(&pr.Payload).Get(ext)
 			case "OPTIONS", "options":
 				resp, err = request.SetBody(&pr.Payload).SetResult(&pr.Response).Options(ext)
 			case "PUT", "put":
@@ -294,7 +306,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		case "OPTIONS", "options":
 			resp, err = request.SetResult(&pr.Response).Options(ext)
 		case "GET", "get":
-			resp, err = request.SetResult(&pr.Response).Get(ext)
+			resp, err = request.Get(ext)
 		case "PUT", "put":
 			resp, err = request.SetResult(&pr.Response).Put(ext)
 		case "DELETE", "delete":
@@ -317,7 +329,29 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		if pr.PayloadSizeMeter == nil {
 			pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
 		}
-
+		if method == "GET" {
+			if pr.RequestHeaders != nil && pr.RequestHeaders["X-Scrape-Html"] != nil {
+				tv := resp.String()
+				tv = strings.TrimPrefix(tv, "\"")
+				tv = strings.TrimSuffix(tv, "\"")
+				tv = unescapeUnicode(tv)
+				tv = html.UnescapeString(tv)
+				doc, herr := goquery.NewDocumentFromReader(strings.NewReader(tv))
+				if herr != nil {
+					log.Err(herr).Msg("sendRequest: failed to parse response body")
+					return resp, herr
+				}
+				plMap := extractAndRespond(doc)
+				pr.Response = plMap
+			}
+			if pr.Response == nil {
+				err = json.Unmarshal(resp.Body(), &pr.Response)
+				if err != nil {
+					log.Warn().Err(err).Msg("sendRequest: failed to unmarshal response body")
+					err = nil
+				}
+			}
+		}
 		pr.PayloadSizeMeter.Add(resp.Size())
 		pr.StatusCode = resp.StatusCode()
 		if resp.StatusCode() >= 400 || pr.Response == nil {
@@ -331,16 +365,60 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			pr.RawResponse = resp.Body()
 		}
 		if pr.RegexFilters != nil {
-			tmp, rerr := ExtractParams(pr.RegexFilters, resp.Body())
+			br := resp.Body()
+			if pr.RequestHeaders != nil && pr.RequestHeaders["X-Scrape-Html"] != nil {
+				tv := resp.String()
+				tv = strings.TrimPrefix(tv, "\"")
+				tv = strings.TrimSuffix(tv, "\"")
+				tv = unescapeUnicode(tv)
+				tv = html.UnescapeString(tv)
+				doc, herr := goquery.NewDocumentFromReader(strings.NewReader(tv))
+				if herr != nil {
+					log.Err(herr).Msg("sendRequest: failed to parse response body")
+					return resp, herr
+				}
+				pr.Response = extractAndRespond(doc)
+				brs, berr := json.Marshal(pr.Response)
+				if berr != nil {
+					log.Err(err).Msg("sendRequest: failed to marshal response body")
+				} else {
+					br = brs
+				}
+			}
+			tmp, rerr := ExtractParams(pr.RegexFilters, br)
 			if rerr != nil {
 				log.Err(rerr).Msg("sendRequest: failed to extract params")
 				return resp, rerr
 			}
 			pr.RawResponse = []byte(strings.Join(tmp, ", "))
 		}
-
 	}
 	return resp, nil
+}
+
+func unescapeUnicode(input string) string {
+	// Create a new strings.Builder for efficient string concatenation
+	var builder strings.Builder
+
+	// Iterate over each rune in the input string
+	for i := 0; i < len(input); {
+		// Check if the current substring matches the escape sequences and replace them
+		if i+6 <= len(input) && (input[i:i+6] == "\\u003c" || input[i:i+6] == "\\u003e") {
+			if input[i:i+6] == "\\u003c" {
+				builder.WriteString("<")
+			} else if input[i:i+6] == "\\u003e" {
+				builder.WriteString(">")
+			}
+			i += 6 // Skip past the escape sequence
+		} else {
+			// Write the current rune to the builder and move to the next rune
+			builder.WriteRune(rune(input[i]))
+			i++
+		}
+	}
+
+	// Return the constructed string
+	return builder.String()
 }
 
 func filterHeaders(headers http.Header) http.Header {
@@ -369,4 +447,60 @@ func ExtractParams(regexStrs []string, strContent []byte) ([]string, error) {
 	}
 
 	return combinedParams, nil
+}
+
+func extractAndRespond(doc *goquery.Document) echo.Map {
+	var elements []map[string]string
+
+	// Extract meta tags
+	doc.Find("meta").Each(func(i int, s *goquery.Selection) {
+		element := make(map[string]string)
+		if name, exists := s.Attr("name"); exists {
+			element["name"] = name
+		}
+		if property, exists := s.Attr("property"); exists {
+			element["property"] = property
+		}
+		if content, exists := s.Attr("content"); exists {
+			element["content"] = content
+		}
+		element["type"] = "meta"
+		elements = append(elements, element)
+	})
+
+	// Extract h1-h6 tags
+	for _, tag := range []string{"h1", "h2", "h3", "h4", "h5", "h6"} {
+		doc.Find(tag).Each(func(i int, s *goquery.Selection) {
+			tv := s.Text()
+			if len(tv) == 0 {
+				return
+			}
+			element := map[string]string{
+				"type":    tag,
+				"content": tv,
+			}
+			elements = append(elements, element)
+		})
+	}
+
+	// Extract p tags
+	doc.Find("p").Each(func(i int, s *goquery.Selection) {
+		tv := s.Text()
+		if len(tv) == 0 {
+			return
+		}
+		element := map[string]string{
+			"type":    "p",
+			"content": tv,
+		}
+		elements = append(elements, element)
+	})
+
+	if len(elements) == 0 {
+		log.Info().Interface("doc", doc.Text())
+		return nil
+	}
+	return echo.Map{
+		"msg_body": elements,
+	}
 }

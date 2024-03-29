@@ -12,18 +12,18 @@ import (
 )
 
 var (
-	clusterClassName    = "olympus"
+	clusterClassName    = "info-flows"
 	ZeusCloudClusterDef = zeus_cluster_config_drivers.ClusterDefinition{
 		ClusterClassName: clusterClassName,
 		ComponentBases:   ZeusCloudComponentBases,
 		CloudCtxNs:       ZeusCloudCloudCtxNs,
 	}
 	ZeusCloudComponentBases = map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
-		"zeusCloud": ZeusCloudComponentBase,
+		"info-flows": ZeusCloudComponentBase,
 	}
 	ZeusCloudComponentBase = zeus_cluster_config_drivers.ComponentBaseDefinition{
 		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
-			"zeusCloud": ZeusCloudSkeletonBaseConfig,
+			"info-flows": ZeusCloudSkeletonBaseConfig,
 		},
 	}
 	ZeusCloudCloudCtxNs = zeus_common_types.CloudCtxNs{
@@ -38,20 +38,20 @@ var (
 		SkeletonBaseNameChartPath: ZeusCloudChartPath,
 	}
 	ZeusCloudUploadChart = zeus_req_types.TopologyCreateRequest{
-		TopologyName:      "zeusCloud",
-		ChartName:         "zeusCloud",
-		ChartDescription:  "zeusCloud",
-		SkeletonBaseName:  "zeusCloud",
-		ComponentBaseName: "zeusCloud",
-		ClusterClassName:  "olympus",
+		TopologyName:      "info-flows",
+		ChartName:         "info-flows",
+		ChartDescription:  "info-flows",
+		SkeletonBaseName:  "info-flows",
+		ComponentBaseName: "info-flows",
+		ClusterClassName:  "info-flows",
 		Tag:               "latest",
 		Version:           fmt.Sprintf("v0.0.%d", time.Now().Unix()),
 	}
 	ZeusCloudChartPath = filepaths.Path{
 		PackageName: "",
-		DirIn:       "./olympus/hestia/frontend_infra",
+		DirIn:       "./olympus/hestia/info_works",
 		DirOut:      "./olympus/outputs",
-		FnIn:        "zeusCloud", // filename for your gzip workload
+		FnIn:        "info-flows", // filename for your gzip workload
 		FnOut:       "",
 		Env:         "",
 		FilterFiles: &strings_filter.FilterOpts{},

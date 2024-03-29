@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
-	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	zeus_client "github.com/zeus-fyi/zeus/zeus/z_client"
 )
 
 type ArtemisCookbookTestSuite struct {
@@ -24,13 +24,6 @@ func (t *ArtemisCookbookTestSuite) SetupTest() {
 	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
 	//t.ZeusTestClient = zeus_client.NewLocalZeusClient(tc.Bearer)
 	olympus_cookbooks.ChangeToCookbookDir()
-}
-
-func (t *ArtemisCookbookTestSuite) TestDeploy() {
-	olympus_cookbooks.ChangeToCookbookDir()
-	cdep := ArtemisClusterDefinition.GenerateDeploymentRequest()
-	_, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
-	t.Require().Nil(err)
 }
 
 func (t *ArtemisCookbookTestSuite) TestUploadCharts() {

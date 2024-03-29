@@ -35,11 +35,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	}
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+		ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			BackoffCoefficient: 2.5,
 			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    10,
+			MaximumAttempts:    100,
 		},
 	}
 
@@ -75,95 +75,44 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 	case webPlatform:
 		var routes []iris_models.RouteInfo
 		retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, cp.Ou, cp.Tc.Retrieval).Get(retrievalWebCtx, &routes)
+		tmpOu := cp.Ou
+		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+			tmpOu.OrgID = FlowsOrgID
+		}
+		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tmpOu, cp.Tc.Retrieval).Get(retrievalWebCtx, &routes)
 		if err != nil {
 			logger.Error("failed to run get retrieval routes", "Error", err)
 			return nil, err
 		}
-		for _, route := range routes {
-			rt := RouteTask{
-				Ou:        cp.Ou,
-				RouteInfo: route,
-			}
-			if cp.Tc.WebPayload != nil {
-				em, ok := cp.Tc.WebPayload.(map[string]interface{})
-				if ok && cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.EndpointRoutePath != nil {
-					if cp.Tc.Retrieval.WebFilters.RegexPatterns != nil && len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 {
-						qpRoute, qerr := ReplaceParams(*cp.Tc.Retrieval.WebFilters.EndpointRoutePath, em)
-						if qerr != nil {
-							logger.Error("failed to replace route path params", "Error", qerr)
-							return nil, qerr
-						}
-						cp.Tc.Retrieval.WebFilters.EndpointRoutePath = &qpRoute
-						if len(em) == 0 {
-							em = nil
-						}
-					}
-					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
-						nem := make(map[string]interface{})
-						for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
-							nem[key] = em[key]
-						}
-						em = nem
-					}
-					if iterateQpOnly == aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing) {
-						rt.Payload = nil
-					} else {
-						rt.Payload = em
-					}
-				}
-				var plSlice []map[string]interface{}
-				ems, ok := cp.Tc.WebPayload.([]map[string]interface{})
-				if ok {
-					plSlice = ems
-				} else if slice, ok1 := cp.Tc.WebPayload.([]interface{}); ok1 {
-					for _, item := range slice {
-						if m, ok2 := item.(map[string]interface{}); ok2 {
-							// m is now a map[string]interface{}, you can work with it
-							// For example, assigning to rt.Payload if that's what you need
-							plSlice = append(plSlice, m)
-						}
-					}
-				}
-
-				rt.Retrieval = cp.Tc.Retrieval
-				if len(plSlice) > 0 {
-					if cp.Tc.Retrieval.WebFilters.PayloadKeys != nil && em != nil {
-						nem := make(map[string]bool)
-						for _, key := range cp.Tc.Retrieval.WebFilters.PayloadKeys {
-							nem[key] = true
-						}
-						for _, emv := range plSlice {
-							for k, _ := range emv {
-								if _, bok := nem[k]; !bok {
-									delete(emv, k)
-								}
-							}
-						}
-					}
-					for _, emv := range plSlice {
-						rt.Payloads = append(rt.Payloads, emv)
-					}
-				}
-			}
-			apiCallCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp)
-			if err != nil {
-				logger.Error("failed to run api call request task retrieval", "Error", err)
-				return nil, err
-			}
-			if cp.Tc.Retrieval.WebFilters != nil && aws.ToString(cp.Tc.Retrieval.WebFilters.LbStrategy) != lbStrategyPollTable && cp.Wsr.InputID > 0 {
-				if len(cp.Tc.Retrieval.WebFilters.RegexPatterns) > 0 && (cp.Tc.RegexSearchResults != nil && len(cp.Tc.RegexSearchResults) > 0) {
-					break
-				} else if cp.Tc.ApiResponseResults != nil && len(cp.Tc.ApiResponseResults) > 0 {
-					break
-				}
-			}
+		wsrCraeteCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(wsrCraeteCtx, z.CreateWsr, cp).Get(wsrCraeteCtx, &cp)
+		if err != nil {
+			logger.Error("failed to run get retrieval routes", "Error", err)
+			return nil, err
+		}
+		if cp.Tc.Retrieval.RetrievalItemInstruction.WebFilters != nil &&
+			cp.Tc.Retrieval.RetrievalItemInstruction.WebFilters.LbStrategy != nil &&
+			*cp.Tc.Retrieval.RetrievalItemInstruction.WebFilters.LbStrategy != lbStrategyPollTable && len(routes) > 1 {
+			routes = routes[0:1]
+		}
+		cao := ao
+		cao.HeartbeatTimeout = time.Minute * 5
+		cao.RetryPolicy = GetRetryPolicy(cp.Tc.Retrieval, time.Hour*24)
+		cao.RetryPolicy.MaximumAttempts = 10000
+		apiCallCtx := workflow.WithActivityOptions(ctx, cao)
+		err = workflow.ExecuteActivity(apiCallCtx, z.FanOutApiCallRequestTask, routes, cp).Get(apiCallCtx, &cp)
+		if err != nil {
+			logger.Error("failed to run api call request task retrieval", "Error", err)
+			return nil, err
 		}
 	case apiApproval:
 		var routes []iris_models.RouteInfo
 		retrievalWebCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, cp.Ou, cp.Tc.Retrieval).Get(retrievalWebCtx, &routes)
+		tmpOu := cp.Ou
+		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+			tmpOu.OrgID = FlowsOrgID
+		}
+		err = workflow.ExecuteActivity(retrievalWebCtx, z.AiWebRetrievalGetRoutesTask, tmpOu, cp.Tc.Retrieval).Get(retrievalWebCtx, &routes)
 		if err != nil {
 			logger.Error("failed to run retrieval", "Error", err)
 			return nil, err
@@ -210,11 +159,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 				if cp.Tc.Retrieval.WebFilters != nil && "iterate-qp-only" == aws.ToString(cp.Tc.Retrieval.WebFilters.PayloadPreProcessing) {
 					payload = nil
 				}
+				route.Payload = payload
 				rt := RouteTask{
 					Ou:        cp.Ou,
 					Retrieval: cp.Tc.Retrieval,
 					RouteInfo: route,
-					Payload:   payload,
 				}
 				apiCallCtx := workflow.WithActivityOptions(ctx, ao)
 				err = workflow.ExecuteActivity(apiCallCtx, z.ApiCallRequestTask, rt, cp).Get(apiCallCtx, &cp)
@@ -337,4 +286,34 @@ func ReplaceParams(route string, params echo.Map) (string, error) {
 	})
 
 	return replacedRoute, nil
+}
+
+// ReplaceAndPassParams replaces placeholders in the route with URL-encoded values from the provided map.
+func ReplaceAndPassParams(route string, params echo.Map) (string, []string, error) {
+	// Compile a regular expression to find {param} patterns
+	re, err := regexp.Compile(`\{([^\{\}]+)\}`)
+	if err != nil {
+		log.Err(err).Msg("failed to compile regular expression")
+		return "", nil, err // Return an error if the regular expression compilation fails
+	}
+	var qps []string
+	// Replace each placeholder with the corresponding URL-encoded value from the map
+	replacedRoute := re.ReplaceAllStringFunc(route, func(match string) string {
+		// Extract the parameter name from the match, excluding the surrounding braces
+		paramName := match[1 : len(match)-1]
+		// Look up the paramName in the params map
+		if value, ok := params[paramName]; ok {
+			// Delete the matched entry from the map
+			if rs, rok := value.(string); rok {
+				qps = append(qps, rs)
+			}
+			delete(params, paramName)
+			// If the value exists, convert it to a string and URL-encode it
+			return url.QueryEscape(fmt.Sprint(value))
+		}
+		// If no matching paramName is found in the map, return the match unchanged
+		return match
+	})
+
+	return replacedRoute, qps, nil
 }

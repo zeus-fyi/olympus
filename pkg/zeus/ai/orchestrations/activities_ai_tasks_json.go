@@ -11,24 +11,46 @@ import (
 	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	"go.temporal.io/sdk/activity"
 )
+
+const FlowsOrgID = 1685378241971196000
 
 func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Context, mb *MbChildSubProcessParams, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
 	var jsd []*artemis_orchestrations.JsonSchemaDefinition
 	if mb.Tc.EvalID > 0 && mb.Tc.EvalSchemas != nil && len(mb.Tc.EvalSchemas) > 0 {
 		jsd = append(jsd, mb.Tc.EvalSchemas...)
 	} else {
-		tv, err := artemis_orchestrations.SelectTask(ctx, mb.Ou, mb.Tc.TaskID)
+		tmpOu := mb.Ou
+		if mb.WfExecParams.WorkflowOverrides.IsUsingFlows {
+			tmpOu.OrgID = FlowsOrgID
+		}
+		tv, err := artemis_orchestrations.SelectTask(ctx, tmpOu, mb.Tc.TaskID)
 		if err != nil {
 			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
 			return nil, err
 		}
+
 		if len(tv) == 0 {
 			err = fmt.Errorf("failed to get task definition for task id: %d", mb.Tc.TaskID)
 			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
 			return nil, err
 		}
 		for _, taskDef := range tv {
+			for _, sv := range taskDef.Schemas {
+				if mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides != nil {
+					if _, ok := mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName]; !ok {
+						continue
+					}
+				}
+				for si, sf := range sv.Fields {
+					if mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName] != nil {
+						if fo, ok := mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName][sf.FieldName]; ok {
+							sv.Fields[si].FieldDescription = fo
+						}
+					}
+				}
+			}
 			jsd = append(jsd, taskDef.Schemas...)
 		}
 	}
@@ -114,5 +136,6 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	if tmpResp != nil {
 		cr.JsonResponseResults = tmpResp
 	}
+	activity.RecordHeartbeat(ctx, cr.Response.ID)
 	return cr, nil
 }

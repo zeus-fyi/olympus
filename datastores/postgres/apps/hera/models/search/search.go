@@ -14,6 +14,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -72,6 +73,7 @@ type SearchResultGroup struct {
 	ApiResponseResults             []SearchResult                `json:"apiResponseResults,omitempty"`
 	SearchResults                  []SearchResult                `json:"searchResults"`
 	FilteredSearchResults          []SearchResult                `json:"filteredSearchResults,omitempty"`
+	RegexSearchResults             []SearchResult                `json:"regexSearchResults,omitempty"`
 	FilteredSearchResultMap        map[int]*SearchResult         `json:"filteredSearchResultsMap"`
 	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
 	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
@@ -88,13 +90,18 @@ func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
 }
 
 func (sg *SearchResultGroup) GetPromptBody() string {
-	if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) == 0 {
+	if len(sg.SearchResults) == 0 && len(sg.ApiResponseResults) == 0 && len(sg.RegexSearchResults) == 0 {
 		return sg.BodyPrompt + "\n" + sg.ResponseBody
 	}
-	var ret string
-	if len(sg.ApiResponseResults) > 0 {
-		ret += FormatApiSearchResultSliceToString(sg.ApiResponseResults)
+	if len(sg.RegexSearchResults) > 0 {
+		tmp := FormatSearchResultsV5(sg.RegexSearchResults)
+		return tmp
 	}
+	if len(sg.ApiResponseResults) > 0 {
+		tmp := FormatSearchResultsV5(sg.ApiResponseResults)
+		return tmp
+	}
+	var ret string
 	if len(sg.BodyPrompt) > 0 {
 		ret += "\n" + sg.BodyPrompt
 	}
@@ -161,16 +168,18 @@ func FormatSearchResultsV4(filteredMap map[int]*SearchResult, results []SearchRe
 }
 
 type SearchResult struct {
-	UnixTimestamp   int              `json:"unixTimestamp"`
-	Source          string           `json:"source"`
-	Value           string           `json:"value"`
-	Group           string           `json:"group"`
-	Verified        *bool            `json:"verified,omitempty"`
-	Metadata        TelegramMetadata `json:"metadata,omitempty"`
-	DiscordMetadata DiscordMetadata  `json:"discordMetadata"`
-	RedditMetadata  RedditMetadata   `json:"redditMetadata"`
-	TwitterMetadata *TwitterMetadata `json:"twitterMetadata,omitempty"`
-	WebResponse     WebResponse      `json:"webResponses,omitempty"`
+	UnixTimestamp   int                           `json:"unixTimestamp"`
+	Source          string                        `json:"source"`
+	QueryParams     []string                      `json:"queryParams,omitempty"`
+	Value           string                        `json:"value"`
+	Group           string                        `json:"group"`
+	Verified        *bool                         `json:"verified,omitempty"`
+	Metadata        TelegramMetadata              `json:"metadata,omitempty"`
+	DiscordMetadata DiscordMetadata               `json:"discordMetadata"`
+	RedditMetadata  RedditMetadata                `json:"redditMetadata"`
+	TwitterMetadata *TwitterMetadata              `json:"twitterMetadata,omitempty"`
+	WebResponse     WebResponse                   `json:"webResponses,omitempty"`
+	UserEntities    []artemis_entities.UserEntity `json:"userEntity,omitempty"`
 }
 
 type TwitterMetadata struct {
@@ -370,6 +379,22 @@ func PerformPlatformSearches(ctx context.Context, ou org_users.OrgUser, sp AiSea
 		res = append(res, resReddit...)
 	}
 
+	if strings.Contains(platform, "entities") || len(platform) == 0 {
+		ep := ""
+		if sp.Retrieval.EntitiesIndexerOpts != nil {
+			ep = sp.Retrieval.EntitiesIndexerOpts.EntityPlatform
+		}
+		evs, err := artemis_entities.SelectUserMetadataByProvidedFields(ctx, ou, "", ep, nil, 0)
+		if err != nil {
+			return nil, err
+		}
+		srs, err := FormatEntities(evs)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, srs...)
+	}
+
 	//if strings.Contains(platform, "web") {
 	//	resWeb, err := SearchReddit(ctx, ou, sp)
 	//	if err != nil {
@@ -398,7 +423,9 @@ func FormatSearchResultsV2(results []SearchResult) string {
 		if result.TwitterMetadata != nil && result.TwitterMetadata.TweetStrID != "" {
 			parts = append(parts, result.TwitterMetadata.TweetStrID)
 		} else {
-			parts = append(parts, fmt.Sprintf("%d", result.UnixTimestamp))
+			if result.UnixTimestamp > 0 {
+				parts = append(parts, fmt.Sprintf("%d", result.UnixTimestamp))
+			}
 		}
 		// Conditionally append other fields if they are not empty
 		if result.Source != "" {
@@ -459,12 +486,25 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	}
 	var newResults []interface{}
 	for _, result := range results {
-		if result.WebResponse.RegexFilteredBody != "" {
-			if result.Value != "" {
-				result.WebResponse.Body = echo.Map{
-					"msg_body": result.Value,
-				}
+		if result.WebResponse.Body != nil && len(result.QueryParams) > 0 && result.WebResponse.RegexFilteredBody == "" {
+			if _, ok := result.WebResponse.Body["msg_body"]; !ok {
+				result.WebResponse.Body["msg_body"] = result.Value
 			}
+			if result.QueryParams != nil {
+				result.WebResponse.Body["entity"] = result.QueryParams
+			}
+			newResults = append(newResults, result.WebResponse.Body)
+		} else if result.WebResponse.RegexFilteredBody != "" || len(result.QueryParams) > 0 {
+			m := map[string]interface{}{
+				"msg_body": result.Value,
+			}
+			if result.QueryParams != nil {
+				m["entity"] = result.QueryParams
+			}
+			if result.UnixTimestamp > 0 {
+				m["msg_id"] = fmt.Sprintf("%d", result.UnixTimestamp)
+			}
+			newResults = append(newResults, m)
 		} else if result.WebResponse.Body != nil {
 			if result.Value != "" {
 				result.WebResponse.Body["msg_body"] = result.Value
@@ -494,6 +534,24 @@ func FormatSearchResultsV5(results []SearchResult) string {
 		return ""
 	}
 	return string(b)
+}
+
+func FormatEntities(ent []artemis_entities.UserEntity) ([]SearchResult, error) {
+	var srs []SearchResult
+	for _, r := range ent {
+		for _, md := range r.MdSlice {
+			b, err := json.MarshalIndent(md, "", "  ")
+			if err != nil {
+				log.Err(err).Msg("FormatEntities: Error marshalling entity metadata")
+				return nil, err
+			}
+			sr := SearchResult{
+				Value: fmt.Sprintf("%s", b),
+			}
+			srs = append(srs, sr)
+		}
+	}
+	return srs, nil
 }
 
 type SimplifiedSearchResultJSON struct {

@@ -33,8 +33,10 @@ type TaskContext struct {
 	EvalResultID                       int                                                          `json:"evalResultID,omitempty"`
 	ResponseID                         int                                                          `json:"responseID,omitempty"`
 	WebPayload                         any                                                          `json:"webPayload,omitempty"`
+	QueryParams                        []string                                                     `json:"queryParams,omitempty"`
 	TextResponse                       string                                                       `json:"textResponse,omitempty"`
 	ChunkIterator                      int                                                          `json:"chunkIterator"`
+	ApiIterationCount                  int                                                          `json:"apiIterationCount"`
 	RegexSearchResults                 []hera_search.SearchResult                                   `json:"searchResults,omitempty"`
 	Retrieval                          artemis_orchestrations.RetrievalItem                         `json:"retrieval,omitempty"`
 	ApiResponseResults                 []hera_search.SearchResult                                   `json:"apiResponseResults,omitempty"`
@@ -64,7 +66,7 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	}
 	logger := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 30, // Setting a valid non-zero timeout
+		ScheduleToCloseTimeout: time.Hour * 12, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 10,
@@ -84,6 +86,8 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	var feedback error
 	for attempt := 0; attempt < int(maxAttempts); attempt++ {
 		log.Info().Int("attempt", attempt).Msg("JsonOutputTaskWorkflow: attempt")
+		cao := ao
+		cao.HeartbeatTimeout = time.Minute * 10
 		jsonTaskCtx = workflow.WithActivityOptions(ctx, ao)
 		feedbackPrompt := ""
 		if feedback != nil {
@@ -156,7 +160,6 @@ func (z *ZeusAiPlatformServiceWorkflows) JsonOutputTaskWorkflow(ctx workflow.Con
 	mb.Tc.JsonResponseResults = aiResp.JsonResponseResults
 	mb.Tc.Schemas = aiResp.Schemas
 	mb.Tc.ResponseID = aiResp.ResponseID
-
 	log.Info().Interface("wfResultID", mb.Tc.WorkflowResultID).Interface("respID", mb.Tc.ResponseID).Interface("len(mb.Tc.JsonResponseResults)", len(mb.Tc.JsonResponseResults)).Msg("JsonOutputTaskWorkflow: done")
 	return mb, nil
 }

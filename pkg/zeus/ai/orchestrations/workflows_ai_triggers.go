@@ -24,12 +24,12 @@ const (
 func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) error {
 	logger := workflow.GetLogger(ctx)
 	aoAiAct := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 15, // Setting a valid non-zero timeout
+		ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2.0,
 			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    25,
+			MaximumAttempts:    100,
 		},
 	}
 
@@ -45,11 +45,17 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 	}
 	var triggerActions []artemis_orchestrations.TriggerAction
 	triggerEvalsLookupCtx := workflow.WithActivityOptions(ctx, aoAiAct)
+	tmpOu := cp.Ou
+	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+		tmpOu.OrgID = FlowsOrgID
+		tq.Ou = tmpOu
+	}
 	err := workflow.ExecuteActivity(triggerEvalsLookupCtx, z.LookupEvalTriggerConditions, tq).Get(triggerEvalsLookupCtx, &triggerActions)
 	if err != nil {
 		logger.Error("failed to get eval trigger info", "Error", err)
 		return err
 	}
+
 	// if there are no trigger actions to execute, check if conditions are met for execution for filter
 	if len(triggerActions) == 0 && cp.Tc.JsonResponseResults != nil {
 		// just filter passing to next stage then if no trigger action with specific pass/fail conditions
@@ -97,9 +103,13 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 			}
 			for ri, ret := range ta.TriggerRetrievals {
 				log.Info().Interface("retID", ret.RetrievalID).Msg("apiRetrieval: ret ID for api retrieval")
+				tmpOu = cp.Ou
+				if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+					tmpOu.OrgID = FlowsOrgID
+				}
 				var rets []artemis_orchestrations.RetrievalItem
 				chunkedTaskCtx := workflow.WithActivityOptions(ctx, aoAiAct)
-				err = workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, cp.Ou, ret.RetrievalID).Get(chunkedTaskCtx, &rets)
+				err = workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, tmpOu, ret.RetrievalID).Get(chunkedTaskCtx, &rets)
 				if err != nil {
 					logger.Error("failed to run ret task", "Error", err)
 					return err
@@ -113,9 +123,9 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 					3. update task with results
 				*/
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-					WorkflowID:               cp.Oj.OrchestrationName + "-api-ret-" + strconv.Itoa(ri) + "-" + strconv.Itoa(cp.WfExecParams.WorkflowExecTimekeepingParams.CurrentCycleCount),
-					WorkflowExecutionTimeout: cp.WfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
-					RetryPolicy:              aoAiAct.RetryPolicy,
+					WorkflowID:         cp.Oj.OrchestrationName + "-api-ret-" + strconv.Itoa(ri) + "-" + strconv.Itoa(cp.WfExecParams.WorkflowExecTimekeepingParams.CurrentCycleCount),
+					WorkflowRunTimeout: aoAiAct.ScheduleToCloseTimeout,
+					RetryPolicy:        aoAiAct.RetryPolicy,
 				}
 				cp.Tc.Retrieval = rets[0]
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
@@ -123,6 +133,7 @@ func (z *ZeusAiPlatformServiceWorkflows) CreateTriggerActionsWorkflow(ctx workfl
 				switch *ret.WebFilters.PayloadPreProcessing {
 				case "iterate", "iterate-qp-only":
 					for _, ple := range echoReqs {
+						//log.Info().Int("i", i).Interface("ple", ple).Msg("apiRetrieval: ple")
 						cp.Tc.WebPayload = ple
 						childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 						err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.RetrievalsWorkflow, cp).Get(childAnalysisCtx, &cp)

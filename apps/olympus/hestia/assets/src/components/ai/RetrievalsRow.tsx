@@ -149,6 +149,7 @@ const prettyPrintObject = (obj: any) => {
 };
 
 export const prettyPrintWfRunRowJSON = (json: any): string => {
+    // console.log('json:', json)
     try {
         // Determine if json is an array and format each object accordingly
         if (Array.isArray(json)) {

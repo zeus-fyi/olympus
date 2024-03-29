@@ -487,13 +487,13 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	var newResults []interface{}
 	for _, result := range results {
 		if result.WebResponse.Body != nil && len(result.QueryParams) > 0 {
-			m := map[string]interface{}{
-				"msg_body": result.Value,
+			if _, ok := result.WebResponse.Body["msg_body"]; !ok {
+				result.WebResponse.Body["msg_body"] = result.Value
 			}
 			if result.QueryParams != nil {
-				m["entity"] = result.QueryParams
+				result.WebResponse.Body["entity"] = result.QueryParams
 			}
-			newResults = append(newResults, m)
+			newResults = append(newResults, result.WebResponse.Body)
 		} else if result.WebResponse.RegexFilteredBody != "" || len(result.QueryParams) > 0 {
 			m := map[string]interface{}{
 				"msg_body": result.Value,

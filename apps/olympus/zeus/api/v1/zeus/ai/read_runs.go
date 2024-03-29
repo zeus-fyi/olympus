@@ -19,6 +19,14 @@ func GetRunReportsRequestHandler(c echo.Context) error {
 	return request.GetRuns(c)
 }
 
+func GetUIRunReportsRequestHandler(c echo.Context) error {
+	request := new(RunsActionsRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.GetRunsUI(c)
+}
+
 func (w *RunsActionsRequest) GetRunsUI(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
@@ -33,7 +41,7 @@ func (w *RunsActionsRequest) GetRunsUI(c echo.Context) error {
 	//if !isBillingSetup {
 	//	return c.JSON(http.StatusPreconditionFailed, nil)
 	//}
-	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(context.Background(), ou, 0)
+	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrationsUI(context.Background(), ou, 0)
 	if err != nil {
 		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)

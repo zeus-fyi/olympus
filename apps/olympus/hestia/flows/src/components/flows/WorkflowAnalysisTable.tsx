@@ -8,18 +8,7 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
-import {
-    setAssistants,
-    setEvalFns,
-    setOpenRunsRow,
-    setOrchDetails,
-    setRetrievals,
-    setRuns,
-    setSchemas,
-    setSelectedRuns,
-    setTriggerActions,
-    setWorkflows
-} from "../../redux/ai/ai.reducer";
+import {setOpenRunsRow, setOrchDetails, setRuns, setSelectedRuns} from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
 import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
@@ -42,7 +31,6 @@ export function WorkflowAnalysisTable(props: any) {
             setIsLoading(true);
             const response = await aiApiGateway.getRun(runId);
             // Assuming response.data is an array of OrchestrationsAnalysis
-            console.log("response", response.data)
             const runToUpdate: OrchestrationsAnalysis[] = response.data.filter((run: OrchestrationsAnalysis) => run.orchestration.orchestrationStrID === runId);
             if (runToUpdate.length > 0) {
                 // Assuming we want to update the orchDetails state with these details

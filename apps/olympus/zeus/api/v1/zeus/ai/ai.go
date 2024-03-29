@@ -48,6 +48,7 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 	// runs
 	e.GET("/run/ai/:id", GetRunActionsRequestHandler)
 	e.GET("/runs/ai", GetRunReportsRequestHandler)
+	e.GET("/runs/ui/ai", GetRunReportsRequestHandler)
 
 	e.POST("/flows", FlowsActionsRequestHandler)
 	// for a 10M for 10 MB limit

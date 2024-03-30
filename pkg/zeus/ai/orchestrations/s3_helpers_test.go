@@ -24,6 +24,8 @@ func (t *ZeusWorkerTestSuite) TestSecretsSelect() {
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, org_users.NewOrgUserWithID(FlowsOrgID, 0), "s3-ovh-us-west-or")
 	t.Require().Nil(err)
 	t.Require().NotNil(ps)
+	t.Assert().NotEmpty(ps.S3AccessKey)
+	t.Assert().NotEmpty(ps.S3SecretKey)
 }
 
 func (t *ZeusWorkerTestSuite) TestS3HelperUploadWfData() {

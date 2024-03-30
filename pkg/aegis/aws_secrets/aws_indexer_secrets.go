@@ -242,7 +242,7 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 	op := &OAuth2PlatformSecret{
 		Platform: platform,
 	}
-	mpAdd := MockingBirdPlatformNamesCloudServices("cloud")
+	mpAdd := MockingBirdPlatformNamesCloudServices("mb")
 	for k, v := range mpAdd {
 		mp[k] = v
 	}
@@ -290,8 +290,7 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 			if strings.HasSuffix(mkeyName, platform) {
 				op.BearerToken = svItem.Value
 			}
-			// cloud platform
-			if strings.HasSuffix(mkeyName, "-s3-public") {
+			if strings.HasSuffix(mkeyName, "-s3-access") {
 				op.S3AccessKey = svItem.Value
 			}
 			if strings.HasSuffix(mkeyName, "-s3-secret") {
@@ -320,7 +319,7 @@ func MockingBirdPlatformNames(platform string) map[string]string {
 
 func MockingBirdPlatformNamesCloudServices(platform string) map[string]string {
 	return map[string]string{
-		fmt.Sprintf("%s-s3-public", platform): "mockingbird-s3-ovh-us-west-or",
+		fmt.Sprintf("%s-s3-access", platform): "mockingbird-s3-ovh-us-west-or",
 		fmt.Sprintf("%s-s3-secret", platform): "mockingbird-s3-ovh-us-west-or",
 	}
 }

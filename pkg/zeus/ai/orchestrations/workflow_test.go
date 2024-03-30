@@ -9,13 +9,13 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 type ZeusWorkerTestSuite struct {
-	test_suites_base.TestSuite
+	test_suites_s3.S3TestSuite
 }
 
 var ctx = context.Background()
@@ -30,6 +30,7 @@ func (t *ZeusWorkerTestSuite) SetupTest() {
 		SecretKey: t.Tc.AwsSecretKeySecretManager,
 	}
 	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
+	//t.SetupLocalOvhS3()
 }
 
 func (t *ZeusWorkerTestSuite) initWorker() {

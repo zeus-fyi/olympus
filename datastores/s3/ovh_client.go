@@ -20,6 +20,7 @@ func NewOvhConnS3ClientWithStaticCreds(ctx context.Context, key, secret string) 
 	}
 	return s3client, err
 }
+
 func (s *S3Client) ConnectS3SpacesOvh(ctx context.Context) error {
 	if len(s.spacesKey) <= 0 && len(s.spacesSecret) <= 0 {
 		panic("S3Client: } had no provided param credentials, and no env vars")

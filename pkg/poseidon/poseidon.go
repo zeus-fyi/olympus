@@ -112,3 +112,19 @@ func NewS3Poseidon(s3Client s3base.S3Client) Poseidon {
 		},
 	}
 }
+
+func NewS3PoseidonLinux(s3Client s3base.S3Client) Poseidon {
+	return Poseidon{
+		compression.NewCompression(),
+		s3Client,
+		filepaths.Path{
+			PackageName: "",
+			DirIn:       "/",
+			DirOut:      "/",
+			FnIn:        "",
+			FnOut:       "",
+			Env:         "",
+			FilterFiles: string_utils.FilterOpts{},
+		},
+	}
+}

@@ -38,6 +38,30 @@ func (t *S3ReadTestSuite) TestRead() {
 	t.Require().Nil(err)
 }
 
+// TestRead, you'll need to set the secret values to run the test
+func (t *S3ReadTestSuite) TestReadOvh() {
+	ctx := context.Background()
+
+	input := &s3.GetObjectInput{
+		Bucket: aws.String("zeusfyi"),
+		Key:    aws.String("local-text.txt"),
+	}
+	p := filepaths.Path{
+		PackageName: "",
+		DirIn:       "/Users/alex/go/Olympus/olympus/datastores/s3/read",
+		DirOut:      "",
+		FnIn:        "local-text.txt",
+		Env:         "",
+		FilterFiles: string_utils.FilterOpts{},
+	}
+
+	reader := NewS3ClientReader(t.OvhS3)
+
+	err := reader.Read(ctx, &p, input)
+	t.Require().Nil(err)
+
+}
+
 func TestS3ReadTestSuite(t *testing.T) {
 	suite.Run(t, new(S3ReadTestSuite))
 }

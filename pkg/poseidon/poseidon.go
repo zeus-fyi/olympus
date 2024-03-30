@@ -32,6 +32,13 @@ type BucketRequest struct {
 	CompressionType string `json:"compressionType,omitempty"`
 }
 
+type S3BucketRequest struct {
+	BucketName      string `json:"bucketName"`
+	BucketKey       string `json:"bucketKey,omitempty"`
+	CompressionType string `json:"compressionType,omitempty"`
+	//zeus_common_types.CloudCtxNs
+}
+
 func GetBinBuildBucket(appName string) BucketRequest {
 	appName = strings.ToLower(appName)
 	b := BucketRequest{}
@@ -82,6 +89,22 @@ func NewPoseidon(s3Client s3base.S3Client) Poseidon {
 			PackageName: "",
 			DirIn:       "/data",
 			DirOut:      "/data",
+			FnIn:        "",
+			FnOut:       "",
+			Env:         "",
+			FilterFiles: string_utils.FilterOpts{},
+		},
+	}
+}
+
+func NewS3Poseidon(s3Client s3base.S3Client) Poseidon {
+	return Poseidon{
+		compression.NewCompression(),
+		s3Client,
+		filepaths.Path{
+			PackageName: "",
+			DirIn:       "./",
+			DirOut:      "./",
 			FnIn:        "",
 			FnOut:       "",
 			Env:         "",

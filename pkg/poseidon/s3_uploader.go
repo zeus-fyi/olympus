@@ -66,6 +66,24 @@ func (p *Poseidon) UploadSnapshot(ctx context.Context, br BucketRequest) error {
 	return err
 }
 
+func (p *Poseidon) S3UploadSnapshot(ctx context.Context, br S3BucketRequest) error {
+	ctx = context.WithValue(ctx, "func", "S3UploadSnapshot")
+	uploader := s3uploader.NewS3ClientUploader(p.S3Client)
+	if br.BucketKey == "" {
+		if p.FnIn != "" {
+			br.BucketKey = p.FileInPath()
+		} else if p.FnOut != "" {
+			br.BucketKey = p.FileOutPath()
+		}
+	}
+	input := &s3.PutObjectInput{
+		Bucket: aws.String(br.BucketName),
+		Key:    aws.String(p.FnIn),
+	}
+	err := uploader.Upload(ctx, p.Path, input)
+	return err
+}
+
 func (p *Poseidon) SyncUpload(ctx context.Context, br BucketRequest) error {
 	ctx = context.WithValue(ctx, "func", "SyncUpload")
 	br.CompressionType = "none"

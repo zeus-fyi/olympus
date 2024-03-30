@@ -12,17 +12,17 @@ type ChainUploaderTestSuite struct {
 	test_suites_s3.S3TestSuite
 }
 
-func (s *ChainUploaderTestSuite) SetupTest() {
-	s.InitLocalConfigs()
-	s.SetupLocalDigitalOceanS3()
+var brUpload = BucketRequest{
+	BucketName: "zeusfyi",
 }
 
-var brUpload = BucketRequest{
-	BucketName: "zeus-fyi-ethereum",
-	Protocol:   "ethereum",
-	Network:    "mainnet",
-	ClientType: "exec.client.standard",
-	ClientName: "geth",
+func (s *ChainUploaderTestSuite) TestOvHTextFileZstdCmpAndUpload() {
+	ctx := context.Background()
+	pos := NewS3Poseidon(s.OvhS3)
+	pos.DirIn = "./"
+	pos.FnIn = "tmp.txt"
+	err := pos.ZstCompressFile(ctx, &pos.Path)
+	s.Require().Nil(err)
 }
 
 func (s *ChainUploaderTestSuite) TestChainZstdCmpAndUpload() {

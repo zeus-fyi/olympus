@@ -24,6 +24,7 @@ type WorkflowExecParams struct {
 }
 
 type WorkflowOverrides struct {
+	WorkflowRunName      string             `json:"workflowRunName"`
 	IsUsingFlows         bool               `json:"isUsingFlows"`
 	SchemaFieldOverrides SchemaOverrides    `json:"schemaFieldOverrides"`
 	RetrievalOverrides   RetrievalOverrides `json:"retrievalOverride"`

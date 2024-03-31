@@ -14,7 +14,11 @@ import (
 	"go.temporal.io/sdk/activity"
 )
 
-const FlowsOrgID = 1685378241971196000
+const (
+	FlowsOrgID      = 1685378241971196000
+	FlowsS3Ovh      = "s3-ovh-us-west-or"
+	FlowsBucketName = "flows"
+)
 
 func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Context, mb *MbChildSubProcessParams, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
 	var jsd []*artemis_orchestrations.JsonSchemaDefinition

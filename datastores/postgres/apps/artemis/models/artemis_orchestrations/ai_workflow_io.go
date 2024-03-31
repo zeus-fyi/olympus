@@ -8,22 +8,24 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type WorkflowStageReference struct {
-	InputID            int             `json:"inputID"`
-	InputStrID         string          `json:"inputStrID"`
-	WorkflowRunID      int             `json:"workflowRunID"`
-	ChildWfID          string          `json:"childWfID"`
-	RunCycle           int             `json:"runCycle"`
-	IterationCount     int             `json:"iterationCount"`
-	EvalIterationCount int             `json:"evalIterationCount"`
-	ChunkOffset        int             `json:"chunk"`
-	InputData          json.RawMessage `json:"inputData"`
-	Logs               []string        `json:"logs"`
-	LogsStr            string          `json:"-"`
+	Org                org_users.OrgUser `json:"org"`
+	InputID            int               `json:"inputID"`
+	InputStrID         string            `json:"inputStrID"`
+	WorkflowRunID      int               `json:"workflowRunID"`
+	ChildWfID          string            `json:"childWfID"`
+	RunCycle           int               `json:"runCycle"`
+	IterationCount     int               `json:"iterationCount"`
+	EvalIterationCount int               `json:"evalIterationCount"`
+	ChunkOffset        int               `json:"chunk"`
+	InputData          json.RawMessage   `json:"inputData"`
+	Logs               []string          `json:"logs"`
+	LogsStr            string            `json:"-"`
 }
 
 func InsertWorkflowStageReference(ctx context.Context, wfStageIO *WorkflowStageReference) error {

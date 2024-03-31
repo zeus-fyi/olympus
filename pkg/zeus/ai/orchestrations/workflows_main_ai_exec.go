@@ -24,7 +24,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		},
 		DisableEagerExecution: false,
 	}
-
+	wfExecParams.WorkflowOverrides.WorkflowRunName = wfID
 	ojCtx := workflow.WithActivityOptions(ctx, ao)
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, wfExecParams.WorkflowTemplate.WorkflowGroup, wfExecParams.WorkflowTemplate.WorkflowName)
 	err := workflow.ExecuteActivity(ojCtx, z.UpsertAiOrchestration, ou, wfID, wfExecParams).Get(ojCtx, &oj.OrchestrationID)

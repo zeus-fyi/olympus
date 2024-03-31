@@ -48,21 +48,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 			return nil
 		}
 		aggCycle := wfExecParams.CycleCountTaskRelative.AggNormalizedCycleCounts[*aggInst.AggTaskID]
+		// checks for run cycle validity
 		if i%aggCycle == 0 {
+			cp.Tc = getAggTaskContext(aggInst)
 			logger.Info("aggregation: taskID", *aggInst.AggTaskID)
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			cp.Window = window
-			cp.Tc = TaskContext{
-				TaskType:              AggTask,
-				Model:                 aws.StringValue(aggInst.AggModel),
-				TaskID:                aws.IntValue(aggInst.AggTaskID),
-				ResponseFormat:        aws.StringValue(aggInst.AggResponseFormat),
-				Prompt:                aws.StringValue(aggInst.AggPrompt),
-				WorkflowTemplateData:  aggInst,
-				TokenOverflowStrategy: aws.StringValue(aggInst.AggTokenOverflowStrategy),
-				MarginBuffer:          aws.Float64Value(aggInst.AggMarginBuffer),
-				Temperature:           float32(aws.Float64Value(aggInst.AggTemperature)),
-			}
 			depM := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 			var analysisDep []int
 			for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
@@ -176,4 +167,19 @@ func getChunkIteratorLen(pr *PromptReduction) int {
 		return len(pr.PromptReductionText.OutPromptChunks)
 	}
 	return chunkIterator
+}
+
+func getAggTaskContext(aggInst artemis_orchestrations.WorkflowTemplateData) TaskContext {
+	return TaskContext{
+		TaskName:              aws.StringValue(aggInst.AggTaskName),
+		TaskType:              AggTask,
+		Model:                 aws.StringValue(aggInst.AggModel),
+		TaskID:                aws.IntValue(aggInst.AggTaskID),
+		ResponseFormat:        aws.StringValue(aggInst.AggResponseFormat),
+		Prompt:                aws.StringValue(aggInst.AggPrompt),
+		WorkflowTemplateData:  aggInst,
+		TokenOverflowStrategy: aws.StringValue(aggInst.AggTokenOverflowStrategy),
+		MarginBuffer:          aws.Float64Value(aggInst.AggMarginBuffer),
+		Temperature:           float32(aws.Float64Value(aggInst.AggTemperature)),
+	}
 }

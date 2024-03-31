@@ -37,15 +37,16 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			continue
 		}
 		log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle")
+		// checks for run cycle validity
 		if runCycle%analysisInst.AnalysisCycleCount == 0 {
 			if md.AnalysisRetrievals[analysisInst.AnalysisTaskID] == nil {
 				continue
 			}
+			cp.Tc = getAnalysisTaskContext(analysisInst)
 			log.Info().Interface("taskID", analysisInst.AnalysisTaskID).Msg("analysis: taskID")
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime,
 				i-analysisInst.AnalysisCycleCount, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			cp.Window = window
-			cp.Tc = getAnalysisTaskContext(analysisInst)
 			if analysisInst.RetrievalID != nil && *analysisInst.RetrievalID > 0 {
 				if md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] == false {
 					continue
@@ -241,6 +242,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 
 func getAnalysisTaskContext(analysisInst artemis_orchestrations.WorkflowTemplateData) TaskContext {
 	return TaskContext{
+		TaskName:              analysisInst.AnalysisTaskName,
 		TaskType:              AnalysisTask,
 		Model:                 analysisInst.AnalysisModel,
 		TaskID:                analysisInst.AnalysisTaskID,

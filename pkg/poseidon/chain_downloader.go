@@ -1,6 +1,7 @@
 package poseidon
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os/exec"
@@ -28,7 +29,7 @@ func (p *Poseidon) Download(ctx context.Context, br BucketRequest) error {
 }
 
 func (p *Poseidon) S3Download(ctx context.Context, br S3BucketRequest) error {
-	ctx = context.WithValue(ctx, "func", "Download")
+	ctx = context.WithValue(ctx, "func", "S3Download")
 	downloader := s3reader.NewS3ClientReader(p.S3Client)
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(br.BucketName),
@@ -40,6 +41,21 @@ func (p *Poseidon) S3Download(ctx context.Context, br S3BucketRequest) error {
 		return err
 	}
 	return err
+}
+
+func (p *Poseidon) S3DownloadReadBytes(ctx context.Context, br S3BucketRequest) (*bytes.Buffer, error) {
+	ctx = context.WithValue(ctx, "func", "S3DownloadReadBytes")
+	downloader := s3reader.NewS3ClientReader(p.S3Client)
+	input := &s3.GetObjectInput{
+		Bucket: aws.String(br.BucketName),
+		Key:    aws.String(br.BucketKey),
+	}
+	buf, err := downloader.ReadBytesNoPanic(ctx, &p.Path, input)
+	if err != nil {
+		log.Err(err).Msg("Download: downloader.Read")
+		return nil, err
+	}
+	return buf, err
 }
 
 func (p *Poseidon) TarDownloadAndDec(ctx context.Context, br BucketRequest) error {

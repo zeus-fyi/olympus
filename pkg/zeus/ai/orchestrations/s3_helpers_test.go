@@ -9,8 +9,7 @@ import (
 // S3SaveWorkflowIO
 
 func (t *ZeusWorkerTestSuite) TestS3HelperDownloadWfData() {
-	wfr := WorkflowStageIO{}
-	wfi, err := gs3wfs(ctx, &wfr)
+	wfi, err := gs3wfs(ctx, t.Ou, "run-demo")
 	t.Require().Nil(err)
 	t.Require().NotNil(wfi)
 }
@@ -30,7 +29,7 @@ func (t *ZeusWorkerTestSuite) TestS3HelperUploadWfData() {
 	wfr, err := act.SelectWorkflowIO(ctx, 2)
 	t.Require().Nil(err)
 	t.Require().NotNil(wfr)
-
+	wfr.WorkflowOverrides.IsUsingFlows = true
 	wfr.WorkflowOverrides.WorkflowRunName = "run-demo"
 	wfr.Org = t.Ou
 	wfi, err := s3ws(ctx, &wfr)

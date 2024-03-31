@@ -19,7 +19,6 @@ import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
-// TODO integrate reader + swaps testing
 func s3ws(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error) {
 	if input == nil {
 		log.Warn().Msg("SaveEvalResponseOutput: at least one input is nil or empty")
@@ -82,14 +81,17 @@ func s3ws(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error)
 }
 
 // TODO integrate reader + swaps testing
-func gs3wfs(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error) {
-	if input == nil {
-		log.Warn().Msg("SaveEvalResponseOutput: at least one input is nil or empty")
+func gs3wfs(ctx context.Context, ou org_users.OrgUser, runName string) (*WorkflowStageIO, error) {
+	if ou.OrgID <= 0 {
+		log.Warn().Msg("gs3wfs: missing org id")
+		return nil, nil
+	}
+	if len(runName) <= 0 {
+		log.Warn().Msg("gs3wfs: missing run name")
 		return nil, nil
 	}
 	var err error
 	if athena.OvhS3Manager.AwsS3Client == nil {
-		// TODO verify secrets
 		var ps *aws_secrets.OAuth2PlatformSecret
 		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(FlowsOrgID, 0), FlowsS3Ovh)
 		if err != nil {
@@ -102,12 +104,32 @@ func gs3wfs(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, erro
 			return nil, err
 		}
 	}
-
-	var br poseidon.S3BucketRequest
-	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
-	err = pos.S3ZstdDownloadAndDec(ctx, br)
+	ogk, err := artemis_entities.HashParams(ou.OrgID, nil)
 	if err != nil {
-		log.Err(err).Msg("g3ws: S3ZstdDownloadAndDec error")
+		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		return nil, err
 	}
-	return nil, err
+	p := filepaths.Path{
+		DirIn:  fmt.Sprintf("/%s", ogk),
+		DirOut: fmt.Sprintf("/%s", ogk),
+		FnIn:   runName,
+		FnOut:  runName,
+	}
+	br := poseidon.S3BucketRequest{
+		BucketName: FlowsBucketName,
+		BucketKey:  p.FileOutPath(),
+	}
+	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
+	buf, err := pos.S3DownloadReadBytes(ctx, br)
+	if err != nil {
+		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
+		return nil, err
+	}
+	input := &WorkflowStageIO{}
+	err = json.Unmarshal(buf.Bytes(), &input)
+	if err != nil {
+		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
+		return nil, err
+	}
+	return input, err
 }

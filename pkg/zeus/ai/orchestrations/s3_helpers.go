@@ -33,20 +33,20 @@ func stageNamePath(cp *MbChildSubProcessParams) (*filepaths.Path, error) {
 		return nil, fmt.Errorf("must have task name to save s3 obj")
 	}
 	// 1. wf-run-name
-	// 2. wf-run-cycle
-	// 3. wf-task-name
+	// 2. wf-task-name
+	// 3. wf-run-cycle
+	// 4. wf-chunk
 	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
-	runCycle := cp.Wsr.RunCycle
 	ogk, err := artemis_entities.HashParams(cp.Ou.OrgID, nil)
 	if err != nil {
 		log.Err(err).Msg("s3ws: failed to hash wsr io")
 		return nil, err
 	}
 	p := &filepaths.Path{
-		DirIn:  fmt.Sprintf("/%s/%s/%d", ogk, wfRunName, runCycle),
-		DirOut: fmt.Sprintf("/%s/%s/%d", ogk, wfRunName, runCycle),
-		FnIn:   fmt.Sprintf("%s.json", cp.Tc.TaskName),
-		FnOut:  fmt.Sprintf("%s.json", cp.Tc.TaskName),
+		DirIn:  fmt.Sprintf("/%s/%s/cycle/%d/", ogk, wfRunName, cp.Wsr.RunCycle),
+		DirOut: fmt.Sprintf("/%s/%s/cycle/%d/", ogk, wfRunName, cp.Wsr.RunCycle),
+		FnIn:   fmt.Sprintf("%s-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
+		FnOut:  fmt.Sprintf("%s-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
 	}
 	return p, nil
 }

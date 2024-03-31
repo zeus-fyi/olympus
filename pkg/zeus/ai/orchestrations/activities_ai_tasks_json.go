@@ -58,6 +58,7 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 			jsd = append(jsd, taskDef.Schemas...)
 		}
 	}
+	// todo: needs to save data outputs
 	params.FunctionDefinition = artemis_orchestrations.ConvertToFuncDef(jsd)
 	in, err := gs3wfs(ctx, mb)
 	if err != nil {

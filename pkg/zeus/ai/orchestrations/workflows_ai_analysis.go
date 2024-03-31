@@ -32,11 +32,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 	runCycle := cp.Wsr.RunCycle
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	i := runCycle
+	log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle")
 	for _, analysisInst := range wfExecParams.WorkflowTasks {
+		// if agg task id; meant only for agg tasks; since agg task can contain original related analysis task embedded
 		if analysisInst.AggTaskID != nil {
 			continue
 		}
-		log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle")
 		// checks for run cycle validity
 		if runCycle%analysisInst.AnalysisCycleCount == 0 {
 			if md.AnalysisRetrievals[analysisInst.AnalysisTaskID] == nil {

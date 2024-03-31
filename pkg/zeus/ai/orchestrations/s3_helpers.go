@@ -36,7 +36,7 @@ func stageNamePath(cp *MbChildSubProcessParams) (*filepaths.Path, error) {
 	// 2. wf-run-cycle
 	// 3. wf-task-name
 	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
-	runCycle := cp.WfExecParams.WorkflowExecTimekeepingParams.CurrentCycleCount
+	runCycle := cp.Wsr.RunCycle
 	ogk, err := artemis_entities.HashParams(cp.Ou.OrgID, nil)
 	if err != nil {
 		log.Err(err).Msg("s3ws: failed to hash wsr io")

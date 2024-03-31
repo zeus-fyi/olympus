@@ -66,9 +66,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				if len(rets) <= 0 {
 					continue
 				}
-				cp.Tc.TokenOverflowStrategy = analysisInst.AnalysisTokenOverflowStrategy
-				cp.Tc.Model = analysisInst.AnalysisModel
-				cp.Tc.MarginBuffer = analysisInst.AnalysisMarginBuffer
 				cp.Tc.Retrieval = rets[0]
 				aoRet := workflow.ActivityOptions{
 					ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout

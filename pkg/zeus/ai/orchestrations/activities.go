@@ -893,27 +893,6 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 	return wr.WorkflowResultID, nil
 }
 
-/*
-	var zs string
-	if dataIn.ChatCompletionQueryResponse != nil && dataIn.ChatCompletionQueryResponse.Response.Choices != nil {
-		for _, c := range dataIn.ChatCompletionQueryResponse.Response.Choices {
-			zs += c.Message.Content
-		}
-		if wio.PromptReduction == nil {
-			wio.PromptReduction = &PromptReduction{}
-		}
-		if wio.PromptReduction.PromptReductionText == nil {
-			wio.PromptReduction.PromptReductionText = &PromptReductionText{}
-		}
-		wio.PromptReduction.PromptReductionText.InPromptBody += zs
-		_, err = sws(ctx, &wio)
-		if err != nil {
-			log.Err(err).Msg("AiRetrievalTask: failed")
-			return 0, err
-		}
-	}
-*/
-
 // UpdateTaskOutput updates the task output, but it only intended for json output results
 func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbChildSubProcessParams) ([]artemis_orchestrations.JsonSchemaDefinition, error) {
 	if cp == nil || len(cp.Tc.JsonResponseResults) <= 0 {

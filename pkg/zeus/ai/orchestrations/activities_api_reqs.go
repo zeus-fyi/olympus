@@ -95,6 +95,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if retInst.WebFilters == nil || retInst.WebFilters.RoutingGroup == nil || len(*retInst.WebFilters.RoutingGroup) <= 0 {
 		return nil, nil
 	}
+	rg := *retInst.WebFilters.RoutingGroup
 	restMethod := http.MethodGet
 	if retInst.WebFilters.EndpointREST != nil {
 		restMethod = strings.ToLower(*retInst.WebFilters.EndpointREST)
@@ -145,7 +146,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if retInst.WebFilters.DontRetryStatusCodes != nil {
 		sec = retInst.WebFilters.DontRetryStatusCodes
 	}
-	secretNameRefApi := fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)
+	secretNameRefApi := fmt.Sprintf("api-%s", rg)
 	var regexPatterns []string
 	for _, rgp := range retInst.WebFilters.RegexPatterns {
 		regexPatterns = append(regexPatterns, FixRegexInput(rgp))
@@ -165,6 +166,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		SecretNameRef:          secretNameRefApi,
 		IsFlowRequest:          cp.WfExecParams.WorkflowOverrides.IsUsingFlows,
 	}
+	log.Info().Interface("req.Url", req.Url).Msg("req value")
 	reqCached := false
 	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
 		// cache is either
@@ -183,7 +185,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		if len(ht.RequestCache) > 0 {
 			uew := artemis_entities.UserEntity{
 				Nickname: ht.RequestCache,
-				Platform: req.Url,
+				Platform: rg,
 			}
 			_, err = gs3globalWf(ctx, cp, uew)
 			if err != nil {
@@ -232,7 +234,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			reqHash = ht.RequestCache
 			uew := artemis_entities.UserEntity{
 				Nickname: ht.RequestCache,
-				Platform: req.Url,
+				Platform: rg,
 			}
 			if len(req.Response) > 0 {
 				b, cerr := json.Marshal(req.Response)

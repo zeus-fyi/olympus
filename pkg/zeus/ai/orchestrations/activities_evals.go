@@ -85,11 +85,10 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 		log.Info().Msg("EvalModelScoredJsonOutput: at least one input is nil or empty")
 		return nil, nil
 	}
-	act := NewZeusAiPlatformActivities()
-	wio, err := act.SelectWorkflowIO(ctx, cp.Wsr.InputID)
-	if err != nil {
-		log.Err(err).Msg("EvalModelScoredJsonOutput: failed to select workflow io")
-		return nil, err
+	wio, werr := gs3wfs(ctx, cp)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return nil, werr
 	}
 	emr := &artemis_orchestrations.EvalMetricsResults{
 		EvalContext: artemis_orchestrations.EvalContext{
@@ -121,7 +120,7 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 			continue
 		}
 		copyMatchingFieldValuesFromResp(&cp.Tc.JsonResponseResults[i], ef.SchemasMap)
-		err = TransformJSONToEvalScoredMetrics(ef.SchemasMap[cp.Tc.JsonResponseResults[i].SchemaStrID])
+		err := TransformJSONToEvalScoredMetrics(ef.SchemasMap[cp.Tc.JsonResponseResults[i].SchemaStrID])
 		if err != nil {
 			log.Err(err).Int("i", i).Interface("scoredResultsFields", cp.Tc.JsonResponseResults[i]).Msg("EvalModelScoredJsonOutput: failed to transform json to eval scored metrics")
 			return nil, err
@@ -146,17 +145,16 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 		wio.CreateTriggerActionsWorkflowInputs = &CreateTriggerActionsWorkflowInputs{}
 	}
 	wio.CreateTriggerActionsWorkflowInputs.Emr = emr
-	err = artemis_orchestrations.UpsertEvalMetricsResults(ctx, wio.CreateTriggerActionsWorkflowInputs.Emr)
+	err := artemis_orchestrations.UpsertEvalMetricsResults(ctx, wio.CreateTriggerActionsWorkflowInputs.Emr)
 	if err != nil {
-		log.Err(err).Msg("EvalLookup: failed to get eval fn")
-		return nil, err
-	}
-
-	_, err = act.SaveWorkflowIO(ctx, &wio)
-	if err != nil {
-		log.Err(err).Msg("SaveEvalResponseOutput: failed to save workflow io")
+		log.Err(err).Msg("EvalLookup: upsert to get eval fn results")
 		return nil, err
 	}
 	cp.Tc.JsonResponseResults = emr.EvaluatedJsonResponses
+	_, err = s3ws(ctx, cp, wio)
+	if err != nil {
+		log.Err(err).Msg("EvalLookup: failed to save s3 obj w/results")
+		return nil, err
+	}
 	return cp, nil
 }

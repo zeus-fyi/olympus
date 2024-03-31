@@ -180,7 +180,6 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowString")
 		return nil, err
 	}
-
 	tmp := pr.PromptReductionSearchResults
 	if tmp != nil && tmp.OutSearchGroups != nil && len(tmp.OutSearchGroups) > 0 {
 		log.Info().Interface("pr.TokenOverflowStrategy", pr.TokenOverflowStrategy).Interface("len(tmp.OutSearchGroups)", len(tmp.OutSearchGroups)).Msg("TokenOverflowReductioDone")
@@ -191,25 +190,12 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	if pr.PromptReductionSearchResults != nil && (pr.PromptReductionSearchResults.OutSearchGroups == nil || len(pr.PromptReductionSearchResults.OutSearchGroups) <= 0) && pr.PromptReductionText != nil && len(pr.PromptReductionText.OutPromptChunks) > 0 {
 		pr.PromptReductionSearchResults = nil
 	}
-	if cp.Wsr.InputID > 0 && wioPtr != nil {
-		wioPtr.PromptReduction = pr
-		_, werr = s3ws(ctx, cp, wioPtr)
-		if werr != nil {
-			log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
-			return nil, werr
-		}
-	} else {
-		wios := WorkflowStageIO{
-			WorkflowStageReference: cp.Wsr,
-			WorkflowStageInfo: WorkflowStageInfo{
-				PromptReduction: pr,
-			},
-		}
-		_, wserr := s3ws(ctx, cp, &wios)
-		if wserr != nil {
-			log.Err(wserr).Msg("AiRetrievalTask: failed")
-			return nil, wserr
-		}
+	wioPtr.PromptReduction = pr
+	// TODO: later break up into chunk filepaths
+	_, werr = s3ws(ctx, cp, wioPtr)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
+		return nil, werr
 	}
 	chunkIterator := getChunkIteratorLen(pr)
 	cp.Tc.ChunkIterator = chunkIterator

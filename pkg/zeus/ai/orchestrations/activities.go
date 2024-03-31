@@ -58,7 +58,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.SelectTriggerActionToExec, z.SelectTriggerActionApiApprovalWithReqResponses,
 		z.CreateOrUpdateTriggerActionApprovalWithApiReq, z.UpdateTriggerActionApproval,
 		z.FilterEvalJsonResponses, z.UpdateTaskOutput, z.CreateWsr,
-		z.SelectWorkflowIO, z.SaveWorkflowIO, z.FanOutApiCallRequestTask,
+		z.FanOutApiCallRequestTask,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -304,12 +304,11 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbCh
 				},
 			},
 		}
-		wid, err := s3ws(ctx, cp, &wio)
+		_, err = s3ws(ctx, cp, &wio)
 		if err != nil {
 			log.Err(err).Msg("AiRetrievalTask: failed")
 			return nil, err
 		}
-		cp.Wsr.InputID = wid.InputID
 		return cp, nil
 	}
 

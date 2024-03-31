@@ -324,82 +324,54 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 		log.Warn().Msg("SaveResult: cp or sg is nil")
 		return nil, nil
 	}
-	if cp.Wsr.InputID == 0 {
+	wio, werr := gs3wfs(ctx, cp)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return nil, werr
+	}
+	wio.ApiIterationCount = cp.Tc.ApiIterationCount
+	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash != nil && len(reqHash) > 0 {
+		if _, ok := wio.WorkflowStageInfo.WorkflowInCacheHash[reqHash]; ok {
+			log.Info().Interface("reqHash", reqHash).Msg("SaveResult: reqHash found in cache; skip adding again to wf result")
+			return cp, nil
+		}
+	}
+	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash == nil {
 		icm := make(map[string]bool)
 		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && len(reqHash) > 0 {
 			icm[reqHash] = true
+			wio.WorkflowStageInfo.WorkflowInCacheHash = icm
+			wio.ApiIterationCount = cp.Tc.ApiIterationCount
 		}
-		wio := WorkflowStageIO{
-			WorkflowStageReference: cp.Wsr,
-			WorkflowStageInfo: WorkflowStageInfo{
-				WorkflowInCacheHash: icm,
-				ApiIterationCount:   cp.Tc.ApiIterationCount,
-				PromptReduction: &PromptReduction{
-					MarginBuffer:          cp.Tc.MarginBuffer,
-					Model:                 cp.Tc.Model,
-					TokenOverflowStrategy: cp.Tc.TokenOverflowStrategy,
-					PromptReductionSearchResults: &PromptReductionSearchResults{
-						InPromptBody:  cp.Tc.Prompt,
-						InSearchGroup: sg,
-					},
-				},
-			},
-		}
-		_, err := s3ws(ctx, cp, &wio)
-		if err != nil {
-			log.Err(err).Msg("AiRetrievalTask: failed")
-			return nil, err
-		}
-	} else {
-		wio, werr := gs3wfs(ctx, cp)
-		if werr != nil {
-			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
-			return nil, werr
-		}
+	}
+	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.PromptReduction == nil {
 		wio.ApiIterationCount = cp.Tc.ApiIterationCount
-		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash != nil && len(reqHash) > 0 {
-			if _, ok := wio.WorkflowStageInfo.WorkflowInCacheHash[reqHash]; ok {
-				log.Info().Interface("reqHash", reqHash).Msg("SaveResult: reqHash found in cache; skip adding again to wf result")
-				return cp, nil
-			}
-		}
-		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash == nil {
-			icm := make(map[string]bool)
-			if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && len(reqHash) > 0 {
-				icm[reqHash] = true
-				wio.WorkflowStageInfo.WorkflowInCacheHash = icm
-				wio.ApiIterationCount = cp.Tc.ApiIterationCount
-			}
-		}
-		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.PromptReduction == nil {
-			wio.ApiIterationCount = cp.Tc.ApiIterationCount
-			wio.WorkflowStageInfo.PromptReduction = &PromptReduction{
-				MarginBuffer:          cp.Tc.MarginBuffer,
-				Model:                 cp.Tc.Model,
-				TokenOverflowStrategy: cp.Tc.TokenOverflowStrategy,
-				PromptReductionSearchResults: &PromptReductionSearchResults{
-					InPromptBody:  cp.Tc.Prompt,
-					InSearchGroup: sg,
-				},
-			}
-		} else if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults == nil || wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup == nil {
-			wio.ApiIterationCount = cp.Tc.ApiIterationCount
-			wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
+		wio.WorkflowStageInfo.PromptReduction = &PromptReduction{
+			MarginBuffer:          cp.Tc.MarginBuffer,
+			Model:                 cp.Tc.Model,
+			TokenOverflowStrategy: cp.Tc.TokenOverflowStrategy,
+			PromptReductionSearchResults: &PromptReductionSearchResults{
 				InPromptBody:  cp.Tc.Prompt,
 				InSearchGroup: sg,
-			}
-		} else {
-			wio.ApiIterationCount = cp.Tc.ApiIterationCount
-			if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults == nil {
-				wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = make([]hera_search.SearchResult, 0)
-			}
-			wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults, sres)
+			},
 		}
-		_, err := s3ws(ctx, cp, wio)
-		if err != nil {
-			log.Err(err).Msg("TokenOverflowReduction: failed to update workflow io")
-			return nil, err
+	} else if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults == nil || wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup == nil {
+		wio.ApiIterationCount = cp.Tc.ApiIterationCount
+		wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
+			InPromptBody:  cp.Tc.Prompt,
+			InSearchGroup: sg,
 		}
+	} else {
+		wio.ApiIterationCount = cp.Tc.ApiIterationCount
+		if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults == nil {
+			wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = make([]hera_search.SearchResult, 0)
+		}
+		wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults, sres)
+	}
+	_, err := s3ws(ctx, cp, wio)
+	if err != nil {
+		log.Err(err).Msg("TokenOverflowReduction: failed to update workflow io")
+		return nil, err
 	}
 	return cp, nil
 }

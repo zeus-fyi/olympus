@@ -44,6 +44,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				continue
 			}
 			cp.Tc = getAnalysisTaskContext(analysisInst)
+			wsrCreateCtx := workflow.WithActivityOptions(ctx, ao)
+			err := workflow.ExecuteActivity(wsrCreateCtx, z.CreateWsr, cp).Get(wsrCreateCtx, &cp)
+			if err != nil {
+				logger.Error("failed to run get retrieval routes", "Error", err)
+				return err
+			}
 			log.Info().Interface("taskID", analysisInst.AnalysisTaskID).Msg("analysis: taskID")
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime,
 				i-analysisInst.AnalysisCycleCount, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
@@ -58,7 +64,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					tmpOu.OrgID = FlowsOrgID
 				}
 				chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-				err := workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, tmpOu, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
+				err = workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, tmpOu, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
 				if err != nil {
 					logger.Error("failed to run analysis retrieval", "Error", err)
 					return err
@@ -101,7 +107,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			log.Info().Msg("analysis: running token overflow reduction")
 			var chunkIterator int
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp, pr).Get(chunkedTaskCtx, &cp)
+			err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp, pr).Get(chunkedTaskCtx, &cp)
 			if err != nil {
 				logger.Error("failed to run analysis token overflow", "Error", err)
 				return err

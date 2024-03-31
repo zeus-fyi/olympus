@@ -84,12 +84,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 			logger.Error("failed to run get retrieval routes", "Error", err)
 			return nil, err
 		}
-		wsrCraeteCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(wsrCraeteCtx, z.CreateWsr, cp).Get(wsrCraeteCtx, &cp)
-		if err != nil {
-			logger.Error("failed to run get retrieval routes", "Error", err)
-			return nil, err
-		}
 		if cp.Tc.Retrieval.RetrievalItemInstruction.WebFilters != nil &&
 			cp.Tc.Retrieval.RetrievalItemInstruction.WebFilters.LbStrategy != nil &&
 			*cp.Tc.Retrieval.RetrievalItemInstruction.WebFilters.LbStrategy != lbStrategyPollTable && len(routes) > 1 {

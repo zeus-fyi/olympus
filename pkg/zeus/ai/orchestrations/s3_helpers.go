@@ -51,10 +51,38 @@ func stageNamePath(cp *MbChildSubProcessParams) (*filepaths.Path, error) {
 	return p, nil
 }
 
-func s3ws(ctx context.Context, cp *MbChildSubProcessParams, input *WorkflowStageIO) (*WorkflowStageIO, error) {
-	if cp == nil || input == nil {
-		log.Warn().Msg("SaveEvalResponseOutput: at least cp or input is nil or empty")
-		return nil, fmt.Errorf("must have run name to save s3 obj")
+func errCheckStagedWfs(ctx context.Context, cp *MbChildSubProcessParams) error {
+	if cp == nil {
+		return fmt.Errorf("cp is nil")
+	}
+	if cp.Ou.OrgID <= 0 {
+		log.Warn().Msg("gs3wfs: missing org id")
+		return fmt.Errorf("gs3wfs: missing org id")
+	}
+	if len(cp.WfExecParams.WorkflowOverrides.WorkflowRunName) <= 0 {
+		log.Warn().Msg("gs3wfs: missing run name")
+		return fmt.Errorf("gs3wfs: missing run name")
+	}
+	return s3SetupCheck(ctx)
+}
+
+func errCheckGlobalWfs(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_entities.UserEntity) error {
+	if cp == nil || ue == nil || len(ue.Nickname) <= 0 || len(ue.Platform) <= 0 {
+		log.Warn().Msg("SaveEvalResponseOutput: least one of err: cp is nil or ue nickname/platform is empty")
+		return fmt.Errorf("least one of err: cp is nil or ue nickname/platform is empty")
+	}
+	if cp.Ou.OrgID <= 0 {
+		return fmt.Errorf("must have org id to save s3 obj")
+	}
+	if cp.WfExecParams.WorkflowOverrides.WorkflowRunName == "" {
+		return fmt.Errorf("must have run name to save s3 obj")
+	}
+	return s3SetupCheck(ctx)
+}
+
+func globalWfEntityStageNamePath(cp *MbChildSubProcessParams, ue *artemis_entities.UserEntity) (*filepaths.Path, error) {
+	if cp == nil || ue == nil {
+		return nil, fmt.Errorf("must have cp MbChildSubProcessParams to createe s3 obj key name")
 	}
 	if cp.Ou.OrgID <= 0 {
 		return nil, fmt.Errorf("must have org id to save s3 obj")
@@ -62,19 +90,31 @@ func s3ws(ctx context.Context, cp *MbChildSubProcessParams, input *WorkflowStage
 	if cp.WfExecParams.WorkflowOverrides.WorkflowRunName == "" {
 		return nil, fmt.Errorf("must have run name to save s3 obj")
 	}
-	var err error
-	if athena.OvhS3Manager.AwsS3Client == nil {
-		var ps *aws_secrets.OAuth2PlatformSecret
-		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(FlowsOrgID, 0), "s3-ovh-us-west-or")
-		if err != nil {
-			log.Err(err).Msg("s3ws: failed to save workflow io")
-			return nil, err
-		}
-		athena.OvhS3Manager, err = s3base.NewOvhConnS3ClientWithStaticCreds(ctx, ps.S3AccessKey, ps.S3SecretKey)
-		if err != nil {
-			log.Err(err).Msg("s3ws: failed to save workflow io")
-			return nil, err
-		}
+	if len(ue.Nickname) <= 0 {
+		return nil, fmt.Errorf("entity have nickname to save s3 obj")
+	}
+	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
+	ogk, err := artemis_entities.HashParams(cp.Ou.OrgID, nil)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		return nil, err
+	}
+	p := &filepaths.Path{
+		DirIn:  fmt.Sprintf("/%s/%s/%s", ogk, wfRunName, ue.Platform),
+		DirOut: fmt.Sprintf("/%s/%s/%s", ogk, wfRunName, ue.Platform),
+		FnIn:   fmt.Sprintf("%s.json", ue.Nickname),
+		FnOut:  fmt.Sprintf("%s.json", ue.Nickname),
+	}
+	return p, nil
+}
+
+func s3ws(ctx context.Context, cp *MbChildSubProcessParams, input *WorkflowStageIO) (*WorkflowStageIO, error) {
+	if input == nil {
+		log.Warn().Msg("s3ws: at least cp or input is nil or empty")
+		return nil, fmt.Errorf("must have input to save s3 obj")
+	}
+	if err := errCheckStagedWfs(ctx, cp); err != nil {
+		return nil, err
 	}
 	up := s3uploader.NewS3ClientUploader(athena.OvhS3Manager)
 	p, err := stageNamePath(cp)
@@ -105,56 +145,37 @@ func s3ws(ctx context.Context, cp *MbChildSubProcessParams, input *WorkflowStage
 	return input, err
 }
 
-func globalWfEntityStageNamePath(cp *MbChildSubProcessParams, ue artemis_entities.UserEntity) (*filepaths.Path, error) {
-	if cp == nil {
-		return nil, fmt.Errorf("must have cp MbChildSubProcessParams to createe s3 obj key name")
+func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO, error) {
+	if err := errCheckStagedWfs(ctx, cp); err != nil {
+		return nil, err
 	}
-	if cp.Ou.OrgID <= 0 {
-		return nil, fmt.Errorf("must have org id to save s3 obj")
+	p, err := stageNamePath(cp)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		return nil, err
 	}
-	if cp.WfExecParams.WorkflowOverrides.WorkflowRunName == "" {
-		return nil, fmt.Errorf("must have run name to save s3 obj")
+	br := poseidon.S3BucketRequest{
+		BucketName: FlowsBucketName,
+		BucketKey:  p.FileOutPath(),
 	}
-	if len(ue.Nickname) <= 0 {
-		return nil, fmt.Errorf("entity have nickname to save s3 obj")
+	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
+	buf, err := pos.S3DownloadReadBytes(ctx, br)
+	if err != nil {
+		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
+		return nil, err
 	}
-	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
-	// todo, use ue platform to set api-cache
-	p := &filepaths.Path{
-		DirIn:  fmt.Sprintf("/%s/%s", ue.Platform, wfRunName),
-		DirOut: fmt.Sprintf("/%s/%s", ue.Platform, wfRunName),
-		FnIn:   fmt.Sprintf("%s.json", ue.Nickname),
-		FnOut:  fmt.Sprintf("%s.json", ue.Nickname),
+	input := &WorkflowStageIO{}
+	err = json.Unmarshal(buf.Bytes(), &input)
+	if err != nil {
+		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
+		return nil, err
 	}
-	return p, nil
+	return input, err
 }
 
-// TODO: add cache layer for wf requests, add another param
-
-func s3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue artemis_entities.UserEntity) (*WorkflowStageIO, error) {
-	if cp == nil || len(ue.Nickname) <= 0 || len(ue.Platform) <= 0 {
-		log.Warn().Msg("SaveEvalResponseOutput: least one of err: cp is nil or ue nickname/platform is empty")
-		return nil, fmt.Errorf("least one of err: cp is nil or ue nickname/platform is empty")
-	}
-	if cp.Ou.OrgID <= 0 {
-		return nil, fmt.Errorf("must have org id to save s3 obj")
-	}
-	if cp.WfExecParams.WorkflowOverrides.WorkflowRunName == "" {
-		return nil, fmt.Errorf("must have run name to save s3 obj")
-	}
-	var err error
-	if athena.OvhS3Manager.AwsS3Client == nil {
-		var ps *aws_secrets.OAuth2PlatformSecret
-		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(FlowsOrgID, 0), "s3-ovh-us-west-or")
-		if err != nil {
-			log.Err(err).Msg("s3ws: failed to save workflow io")
-			return nil, err
-		}
-		athena.OvhS3Manager, err = s3base.NewOvhConnS3ClientWithStaticCreds(ctx, ps.S3AccessKey, ps.S3SecretKey)
-		if err != nil {
-			log.Err(err).Msg("s3ws: failed to save workflow io")
-			return nil, err
-		}
+func s3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_entities.UserEntity) (*WorkflowStageIO, error) {
+	if err := errCheckGlobalWfs(ctx, cp, ue); err != nil {
+		return nil, err
 	}
 	up := s3uploader.NewS3ClientUploader(athena.OvhS3Manager)
 	p, err := globalWfEntityStageNamePath(cp, ue)
@@ -185,32 +206,9 @@ func s3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue artemis_ent
 	return nil, err
 }
 
-func gs3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue artemis_entities.UserEntity) (*WorkflowStageIO, error) {
-	if cp == nil || len(ue.Nickname) <= 0 || len(ue.Platform) <= 0 {
-		log.Warn().Msg("SaveEvalResponseOutput: least one of err: cp is nil or ue nickname/platform is empty")
-		return nil, fmt.Errorf("least one of err: cp is nil or ue nickname/platform is empty")
-	}
-	if cp.Ou.OrgID <= 0 {
-		log.Warn().Msg("gs3wfs: missing org id")
-		return nil, nil
-	}
-	if len(cp.WfExecParams.WorkflowOverrides.WorkflowRunName) <= 0 {
-		log.Warn().Msg("gs3wfs: missing run name")
-		return nil, nil
-	}
-	var err error
-	if athena.OvhS3Manager.AwsS3Client == nil {
-		var ps *aws_secrets.OAuth2PlatformSecret
-		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(FlowsOrgID, 0), FlowsS3Ovh)
-		if err != nil {
-			log.Err(err).Msg("s3ws: failed to save workflow io")
-			return nil, err
-		}
-		athena.OvhS3Manager, err = s3base.NewOvhConnS3ClientWithStaticCreds(ctx, ps.S3AccessKey, ps.S3SecretKey)
-		if err != nil {
-			log.Err(err).Msg("s3ws: failed to save workflow io")
-			return nil, err
-		}
+func gs3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_entities.UserEntity) (*artemis_entities.UserEntity, error) {
+	if err := errCheckGlobalWfs(ctx, cp, ue); err != nil {
+		return nil, err
 	}
 	p, err := globalWfEntityStageNamePath(cp, ue)
 	if err != nil {
@@ -227,61 +225,27 @@ func gs3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue artemis_en
 		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
 		return nil, err
 	}
-	input := &WorkflowStageIO{}
-	err = json.Unmarshal(buf.Bytes(), &input)
+	err = json.Unmarshal(buf.Bytes(), &ue)
 	if err != nil {
 		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
 		return nil, err
 	}
-	return input, err
+	return ue, err
 }
 
-func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO, error) {
-	if cp == nil {
-		return nil, fmt.Errorf("cp is nil")
-	}
-	if cp.Ou.OrgID <= 0 {
-		log.Warn().Msg("gs3wfs: missing org id")
-		return nil, nil
-	}
-	if len(cp.WfExecParams.WorkflowOverrides.WorkflowRunName) <= 0 {
-		log.Warn().Msg("gs3wfs: missing run name")
-		return nil, nil
-	}
-	var err error
+func s3SetupCheck(ctx context.Context) error {
 	if athena.OvhS3Manager.AwsS3Client == nil {
 		var ps *aws_secrets.OAuth2PlatformSecret
-		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(FlowsOrgID, 0), FlowsS3Ovh)
+		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(FlowsOrgID, 0), FlowsS3Ovh)
 		if err != nil {
 			log.Err(err).Msg("s3ws: failed to save workflow io")
-			return nil, err
+			return err
 		}
 		athena.OvhS3Manager, err = s3base.NewOvhConnS3ClientWithStaticCreds(ctx, ps.S3AccessKey, ps.S3SecretKey)
 		if err != nil {
 			log.Err(err).Msg("s3ws: failed to save workflow io")
-			return nil, err
+			return err
 		}
 	}
-	p, err := stageNamePath(cp)
-	if err != nil {
-		log.Err(err).Msg("s3ws: failed to hash wsr io")
-		return nil, err
-	}
-	br := poseidon.S3BucketRequest{
-		BucketName: FlowsBucketName,
-		BucketKey:  p.FileOutPath(),
-	}
-	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
-	buf, err := pos.S3DownloadReadBytes(ctx, br)
-	if err != nil {
-		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
-		return nil, err
-	}
-	input := &WorkflowStageIO{}
-	err = json.Unmarshal(buf.Bytes(), &input)
-	if err != nil {
-		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
-		return nil, err
-	}
-	return input, err
+	return nil
 }

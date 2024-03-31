@@ -183,7 +183,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		}
 		log.Info().Interface("hash", ht.RequestCache).Msg("start")
 		if len(ht.RequestCache) > 0 {
-			uew := artemis_entities.UserEntity{
+			uew := &artemis_entities.UserEntity{
 				Nickname: ht.RequestCache,
 				Platform: rg,
 			}
@@ -253,7 +253,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 				})
 			}
 			if len(uew.MdSlice) > 0 {
-				_, err = s3globalWf(ctx, cp, uew)
+				_, err = s3globalWf(ctx, cp, &uew)
 				if err != nil {
 					log.Err(err).Msg("ApiCallRequestTask: s3globalWf err")
 				}

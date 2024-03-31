@@ -45,7 +45,7 @@ func s3ws(ctx context.Context, cp *MbChildSubProcessParams, input *WorkflowStage
 	}
 	err = up.UploadFromInMemFsV2(ctx, p, kvs3, mfs)
 	if err != nil {
-		log.Err(err).Msg("s3ws: failed to upload wsr io")
+		log.Err(err).Interface("p.FileOutPath()", p.FileOutPath()).Msg("s3ws: failed to upload wsr io")
 		return nil, err
 	}
 	return input, err
@@ -58,18 +58,18 @@ func s3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_en
 	up := s3uploader.NewS3ClientUploader(athena.OvhS3Manager)
 	p, err := globalWfEntityStageNamePath(cp, ue)
 	if err != nil {
-		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		log.Err(err).Msg("s3globalWf: failed to get filepath")
 		return nil, err
 	}
 	b, err := json.Marshal(ue)
 	if err != nil {
-		log.Err(err).Msg("s3ws: failed to upload wsr io")
+		log.Err(err).Interface("ue", ue).Msg("s3globalWf: failed to upload wsr io")
 		return nil, err
 	}
 	mfs := memfs.NewMemFs()
 	err = mfs.MakeFileIn(p, b)
 	if err != nil {
-		log.Err(err).Msg("s3ws: failed to upload wsr io")
+		log.Err(err).Msg("s3globalWf: failed to upload wsr io")
 		return nil, err
 	}
 	kvs3 := &s3.PutObjectInput{
@@ -78,7 +78,7 @@ func s3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_en
 	}
 	err = up.UploadFromInMemFsV2(ctx, p, kvs3, mfs)
 	if err != nil {
-		log.Err(err).Msg("s3ws: failed to upload wsr io")
+		log.Err(err).Interface("p.FileOutPath()", p.FileOutPath()).Msg("s3globalWf: failed to upload ue")
 		return nil, err
 	}
 	return ue, err

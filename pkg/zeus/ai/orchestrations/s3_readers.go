@@ -16,7 +16,7 @@ func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO,
 	}
 	p, err := stageNamePath(cp)
 	if err != nil {
-		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		log.Err(err).Msg("gs3wfs: failed to hash wsr io")
 		return nil, err
 	}
 	br := poseidon.S3BucketRequest{
@@ -26,13 +26,13 @@ func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO,
 	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
 	buf, err := pos.S3DownloadReadBytes(ctx, br)
 	if err != nil {
-		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
+		log.Err(err).Interface("fp", p.FileOutPath()).Msg("gs3wfs: S3DownloadReadBytes error")
 		return nil, err
 	}
 	input := &WorkflowStageIO{}
 	err = json.Unmarshal(buf.Bytes(), &input)
 	if err != nil {
-		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
+		log.Err(err).Msg("gs3wfs: S3DownloadReadBytes error")
 		return nil, err
 	}
 	return input, err
@@ -44,7 +44,7 @@ func gs3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_e
 	}
 	p, err := globalWfEntityStageNamePath(cp, ue)
 	if err != nil {
-		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		log.Err(err).Msg("gs3globalWf: failed to get filepath")
 		return nil, err
 	}
 	br := poseidon.S3BucketRequest{
@@ -54,12 +54,12 @@ func gs3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_e
 	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
 	buf, err := pos.S3DownloadReadBytes(ctx, br)
 	if err != nil {
-		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
+		log.Err(err).Msg("gs3globalWf: S3DownloadReadBytes error")
 		return nil, err
 	}
 	err = json.Unmarshal(buf.Bytes(), &ue)
 	if err != nil {
-		log.Err(err).Msg("g3ws: S3DownloadReadBytes error")
+		log.Err(err).Msg("gs3globalWf: S3DownloadReadBytes error")
 		return nil, err
 	}
 	return ue, err

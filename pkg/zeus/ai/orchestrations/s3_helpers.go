@@ -105,6 +105,67 @@ func s3ws(ctx context.Context, cp *MbChildSubProcessParams, input *WorkflowStage
 	return input, err
 }
 
+// TODO: add cache layer for wf requests, add another param
+
+func s3globalWf(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO, error) {
+	if cp == nil {
+		log.Warn().Msg("SaveEvalResponseOutput: at least cp or input is nil or empty")
+		return nil, fmt.Errorf("must have run name to save s3 obj")
+	}
+	if cp.Ou.OrgID <= 0 {
+		return nil, fmt.Errorf("must have org id to save s3 obj")
+	}
+	if cp.WfExecParams.WorkflowOverrides.WorkflowRunName == "" {
+		return nil, fmt.Errorf("must have run name to save s3 obj")
+	}
+	var err error
+	if athena.OvhS3Manager.AwsS3Client == nil {
+		var ps *aws_secrets.OAuth2PlatformSecret
+		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(FlowsOrgID, 0), "s3-ovh-us-west-or")
+		if err != nil {
+			log.Err(err).Msg("s3ws: failed to save workflow io")
+			return nil, err
+		}
+		athena.OvhS3Manager, err = s3base.NewOvhConnS3ClientWithStaticCreds(ctx, ps.S3AccessKey, ps.S3SecretKey)
+		if err != nil {
+			log.Err(err).Msg("s3ws: failed to save workflow io")
+			return nil, err
+		}
+	}
+	up := s3uploader.NewS3ClientUploader(athena.OvhS3Manager)
+	p, err := stageNamePath(cp)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		return nil, err
+	}
+	// todo fix
+	b, err := json.Marshal(up)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to upload wsr io")
+		return nil, err
+	}
+	mfs := memfs.NewMemFs()
+	err = mfs.MakeFileIn(p, b)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to upload wsr io")
+		return nil, err
+	}
+	kvs3 := &s3.PutObjectInput{
+		Bucket: aws.String(FlowsBucketName),
+		Key:    aws.String(p.FileOutPath()),
+	}
+	err = up.UploadFromInMemFsV2(ctx, p, kvs3, mfs)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to upload wsr io")
+		return nil, err
+	}
+	return nil, err
+}
+
+func gs3globalWf(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO, error) {
+	return nil, nil
+}
+
 func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO, error) {
 	if cp == nil {
 		return nil, fmt.Errorf("cp is nil")

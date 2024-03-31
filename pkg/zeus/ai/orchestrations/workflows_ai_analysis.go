@@ -88,7 +88,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					logger.Error("failed to execute child retrieval workflow", "Error", err)
 					return err
 				}
-
 				md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] = false
 			}
 			pr := &PromptReduction{

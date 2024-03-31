@@ -63,39 +63,31 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	}
 	var wioPtr *WorkflowStageIO
 	var pr *PromptReduction
-	if cp.Wsr.InputID <= 0 && promptExt == nil {
-		return nil, nil
-	} else if cp.Wsr.InputID <= 0 {
-		pr = promptExt
-	} else if cp.Wsr.InputID > 0 {
-		wio, werr := gs3wfs(ctx, cp)
-		if werr != nil {
-			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
-			return nil, werr
-		}
-		if wio.WorkflowStageInfo.PromptReduction != nil && wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation != nil {
-			for _, d := range wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation {
-				if d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.RegexSearchResults != nil {
-					wio.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
-						InSearchGroup: &hera_search.SearchResultGroup{
-							RegexSearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
-						},
-					}
+	wio, werr := gs3wfs(ctx, cp)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return nil, werr
+	}
+	if wio.WorkflowStageInfo.PromptReduction != nil && wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation != nil {
+		for _, d := range wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation {
+			if d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.RegexSearchResults != nil {
+				wio.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
+					InSearchGroup: &hera_search.SearchResultGroup{
+						RegexSearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
+					},
 				}
 			}
 		}
-		if wio.PromptReduction == nil {
-			return nil, nil
-		}
-		pr = wio.PromptReduction
-		if promptExt != nil {
-			pr.PromptReductionText = promptExt.PromptReductionText
-		}
-		wio.PromptReduction = pr
-		wioPtr = wio
-	} else {
+	}
+	if wio.PromptReduction == nil {
 		return nil, nil
 	}
+	pr = wio.PromptReduction
+	if promptExt != nil {
+		pr.PromptReductionText = promptExt.PromptReductionText
+	}
+	wio.PromptReduction = pr
+	wioPtr = wio
 	if pr.DataInAnalysisAggregation != nil {
 		pr.PromptReductionSearchResults = &PromptReductionSearchResults{
 			InSearchGroup: &hera_search.SearchResultGroup{
@@ -201,24 +193,23 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	}
 	if cp.Wsr.InputID > 0 && wioPtr != nil {
 		wioPtr.PromptReduction = pr
-		_, werr := s3ws(ctx, cp, wioPtr)
+		_, werr = s3ws(ctx, cp, wioPtr)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
 			return nil, werr
 		}
 	} else {
-		wio := WorkflowStageIO{
+		wios := WorkflowStageIO{
 			WorkflowStageReference: cp.Wsr,
 			WorkflowStageInfo: WorkflowStageInfo{
 				PromptReduction: pr,
 			},
 		}
-		wo, werr := s3ws(ctx, cp, &wio)
-		if werr != nil {
-			log.Err(werr).Msg("AiRetrievalTask: failed")
-			return nil, werr
+		_, wserr := s3ws(ctx, cp, &wios)
+		if wserr != nil {
+			log.Err(wserr).Msg("AiRetrievalTask: failed")
+			return nil, wserr
 		}
-		cp.Wsr.InputID = wo.InputID
 	}
 	chunkIterator := getChunkIteratorLen(pr)
 	cp.Tc.ChunkIterator = chunkIterator

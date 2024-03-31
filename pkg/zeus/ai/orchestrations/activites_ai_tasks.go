@@ -205,7 +205,7 @@ func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.J
 
 func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
 	var content string
-	if cp != nil && cp.Wsr.InputID > 0 {
+	if cp != nil {
 		in, werr := gs3wfs(ctx, cp)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")

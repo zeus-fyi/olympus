@@ -52,12 +52,12 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 				if pi <= cp.Tc.ApiIterationCount && cp.Tc.ApiIterationCount > 0 {
 					continue
 				}
+				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: starting")
 				cp.Tc.ApiIterationCount = pi
-				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: ple")
 				rt.RouteInfo.Payload = ple
 				_, err := na.ApiCallRequestTask(ctx, rt, cp)
 				if err != nil {
-					log.Err(err).Msg("FanOutApiCallRequestTask: failed")
+					log.Err(err).Interface("pi", pi).Msg("FanOutApiCallRequestTask: failed")
 					return nil, err
 				}
 				activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%d", pi))
@@ -66,7 +66,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 			rt.RouteInfo.Payloads = echoReqs
 			_, err := na.ApiCallRequestTask(ctx, rt, cp)
 			if err != nil {
-				log.Err(err).Msg("FanOutApiCallRequestTask: bulk failed")
+				log.Err(err).Interface("len(pls)", len(echoReqs)).Msg("FanOutApiCallRequestTask: bulk failed")
 				return nil, err
 			}
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("bulk"))
@@ -187,7 +187,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 				Nickname: ht.RequestCache,
 				Platform: rg,
 			}
-			_, err = gs3globalWf(ctx, cp, uew)
+			uew, err = gs3globalWf(ctx, cp, uew)
 			if err != nil {
 				log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
 			}

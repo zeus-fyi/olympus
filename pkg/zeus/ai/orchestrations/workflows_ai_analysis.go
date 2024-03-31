@@ -43,6 +43,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			if md.AnalysisRetrievals[analysisInst.AnalysisTaskID] == nil {
 				continue
 			}
+			log.Info().Interface("taskID", analysisInst.AnalysisTaskID).Interface("taskName", cp.Tc.TaskName).Msg("analysis: taskID")
+			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime,
+				i-analysisInst.AnalysisCycleCount, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
+			cp.Window = window
 			cp.Tc = getAnalysisTaskContext(analysisInst)
 			wsrCreateCtx := workflow.WithActivityOptions(ctx, ao)
 			err := workflow.ExecuteActivity(wsrCreateCtx, z.CreateWsr, cp).Get(wsrCreateCtx, &cp)
@@ -50,10 +54,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				logger.Error("failed to run get retrieval routes", "Error", err)
 				return err
 			}
-			log.Info().Interface("taskID", analysisInst.AnalysisTaskID).Msg("analysis: taskID")
-			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime,
-				i-analysisInst.AnalysisCycleCount, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
-			cp.Window = window
 			if analysisInst.RetrievalID != nil && *analysisInst.RetrievalID > 0 {
 				if md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] == false {
 					continue

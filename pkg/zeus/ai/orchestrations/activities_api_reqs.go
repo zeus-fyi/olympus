@@ -167,11 +167,6 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	}
 	reqCached := false
 	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
-		ht, err := artemis_entities.HashWebRequestResultsAndParams(r.Ou, r.RouteInfo)
-		if err != nil {
-			log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
-			return nil, err
-		}
 		// cache is either
 		/*
 			1. err = json.Unmarshal(uew.MdSlice[0].JsonData, &req.Response)
@@ -179,47 +174,39 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 
 			check date last modified; if > 30 days then replace/ set no cache
 		*/
-		log.Info().Interface("hash", ht.RequestCache).Msg("start")
-		sw, err := gs3wfs(ctx, cp)
+		ht, err := artemis_entities.HashWebRequestResultsAndParams(r.Ou, r.RouteInfo)
 		if err != nil {
-			log.Err(err).Msg("ApiCallRequestTask: failed to find any request cache")
+			log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
+			return nil, err
 		}
-		reqCached = true
-		fmt.Println(sw)
-		//if len(ht.RequestCache) > 0 {
-		//	uew := &artemis_entities.UserEntityWrapper{
-		//		UserEntity: artemis_entities.UserEntity{
-		//			Nickname: ht.RequestCache,
-		//		},
-		//		Ou: r.Ou,
-		//	}
-		//	ef := artemis_entities.EntitiesFilter{
-		//		Nickname: ht.RequestCache,
-		//		Platform: "mb-cache",
-		//	}
-		//	ef.SetSinceOffsetNowTimestamp("days", 30)
-		//	err = artemis_entities.SelectEntitiesCaches(ctx, uew, ef)
-		//	if err != nil {
-		//		log.Err(err).Msg("ApiCallRequestTask: failed to select entities caches")
-		//	}
-		//	log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
-		//	if len(uew.MdSlice) > 0 && uew.MdSlice[0].JsonData != nil {
-		//		tmp := uew.MdSlice[0].JsonData
-		//		if string(tmp) != "null" {
-		//			err = json.Unmarshal(uew.MdSlice[0].JsonData, &req.Response)
-		//			if err != nil {
-		//				log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
-		//			} else {
-		//				log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].JsonData).Msg("FanOutApiCallRequestTask: json cache found skipping")
-		//				reqCached = true
-		//			}
-		//		}
-		//	}
-		//	if len(uew.MdSlice) > 0 && uew.MdSlice[0].TextData != nil && *uew.MdSlice[0].TextData != "" {
-		//		reqCached = true
-		//		req.RawResponse = []byte(*uew.MdSlice[0].TextData)
-		//		log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].TextData).Msg("FanOutApiCallRequestTask: text cache found skipping")
-		//	}
+		log.Info().Interface("hash", ht.RequestCache).Msg("start")
+		if len(ht.RequestCache) > 0 {
+			uew := artemis_entities.UserEntity{
+				Nickname: ht.RequestCache,
+				Platform: req.Url,
+			}
+			_, err = gs3globalWf(ctx, cp, uew)
+			if err != nil {
+				log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
+			}
+			log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
+			if len(uew.MdSlice) > 0 && uew.MdSlice[0].JsonData != nil {
+				tmp := uew.MdSlice[0].JsonData
+				if string(tmp) != "null" {
+					err = json.Unmarshal(uew.MdSlice[0].JsonData, &req.Response)
+					if err != nil {
+						log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
+					} else {
+						log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].JsonData).Msg("FanOutApiCallRequestTask: json cache found skipping")
+						reqCached = true
+					}
+				}
+			} else if len(uew.MdSlice) > 0 && uew.MdSlice[0].TextData != nil && *uew.MdSlice[0].TextData != "" {
+				reqCached = true
+				req.RawResponse = []byte(*uew.MdSlice[0].TextData)
+				log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].TextData).Msg("FanOutApiCallRequestTask: text cache found skipping")
+			}
+		}
 	}
 	if !reqCached {
 		rr, rrerr := rw.ExtLoadBalancerRequest(ctx, req)
@@ -236,44 +223,40 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	}
 	var reqHash string
 	if req.StatusCode >= 200 && req.StatusCode < 300 && cp.WfExecParams.WorkflowOverrides.IsUsingFlows && !reqCached {
-		// save cache
-		_, err := s3globalWf(ctx, cp)
+		ht, err := artemis_entities.HashWebRequestResultsAndParams(r.Ou, r.RouteInfo)
 		if err != nil {
-			log.Err(err).Msg("ApiCallRequestTask: s3globalWf err")
+			log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
 		}
-		//ht, err := artemis_entities.HashWebRequestResultsAndParams(r.Ou, r.RouteInfo)
-		//if err != nil {
-		//	log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
-		//}
-		//log.Info().Interface("hash", ht.RequestCache).Msg("ApiCallRequestTask: request cache end")
-		//if ht.RequestCache != "" {
-		//	reqHash = ht.RequestCache
-		//	uew := &artemis_entities.UserEntityWrapper{
-		//		UserEntity: artemis_entities.UserEntity{
-		//			Nickname: ht.RequestCache,
-		//			Platform: "mb-cache",
-		//		},
-		//		Ou: r.Ou,
-		//	}
-		//	if len(req.Response) > 0 {
-		//		b, cerr := json.Marshal(req.Response)
-		//		if cerr != nil {
-		//			log.Err(cerr).Msg("ApiCallRequestTask: failed to marshal response")
-		//		}
-		//		if b != nil && string(b) != "null" {
-		//			uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
-		//				JsonData: b,
-		//			})
-		//		}
-		//	}
-		//	log.Info().Interface("req.Response", req.Response).Msg("ApiCallRequestTask: uew")
-		//	if len(uew.MdSlice) > 0 {
-		//		_, err = artemis_entities.InsertEntitiesCaches(ctx, uew)
-		//		if err != nil {
-		//			log.Err(err).Msg("ApiCallRequestTask: failed to insert entities caches")
-		//		}
-		//	}
-		//}
+		log.Info().Interface("hash", ht.RequestCache).Msg("ApiCallRequestTask: request cache end")
+		if ht.RequestCache != "" {
+			reqHash = ht.RequestCache
+			uew := artemis_entities.UserEntity{
+				Nickname: ht.RequestCache,
+				Platform: req.Url,
+			}
+			if len(req.Response) > 0 {
+				b, cerr := json.Marshal(req.Response)
+				if cerr != nil {
+					log.Err(cerr).Msg("ApiCallRequestTask: failed to marshal response")
+				}
+				if b != nil && string(b) != "null" {
+					uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
+						JsonData: b,
+					})
+				}
+			}
+			if len(req.RawResponse) > 0 && len(uew.MdSlice) <= 0 {
+				uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
+					TextData: aws.String(string(req.RawResponse)),
+				})
+			}
+			if len(uew.MdSlice) > 0 {
+				_, err = s3globalWf(ctx, cp, uew)
+				if err != nil {
+					log.Err(err).Msg("ApiCallRequestTask: s3globalWf err")
+				}
+			}
+		}
 	}
 	req.ExtRoutePath = orgRouteExt
 	wr := hera_search.WebResponse{

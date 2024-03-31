@@ -81,5 +81,5 @@ func s3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_en
 		log.Err(err).Msg("s3ws: failed to upload wsr io")
 		return nil, err
 	}
-	return nil, err
+	return ue, err
 }

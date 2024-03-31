@@ -68,7 +68,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	} else if cp.Wsr.InputID <= 0 {
 		pr = promptExt
 	} else if cp.Wsr.InputID > 0 {
-		wio, werr := gws(ctx, cp.Wsr.InputID)
+		wio, werr := gs3wfs(ctx, cp)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
@@ -92,7 +92,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 			pr.PromptReductionText = promptExt.PromptReductionText
 		}
 		wio.PromptReduction = pr
-		wioPtr = &wio
+		wioPtr = wio
 	} else {
 		return nil, nil
 	}
@@ -201,7 +201,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	}
 	if cp.Wsr.InputID > 0 && wioPtr != nil {
 		wioPtr.PromptReduction = pr
-		_, werr := sws(ctx, wioPtr)
+		_, werr := s3ws(ctx, cp, wioPtr)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
 			return nil, werr
@@ -213,7 +213,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 				PromptReduction: pr,
 			},
 		}
-		wo, werr := sws(ctx, &wio)
+		wo, werr := s3ws(ctx, cp, &wio)
 		if werr != nil {
 			log.Err(werr).Msg("AiRetrievalTask: failed")
 			return nil, werr

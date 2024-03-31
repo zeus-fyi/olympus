@@ -45,17 +45,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime,
 				i-analysisInst.AnalysisCycleCount, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			cp.Window = window
-			cp.Tc = TaskContext{
-				TaskType:              AnalysisTask,
-				Model:                 analysisInst.AnalysisModel,
-				TaskID:                analysisInst.AnalysisTaskID,
-				ResponseFormat:        analysisInst.AnalysisResponseFormat,
-				Prompt:                analysisInst.AnalysisPrompt,
-				WorkflowTemplateData:  analysisInst,
-				TokenOverflowStrategy: analysisInst.AnalysisTokenOverflowStrategy,
-				MarginBuffer:          analysisInst.AnalysisMarginBuffer,
-				Temperature:           float32(analysisInst.AnalysisTemperature),
-			}
+			cp.Tc = getAnalysisTaskContext(analysisInst)
 			if analysisInst.RetrievalID != nil && *analysisInst.RetrievalID > 0 {
 				if md.AnalysisRetrievals[analysisInst.AnalysisTaskID][*analysisInst.RetrievalID] == false {
 					continue
@@ -247,4 +237,18 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 		log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle done")
 	}
 	return nil
+}
+
+func getAnalysisTaskContext(analysisInst artemis_orchestrations.WorkflowTemplateData) TaskContext {
+	return TaskContext{
+		TaskType:              AnalysisTask,
+		Model:                 analysisInst.AnalysisModel,
+		TaskID:                analysisInst.AnalysisTaskID,
+		ResponseFormat:        analysisInst.AnalysisResponseFormat,
+		Prompt:                analysisInst.AnalysisPrompt,
+		WorkflowTemplateData:  analysisInst,
+		TokenOverflowStrategy: analysisInst.AnalysisTokenOverflowStrategy,
+		MarginBuffer:          analysisInst.AnalysisMarginBuffer,
+		Temperature:           float32(analysisInst.AnalysisTemperature),
+	}
 }

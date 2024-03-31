@@ -288,16 +288,14 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 	if cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.PayloadPreProcessing != nil && len(echoReqs) > 0 {
 		retOpt = *cp.Tc.Retrieval.WebFilters.PayloadPreProcessing
 	}
-	if cp.Wsr.InputID > 0 {
-		wio, werr := gws(ctx, cp.Wsr.InputID)
-		if werr != nil {
-			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
-			return nil, werr
-		}
-		log.Info().Interface("inputID", cp.Wsr.InputID).Interface("wio.WorkflowStageInfo.ApiIterationCount", wio.WorkflowStageInfo.ApiIterationCount).Msg("TokenOverflowReduction: wio")
-		if wio.WorkflowStageInfo.ApiIterationCount > 0 {
-			cp.Tc.ApiIterationCount = wio.WorkflowStageInfo.ApiIterationCount
-		}
+	wio, werr := gs3wfs(ctx, cp)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return nil, werr
+	}
+	log.Info().Interface("inputID", cp.Wsr.InputID).Interface("wio.WorkflowStageInfo.ApiIterationCount", wio.WorkflowStageInfo.ApiIterationCount).Msg("TokenOverflowReduction: wio")
+	if wio.WorkflowStageInfo.ApiIterationCount > 0 {
+		cp.Tc.ApiIterationCount = wio.WorkflowStageInfo.ApiIterationCount
 	}
 	for _, rtas := range rts {
 		rt := RouteTask{
@@ -483,39 +481,39 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	}
 	var reqHash string
 	if req.StatusCode >= 200 && req.StatusCode < 300 && cp.WfExecParams.WorkflowOverrides.IsUsingFlows && !reqCached {
-		ht, err := artemis_entities.HashWebRequestResultsAndParams(r.Ou, r.RouteInfo)
-		if err != nil {
-			log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
-		}
-		log.Info().Interface("hash", ht.RequestCache).Msg("ApiCallRequestTask: request cache end")
-		if ht.RequestCache != "" {
-			reqHash = ht.RequestCache
-			uew := &artemis_entities.UserEntityWrapper{
-				UserEntity: artemis_entities.UserEntity{
-					Nickname: ht.RequestCache,
-					Platform: "mb-cache",
-				},
-				Ou: r.Ou,
-			}
-			if len(req.Response) > 0 {
-				b, cerr := json.Marshal(req.Response)
-				if cerr != nil {
-					log.Err(cerr).Msg("ApiCallRequestTask: failed to marshal response")
-				}
-				if b != nil && string(b) != "null" {
-					uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
-						JsonData: b,
-					})
-				}
-			}
-			log.Info().Interface("req.Response", req.Response).Msg("ApiCallRequestTask: uew")
-			if len(uew.MdSlice) > 0 {
-				_, err = artemis_entities.InsertEntitiesCaches(ctx, uew)
-				if err != nil {
-					log.Err(err).Msg("ApiCallRequestTask: failed to insert entities caches")
-				}
-			}
-		}
+		//ht, err := artemis_entities.HashWebRequestResultsAndParams(r.Ou, r.RouteInfo)
+		//if err != nil {
+		//	log.Err(err).Msg("ApiCallRequestTask: failed to hash request cache")
+		//}
+		//log.Info().Interface("hash", ht.RequestCache).Msg("ApiCallRequestTask: request cache end")
+		//if ht.RequestCache != "" {
+		//	reqHash = ht.RequestCache
+		//	uew := &artemis_entities.UserEntityWrapper{
+		//		UserEntity: artemis_entities.UserEntity{
+		//			Nickname: ht.RequestCache,
+		//			Platform: "mb-cache",
+		//		},
+		//		Ou: r.Ou,
+		//	}
+		//	if len(req.Response) > 0 {
+		//		b, cerr := json.Marshal(req.Response)
+		//		if cerr != nil {
+		//			log.Err(cerr).Msg("ApiCallRequestTask: failed to marshal response")
+		//		}
+		//		if b != nil && string(b) != "null" {
+		//			uew.MdSlice = append(uew.MdSlice, artemis_entities.UserEntityMetadata{
+		//				JsonData: b,
+		//			})
+		//		}
+		//	}
+		//	log.Info().Interface("req.Response", req.Response).Msg("ApiCallRequestTask: uew")
+		//	if len(uew.MdSlice) > 0 {
+		//		_, err = artemis_entities.InsertEntitiesCaches(ctx, uew)
+		//		if err != nil {
+		//			log.Err(err).Msg("ApiCallRequestTask: failed to insert entities caches")
+		//		}
+		//	}
+		//}
 	}
 	req.ExtRoutePath = orgRouteExt
 	wr := hera_search.WebResponse{
@@ -587,14 +585,14 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 				},
 			},
 		}
-		wid, err := sws(ctx, &wio)
+		wid, err := s3ws(ctx, cp, &wio)
 		if err != nil {
 			log.Err(err).Msg("AiRetrievalTask: failed")
 			return nil, err
 		}
 		cp.Wsr.InputID = wid.InputID
 	} else {
-		wio, werr := gws(ctx, cp.Wsr.InputID)
+		wio, werr := gs3wfs(ctx, cp)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
@@ -638,7 +636,7 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 			}
 			wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults, sres)
 		}
-		wo, err := sws(ctx, &wio)
+		wo, err := s3ws(ctx, cp, wio)
 		if err != nil {
 			log.Err(err).Msg("TokenOverflowReduction: failed to update workflow io")
 			return nil, err
@@ -696,7 +694,7 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbCh
 				},
 			},
 		}
-		wid, err := sws(ctx, &wio)
+		wid, err := s3ws(ctx, cp, &wio)
 		if err != nil {
 			log.Err(err).Msg("AiRetrievalTask: failed")
 			return nil, err
@@ -739,7 +737,7 @@ func (z *ZeusAiPlatformActivities) AiRetrievalTask(ctx context.Context, cp *MbCh
 			},
 		},
 	}
-	wid, err := sws(ctx, &wio)
+	wid, err := s3ws(ctx, cp, &wio)
 	if err != nil {
 		log.Err(err).Msg("AiRetrievalTask: failed")
 		return nil, err
@@ -803,7 +801,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 			},
 		},
 	}
-	wid, err := sws(ctx, &wio)
+	wid, err := s3ws(ctx, cp, &wio)
 	if err != nil {
 		log.Err(err).Msg("AiRetrievalTask: failed")
 		return nil, err
@@ -816,7 +814,7 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 	if cp == nil {
 		return 0, fmt.Errorf("SaveTaskOutput: cp is nil")
 	}
-	wio, werr := gws(ctx, cp.Wsr.InputID)
+	wio, werr := gs3wfs(ctx, cp)
 	if werr != nil {
 		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 		return 0, werr
@@ -847,8 +845,17 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 			log.Err(err).Interface("dataIn", sv).Interface("wr", wr).Msg("SaveTaskOutput: failed")
 			return 0, err
 		}
-		wr.Metadata = md
-		wr.CompletionChoices = md
+		inp, err := gs3wfs(ctx, cp)
+		if err != nil {
+			log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
+			return 0, err
+		}
+		inp.Metadata = md
+		_, err = s3ws(ctx, cp, inp)
+		if err != nil {
+			log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
+			return 0, err
+		}
 		err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 		if err != nil {
 			log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
@@ -877,7 +884,7 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 
 	if dataIn.TextInput != nil {
 		wio.PromptTextFromTextStage += *dataIn.TextInput
-		_, eerr := sws(ctx, &wio)
+		_, eerr := s3ws(ctx, cp, wio)
 		if eerr != nil {
 			log.Err(err).Msg("SaveTaskOutput: failed")
 			return -1, eerr
@@ -935,7 +942,7 @@ func (z *ZeusAiPlatformActivities) UpdateTaskOutput(ctx context.Context, cp *MbC
 		}
 	}
 	var sg *hera_search.SearchResultGroup
-	wio, werr := gws(ctx, cp.Wsr.InputID)
+	wio, werr := gs3wfs(ctx, cp)
 	if werr != nil {
 		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 		return nil, werr

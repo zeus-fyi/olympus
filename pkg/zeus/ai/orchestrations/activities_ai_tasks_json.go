@@ -59,7 +59,7 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		}
 	}
 	params.FunctionDefinition = artemis_orchestrations.ConvertToFuncDef(jsd)
-	in, err := gws(ctx, mb.Wsr.InputID)
+	in, err := gs3wfs(ctx, mb)
 	if err != nil {
 		log.Err(err).Msg("CreateJsonOutputModelResponse: gws failed")
 		return nil, err

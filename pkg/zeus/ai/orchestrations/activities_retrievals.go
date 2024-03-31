@@ -18,23 +18,21 @@ func (z *ZeusAiPlatformActivities) SelectRetrievalTask(ctx context.Context, ou o
 }
 
 func (z *ZeusAiPlatformActivities) CreateWsr(ctx context.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
-	if cp.Wsr.InputID <= 0 {
-		wio := WorkflowStageIO{
-			WorkflowStageReference: cp.Wsr,
-			WorkflowStageInfo: WorkflowStageInfo{
-				PromptReduction: &PromptReduction{
-					MarginBuffer:          cp.Tc.MarginBuffer,
-					Model:                 cp.Tc.Model,
-					TokenOverflowStrategy: cp.Tc.TokenOverflowStrategy,
-				},
+	wio := WorkflowStageIO{
+		WorkflowStageReference: cp.Wsr,
+		WorkflowStageInfo: WorkflowStageInfo{
+			PromptReduction: &PromptReduction{
+				MarginBuffer:          cp.Tc.MarginBuffer,
+				Model:                 cp.Tc.Model,
+				TokenOverflowStrategy: cp.Tc.TokenOverflowStrategy,
 			},
-		}
-		wid, err := sws(ctx, &wio)
-		if err != nil {
-			log.Err(err).Msg("AiRetrievalTask: failed")
-			return nil, err
-		}
-		cp.Wsr.InputID = wid.InputID
+		},
+	}
+	wio.Org.OrgID = cp.Ou.OrgID
+	_, err := s3ws(ctx, cp, &wio)
+	if err != nil {
+		log.Err(err).Msg("AiRetrievalTask: failed")
+		return nil, err
 	}
 	return cp, nil
 }

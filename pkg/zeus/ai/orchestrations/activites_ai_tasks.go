@@ -42,7 +42,7 @@ func (z *ZeusAiPlatformActivities) SelectTaskDefinition(ctx context.Context, ou 
 func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
 	var content string
 	if cp != nil && cp.Wsr.InputID > 0 {
-		in, werr := gws(ctx, cp.Wsr.InputID)
+		in, werr := gs3wfs(ctx, cp)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
@@ -206,7 +206,7 @@ func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.J
 func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
 	var content string
 	if cp != nil && cp.Wsr.InputID > 0 {
-		in, werr := gws(ctx, cp.Wsr.InputID)
+		in, werr := gs3wfs(ctx, cp)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr

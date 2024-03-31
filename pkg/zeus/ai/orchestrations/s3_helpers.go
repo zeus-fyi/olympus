@@ -19,20 +19,51 @@ import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
-func s3ws(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error) {
-	if input == nil {
-		log.Warn().Msg("SaveEvalResponseOutput: at least one input is nil or empty")
-		return nil, nil
+func stageNamePath(cp *MbChildSubProcessParams) (*filepaths.Path, error) {
+	if cp == nil {
+		return nil, fmt.Errorf("must have cp MbChildSubProcessParams to createe s3 obj key name")
 	}
-	if input.Org.OrgID <= 0 {
+	if cp.Ou.OrgID <= 0 {
 		return nil, fmt.Errorf("must have org id to save s3 obj")
 	}
-	if input.WorkflowOverrides.WorkflowRunName == "" {
+	if cp.WfExecParams.WorkflowOverrides.WorkflowRunName == "" {
+		return nil, fmt.Errorf("must have run name to save s3 obj")
+	}
+	if len(cp.Tc.TaskName) <= 0 {
+		return nil, fmt.Errorf("must have task name to save s3 obj")
+	}
+	// 1. wf-run-name
+	// 2. wf-run-cycle
+	// 3. wf-task-name
+	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
+	runCycle := cp.WfExecParams.WorkflowExecTimekeepingParams.CurrentCycleCount
+	ogk, err := artemis_entities.HashParams(cp.Ou.OrgID, nil)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		return nil, err
+	}
+	p := &filepaths.Path{
+		DirIn:  fmt.Sprintf("/%s/%s/%d", ogk, wfRunName, runCycle),
+		DirOut: fmt.Sprintf("/%s/%s/%d", ogk, wfRunName, runCycle),
+		FnIn:   fmt.Sprintf("%s.json", cp.Tc.TaskName),
+		FnOut:  fmt.Sprintf("%s.json", cp.Tc.TaskName),
+	}
+	return p, nil
+}
+
+func s3ws(ctx context.Context, cp *MbChildSubProcessParams, input *WorkflowStageIO) (*WorkflowStageIO, error) {
+	if cp == nil || input == nil {
+		log.Warn().Msg("SaveEvalResponseOutput: at least cp or input is nil or empty")
+		return nil, fmt.Errorf("must have run name to save s3 obj")
+	}
+	if cp.Ou.OrgID <= 0 {
+		return nil, fmt.Errorf("must have org id to save s3 obj")
+	}
+	if cp.WfExecParams.WorkflowOverrides.WorkflowRunName == "" {
 		return nil, fmt.Errorf("must have run name to save s3 obj")
 	}
 	var err error
 	if athena.OvhS3Manager.AwsS3Client == nil {
-		// TODO verify secrets
 		var ps *aws_secrets.OAuth2PlatformSecret
 		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(FlowsOrgID, 0), "s3-ovh-us-west-or")
 		if err != nil {
@@ -46,16 +77,10 @@ func s3ws(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error)
 		}
 	}
 	up := s3uploader.NewS3ClientUploader(athena.OvhS3Manager)
-	ogk, err := artemis_entities.HashParams(input.Org.OrgID, nil)
+	p, err := stageNamePath(cp)
 	if err != nil {
 		log.Err(err).Msg("s3ws: failed to hash wsr io")
 		return nil, err
-	}
-	p := filepaths.Path{
-		DirIn:  fmt.Sprintf("/%s", ogk),
-		DirOut: fmt.Sprintf("/%s", ogk),
-		FnIn:   input.WorkflowExecParams.WorkflowOverrides.WorkflowRunName,
-		FnOut:  input.WorkflowExecParams.WorkflowOverrides.WorkflowRunName,
 	}
 	b, err := json.Marshal(input)
 	if err != nil {
@@ -63,7 +88,7 @@ func s3ws(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error)
 		return nil, err
 	}
 	mfs := memfs.NewMemFs()
-	err = mfs.MakeFileIn(&p, b)
+	err = mfs.MakeFileIn(p, b)
 	if err != nil {
 		log.Err(err).Msg("s3ws: failed to upload wsr io")
 		return nil, err
@@ -80,13 +105,15 @@ func s3ws(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error)
 	return input, err
 }
 
-// TODO integrate reader + swaps testing
-func gs3wfs(ctx context.Context, ou org_users.OrgUser, runName string) (*WorkflowStageIO, error) {
-	if ou.OrgID <= 0 {
+func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO, error) {
+	if cp == nil {
+		return nil, fmt.Errorf("cp is nil")
+	}
+	if cp.Ou.OrgID <= 0 {
 		log.Warn().Msg("gs3wfs: missing org id")
 		return nil, nil
 	}
-	if len(runName) <= 0 {
+	if len(cp.WfExecParams.WorkflowOverrides.WorkflowRunName) <= 0 {
 		log.Warn().Msg("gs3wfs: missing run name")
 		return nil, nil
 	}
@@ -104,16 +131,10 @@ func gs3wfs(ctx context.Context, ou org_users.OrgUser, runName string) (*Workflo
 			return nil, err
 		}
 	}
-	ogk, err := artemis_entities.HashParams(ou.OrgID, nil)
+	p, err := stageNamePath(cp)
 	if err != nil {
 		log.Err(err).Msg("s3ws: failed to hash wsr io")
 		return nil, err
-	}
-	p := filepaths.Path{
-		DirIn:  fmt.Sprintf("/%s", ogk),
-		DirOut: fmt.Sprintf("/%s", ogk),
-		FnIn:   runName,
-		FnOut:  runName,
 	}
 	br := poseidon.S3BucketRequest{
 		BucketName: FlowsBucketName,

@@ -6,7 +6,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 func (z *ZeusAiPlatformActivities) SelectWorkflowIO(ctx context.Context, refID int) (WorkflowStageIO, error) {
@@ -51,24 +50,10 @@ type WorkflowStageIO struct {
 
 type WorkflowStageInfo struct {
 	ApiIterationCount                  int                                 `json:"apiIterationCount"`
+	Metadata                           json.RawMessage                     `json:"metadata,omitempty"`
 	WorkflowInCacheHash                map[string]bool                     `json:"workflowInCacheHash,omitempty"`
 	RunAiWorkflowAutoEvalProcessInputs *RunAiWorkflowAutoEvalProcessInputs `json:"runAiWorkflowAutoEvalProcessInputs,omitempty"`
 	CreateTriggerActionsWorkflowInputs *CreateTriggerActionsWorkflowInputs `json:"createTriggerActionsWorkflowInputs,omitempty"`
 	PromptReduction                    *PromptReduction                    `json:"promptReduction,omitempty"`
 	PromptTextFromTextStage            string                              `json:"promptTextFromTextStage,omitempty"`
-}
-
-func S3SaveWorkflowIO(ctx context.Context, ou org_users.OrgUser, wfInputs *WorkflowStageIO) (*WorkflowStageIO, error) {
-	wsr := wfInputs.WorkflowStageReference
-	b, err := json.Marshal(wfInputs.WorkflowStageInfo)
-	if err != nil {
-		log.Err(err).Interface("wfInputs", wfInputs).Msg("S3SaveWorkflowIO: failed to marshal workflow stage info")
-		return nil, err
-	}
-	wsr.InputData = b
-	_, err = s3ws(ctx, wfInputs)
-	if err != nil {
-		log.Err(err).Interface("wfInputs", wfInputs).Msg("S3SaveWorkflowIO: failed to save workflow stage info")
-	}
-	return wfInputs, nil
 }

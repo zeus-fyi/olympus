@@ -2,6 +2,7 @@ package s3uploader
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
@@ -11,7 +12,13 @@ import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
-func (s *S3ClientUploader) UploadFromInMemFsV2(ctx context.Context, p filepaths.Path, s3KeyValue *s3.PutObjectInput, inMemFs memfs.MemFS) error {
+func (s *S3ClientUploader) UploadFromInMemFsV2(ctx context.Context, p *filepaths.Path, s3KeyValue *s3.PutObjectInput, inMemFs memfs.MemFS) error {
+	if p == nil || s3KeyValue == nil {
+		return fmt.Errorf("UploadFromInMemFsV2: nil path or bucket key")
+	}
+	if len(p.FnOut) <= 0 {
+		return fmt.Errorf("UploadFromInMemFsV2: missing fileOut name")
+	}
 	log.Debug().Msg("UploadFromInMemFsV2")
 	f, err := inMemFs.Open(p.FileOutPath())
 	if err != nil {

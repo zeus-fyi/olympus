@@ -61,7 +61,7 @@ type JsonResponseGroupsByOutcomeMap map[string]JsonResponseGroupsByOutcome
 func (z *ZeusAiPlatformActivities) FilterEvalJsonResponses(ctx context.Context, cp *MbChildSubProcessParams, act *artemis_orchestrations.TriggerAction) (JsonResponseGroupsByOutcomeMap, error) {
 	var jro JsonResponseGroupsByOutcomeMap
 
-	wi, err := gws(ctx, cp.Wsr.InputID)
+	wi, err := gs3wfs(ctx, cp)
 	if err != nil {
 		log.Err(err).Interface("cp", cp).Msg("FilterEvalJsonResponses: failed to get workflow input")
 		return jro, err

@@ -42,10 +42,10 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		log.Err(err).Interface("w", w).Msg("SaveImport failed")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	err = w.TestCsvParser()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
+	//err = w.TestCsvParser()
+	//if err != nil {
+	//	return c.JSON(http.StatusBadRequest, nil)
+	//}
 	err = w.EmailsValidatorSetup()
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")

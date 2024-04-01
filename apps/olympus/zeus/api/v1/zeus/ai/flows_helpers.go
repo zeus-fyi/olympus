@@ -32,13 +32,12 @@ const (
 // S3GlobalOrgImports
 
 func (w *ExecFlowsActionsRequest) TestCsvParser() error {
-
-	//for _, r := range w.FlowsActionsRequest.ContactsCsv {
-	//	fmt.Println("r", r)
-	//	for _, c := range r {
-	//		fmt.Println("c", c)
-	//	}
-	//}
+	for _, r := range w.FlowsActionsRequest.ContactsCsv {
+		fmt.Println("r", r)
+		for _, c := range r {
+			fmt.Println("c", c)
+		}
+	}
 	return fmt.Errorf("fake err")
 }
 

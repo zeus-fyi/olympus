@@ -32,22 +32,40 @@ const (
 // S3GlobalOrgImports
 
 func (w *ExecFlowsActionsRequest) TestCsvParser() error {
-	for _, r := range w.FlowsActionsRequest.ContactsCsv {
-		fmt.Println("r", r)
-		for _, c := range r {
-			fmt.Println("c", c)
-		}
-	}
-	return nil
+
+	//for _, r := range w.FlowsActionsRequest.ContactsCsv {
+	//	fmt.Println("r", r)
+	//	for _, c := range r {
+	//		fmt.Println("c", c)
+	//	}
+	//}
+	return fmt.Errorf("fake err")
 }
 
 func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_users.OrgUser, ue *artemis_entities.UserEntity) error {
-	if ue == nil || (len(w.FlowsActionsRequest.ContactsCsv) == 0 && len(w.FlowsActionsRequest.PromptsCsv) == 0) {
+	if ue == nil || (len(w.FlowsActionsRequest.ContactsCsvStr) == 0 && len(w.FlowsActionsRequest.ContactsCsv) == 0 && len(w.FlowsActionsRequest.PromptsCsv) == 0) {
 		return nil
 	}
+	if len(w.FlowsActionsRequest.ContactsCsvStr) > 0 {
+		cv, err := parseCsvStringToMap(w.FlowsActionsRequest.ContactsCsvStr)
+		if err != nil {
+			log.Err(err).Msg("SaveCsvImports: error")
+			return err
+		}
+		w.ContactsCsv = cv
+	}
+	if len(w.FlowsActionsRequest.PromptsCsvStr) > 0 {
+		pcv, err := parseCsvStringToMap(w.FlowsActionsRequest.PromptsCsvStr)
+		if err != nil {
+			log.Err(err).Msg("SaveCsvImports: error")
+			return err
+		}
+		w.PromptsCsv = pcv
+	}
+
 	b, err := json.Marshal(w.FlowsCsvPayload)
 	if err != nil {
-		log.Err(err).Msg("SaveImport: error")
+		log.Err(err).Msg("SaveCsvImports: error")
 		return err
 	}
 	ue.MdSlice = []artemis_entities.UserEntityMetadata{

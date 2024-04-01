@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
@@ -20,8 +21,10 @@ type FlowsActionsRequest struct {
 }
 
 type FlowsCsvPayload struct {
-	ContactsCsv []map[string]string `json:"contentContactsCsv"`
-	PromptsCsv  []map[string]string `json:"promptsCsv,omitempty"`
+	ContactsCsvStr string              `json:"contentContactsCsvStr"`
+	ContactsCsv    []map[string]string `json:"contentContactsCsv,omitempty"`
+	PromptsCsvStr  string              `json:"promptsCsvStr"`
+	PromptsCsv     []map[string]string `json:"promptsCsv,omitempty,omitempty"`
 }
 
 func FlowsActionsRequestHandler(c echo.Context) error {
@@ -86,6 +89,43 @@ func ExportRunCsvRequest(c echo.Context, fa FlowsActionsRequest) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return nil
+}
+
+func parseCsvStringToMap(csvString string) ([]map[string]string, error) {
+	// Create a new reader from the CSV string
+	reader := csv.NewReader(strings.NewReader(csvString))
+
+	// Read the first row to get column headers
+	headers, err := reader.Read()
+	if err != nil {
+		return nil, err
+	}
+
+	var records []map[string]string
+
+	// Read each record after the header
+	for {
+		record, rerr := reader.Read()
+		if rerr != nil {
+			break // Stop reading when we reach the end of the file or an error
+		}
+
+		// Create a map for each record
+		rowMap := make(map[string]string)
+		for i, value := range record {
+			rowMap[headers[i]] = value
+		}
+
+		// Append the map to the slice of records
+		records = append(records, rowMap)
+	}
+
+	// If the loop exits due to an error other than EOF, return the error
+	if err != nil && err.Error() != "EOF" {
+		return nil, err
+	}
+
+	return records, nil
 }
 
 func payloadToCsvString(payload *FlowsCsvPayload) (string, error) {

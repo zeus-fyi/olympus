@@ -107,7 +107,8 @@ export function Commands(props: any) {
         try {
             setFlowsRequestStatus('pending');
             const fa = {
-                contentContactsCsv: contacts,
+                contentContactsCsv: [] as [],
+                contentContactsCsvStr: objectArrayToCsv(contacts),
                 contentContactsFieldMaps: {},
                 promptsCsv: bodyPrompts,
                 stages: {
@@ -119,6 +120,8 @@ export function Commands(props: any) {
                 },
                commandPrompts: cmds
             }
+            console.log(fa, 'sss')
+            console.log('objectArrayToCsv', )
             let res: any = await aiApiGateway.flowsRequest(fa)
             const statusCode = res.status;
             if (statusCode >= 200 && statusCode < 300) {
@@ -198,3 +201,25 @@ export function Commands(props: any) {
         </div>
     );
 }
+const objectArrayToCsv = <T extends Record<string, unknown>>(data: T[]): string => {
+    if (data.length === 0) {
+        return '';
+    }
+
+    // Extract headers
+    const headers = Object.keys(data[0]).join(',');
+
+    // Extract rows
+    const rows = data.map(obj =>
+        Object.values(obj).map(val => {
+            // Handle values that contain commas, double-quotes, or newlines by enclosing in double quotes
+            if (typeof val === 'string') {
+                return `"${val.replace(/"/g, '""')}"`; // Escape double quotes
+            }
+            return String(val);
+        }).join(',')
+    );
+
+    // Combine headers and rows
+    return [headers, ...rows].join('\r\n');
+};

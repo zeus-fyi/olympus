@@ -37,8 +37,9 @@ export const initialState: FlowState = {
 // [key: string]: string;
 
 export interface FlowAction {
-    promptsCsv: [];
     contentContactsCsv: [];
+    contentContactsCsvStr: string;
+    promptsCsv: [];
     stages: {};
     contentContactsFieldMaps: {};
     commandPrompts: {}

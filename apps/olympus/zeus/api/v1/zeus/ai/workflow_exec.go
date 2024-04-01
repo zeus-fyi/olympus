@@ -30,9 +30,9 @@ type WorkflowsActionsRequest struct {
 	RetrievalOverrides   artemis_orchestrations.RetrievalOverrides `json:"retrievalPayloadOverrides,omitempty"`
 	TaskOverrides        artemis_orchestrations.TaskOverrides      `json:"taskOverrides,omitempty"`
 	SchemaFieldOverrides artemis_orchestrations.SchemaOverrides    `json:"schemaFieldOverrides,omitempty"`
-	WorkflowEntities     []artemis_entities.EntitiesFilter         `json:"workflowEntities,omitempty"`
-
-	Workflows []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
+	WorkflowEntityRefs   []artemis_entities.EntitiesFilter         `json:"workflowEntitiesRef,omitempty"`
+	WorkflowEntities     []artemis_entities.UserEntity             `json:"workflowEntities,omitempty"`
+	Workflows            []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
 }
 
 func WorkflowsActionsRequestHandler(c echo.Context) error {

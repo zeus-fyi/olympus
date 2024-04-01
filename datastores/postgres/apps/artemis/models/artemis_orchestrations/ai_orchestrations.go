@@ -16,20 +16,21 @@ import (
 )
 
 type WorkflowExecParams struct {
-	WorkflowTemplate              WorkflowTemplate                  `json:"workflowTemplate"`
-	WorkflowExecTimekeepingParams WorkflowExecTimekeepingParams     `json:"workflowExecTimekeepingParams"`
-	CycleCountTaskRelative        CycleCountTaskRelative            `json:"cycleCountTaskRelative"`
-	WorkflowTaskRelationships     WorkflowTaskRelationships         `json:"workflowTaskRelationships"`
-	WorkflowTasks                 []WorkflowTemplateData            `json:"workflowTasks"`
-	WorkflowOverrides             WorkflowOverrides                 `json:"workflowOverrides"`
-	WorkflowEntities              []artemis_entities.EntitiesFilter `json:"workflowEntities"`
+	WorkflowTemplate              WorkflowTemplate              `json:"workflowTemplate"`
+	WorkflowExecTimekeepingParams WorkflowExecTimekeepingParams `json:"workflowExecTimekeepingParams"`
+	CycleCountTaskRelative        CycleCountTaskRelative        `json:"cycleCountTaskRelative"`
+	WorkflowTaskRelationships     WorkflowTaskRelationships     `json:"workflowTaskRelationships"`
+	WorkflowTasks                 []WorkflowTemplateData        `json:"workflowTasks"`
+	WorkflowOverrides             WorkflowOverrides             `json:"workflowOverrides"`
 }
 
 type WorkflowOverrides struct {
-	WorkflowRunName      string             `json:"workflowRunName"`
-	IsUsingFlows         bool               `json:"isUsingFlows"`
-	SchemaFieldOverrides SchemaOverrides    `json:"schemaFieldOverrides"`
-	RetrievalOverrides   RetrievalOverrides `json:"retrievalOverride"`
+	WorkflowRunName      string                            `json:"workflowRunName"`
+	IsUsingFlows         bool                              `json:"isUsingFlows"`
+	SchemaFieldOverrides SchemaOverrides                   `json:"schemaFieldOverrides"`
+	RetrievalOverrides   RetrievalOverrides                `json:"retrievalOverride"`
+	WorkflowEntityRefs   []artemis_entities.EntitiesFilter `json:"workflowEntitiesRef,omitempty"`
+	WorkflowEntities     []artemis_entities.UserEntity     `json:"workflowEntities,omitempty"`
 }
 
 type WorkflowExecTimekeepingParams struct {

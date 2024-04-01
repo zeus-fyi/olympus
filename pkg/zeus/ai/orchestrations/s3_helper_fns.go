@@ -94,6 +94,34 @@ func stageNamePath(cp *MbChildSubProcessParams) (*filepaths.Path, error) {
 	return p, nil
 }
 
+// saves entities under the global wf run name
+func globalWfRunEntityStageNamePath(ou org_users.OrgUser, wfRunName string, ue *artemis_entities.UserEntity) (*filepaths.Path, error) {
+	if ue == nil {
+		return nil, fmt.Errorf("globalWfRunEntityStageNamePath: must have cp MbChildSubProcessParams to createe s3 obj key name")
+	}
+	if ou.OrgID <= 0 {
+		return nil, fmt.Errorf("must have org id to save s3 obj")
+	}
+	if wfRunName == "" {
+		return nil, fmt.Errorf("globalWfRunEntityStageNamePath: must have wf run name to save s3 obj entity")
+	}
+	if len(ue.Nickname) <= 0 || len(ue.Platform) <= 0 {
+		return nil, fmt.Errorf("entity have nickname to save s3 obj")
+	}
+	ogk, err := artemis_entities.HashParams(ou.OrgID, nil)
+	if err != nil {
+		log.Err(err).Msg("globalWfRunEntityStageNamePath: failed to hash wsr io")
+		return nil, err
+	}
+	p := &filepaths.Path{
+		DirIn:  fmt.Sprintf("/%s/%s/%s", ogk, wfRunName, ue.Platform),
+		DirOut: fmt.Sprintf("/%s/%s/%s", ogk, wfRunName, ue.Platform),
+		FnIn:   fmt.Sprintf("%s.json", ue.Nickname),
+		FnOut:  fmt.Sprintf("%s.json", ue.Nickname),
+	}
+	return p, nil
+}
+
 // saves entities under the global wf name
 func globalWfEntityStageNamePath(cp *MbChildSubProcessParams, ue *artemis_entities.UserEntity) (*filepaths.Path, error) {
 	if cp == nil || ue == nil {

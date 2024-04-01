@@ -33,13 +33,10 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	uef, err := w.SetupFlow(c.Request().Context(), ou)
+	_, err := w.SetupFlow(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("SaveImport failed")
 		return c.JSON(http.StatusBadRequest, nil)
-	}
-	if uef != nil && uef.Nickname != "" && uef.Platform != "" {
-		w.WorkflowEntities = append(w.WorkflowEntities, *uef)
 	}
 
 	if len(w.Workflows) > 0 {
@@ -148,7 +145,8 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			resp[ri].WorkflowOverrides.IsUsingFlows = true
-			resp[ri].WorkflowEntities = w.WorkflowEntities
+			resp[ri].WorkflowOverrides.WorkflowEntities = w.WorkflowEntities
+			resp[ri].WorkflowOverrides.WorkflowEntityRefs = w.WorkflowEntityRefs
 			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")

@@ -64,9 +64,14 @@ func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
 func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
 	uef := &artemis_entities.EntitiesFilter{
 		Platform: "flows",
-		Labels:   []string{"flows:csv-input"},
+		Labels:   []string{"flows:csv-input", "flows:global"},
 	}
-	err := w.ConvertToCsvStrToMap()
+	uef, err := w.SaveCsvImports(ctx, ou, uef)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
+		return nil, err
+	}
+	err = w.ConvertToCsvStrToMap()
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return nil, err
@@ -91,12 +96,10 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 		log.Err(err).Interface("w", w).Msg("ScrapeRegularWebsiteSetup failed")
 		return nil, err
 	}
-	uef, err = w.SaveCsvImports(ctx, ou, uef)
-	if err != nil {
-		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
-		return nil, err
+	if uef != nil && uef.Nickname != "" && uef.Platform != "" {
+		w.WorkflowEntityRefs = append(w.WorkflowEntityRefs, *uef)
 	}
-	err = w.TestCsvParser()
+	//err = w.TestCsvParser()
 	return uef, err
 }
 
@@ -109,29 +112,23 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 		log.Err(err).Msg("SaveCsvImports: error")
 		return nil, err
 	}
-	var lvs []artemis_entities.UserEntityMetadataLabel
-	for _, lv := range uef.Labels {
-		lvs = append(lvs, artemis_entities.UserEntityMetadataLabel{
-			Label: lv,
-		})
-	}
 	usre := &artemis_entities.UserEntity{
 		Nickname: uef.Nickname,
 		Platform: uef.Platform,
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
 				JsonData: b,
-				Labels:   lvs,
+				Labels:   artemis_entities.CreateMdLabels(uef.Labels),
 			},
 		},
+	}
+	if len(usre.Nickname) <= 0 || len(usre.Platform) <= 0 || len(usre.MdSlice) <= 0 {
+		return nil, fmt.Errorf("no entities name")
 	}
 	_, err = ai_platform_service_orchestrations.S3GlobalOrgImports(ctx, ou, usre)
 	if err != nil {
 		log.Err(err).Msg("SaveImport: error")
 		return nil, err
-	}
-	if len(usre.Nickname) <= 0 || len(usre.Platform) <= 0 || len(usre.MdSlice) <= 0 {
-		return nil, fmt.Errorf("no entities name")
 	}
 	log.Info().Interface("ue", usre.Nickname).Msg("entity hash")
 	return uef, nil
@@ -141,7 +138,6 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 	if v, ok := w.Stages[websiteScrape]; !ok || !v {
 		return nil
 	}
-
 	seen := make(map[string]bool)
 	var pls []map[string]interface{}
 	for _, cv := range w.ContactsCsv {
@@ -200,7 +196,6 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 	}
 	seen := make(map[string]bool)
 	var pls []map[string]interface{}
-
 	emRow := make(map[string][]int)
 	for r, cv := range w.ContactsCsv {
 		for em, emv := range cv {
@@ -219,11 +214,33 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 			seen[emv] = true
 		}
 	}
-
 	if len(pls) == 0 {
 		log.Warn().Msg("no emails found")
 		return nil
 	}
+	b, err := json.Marshal(emRow)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal gs")
+		return err
+	}
+	labels := artemis_entities.CreateMdLabels([]string{
+		fmt.Sprintf("wf:%s", emailVdWf),
+		"csv-merge",
+		"key:string",
+		"value:[]int",
+		"type:map[string][]int",
+	})
+	usre := artemis_entities.UserEntity{
+		Nickname: uef.Nickname,
+		Platform: uef.Platform,
+		MdSlice: []artemis_entities.UserEntityMetadata{
+			{
+				JsonData: b,
+				Labels:   labels,
+			},
+		},
+	}
+	w.WorkflowEntities = append(w.WorkflowEntities, usre)
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}

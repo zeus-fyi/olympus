@@ -43,6 +43,16 @@ type UserEntityMetadataLabel struct {
 	Label                 string `json:"label" db:"label"`
 }
 
+func CreateMdLabels(labels []string) []UserEntityMetadataLabel {
+	var lvs []UserEntityMetadataLabel
+	for _, lv := range labels {
+		lvs = append(lvs, UserEntityMetadataLabel{
+			Label: lv,
+		})
+	}
+	return lvs
+}
+
 func InsertUserEntityLabeledMetadata(ctx context.Context, ue *UserEntityWrapper) error {
 	if ue == nil {
 		return fmt.Errorf("nil UserEntityWrapper")

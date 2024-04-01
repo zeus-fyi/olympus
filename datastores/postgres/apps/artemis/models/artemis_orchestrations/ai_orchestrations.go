@@ -9,19 +9,20 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type WorkflowExecParams struct {
-	WorkflowTemplate              WorkflowTemplate              `json:"workflowTemplate"`
-	WorkflowExecTimekeepingParams WorkflowExecTimekeepingParams `json:"workflowExecTimekeepingParams"`
-	CycleCountTaskRelative        CycleCountTaskRelative        `json:"cycleCountTaskRelative"`
-	WorkflowTaskRelationships     WorkflowTaskRelationships     `json:"workflowTaskRelationships"`
-	WorkflowTasks                 []WorkflowTemplateData        `json:"workflowTasks"`
-	WorkflowOverrides             WorkflowOverrides             `json:"workflowOverrides"`
-	WorkflowEntities              []string                      `json:"workflowEntities"`
+	WorkflowTemplate              WorkflowTemplate                  `json:"workflowTemplate"`
+	WorkflowExecTimekeepingParams WorkflowExecTimekeepingParams     `json:"workflowExecTimekeepingParams"`
+	CycleCountTaskRelative        CycleCountTaskRelative            `json:"cycleCountTaskRelative"`
+	WorkflowTaskRelationships     WorkflowTaskRelationships         `json:"workflowTaskRelationships"`
+	WorkflowTasks                 []WorkflowTemplateData            `json:"workflowTasks"`
+	WorkflowOverrides             WorkflowOverrides                 `json:"workflowOverrides"`
+	WorkflowEntities              []artemis_entities.EntitiesFilter `json:"workflowEntities"`
 }
 
 type WorkflowOverrides struct {

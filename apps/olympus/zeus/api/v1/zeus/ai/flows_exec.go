@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
@@ -34,38 +33,15 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	ue := &artemis_entities.UserEntity{
-		Platform: "flows",
-	}
-	err := w.SaveCsvImports(c.Request().Context(), ou, ue)
+	uef, err := w.SetupFlow(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("SaveImport failed")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	//err = w.TestCsvParser()
-	//if err != nil {
-	//	return c.JSON(http.StatusBadRequest, nil)
-	//}
-	err = w.EmailsValidatorSetup()
-	if err != nil {
-		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
-		return c.JSON(http.StatusBadRequest, nil)
+	if uef != nil && uef.Nickname != "" && uef.Platform != "" {
+		w.WorkflowEntities = append(w.WorkflowEntities, *uef)
 	}
-	err = w.GoogleSearchSetup()
-	if err != nil {
-		log.Err(err).Interface("w", w).Msg("GoogleSearchSetup failed")
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	err = w.LinkedInScraperSetup()
-	if err != nil {
-		log.Err(err).Interface("w", w).Msg("LinkedInScraperSetup failed")
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	err = w.ScrapeRegularWebsiteSetup()
-	if err != nil {
-		log.Err(err).Interface("w", w).Msg("ScrapeRegularWebsiteSetup failed")
-		return c.JSON(http.StatusBadRequest, nil)
-	}
+
 	if len(w.Workflows) > 0 {
 		w.Action = "start"
 	}

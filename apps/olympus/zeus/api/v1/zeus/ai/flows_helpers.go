@@ -41,10 +41,7 @@ func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 	return fmt.Errorf("fake err")
 }
 
-func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_users.OrgUser, ue *artemis_entities.UserEntity) error {
-	if ue == nil || (len(w.FlowsActionsRequest.ContactsCsvStr) == 0 && len(w.FlowsActionsRequest.ContactsCsv) == 0 && len(w.FlowsActionsRequest.PromptsCsv) == 0) {
-		return nil
-	}
+func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
 	if len(w.FlowsActionsRequest.ContactsCsvStr) > 0 {
 		cv, err := parseCsvStringToMap(w.FlowsActionsRequest.ContactsCsvStr)
 		if err != nil {
@@ -61,31 +58,86 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 		}
 		w.PromptsCsv = pcv
 	}
-
-	b, err := json.Marshal(w.FlowsCsvPayload)
-	if err != nil {
-		log.Err(err).Msg("SaveCsvImports: error")
-		return err
-	}
-	ue.MdSlice = []artemis_entities.UserEntityMetadata{
-		{
-			JsonData: b,
-		},
-	}
-	_, err = ai_platform_service_orchestrations.S3GlobalOrgImports(ctx, ou, ue)
-	if err != nil {
-		log.Err(err).Msg("SaveImport: error")
-		return err
-	}
-	if len(ue.Nickname) <= 0 {
-		return fmt.Errorf("no entities name")
-	}
-	w.WorkflowEntities = append(w.WorkflowEntities, ue.Nickname)
-	log.Info().Interface("ue", ue.Nickname).Msg("entity hash")
 	return nil
 }
 
-func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
+func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
+	uef := &artemis_entities.EntitiesFilter{
+		Platform: "flows",
+		Labels:   []string{"flows:csv-input"},
+	}
+	err := w.ConvertToCsvStrToMap()
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
+		return nil, err
+	}
+	err = w.EmailsValidatorSetup(uef)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
+		return nil, err
+	}
+	err = w.GoogleSearchSetup(uef)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("GoogleSearchSetup failed")
+		return nil, err
+	}
+	err = w.LinkedInScraperSetup(uef)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("LinkedInScraperSetup failed")
+		return nil, err
+	}
+	err = w.ScrapeRegularWebsiteSetup(uef)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("ScrapeRegularWebsiteSetup failed")
+		return nil, err
+	}
+	uef, err = w.SaveCsvImports(ctx, ou, uef)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
+		return nil, err
+	}
+	err = w.TestCsvParser()
+	return uef, err
+}
+
+func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_users.OrgUser, uef *artemis_entities.EntitiesFilter) (*artemis_entities.EntitiesFilter, error) {
+	if uef == nil || (len(w.FlowsActionsRequest.ContactsCsvStr) == 0 && len(w.FlowsActionsRequest.ContactsCsv) == 0 && len(w.FlowsActionsRequest.PromptsCsv) == 0) {
+		return nil, nil
+	}
+	b, err := json.Marshal(w.FlowsCsvPayload)
+	if err != nil {
+		log.Err(err).Msg("SaveCsvImports: error")
+		return nil, err
+	}
+	var lvs []artemis_entities.UserEntityMetadataLabel
+	for _, lv := range uef.Labels {
+		lvs = append(lvs, artemis_entities.UserEntityMetadataLabel{
+			Label: lv,
+		})
+	}
+	usre := &artemis_entities.UserEntity{
+		Nickname: uef.Nickname,
+		Platform: uef.Platform,
+		MdSlice: []artemis_entities.UserEntityMetadata{
+			{
+				JsonData: b,
+				Labels:   lvs,
+			},
+		},
+	}
+	_, err = ai_platform_service_orchestrations.S3GlobalOrgImports(ctx, ou, usre)
+	if err != nil {
+		log.Err(err).Msg("SaveImport: error")
+		return nil, err
+	}
+	if len(usre.Nickname) <= 0 || len(usre.Platform) <= 0 || len(usre.MdSlice) <= 0 {
+		return nil, fmt.Errorf("no entities name")
+	}
+	log.Info().Interface("ue", usre.Nickname).Msg("entity hash")
+	return uef, nil
+}
+
+func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[websiteScrape]; !ok || !v {
 		return nil
 	}
@@ -142,19 +194,24 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 	return nil
 }
 
-func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
+func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[validateEmails]; !ok || !v {
 		return nil
 	}
 	seen := make(map[string]bool)
 	var pls []map[string]interface{}
-	for _, cv := range w.ContactsCsv {
+
+	emRow := make(map[string][]int)
+	for r, cv := range w.ContactsCsv {
 		for em, emv := range cv {
 			tv := strings.ToLower(em)
-			if _, ok := seen[emv]; ok {
-				continue
-			}
 			if strings.Contains(tv, "email") && len(emv) > 0 && strings.Contains(emv, "@") {
+				etm := emRow[emv]
+				etm = append(etm, r)
+				emRow[emv] = etm
+				if _, ok := seen[emv]; ok {
+					continue
+				}
 				pl := make(map[string]interface{})
 				pl["email"] = emv
 				pls = append(pls, pl)
@@ -162,6 +219,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 			seen[emv] = true
 		}
 	}
+
 	if len(pls) == 0 {
 		log.Warn().Msg("no emails found")
 		return nil
@@ -182,7 +240,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 	return nil
 }
 
-func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
+func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[googleSearch]; !ok || !v {
 		return nil
 	}
@@ -211,7 +269,7 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 
 // Can you tell me what this person does in their current role; and the company they work at now?
 
-func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
+func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[linkedIn]; !ok || !v {
 		return nil
 	}

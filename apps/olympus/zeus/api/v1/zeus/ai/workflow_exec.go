@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
@@ -29,7 +30,7 @@ type WorkflowsActionsRequest struct {
 	RetrievalOverrides   artemis_orchestrations.RetrievalOverrides `json:"retrievalPayloadOverrides,omitempty"`
 	TaskOverrides        artemis_orchestrations.TaskOverrides      `json:"taskOverrides,omitempty"`
 	SchemaFieldOverrides artemis_orchestrations.SchemaOverrides    `json:"schemaFieldOverrides,omitempty"`
-	WorkflowEntities     []string                                  `json:"workflowEntities,omitempty"`
+	WorkflowEntities     []artemis_entities.EntitiesFilter         `json:"workflowEntities,omitempty"`
 
 	Workflows []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
 }

@@ -28,6 +28,7 @@ const filterAnalysisTypes = (data: any) => {
 };
 
 const CsvExportButton = (props: any) => {
+    const [loading, setIsLoading] = React.useState(false);
     const { name, orchStrID, results } = props;
     let data: any
     if (results.orchestration.type === 'validate-emails-wf') {
@@ -39,9 +40,9 @@ const CsvExportButton = (props: any) => {
         data = filterAggregationTypes(results)
     }
 
-    // todo; integrate csv exporter? use papa?
     const onClickExportCsv = async (name: string, id: string) => {
         try {
+            setIsLoading(true)
             const url = `${configService.getZeusApiUrl()}/v1/flow/${id}/csv`;
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -68,12 +69,14 @@ const CsvExportButton = (props: any) => {
                     // No need to throw here as this is already inside the error callback
                 }
             });
-        } catch (e) {
-            console.error('Error in CSV export:', e);
-            // The catch block will not execute for errors within Papa.parse since they are handled in the error callback
+        } finally {
+            setIsLoading(false)
         }
     };
 
+    if (loading) {
+        return <div>Loading...</div>
+    }
     return (
         <Stack direction="row" alignItems="center" spacing={2} sx={{mt: 2}}>
             <Button

@@ -30,6 +30,38 @@ func s3SetupCheck(ctx context.Context) error {
 	return nil
 }
 
+func wfRunSharedPath(cp *MbChildSubProcessParams) (*filepaths.Path, error) {
+	if cp == nil {
+		return nil, fmt.Errorf("must have cp MbChildSubProcessParams to createe s3 obj key name")
+	}
+	if cp.Ou.OrgID <= 0 {
+		return nil, fmt.Errorf("must have org id to save s3 obj")
+	}
+	if cp.WfExecParams.WorkflowOverrides.WorkflowRunName == "" {
+		return nil, fmt.Errorf("must have run name to save s3 obj")
+	}
+	if len(cp.Tc.TaskName) <= 0 {
+		return nil, fmt.Errorf("must have task name to save s3 obj")
+	}
+	// 1. wf-run-name
+	// 2. wf-task-name
+	// 3. wf-run-cycle
+	// 4. wf-chunk
+	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
+	ogk, err := artemis_entities.HashParams(cp.Ou.OrgID, nil)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		return nil, err
+	}
+	p := &filepaths.Path{
+		DirIn:  fmt.Sprintf("/%s/%s", ogk, wfRunName),
+		DirOut: fmt.Sprintf("/%s/%s", ogk, wfRunName),
+		FnIn:   fmt.Sprintf("%s-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
+		FnOut:  fmt.Sprintf("%s-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
+	}
+	return p, nil
+}
+
 func stageNamePath(cp *MbChildSubProcessParams) (*filepaths.Path, error) {
 	if cp == nil {
 		return nil, fmt.Errorf("must have cp MbChildSubProcessParams to createe s3 obj key name")
@@ -85,6 +117,46 @@ func globalWfEntityStageNamePath(cp *MbChildSubProcessParams, ue *artemis_entiti
 	p := &filepaths.Path{
 		DirIn:  fmt.Sprintf("/%s/%s/%s", ogk, wfName, ue.Platform),
 		DirOut: fmt.Sprintf("/%s/%s/%s", ogk, wfName, ue.Platform),
+		FnIn:   fmt.Sprintf("%s.json", ue.Nickname),
+		FnOut:  fmt.Sprintf("%s.json", ue.Nickname),
+	}
+	return p, nil
+}
+
+// saves entities under the global wf name
+func globalOrgEntityStageNamePath(ou org_users.OrgUser, ue *artemis_entities.UserEntity, isImport bool) (*filepaths.Path, error) {
+	if ue == nil {
+		return nil, fmt.Errorf("must have cp MbChildSubProcessParams to createe s3 obj key name")
+	}
+	if ou.OrgID <= 0 {
+		return nil, fmt.Errorf("must have org id to save s3 obj")
+	}
+	if isImport && len(ue.MdSlice) <= 0 {
+		return nil, fmt.Errorf("entity must have meteadata to save s3 obj")
+	}
+	ogk, err := artemis_entities.HashParams(ou.OrgID, nil)
+	if err != nil {
+		log.Err(err).Msg("globalOrgEntityStageNamePath: failed to hash wsr io")
+		return nil, err
+	}
+	var ev string
+	if isImport {
+		ev, err = artemis_entities.HashParams(ou.OrgID, []interface{}{ue.MdSlice})
+		if err != nil {
+			log.Err(err).Msg("globalOrgEntityStageNamePath: failed to hash wsr io")
+			return nil, err
+		}
+		ue.Nickname = ev
+	}
+
+	if len(ue.Nickname) <= 0 || len(ue.Platform) <= 0 {
+		err = fmt.Errorf("globalOrgEntityStageNamePath: must have platform and nickname on exports")
+		log.Err(err).Msg("globalOrgEntityStageNamePath: failed to hash wsr io")
+		return nil, err
+	}
+	p := &filepaths.Path{
+		DirIn:  fmt.Sprintf("/%s/%s", ogk, ue.Platform),
+		DirOut: fmt.Sprintf("/%s/%s", ogk, ue.Platform),
 		FnIn:   fmt.Sprintf("%s.json", ue.Nickname),
 		FnOut:  fmt.Sprintf("%s.json", ue.Nickname),
 	}

@@ -50,6 +50,9 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 	e.GET("/runs/ai/ui", GetUIRunReportsRequestHandler)
 	e.GET("/runs/ai", GetRunReportsRequestHandler)
 
+	// export flow csv
+	e.GET("/flow/:id/csv", FlowsExportCsvRequestHandler)
+
 	e.POST("/flows", FlowsActionsRequestHandler)
 	// for a 10M for 10 MB limit
 	e.POST("/flows/exec", FlowsExecActionsRequestHandler, middleware.BodyLimit("100M"))

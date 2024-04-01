@@ -102,6 +102,7 @@ export function Commands(props: any) {
             buttonDisabledCreate = false;
             break;
     }
+
     const onClickSubmit = async () => {
         try {
             setFlowsRequestStatus('pending');
@@ -120,7 +121,7 @@ export function Commands(props: any) {
             }
             let res: any = await aiApiGateway.flowsRequest(fa)
             const statusCode = res.status;
-            if (statusCode === 200 || statusCode === 204) {
+            if (statusCode >= 200 && statusCode < 300) {
                 setFlowsRequestStatus('success');
             } else if (statusCode === 412) {
                 setFlowsRequestStatus('insufficientTokenBalance');

@@ -21,6 +21,7 @@ type WorkflowExecParams struct {
 	WorkflowTaskRelationships     WorkflowTaskRelationships     `json:"workflowTaskRelationships"`
 	WorkflowTasks                 []WorkflowTemplateData        `json:"workflowTasks"`
 	WorkflowOverrides             WorkflowOverrides             `json:"workflowOverrides"`
+	WorkflowEntities              []string                      `json:"workflowEntities"`
 }
 
 type WorkflowOverrides struct {

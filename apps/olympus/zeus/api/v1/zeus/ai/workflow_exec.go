@@ -29,6 +29,7 @@ type WorkflowsActionsRequest struct {
 	RetrievalOverrides   artemis_orchestrations.RetrievalOverrides `json:"retrievalPayloadOverrides,omitempty"`
 	TaskOverrides        artemis_orchestrations.TaskOverrides      `json:"taskOverrides,omitempty"`
 	SchemaFieldOverrides artemis_orchestrations.SchemaOverrides    `json:"schemaFieldOverrides,omitempty"`
+	WorkflowEntities     []string                                  `json:"workflowEntities,omitempty"`
 
 	Workflows []artemis_orchestrations.WorkflowTemplate `json:"workflows,omitempty"`
 }

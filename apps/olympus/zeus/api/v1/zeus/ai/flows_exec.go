@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
@@ -24,7 +25,6 @@ func FlowsExecActionsRequestHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-
 	return request.ProcessFlow(c)
 }
 
@@ -34,7 +34,19 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	err := w.EmailsValidatorSetup()
+	ue := &artemis_entities.UserEntity{
+		Platform: "flows",
+	}
+	err := w.SaveCsvImports(c.Request().Context(), ou, ue)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("SaveImport failed")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	err = w.TestCsvParser()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	err = w.EmailsValidatorSetup()
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return c.JSON(http.StatusBadRequest, nil)
@@ -160,6 +172,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			resp[ri].WorkflowOverrides.IsUsingFlows = true
+			resp[ri].WorkflowEntities = w.WorkflowEntities
 			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")

@@ -1,51 +1,75 @@
 package zeus_v1_ai
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
 const (
+	// wfs
 	webFetchWf = "website-analysis-wf"
 	emailVdWf  = "validate-emails-wf"
 	googWf     = "google-query-regex-index-wf"
 	liWf       = "linkedin-rapid-api-profiles-wf"
 	liBizWf    = "linkedin-rapid-api-biz-profiles-wf"
+
+	// wf identifier stage
+	linkedIn       = "linkedIn"
+	linkedInBiz    = "linkedInBiz"
+	googleSearch   = "googleSearch"
+	validateEmails = "validateEmails"
+	websiteScrape  = "websiteScrape"
 )
 
-func isValidURL(inputURL string) (*url.URL, error) {
-	u, err := url.Parse(inputURL)
-	if err != nil {
-		return nil, fmt.Errorf("invalid URL: %w", err)
+// S3GlobalOrgImports
+
+func (w *ExecFlowsActionsRequest) TestCsvParser() error {
+	for _, r := range w.FlowsActionsRequest.ContactsCsv {
+		fmt.Println("r", r)
+		for _, c := range r {
+			fmt.Println("c", c)
+		}
 	}
-	if u.Scheme != "http" && u.Scheme != "https" {
-		return nil, fmt.Errorf("URL must be http or https, got: %s", u.Scheme)
-	}
-	if u.Host == "" {
-		return nil, fmt.Errorf("URL must have a host")
-	}
-	return u, nil
+	return nil
 }
-func convertToHTTPS(inputURL string) (string, error) {
-	u, err := isValidURL(inputURL)
+
+func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_users.OrgUser, ue *artemis_entities.UserEntity) error {
+	if ue == nil || (len(w.FlowsActionsRequest.ContactsCsv) == 0 && len(w.FlowsActionsRequest.PromptsCsv) == 0) {
+		return nil
+	}
+	b, err := json.Marshal(w.FlowsCsvPayload)
 	if err != nil {
-		return "", err
+		log.Err(err).Msg("SaveImport: error")
+		return err
 	}
-
-	if u.Scheme == "http" {
-		u.Scheme = "https"
+	ue.MdSlice = []artemis_entities.UserEntityMetadata{
+		{
+			JsonData: b,
+		},
 	}
-
-	return u.String(), nil
+	_, err = ai_platform_service_orchestrations.S3GlobalOrgImports(ctx, ou, ue)
+	if err != nil {
+		log.Err(err).Msg("SaveImport: error")
+		return err
+	}
+	if len(ue.Nickname) <= 0 {
+		return fmt.Errorf("no entities name")
+	}
+	w.WorkflowEntities = append(w.WorkflowEntities, ue.Nickname)
+	log.Info().Interface("ue", ue.Nickname).Msg("entity hash")
+	return nil
 }
 
 func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
-	if v, ok := w.Stages["websiteScrape"]; !ok || !v {
+	if v, ok := w.Stages[websiteScrape]; !ok || !v {
 		return nil
 	}
 
@@ -56,7 +80,6 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 			//if _, ok := seen[tv]; ok {
 			//	continue
 			//}
-
 			if (strings.Contains(em, "web") || strings.Contains(em, "url") || strings.Contains(em, "link") || strings.Contains(em, "site")) && len(emv) > 0 {
 				pl := make(map[string]interface{})
 				uv, err := convertToHTTPS(emv)
@@ -87,7 +110,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 	if w.RetrievalOverrides == nil {
 		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
 	}
-	if v, ok := w.CommandPrompts["websiteScrape"]; ok && v != "" {
+	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)
 			w.SchemaFieldOverrides["website-analysis"] = map[string]string{
@@ -103,7 +126,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup() error {
 }
 
 func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
-	if v, ok := w.Stages["validateEmails"]; !ok || !v {
+	if v, ok := w.Stages[validateEmails]; !ok || !v {
 		return nil
 	}
 	seen := make(map[string]bool)
@@ -143,7 +166,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup() error {
 }
 
 func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
-	if v, ok := w.Stages["googleSearch"]; !ok || !v {
+	if v, ok := w.Stages[googleSearch]; !ok || !v {
 		return nil
 	}
 	b, err := json.Marshal(w.ContactsCsv)
@@ -155,7 +178,7 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
 	w.TaskOverrides["zeusfyi-verbatim"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
-	if v, ok := w.CommandPrompts["googleSearch"]; ok && v != "" {
+	if v, ok := w.CommandPrompts[googleSearch]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)
 			w.SchemaFieldOverrides["google-results-agg"] = map[string]string{
@@ -172,7 +195,7 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup() error {
 // Can you tell me what this person does in their current role; and the company they work at now?
 
 func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
-	if v, ok := w.Stages["linkedIn"]; !ok || !v {
+	if v, ok := w.Stages[linkedIn]; !ok || !v {
 		return nil
 	}
 	b, err := json.Marshal(w.ContactsCsv)
@@ -184,7 +207,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
 	w.TaskOverrides["linkedin-profiles-rapid-api-qps"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
-	if v, ok := w.CommandPrompts["linkedIn"]; ok && v != "" {
+	if v, ok := w.CommandPrompts[linkedIn]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)
 			w.SchemaFieldOverrides["results-agg"] = map[string]string{
@@ -199,7 +222,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup() error {
 }
 
 func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup() error {
-	if v, ok := w.Stages["linkedInBiz"]; !ok || !v {
+	if v, ok := w.Stages[linkedInBiz]; !ok || !v {
 		return nil
 	}
 	b, err := json.Marshal(w.ContactsCsv)
@@ -211,7 +234,7 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup() error {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
 	w.TaskOverrides["linkedin-biz-profiles-rapid-api-qps"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
-	if v, ok := w.CommandPrompts["linkedInBiz"]; ok && v != "" {
+	if v, ok := w.CommandPrompts[linkedInBiz]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)
 			w.SchemaFieldOverrides["results-agg"] = map[string]string{

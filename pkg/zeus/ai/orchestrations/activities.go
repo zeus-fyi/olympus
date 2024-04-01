@@ -59,6 +59,7 @@ func (z *ZeusAiPlatformActivities) GetActivities() ActivitiesSlice {
 		z.CreateOrUpdateTriggerActionApprovalWithApiReq, z.UpdateTriggerActionApproval,
 		z.FilterEvalJsonResponses, z.UpdateTaskOutput, z.CreateWsr,
 		z.FanOutApiCallRequestTask, z.SaveWorkflowIO, z.SelectWorkflowIO,
+		z.SaveCsvTaskOutput,
 	}
 	return append(actSlice, ka.GetActivities()...)
 }
@@ -426,50 +427,7 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 		return 0, werr
 	}
-	if cp.Tc.ResponseFormat == readOnlyFormat {
-		var sr []hera_search.SearchResult
-		for _, r := range wio.PromptReduction.DataInAnalysisAggregation {
-			sr = append(sr, r.SearchResultGroup.RegexSearchResults...)
-		}
-		if len(sr) <= 0 && len(cp.Tc.RegexSearchResults) > 0 {
-			sr = cp.Tc.RegexSearchResults
-		}
-		if len(sr) <= 0 && wio.PromptReduction != nil {
-			if wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil {
-				for _, s := range wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups {
-					if s.ApiResponseResults != nil {
-						sr = append(sr, s.ApiResponseResults...)
-					}
-				}
-			}
-		}
-		var sv []map[string]interface{}
-		for _, s := range sr {
-			sv = append(sv, s.WebResponse.Body)
-		}
-		md, err := json.Marshal(sv)
-		if err != nil {
-			log.Err(err).Interface("dataIn", sv).Interface("wr", wr).Msg("SaveTaskOutput: failed")
-			return 0, err
-		}
-		inp, err := gs3wfs(ctx, cp)
-		if err != nil {
-			log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
-			return 0, err
-		}
-		inp.Metadata = md
-		_, err = s3ws(ctx, cp, inp)
-		if err != nil {
-			log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
-			return 0, err
-		}
-		err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
-		if err != nil {
-			log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
-			return 0, err
-		}
-		return wr.WorkflowResultID, nil
-	} else if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
+	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil && wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups != nil && len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
 		if cp.Wsr.ChunkOffset < len(wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups) {
 			dataIn.SearchResultGroup = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
 		}

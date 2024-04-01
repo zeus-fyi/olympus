@@ -131,7 +131,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						logger.Error("failed to execute analysis json workflow", "Error", err)
 						return err
 					}
-				case readOnlyFormat:
+				case csvFormat:
 					aiResp := &ChatCompletionQueryResponse{
 						Prompt: make(map[string]string),
 						Response: openai.ChatCompletionResponse{
@@ -159,12 +159,11 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
 						ResponseID:            cp.Tc.ResponseID,
 					}
-					cp.Tc.ResponseFormat = readOnlyFormat
-					ia := InputDataAnalysisToAgg{}
+					cp.Tc.ResponseFormat = csvFormat
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveCsvTaskOutput, wr, cp).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
 					if err != nil {
-						logger.Error("failed to save analysis", "Error", err)
+						logger.Error("failed to save csv analysis", "Error", err)
 						return err
 					}
 				default:

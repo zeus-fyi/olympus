@@ -40,6 +40,7 @@ export interface FlowAction {
     contentContactsCsv: [];
     contentContactsCsvStr: string;
     promptsCsv: [];
+    promptsCsvStr: string;
     stages: {};
     contentContactsFieldMaps: {};
     commandPrompts: {}

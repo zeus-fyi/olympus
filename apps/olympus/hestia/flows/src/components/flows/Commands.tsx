@@ -110,7 +110,8 @@ export function Commands(props: any) {
                 contentContactsCsv: [] as [],
                 contentContactsCsvStr: objectArrayToCsv(contacts),
                 contentContactsFieldMaps: {},
-                promptsCsv: bodyPrompts,
+                promptsCsv: [] as [],
+                promptsCsvStr: objectArrayToCsv(bodyPrompts),
                 stages: {
                     linkedIn: checked,
                     linkedInBiz: checkedLi,
@@ -120,8 +121,6 @@ export function Commands(props: any) {
                 },
                commandPrompts: cmds
             }
-            console.log(fa, 'sss')
-            console.log('objectArrayToCsv', )
             let res: any = await aiApiGateway.flowsRequest(fa)
             const statusCode = res.status;
             if (statusCode >= 200 && statusCode < 300) {

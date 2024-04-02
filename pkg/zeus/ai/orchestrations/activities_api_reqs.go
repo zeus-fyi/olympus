@@ -190,23 +190,25 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 			uew, err = gs3globalWf(ctx, cp, uew)
 			if err != nil {
 				log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
-			}
-			log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
-			if len(uew.MdSlice) > 0 && uew.MdSlice[0].JsonData != nil {
-				tmp := uew.MdSlice[0].JsonData
-				if string(tmp) != "null" {
-					err = json.Unmarshal(uew.MdSlice[0].JsonData, &req.Response)
-					if err != nil {
-						log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
-					} else {
-						log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].JsonData).Msg("FanOutApiCallRequestTask: json cache found skipping")
-						reqCached = true
+				err = nil
+			} else {
+				log.Info().Interface("mdslicelen", len(uew.MdSlice)).Msg("FanOutApiCallRequestTask: uew")
+				if len(uew.MdSlice) > 0 && uew.MdSlice[0].JsonData != nil {
+					tmp := uew.MdSlice[0].JsonData
+					if string(tmp) != "null" {
+						err = json.Unmarshal(uew.MdSlice[0].JsonData, &req.Response)
+						if err != nil {
+							log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
+						} else {
+							log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].JsonData).Msg("FanOutApiCallRequestTask: json cache found skipping")
+							reqCached = true
+						}
 					}
+				} else if len(uew.MdSlice) > 0 && uew.MdSlice[0].TextData != nil && *uew.MdSlice[0].TextData != "" {
+					reqCached = true
+					req.RawResponse = []byte(*uew.MdSlice[0].TextData)
+					log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].TextData).Msg("FanOutApiCallRequestTask: text cache found skipping")
 				}
-			} else if len(uew.MdSlice) > 0 && uew.MdSlice[0].TextData != nil && *uew.MdSlice[0].TextData != "" {
-				reqCached = true
-				req.RawResponse = []byte(*uew.MdSlice[0].TextData)
-				log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].TextData).Msg("FanOutApiCallRequestTask: text cache found skipping")
 			}
 		}
 	}

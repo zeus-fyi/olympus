@@ -91,6 +91,26 @@ func PayloadV2ToCsvString(payload []map[string]interface{}) (string, error) {
 	return buf.String(), nil
 }
 
+// FindAndMergeMatchingNicknamesByLabelPrefix finds using retrieval name on search group and gets web response body agg
+func FindAndMergeMatchingNicknamesByLabelPrefix(source artemis_entities.UserEntity, entities []artemis_entities.UserEntity, wsi *WorkflowStageIO, label string) (*artemis_entities.UserEntity, error) {
+	if wsi == nil {
+		return nil, nil
+	}
+	if source.Nickname == "" {
+		return nil, fmt.Errorf("source nn empty")
+	}
+	fnn := source.Nickname
+	// assume known for now ^
+	var mes []artemis_entities.UserEntity
+	for _, ev := range entities {
+		if ev.Nickname == fnn && artemis_entities.SearchLabelsForPrefixMatch(label, ev) {
+			mes = append(mes, ev)
+		}
+	}
+	log.Info().Interface("mes", mes).Msg("findMatchingNicknamesByLabel: SearchLabelsForMatch(iter)")
+	return mergeCsvs(source, mes, wsi)
+}
+
 func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.UserEntity, wsi *WorkflowStageIO) (*artemis_entities.UserEntity, error) {
 	var results []hera_search.SearchResult
 	var colName string
@@ -176,26 +196,6 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 		},
 	}
 	return csvMerge, nil
-}
-
-// FindAndMergeMatchingNicknamesByLabelPrefix finds using retrieval name on search group and gets web response body agg
-func FindAndMergeMatchingNicknamesByLabelPrefix(source artemis_entities.UserEntity, entities []artemis_entities.UserEntity, wsi *WorkflowStageIO, label string) (*artemis_entities.UserEntity, error) {
-	if wsi == nil {
-		return nil, nil
-	}
-	if source.Nickname == "" {
-		return nil, fmt.Errorf("source nn empty")
-	}
-	fnn := source.Nickname
-	// assume known for now ^
-	var mes []artemis_entities.UserEntity
-	for _, ev := range entities {
-		if ev.Nickname == fnn && artemis_entities.SearchLabelsForPrefixMatch(label, ev) {
-			mes = append(mes, ev)
-		}
-	}
-	log.Info().Interface("mes", mes).Msg("findMatchingNicknamesByLabel: SearchLabelsForMatch(iter)")
-	return mergeCsvs(source, mes, wsi)
 }
 
 func ParseCsvStringToMap(csvString string) ([]map[string]string, error) {

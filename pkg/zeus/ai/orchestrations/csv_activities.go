@@ -48,7 +48,7 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 		return 0, err
 	}
 	for i, nev := range mergeCsvEntities {
-		log.Info().Interface("i", i).Msg("mergeCsvEntities")
+		log.Info().Interface("i", i).Interface("nn", nev.Nickname).Msg("mergeCsvEntities")
 		//mergeCsvEntities[i].Nickname = wfRunName
 		// for now just saved under wf, later use label, csv under platform csv-exports
 		_, err = S3WfRunImports(ctx, cp.Ou, wfRunName, &nev)

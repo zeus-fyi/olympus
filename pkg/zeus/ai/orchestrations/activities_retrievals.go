@@ -20,6 +20,7 @@ func (z *ZeusAiPlatformActivities) SelectRetrievalTask(ctx context.Context, ou o
 func (z *ZeusAiPlatformActivities) CreateWsr(ctx context.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	wio := WorkflowStageIO{
 		WorkflowStageReference: cp.Wsr,
+		WorkflowExecParams:     cp.WfExecParams,
 		WorkflowStageInfo: WorkflowStageInfo{
 			PromptReduction: &PromptReduction{
 				MarginBuffer:          cp.Tc.MarginBuffer,

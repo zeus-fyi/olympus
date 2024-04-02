@@ -445,28 +445,27 @@ func ExtractParams(regexStrs []string, strContent []byte) ([]string, error) {
 			combinedParams = append(combinedParams, string(match))
 		}
 	}
-
 	return combinedParams, nil
 }
 
 func extractAndRespond(doc *goquery.Document) echo.Map {
 	var elements []map[string]string
 
-	// Extract meta tags
-	doc.Find("meta").Each(func(i int, s *goquery.Selection) {
-		element := make(map[string]string)
-		if name, exists := s.Attr("name"); exists {
-			element["name"] = name
-		}
-		if property, exists := s.Attr("property"); exists {
-			element["property"] = property
-		}
-		if content, exists := s.Attr("content"); exists {
-			element["content"] = content
-		}
-		element["type"] = "meta"
-		elements = append(elements, element)
-	})
+	//// Extract meta tags
+	//doc.Find("meta").Each(func(i int, s *goquery.Selection) {
+	//	element := make(map[string]string)
+	//	if name, exists := s.Attr("name"); exists {
+	//		element["name"] = name
+	//	}
+	//	if property, exists := s.Attr("property"); exists {
+	//		element["property"] = property
+	//	}
+	//	if content, exists := s.Attr("content"); exists {
+	//		element["content"] = content
+	//	}
+	//	element["type"] = "meta"
+	//	elements = append(elements, element)
+	//})
 
 	// Extract h1-h6 tags
 	for _, tag := range []string{"h1", "h2", "h3", "h4", "h5", "h6"} {

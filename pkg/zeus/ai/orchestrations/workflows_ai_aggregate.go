@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"go.temporal.io/sdk/temporal"
@@ -88,6 +89,42 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, cp).Get(childAggWfCtx, &cp)
 					if err != nil {
 						logger.Error("failed to execute json agg workflow", "Error", err)
+						return err
+					}
+				case csvFormat:
+					log.Info().Interface("csvFormat", csvFormat).Msg("agg: csvFormat")
+					aiResp := &ChatCompletionQueryResponse{
+						Prompt: make(map[string]string),
+						Response: openai.ChatCompletionResponse{
+							Model: "none",
+							Usage: openai.Usage{
+								PromptTokens:     0,
+								CompletionTokens: 0,
+								TotalTokens:      0,
+							},
+						},
+					}
+					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &cp.Tc.ResponseID)
+					if err != nil {
+						logger.Error("failed to save analysis read only response", "Error", err)
+						return err
+					}
+					wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
+						OrchestrationID:       cp.Oj.OrchestrationID,
+						SourceTaskID:          cp.Tc.TaskID,
+						IterationCount:        0,
+						ChunkOffset:           chunkOffset,
+						RunningCycleNumber:    cp.Wsr.RunCycle,
+						SearchWindowUnixStart: cp.Window.UnixStartTime,
+						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
+						ResponseID:            cp.Tc.ResponseID,
+					}
+					cp.Tc.ResponseFormat = csvFormat
+					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveCsvTaskOutput, cp, wr).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
+					if err != nil {
+						logger.Error("failed to save csv agg", "Error", err)
 						return err
 					}
 				default:

@@ -218,8 +218,8 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 				pl := make(map[string]interface{})
 				pl["email"] = colValue
 				pls = append(pls, pl)
+				seen[colValue] = true
 			}
-			seen[colValue] = true
 		}
 	}
 	if len(pls) == 0 {

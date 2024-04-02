@@ -12,6 +12,19 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/poseidon"
 )
 
+const (
+	csvSrcGlobalLabel      = "csv:global:source"
+	csvSrcGlobalMergeLabel = "csv:global:merge"
+)
+
+func csvGlobalRetLabel() string {
+	return fmt.Sprintf("%s:ret", csvSrcGlobalMergeLabel)
+}
+
+func csvGlobalMergeRetLabel(rn string) string {
+	return fmt.Sprintf("%s:%s", csvGlobalRetLabel(), rn)
+}
+
 func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO, error) {
 	if err := errCheckStagedWfs(ctx, cp); err != nil {
 		return nil, err
@@ -103,12 +116,17 @@ func GetS3GlobalOrg(ctx context.Context, ou org_users.OrgUser, ue *artemis_entit
 	return ue, err
 }
 
+// GetGlobalEntitiesFromRef need to track all global; "csv:source:global" is only value specified for now
 func GetGlobalEntitiesFromRef(ctx context.Context, ou org_users.OrgUser, refs []artemis_entities.EntitiesFilter) ([]artemis_entities.UserEntity, error) {
 	var gens []artemis_entities.UserEntity
 	for _, ev := range refs {
 		ue := &artemis_entities.UserEntity{
 			Nickname: ev.Nickname,
 			Platform: ev.Platform,
+		}
+		// todo replace with map search to support array of label inputs
+		if !artemis_entities.SearchLabelsForMatch(csvSrcGlobalLabel, *ue) {
+			continue
 		}
 		ue, err := GetS3GlobalOrg(ctx, ou, ue)
 		if err != nil {

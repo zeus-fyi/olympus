@@ -14,7 +14,7 @@ import (
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 )
 
-const mergeRetTag = "csv:merge:ret:"
+const mergeRetTag = "csv:global:merge:ret:"
 
 func mergeRets(lbs []string) map[string]bool {
 	rets := make(map[string]bool)
@@ -107,7 +107,8 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 					log.Err(jerr).Interface("minv.JsonData", minv.JsonData).Msg(" json.Unmarshal(minv.JsonData, &emRow)")
 				}
 			}
-			sgs := wsi.GetSearchGroupsOutByRetNameMatch(mergeRets(mi.GetStrLabels()))
+			gl := mi.GetStrLabels()
+			sgs := wsi.GetSearchGroupsOutByRetNameMatch(mergeRets(gl))
 			for _, sg := range sgs {
 				if sg.ApiResponseResults != nil {
 					results = append(results, sg.ApiResponseResults...)

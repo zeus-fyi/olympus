@@ -53,7 +53,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageRead() {
 			{
 				JsonData: b,
 				TextData: aws.String("Email"),
-				Labels:   artemis_entities.CreateMdLabels([]string{"csv:merge", fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)}),
+				Labels:   artemis_entities.CreateMdLabels([]string{csvSrcGlobalLabel, csvGlobalMergeRetLabel(validemailRetQp)}),
 			},
 		},
 	}
@@ -65,7 +65,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageRead() {
 				{
 					Nickname: ueh,
 					Platform: "flows",
-					Labels:   []string{"csv:merge", fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)},
+					Labels:   []string{fmt.Sprintf(csvGlobalMergeRetLabel(validemailRetQp))},
 				},
 			},
 			WorkflowEntities: []artemis_entities.UserEntity{
@@ -108,7 +108,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageImport() {
 			{
 				JsonData: b,
 				TextData: aws.String("Email"),
-				Labels:   artemis_entities.CreateMdLabels([]string{"csv:merge", fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)}),
+				Labels:   artemis_entities.CreateMdLabels([]string{csvSrcGlobalLabel, fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)}),
 			},
 		},
 	}
@@ -120,7 +120,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageImport() {
 				{
 					Nickname: ueh,
 					Platform: "flows",
-					Labels:   []string{"csv:merge", fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)},
+					Labels:   []string{fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)},
 				},
 			},
 			WorkflowEntities: []artemis_entities.UserEntity{
@@ -209,7 +209,7 @@ func (t *ZeusWorkerTestSuite) getContactCsvMock() (artemis_entities.UserEntity, 
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
 				TextData: aws.String(constactsCsvStr),
-				Labels:   artemis_entities.CreateMdLabels([]string{"csv:source", fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)}),
+				Labels:   artemis_entities.CreateMdLabels([]string{csvSrcGlobalLabel, csvGlobalMergeRetLabel(validemailRetQp)}),
 			},
 		},
 	}

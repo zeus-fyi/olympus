@@ -31,9 +31,19 @@ const (
 
 	// ret override
 	validemailRetQp = "validemail-query-params"
+
+	// work labels
+	csvSrcGlobalLabel      = "csv:global:source"
+	csvSrcGlobalMergeLabel = "csv:global:merge"
 )
 
-// S3GlobalOrgImports
+func csvGlobalRetLabel() string {
+	return fmt.Sprintf("%s:ret", csvSrcGlobalMergeLabel)
+}
+
+func csvGlobalMergeRetLabel(rn string) string {
+	return fmt.Sprintf("%s:%s", csvGlobalRetLabel(), rn)
+}
 
 func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 	for _, r := range w.FlowsActionsRequest.ContactsCsv {
@@ -48,7 +58,7 @@ func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
 	uef := &artemis_entities.EntitiesFilter{
 		Platform: "flows",
-		Labels:   []string{"csv:source"},
+		Labels:   []string{csvSrcGlobalLabel},
 	}
 	err := w.ConvertToCsvStrToMap()
 	if err != nil {
@@ -60,11 +70,13 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return nil, err
 	}
+	// this should add the email label
 	err = w.EmailsValidatorSetup(uef)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return nil, err
 	}
+	// this should add the goog label, etc
 	err = w.GoogleSearchSetup(uef)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("GoogleSearchSetup failed")
@@ -91,7 +103,7 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	if uef == nil || len(w.FlowsActionsRequest.ContactsCsvStr) == 0 {
 		return nil, nil
 	}
-	lbs := append(uef.Labels, "csv:contacts")
+	lbs := append(uef.Labels)
 	usre := &artemis_entities.UserEntity{
 		Nickname: uef.Nickname,
 		Platform: uef.Platform,
@@ -209,11 +221,12 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 		return err
 	}
 	w.RetrievalOverrides[validemailRetQp] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
+	emLabel := csvGlobalMergeRetLabel(validemailRetQp)
 	labels := artemis_entities.CreateMdLabels([]string{
 		fmt.Sprintf("wf:%s", emailVdWf),
-		"csv:merge",
-		fmt.Sprintf("merge:ret:%s", validemailRetQp),
+		emLabel,
 	})
+	uef.Labels = append(uef.Labels, emLabel)
 	usre := artemis_entities.UserEntity{
 		Nickname: uef.Nickname,
 		Platform: uef.Platform,

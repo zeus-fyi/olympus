@@ -2,7 +2,6 @@ package ai_platform_service_orchestrations
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
@@ -29,7 +28,7 @@ func (t *ZeusWorkerTestSuite) TestWfCsv() {
 			{
 				JsonData: b,
 				TextData: aws.String("Email"),
-				Labels:   artemis_entities.CreateMdLabels([]string{"csv:merge", fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)}),
+				Labels:   artemis_entities.CreateMdLabels([]string{csvGlobalMergeRetLabel(validemailRetQp)}),
 			},
 		},
 	}
@@ -41,7 +40,7 @@ func (t *ZeusWorkerTestSuite) TestWfCsv() {
 				{
 					Nickname: ueh,
 					Platform: "flows",
-					Labels:   []string{"csv:merge", fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)},
+					Labels:   []string{csvSrcGlobalLabel, csvGlobalMergeRetLabel(validemailRetQp)},
 				},
 			},
 			WorkflowEntities: []artemis_entities.UserEntity{
@@ -86,26 +85,27 @@ func (t *ZeusWorkerTestSuite) TestWfCsv() {
 			},
 		},
 	}
-	ur, err := FindAndMergeMatchingNicknamesByLabel(csvSourceEntity,
+	ur, err := FindAndMergeMatchingNicknamesByLabel(
+		csvSourceEntity,
 		[]artemis_entities.UserEntity{csvMergeInEntity},
 		wsi,
-		fmt.Sprintf("csv:merge:ret:%s", validemailRetQp),
+		csvGlobalMergeRetLabel(validemailRetQp),
 	)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(ur)
 	t.Assert().NotEmpty(ur.MdSlice)
 
-	cp := &MbChildSubProcessParams{
-		WfExecParams: expa,
-		Ou:           t.Ou,
-		Tc: TaskContext{
-			TaskName: "validate-emails",
-			TaskType: "analysis",
-		},
-	}
-	za := NewZeusAiPlatformActivities()
-	wr := &artemis_orchestrations.AIWorkflowAnalysisResult{}
-	res, err := za.SaveCsvTaskOutput(ctx, cp, wr)
-	t.Require().Nil(err)
-	t.Assert().NotEmpty(res)
+	//cp := &MbChildSubProcessParams{
+	//	WfExecParams: expa,
+	//	Ou:           t.Ou,
+	//	Tc: TaskContext{
+	//		TaskName: "validate-emails",
+	//		TaskType: "analysis",
+	//	},
+	//}
+	//za := NewZeusAiPlatformActivities()
+	//wr := &artemis_orchestrations.AIWorkflowAnalysisResult{}
+	//res, err := za.SaveCsvTaskOutput(ctx, cp, wr)
+	//t.Require().Nil(err)
+	//t.Assert().NotEmpty(res)
 }

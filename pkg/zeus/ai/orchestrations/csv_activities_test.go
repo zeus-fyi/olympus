@@ -10,8 +10,6 @@ const (
 
 func (t *ZeusWorkerTestSuite) TestWfCsv() {
 	cp := t.testS3WfCycleStageImport()
-	// verify path on
-	// globalWfRunEntityStageNamePath
 	za := NewZeusAiPlatformActivities()
 	wr := &artemis_orchestrations.AIWorkflowAnalysisResult{}
 	res, err := za.SaveCsvTaskOutput(ctx, cp, wr)

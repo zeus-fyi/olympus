@@ -178,8 +178,8 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 	return csvMerge, nil
 }
 
-// FindAndMergeMatchingNicknamesByLabel finds using retrieval name on search group and gets web response body agg
-func FindAndMergeMatchingNicknamesByLabel(source artemis_entities.UserEntity, entities []artemis_entities.UserEntity, wsi *WorkflowStageIO, label string) (*artemis_entities.UserEntity, error) {
+// FindAndMergeMatchingNicknamesByLabelPrefix finds using retrieval name on search group and gets web response body agg
+func FindAndMergeMatchingNicknamesByLabelPrefix(source artemis_entities.UserEntity, entities []artemis_entities.UserEntity, wsi *WorkflowStageIO, label string) (*artemis_entities.UserEntity, error) {
 	if wsi == nil {
 		return nil, nil
 	}
@@ -190,7 +190,7 @@ func FindAndMergeMatchingNicknamesByLabel(source artemis_entities.UserEntity, en
 	// assume known for now ^
 	var mes []artemis_entities.UserEntity
 	for _, ev := range entities {
-		if ev.Nickname == fnn && artemis_entities.SearchLabelsForMatch(label, ev) {
+		if ev.Nickname == fnn && artemis_entities.SearchLabelsForPrefixMatch(label, ev) {
 			mes = append(mes, ev)
 		}
 	}

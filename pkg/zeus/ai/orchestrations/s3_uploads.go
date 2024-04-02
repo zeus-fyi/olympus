@@ -115,10 +115,21 @@ func S3WfRunImports(ctx context.Context, ou org_users.OrgUser, wfRunName string,
 		FnIn:   ue.Nickname,
 		FnOut:  ue.Nickname,
 	}
-	b, err := json.Marshal(ue)
-	if err != nil {
-		log.Err(err).Interface("ue", ue).Msg("s3globalWf: failed to upload wsr io")
-		return nil, err
+	log.Info().Interface("p.FileOutPath()", p.FileOutPath()).Msg("S3WfRunImports")
+	var b []byte
+	switch ue.Platform {
+	case "csv-export":
+		for _, v := range ue.MdSlice {
+			if v.TextData != nil {
+				b = []byte(*v.TextData)
+			}
+		}
+	default:
+		b, err = json.Marshal(ue)
+		if err != nil {
+			log.Err(err).Interface("ue", ue).Msg("s3globalWf: failed to upload wsr io")
+			return nil, err
+		}
 	}
 	err = uploadFromInMemFs(ctx, b, p)
 	if err != nil {

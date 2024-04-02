@@ -42,16 +42,16 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 		log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
 		return 0, err
 	}
-	fmt.Println(mergeCsvEntities, "mergeCsvEntities")
+	//fmt.Println(mergeCsvEntities, "mergeCsvEntities")
 	// for now just save under wf, later use labels
-	//wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
-	//for _, nev := range mergeCsvEntities {
-	//	_, err = S3WfRunImports(ctx, cp.Ou, wfRunName, &nev)
-	//	if err != nil {
-	//		log.Err(err).Msg("GetGlobalEntitiesFromRef: failed to select workflow io")
-	//		return 0, err
-	//	}
-	//}
+	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
+	for _, nev := range mergeCsvEntities {
+		_, err = S3WfRunImports(ctx, cp.Ou, wfRunName, &nev)
+		if err != nil {
+			log.Err(err).Msg("S3WfRunImports: failed to save merged result")
+			return 0, err
+		}
+	}
 
 	// now merge these: newCsvEntities
 
@@ -65,8 +65,9 @@ func getGlobalCsvMergedEntities(gens []artemis_entities.UserEntity, cp *MbChildS
 	for _, gv := range gens {
 		// since gens == global; use global label; csvSrcGlobalLabel
 		if artemis_entities.SearchLabelsForMatch(csvSrcGlobalLabel, gv) {
-			mvs, merr := FindAndMergeMatchingNicknamesByLabel(gv, cp.WfExecParams.WorkflowOverrides.WorkflowEntities, wio, csvSrcGlobalMergeLabel)
+			mvs, merr := FindAndMergeMatchingNicknamesByLabelPrefix(gv, cp.WfExecParams.WorkflowOverrides.WorkflowEntities, wio, csvSrcGlobalMergeLabel)
 			if merr != nil {
+				log.Err(merr).Msg("getGlobalCsvMergedEntities")
 				return nil, merr
 			}
 			newCsvEntities = append(newCsvEntities, *mvs)

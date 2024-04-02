@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgtype"
@@ -51,6 +52,17 @@ type UserEntityMetadataLabel struct {
 	EntityMetadataLabelID int    `json:"-" db:"entity_metadata_label_id"`
 	EntityMetadataID      int    `json:"-" db:"entity_metadata_id"`
 	Label                 string `json:"label" db:"label"`
+}
+
+func SearchLabelsForPrefixMatch(labelPrefix string, ue UserEntity) bool {
+	for _, mv := range ue.MdSlice {
+		for _, lv := range mv.Labels {
+			if strings.HasPrefix(lv.Label, labelPrefix) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func SearchLabelsForMatch(label string, ue UserEntity) bool {

@@ -167,7 +167,7 @@ func (t *ZeusWorkerTestSuite) testS3WfCycleStageImport() *MbChildSubProcessParam
 		},
 	}
 	// to debug
-	//ur, err := FindAndMergeMatchingNicknamesByLabel(
+	//ur, err := FindAndMergeMatchingNicknamesByLabelPrefix(
 	//	csvSourceEntity,
 	//	[]artemis_entities.UserEntity{csvMergeInEntity},
 	//	wsi,

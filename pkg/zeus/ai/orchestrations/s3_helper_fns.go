@@ -92,6 +92,7 @@ func workingRunCycleStagePath(cp *MbChildSubProcessParams) (*filepaths.Path, err
 		FnIn:   fmt.Sprintf("%s-chunk-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
 		FnOut:  fmt.Sprintf("%s-chunk-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
 	}
+	log.Info().Interface("p.FileOutPath()", p.FileOutPath()).Msg("workingRunCycleStagePath: p.FileOutPath()")
 	return p, nil
 }
 
@@ -124,7 +125,7 @@ func globalWfEntityStageNamePath(cp *MbChildSubProcessParams, ue *artemis_entiti
 	return p, nil
 }
 
-// saves entities under the global wf name
+// uploads/downloads entities under the global wf name
 func globalOrgEntityStageNamePath(ou org_users.OrgUser, ue *artemis_entities.UserEntity, isImport bool) (*filepaths.Path, error) {
 	if ue == nil {
 		return nil, fmt.Errorf("must have cp MbChildSubProcessParams to createe s3 obj key name")
@@ -140,16 +141,6 @@ func globalOrgEntityStageNamePath(ou org_users.OrgUser, ue *artemis_entities.Use
 		log.Err(err).Msg("globalOrgEntityStageNamePath: failed to hash wsr io")
 		return nil, err
 	}
-	var ev string
-	if isImport {
-		ev, err = artemis_entities.HashParams(ou.OrgID, []interface{}{ue.MdSlice})
-		if err != nil {
-			log.Err(err).Msg("globalOrgEntityStageNamePath: failed to hash wsr io")
-			return nil, err
-		}
-		ue.Nickname = ev
-	}
-
 	if len(ue.Nickname) <= 0 || len(ue.Platform) <= 0 {
 		err = fmt.Errorf("globalOrgEntityStageNamePath: must have platform and nickname on exports")
 		log.Err(err).Msg("globalOrgEntityStageNamePath: failed to hash wsr io")
@@ -161,6 +152,7 @@ func globalOrgEntityStageNamePath(ou org_users.OrgUser, ue *artemis_entities.Use
 		FnIn:   fmt.Sprintf("%s.json", ue.Nickname),
 		FnOut:  fmt.Sprintf("%s.json", ue.Nickname),
 	}
+	log.Info().Interface("p.FileOutPath()", p.FileOutPath()).Msg("globalOrgEntityStageNamePath: p.FileOutPath()")
 	return p, nil
 }
 

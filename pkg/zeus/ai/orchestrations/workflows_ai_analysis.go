@@ -161,7 +161,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					}
 					cp.Tc.ResponseFormat = csvFormat
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveCsvTaskOutput, wr, cp).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
+					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveCsvTaskOutput, cp, wr).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
 					if err != nil {
 						logger.Error("failed to save csv analysis", "Error", err)
 						return err

@@ -238,6 +238,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 			},
 		},
 	}
+	log.Info().Interface("labels", labels).Msg("EmailsValidatorSetup")
 	w.WorkflowEntities = append(w.WorkflowEntities, usre)
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)

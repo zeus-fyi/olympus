@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 )
 
 func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *MbChildSubProcessParams, wr *artemis_orchestrations.AIWorkflowAnalysisResult) (int, error) {
@@ -27,11 +27,20 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 	// todo add csv results
 	fmt.Println(wio)
 
+	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil {
+
+		for _, sgpt := range wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups {
+			fmt.Println(aws.StringValue(sgpt.RetrievalName))
+		}
+	}
+
 	/*
 		at this stage:
 			1. should add results to final csv for cycle
-		todo
+
+		done
 			1. get s3 of main csv input ref from entities
+		todo
 			2. use csv-merge entity from input
 			3. merge results
 			4. save wf output to correct stage: ie final processed output
@@ -39,40 +48,24 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 			DirIn:  fmt.Sprintf("/%s/%s/cycle/%d", ogk, wfRunName, cp.Wsr.RunCycle),
 	*/
 
-	var gens []artemis_entities.UserEntity
-	for _, ev := range cp.WfExecParams.WorkflowOverrides.WorkflowEntityRefs {
-		ue := &artemis_entities.UserEntity{
-			Nickname: ev.Nickname,
-			Platform: ev.Platform,
-		}
-		ue, err := GetS3GlobalOrg(ctx, cp.Ou, ue)
-		if err != nil {
-			log.Err(err).Msg("TokenOverflowReduction: failed to select workflow io")
-			return 0, err
-		}
-		if len(ue.MdSlice) > 0 {
-			gens = append(gens, *ue)
+	gens, err := GetGlobalEntitiesFromRef(ctx, cp.Ou, cp.WfExecParams.WorkflowOverrides.WorkflowEntityRefs)
+	if err != nil {
+		log.Err(err).Msg("GetGlobalEntitiesFromRef: failed to select workflow io")
+		return 0, err
+	}
+
+	var newCsvEntities []artemis_entities.UserEntity
+	for _, gv := range gens {
+		if artemis_entities.SearchLabelsForMatch("csv:source", gv) {
+			mvs, merr := findMatchingNicknamesCsvMerge(gv, cp.WfExecParams.WorkflowOverrides.WorkflowEntities, wio)
+			if merr != nil {
+				return 0, merr
+			}
+			newCsvEntities = append(newCsvEntities, *mvs)
 		}
 	}
 
+	// save newCsvEntities
+	// test export
 	return wr.WorkflowResultID, nil
-}
-
-func GetGlobalEntitiesFromRef(ctx context.Context, ou org_users.OrgUser, refs []artemis_entities.EntitiesFilter) ([]artemis_entities.UserEntity, error) {
-	var gens []artemis_entities.UserEntity
-	for _, ev := range refs {
-		ue := &artemis_entities.UserEntity{
-			Nickname: ev.Nickname,
-			Platform: ev.Platform,
-		}
-		ue, err := GetS3GlobalOrg(ctx, ou, ue)
-		if err != nil {
-			log.Err(err).Msg("TokenOverflowReduction: failed to select workflow io")
-			return nil, err
-		}
-		if len(ue.MdSlice) > 0 {
-			gens = append(gens, *ue)
-		}
-	}
-	return gens, nil
 }

@@ -102,3 +102,22 @@ func GetS3GlobalOrg(ctx context.Context, ou org_users.OrgUser, ue *artemis_entit
 	}
 	return ue, err
 }
+
+func GetGlobalEntitiesFromRef(ctx context.Context, ou org_users.OrgUser, refs []artemis_entities.EntitiesFilter) ([]artemis_entities.UserEntity, error) {
+	var gens []artemis_entities.UserEntity
+	for _, ev := range refs {
+		ue := &artemis_entities.UserEntity{
+			Nickname: ev.Nickname,
+			Platform: ev.Platform,
+		}
+		ue, err := GetS3GlobalOrg(ctx, ou, ue)
+		if err != nil {
+			log.Err(err).Msg("GetGlobalEntitiesFromRef: failed to select workflow io")
+			return nil, err
+		}
+		if len(ue.MdSlice) > 0 {
+			gens = append(gens, *ue)
+		}
+	}
+	return gens, nil
+}

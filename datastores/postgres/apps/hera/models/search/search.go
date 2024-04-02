@@ -78,6 +78,7 @@ type SearchResultGroup struct {
 	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
 	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
 	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`
+	RetrievalName                  *string                       `json:"retrievalName,omitempty"`
 }
 
 func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {

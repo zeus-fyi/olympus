@@ -289,8 +289,9 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		WebResponse: wr,
 	}
 	sg := &hera_search.SearchResultGroup{
-		PlatformName: cp.Tc.Retrieval.RetrievalPlatform,
-		Window:       cp.Window,
+		PlatformName:  cp.Tc.Retrieval.RetrievalPlatform,
+		Window:        cp.Window,
+		RetrievalName: aws.String(cp.Tc.Retrieval.RetrievalName),
 	}
 	sg.ApiResponseResults = []hera_search.SearchResult{sres}
 	if req.RegexFilters != nil && len(req.RegexFilters) > 0 {

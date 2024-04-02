@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 )
 
 func (z *ZeusAiPlatformActivities) SelectWorkflowIO(ctx context.Context, refID int) (WorkflowStageIO, error) {
@@ -56,4 +57,25 @@ type WorkflowStageInfo struct {
 	CreateTriggerActionsWorkflowInputs *CreateTriggerActionsWorkflowInputs `json:"createTriggerActionsWorkflowInputs,omitempty"`
 	PromptReduction                    *PromptReduction                    `json:"promptReduction,omitempty"`
 	PromptTextFromTextStage            string                              `json:"promptTextFromTextStage,omitempty"`
+}
+
+func (ws *WorkflowStageIO) GetSearchGroupsOutByRetNameMatch(retNames map[string]bool) []hera_search.SearchResultGroup {
+	if len(retNames) == 0 {
+		return nil
+	}
+	if ws.PromptReduction == nil {
+		return nil
+	}
+	if ws.PromptReduction.PromptReductionSearchResults == nil {
+		return nil
+	}
+	var sgs []hera_search.SearchResultGroup
+	for _, sgv := range ws.PromptReduction.PromptReductionSearchResults.OutSearchGroups {
+		if sgv != nil && sgv.RetrievalName != nil {
+			if tr, ok := retNames[*sgv.RetrievalName]; ok && tr {
+				sgs = append(sgs, *sgv)
+			}
+		}
+	}
+	return sgs
 }

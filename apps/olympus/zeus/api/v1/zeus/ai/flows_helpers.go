@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -27,6 +28,9 @@ const (
 	googleSearch   = "googleSearch"
 	validateEmails = "validateEmails"
 	websiteScrape  = "websiteScrape"
+
+	// ret override
+	validemailRetQp = "validemail-query-params"
 )
 
 // S3GlobalOrgImports
@@ -41,37 +45,17 @@ func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 	return fmt.Errorf("fake err")
 }
 
-func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
-	if len(w.FlowsActionsRequest.ContactsCsvStr) > 0 {
-		cv, err := parseCsvStringToMap(w.FlowsActionsRequest.ContactsCsvStr)
-		if err != nil {
-			log.Err(err).Msg("SaveCsvImports: error")
-			return err
-		}
-		w.ContactsCsv = cv
-	}
-	if len(w.FlowsActionsRequest.PromptsCsvStr) > 0 {
-		pcv, err := parseCsvStringToMap(w.FlowsActionsRequest.PromptsCsvStr)
-		if err != nil {
-			log.Err(err).Msg("SaveCsvImports: error")
-			return err
-		}
-		w.PromptsCsv = pcv
-	}
-	return nil
-}
-
 func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
 	uef := &artemis_entities.EntitiesFilter{
 		Platform: "flows",
-		Labels:   []string{"flows:csv-input", "flows:global"},
+		Labels:   []string{"csv:source", "flows:global"},
 	}
-	uef, err := w.SaveCsvImports(ctx, ou, uef)
+	err := w.ConvertToCsvStrToMap()
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return nil, err
 	}
-	err = w.ConvertToCsvStrToMap()
+	uef, err = w.SaveCsvImports(ctx, ou, uef)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return nil, err
@@ -99,33 +83,29 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 	if uef != nil && uef.Nickname != "" && uef.Platform != "" {
 		w.WorkflowEntityRefs = append(w.WorkflowEntityRefs, *uef)
 	}
-	//err = w.TestCsvParser()
+	err = w.TestCsvParser()
 	return uef, err
 }
 
 func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_users.OrgUser, uef *artemis_entities.EntitiesFilter) (*artemis_entities.EntitiesFilter, error) {
-	if uef == nil || (len(w.FlowsActionsRequest.ContactsCsvStr) == 0 && len(w.FlowsActionsRequest.ContactsCsv) == 0 && len(w.FlowsActionsRequest.PromptsCsv) == 0) {
+	if uef == nil || len(w.FlowsActionsRequest.ContactsCsvStr) == 0 {
 		return nil, nil
 	}
-	b, err := json.Marshal(w.FlowsCsvPayload)
-	if err != nil {
-		log.Err(err).Msg("SaveCsvImports: error")
-		return nil, err
-	}
+	lbs := append(uef.Labels, "csv:contacts")
 	usre := &artemis_entities.UserEntity{
 		Nickname: uef.Nickname,
 		Platform: uef.Platform,
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
-				JsonData: b,
-				Labels:   artemis_entities.CreateMdLabels(uef.Labels),
+				TextData: aws.String(w.ContactsCsvStr),
+				Labels:   artemis_entities.CreateMdLabels(lbs),
 			},
 		},
 	}
 	if len(usre.Nickname) <= 0 || len(usre.Platform) <= 0 || len(usre.MdSlice) <= 0 {
 		return nil, fmt.Errorf("no entities name")
 	}
-	_, err = ai_platform_service_orchestrations.S3GlobalOrgImports(ctx, ou, usre)
+	_, err := ai_platform_service_orchestrations.S3GlobalOrgImports(ctx, ou, usre)
 	if err != nil {
 		log.Err(err).Msg("SaveImport: error")
 		return nil, err
@@ -194,13 +174,18 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 	if v, ok := w.Stages[validateEmails]; !ok || !v {
 		return nil
 	}
+	var colName string
 	seen := make(map[string]bool)
 	var pls []map[string]interface{}
 	emRow := make(map[string][]int)
 	for r, cv := range w.ContactsCsv {
-		for em, emv := range cv {
-			tv := strings.ToLower(em)
+		for cn, emv := range cv {
+			tv := strings.ToLower(cn)
 			if strings.Contains(tv, "email") && len(emv) > 0 && strings.Contains(emv, "@") {
+				if len(colName) > 0 && colName != cn {
+					return fmt.Errorf("duplicate email column")
+				}
+				colName = emv
 				etm := emRow[emv]
 				etm = append(etm, r)
 				emRow[emv] = etm
@@ -223,18 +208,18 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 		log.Err(err).Msg("failed to marshal gs")
 		return err
 	}
+	w.RetrievalOverrides[validemailRetQp] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
 	labels := artemis_entities.CreateMdLabels([]string{
 		fmt.Sprintf("wf:%s", emailVdWf),
-		"csv-merge",
-		"key:string",
-		"value:[]int",
-		"type:map[string][]int",
+		"csv:merge",
+		fmt.Sprintf("merge:ret:%s", validemailRetQp),
 	})
 	usre := artemis_entities.UserEntity{
 		Nickname: uef.Nickname,
 		Platform: uef.Platform,
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
+				TextData: aws.String(colName),
 				JsonData: b,
 				Labels:   labels,
 			},
@@ -250,7 +235,6 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 	w.CustomBasePeriodStepSize = 24
 	w.CustomBasePeriodStepSizeUnit = "hours"
 	w.CustomBasePeriod = true
-	w.RetrievalOverrides["validemail-query-params"] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: emailVdWf,
 	})

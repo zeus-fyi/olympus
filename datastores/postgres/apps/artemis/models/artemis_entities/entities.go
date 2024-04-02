@@ -37,10 +37,31 @@ type UserEntityMetadata struct {
 	Labels           []UserEntityMetadataLabel `json:"labels,omitempty" db:"labels"`
 }
 
+func (ue *UserEntity) GetStrLabels() []string {
+	var lbs []string
+	for _, mv := range ue.MdSlice {
+		for _, lv := range mv.Labels {
+			lbs = append(lbs, lv.Label)
+		}
+	}
+	return lbs
+}
+
 type UserEntityMetadataLabel struct {
 	EntityMetadataLabelID int    `json:"-" db:"entity_metadata_label_id"`
 	EntityMetadataID      int    `json:"-" db:"entity_metadata_id"`
 	Label                 string `json:"label" db:"label"`
+}
+
+func SearchLabelsForMatch(label string, ue UserEntity) bool {
+	for _, mv := range ue.MdSlice {
+		for _, lv := range mv.Labels {
+			if lv.Label == label {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func CreateMdLabels(labels []string) []UserEntityMetadataLabel {
@@ -101,7 +122,6 @@ func InsertUserEntityLabeledMetadata(ctx context.Context, ue *UserEntityWrapper)
 		RETURNING entity_metadata_label_id;`
 
 		for i, label := range md.Labels {
-
 			ch := chronos.Chronos{}
 			err = tx.QueryRow(ctx, insertLabelQuery, ch.UnixTimeStampNow(), ue.MdSlice[mi].EntityMetadataID, label.Label).Scan(&md.Labels[i].EntityMetadataLabelID)
 			if err != nil {

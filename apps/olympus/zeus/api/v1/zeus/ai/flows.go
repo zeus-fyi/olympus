@@ -3,7 +3,6 @@ package zeus_v1_ai
 import (
 	"bytes"
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -86,24 +85,16 @@ func ExportRunCsvRequest(c echo.Context, id int) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	j := FlowsActionsRequest{}
-	var tmp []interface{}
 	for _, v := range ue.MdSlice {
-		err = json.Unmarshal(v.JsonData, &j)
+		if v.TextData == nil {
+			continue
+		}
+		c.Response().Header().Set("Content-Type", "text/csv")
+		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.csv"`, ue.Nickname))
+		_, err = c.Response().Write([]byte(*v.TextData))
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-		tmp = append(tmp, v)
-	}
-	c.Response().Header().Set("Content-Type", "text/csv")
-	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.csv"`, ue.Nickname))
-	scsv, err := payloadToCsvString(&j.FlowsCsvPayload)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	_, err = c.Response().Write([]byte(scsv))
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return nil
 }

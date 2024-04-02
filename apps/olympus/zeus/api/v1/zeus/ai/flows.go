@@ -76,6 +76,9 @@ func ExportRunCsvRequest(c echo.Context, id int) error {
 		return c.JSON(http.StatusOK, nil)
 	}
 	ojr := ojsRuns[0]
+	// 7138983863666903883
+	//ojr := artemis_orchestrations.OrchestrationsAnalysis{}
+	//ojr.OrchestrationName = "test-wf"
 	log.Info().Interface("oj.OrchestrationName", ojr.OrchestrationName).Msg("ExportRunCsvRequest")
 	ue := artemis_entities.UserEntity{
 		Nickname: ojr.OrchestrationName,

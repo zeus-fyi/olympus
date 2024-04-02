@@ -103,21 +103,27 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	if uef == nil || len(w.FlowsActionsRequest.ContactsCsvStr) == 0 {
 		return nil, nil
 	}
-	lbs := append(uef.Labels)
+
 	usre := &artemis_entities.UserEntity{
-		Nickname: uef.Nickname,
 		Platform: uef.Platform,
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
 				TextData: aws.String(w.ContactsCsvStr),
-				Labels:   artemis_entities.CreateMdLabels(lbs),
+				Labels:   artemis_entities.CreateMdLabels(uef.Labels),
 			},
 		},
 	}
+	nn, err := artemis_entities.HashParams(ou.OrgID, []interface{}{usre.MdSlice})
+	if err != nil {
+		log.Err(err).Msg("workingRunCycleStagePath: failed to hash wsr io")
+		return nil, err
+	}
+	uef.Nickname = nn
+	usre.Nickname = uef.Nickname
 	if len(usre.Nickname) <= 0 || len(usre.Platform) <= 0 || len(usre.MdSlice) <= 0 {
 		return nil, fmt.Errorf("no entities name")
 	}
-	_, err := ai_platform_service_orchestrations.S3GlobalOrgUpload(ctx, ou, usre)
+	_, err = ai_platform_service_orchestrations.S3GlobalOrgUpload(ctx, ou, usre)
 	if err != nil {
 		log.Err(err).Msg("SaveImport: error")
 		return nil, err
@@ -190,25 +196,30 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 	seen := make(map[string]bool)
 	var pls []map[string]interface{}
 	emRow := make(map[string][]int)
-	for r, cv := range w.ContactsCsv {
-		for cn, emv := range cv {
-			tv := strings.ToLower(cn)
-			if strings.Contains(tv, "email") && len(emv) > 0 && strings.Contains(emv, "@") {
-				if len(colName) > 0 && colName != cn {
+	for r, cvs := range w.ContactsCsv {
+		for cname, colValue := range cvs {
+			tv := strings.ToLower(cname)
+			if strings.Contains(tv, "email") && len(colValue) > 0 && strings.Contains(colValue, "@") {
+				if len(colName) > 0 && colName != cname {
+					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("EmailsValidatorSetup")
 					return fmt.Errorf("duplicate email column")
 				}
-				colName = emv
-				etm := emRow[emv]
-				etm = append(etm, r)
-				emRow[emv] = etm
-				if _, ok := seen[emv]; ok {
+				colName = cname
+				if len(emRow) <= 0 {
+					emRow[colValue] = []int{r}
+				} else {
+					etm := emRow[colValue]
+					etm = append(etm, r)
+					emRow[colValue] = etm
+				}
+				if _, ok := seen[colValue]; ok {
 					continue
 				}
 				pl := make(map[string]interface{})
-				pl["email"] = emv
+				pl["email"] = colValue
 				pls = append(pls, pl)
 			}
-			seen[emv] = true
+			seen[colValue] = true
 		}
 	}
 	if len(pls) == 0 {

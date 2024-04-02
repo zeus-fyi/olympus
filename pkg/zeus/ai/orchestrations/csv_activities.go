@@ -28,37 +28,31 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 	// gets globals where needed
 	gens, err := GetGlobalEntitiesFromRef(ctx, cp.Ou, cp.WfExecParams.WorkflowOverrides.WorkflowEntityRefs)
 	if err != nil {
-		log.Err(err).Msg("GetGlobalEntitiesFromRef: failed to select workflow io")
+		log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
 		return 0, err
 	}
-
 	// gets cycle stage values
 	wio, werr := gs3wfs(ctx, cp)
 	if werr != nil {
-		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		log.Err(werr).Msg("SaveCsvTaskOutput: gs3wfs failed to select workflow io")
 		return 0, werr
 	}
-
-	/*
-		at this stage:
-			1. should add results to final csv for cycle
-
-		done
-			1. get s3 of main csv input ref from entities
-		todo
-			2. use csv-merge entity from input
-			3. merge results
-			4. save wf output to correct stage: ie final processed output
-
-			DirIn:  fmt.Sprintf("/%s/%s/cycle/%d", ogk, wfRunName, cp.Wsr.RunCycle),
-	*/
-
 	mergeCsvEntities, err := getGlobalCsvMergedEntities(gens, cp, wio)
 	if err != nil {
-		log.Err(err).Msg("GetGlobalEntitiesFromRef: failed to select workflow io")
+		log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
 		return 0, err
 	}
 	fmt.Println(mergeCsvEntities, "mergeCsvEntities")
+	// for now just save under wf, later use labels
+	//wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
+	//for _, nev := range mergeCsvEntities {
+	//	_, err = S3WfRunImports(ctx, cp.Ou, wfRunName, &nev)
+	//	if err != nil {
+	//		log.Err(err).Msg("GetGlobalEntitiesFromRef: failed to select workflow io")
+	//		return 0, err
+	//	}
+	//}
+
 	// now merge these: newCsvEntities
 
 	// save newCsvEntities
@@ -71,7 +65,6 @@ func getGlobalCsvMergedEntities(gens []artemis_entities.UserEntity, cp *MbChildS
 	for _, gv := range gens {
 		// since gens == global; use global label; csvSrcGlobalLabel
 		if artemis_entities.SearchLabelsForMatch(csvSrcGlobalLabel, gv) {
-			// todo verify label matching; they should share a label
 			mvs, merr := FindAndMergeMatchingNicknamesByLabel(gv, cp.WfExecParams.WorkflowOverrides.WorkflowEntities, wio, csvSrcGlobalMergeLabel)
 			if merr != nil {
 				return nil, merr

@@ -14,7 +14,7 @@ import (
 
 func (t *ZeusWorkerTestSuite) TestS3GlobalOrgImports() {
 	ue, _ := t.getContactCsvMock()
-	re, err := S3GlobalOrgImports(ctx, t.Ou, &ue)
+	re, err := S3GlobalOrgUpload(ctx, t.Ou, &ue)
 	t.Require().Nil(err)
 	t.Require().NotNil(re)
 }
@@ -34,6 +34,7 @@ func (t *ZeusWorkerTestSuite) TestGetGlobalEntitiesFromRef() {
 		t.Assert().NotZero(len(v.MdSlice))
 		for _, mv := range v.MdSlice {
 			t.Assert().NotNil(mv.TextData)
+			t.Assert().NotEmpty(mv.Labels)
 		}
 	}
 }
@@ -53,7 +54,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageRead() {
 			{
 				JsonData: b,
 				TextData: aws.String("Email"),
-				Labels:   artemis_entities.CreateMdLabels([]string{csvSrcGlobalLabel, csvGlobalMergeRetLabel(validemailRetQp)}),
+				Labels:   artemis_entities.CreateMdLabels([]string{csvGlobalMergeRetLabel(validemailRetQp)}),
 			},
 		},
 	}
@@ -65,7 +66,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageRead() {
 				{
 					Nickname: ueh,
 					Platform: "flows",
-					Labels:   []string{fmt.Sprintf(csvGlobalMergeRetLabel(validemailRetQp))},
+					Labels:   []string{csvSrcGlobalLabel, csvGlobalMergeRetLabel(validemailRetQp)},
 				},
 			},
 			WorkflowEntities: []artemis_entities.UserEntity{
@@ -93,7 +94,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageRead() {
 	}
 }
 
-func (t *ZeusWorkerTestSuite) TestS3WfCycleStageImport() {
+func (t *ZeusWorkerTestSuite) testS3WfCycleStageImport() *MbChildSubProcessParams {
 	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
 	csvSourceEntity, csvContacts := t.getContactCsvMock()
 	t.Require().NotEmpty(csvSourceEntity)
@@ -108,7 +109,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageImport() {
 			{
 				JsonData: b,
 				TextData: aws.String("Email"),
-				Labels:   artemis_entities.CreateMdLabels([]string{csvSrcGlobalLabel, fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)}),
+				Labels:   artemis_entities.CreateMdLabels([]string{csvGlobalMergeRetLabel(validemailRetQp)}),
 			},
 		},
 	}
@@ -120,7 +121,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageImport() {
 				{
 					Nickname: ueh,
 					Platform: "flows",
-					Labels:   []string{fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)},
+					Labels:   []string{csvSrcGlobalLabel, csvGlobalMergeRetLabel(validemailRetQp)},
 				},
 			},
 			WorkflowEntities: []artemis_entities.UserEntity{
@@ -165,6 +166,16 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageImport() {
 			},
 		},
 	}
+	// to debug
+	//ur, err := FindAndMergeMatchingNicknamesByLabel(
+	//	csvSourceEntity,
+	//	[]artemis_entities.UserEntity{csvMergeInEntity},
+	//	wsi,
+	//	csvGlobalMergeRetLabel(validemailRetQp),
+	//)
+	//t.Require().Nil(err)
+	//t.Require().NotEmpty(ur)
+	//t.Assert().NotEmpty(ur.MdSlice)
 	cp := &MbChildSubProcessParams{
 		WfExecParams: expa,
 		Ou:           t.Ou,
@@ -176,6 +187,7 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageImport() {
 	wsi, err = s3ws(ctx, cp, wsi)
 	t.Require().Nil(err)
 	t.Require().NotNil(wsi)
+	return cp
 }
 
 func (t *ZeusWorkerTestSuite) TestCsvMerge() {

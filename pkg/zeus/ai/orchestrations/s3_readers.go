@@ -124,14 +124,14 @@ func GetGlobalEntitiesFromRef(ctx context.Context, ou org_users.OrgUser, refs []
 			Nickname: ev.Nickname,
 			Platform: ev.Platform,
 		}
-		// todo replace with map search to support array of label inputs
-		if !artemis_entities.SearchLabelsForMatch(csvSrcGlobalLabel, *ue) {
-			continue
-		}
 		ue, err := GetS3GlobalOrg(ctx, ou, ue)
 		if err != nil {
 			log.Err(err).Msg("GetGlobalEntitiesFromRef: failed to select workflow io")
 			return nil, err
+		}
+		// todo replace with map search to support array of label inputs
+		if !artemis_entities.SearchLabelsForMatch(csvSrcGlobalLabel, *ue) {
+			continue
 		}
 		if len(ue.MdSlice) > 0 {
 			gens = append(gens, *ue)

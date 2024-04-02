@@ -117,7 +117,7 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	if len(usre.Nickname) <= 0 || len(usre.Platform) <= 0 || len(usre.MdSlice) <= 0 {
 		return nil, fmt.Errorf("no entities name")
 	}
-	_, err := ai_platform_service_orchestrations.S3GlobalOrgImports(ctx, ou, usre)
+	_, err := ai_platform_service_orchestrations.S3GlobalOrgUpload(ctx, ou, usre)
 	if err != nil {
 		log.Err(err).Msg("SaveImport: error")
 		return nil, err

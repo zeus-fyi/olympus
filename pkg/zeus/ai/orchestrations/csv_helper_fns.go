@@ -3,14 +3,18 @@ package ai_platform_service_orchestrations
 import (
 	"bytes"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 )
 
-const mergeRetTag = "merge:ret"
+const mergeRetTag = "csv:merge:ret:"
 
 func mergeRets(lbs []string) map[string]bool {
 	rets := make(map[string]bool)
@@ -19,10 +23,13 @@ func mergeRets(lbs []string) map[string]bool {
 			rets[strings.TrimPrefix(lb, mergeRetTag)] = true
 		}
 	}
+	if len(rets) <= 0 {
+		log.Warn().Interface("lbs", lbs).Msg("mergeRets: empty rets")
+	}
 	return rets
 }
 
-func appendCsvData(csvContacts, csvData []map[string]string, colName string, emRow map[string][]int) ([]map[string]string, error) {
+func appendCsvData(inputCsvData, csvData []map[string]string, colName string, emRow map[string][]int) ([]map[string]string, error) {
 	// Iterate through csvData to find and merge matching rows
 	for _, dataRow := range csvData {
 		email := dataRow[colName]
@@ -30,55 +37,137 @@ func appendCsvData(csvContacts, csvData []map[string]string, colName string, emR
 			// If a matching row is found, merge the data
 			for _, index := range indices {
 				for key, value := range dataRow {
-					csvContacts[index][key] = value
+					inputCsvData[index][key] = value
 				}
 			}
 		}
 	}
-	return csvContacts, nil
+	return inputCsvData, nil
+}
+
+func PayloadV2ToCsvString(payload []map[string]interface{}) (string, error) {
+	if len(payload) == 0 {
+		return "", fmt.Errorf("empty or nil payload")
+	}
+
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+
+	// Extract and sort headers from the first map to ensure consistent column ordering
+	headers := make([]string, 0, len(payload[0]))
+	for key := range payload[0] {
+		headers = append(headers, key)
+	}
+	sort.Strings(headers)
+
+	// Write CSV header
+	if err := writer.Write(headers); err != nil {
+		return "", fmt.Errorf("error writing header to CSV: %w", err)
+	}
+
+	// Write each map as a CSV row
+	for _, record := range payload {
+		row := make([]string, len(headers))
+		for i, header := range headers {
+			value, ok := record[header]
+			if !ok {
+				// If a key is missing in a record, an empty string will be used as its value
+				row[i] = ""
+				continue
+			}
+			// Convert the interface value to string; more sophisticated conversion might be needed based on actual types
+			row[i] = fmt.Sprintf("%v", value)
+		}
+		if err := writer.Write(row); err != nil {
+			return "", fmt.Errorf("error writing record to CSV: %w", err)
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return "", fmt.Errorf("error flushing CSV writer: %w", err)
+	}
+
+	return buf.String(), nil
 }
 
 func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.UserEntity, wsi *WorkflowStageIO) (*artemis_entities.UserEntity, error) {
+	var results []hera_search.SearchResult
+	var colName string
+	var emRow map[string][]int
+	// todo; multi?
 	for _, mi := range mergeIn {
-		sgs := wsi.GetSearchGroupsOutByRetNameMatch(mergeRets(mi.GetStrLabels()))
-		for _, sg := range sgs {
-			if sg.ApiResponseResults != nil {
-
-			} else if sg.RegexSearchResults != nil {
-
+		for _, minv := range mi.MdSlice {
+			if minv.TextData != nil && len(*minv.TextData) > 0 {
+				colName = *minv.TextData
+			}
+			if minv.JsonData != nil && string(minv.JsonData) != "null" {
+				jerr := json.Unmarshal(minv.JsonData, &emRow)
+				if jerr != nil {
+					log.Err(jerr).Interface("minv.JsonData", minv.JsonData).Msg(" json.Unmarshal(minv.JsonData, &emRow)")
+				}
+			}
+			sgs := wsi.GetSearchGroupsOutByRetNameMatch(mergeRets(mi.GetStrLabels()))
+			for _, sg := range sgs {
+				if sg.ApiResponseResults != nil {
+					results = append(results, sg.ApiResponseResults...)
+				} else if sg.RegexSearchResults != nil {
+					results = append(results, sg.RegexSearchResults...)
+				}
+			}
+		}
+	}
+	var appendCsvEntry []map[string]interface{}
+	for _, v := range results {
+		if v.WebResponse.Body != nil {
+			log.Info().Interface(" v.WebResponse.Body", v.WebResponse.Body).Msg("appendCsvEntry: results")
+			if len(v.WebResponse.Body) > 0 {
+				appendCsvEntry = append(appendCsvEntry, v.WebResponse.Body)
 			}
 		}
 	}
 
-	var tmpCsv []map[string]string
 	var merged []map[string]string
-	var colName string
-	var emRow map[string][]int
 	for _, v := range source.MdSlice {
+		if v.JsonData != nil && string(v.JsonData) != "null" {
+			err := json.Unmarshal(v.JsonData, &emRow)
+			if err != nil {
+				log.Err(err).Interface("v.JsonData", v.JsonData)
+				return nil, err
+			}
+		}
 		if v.TextData != nil && len(*v.TextData) > 0 {
 			csvMap, err := ParseCsvStringToMap(*v.TextData)
 			if err != nil {
 				return nil, err
 			}
-			merged, err = appendCsvData(csvMap, tmpCsv, colName, emRow)
+			pscsv, perr := PayloadV2ToCsvString(appendCsvEntry)
+			if perr != nil {
+				log.Err(perr).Interface("appendCsvEntry", appendCsvEntry).Msg("PayloadV2ToCsvString: ")
+				return nil, perr
+			}
+			csvMapMerge, err := ParseCsvStringToMap(pscsv)
 			if err != nil {
 				return nil, err
 			}
+			log.Info().Interface("csvMapMerge", csvMapMerge).Msg("ParseCsvStringToMap: csvMapMerge")
+			merged, err = appendCsvData(csvMap, csvMapMerge, colName, emRow)
+			if err != nil {
+				log.Err(err).Interface("merged", merged).Msg("mergeRets: empty rets")
+				return nil, err
+			}
+			log.Info().Interface("merged", merged).Msg("appendCsvData: merged")
 		}
 	}
-	/*
-		todo: get body, transform to csv type
-		then call appendCsvData
-	*/
-
 	mergedCsvStr, err := PayloadToCsvString(merged)
 	if err != nil {
+		log.Err(err).Msg("PayloadToCsvString")
 		return nil, err
 	}
-	// now get bodies; then merge via
+	log.Info().Interface("mergedCsvStr", mergedCsvStr).Msg("mergeCsvs: PayloadToCsvString")
 	csvMerge := &artemis_entities.UserEntity{
-		Nickname: "",
-		Platform: "flows",
+		Nickname: fmt.Sprintf("%s.csv", wsi.WorkflowOverrides.WorkflowRunName),
+		Platform: "csv-export",
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
 				TextData: aws.String(mergedCsvStr),
@@ -88,18 +177,23 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 	return csvMerge, nil
 }
 
-func findMatchingNicknamesCsvMerge(source artemis_entities.UserEntity, entities []artemis_entities.UserEntity, wsi *WorkflowStageIO) (*artemis_entities.UserEntity, error) {
+// FindAndMergeMatchingNicknamesByLabel finds using retrieval name on search group and gets web response body agg
+func FindAndMergeMatchingNicknamesByLabel(source artemis_entities.UserEntity, entities []artemis_entities.UserEntity, wsi *WorkflowStageIO, label string) (*artemis_entities.UserEntity, error) {
 	if wsi == nil {
 		return nil, nil
+	}
+	if source.Nickname == "" {
+		return nil, fmt.Errorf("source nn empty")
 	}
 	fnn := source.Nickname
 	// assume known for now ^
 	var mes []artemis_entities.UserEntity
 	for _, ev := range entities {
-		if ev.Nickname == fnn && artemis_entities.SearchLabelsForMatch("csv:merge", ev) {
+		if ev.Nickname == fnn && artemis_entities.SearchLabelsForMatch(label, ev) {
 			mes = append(mes, ev)
 		}
 	}
+	log.Info().Interface("mes", mes).Msg("findMatchingNicknamesByLabel: SearchLabelsForMatch(iter)")
 	return mergeCsvs(source, mes, wsi)
 }
 

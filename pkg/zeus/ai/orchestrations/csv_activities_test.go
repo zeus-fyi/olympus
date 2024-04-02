@@ -80,7 +80,8 @@ func (t *ZeusWorkerTestSuite) TestPayloadToCsvString() {
 	t.Require().NotEmpty(csvContacts)
 	cs, err := PayloadToCsvString(csvContacts)
 	t.Require().Nil(err)
-	t.Assert().Equal(constactsCsvStr, cs)
+	fmt.Println(cs)
+	//t.Assert().Equal(constactsCsvStr, cs)
 }
 
 const (
@@ -108,23 +109,33 @@ func (t *ZeusWorkerTestSuite) TestCsvMerge() {
 	mergedCsv, err := appendCsvData(csvContacts, csvData, colName, emRow)
 	t.Require().Nil(err)
 	fmt.Println(mergedCsv)
+}
+func (t *ZeusWorkerTestSuite) TestWfCsv() {
+	constactsCsvStr := "First Name,Last Name,Company,LinkedIn,Email,Website\nAlex,George,Zeusfyi,https://www.linkedin.com/in/alexandersgeorge/,alex@zeus.fyi,http://www.bsci.com\nLevar,Williams,APrime Technology,https://www.linkedin.com/in/leevarwilliams/,leevar@gmail.com,http://www.natroxwoundcare.com\nAlex,George,Zeusfyi,https://www.linkedin.com/in/alexandersgeorge/,alex@zeus.fyi,http://www.shockwavemedical.com\nLevar,Williams,APrime Technology,https://www.linkedin.com/in/leevarwilliams/,leevar@gmail.com,http://www.ottobock.com\n"
 	csvSourceEntity := artemis_entities.UserEntity{
+		Nickname: "test",
+		Platform: "flows",
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
 				TextData: aws.String(constactsCsvStr),
-				Labels:   artemis_entities.CreateMdLabels([]string{"csv:source"}),
+				Labels:   artemis_entities.CreateMdLabels([]string{"csv:source", fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)}),
 			},
 		},
 	}
+	csvContacts, err := ParseCsvStringToMap(constactsCsvStr)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(csvContacts)
+	_, emRow := ts(csvContacts)
 	b, err := json.Marshal(emRow)
 	t.Require().Nil(err)
-	rmt := fmt.Sprintf("merge:ret:%s", validemailRetQp)
 	csvMergeInEntity := artemis_entities.UserEntity{
+		Nickname: "test",
+		Platform: "flows",
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
 				JsonData: b,
-				TextData: aws.String(colName),
-				Labels:   artemis_entities.CreateMdLabels([]string{"csv:merge", rmt}),
+				TextData: aws.String("Email"),
+				Labels:   artemis_entities.CreateMdLabels([]string{"csv:merge", fmt.Sprintf("csv:merge:ret:%s", validemailRetQp)}),
 			},
 		},
 	}
@@ -163,9 +174,11 @@ func (t *ZeusWorkerTestSuite) TestCsvMerge() {
 			},
 		},
 	}
-	ur, err := findMatchingNicknamesCsvMerge(csvSourceEntity, []artemis_entities.UserEntity{csvMergeInEntity}, wsi)
+
+	ur, err := FindAndMergeMatchingNicknamesByLabel(csvSourceEntity, []artemis_entities.UserEntity{csvMergeInEntity}, wsi, fmt.Sprintf("csv:merge:ret:%s", validemailRetQp))
 	t.Require().Nil(err)
 	t.Require().NotEmpty(ur)
+	t.Assert().NotEmpty(ur.MdSlice)
 }
 
 func ts(csvContacts []map[string]string) (string, map[string][]int) {

@@ -77,5 +77,8 @@ func (ws *WorkflowStageIO) GetSearchGroupsOutByRetNameMatch(retNames map[string]
 			}
 		}
 	}
+	if len(sgs) <= 0 {
+		log.Warn().Msg("GetSearchGroupsOutByRetNameMatch: sgs was empty")
+	}
 	return sgs
 }

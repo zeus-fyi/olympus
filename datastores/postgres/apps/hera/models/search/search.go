@@ -180,7 +180,11 @@ type SearchResult struct {
 	RedditMetadata  RedditMetadata                `json:"redditMetadata"`
 	TwitterMetadata *TwitterMetadata              `json:"twitterMetadata,omitempty"`
 	WebResponse     WebResponse                   `json:"webResponses,omitempty"`
+	CsvMetadata     *CsvMetadata                  `json:"csvMetadata,omitempty"`
 	UserEntities    []artemis_entities.UserEntity `json:"userEntity,omitempty"`
+}
+
+type CsvMetadata struct {
 }
 
 type TwitterMetadata struct {
@@ -207,6 +211,8 @@ type RedditMetadata struct {
 type WebResponse struct {
 	WebFilters        *artemis_orchestrations.WebFilters `json:"webFilters,omitempty"`
 	Body              echo.Map                           `json:"body"`
+	BodyV2            map[string]interface{}             `json:"bodyV2"`
+	BodyV2Slice       []map[string]interface{}           `json:"bodyV2Slice"`
 	RawMessage        []byte                             `json:"rawMessage"`
 	RegexFilteredBody string                             `json:"regexFilteredBody"`
 }

@@ -48,7 +48,7 @@ func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
 	uef := &artemis_entities.EntitiesFilter{
 		Platform: "flows",
-		Labels:   []string{"csv:source", "flows:global"},
+		Labels:   []string{"csv:source"},
 	}
 	err := w.ConvertToCsvStrToMap()
 	if err != nil {

@@ -28,7 +28,6 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 	fmt.Println(wio)
 
 	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil {
-
 		for _, sgpt := range wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups {
 			fmt.Println(aws.StringValue(sgpt.RetrievalName))
 		}
@@ -57,7 +56,7 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 	var newCsvEntities []artemis_entities.UserEntity
 	for _, gv := range gens {
 		if artemis_entities.SearchLabelsForMatch("csv:source", gv) {
-			mvs, merr := findMatchingNicknamesCsvMerge(gv, cp.WfExecParams.WorkflowOverrides.WorkflowEntities, wio)
+			mvs, merr := FindAndMergeMatchingNicknamesByLabel(gv, cp.WfExecParams.WorkflowOverrides.WorkflowEntities, wio, "csv:merge")
 			if merr != nil {
 				return 0, merr
 			}

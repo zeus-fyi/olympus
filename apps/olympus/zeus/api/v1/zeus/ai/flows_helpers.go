@@ -60,6 +60,12 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 		Platform: "flows",
 		Labels:   []string{csvSrcGlobalLabel},
 	}
+	if w.RetrievalOverrides == nil {
+		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
+	}
+	if w.TaskOverrides == nil {
+		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
+	}
 	err := w.ConvertToCsvStrToMap()
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
@@ -95,7 +101,7 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 	if uef != nil && uef.Nickname != "" && uef.Platform != "" {
 		w.WorkflowEntityRefs = append(w.WorkflowEntityRefs, *uef)
 	}
-	err = w.TestCsvParser()
+	//err = w.TestCsvParser()
 	return uef, err
 }
 

@@ -43,20 +43,20 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 		return 0, err
 	}
 	//fmt.Println(mergeCsvEntities, "mergeCsvEntities")
-	// for now just save under wf, later use labels
 	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
 	for _, nev := range mergeCsvEntities {
+		// for now just saved under wf, later use label, csv under platform csv-exports
 		_, err = S3WfRunImports(ctx, cp.Ou, wfRunName, &nev)
 		if err != nil {
 			log.Err(err).Msg("S3WfRunImports: failed to save merged result")
 			return 0, err
 		}
 	}
-
-	// now merge these: newCsvEntities
-
-	// save newCsvEntities
-	// test export
+	err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
+	if err != nil {
+		log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
+		return 0, err
+	}
 	return wr.WorkflowResultID, nil
 }
 

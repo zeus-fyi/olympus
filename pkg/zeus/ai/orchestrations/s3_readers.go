@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/poseidon"
+	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 const (
@@ -138,4 +139,44 @@ func GetGlobalEntitiesFromRef(ctx context.Context, ou org_users.OrgUser, refs []
 		}
 	}
 	return gens, nil
+}
+
+func S3WfRunExport(ctx context.Context, ou org_users.OrgUser, wfRunName string, ue *artemis_entities.UserEntity) (*artemis_entities.UserEntity, error) {
+	if ue == nil || ue.Platform == "" || ue.Nickname == "" {
+		return nil, fmt.Errorf("ue missing or field missing")
+	}
+	if ou.OrgID <= 0 {
+		return nil, fmt.Errorf("org missing")
+	}
+	if err := s3SetupCheck(ctx); err != nil {
+		return nil, err
+	}
+	ogk, err := artemis_entities.HashParams(ou.OrgID, nil)
+	if err != nil {
+		log.Err(err).Msg("workingRunCycleStagePath: failed to hash wsr io")
+		return nil, err
+	}
+	p := &filepaths.Path{
+		DirIn:  fmt.Sprintf("/%s/%s/%s", ogk, wfRunName, ue.Platform),
+		DirOut: fmt.Sprintf("/%s/%s/%s", ogk, wfRunName, ue.Platform),
+		FnIn:   fmt.Sprintf("%s.json", ue.Nickname),
+		FnOut:  fmt.Sprintf("%s.json", ue.Nickname),
+	}
+	log.Info().Interface("p.FileOutPath()", p.FileOutPath()).Msg("S3WfRunImports")
+	br := poseidon.S3BucketRequest{
+		BucketName: FlowsBucketName,
+		BucketKey:  p.FileOutPath(),
+	}
+	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
+	buf, err := pos.S3DownloadReadBytes(ctx, br)
+	if err != nil {
+		log.Err(err).Msg("gs3globalWf: S3DownloadReadBytes error")
+		return nil, err
+	}
+	err = json.Unmarshal(buf.Bytes(), &ue)
+	if err != nil {
+		log.Err(err).Msg("gs3globalWf: S3DownloadReadBytes error")
+		return nil, err
+	}
+	return ue, err
 }

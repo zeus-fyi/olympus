@@ -6,10 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
@@ -44,28 +47,42 @@ func PostFlowsActionsRequest(c echo.Context, fa FlowsActionsRequest) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
+type FlowsActionsGetRequest struct{}
+
 func FlowsExportCsvRequestHandler(c echo.Context) error {
-	request := new(FlowsActionsRequest)
+	request := new(FlowsActionsGetRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return ExportRunCsvRequest(c, *request)
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		log.Err(err).Msg("invalid ID parameter")
+		return c.JSON(http.StatusBadRequest, "invalid ID parameter")
+	}
+	return ExportRunCsvRequest(c, id)
 }
 
-// TODO: get and use param value, replace ue
-// add wf results from s3
-
-func ExportRunCsvRequest(c echo.Context, fa FlowsActionsRequest) error {
+func ExportRunCsvRequest(c echo.Context, id int) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	var err error
-	ue := artemis_entities.UserEntity{
-		Nickname: "78f6d017bf9dd3d8d974024aef62ecefc7d281d8e0c857638022319d101cf99278f6d017bf9dd3d8d974024aef62ecefc7d281d8e0c857638022319d101cf992",
-		Platform: "flows",
+	ojsRuns, err := artemis_orchestrations.SelectAiSystemOrchestrations(c.Request().Context(), ou, id)
+	if err != nil {
+		log.Err(err).Msg("failed to get runs")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	_, err = ai_platform_service_orchestrations.GetS3GlobalOrg(c.Request().Context(), ou, &ue)
+	if len(ojsRuns) < 1 {
+		return c.JSON(http.StatusOK, nil)
+	}
+	ojr := ojsRuns[0]
+	log.Info().Interface("oj.OrchestrationName", ojr.OrchestrationName).Msg("ExportRunCsvRequest")
+	ue := artemis_entities.UserEntity{
+		Nickname: ojr.OrchestrationName,
+		Platform: "csv-exports",
+	}
+	_, err = ai_platform_service_orchestrations.S3WfRunExport(c.Request().Context(), ou, ojr.OrchestrationName, &ue)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}

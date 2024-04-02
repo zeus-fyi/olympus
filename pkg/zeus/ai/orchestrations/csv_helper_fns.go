@@ -167,8 +167,8 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 	}
 	log.Info().Interface("mergedCsvStr", mergedCsvStr).Msg("mergeCsvs: PayloadToCsvString")
 	csvMerge := &artemis_entities.UserEntity{
-		Nickname: fmt.Sprintf("%s.csv", wsi.WorkflowOverrides.WorkflowRunName),
-		Platform: "csv-export",
+		Nickname: wsi.WorkflowOverrides.WorkflowRunName,
+		Platform: "csv-exports",
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
 				TextData: aws.String(mergedCsvStr),

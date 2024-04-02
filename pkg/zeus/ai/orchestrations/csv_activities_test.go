@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
 
@@ -15,4 +16,15 @@ func (t *ZeusWorkerTestSuite) TestWfCsv() {
 	res, err := za.SaveCsvTaskOutput(ctx, cp, wr)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(res)
+}
+
+func (t *ZeusWorkerTestSuite) TestExportWfCsv() {
+	wfName := "test-wf"
+	ue := artemis_entities.UserEntity{
+		Platform: "csv-exports",
+		Nickname: wfName,
+	}
+	ev, err := S3WfRunExport(ctx, t.Ou, "test-wf", &ue)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(ev)
 }

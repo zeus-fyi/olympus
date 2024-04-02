@@ -16,7 +16,7 @@ func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO,
 	if err := errCheckStagedWfs(ctx, cp); err != nil {
 		return nil, err
 	}
-	p, err := stageNamePath(cp)
+	p, err := workingRunCycleStagePath(cp)
 	if err != nil {
 		log.Err(err).Msg("gs3wfs: failed to hash wsr io")
 		return nil, err

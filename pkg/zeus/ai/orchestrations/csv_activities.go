@@ -10,10 +10,23 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
 
+// TODO: next step SaveCsvTaskOutput
+/*
+	main csv is kept in global if using entity filter lookup; make copy of this for mutations
+
+*/
+
 func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *MbChildSubProcessParams, wr *artemis_orchestrations.AIWorkflowAnalysisResult) (int, error) {
 	if cp == nil || wr == nil {
 		return 0, fmt.Errorf("SaveTaskOutput: cp or wr is nil")
 	}
+
+	gens, err := GetGlobalEntitiesFromRef(ctx, cp.Ou, cp.WfExecParams.WorkflowOverrides.WorkflowEntityRefs)
+	if err != nil {
+		log.Err(err).Msg("GetGlobalEntitiesFromRef: failed to select workflow io")
+		return 0, err
+	}
+
 	//err := artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 	//if err != nil {
 	//	log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
@@ -46,12 +59,6 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 
 			DirIn:  fmt.Sprintf("/%s/%s/cycle/%d", ogk, wfRunName, cp.Wsr.RunCycle),
 	*/
-
-	gens, err := GetGlobalEntitiesFromRef(ctx, cp.Ou, cp.WfExecParams.WorkflowOverrides.WorkflowEntityRefs)
-	if err != nil {
-		log.Err(err).Msg("GetGlobalEntitiesFromRef: failed to select workflow io")
-		return 0, err
-	}
 
 	var newCsvEntities []artemis_entities.UserEntity
 	for _, gv := range gens {

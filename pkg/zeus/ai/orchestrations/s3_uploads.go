@@ -24,7 +24,7 @@ func s3ws(ctx context.Context, cp *MbChildSubProcessParams, input *WorkflowStage
 		return nil, err
 	}
 	up := s3uploader.NewS3ClientUploader(athena.OvhS3Manager)
-	p, err := stageNamePath(cp)
+	p, err := workingRunCycleStagePath(cp)
 	if err != nil {
 		log.Err(err).Msg("s3ws: failed to hash wsr io")
 		return nil, err

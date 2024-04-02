@@ -247,7 +247,7 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 		mp[k] = v
 	}
 	for mkeyName, mockingbird := range mp {
-		fmt.Println(mkeyName, "mkey", mockingbird, "mockingbird")
+		//fmt.Println(mkeyName, "mkey", mockingbird, "mockingbird")
 		svItem, sok := m[mkeyName]
 		if sok && svItem.Key == mockingbird {
 			if strings.Contains(mkeyName, "twillio") {

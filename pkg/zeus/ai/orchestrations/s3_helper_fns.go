@@ -141,6 +141,17 @@ func globalOrgEntityStageNamePath(ou org_users.OrgUser, ue *artemis_entities.Use
 		log.Err(err).Msg("globalOrgEntityStageNamePath: failed to hash wsr io")
 		return nil, err
 	}
+	var ev string
+	if isImport {
+		ev, err = artemis_entities.HashParams(ou.OrgID, []interface{}{ue.MdSlice})
+		if err != nil {
+			log.Err(err).Msg("globalOrgEntityStageNamePath: failed to hash wsr io")
+			return nil, err
+		}
+		log.Info().Interface("ev.hash", ev)
+		ue.Nickname = ev
+	}
+
 	if len(ue.Nickname) <= 0 || len(ue.Platform) <= 0 {
 		err = fmt.Errorf("globalOrgEntityStageNamePath: must have platform and nickname on exports")
 		log.Err(err).Msg("globalOrgEntityStageNamePath: failed to hash wsr io")

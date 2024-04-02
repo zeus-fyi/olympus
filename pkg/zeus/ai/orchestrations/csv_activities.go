@@ -37,14 +37,19 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 		log.Err(werr).Msg("SaveCsvTaskOutput: gs3wfs failed to select workflow io")
 		return 0, werr
 	}
+	//fmt.Println(mergeCsvEntities, "mergeCsvEntities")
+	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
+	if len(wfRunName) <= 0 {
+		return 0, fmt.Errorf("no wf run name provided")
+	}
 	mergeCsvEntities, err := getGlobalCsvMergedEntities(gens, cp, wio)
 	if err != nil {
 		log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
 		return 0, err
 	}
-	//fmt.Println(mergeCsvEntities, "mergeCsvEntities")
-	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
-	for _, nev := range mergeCsvEntities {
+	for i, nev := range mergeCsvEntities {
+		log.Info().Interface("i", i).Msg("mergeCsvEntities")
+		//mergeCsvEntities[i].Nickname = wfRunName
 		// for now just saved under wf, later use label, csv under platform csv-exports
 		_, err = S3WfRunImports(ctx, cp.Ou, wfRunName, &nev)
 		if err != nil {

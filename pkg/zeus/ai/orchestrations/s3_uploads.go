@@ -109,6 +109,9 @@ func S3WfRunImports(ctx context.Context, ou org_users.OrgUser, wfRunName string,
 		log.Err(err).Msg("workingRunCycleStagePath: failed to hash wsr io")
 		return nil, err
 	}
+	if len(ue.Nickname) <= 0 {
+		return nil, fmt.Errorf("S3WfRunImports no nickname provided")
+	}
 	p := &filepaths.Path{
 		DirIn:  fmt.Sprintf("/%s/%s/%s", ogk, wfRunName, ue.Platform),
 		DirOut: fmt.Sprintf("/%s/%s/%s", ogk, wfRunName, ue.Platform),

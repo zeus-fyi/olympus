@@ -133,19 +133,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						return err
 					}
 				case csvFormat:
-					aiResp := &ChatCompletionQueryResponse{
-						Prompt: make(map[string]string),
-						Response: openai.ChatCompletionResponse{
-							Model: "none",
-							Usage: openai.Usage{
-								PromptTokens:     0,
-								CompletionTokens: 0,
-								TotalTokens:      0,
-							},
-						},
-					}
 					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &cp.Tc.ResponseID)
+					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, getDummyChatCompResp()).Get(analysisCompCtx, &cp.Tc.ResponseID)
 					if err != nil {
 						logger.Error("failed to save analysis read only response", "Error", err)
 						return err
@@ -168,7 +157,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						return err
 					}
 				case sendNextStage:
-
 				default:
 					var aiResp *ChatCompletionQueryResponse
 					analysisCtx := workflow.WithActivityOptions(ctx, ao)
@@ -194,7 +182,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 						ResponseID:            cp.Tc.ResponseID,
 					}
 					ia := InputDataAnalysisToAgg{
-						TextInput:                   nil,
 						ChatCompletionQueryResponse: aiResp,
 					}
 					var tmp string
@@ -243,6 +230,21 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 		log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle done")
 	}
 	return nil
+}
+
+func getDummyChatCompResp() *ChatCompletionQueryResponse {
+	aiResp := &ChatCompletionQueryResponse{
+		Prompt: make(map[string]string),
+		Response: openai.ChatCompletionResponse{
+			Model: "none",
+			Usage: openai.Usage{
+				PromptTokens:     0,
+				CompletionTokens: 0,
+				TotalTokens:      0,
+			},
+		},
+	}
+	return aiResp
 }
 
 func getAnalysisTaskContext(analysisInst artemis_orchestrations.WorkflowTemplateData) TaskContext {

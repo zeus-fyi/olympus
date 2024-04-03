@@ -22,55 +22,6 @@ func (z *ZeusAiPlatformActivities) EvalLookup(ctx context.Context, ou org_users.
 	return evalFn, nil
 }
 
-//func gws(ctx context.Context, inputID int) (WorkflowStageIO, error) {
-//	act := NewZeusAiPlatformActivities()
-//	wio, err := act.SelectWorkflowIO(ctx, inputID)
-//	if err != nil {
-//		log.Err(err).Msg("gws: failed to SelectWorkflowIO")
-//		return wio, err
-//	}
-//	return wio, err
-//}
-//
-//func sws(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error) {
-//	if input == nil {
-//		log.Warn().Msg("SaveEvalResponseOutput: at least one input is nil or empty")
-//		return nil, nil
-//	}
-//	act := NewZeusAiPlatformActivities()
-//	wio, err := act.SaveWorkflowIO(ctx, input)
-//	if err != nil {
-//		log.Err(err).Msg("sws: failed to SaveWorkflowIO")
-//		return wio, err
-//	}
-//	return wio, err
-//}
-
-//func (z *ZeusAiPlatformActivities) SaveEvalMetricResults(ctx context.Context, inputID int) error {
-//	wio, err := gws(ctx, inputID)
-//	if err != nil {
-//		log.Err(err).Msg("SaveEvalMetricResults: failed to select workflow io")
-//		return err
-//	}
-//	if wio.CreateTriggerActionsWorkflowInputs == nil || wio.CreateTriggerActionsWorkflowInputs.Emr == nil {
-//		log.Info().Msg("SaveEvalMetricResults: at least one input is nil or empty")
-//		return nil
-//	}
-//	wio.Logs = append(wio.Logs, "EvalMetricResults started")
-//	err = artemis_orchestrations.UpsertEvalMetricsResults(ctx, wio.CreateTriggerActionsWorkflowInputs.Emr)
-//	if err != nil {
-//		log.Err(err).Msg("EvalLookup: failed to get eval fn")
-//		return err
-//	}
-//	wio.Logs = append(wio.Logs, "EvalMetricResults done")
-//	_, err = sws(ctx, &wio)
-//	if err != nil {
-//		log.Err(err).Msg("SaveEvalMetricResults: failed to save workflow io")
-//		return err
-//	}
-//	return nil
-//}
-
 func (z *ZeusAiPlatformActivities) SaveEvalResponseOutput(ctx context.Context, errr artemis_orchestrations.AIWorkflowEvalResultResponse) (int, error) {
 	respID, err := artemis_orchestrations.InsertOrUpdateAiWorkflowEvalResultResponse(ctx, errr)
 	if err != nil {
@@ -158,3 +109,53 @@ func (z *ZeusAiPlatformActivities) EvalModelScoredJsonOutput(ctx context.Context
 	}
 	return cp, nil
 }
+
+// todo deprecate
+//func gws(ctx context.Context, inputID int) (WorkflowStageIO, error) {
+//	act := NewZeusAiPlatformActivities()
+//	wio, err := act.SelectWorkflowIO(ctx, inputID)
+//	if err != nil {
+//		log.Err(err).Msg("gws: failed to SelectWorkflowIO")
+//		return wio, err
+//	}
+//	return wio, err
+//}
+//
+//func sws(ctx context.Context, input *WorkflowStageIO) (*WorkflowStageIO, error) {
+//	if input == nil {
+//		log.Warn().Msg("SaveEvalResponseOutput: at least one input is nil or empty")
+//		return nil, nil
+//	}
+//	act := NewZeusAiPlatformActivities()
+//	wio, err := act.SaveWorkflowIO(ctx, input)
+//	if err != nil {
+//		log.Err(err).Msg("sws: failed to SaveWorkflowIO")
+//		return wio, err
+//	}
+//	return wio, err
+//}
+
+//func (z *ZeusAiPlatformActivities) SaveEvalMetricResults(ctx context.Context, inputID int) error {
+//	wio, err := gws(ctx, inputID)
+//	if err != nil {
+//		log.Err(err).Msg("SaveEvalMetricResults: failed to select workflow io")
+//		return err
+//	}
+//	if wio.CreateTriggerActionsWorkflowInputs == nil || wio.CreateTriggerActionsWorkflowInputs.Emr == nil {
+//		log.Info().Msg("SaveEvalMetricResults: at least one input is nil or empty")
+//		return nil
+//	}
+//	wio.Logs = append(wio.Logs, "EvalMetricResults started")
+//	err = artemis_orchestrations.UpsertEvalMetricsResults(ctx, wio.CreateTriggerActionsWorkflowInputs.Emr)
+//	if err != nil {
+//		log.Err(err).Msg("EvalLookup: failed to get eval fn")
+//		return err
+//	}
+//	wio.Logs = append(wio.Logs, "EvalMetricResults done")
+//	_, err = sws(ctx, &wio)
+//	if err != nil {
+//		log.Err(err).Msg("SaveEvalMetricResults: failed to save workflow io")
+//		return err
+//	}
+//	return nil
+//}

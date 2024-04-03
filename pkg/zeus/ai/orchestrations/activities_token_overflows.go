@@ -77,24 +77,6 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 					},
 				}
 			}
-			//} else if d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil && cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
-			//	payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
-			//	var hs []hera_search.SearchResult
-			//	for _, pm := range payloadMaps {
-			//		hsr := hera_search.SearchResult{
-			//			WebResponse: hera_search.WebResponse{
-			//				Body: pm,
-			//			},
-			//		}
-			//		hs = append(hs, hsr)
-			//	}
-			//	wio.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
-			//		InSearchGroup: &hera_search.SearchResultGroup{
-			//			RetrievalName:      aws.String("csv-exports"),
-			//			ApiResponseResults: hs,
-			//		},
-			//	}
-			//}
 		}
 	}
 	if wio.PromptReduction == nil {

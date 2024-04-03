@@ -391,36 +391,32 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 				cp.Tc.TaskName = vi.AnalysisTaskName
 				wso, werr := gs3wfs(ctx, cp)
 				if werr != nil {
-					sgos := wso.GetOutSearchGroups()
-					for _, sgo := range sgos {
-						tmp := InputDataAnalysisToAgg{
-							SearchResultGroup: sgo,
-						}
-						resp = append(resp, tmp)
-					}
+					resp = append(resp, wso.InputDataAnalysisToAgg)
 				}
 				cp.Tc.TaskName = tn
 			}
 		}
+	} else {
+		for _, r := range results {
+			b, berr := json.Marshal(r.Metadata)
+			if berr != nil {
+				log.Err(berr).Msg("AiAggregateAnalysisRetrievalTask: failed")
+				continue
+			}
+			if b == nil || string(b) == "null" {
+				continue
+			}
+			tmp := InputDataAnalysisToAgg{}
+			jerr := json.Unmarshal(b, &tmp)
+			if jerr != nil {
+				log.Err(jerr).Msg("AiAggregateAnalysisRetrievalTask: failed")
+				continue
+			}
+			resp = append(resp, tmp)
+		}
 	}
 	log.Info().Interface("results", results).Msg("AiAggregateAnalysisRetrievalTask")
-	for _, r := range results {
-		b, berr := json.Marshal(r.Metadata)
-		if berr != nil {
-			log.Err(berr).Msg("AiAggregateAnalysisRetrievalTask: failed")
-			continue
-		}
-		if b == nil || string(b) == "null" {
-			continue
-		}
-		tmp := InputDataAnalysisToAgg{}
-		jerr := json.Unmarshal(b, &tmp)
-		if jerr != nil {
-			log.Err(jerr).Msg("AiAggregateAnalysisRetrievalTask: failed")
-			continue
-		}
-		resp = append(resp, tmp)
-	}
+
 	wio := WorkflowStageIO{
 		WorkflowStageReference: cp.Wsr,
 		WorkflowStageInfo: WorkflowStageInfo{

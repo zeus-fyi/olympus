@@ -18,6 +18,20 @@ const (
 	OpenAiPlatform = "openai"
 )
 
+type ChatCompletionQueryResponse struct {
+	Prompt                map[string]string                              `json:"prompt"`
+	Params                hera_openai.OpenAIParams                       `json:"params"`
+	Schemas               []*artemis_orchestrations.JsonSchemaDefinition `json:"schemas"`
+	EvalResultID          int                                            `json:"evalResultID,omitempty"`
+	WorkflowResultID      int                                            `json:"workflowResultID,omitempty"`
+	Response              openai.ChatCompletionResponse                  `json:"response"`
+	ResponseID            int                                            `json:"responseID,omitempty"`
+	ResponseTaskID        int                                            `json:"responseTaskID,omitempty"`
+	RegexSearchResults    []hera_search.SearchResult                     `json:"regexSearchResults,omitempty"`
+	FilteredSearchResults []hera_search.SearchResult                     `json:"filteredSearchResults,omitempty"`
+	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition  `json:"jsonResponseResults,omitempty"`
+}
+
 func GetMockingBirdSecrets(ctx context.Context, ou org_users.OrgUser) (*aws_secrets.OAuth2PlatformSecret, error) {
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 	if err != nil || ps == nil || ps.ApiKey == "" {
@@ -170,20 +184,6 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		ResponseTaskID: taskInst.AnalysisTaskID,
 		Response:       resp,
 	}, nil
-}
-
-type ChatCompletionQueryResponse struct {
-	Prompt                map[string]string                              `json:"prompt"`
-	Params                hera_openai.OpenAIParams                       `json:"params"`
-	Schemas               []*artemis_orchestrations.JsonSchemaDefinition `json:"schemas"`
-	EvalResultID          int                                            `json:"evalResultID,omitempty"`
-	WorkflowResultID      int                                            `json:"workflowResultID,omitempty"`
-	Response              openai.ChatCompletionResponse                  `json:"response"`
-	ResponseID            int                                            `json:"responseID,omitempty"`
-	ResponseTaskID        int                                            `json:"responseTaskID,omitempty"`
-	RegexSearchResults    []hera_search.SearchResult                     `json:"regexSearchResults,omitempty"`
-	FilteredSearchResults []hera_search.SearchResult                     `json:"filteredSearchResults,omitempty"`
-	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition  `json:"jsonResponseResults,omitempty"`
 }
 
 func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.JsonSchemaDefinition) bool {

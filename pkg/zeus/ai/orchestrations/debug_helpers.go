@@ -22,13 +22,44 @@ func ChangeToAiDir() string {
 	return dir
 }
 
-/*
-type InputDataAnalysisToAgg struct {
-	TextInput                   *string                        `json:"textInput,omitempty"`
-	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
-	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`
+type AiAggregateAnalysisRetrievalTaskInputDebug struct {
+	SourceTaskIds []int
+	Cp            *MbChildSubProcessParams
 }
-*/
+
+func (f *AiAggregateAnalysisRetrievalTaskInputDebug) Save() {
+	dirMain := ChangeToAiDir()
+	b, err := json.Marshal(f)
+	if err != nil {
+		panic(err)
+	}
+	//ch := chronos.Chronos{}
+	//ch.UnixTimeStampNow(),
+	rn := "AiAggregateAnalysisRetrievalTaskInputDebug"
+	fp := filepaths.Path{
+		DirIn:  dirMain,
+		DirOut: path.Join(dirMain, "tmp"),
+		FnOut:  fmt.Sprintf("%s-cycle-%d-chunk-%d.json", rn, f.Cp.Wsr.RunCycle, f.Cp.Wsr.ChunkOffset),
+	}
+	err = fp.WriteToFileOutPath(b)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (f *AiAggregateAnalysisRetrievalTaskInputDebug) Open() {
+	dirMain := ChangeToAiDir()
+	rn := "AiAggregateAnalysisRetrievalTaskInputDebug"
+	fp := filepaths.Path{
+		DirIn:  dirMain,
+		DirOut: path.Join(dirMain, "tmp"),
+		FnOut:  fmt.Sprintf("%s-cycle-%d-chunk-%d.json", rn, f.Cp.Wsr.RunCycle, f.Cp.Wsr.ChunkOffset),
+	}
+	err := json.Unmarshal(fp.ReadFileInPath(), &f)
+	if err != nil {
+		panic(err)
+	}
+}
 
 type FanOutApiCallRequestTaskInputDebug struct {
 	Rts []iris_models.RouteInfo
@@ -37,7 +68,7 @@ type FanOutApiCallRequestTaskInputDebug struct {
 
 func (f *FanOutApiCallRequestTaskInputDebug) Open() {
 	dirMain := ChangeToAiDir()
-	rn := f.Cp.WfExecParams.WorkflowOverrides.WorkflowRunName
+	rn := "FanOutApiCallRequestTaskInputDebug"
 	fp := filepaths.Path{
 		DirIn:  dirMain,
 		DirOut: path.Join(dirMain, "tmp"),
@@ -57,7 +88,7 @@ func (f *FanOutApiCallRequestTaskInputDebug) Save() {
 	}
 	//ch := chronos.Chronos{}
 	//ch.UnixTimeStampNow(),
-	rn := f.Cp.WfExecParams.WorkflowOverrides.WorkflowRunName
+	rn := "FanOutApiCallRequestTaskInputDebug"
 	fp := filepaths.Path{
 		DirIn:  dirMain,
 		DirOut: path.Join(dirMain, "tmp"),

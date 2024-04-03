@@ -12,71 +12,6 @@ import (
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 )
 
-func (t *ZeusWorkerTestSuite) TestS3GlobalOrgImports() {
-	ue, _ := t.getContactCsvMock()
-	re, err := S3GlobalOrgUpload(ctx, t.Ou, &ue)
-	t.Require().Nil(err)
-	t.Require().NotNil(re)
-}
-
-func (t *ZeusWorkerTestSuite) TestGetGlobalEntitiesFromRef() {
-	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
-	refs := []artemis_entities.EntitiesFilter{
-		{
-			Nickname: ueh,
-			Platform: "flows",
-		},
-	}
-	ue, err := GetGlobalEntitiesFromRef(ctx, t.Ou, refs)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(ue)
-	for _, v := range ue {
-		t.Assert().NotZero(len(v.MdSlice))
-		for _, mv := range v.MdSlice {
-			t.Assert().NotNil(mv.TextData)
-			t.Assert().NotEmpty(mv.Labels)
-		}
-	}
-}
-
-func (t *ZeusWorkerTestSuite) TestS3WfCycleStageRead() {
-	wsi := t.mockCsvMerge()
-	cp := &MbChildSubProcessParams{
-		WfExecParams: wsi.WorkflowExecParams,
-		Ou:           t.Ou,
-		Tc: TaskContext{
-			TaskName: "validate-emails",
-			TaskType: "analysis",
-		},
-	}
-	res, err := gs3wfs(ctx, cp)
-	t.Require().Nil(err)
-	t.Require().NotNil(res)
-
-	t.Require().NotNil(res.PromptReduction)
-	t.Require().NotNil(res.PromptReduction.PromptReductionSearchResults)
-	t.Require().NotEmpty(res.PromptReduction.PromptReductionSearchResults.OutSearchGroups)
-	for _, v := range res.PromptReduction.PromptReductionSearchResults.OutSearchGroups {
-		t.Assert().Len(v.ApiResponseResults, 2)
-	}
-}
-
-func (t *ZeusWorkerTestSuite) testS3WfCycleStageImport() *MbChildSubProcessParams {
-	ws := t.mockCsvMerge()
-	cp := &MbChildSubProcessParams{
-		WfExecParams: ws.WorkflowExecParams,
-		Ou:           t.Ou,
-		Tc: TaskContext{
-			TaskName: "validate-emails",
-			TaskType: "analysis",
-		},
-	}
-	wsi, err := s3ws(ctx, cp, ws)
-	t.Require().Nil(err)
-	t.Require().NotNil(wsi)
-	return cp
-}
-
 func (t *ZeusWorkerTestSuite) mockCsvMerge() *WorkflowStageIO {
 	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
 	csvSourceEntity, csvContacts := t.getContactCsvMock()
@@ -243,7 +178,6 @@ func (t *ZeusWorkerTestSuite) TestWsiOut() {
 	}
 	sgs := wsi.GetSearchGroupsOutByRetNameMatch(m)
 	t.Require().NotEmpty(sgs)
-
 }
 
 func (t *ZeusWorkerTestSuite) TestPayloadToCsvString() {

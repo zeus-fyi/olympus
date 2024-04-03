@@ -48,6 +48,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				i-analysisInst.AnalysisCycleCount, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			cp.Window = window
 			cp.Tc = getAnalysisTaskContext(analysisInst)
+			// todo revist placement
 			wsrCreateCtx := workflow.WithActivityOptions(ctx, ao)
 			err := workflow.ExecuteActivity(wsrCreateCtx, z.CreateWsr, cp).Get(wsrCreateCtx, &cp)
 			if err != nil {

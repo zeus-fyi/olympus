@@ -34,18 +34,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		return nil, err
 	}
 	logger := workflow.GetLogger(ctx)
-	ao := workflow.ActivityOptions{
-		ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
-		RetryPolicy: &temporal.RetryPolicy{
-			BackoffCoefficient: 2.5,
-			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    100,
-		},
-	}
-
-	if cp.Tc.RetryPolicy != nil {
-		ao.RetryPolicy = cp.Tc.RetryPolicy
-	}
+	ao := getRetActRetryPolicy(cp)
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(cp.Ou.OrgID, cp.Wsr.ChildWfID, "ZeusAiPlatformServiceWorkflows", "RetrievalsWorkflow")
 	alertCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(alertCtx, "UpsertAssignment", oj).Get(alertCtx, nil)
@@ -53,18 +42,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RetrievalsWorkflow(ctx workflow.Context
 		logger.Error("failed to update ai orch services", "Error", err)
 		return nil, err
 	}
-	platform := cp.Tc.Retrieval.RetrievalPlatform
-	if cp.Tc.TriggerActionsApproval.TriggerAction == apiApproval {
-		platform = apiApproval
-	}
-	if cp.Tc.EvalID <= 0 || cp.Tc.TriggerActionsApproval.ApprovalID <= 0 {
-		switch platform {
-		case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
-		default:
-			platform = webPlatform
-		}
-	}
-	switch platform {
+	switch getPlatform(cp) {
 	case twitterPlatform, redditPlatform, discordPlatform, telegramPlatform:
 		retrievalCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(retrievalCtx, z.AiRetrievalTask, cp).Get(retrievalCtx, &cp)

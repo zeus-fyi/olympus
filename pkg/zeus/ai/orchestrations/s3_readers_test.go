@@ -43,3 +43,10 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageRead() {
 		t.Assert().Len(v.ApiResponseResults, 2)
 	}
 }
+
+func (t *ZeusWorkerTestSuite) TestS3HelperDownloadWfData() {
+	cp := &MbChildSubProcessParams{}
+	wfi, err := gs3wfs(ctx, cp)
+	t.Require().Nil(err)
+	t.Require().NotNil(wfi)
+}

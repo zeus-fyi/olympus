@@ -30,7 +30,6 @@ func (t *ZeusWorkerTestSuite) TestExportWfCsv() {
 }
 
 func (t *ZeusWorkerTestSuite) TestMergeCsvs() {
-
 	// todo
 
 	// refactor AiAggregateAnalysisRetrievalTask -agg input

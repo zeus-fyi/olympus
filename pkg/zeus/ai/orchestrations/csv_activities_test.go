@@ -30,11 +30,8 @@ func (t *ZeusWorkerTestSuite) TestExportWfCsv() {
 }
 
 func (t *ZeusWorkerTestSuite) TestMergeCsvs() {
-
 	// todo
-
 	// create standard processing format
-
 	/*
 		FanOutApiCallRequestTask
 		---start

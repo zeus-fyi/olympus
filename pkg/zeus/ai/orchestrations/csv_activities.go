@@ -84,19 +84,3 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 	}
 	return wr.WorkflowResultID, nil
 }
-
-func getGlobalCsvMergedEntities(gens []artemis_entities.UserEntity, cp *MbChildSubProcessParams, wio *WorkflowStageIO) ([]artemis_entities.UserEntity, error) {
-	var newCsvEntities []artemis_entities.UserEntity
-	for _, gv := range gens {
-		// since gens == global; use global label; csvSrcGlobalLabel
-		if artemis_entities.SearchLabelsForMatch(csvSrcGlobalLabel, gv) {
-			mvs, merr := FindAndMergeMatchingNicknamesByLabelPrefix(gv, cp.WfExecParams.WorkflowOverrides.WorkflowEntities, wio, csvSrcGlobalMergeLabel)
-			if merr != nil {
-				log.Err(merr).Msg("getGlobalCsvMergedEntities")
-				return nil, merr
-			}
-			newCsvEntities = append(newCsvEntities, *mvs)
-		}
-	}
-	return newCsvEntities, nil
-}

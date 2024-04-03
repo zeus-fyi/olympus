@@ -12,6 +12,49 @@ import (
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 )
 
+// mergeCsvs
+
+func (t *ZeusWorkerTestSuite) TestCoreCsvMerge() {
+	srcCsvEntity := artemis_entities.UserEntity{}
+	mergeInCsvEntities := []artemis_entities.UserEntity{}
+	wsi := &WorkflowStageIO{}
+	_, err := mergeCsvs(srcCsvEntity, mergeInCsvEntities, wsi)
+	t.Require().Nil(err)
+}
+
+func (t *ZeusWorkerTestSuite) TestAppendCsv() {
+	var inputCsvData, csvData []map[string]string
+	mergedCsv, err := appendCsvData(inputCsvData, csvData, "", nil)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(mergedCsv)
+}
+
+/*
+	1. create entity source: with csv str
+	2. merged entity to have:
+		a. textField| colName
+		b. jsonField| emRow
+		c. chained w/  csvRowsAppend []map[string]interface{}
+*/
+
+/*
+func appendCsvData(inputCsvData, csvData []map[string]string, colName string, emRow map[string][]int) ([]map[string]string, error) {
+	// Iterate through csvData to find and merge matching rows
+	for _, dataRow := range csvData {
+		email := dataRow[colName]
+		if indices, ok := emRow[email]; ok {
+			// If a matching row is found, merge the data
+			for _, index := range indices {
+				for key, value := range dataRow {
+					inputCsvData[index][key] = value
+				}
+			}
+		}
+	}
+	return inputCsvData, nil
+}
+*/
+
 func (t *ZeusWorkerTestSuite) mockCsvMerge() *WorkflowStageIO {
 	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
 	csvSourceEntity, csvContacts := t.getContactCsvMock()

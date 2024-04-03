@@ -40,42 +40,9 @@ func (t *ZeusWorkerTestSuite) TestGetGlobalEntitiesFromRef() {
 }
 
 func (t *ZeusWorkerTestSuite) TestS3WfCycleStageRead() {
-	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
-	csvSourceEntity, csvContacts := t.getContactCsvMock()
-	t.Require().NotEmpty(csvSourceEntity)
-	_, emRow := ts(csvContacts)
-	t.Require().NotEmpty(emRow)
-	b, err := json.Marshal(emRow)
-	t.Require().Nil(err)
-	csvMergeInEntity := artemis_entities.UserEntity{
-		Nickname: ueh,
-		Platform: "flows",
-		MdSlice: []artemis_entities.UserEntityMetadata{
-			{
-				JsonData: b,
-				TextData: aws.String("Email"),
-				Labels:   artemis_entities.CreateMdLabels([]string{csvGlobalMergeRetLabel(validemailRetQp)}),
-			},
-		},
-	}
-	expa := artemis_orchestrations.WorkflowExecParams{
-		WorkflowOverrides: artemis_orchestrations.WorkflowOverrides{
-			WorkflowRunName: "test-wf",
-			IsUsingFlows:    true,
-			WorkflowEntityRefs: []artemis_entities.EntitiesFilter{
-				{
-					Nickname: ueh,
-					Platform: "flows",
-					Labels:   []string{csvSrcGlobalLabel, csvGlobalMergeRetLabel(validemailRetQp)},
-				},
-			},
-			WorkflowEntities: []artemis_entities.UserEntity{
-				csvMergeInEntity,
-			},
-		},
-	}
+	wsi := t.mockCsvMerge()
 	cp := &MbChildSubProcessParams{
-		WfExecParams: expa,
+		WfExecParams: wsi.WorkflowExecParams,
 		Ou:           t.Ou,
 		Tc: TaskContext{
 			TaskName: "validate-emails",
@@ -95,6 +62,22 @@ func (t *ZeusWorkerTestSuite) TestS3WfCycleStageRead() {
 }
 
 func (t *ZeusWorkerTestSuite) testS3WfCycleStageImport() *MbChildSubProcessParams {
+	ws := t.mockCsvMerge()
+	cp := &MbChildSubProcessParams{
+		WfExecParams: ws.WorkflowExecParams,
+		Ou:           t.Ou,
+		Tc: TaskContext{
+			TaskName: "validate-emails",
+			TaskType: "analysis",
+		},
+	}
+	wsi, err := s3ws(ctx, cp, ws)
+	t.Require().Nil(err)
+	t.Require().NotNil(wsi)
+	return cp
+}
+
+func (t *ZeusWorkerTestSuite) mockCsvMerge() *WorkflowStageIO {
 	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
 	csvSourceEntity, csvContacts := t.getContactCsvMock()
 	t.Require().NotEmpty(csvSourceEntity)
@@ -176,20 +159,8 @@ func (t *ZeusWorkerTestSuite) testS3WfCycleStageImport() *MbChildSubProcessParam
 	//t.Require().Nil(err)
 	//t.Require().NotEmpty(ur)
 	//t.Assert().NotEmpty(ur.MdSlice)
-	cp := &MbChildSubProcessParams{
-		WfExecParams: expa,
-		Ou:           t.Ou,
-		Tc: TaskContext{
-			TaskName: "validate-emails",
-			TaskType: "analysis",
-		},
-	}
-	wsi, err = s3ws(ctx, cp, wsi)
-	t.Require().Nil(err)
-	t.Require().NotNil(wsi)
-	return cp
+	return wsi
 }
-
 func (t *ZeusWorkerTestSuite) TestCsvMerge() {
 	constactsCsvStr := "First Name,Last Name,Company,LinkedIn,Email,Website\nAlex,George,Zeusfyi,https://www.linkedin.com/in/alexandersgeorge/,alex@zeus.fyi,http://www.bsci.com\nLevar,Williams,APrime Technology,https://www.linkedin.com/in/leevarwilliams/,leevar@gmail.com,http://www.natroxwoundcare.com\nAlex,George,Zeusfyi,https://www.linkedin.com/in/alexandersgeorge/,alex@zeus.fyi,http://www.shockwavemedical.com\nLevar,Williams,APrime Technology,https://www.linkedin.com/in/leevarwilliams/,leevar@gmail.com,http://www.ottobock.com\n"
 	csvContacts, err := ParseCsvStringToMap(constactsCsvStr)

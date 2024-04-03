@@ -28,3 +28,12 @@ func (t *ZeusWorkerTestSuite) TestExportWfCsv() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(ev)
 }
+
+func (t *ZeusWorkerTestSuite) TestMergeCsvs() {
+
+	// todo
+
+	// refactor AiAggregateAnalysisRetrievalTask -agg input
+	// refactor TokenOverflowReduction -agg
+	// refactor SaveTaskOutput
+}

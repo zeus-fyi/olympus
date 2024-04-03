@@ -9,23 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
 
-// TODO: next step SaveCsvTaskOutput
-/*
-	main csv is kept in global if using entity filter lookup; make copy of this for mutations
-
-	fmt.Println(wio)
-	if wio.PromptReduction != nil && wio.PromptReduction.PromptReductionSearchResults != nil {
-		for _, sgpt := range wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups {
-			fmt.Println(aws.StringValue(sgpt.RetrievalName))
-		}
-	}
-*/
-
-/*
-	wf override
-	wfRunName := cp.WfExecParams.WorkflowOverrides.WorkflowRunName
-*/
-
 func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *MbChildSubProcessParams, wr *artemis_orchestrations.AIWorkflowAnalysisResult) (int, error) {
 	if cp == nil || wr == nil {
 		return 0, fmt.Errorf("SaveTaskOutput: cp or wr is nil")

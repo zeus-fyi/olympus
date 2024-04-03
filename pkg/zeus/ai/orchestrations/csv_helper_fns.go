@@ -132,8 +132,8 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 			//
 			gl := mi.GetStrLabels()
 			rm := mergeRets(gl)
-			rm["csv-exports"] = true
-			sgs := wsi.GetSearchGroupsOutByRetNameMatch(mergeRets(gl))
+			//rm["csv-exports"] = true
+			sgs := wsi.GetSearchGroupsOutByRetNameMatch(rm)
 			for _, sg := range sgs {
 				if sg.ApiResponseResults != nil {
 					results = append(results, sg.ApiResponseResults...)

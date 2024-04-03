@@ -9,24 +9,6 @@ import (
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 )
 
-const (
-	modelGpt4              = "gpt-4"
-	modelGpt4JanPreview    = "gpt-4-0125-preview"
-	modelGpt4TurboPreview  = "gpt-4-1106-preview"
-	modelGpt4Vision        = "gpt-4-vision-preview"
-	modelGpt432k           = "gpt-4-32k"
-	modelGpt40613          = "gpt-4-0613"
-	modelGpt432k0613       = "gpt-4-32k-0613"
-	modelGpt35Turbo1106    = "gpt-3.5-turbo-1106"
-	modelGpt35Turbo        = "gpt-3.5-turbo"
-	modelGpt35Turbo16k     = "gpt-3.5-turbo-16k"
-	modelGpt35TurboInstr   = "gpt-3.5-turbo-instruct"
-	modelGpt35Turbo0613    = "gpt-3.5-turbo-0613"
-	modelGpt35Turbo16k0613 = "gpt-3.5-turbo-16k-0613"
-	modelGpt35Turbo0301    = "gpt-3.5-turbo-0301"
-	modelGpt35JanPreview   = "gpt-3.5-turbo-0125"
-)
-
 type PromptReduction struct {
 	MarginBuffer          float64 `json:"marginBuffer,omitempty"`
 	Model                 string  `json:"model"`
@@ -61,116 +43,13 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	if cp == nil {
 		return nil, nil
 	}
-	var wioPtr *WorkflowStageIO
-	var pr *PromptReduction
-	wio, werr := gs3wfs(ctx, cp)
-	if werr != nil {
-		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
-		return nil, werr
-	}
-	if wio.WorkflowStageInfo.PromptReduction != nil && wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation != nil {
-		for _, d := range wio.WorkflowStageInfo.PromptReduction.DataInAnalysisAggregation {
-			if d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.RegexSearchResults != nil {
-				wio.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
-					InSearchGroup: &hera_search.SearchResultGroup{
-						RegexSearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
-					},
-				}
-			}
-		}
-	}
-	if wio.PromptReduction == nil {
-		return nil, nil
-	}
-	pr = wio.PromptReduction
-	if promptExt != nil {
-		pr.PromptReductionText = promptExt.PromptReductionText
-	}
-	wio.PromptReduction = pr
-	wioPtr = wio
-	if pr.DataInAnalysisAggregation != nil {
-		pr.PromptReductionSearchResults = &PromptReductionSearchResults{
-			InSearchGroup: &hera_search.SearchResultGroup{
-				SearchResults:         make([]hera_search.SearchResult, 0),
-				ApiResponseResults:    make([]hera_search.SearchResult, 0),
-				FilteredSearchResults: make([]hera_search.SearchResult, 0),
-				RegexSearchResults:    make([]hera_search.SearchResult, 0),
-			},
-		}
-		for _, d := range pr.DataInAnalysisAggregation {
-			if d.ChatCompletionQueryResponse != nil && pr != nil && d.ChatCompletionQueryResponse.RegexSearchResults != nil {
-				log.Info().Msg("TokenOverflowReduction: ChatCompletionQueryResponse.RegexSearchResults")
-				sk := &hera_search.SearchResultGroup{
-					RegexSearchResults: d.ChatCompletionQueryResponse.RegexSearchResults,
-				}
-				pr.PromptReductionSearchResults = &PromptReductionSearchResults{
-					InSearchGroup: sk,
-				}
-			} else if d.SearchResultGroup != nil && d.ChatCompletionQueryResponse != nil && d.ChatCompletionQueryResponse.JsonResponseResults != nil {
-				payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(d.ChatCompletionQueryResponse.JsonResponseResults)
-				switch d.SearchResultGroup.PlatformName {
-				case twitterPlatform, discordPlatform, redditPlatform, telegramPlatform:
-					tmpMap := make(map[string]map[string]interface{})
-					for ind, pv := range payloadMaps {
-						for keyName, payloadValue := range payloadMaps[ind] {
-							if keyName == "msg_id" {
-								msgStrID, ok := payloadValue.(string)
-								if ok {
-									if tmpMap[msgStrID] == nil {
-										tmpMap[msgStrID] = make(map[string]interface{})
-									}
-									tmpMap[msgStrID] = pv
-								}
-							}
-						}
-					}
-					for _, sv := range d.SearchResultGroup.SearchResults {
-						if sv.TwitterMetadata != nil && sv.TwitterMetadata.TweetStrID != "" {
-							if item, ok := tmpMap[sv.TwitterMetadata.TweetStrID]; ok && item != nil {
-								sv.WebResponse.Body = item
-								pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, sv)
-							}
-						} else if item, ok := tmpMap[fmt.Sprintf("%d", sv.UnixTimestamp)]; ok && item != nil {
-							sv.WebResponse.Body = item
-							pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, sv)
-						}
-					}
-				}
-			} else if d.SearchResultGroup != nil && d.SearchResultGroup.SearchResults != nil {
-				if pr.PromptReductionSearchResults == nil {
-					pr.PromptReductionSearchResults = &PromptReductionSearchResults{
-						InSearchGroup: &hera_search.SearchResultGroup{
-							SearchResults:         make([]hera_search.SearchResult, 0),
-							ApiResponseResults:    make([]hera_search.SearchResult, 0),
-							FilteredSearchResults: make([]hera_search.SearchResult, 0),
-							RegexSearchResults:    make([]hera_search.SearchResult, 0),
-						},
-					}
-				}
-				if d.SearchResultGroup.FilteredSearchResults != nil {
-					pr.PromptReductionSearchResults.InSearchGroup.FilteredSearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.FilteredSearchResults, d.SearchResultGroup.FilteredSearchResults...)
-				}
-				if d.SearchResultGroup.ApiResponseResults != nil {
-					pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults, d.SearchResultGroup.ApiResponseResults...)
-				}
-				pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, d.SearchResultGroup.SearchResults...)
-			}
-		}
-	} else {
-		for _, wr := range pr.AIWorkflowAnalysisResults {
-			sv, err := artemis_orchestrations.GenerateContentTextFromOpenAIResp([]artemis_orchestrations.AIWorkflowAnalysisResult{wr})
-			if err != nil {
-				log.Err(err).Msg("TokenOverflowReduction: GenerateContentTextFromOpenAIResp")
-				continue
-			}
-			hs := hera_search.SearchResult{
-				Value: sv,
-			}
-			pr.PromptReductionSearchResults.InSearchGroup.SearchResults = append(pr.PromptReductionSearchResults.InSearchGroup.SearchResults, hs)
-		}
+	pr, wio, err := overflowSetup(ctx, cp, promptExt)
+	if err != nil {
+		log.Err(err).Msg("TokenOverflowReduction: overflowSetup error")
+		return nil, err
 	}
 	log.Info().Interface("pr.MarginBuffer", pr.MarginBuffer).Msg("TokenOverflowReduction")
-	err := TokenOverflowSearchResults(ctx, pr)
+	err = TokenOverflowSearchResults(ctx, pr)
 	if err != nil {
 		log.Err(err).Msg("TokenOverflowReduction: TokenOverflowSearchResults")
 		return nil, err
@@ -190,7 +69,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	if pr.PromptReductionSearchResults != nil && (pr.PromptReductionSearchResults.OutSearchGroups == nil || len(pr.PromptReductionSearchResults.OutSearchGroups) <= 0) && pr.PromptReductionText != nil && len(pr.PromptReductionText.OutPromptChunks) > 0 {
 		pr.PromptReductionSearchResults = nil
 	}
-	wioPtr.PromptReduction = pr
+	wio.PromptReduction = pr
 	/*
 		// TODO: later break up into chunk filepaths
 		if pr.PromptReductionSearchResults != nil && (pr.PromptReductionSearchResults.OutSearchGroups != nil || len(pr.PromptReductionSearchResults.OutSearchGroups) > 0) {
@@ -201,7 +80,7 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 		}
 			&& pr.PromptReductionText != nil && len(pr.PromptReductionText.OutPromptChunks) > 0
 	*/
-	_, werr = s3ws(ctx, cp, wioPtr)
+	_, werr := s3ws(ctx, cp, wio)
 	if werr != nil {
 		log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")
 		return nil, werr

@@ -19,7 +19,6 @@ func (z *ZeusAiPlatformActivities) SelectRetrievalTask(ctx context.Context, ou o
 
 func (z *ZeusAiPlatformActivities) CreateWsr(ctx context.Context, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	// todo if exists already, skip
-
 	wio := WorkflowStageIO{
 		WorkflowStageReference: cp.Wsr,
 		WorkflowExecParams:     cp.WfExecParams,

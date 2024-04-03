@@ -119,7 +119,6 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-		//addCsvExport := true
 		for ri, _ := range resp {
 			resp[ri].WorkflowExecTimekeepingParams.IsCycleStepped = isCycleStepped
 			if isCycleStepped {
@@ -138,16 +137,16 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 				}
 			}
 			//if addCsvExport {
-			wtd := artemis_orchestrations.WorkflowTemplateData{
-				AggTaskID:         aws.Int(100),
-				AggCycleCount:     aws.Int(1),
-				AggTaskName:       aws.String("csv-flows"),
-				AggTaskType:       aws.String("aggregation"),
-				AggModel:          aws.String("N/A"),
-				AggResponseFormat: aws.String("csv"),
-			}
-			resp[ri].WorkflowTasks = append(resp[ri].WorkflowTasks, wtd)
-			resp[ri].CycleCountTaskRelative.AggNormalizedCycleCounts[100] = 1
+			//wtd := artemis_orchestrations.WorkflowTemplateData{
+			//	AggTaskID:         aws.Int(100),
+			//	AggCycleCount:     aws.Int(1),
+			//	AggTaskName:       aws.String("csv-flows"),
+			//	AggTaskType:       aws.String("aggregation"),
+			//	AggModel:          aws.String("N/A"),
+			//	AggResponseFormat: aws.String("csv"),
+			//}
+			//resp[ri].WorkflowTasks = append(resp[ri].WorkflowTasks, wtd)
+			//resp[ri].CycleCountTaskRelative.AggNormalizedCycleCounts[100] = 1
 
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides

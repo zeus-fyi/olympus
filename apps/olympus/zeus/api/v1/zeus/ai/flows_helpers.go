@@ -66,17 +66,21 @@ func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 	return fmt.Errorf("fake err")
 }
 
-func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
-	uef := &artemis_entities.EntitiesFilter{
-		Platform: "flows",
-		Labels:   []string{csvSrcGlobalLabel},
-	}
+func (w *ExecFlowsActionsRequest) InitMaps() {
 	if w.RetrievalOverrides == nil {
 		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
 	}
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
+}
+
+func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
+	uef := &artemis_entities.EntitiesFilter{
+		Platform: "flows",
+		Labels:   []string{csvSrcGlobalLabel},
+	}
+	w.InitMaps()
 	err := w.ConvertToCsvStrToMap()
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")

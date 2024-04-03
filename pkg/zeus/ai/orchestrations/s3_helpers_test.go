@@ -5,8 +5,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 )
 
-// S3SaveWorkflowIO
-
 func (t *ZeusWorkerTestSuite) TestSecretsSelect() {
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, org_users.NewOrgUserWithID(FlowsOrgID, 0), "s3-ovh-us-west-or")
 	t.Require().Nil(err)

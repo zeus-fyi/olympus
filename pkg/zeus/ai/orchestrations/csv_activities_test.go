@@ -30,8 +30,27 @@ func (t *ZeusWorkerTestSuite) TestExportWfCsv() {
 }
 
 func (t *ZeusWorkerTestSuite) TestMergeCsvs() {
+
 	// todo
 
+	// create standard processing format
+
+	/*
+		FanOutApiCallRequestTask
+		---start
+			wio, werr := gs3wfs(ctx, cp)
+			if werr != nil {
+				log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+				return nil, werr
+			}
+		---end
+			_, err := s3ws(ctx, cp, wio)
+			if err != nil {
+				log.Err(err).Msg("TokenOverflowReduction: failed to update workflow io")
+				return nil, err
+			}
+	*/
+	// refactor JsonOutputTaskWorkflow - CreateJsonOutputModelResponse| SaveTaskOutput |
 	// refactor AiAggregateAnalysisRetrievalTask -agg input
 	// refactor TokenOverflowReduction -agg
 	// refactor SaveTaskOutput

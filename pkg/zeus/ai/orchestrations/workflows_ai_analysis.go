@@ -121,7 +121,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					logger.Error("failed to save csv analysis", "Error", err)
 					return err
 				}
-			case sendNextStage:
 			default:
 				var aiResp *ChatCompletionQueryResponse
 				analysisCtx := workflow.WithActivityOptions(ctx, ao)

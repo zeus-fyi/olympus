@@ -7,7 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -73,7 +72,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				}
 			}
 		}
-
 		childParams := &MbChildSubProcessParams{WfID: oj.OrchestrationName + "-analysis-" + strconv.Itoa(i), Ou: ou, WfExecParams: wfExecParams, Oj: oj,
 			Wsr: artemis_orchestrations.WorkflowStageReference{
 				WorkflowRunID: oj.OrchestrationID,
@@ -98,7 +96,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			WorkflowID:         wfAggChildID,
 			WorkflowRunTimeout: ao.ScheduleToCloseTimeout,
 			RetryPolicy:        ao.RetryPolicy,
-			ParentClosePolicy:  enums.PARENT_CLOSE_POLICY_ABANDON,
+			//ParentClosePolicy:  enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
 		aggChildParams := &MbChildSubProcessParams{WfID: wfAggChildID, Ou: ou, WfExecParams: wfExecParams, Oj: oj,
 			Wsr: artemis_orchestrations.WorkflowStageReference{
@@ -114,6 +112,10 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			logger.Error("failed to execute child aggregation workflow", "Error", err)
 			return err
 		}
+		// now run final csv agg
+		/*
+		 aws.IntValue(aggInst.AggTaskID) == aggAllCsvTaskID && aws.StringValue(aggInst.AggResponseFormat) == "csv"
+		*/
 	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)

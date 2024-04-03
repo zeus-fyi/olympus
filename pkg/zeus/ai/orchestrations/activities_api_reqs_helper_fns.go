@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
+	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	"go.temporal.io/sdk/activity"
 )
@@ -74,5 +75,58 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 	cp.Tc.RegexSearchResults = nil
 	cp.Tc.ApiResponseResults = nil
 	cp.Tc.JsonResponseResults = nil
+	return cp, nil
+}
+
+func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_search.SearchResultGroup, sres hera_search.SearchResult, reqHash string) (*MbChildSubProcessParams, error) {
+	if cp == nil || sg == nil {
+		log.Warn().Msg("SaveResult: cp or sg is nil")
+		return nil, nil
+	}
+	wio, werr := gs3wfs(ctx, cp)
+	if werr != nil {
+		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		return nil, werr
+	}
+	wio.ApiIterationCount = cp.Tc.ApiIterationCount
+	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash != nil && len(reqHash) > 0 {
+		if _, ok := wio.WorkflowStageInfo.WorkflowInCacheHash[reqHash]; ok {
+			log.Info().Interface("reqHash", reqHash).Msg("SaveResult: reqHash found in cache; skip adding again to wf result")
+			return cp, nil
+		}
+	} else if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.WorkflowInCacheHash == nil {
+		icm := make(map[string]bool)
+		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && len(reqHash) > 0 {
+			icm[reqHash] = true
+			wio.WorkflowStageInfo.WorkflowInCacheHash = icm
+			wio.ApiIterationCount = cp.Tc.ApiIterationCount
+		}
+	}
+	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows && wio.WorkflowStageInfo.PromptReduction == nil {
+		wio.ApiIterationCount = cp.Tc.ApiIterationCount
+		wio.WorkflowStageInfo.PromptReduction = &PromptReduction{
+			MarginBuffer:          cp.Tc.MarginBuffer,
+			Model:                 cp.Tc.Model,
+			TokenOverflowStrategy: cp.Tc.TokenOverflowStrategy,
+			PromptReductionSearchResults: &PromptReductionSearchResults{
+				InPromptBody:  cp.Tc.Prompt,
+				InSearchGroup: sg,
+			},
+		}
+	} else if wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults == nil || wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults.InSearchGroup == nil {
+		wio.ApiIterationCount = cp.Tc.ApiIterationCount
+		wio.WorkflowStageInfo.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{
+			InPromptBody:  cp.Tc.Prompt,
+			InSearchGroup: sg,
+		}
+	} else {
+		wio.ApiIterationCount = cp.Tc.ApiIterationCount
+		wio.AppendApiResponseResult(sres)
+	}
+	_, err := s3ws(ctx, cp, wio)
+	if err != nil {
+		log.Err(err).Msg("TokenOverflowReduction: failed to update workflow io")
+		return nil, err
+	}
 	return cp, nil
 }

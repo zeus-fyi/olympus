@@ -34,15 +34,6 @@ func (z *ZeusAiPlatformActivities) CreateWsr(ctx context.Context, cp *MbChildSub
 	return cp, nil
 }
 
-/*
-type InputDataAnalysisToAgg struct {
-	TextInput                   *string                        `json:"textInput,omitempty"`
-	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
-	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`
-}
-*/
-// 1712175104115012000
-
 func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artemis_orchestrations.AIWorkflowAnalysisResult, cp *MbChildSubProcessParams, dataIn InputDataAnalysisToAgg) (int, error) {
 	if cp == nil {
 		return 0, fmt.Errorf("SaveTaskOutput: cp is nil")
@@ -50,46 +41,30 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 	if wr == nil {
 		return 0, nil
 	}
-
-	// save under this name?
-	// wr.GetWrResultCycleName()
 	wio, werr := gs3wfs(ctx, cp)
 	if werr != nil {
 		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 		return 0, werr
 	}
-
 	osg := wio.GetOutSearchGroups()
 	if osg != nil {
 		if cp.Wsr.ChunkOffset < len(osg) {
 			dataIn.SearchResultGroup = wio.PromptReduction.PromptReductionSearchResults.OutSearchGroups[cp.Wsr.ChunkOffset]
 		}
 	}
-
 	err := artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 	if err != nil {
 		log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
 		return 0, err
 	}
-	//wio.InputDataAnalysisToAgg = dataIn
 	err = s3wsCustomTaskName(ctx, cp, fmt.Sprintf("%d", wr.WorkflowResultID), dataIn)
 	if err != nil {
 		log.Err(err).Msg("s3wsCustomTaskName: failed")
 		return -1, err
 	}
-
-	//md, err := json.Marshal(dataIn)
-	//if err != nil {
-	//	log.Err(err).Interface("dataIn", dataIn).Interface("wr", wr).Msg("SaveTaskOutput: failed")
-	//	return 0, err
-	//}
-	//wr.Metadata = md
-	// save under wr id?
-
 	if dataIn.TextInput != nil {
 		wio.PromptTextFromTextStage += *dataIn.TextInput
 	}
-
 	_, eerr := s3ws(ctx, cp, wio)
 	if eerr != nil {
 		log.Err(err).Msg("SaveTaskOutput: failed")

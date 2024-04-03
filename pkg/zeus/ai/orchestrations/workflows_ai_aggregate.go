@@ -21,6 +21,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 	logger := workflow.GetLogger(ctx)
 	ao := getDefaultRetryPolicy()
 	i := runCycle
+
 	for _, aggInst := range wfExecParams.WorkflowTasks {
 		log.Info().Interface("runCycle", runCycle).Msg("aggregation: runCycle")
 		if isInvalidAggInst(aggInst, md, wfExecParams) {

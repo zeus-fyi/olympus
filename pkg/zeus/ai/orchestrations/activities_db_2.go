@@ -59,6 +59,25 @@ type WorkflowStageInfo struct {
 	PromptTextFromTextStage            string                              `json:"promptTextFromTextStage,omitempty"`
 }
 
+func (ws *WorkflowStageIO) AppendApiResponseResult(ar hera_search.SearchResult) {
+	ws.AppendApiResponseResults([]hera_search.SearchResult{ar})
+}
+
+func (ws *WorkflowStageIO) AppendApiResponseResults(ar []hera_search.SearchResult) {
+	if ws.PromptReduction == nil {
+		ws.PromptReduction = &PromptReduction{}
+	}
+	if ws.PromptReduction.PromptReductionSearchResults == nil {
+		ws.PromptReduction.PromptReductionSearchResults = &PromptReductionSearchResults{}
+	}
+	if ws.PromptReduction.PromptReductionSearchResults.InSearchGroup == nil {
+		ws.PromptReduction.PromptReductionSearchResults.InSearchGroup = &hera_search.SearchResultGroup{}
+	}
+
+	cr := ws.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults
+	ws.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults = append(cr, ar...)
+}
+
 func (ws *WorkflowStageInfo) GetOutSearchGroups() []*hera_search.SearchResultGroup {
 	if ws.PromptReduction != nil && ws.PromptReduction.PromptReductionSearchResults != nil && len(ws.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
 		return ws.PromptReduction.PromptReductionSearchResults.OutSearchGroups

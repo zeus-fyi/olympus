@@ -197,12 +197,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		log.Warn().Msg("no urls found")
 		return nil
 	}
-	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
-	}
-	if w.RetrievalOverrides == nil {
-		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
-	}
+	w.InitMaps()
 	wsbLabel := csvGlobalMergeAnalysisTaskLabel(wbsTaskName)
 	labels := artemis_entities.CreateMdLabels([]string{
 		fmt.Sprintf("wf:%s", webFetchWf),

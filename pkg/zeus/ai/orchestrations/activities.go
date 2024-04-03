@@ -417,7 +417,8 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 			resp = append(resp, tmp)
 		}
 	}
-	log.Info().Interface("len(results)", len(results)).Msg("AiAggregateAnalysisRetrievalTask")
+	log.Info().Interface("len(results)", results).Msg("AiAggregateAnalysisRetrievalTask")
+
 	wio := WorkflowStageIO{
 		WorkflowStageReference: cp.Wsr,
 		WorkflowStageInfo: WorkflowStageInfo{

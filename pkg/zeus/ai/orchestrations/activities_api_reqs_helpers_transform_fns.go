@@ -8,6 +8,26 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 )
 
+func getPayloads(cp *MbChildSubProcessParams) []map[string]interface{} {
+	var echoReqs []map[string]interface{}
+	if cp.WfExecParams.WorkflowOverrides.RetrievalOverrides != nil {
+		if v, ok := cp.WfExecParams.WorkflowOverrides.RetrievalOverrides[cp.Tc.Retrieval.RetrievalName]; ok {
+			for _, pl := range v.Payloads {
+				echoReqs = append(echoReqs, pl)
+			}
+		}
+	}
+	return echoReqs
+}
+
+func getRetOpt(cp *MbChildSubProcessParams, echoReqs []map[string]interface{}) string {
+	retOpt := "default"
+	if cp.Tc.Retrieval.WebFilters != nil && cp.Tc.Retrieval.WebFilters.PayloadPreProcessing != nil && len(echoReqs) > 0 {
+		retOpt = *cp.Tc.Retrieval.WebFilters.PayloadPreProcessing
+	}
+	return retOpt
+}
+
 func FixRegexInput(input string) string {
 	if len(input) > 0 {
 		// Check if the first character is a backtick and replace it with a double quote

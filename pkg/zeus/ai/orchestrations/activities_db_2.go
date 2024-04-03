@@ -47,6 +47,7 @@ type WorkflowStageIO struct {
 	artemis_orchestrations.WorkflowExecParams     `json:"workflowExecParams"`
 	artemis_orchestrations.WorkflowStageReference `json:"workflowStageReference"`
 	WorkflowStageInfo                             `json:"workflowStageInfo"`
+	InputDataAnalysisToAgg                        `json:"inputDataAnalysisToAgg"`
 }
 
 type WorkflowStageInfo struct {

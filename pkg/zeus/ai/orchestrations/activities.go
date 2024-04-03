@@ -457,24 +457,26 @@ func (z *ZeusAiPlatformActivities) SaveTaskOutput(ctx context.Context, wr *artem
 	if wr == nil {
 		return 0, nil
 	}
-	md, err := json.Marshal(dataIn)
-	if err != nil {
-		log.Err(err).Interface("dataIn", dataIn).Interface("wr", wr).Msg("SaveTaskOutput: failed")
-		return 0, err
-	}
-	wr.Metadata = md
-	err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
+	wio.InputDataAnalysisToAgg = dataIn
+	//md, err := json.Marshal(dataIn)
+	//if err != nil {
+	//	log.Err(err).Interface("dataIn", dataIn).Interface("wr", wr).Msg("SaveTaskOutput: failed")
+	//	return 0, err
+	//}
+	//wr.Metadata = md
+	err := artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 	if err != nil {
 		log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
 		return 0, err
 	}
 	if dataIn.TextInput != nil {
 		wio.PromptTextFromTextStage += *dataIn.TextInput
-		_, eerr := s3ws(ctx, cp, wio)
-		if eerr != nil {
-			log.Err(err).Msg("SaveTaskOutput: failed")
-			return -1, eerr
-		}
+	}
+
+	_, eerr := s3ws(ctx, cp, wio)
+	if eerr != nil {
+		log.Err(err).Msg("SaveTaskOutput: failed")
+		return -1, eerr
 	}
 	return wr.WorkflowResultID, nil
 }

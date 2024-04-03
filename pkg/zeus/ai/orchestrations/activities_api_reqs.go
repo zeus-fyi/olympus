@@ -62,10 +62,10 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		if rrerr != nil {
 			if rr.StatusCode == 401 {
 				// clear the cache
-				log.Warn().Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Int("statusCode", rr.StatusCode).Msg("ApiCallRequestTask: clearing org secret cache")
+				log.Warn().Interface("routingTable", fmt.Sprintf("api-%s", rg)).Int("statusCode", rr.StatusCode).Msg("ApiCallRequestTask: clearing org secret cache")
 				aws_secrets.ClearOrgSecretCache(r.Ou)
 			}
-			log.Err(rrerr).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
+			log.Err(rrerr).Interface("routingTable", fmt.Sprintf("api-%s", rg)).Msg("ApiCallRequestTask: failed to get response")
 			return nil, rrerr
 		}
 		req = rr
@@ -81,7 +81,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 	if wr.Body != nil && wr.RawMessage == nil {
 		b, jer := json.Marshal(wr.Body)
 		if jer != nil {
-			log.Err(jer).Interface("routingTable", fmt.Sprintf("api-%s", *retInst.WebFilters.RoutingGroup)).Msg("ApiCallRequestTask: failed to get response")
+			log.Err(jer).Interface("routingTable", fmt.Sprintf("api-%s", rg)).Msg("ApiCallRequestTask: failed to get response")
 			return nil, jer
 		}
 		value = fmt.Sprintf("%s", b)
@@ -95,7 +95,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		Source:      req.Url,
 		Value:       value,
 		QueryParams: r.Qps,
-		Group:       aws.StringValue(retInst.WebFilters.RoutingGroup),
+		Group:       rg,
 		WebResponse: wr,
 	}
 	sg := &hera_search.SearchResultGroup{

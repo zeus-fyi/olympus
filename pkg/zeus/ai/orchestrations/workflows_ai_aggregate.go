@@ -2,22 +2,12 @@ package ai_platform_service_orchestrations
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
-	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
-	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
-
-type InputDataAnalysisToAgg struct {
-	TextInput                   *string                        `json:"textInput,omitempty"`
-	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
-	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`
-}
 
 func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ctx workflow.Context, cp *MbChildSubProcessParams) error {
 	if cp == nil {
@@ -27,42 +17,23 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 	ou := cp.Ou
 	oj := cp.Oj
 	runCycle := cp.Wsr.RunCycle
-
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	logger := workflow.GetLogger(ctx)
-	ao := workflow.ActivityOptions{
-		ScheduleToCloseTimeout: time.Hour * 24, // Setting a valid non-zero timeout
-		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    time.Second * 5,
-			BackoffCoefficient: 2.0,
-			MaximumInterval:    time.Minute * 5,
-			MaximumAttempts:    1000,
-		},
-	}
+	ao := getDefaultRetryPolicy()
 	i := runCycle
 	for _, aggInst := range wfExecParams.WorkflowTasks {
 		log.Info().Interface("runCycle", runCycle).Msg("aggregation: runCycle")
-		if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggModel == nil || aggInst.AggTaskName == nil {
-			continue
-		}
-		if aws.IntValue(aggInst.AggTaskID) == 100 && aws.StringValue(aggInst.AggResponseFormat) == "csv" {
-		} else if md.AggregateAnalysis[*aggInst.AggTaskID] == nil || md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false || wfExecParams.WorkflowTaskRelationships.AggAnalysisTasks == nil {
+		if isInvalidAggInst(aggInst, md, wfExecParams) {
 			continue
 		}
 		aggCycle := wfExecParams.CycleCountTaskRelative.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 		// checks for run cycle validity
 		if i%aggCycle == 0 {
-			cp.Tc = getAggTaskContext(aggInst)
 			logger.Info("aggregation: taskID", *aggInst.AggTaskID)
-			window := artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
-			cp.Window = window
-			depM := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
-			var analysisDep []int
-			for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
-				analysisDep = append(analysisDep, k)
-			}
+			cp.Tc = getAggTaskContext(aggInst)
+			cp.Window = artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-aggCycle, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			aggRetrievalCtx := workflow.WithActivityOptions(ctx, ao)
-			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, cp, analysisDep).Get(aggRetrievalCtx, &cp)
+			err := workflow.ExecuteActivity(aggRetrievalCtx, z.AiAggregateAnalysisRetrievalTask, cp, getAnalysisDeps(aggInst, wfExecParams)).Get(aggRetrievalCtx, &cp)
 			if err != nil {
 				logger.Error("failed to run aggregate retrieval", "Error", err)
 				return err
@@ -94,33 +65,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					}
 				case csvFormat:
 					log.Info().Interface("csvFormat", csvFormat).Msg("agg: csvFormat")
-					aiResp := &ChatCompletionQueryResponse{
-						Prompt: make(map[string]string),
-						Response: openai.ChatCompletionResponse{
-							Model: "none",
-							Usage: openai.Usage{
-								PromptTokens:     0,
-								CompletionTokens: 0,
-								TotalTokens:      0,
-							},
-						},
-					}
 					analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &cp.Tc.ResponseID)
+					err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, getDummyChatCompResp()).Get(analysisCompCtx, &cp.Tc.ResponseID)
 					if err != nil {
 						logger.Error("failed to save analysis read only response", "Error", err)
 						return err
 					}
-					wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
-						OrchestrationID:       cp.Oj.OrchestrationID,
-						SourceTaskID:          cp.Tc.TaskID,
-						IterationCount:        0,
-						ChunkOffset:           chunkOffset,
-						RunningCycleNumber:    cp.Wsr.RunCycle,
-						SearchWindowUnixStart: cp.Window.UnixStartTime,
-						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
-						ResponseID:            cp.Tc.ResponseID,
-					}
+					wr := getWr(cp, chunkOffset)
 					cp.Tc.ResponseFormat = csvFormat
 					recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
 					err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveCsvTaskOutput, cp, wr).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
@@ -143,16 +94,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 						logger.Error("failed to save agg response", "Error", err)
 						return err
 					}
-					wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
-						OrchestrationID:       cp.Oj.OrchestrationID,
-						SourceTaskID:          cp.Tc.TaskID,
-						IterationCount:        0,
-						ChunkOffset:           chunkOffset,
-						RunningCycleNumber:    cp.Wsr.RunCycle,
-						SearchWindowUnixStart: cp.Window.UnixStartTime,
-						SearchWindowUnixEnd:   cp.Window.UnixEndTime,
-						ResponseID:            cp.Tc.ResponseID,
-					}
+					wr := getWr(cp, chunkOffset)
 					ia := InputDataAnalysisToAgg{
 						ChatCompletionQueryResponse: aiAggResp,
 					}

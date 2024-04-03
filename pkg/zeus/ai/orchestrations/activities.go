@@ -391,8 +391,10 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 				cp.Tc.TaskName = vi.AnalysisTaskName
 				wso, werr := gs3wfs(ctx, cp)
 				if werr != nil {
-					resp = append(resp, wso.InputDataAnalysisToAgg)
+					log.Err(err).Msg("AiAggregateAnalysisRetrievalTask: SelectAiWorkflowAnalysisResults failed")
+					return nil, err
 				}
+				resp = append(resp, wso.InputDataAnalysisToAgg)
 				cp.Tc.TaskName = tn
 			}
 		}
@@ -415,8 +417,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 			resp = append(resp, tmp)
 		}
 	}
-	log.Info().Interface("results", results).Msg("AiAggregateAnalysisRetrievalTask")
-
+	log.Info().Interface("len(results)", len(results)).Msg("AiAggregateAnalysisRetrievalTask")
 	wio := WorkflowStageIO{
 		WorkflowStageReference: cp.Wsr,
 		WorkflowStageInfo: WorkflowStageInfo{

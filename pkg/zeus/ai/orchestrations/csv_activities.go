@@ -7,7 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
-	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 )
 
 // TODO: next step SaveCsvTaskOutput
@@ -36,18 +35,15 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 		return 0, fmt.Errorf("no wf run name provided")
 	}
 	// gets globals where needed
-	gens, gerr := GetGlobalEntitiesFromRef(ctx, cp.Ou, cp.WfExecParams.WorkflowOverrides.WorkflowEntityRefs)
-	if gerr != nil {
-		log.Err(gerr).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
-		return 0, gerr
+	gens, err := GetGlobalEntitiesFromRef(ctx, cp.Ou, cp.WfExecParams.WorkflowOverrides.WorkflowEntityRefs)
+	if err != nil {
+		log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
+		return 0, err
 	}
+	var merg []artemis_entities.UserEntity
 	switch cp.Tc.TaskType {
 	case AggTask:
-		//for _, wfe := range cp.WfExecParams.WorkflowOverrides.WorkflowEntities {
-		//
-		//}
 		// get all analysis output csvs and merge
-		var sgss []*hera_search.SearchResultGroup
 		for _, tv := range cp.WfExecParams.WorkflowTasks {
 			tmn := cp.Tc.TaskName
 			cp.Tc.TaskName = tv.AnalysisTaskName
@@ -57,7 +53,15 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 				log.Err(werr).Msg("SaveCsvTaskOutput: gs3wfs failed to select workflow io")
 				return 0, werr
 			}
-			sgss = append(sgss, wio.GetOutSearchGroups()...)
+			if wio == nil {
+				continue
+			}
+			merg, err = getGlobalCsvMergedEntities(gens, cp, wio)
+			if err != nil {
+				log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
+				return 0, err
+			}
+			gens = merg
 			cp.Tc.TaskName = tmn
 		}
 	default:
@@ -74,12 +78,12 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 			data coming from search groups inputs
 		*/
 		//fmt.Println(mergeCsvEntities, "mergeCsvEntities")
-		mergeCsvEntities, err := getGlobalCsvMergedEntities(gens, cp, wio)
+		merg, err = getGlobalCsvMergedEntities(gens, cp, wio)
 		if err != nil {
 			log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
 			return 0, err
 		}
-		for i, nev := range mergeCsvEntities {
+		for i, nev := range merg {
 			log.Info().Interface("i", i).Interface("nn", nev.Nickname).Msg("mergeCsvEntities")
 			//mergeCsvEntities[i].Nickname = wfRunName
 			// for now just saved under wf, later use label, csv under platform csv-exports
@@ -90,7 +94,7 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 			}
 		}
 	}
-	err := artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
+	err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 	if err != nil {
 		log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("SaveTaskOutput: failed")
 		return 0, err

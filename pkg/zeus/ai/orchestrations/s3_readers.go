@@ -46,11 +46,11 @@ func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO,
 		log.Err(err).Interface("fp", p.FileOutPath()).Msg("gs3wfs: S3DownloadReadBytes error")
 		return nil, err
 	}
-	input := &WorkflowStageIO{}
 	if buf.Len() <= 0 {
 		log.Warn().Msg("returns empty &WorkflowStageIO{}")
-		return input, nil
+		return nil, nil
 	}
+	input := &WorkflowStageIO{}
 	err = json.Unmarshal(buf.Bytes(), &input)
 	if err != nil {
 		log.Err(err).Msg("gs3wfs: S3DownloadReadBytes error")

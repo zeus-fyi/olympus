@@ -127,6 +127,7 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 					log.Err(jerr).Interface("minv.JsonData", minv.JsonData).Msg(" json.Unmarshal(minv.JsonData, &emRow)")
 				}
 			}
+			//
 			gl := mi.GetStrLabels()
 			sgs := wsi.GetSearchGroupsOutByRetNameMatch(mergeRets(gl))
 			for _, sg := range sgs {

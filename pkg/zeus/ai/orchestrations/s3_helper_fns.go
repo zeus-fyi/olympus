@@ -89,8 +89,10 @@ func workingRunCycleStagePath(cp *MbChildSubProcessParams) (*filepaths.Path, err
 	p := &filepaths.Path{
 		DirIn:  fmt.Sprintf("/%s/%s/cycle/%d", ogk, wfRunName, cp.Wsr.RunCycle),
 		DirOut: fmt.Sprintf("/%s/%s/cycle/%d", ogk, wfRunName, cp.Wsr.RunCycle),
-		FnIn:   fmt.Sprintf("%s-chunk-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
-		FnOut:  fmt.Sprintf("%s-chunk-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
+		FnIn:   fmt.Sprintf("%s.json", cp.Tc.TaskName),
+		FnOut:  fmt.Sprintf("%s.json", cp.Tc.TaskName),
+		//FnIn:   fmt.Sprintf("%s-chunk-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
+		//FnOut:  fmt.Sprintf("%s-chunk-%d.json", cp.Tc.TaskName, cp.Wsr.ChunkOffset),
 	}
 	log.Info().Interface("p.FileOutPath()", p.FileOutPath()).Msg("workingRunCycleStagePath: p.FileOutPath()")
 	return p, nil

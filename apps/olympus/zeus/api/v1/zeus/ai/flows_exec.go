@@ -27,6 +27,8 @@ func FlowsExecActionsRequestHandler(c echo.Context) error {
 	return request.ProcessFlow(c)
 }
 
+var addCsvExport = true
+
 func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
@@ -38,7 +40,6 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		log.Err(err).Interface("w", w).Msg("SaveImport failed")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-
 	if len(w.Workflows) > 0 {
 		w.Action = "start"
 	}
@@ -120,6 +121,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
+
 		for ri, _ := range resp {
 			resp[ri].WorkflowExecTimekeepingParams.IsCycleStepped = isCycleStepped
 			if isCycleStepped {
@@ -137,12 +139,25 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 					}
 				}
 			}
+			if addCsvExport {
+				wtd := artemis_orchestrations.WorkflowTemplateData{
+					AggTaskID:         aws.Int(100),
+					AggCycleCount:     aws.Int(1),
+					AggTaskName:       aws.String("csv-flows"),
+					AggTaskType:       aws.String("aggregation"),
+					AggModel:          aws.String("N/A"),
+					AggResponseFormat: aws.String("csv"),
+				}
+				resp[ri].WorkflowTasks = append(resp[ri].WorkflowTasks, wtd)
+				resp[ri].CycleCountTaskRelative.AggNormalizedCycleCounts[100] = 1
+			}
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
 			}
 			if w.RetrievalOverrides != nil {
 				resp[ri].WorkflowOverrides.RetrievalOverrides = w.RetrievalOverrides
 			}
+
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			resp[ri].WorkflowOverrides.IsUsingFlows = true
 			resp[ri].WorkflowOverrides.WorkflowEntities = w.WorkflowEntities
@@ -156,5 +171,6 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	case "stop":
 		// do y
 	}
+	addCsvExport = false
 	return c.JSON(http.StatusOK, fmt.Sprintf("%d", rid))
 }

@@ -32,7 +32,7 @@ func (z *ZeusAiPlatformActivities) CreateWsr(ctx context.Context, cp *MbChildSub
 	wio.Org.OrgID = cp.Ou.OrgID
 	_, err := s3ws(ctx, cp, &wio)
 	if err != nil {
-		log.Err(err).Msg("AiRetrievalTask: failed")
+		log.Err(err).Msg("CreateWsr: failed")
 		return nil, err
 	}
 	return cp, nil

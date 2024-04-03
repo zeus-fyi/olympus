@@ -18,6 +18,7 @@ const (
 	socialMediaEngagementResponseFormat = "social-media-engagement"
 	socialMediaExtractionResponseFormat = "social-media-extraction"
 	readOnlyFormat                      = "read-only"
+	sendNextStage                       = "next"
 	csvFormat                           = "csv"
 	jsonFormat                          = "json"
 	twitterPlatform                     = "twitter"

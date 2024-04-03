@@ -42,11 +42,12 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 	i := runCycle
 	for _, aggInst := range wfExecParams.WorkflowTasks {
 		log.Info().Interface("runCycle", runCycle).Msg("aggregation: runCycle")
-		if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggPrompt == nil || aggInst.AggModel == nil || wfExecParams.WorkflowTaskRelationships.AggAnalysisTasks == nil {
+		if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggModel == nil || aggInst.AggTaskName == nil {
 			continue
 		}
-		if aggInst.AggTaskName == nil || aggInst.AggModel == nil || aggInst.AggTokenOverflowStrategy == nil || md.AggregateAnalysis[*aggInst.AggTaskID] == nil || md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false {
-			return nil
+		if aws.IntValue(aggInst.AggTaskID) == 100 && aws.StringValue(aggInst.AggResponseFormat) == "csv" {
+		} else if md.AggregateAnalysis[*aggInst.AggTaskID] == nil || md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false || wfExecParams.WorkflowTaskRelationships.AggAnalysisTasks == nil {
+			continue
 		}
 		aggCycle := wfExecParams.CycleCountTaskRelative.AggNormalizedCycleCounts[*aggInst.AggTaskID]
 		// checks for run cycle validity

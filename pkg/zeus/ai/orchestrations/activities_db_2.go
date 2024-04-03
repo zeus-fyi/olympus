@@ -59,6 +59,20 @@ type WorkflowStageInfo struct {
 	PromptTextFromTextStage            string                              `json:"promptTextFromTextStage,omitempty"`
 }
 
+func (ws *WorkflowStageInfo) GetOutSearchGroups() []*hera_search.SearchResultGroup {
+	if ws.PromptReduction != nil && ws.PromptReduction.PromptReductionSearchResults != nil && len(ws.PromptReduction.PromptReductionSearchResults.OutSearchGroups) > 0 {
+		return ws.PromptReduction.PromptReductionSearchResults.OutSearchGroups
+	}
+	return nil
+}
+
+func (ws *WorkflowStageInfo) GetOutTextGroups() []string {
+	if ws.PromptReduction != nil && ws.PromptReduction.PromptReductionText != nil && len(ws.PromptReduction.PromptReductionText.OutPromptChunks) > 0 {
+		return ws.PromptReduction.PromptReductionText.OutPromptChunks
+	}
+	return nil
+}
+
 func (ws *WorkflowStageIO) GetSearchGroupsOutByRetNameMatch(retNames map[string]bool) []hera_search.SearchResultGroup {
 	if len(retNames) == 0 {
 		return nil

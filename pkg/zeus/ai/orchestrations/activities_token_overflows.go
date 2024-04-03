@@ -191,7 +191,16 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 		pr.PromptReductionSearchResults = nil
 	}
 	wioPtr.PromptReduction = pr
-	// TODO: later break up into chunk filepaths
+	/*
+		// TODO: later break up into chunk filepaths
+		if pr.PromptReductionSearchResults != nil && (pr.PromptReductionSearchResults.OutSearchGroups != nil || len(pr.PromptReductionSearchResults.OutSearchGroups) > 0) {
+			for _, v := range pr.PromptReductionSearchResults.OutSearchGroups {
+				// thread to where input going
+				v
+			}
+		}
+			&& pr.PromptReductionText != nil && len(pr.PromptReductionText.OutPromptChunks) > 0
+	*/
 	_, werr = s3ws(ctx, cp, wioPtr)
 	if werr != nil {
 		log.Err(werr).Msg("TokenOverflowReduction: failed to save workflow io")

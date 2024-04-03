@@ -380,7 +380,7 @@ type AggRetResp struct {
 func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.Context, cp *MbChildSubProcessParams, sourceTaskIds []int) (*MbChildSubProcessParams, error) {
 	results, err := artemis_orchestrations.SelectAiWorkflowAnalysisResults(ctx, cp.Window, []int{cp.Oj.OrchestrationID}, sourceTaskIds)
 	if err != nil {
-		log.Err(err).Msg("AiAggregateAnalysisRetrievalTask: failed")
+		log.Err(err).Msg("AiAggregateAnalysisRetrievalTask: SelectAiWorkflowAnalysisResults failed")
 		return nil, err
 	}
 	log.Info().Interface("results", results).Msg("AiAggregateAnalysisRetrievalTask")

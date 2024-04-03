@@ -34,7 +34,6 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
 			return nil, err
 		}
-
 		if len(tv) == 0 {
 			err = fmt.Errorf("failed to get task definition for task id: %d", mb.Tc.TaskID)
 			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
@@ -84,7 +83,6 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		log.Warn().Interface("mb.Tc.TaskName", mb.Tc.TaskName).Msg("CreateJsonOutputModelResponse: prompt is empty")
 		return nil, fmt.Errorf("CreateJsonOutputModelResponse: prompt is empty")
 	}
-
 	var resp openai.ChatCompletionResponse
 	ps, err := GetMockingBirdSecrets(ctx, mb.Ou)
 	if err != nil || ps == nil || ps.ApiKey == "" {
@@ -99,7 +97,6 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		log.Err(err).Interface("params", params).Msg("CreatJsonOutputModelResponse: MakeCodeGenRequestJsonFormattedOutput failed")
 		return nil, err
 	}
-
 	b, err := json.Marshal(params.Prompt)
 	if err != nil {
 		log.Err(err).Msg("RecordCompletionResponse: failed")

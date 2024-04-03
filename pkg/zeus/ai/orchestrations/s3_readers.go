@@ -39,6 +39,7 @@ func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO,
 		BucketName: FlowsBucketName,
 		BucketKey:  p.FileOutPath(),
 	}
+	log.Info().Interface("f", p.FileOutPath()).Msg("gs3wfs: bucket key")
 	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
 	buf, err := pos.S3DownloadReadBytes(ctx, br)
 	if err != nil {
@@ -46,6 +47,10 @@ func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO,
 		return nil, err
 	}
 	input := &WorkflowStageIO{}
+	if buf.Len() <= 0 {
+		log.Warn().Msg("returns empty &WorkflowStageIO{}")
+		return input, nil
+	}
 	err = json.Unmarshal(buf.Bytes(), &input)
 	if err != nil {
 		log.Err(err).Msg("gs3wfs: S3DownloadReadBytes error")

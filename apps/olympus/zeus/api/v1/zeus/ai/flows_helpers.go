@@ -32,6 +32,9 @@ const (
 	// ret override
 	validemailRetQp = "validemail-query-params"
 
+	// task
+	wbsTaskName = "website-analysis"
+
 	// work labels
 	csvSrcGlobalLabel      = "csv:global:source"
 	csvSrcGlobalMergeLabel = "csv:global:merge"
@@ -39,6 +42,13 @@ const (
 
 func csvGlobalRetLabel() string {
 	return fmt.Sprintf("%s:ret", csvSrcGlobalMergeLabel)
+}
+func csvGlobalAnalysisTaskLabel() string {
+	return fmt.Sprintf("%s:analysis:task", csvSrcGlobalMergeLabel)
+}
+
+func csvGlobalMergeAnalysisTaskLabel(tn string) string {
+	return fmt.Sprintf("%s:%s", csvGlobalAnalysisTaskLabel(), tn)
 }
 
 func csvGlobalMergeRetLabel(rn string) string {
@@ -109,7 +119,6 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	if uef == nil || len(w.FlowsActionsRequest.ContactsCsvStr) == 0 {
 		return nil, nil
 	}
-
 	usre := &artemis_entities.UserEntity{
 		Platform: uef.Platform,
 		MdSlice: []artemis_entities.UserEntityMetadata{
@@ -142,19 +151,29 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 	if v, ok := w.Stages[websiteScrape]; !ok || !v {
 		return nil
 	}
+	var colName string
 	seen := make(map[string]bool)
+	emRow := make(map[string][]int)
 	var pls []map[string]interface{}
-	for _, cv := range w.ContactsCsv {
-		for em, emv := range cv {
-			//if _, ok := seen[tv]; ok {
-			//	continue
-			//}
-			if (strings.Contains(em, "web") || strings.Contains(em, "url") || strings.Contains(em, "link") || strings.Contains(em, "site")) && len(emv) > 0 {
-				pl := make(map[string]interface{})
-				uv, err := convertToHTTPS(emv)
+	for r, cvs := range w.ContactsCsv {
+		for cname, colValue := range cvs {
+			if (strings.Contains(cname, "web") || strings.Contains(cname, "url") || strings.Contains(cname, "link") || strings.Contains(cname, "site")) && len(colValue) > 0 {
+				if len(colName) > 0 && colName != cname {
+					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("EmailsValidatorSetup")
+					return fmt.Errorf("duplicate web column")
+				}
+				colName = cname
+				uv, err := convertToHTTPS(colValue)
 				if err != nil {
 					log.Err(err).Msg("failed to convert url to https")
 					continue
+				}
+				if len(emRow) <= 0 {
+					emRow[colValue] = []int{r}
+				} else {
+					etm := emRow[colValue]
+					etm = append(etm, r)
+					emRow[colValue] = etm
 				}
 				if _, ok := seen[uv]; ok {
 					continue
@@ -162,16 +181,21 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 				if strings.HasPrefix(uv, "https://www.linkedin.com") || strings.HasPrefix(uv, "https://linkedin.com") {
 					continue
 				}
-				seen[uv] = true
+				pl := make(map[string]interface{})
 				pl["url"] = uv
 				pls = append(pls, pl)
+				seen[uv] = true
 			}
-			//seen[tv] = true
 		}
 	}
 	if len(pls) == 0 {
 		log.Warn().Msg("no urls found")
 		return nil
+	}
+	b, err := json.Marshal(emRow)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal emRow")
+		return err
 	}
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
@@ -179,6 +203,24 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 	if w.RetrievalOverrides == nil {
 		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
 	}
+	wsbLabel := csvGlobalMergeAnalysisTaskLabel(wbsTaskName)
+	labels := artemis_entities.CreateMdLabels([]string{
+		fmt.Sprintf("wf:%s", webFetchWf),
+		wsbLabel,
+	})
+	uef.Labels = append(uef.Labels, wsbLabel)
+	usre := artemis_entities.UserEntity{
+		Nickname: uef.Nickname,
+		Platform: uef.Platform,
+		MdSlice: []artemis_entities.UserEntityMetadata{
+			{
+				TextData: aws.String(colName),
+				JsonData: b,
+				Labels:   labels,
+			},
+		},
+	}
+	w.WorkflowEntities = append(w.WorkflowEntities, usre)
 	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)
@@ -234,8 +276,14 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 	}
 	b, err := json.Marshal(emRow)
 	if err != nil {
-		log.Err(err).Msg("failed to marshal gs")
+		log.Err(err).Msg("failed to marshal emRow")
 		return err
+	}
+	if w.TaskOverrides == nil {
+		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
+	}
+	if w.RetrievalOverrides == nil {
+		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
 	}
 	w.RetrievalOverrides[validemailRetQp] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
 	emLabel := csvGlobalMergeRetLabel(validemailRetQp)

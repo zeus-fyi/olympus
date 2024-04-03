@@ -383,12 +383,34 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 		log.Err(err).Msg("AiAggregateAnalysisRetrievalTask: SelectAiWorkflowAnalysisResults failed")
 		return nil, err
 	}
-	log.Info().Interface("results", results).Msg("AiAggregateAnalysisRetrievalTask")
 	var resp []InputDataAnalysisToAgg
+	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+		for _, vi := range cp.WfExecParams.WorkflowTasks {
+			if vi.AnalysisTaskName != "" {
+				tn := cp.Tc.TaskName
+				cp.Tc.TaskName = vi.AnalysisTaskName
+				wso, werr := gs3wfs(ctx, cp)
+				if werr != nil {
+					sgos := wso.GetOutSearchGroups()
+					for _, sgo := range sgos {
+						tmp := InputDataAnalysisToAgg{
+							SearchResultGroup: sgo,
+						}
+						resp = append(resp, tmp)
+					}
+				}
+				cp.Tc.TaskName = tn
+			}
+		}
+	}
+	log.Info().Interface("results", results).Msg("AiAggregateAnalysisRetrievalTask")
 	for _, r := range results {
 		b, berr := json.Marshal(r.Metadata)
 		if berr != nil {
 			log.Err(berr).Msg("AiAggregateAnalysisRetrievalTask: failed")
+			continue
+		}
+		if b == nil || string(b) == "null" {
 			continue
 		}
 		tmp := InputDataAnalysisToAgg{}

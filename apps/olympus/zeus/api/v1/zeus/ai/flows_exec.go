@@ -27,8 +27,6 @@ func FlowsExecActionsRequestHandler(c echo.Context) error {
 	return request.ProcessFlow(c)
 }
 
-var addCsvExport = true
-
 func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
@@ -121,7 +119,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-
+		addCsvExport := true
 		for ri, _ := range resp {
 			resp[ri].WorkflowExecTimekeepingParams.IsCycleStepped = isCycleStepped
 			if isCycleStepped {
@@ -171,6 +169,5 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	case "stop":
 		// do y
 	}
-	addCsvExport = false
 	return c.JSON(http.StatusOK, fmt.Sprintf("%d", rid))
 }

@@ -5,5 +5,4 @@ func (t *ZeusWorkerTestSuite) TestAiAggregateAnalysisRetrievalTaskInputDebug() {
 	db.Cp = &MbChildSubProcessParams{}
 	db.Cp.Wsr.RunCycle = 0
 	db.Cp.Wsr.ChunkOffset = 0
-	db.Open()
 }

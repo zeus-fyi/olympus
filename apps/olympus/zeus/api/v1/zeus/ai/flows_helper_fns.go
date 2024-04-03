@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/rs/zerolog/log"
+	utils_csv "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/csv"
 )
 
 func isValidURL(inputURL string) (*url.URL, error) {
@@ -34,17 +35,17 @@ func convertToHTTPS(inputURL string) (string, error) {
 
 func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
 	if len(w.FlowsActionsRequest.ContactsCsvStr) > 0 {
-		cv, err := parseCsvStringToMap(w.FlowsActionsRequest.ContactsCsvStr)
+		cv, err := utils_csv.ParseCsvStringToMap(w.FlowsActionsRequest.ContactsCsvStr)
 		if err != nil {
-			log.Err(err).Msg("SaveCsvImports: error")
+			log.Err(err).Msg("SaveCsvImports: ContactsCsvStr: error")
 			return err
 		}
 		w.ContactsCsv = cv
 	}
 	if len(w.FlowsActionsRequest.PromptsCsvStr) > 0 {
-		pcv, err := parseCsvStringToMap(w.FlowsActionsRequest.PromptsCsvStr)
+		pcv, err := utils_csv.ParseCsvStringToMap(w.FlowsActionsRequest.PromptsCsvStr)
 		if err != nil {
-			log.Err(err).Msg("SaveCsvImports: error")
+			log.Err(err).Msg("SaveCsvImports: PromptsCsvStr: error")
 			return err
 		}
 		w.PromptsCsv = pcv

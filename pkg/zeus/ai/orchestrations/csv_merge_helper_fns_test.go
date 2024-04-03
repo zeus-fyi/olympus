@@ -1,7 +1,6 @@
 package ai_platform_service_orchestrations
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
+	utils_csv "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/csv"
 )
 
 // mergeCsvs
@@ -23,10 +23,11 @@ func (t *ZeusWorkerTestSuite) TestCoreCsvMerge() {
 }
 
 func (t *ZeusWorkerTestSuite) TestAppendCsv() {
-	var inputCsvData, csvData []map[string]string
-	mergedCsv, err := appendCsvData(inputCsvData, csvData, "", nil)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(mergedCsv)
+	t.mockCsvMerge()
+	//var inputCsvData, csvData []map[string]string
+	//mergedCsv, err := appendCsvData(inputCsvData, csvData, "", nil)
+	//t.Require().Nil(err)
+	//t.Require().NotEmpty(mergedCsv)
 }
 
 /*
@@ -59,9 +60,9 @@ func (t *ZeusWorkerTestSuite) mockCsvMerge() *WorkflowStageIO {
 	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
 	csvSourceEntity, csvContacts := t.getContactCsvMock()
 	t.Require().NotEmpty(csvSourceEntity)
-	_, emRow := ts(csvContacts)
-	t.Require().NotEmpty(emRow)
-	b, err := json.Marshal(emRow)
+	cn, emRow := ts(csvContacts)
+
+	b, err := utils_csv.NewCsvMergeEntityFromSrcBin(cn, emRow)
 	t.Require().Nil(err)
 	csvMergeInEntity := artemis_entities.UserEntity{
 		Nickname: ueh,
@@ -69,7 +70,6 @@ func (t *ZeusWorkerTestSuite) mockCsvMerge() *WorkflowStageIO {
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
 				JsonData: b,
-				TextData: aws.String("Email"),
 				Labels:   artemis_entities.CreateMdLabels([]string{csvGlobalMergeRetLabel(validemailRetQp)}),
 			},
 		},
@@ -128,20 +128,25 @@ func (t *ZeusWorkerTestSuite) mockCsvMerge() *WorkflowStageIO {
 		},
 	}
 	// to debug
-	//ur, err := FindAndMergeMatchingNicknamesByLabelPrefix(
-	//	csvSourceEntity,
-	//	[]artemis_entities.UserEntity{csvMergeInEntity},
-	//	wsi,
-	//	csvGlobalMergeRetLabel(validemailRetQp),
-	//)
-	//t.Require().Nil(err)
-	//t.Require().NotEmpty(ur)
-	//t.Assert().NotEmpty(ur.MdSlice)
+	ur, err := FindAndMergeMatchingNicknamesByLabelPrefix(
+		csvSourceEntity,
+		[]artemis_entities.UserEntity{csvMergeInEntity},
+		wsi,
+		csvGlobalMergeRetLabel(validemailRetQp),
+	)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(ur)
+	t.Assert().NotEmpty(ur.MdSlice)
+	for _, v := range ur.MdSlice {
+		t.Require().NotNil(v.TextData)
+		fmt.Println(*v.TextData)
+	}
 	return wsi
 }
+
 func (t *ZeusWorkerTestSuite) TestCsvMerge() {
 	constactsCsvStr := "First Name,Last Name,Company,LinkedIn,Email,Website\nAlex,George,Zeusfyi,https://www.linkedin.com/in/alexandersgeorge/,alex@zeus.fyi,http://www.bsci.com\nLevar,Williams,APrime Technology,https://www.linkedin.com/in/leevarwilliams/,leevar@gmail.com,http://www.natroxwoundcare.com\nAlex,George,Zeusfyi,https://www.linkedin.com/in/alexandersgeorge/,alex@zeus.fyi,http://www.shockwavemedical.com\nLevar,Williams,APrime Technology,https://www.linkedin.com/in/leevarwilliams/,leevar@gmail.com,http://www.ottobock.com\n"
-	csvContacts, err := ParseCsvStringToMap(constactsCsvStr)
+	csvContacts, err := utils_csv.ParseCsvStringToMap(constactsCsvStr)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(csvContacts)
 	//emRow := map[string][]int{
@@ -154,10 +159,10 @@ func (t *ZeusWorkerTestSuite) TestCsvMerge() {
 	fmt.Println(emRow)
 
 	csvStr := "Tag,Free,Role,Email,Score,State,Domain,Reason,IsValid,MXRecord,AcceptAll,Disposable,EmailAdditionalInfo\n\"false\",\"false\",\"false\",\"alex@zeus.fyi\",\"60\",\"Deliverable\",\"zeus.fyi\",\"ACCEPTED EMAIL\",\"true\",\"aspmx.l.google.com.\",\"true\",\"false\",\"\"\n\"false\",\"true\",\"false\",\"leevar@gmail.com\",\"95\",\"Deliverable\",\"gmail.com\",\"ACCEPTED EMAIL\",\"true\",\"gmail-smtp-in.l.google.com.\",\"false\",\"false\",\"\""
-	csvData, err := ParseCsvStringToMap(csvStr)
+	csvData, err := utils_csv.ParseCsvStringToMap(csvStr)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(csvData)
-	mergedCsv, err := appendCsvData(csvContacts, csvData, colName, emRow)
+	mergedCsv, err := utils_csv.AppendCsvData(csvContacts, csvData, colName, emRow)
 	t.Require().Nil(err)
 	fmt.Println(mergedCsv)
 }
@@ -174,7 +179,7 @@ func (t *ZeusWorkerTestSuite) getContactCsvMock() (artemis_entities.UserEntity, 
 			},
 		},
 	}
-	csvContacts, err := ParseCsvStringToMap(constactsCsvStr)
+	csvContacts, err := utils_csv.ParseCsvStringToMap(constactsCsvStr)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(csvContacts)
 	return csvSourceEntity, csvContacts
@@ -225,10 +230,10 @@ func (t *ZeusWorkerTestSuite) TestWsiOut() {
 
 func (t *ZeusWorkerTestSuite) TestPayloadToCsvString() {
 	constactsCsvStr := "First Name,Last Name,Company,LinkedIn,Email,Website\nAlex,George,Zeusfyi,https://www.linkedin.com/in/alexandersgeorge/,alex@zeus.fyi,http://www.bsci.com\nLevar,Williams,APrime Technology,https://www.linkedin.com/in/leevarwilliams/,leevar@gmail.com,http://www.natroxwoundcare.com\nAlex,George,Zeusfyi,https://www.linkedin.com/in/alexandersgeorge/,alex@zeus.fyi,http://www.shockwavemedical.com\nLevar,Williams,APrime Technology,https://www.linkedin.com/in/leevarwilliams/,leevar@gmail.com,http://www.ottobock.com\n"
-	csvContacts, err := ParseCsvStringToMap(constactsCsvStr)
+	csvContacts, err := utils_csv.ParseCsvStringToMap(constactsCsvStr)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(csvContacts)
-	cs, err := PayloadToCsvString(csvContacts)
+	cs, err := utils_csv.PayloadToCsvString(csvContacts)
 	t.Require().Nil(err)
 	fmt.Println(cs)
 	//t.Assert().Equal(constactsCsvStr, cs)

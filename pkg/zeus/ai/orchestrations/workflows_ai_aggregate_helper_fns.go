@@ -43,11 +43,22 @@ func getWr(cp *MbChildSubProcessParams, chunkOffset int) *artemis_orchestrations
 	return wr
 }
 
+const (
+	aggAllCsvTaskID = 100
+)
+
 func getAnalysisDeps(aggInst artemis_orchestrations.WorkflowTemplateData, wfExecParams artemis_orchestrations.WorkflowExecParams) []int {
-	depM := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	var analysisDep []int
-	for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
-		analysisDep = append(analysisDep, k)
+	if aws.IntValue(aggInst.AggTaskID) == aggAllCsvTaskID && aws.StringValue(aggInst.AggResponseFormat) == "csv" {
+		for _, tv := range wfExecParams.WorkflowTasks {
+			analysisDep = append(analysisDep, tv.AnalysisTaskID)
+		}
+		// todo: use entities labels?
+	} else {
+		depM := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
+		for k, _ := range depM.AggregateAnalysis[*aggInst.AggTaskID] {
+			analysisDep = append(analysisDep, k)
+		}
 	}
 	return analysisDep
 }
@@ -56,7 +67,7 @@ func isInvalidAggInst(aggInst artemis_orchestrations.WorkflowTemplateData, md ar
 	if aggInst.AggTaskID == nil || aggInst.AggCycleCount == nil || aggInst.AggModel == nil || aggInst.AggTaskName == nil {
 		return true
 	}
-	if aws.IntValue(aggInst.AggTaskID) == 100 && aws.StringValue(aggInst.AggResponseFormat) == "csv" {
+	if aws.IntValue(aggInst.AggTaskID) == aggAllCsvTaskID && aws.StringValue(aggInst.AggResponseFormat) == "csv" {
 	} else if md.AggregateAnalysis[*aggInst.AggTaskID] == nil || md.AggregateAnalysis[*aggInst.AggTaskID][aggInst.AnalysisTaskID] == false || wfExecParams.WorkflowTaskRelationships.AggAnalysisTasks == nil {
 		return true
 	}

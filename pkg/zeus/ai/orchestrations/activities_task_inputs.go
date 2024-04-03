@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -13,6 +14,14 @@ type AggRetResp struct {
 	InputDataAnalysisToAggSlice   []InputDataAnalysisToAgg
 }
 
+/*
+	tmp := AiAggregateAnalysisRetrievalTaskInputDebug{
+		SourceTaskIds: sourceTaskIds,
+		Cp:            cp,
+	}
+	tmp.Save()
+*/
+
 func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.Context, cp *MbChildSubProcessParams, sourceTaskIds []int) (*MbChildSubProcessParams, error) {
 	results, err := artemis_orchestrations.SelectAiWorkflowAnalysisResults(ctx, cp.Window, []int{cp.Oj.OrchestrationID}, sourceTaskIds)
 	if err != nil {
@@ -20,41 +29,25 @@ func (z *ZeusAiPlatformActivities) AiAggregateAnalysisRetrievalTask(ctx context.
 		return nil, err
 	}
 	var resp []InputDataAnalysisToAgg
-	if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
-		for _, vi := range cp.WfExecParams.WorkflowTasks {
-			if vi.AnalysisTaskName != "" {
-				tn := cp.Tc.TaskName
-				cp.Tc.TaskName = vi.AnalysisTaskName
-				wso, werr := gs3wfs(ctx, cp)
-				if werr != nil {
-					log.Err(err).Msg("AiAggregateAnalysisRetrievalTask: SelectAiWorkflowAnalysisResults failed")
-					return nil, err
-				}
-				resp = append(resp, wso.InputDataAnalysisToAgg)
-				cp.Tc.TaskName = tn
-			}
+	for _, r := range results {
+		b, berr := gs3wfsCustomTaskName(ctx, cp, fmt.Sprintf("%d", r.WorkflowResultID))
+		if berr != nil {
+			log.Err(berr).Msg("AiAggregateAnalysisRetrievalTask: failed")
+			continue
 		}
-	} else {
-		for _, r := range results {
-			b, berr := json.Marshal(r.Metadata)
-			if berr != nil {
-				log.Err(berr).Msg("AiAggregateAnalysisRetrievalTask: failed")
-				continue
-			}
-			if b == nil || string(b) == "null" {
-				continue
-			}
-			tmp := InputDataAnalysisToAgg{}
-			jerr := json.Unmarshal(b, &tmp)
-			if jerr != nil {
-				log.Err(jerr).Msg("AiAggregateAnalysisRetrievalTask: failed")
-				continue
-			}
-			resp = append(resp, tmp)
+		if b == nil {
+			continue
 		}
+		tmp := InputDataAnalysisToAgg{}
+		jerr := json.Unmarshal(b.Bytes(), &tmp)
+		if jerr != nil {
+			log.Err(jerr).Msg("AiAggregateAnalysisRetrievalTask: failed")
+			continue
+		}
+		resp = append(resp, tmp)
 	}
-	log.Info().Interface("len(results)", results).Msg("AiAggregateAnalysisRetrievalTask")
 
+	log.Info().Interface("len(results)", results).Msg("AiAggregateAnalysisRetrievalTask")
 	wio := WorkflowStageIO{
 		WorkflowStageReference: cp.Wsr,
 		WorkflowStageInfo: WorkflowStageInfo{

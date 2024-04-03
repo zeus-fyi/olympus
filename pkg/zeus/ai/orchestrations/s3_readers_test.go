@@ -1,7 +1,24 @@
 package ai_platform_service_orchestrations
 
-import "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
+import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
+)
 
+/*
+
+ */
+
+//	func (t *ZeusWorkerTestSuite) Testgs3wfsCustomTaskName() {
+//		cp := &MbChildSubProcessParams{
+//
+//		}
+//		b, berr := gs3wfsCustomTaskName(ctx, cp, fmt.Sprintf("%d", r.WorkflowResultID))
+//
+//		if berr != nil {
+//			log.Err(berr).Msg("AiAggregateAnalysisRetrievalTask: failed")
+//			continue
+//		}
+//	}
 func (t *ZeusWorkerTestSuite) TestGetGlobalEntitiesFromRef() {
 	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
 	refs := []artemis_entities.EntitiesFilter{

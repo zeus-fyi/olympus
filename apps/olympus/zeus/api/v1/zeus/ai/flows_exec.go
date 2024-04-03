@@ -138,17 +138,17 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 				}
 			}
 			//if addCsvExport {
-			//	wtd := artemis_orchestrations.WorkflowTemplateData{
-			//		AggTaskID:         aws.Int(100),
-			//		AggCycleCount:     aws.Int(1),
-			//		AggTaskName:       aws.String("csv-flows"),
-			//		AggTaskType:       aws.String("aggregation"),
-			//		AggModel:          aws.String("N/A"),
-			//		AggResponseFormat: aws.String("csv"),
-			//	}
-			//	resp[ri].WorkflowTasks = append(resp[ri].WorkflowTasks, wtd)
-			//	resp[ri].CycleCountTaskRelative.AggNormalizedCycleCounts[100] = 1
-			//}
+			wtd := artemis_orchestrations.WorkflowTemplateData{
+				AggTaskID:         aws.Int(100),
+				AggCycleCount:     aws.Int(1),
+				AggTaskName:       aws.String("csv-flows"),
+				AggTaskType:       aws.String("aggregation"),
+				AggModel:          aws.String("N/A"),
+				AggResponseFormat: aws.String("csv"),
+			}
+			resp[ri].WorkflowTasks = append(resp[ri].WorkflowTasks, wtd)
+			resp[ri].CycleCountTaskRelative.AggNormalizedCycleCounts[100] = 1
+
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
 			}

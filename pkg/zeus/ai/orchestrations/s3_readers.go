@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -57,6 +58,36 @@ func gs3wfs(ctx context.Context, cp *MbChildSubProcessParams) (*WorkflowStageIO,
 		return nil, err
 	}
 	return input, err
+}
+
+func gs3wfsCustomTaskName(ctx context.Context, cp *MbChildSubProcessParams, taskName string) (*bytes.Buffer, error) {
+	sn := cp.Tc.TaskName
+	cp.Tc.TaskName = taskName
+	if err := errCheckStagedWfs(ctx, cp); err != nil {
+		return nil, err
+	}
+	p, err := workingRunCycleStagePath(cp)
+	if err != nil {
+		log.Err(err).Msg("gs3wfsCustomTaskName: failed to hash wsr io")
+		return nil, err
+	}
+	br := poseidon.S3BucketRequest{
+		BucketName: FlowsBucketName,
+		BucketKey:  p.FileOutPath(),
+	}
+	log.Info().Interface("f", p.FileOutPath()).Msg("gs3wfs: bucket key")
+	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
+	buf, err := pos.S3DownloadReadBytes(ctx, br)
+	if err != nil {
+		log.Err(err).Interface("fp", p.FileOutPath()).Msg("gs3wfs: S3DownloadReadBytes error")
+		return nil, err
+	}
+	if buf.Len() <= 0 {
+		log.Warn().Msg("returns empty &WorkflowStageIO{}")
+		return nil, nil
+	}
+	cp.Tc.TaskName = sn
+	return buf, err
 }
 
 func gs3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_entities.UserEntity) (*artemis_entities.UserEntity, error) {

@@ -11,6 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	utils_csv "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/csv"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
@@ -192,11 +193,6 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		log.Warn().Msg("no urls found")
 		return nil
 	}
-	b, err := json.Marshal(emRow)
-	if err != nil {
-		log.Err(err).Msg("failed to marshal emRow")
-		return err
-	}
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
@@ -209,12 +205,16 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		wsbLabel,
 	})
 	uef.Labels = append(uef.Labels, wsbLabel)
+	b, err := utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal emRow")
+		return err
+	}
 	usre := artemis_entities.UserEntity{
 		Nickname: uef.Nickname,
 		Platform: uef.Platform,
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
-				TextData: aws.String(colName),
 				JsonData: b,
 				Labels:   labels,
 			},
@@ -274,11 +274,6 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 		log.Warn().Msg("no emails found")
 		return nil
 	}
-	b, err := json.Marshal(emRow)
-	if err != nil {
-		log.Err(err).Msg("failed to marshal emRow")
-		return err
-	}
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
@@ -292,12 +287,16 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 		emLabel,
 	})
 	uef.Labels = append(uef.Labels, emLabel)
+	b, err := utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal emRow")
+		return err
+	}
 	usre := artemis_entities.UserEntity{
 		Nickname: uef.Nickname,
 		Platform: uef.Platform,
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
-				TextData: aws.String(colName),
 				JsonData: b,
 				Labels:   labels,
 			},

@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
+	utils_csv "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/csv"
 )
 
 const (
@@ -53,24 +54,19 @@ func FindAndMergeMatchingNicknamesByLabelPrefix(source artemis_entities.UserEnti
 
 func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.UserEntity, wsi *WorkflowStageIO) (*artemis_entities.UserEntity, error) {
 	var results []hera_search.SearchResult
-	var colName string
-	var emRow map[string][]int
 	// todo; multi?
+	cme := utils_csv.CsvMergeEntity{}
 	for _, mi := range mergeIn {
 		for _, minv := range mi.MdSlice {
-			if minv.TextData != nil && len(*minv.TextData) > 0 {
-				colName = *minv.TextData
-			}
 			if minv.JsonData != nil && string(minv.JsonData) != "null" {
-				jerr := json.Unmarshal(minv.JsonData, &emRow)
+				jerr := json.Unmarshal(minv.JsonData, &cme)
 				if jerr != nil {
 					log.Err(jerr).Interface("minv.JsonData", minv.JsonData).Msg(" json.Unmarshal(minv.JsonData, &emRow)")
+					continue
 				}
 			}
-			//
 			gl := mi.GetStrLabels()
 			rm := mergeRets(gl)
-			//rm["csv-exports"] = true
 			sgs := wsi.GetSearchGroupsOutByRetNameMatch(rm)
 			for _, sg := range sgs {
 				if sg.ApiResponseResults != nil {
@@ -90,47 +86,18 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 			}
 		}
 	}
-
-	var merged []map[string]string
-	for _, v := range source.MdSlice {
-		if v.JsonData != nil && string(v.JsonData) != "null" {
-			err := json.Unmarshal(v.JsonData, &emRow)
-			if err != nil {
-				log.Err(err).Interface("v.JsonData", v.JsonData)
-				return nil, err
-			}
-		}
-		if v.TextData != nil && len(*v.TextData) > 0 {
-			csvMap, err := ParseCsvStringToMap(*v.TextData)
-			if err != nil {
-				return nil, err
-			}
-			pscsv, perr := PayloadV2ToCsvString(appendCsvEntry)
-			if perr != nil {
-				log.Err(perr).Interface("appendCsvEntry", appendCsvEntry).Msg("PayloadV2ToCsvString: ")
-				return nil, perr
-			}
-			csvMapMerge, err := ParseCsvStringToMap(pscsv)
-			if err != nil {
-				return nil, err
-			}
-			log.Info().Interface("csvMapMerge", csvMapMerge).Msg("ParseCsvStringToMap: csvMapMerge")
-			merged, err = appendCsvData(csvMap, csvMapMerge, colName, emRow)
-			if err != nil {
-				log.Err(err).Interface("merged", merged).Msg("mergeRets: empty rets")
-				return nil, err
-			}
-			log.Info().Interface("merged", merged).Msg("appendCsvData: merged")
-		}
+	merged, err := utils_csv.MergeCsvEntity(source, appendCsvEntry, cme)
+	if err != nil {
+		log.Err(err).Msg("mergeCore")
+		return nil, err
 	}
-	mergedCsvStr, err := PayloadToCsvString(merged)
+	mergedCsvStr, err := utils_csv.PayloadToCsvString(merged)
 	if err != nil {
 		log.Err(err).Msg("PayloadToCsvString")
 		return nil, err
 	}
 	log.Info().Interface("mergedCsvStr", mergedCsvStr).Msg("mergeCsvs: PayloadToCsvString")
 	csvMerge := &artemis_entities.UserEntity{
-		Nickname: wsi.WorkflowOverrides.WorkflowRunName,
 		Platform: "csv-exports",
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
@@ -152,20 +119,4 @@ func mergeRets(lbs []string) map[string]bool {
 		log.Warn().Interface("lbs", lbs).Msg("mergeRets: empty rets")
 	}
 	return rets
-}
-
-func appendCsvData(inputCsvData, csvData []map[string]string, colName string, emRow map[string][]int) ([]map[string]string, error) {
-	// Iterate through csvData to find and merge matching rows
-	for _, dataRow := range csvData {
-		email := dataRow[colName]
-		if indices, ok := emRow[email]; ok {
-			// If a matching row is found, merge the data
-			for _, index := range indices {
-				for key, value := range dataRow {
-					inputCsvData[index][key] = value
-				}
-			}
-		}
-	}
-	return inputCsvData, nil
 }

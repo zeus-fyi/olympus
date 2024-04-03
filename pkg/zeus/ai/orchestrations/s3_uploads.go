@@ -43,6 +43,35 @@ func s3ws(ctx context.Context, cp *MbChildSubProcessParams, input *WorkflowStage
 	return input, err
 }
 
+func s3wsCustomTaskName(ctx context.Context, cp *MbChildSubProcessParams, taskName string, input any) error {
+	if input == nil {
+		log.Warn().Msg("s3ws: at least cp or input is nil or empty")
+		return fmt.Errorf("must have input to save s3 obj")
+	}
+	sn := cp.Tc.TaskName
+	cp.Tc.TaskName = taskName
+	if err := errCheckStagedWfs(ctx, cp); err != nil {
+		return err
+	}
+	p, err := workingRunCycleStagePath(cp)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to hash wsr io")
+		return err
+	}
+	b, err := json.Marshal(input)
+	if err != nil {
+		log.Err(err).Msg("s3ws: failed to upload wsr io")
+		return err
+	}
+	err = uploadFromInMemFs(ctx, b, p)
+	if err != nil {
+		log.Err(err).Interface("b", string(b)).Msg("failed to upload")
+		return err
+	}
+	cp.Tc.TaskName = sn
+	return nil
+}
+
 // s3globalWf uses real wf name "/%s/%s/%s", ogk, wfName, ue.Platform
 func s3globalWf(ctx context.Context, cp *MbChildSubProcessParams, ue *artemis_entities.UserEntity) (*artemis_entities.UserEntity, error) {
 	if err := errCheckGlobalWfs(ctx, cp, ue); err != nil {

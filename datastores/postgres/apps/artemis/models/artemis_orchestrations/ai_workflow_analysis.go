@@ -3,7 +3,6 @@ package artemis_orchestrations
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
@@ -27,10 +26,6 @@ type AIWorkflowAnalysisResult struct {
 	SkipAnalysis          bool            `json:"skipAnalysis"`
 	Metadata              json.RawMessage `json:"metadata,omitempty"`
 	CompletionChoices     json.RawMessage `json:"completionChoices,omitempty"`
-}
-
-func (wr *AIWorkflowAnalysisResult) GetCycleName() string {
-	return fmt.Sprintf("ai-wr-%d-%d-%d-%d", wr.OrchestrationID, wr.IterationCount, wr.ChunkOffset, wr.RunningCycleNumber)
 }
 
 func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisResult) error {

@@ -8,6 +8,7 @@ import (
 	"path"
 	"runtime"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
@@ -29,7 +30,7 @@ type AiAggregateAnalysisRetrievalTaskInputDebug struct {
 
 func (f *AiAggregateAnalysisRetrievalTaskInputDebug) Save() {
 	dirMain := ChangeToAiDir()
-	b, err := json.Marshal(f)
+	b, err := json.MarshalIndent(f, "", "  ")
 	if err != nil {
 		panic(err)
 	}
@@ -47,18 +48,24 @@ func (f *AiAggregateAnalysisRetrievalTaskInputDebug) Save() {
 	}
 }
 
-func (f *AiAggregateAnalysisRetrievalTaskInputDebug) Open() {
+func (f *AiAggregateAnalysisRetrievalTaskInputDebug) OpenFp() filepaths.Path {
 	dirMain := ChangeToAiDir()
 	rn := "AiAggregateAnalysisRetrievalTaskInputDebug"
+	if f.Cp == nil {
+		f.Cp = &MbChildSubProcessParams{
+			Wsr: artemis_orchestrations.WorkflowStageReference{
+				RunCycle:    1,
+				ChunkOffset: 0,
+			},
+		}
+	}
 	fp := filepaths.Path{
-		DirIn:  dirMain,
+		DirIn:  path.Join(dirMain, "tmp"),
 		DirOut: path.Join(dirMain, "tmp"),
+		FnIn:   fmt.Sprintf("%s-cycle-%d-chunk-%d.json", rn, f.Cp.Wsr.RunCycle, f.Cp.Wsr.ChunkOffset),
 		FnOut:  fmt.Sprintf("%s-cycle-%d-chunk-%d.json", rn, f.Cp.Wsr.RunCycle, f.Cp.Wsr.ChunkOffset),
 	}
-	err := json.Unmarshal(fp.ReadFileInPath(), &f)
-	if err != nil {
-		panic(err)
-	}
+	return fp
 }
 
 type FanOutApiCallRequestTaskInputDebug struct {

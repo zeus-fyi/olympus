@@ -41,21 +41,6 @@ const (
 	csvSrcGlobalMergeLabel = "csv:global:merge"
 )
 
-func csvGlobalRetLabel() string {
-	return fmt.Sprintf("%s:ret", csvSrcGlobalMergeLabel)
-}
-func csvGlobalAnalysisTaskLabel() string {
-	return fmt.Sprintf("%s:analysis:task", csvSrcGlobalMergeLabel)
-}
-
-func csvGlobalMergeAnalysisTaskLabel(tn string) string {
-	return fmt.Sprintf("%s:%s", csvGlobalAnalysisTaskLabel(), tn)
-}
-
-func csvGlobalMergeRetLabel(rn string) string {
-	return fmt.Sprintf("%s:%s", csvGlobalRetLabel(), rn)
-}
-
 func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 	for _, r := range w.FlowsActionsRequest.ContactsCsv {
 		fmt.Println("r", r)
@@ -64,19 +49,6 @@ func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 		}
 	}
 	return fmt.Errorf("fake err")
-}
-
-func (w *ExecFlowsActionsRequest) InitMaps() {
-	if w.WorkflowEntitiesOverrides == nil {
-		w.WorkflowEntitiesOverrides = make(map[string][]artemis_entities.UserEntity)
-	}
-	if w.WfRetrievalOverrides == nil {
-		tmp := make(map[string]artemis_orchestrations.RetrievalOverrides)
-		w.WfRetrievalOverrides = tmp
-	}
-	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
-	}
 }
 
 func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
@@ -120,7 +92,6 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 	if uef != nil && uef.Nickname != "" && uef.Platform != "" {
 		w.WorkflowEntityRefs = append(w.WorkflowEntityRefs, *uef)
 	}
-	//err = w.TestCsvParser()
 	return uef, err
 }
 
@@ -164,6 +135,28 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	}
 	log.Info().Interface("ue", usre.Nickname).Msg("entity hash")
 	return uef, nil
+}
+
+func (w *ExecFlowsActionsRequest) AddPromptInject(uef *artemis_entities.EntitiesFilter, wfName string) error {
+	if w.PromptsCsvStr == "" {
+		return fmt.Errorf("no prompt inject csv provided")
+	}
+
+	switch wfName {
+	case webFetchWf, liWf, liBizWf, googWf:
+		ue := artemis_entities.UserEntity{
+			Nickname: uef.Nickname,
+			Platform: "prompts",
+			MdSlice: []artemis_entities.UserEntityMetadata{
+				{
+					TextData: aws.String(w.PromptsCsvStr),
+					Labels:   artemis_entities.CreateMdLabels([]string{"csv:prompts:wf"}),
+				},
+			},
+		}
+		w.WorkflowEntitiesOverrides[wfName] = append(w.WorkflowEntitiesOverrides[wfName], ue)
+	}
+	return nil
 }
 
 func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entities.EntitiesFilter) error {
@@ -236,14 +229,19 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		},
 	}
 
-	w.WorkflowEntitiesOverrides[webFetchWf] = append(w.WorkflowEntitiesOverrides[webFetchWf], usre)
-	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
-		if w.SchemaFieldOverrides == nil {
-			w.SchemaFieldOverrides = make(map[string]map[string]string)
-			w.SchemaFieldOverrides["website-analysis"] = map[string]string{
-				"summary": v,
-			}
+	var prompts []string
+	for _, cvs := range w.PromptsCsv {
+		for _, colValue := range cvs {
+			prompts = append(prompts, colValue)
 		}
+	}
+
+	w.WorkflowEntitiesOverrides[webFetchWf] = append(w.WorkflowEntitiesOverrides[webFetchWf], usre)
+	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" && len(prompts) <= 0 {
+		prompts = []string{v}
+	}
+	w.SchemaFieldOverrides["website-analysis"] = map[string][]string{
+		"summary": prompts,
 	}
 	w.WfRetrievalOverrides[webFetchWf] = map[string]artemis_orchestrations.RetrievalOverride{
 		"website-analysis": artemis_orchestrations.RetrievalOverride{Payloads: pls},
@@ -319,9 +317,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 	}
 	log.Info().Interface("labels", labels).Msg("EmailsValidatorSetup")
 	w.WorkflowEntitiesOverrides[emailVdWf] = append(w.WorkflowEntitiesOverrides[emailVdWf], usre)
-	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
-	}
+
 	w.CustomBasePeriodStepSize = 24
 	w.CustomBasePeriodStepSizeUnit = "hours"
 	w.CustomBasePeriod = true
@@ -345,12 +341,12 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 	}
 	w.TaskOverrides["zeusfyi-verbatim"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
 	if v, ok := w.CommandPrompts[googleSearch]; ok && v != "" {
-		if w.SchemaFieldOverrides == nil {
-			w.SchemaFieldOverrides = make(map[string]map[string]string)
-			w.SchemaFieldOverrides["google-results-agg"] = map[string]string{
-				"summary": v,
-			}
-		}
+		//if w.SchemaFieldOverrides == nil {
+		//	w.SchemaFieldOverrides = make(map[string]map[string]artemis_orchestrations.)
+		//	w.SchemaFieldOverrides["google-results-agg"] = map[string]string{
+		//		"summary": v,
+		//	}
+		//}
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: googWf,
@@ -373,14 +369,14 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
 	w.TaskOverrides["linkedin-profiles-rapid-api-qps"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
-	if v, ok := w.CommandPrompts[linkedIn]; ok && v != "" {
-		if w.SchemaFieldOverrides == nil {
-			w.SchemaFieldOverrides = make(map[string]map[string]string)
-			w.SchemaFieldOverrides["results-agg"] = map[string]string{
-				"summary": v,
-			}
-		}
-	}
+	//if v, ok := w.CommandPrompts[linkedIn]; ok && v != "" {
+	//	if w.SchemaFieldOverrides == nil {
+	//		w.SchemaFieldOverrides = make(map[string]map[string]string)
+	//		w.SchemaFieldOverrides["results-agg"] = map[string]string{
+	//			"summary": v,
+	//		}
+	//	}
+	//}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: liWf,
 	})
@@ -400,14 +396,14 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup() error {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
 	w.TaskOverrides["linkedin-biz-profiles-rapid-api-qps"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
-	if v, ok := w.CommandPrompts[linkedInBiz]; ok && v != "" {
-		if w.SchemaFieldOverrides == nil {
-			w.SchemaFieldOverrides = make(map[string]map[string]string)
-			w.SchemaFieldOverrides["results-agg"] = map[string]string{
-				"summary": v,
-			}
-		}
-	}
+	//if v, ok := w.CommandPrompts[linkedInBiz]; ok && v != "" {
+	//	if w.SchemaFieldOverrides == nil {
+	//		w.SchemaFieldOverrides = make(map[string]map[string]string)
+	//		w.SchemaFieldOverrides["results-agg"] = map[string]string{
+	//			"summary": v,
+	//		}
+	//	}
+	//}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: liBizWf,
 	})

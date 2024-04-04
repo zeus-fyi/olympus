@@ -150,13 +150,24 @@ func getJsonSchemaDefs(ctx context.Context, mb *MbChildSubProcessParams) ([]*art
 						continue
 					}
 				}
+				var extFields []artemis_orchestrations.JsonSchemaField
 				for si, sf := range sv.Fields {
 					if mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName] != nil {
 						if fo, ok := mb.WfExecParams.WorkflowOverrides.SchemaFieldOverrides[sv.SchemaName][sf.FieldName]; ok {
-							sv.Fields[si].FieldDescription = fo
+							fn := sf.FieldName
+							for oi, orv := range fo {
+								if oi <= 0 {
+									sv.Fields[si].FieldDescription = orv
+								} else {
+									sf.FieldName = fmt.Sprintf("%s_%d", fn, oi)
+									sf.FieldDescription = orv
+									extFields = append(extFields, sf)
+								}
+							}
 						}
 					}
 				}
+				sv.Fields = append(sv.Fields, extFields...)
 			}
 			jsd = append(jsd, taskDef.Schemas...)
 		}

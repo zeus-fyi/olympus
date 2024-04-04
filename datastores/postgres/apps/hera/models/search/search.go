@@ -169,21 +169,22 @@ func FormatSearchResultsV4(filteredMap map[int]*SearchResult, results []SearchRe
 }
 
 type SearchResult struct {
-	UnixTimestamp   int                           `json:"unixTimestamp"`
-	Source          string                        `json:"source"`
-	QueryParams     []string                      `json:"queryParams,omitempty"`
-	Value           string                        `json:"value"`
-	Group           string                        `json:"group"`
-	Verified        *bool                         `json:"verified,omitempty"`
-	Metadata        TelegramMetadata              `json:"metadata,omitempty"`
-	DiscordMetadata DiscordMetadata               `json:"discordMetadata"`
-	RedditMetadata  RedditMetadata                `json:"redditMetadata"`
-	TwitterMetadata *TwitterMetadata              `json:"twitterMetadata,omitempty"`
-	WebResponse     WebResponse                   `json:"webResponses,omitempty"`
-	CsvMetadata     *CsvMetadata                  `json:"csvMetadata,omitempty"`
-	UserEntities    []artemis_entities.UserEntity `json:"userEntity,omitempty"`
+	UnixTimestamp   int              `json:"unixTimestamp"`
+	Source          string           `json:"source"`
+	QueryParams     []string         `json:"queryParams,omitempty"`
+	Value           string           `json:"value"`
+	Group           string           `json:"group"`
+	Verified        *bool            `json:"verified,omitempty"`
+	Metadata        TelegramMetadata `json:"metadata,omitempty"`
+	DiscordMetadata DiscordMetadata  `json:"discordMetadata"`
+	RedditMetadata  RedditMetadata   `json:"redditMetadata"`
+	TwitterMetadata *TwitterMetadata `json:"twitterMetadata,omitempty"`
+	WebResponse     WebResponse      `json:"webResponses,omitempty"`
+	//CsvMetadata     *CsvMetadata                  `json:"csvMetadata,omitempty"`
+	UserEntities []artemis_entities.UserEntity `json:"userEntity,omitempty"`
 }
 
+// todo: unused
 type CsvMetadata struct {
 }
 

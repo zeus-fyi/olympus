@@ -28,6 +28,8 @@ type AiAggregateAnalysisRetrievalTaskInputDebug struct {
 	Cp            *MbChildSubProcessParams
 }
 
+var rn = "GenerateCycleReports"
+
 func (f *AiAggregateAnalysisRetrievalTaskInputDebug) Save() {
 	dirMain := ChangeToAiDir()
 	b, err := json.MarshalIndent(f, "", "  ")
@@ -36,7 +38,7 @@ func (f *AiAggregateAnalysisRetrievalTaskInputDebug) Save() {
 	}
 	//ch := chronos.Chronos{}
 	//ch.UnixTimeStampNow(),
-	rn := "GenerateCycleReports"
+	//rn := te
 	fp := filepaths.Path{
 		DirIn:  dirMain,
 		DirOut: path.Join(dirMain, "tmp"),
@@ -50,7 +52,7 @@ func (f *AiAggregateAnalysisRetrievalTaskInputDebug) Save() {
 
 func (f *AiAggregateAnalysisRetrievalTaskInputDebug) OpenFp() filepaths.Path {
 	dirMain := ChangeToAiDir()
-	rn := "AiAggregateAnalysisRetrievalTaskInputDebug"
+	//rn := "AiAggregateAnalysisRetrievalTaskInputDebug"
 	if f.Cp == nil {
 		f.Cp = &MbChildSubProcessParams{
 			Wsr: artemis_orchestrations.WorkflowStageReference{

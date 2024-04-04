@@ -40,6 +40,20 @@ func NewCsvMergeEntityFromSrcBin(colName string, emRow map[string][]int) ([]byte
 }
 
 func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[string]interface{}, cme CsvMergeEntity) ([]map[string]string, error) {
+	if len(appendCsvEntry) == 0 {
+		for _, v := range source.MdSlice {
+			if v.TextData != nil && *v.TextData != "" {
+				csvMapMerge, err := ParseCsvStringToMap(*v.TextData)
+				if err != nil {
+					log.Warn().Err(err).Msg("ParseCsvStringToMap")
+					err = nil
+					return nil, nil
+				} else {
+					return csvMapMerge, nil
+				}
+			}
+		}
+	}
 	var merged []map[string]string
 	for _, v := range source.MdSlice {
 		if v.TextData != nil && len(*v.TextData) > 0 {

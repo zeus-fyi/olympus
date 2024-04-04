@@ -67,9 +67,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					return err
 				}
 			case csvFormat:
-				log.Info().Interface("csvFormat", csvFormat).Msg("agg: csvFormat")
-				analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, getDummyChatCompResp()).Get(analysisCompCtx, &cp.Tc.ResponseID)
+				aggCompCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, getDummyChatCompResp()).Get(aggCompCtx, &cp.Tc.ResponseID)
 				if err != nil {
 					logger.Error("failed to save analysis read only response", "Error", err)
 					return err
@@ -79,7 +78,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
 				err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveCsvTaskOutput, cp, wr).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
 				if err != nil {
-					logger.Error("failed to save csv agg", "Error", err)
+					logger.Error("failed to save csv analysis", "Error", err)
 					return err
 				}
 			default:

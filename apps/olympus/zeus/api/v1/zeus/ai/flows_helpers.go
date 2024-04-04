@@ -284,12 +284,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 		log.Warn().Msg("no emails found")
 		return nil
 	}
-	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
-	}
-	if w.RetrievalOverrides == nil {
-		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
-	}
+	w.InitMaps()
 	w.RetrievalOverrides[validemailRetQp] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
 	emLabel := csvGlobalMergeRetLabel(validemailRetQp)
 	labels := artemis_entities.CreateMdLabels([]string{

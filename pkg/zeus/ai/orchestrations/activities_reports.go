@@ -32,7 +32,7 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 	}
 	var gens []artemis_entities.UserEntity
 	ue, err := S3WfRunExport(ctx, cp.Ou, cp.GetRunName(), uin)
-	if ue != nil && ue.MdSlice != nil {
+	if ue != nil && ue.MdSlice != nil && err != nil {
 		log.Info().Interface("ue.m", ue.MdSlice).Msg("UserEntity")
 		gens = []artemis_entities.UserEntity{*ue}
 	} else {

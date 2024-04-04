@@ -7,7 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -24,7 +23,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		},
 		DisableEagerExecution: false,
 	}
-
+	wfExecParams.WorkflowOverrides.WorkflowRunName = wfID
 	ojCtx := workflow.WithActivityOptions(ctx, ao)
 	oj := artemis_orchestrations.NewActiveTemporalOrchestrationJobTemplate(ou.OrgID, wfID, wfExecParams.WorkflowTemplate.WorkflowGroup, wfExecParams.WorkflowTemplate.WorkflowName)
 	err := workflow.ExecuteActivity(ojCtx, z.UpsertAiOrchestration, ou, wfID, wfExecParams).Get(ojCtx, &oj.OrchestrationID)
@@ -73,7 +72,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 				}
 			}
 		}
-
 		childParams := &MbChildSubProcessParams{WfID: oj.OrchestrationName + "-analysis-" + strconv.Itoa(i), Ou: ou, WfExecParams: wfExecParams, Oj: oj,
 			Wsr: artemis_orchestrations.WorkflowStageReference{
 				WorkflowRunID: oj.OrchestrationID,
@@ -98,7 +96,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			WorkflowID:         wfAggChildID,
 			WorkflowRunTimeout: ao.ScheduleToCloseTimeout,
 			RetryPolicy:        ao.RetryPolicy,
-			ParentClosePolicy:  enums.PARENT_CLOSE_POLICY_ABANDON,
+			//ParentClosePolicy:  enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
 		aggChildParams := &MbChildSubProcessParams{WfID: wfAggChildID, Ou: ou, WfExecParams: wfExecParams, Oj: oj,
 			Wsr: artemis_orchestrations.WorkflowStageReference{
@@ -113,6 +111,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 		if err != nil {
 			logger.Error("failed to execute child aggregation workflow", "Error", err)
 			return err
+		}
+		if wfExecParams.WorkflowOverrides.IsUsingFlows {
+			cycleReportCtx := workflow.WithActivityOptions(ctx, ao)
+			aggChildParams.Window = artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-1, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
+			err = workflow.ExecuteActivity(cycleReportCtx, z.GenerateCycleReports, aggChildParams).Get(cycleReportCtx, nil)
+			if err != nil {
+				logger.Error("failed to run csv report output task", "Error", err)
+				return err
+			}
 		}
 	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)

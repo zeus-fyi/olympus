@@ -2,6 +2,9 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import CloudDownloadIcon from "@mui/icons-material/CloudUpload";
 import * as React from "react";
+import inMemoryJWT from "../../auth/InMemoryJWT";
+import Papa from "papaparse";
+import {configService} from "../../config/config";
 
 const filterAggregationTypes = (data: any) => {
     if (!data || !data.aggregatedData) {
@@ -25,7 +28,8 @@ const filterAnalysisTypes = (data: any) => {
 };
 
 const CsvExportButton = (props: any) => {
-    const { name, results } = props;
+    const [loading, setIsLoading] = React.useState(false);
+    const { name, orchStrID, results } = props;
     let data: any
     if (results.orchestration.type === 'validate-emails-wf') {
         data = filterAnalysisTypes(results)
@@ -36,12 +40,49 @@ const CsvExportButton = (props: any) => {
         data = filterAggregationTypes(results)
     }
 
+    const onClickExportCsv = async (name: string, id: string) => {
+        try {
+            setIsLoading(true)
+            const url = `${configService.getZeusApiUrl()}/v1/flow/${id}/csv`;
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+            };
+            Papa.parse(url, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                downloadRequestHeaders: config.headers, // Set headers directly for the download
+                complete: (result) => {
+                    // console.log('CSV data downloaded:', result.data);
+                    const csv = Papa.unparse(result.data);
+                    // Then convert this CSV string to a Blob
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    // Download the blob as a file
+                    downloadBlobAsFile(`${name}.csv`, blob);
+                    // Process the CSV data as needed
+                },
+                error: (error) => {
+                    console.error('CSV parsing error:', error);
+                    // No need to throw here as this is already inside the error callback
+                }
+            });
+        } finally {
+            setIsLoading(false)
+        }
+    };
+
+    if (loading) {
+        return <div>Loading...</div>
+    }
     return (
         <Stack direction="row" alignItems="center" spacing={2} sx={{mt: 2}}>
             <Button
                 variant="contained"
                 style={{ backgroundColor: '#4fd3ad', color: '#FFF' }}
-                onClick={() => parseJSONAndCreateCSV(name, data)}
+                onClick={() => onClickExportCsv(name, orchStrID)}
             >
                 <CloudDownloadIcon />
             </Button>

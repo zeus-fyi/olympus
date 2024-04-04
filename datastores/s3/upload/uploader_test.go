@@ -16,30 +16,24 @@ type S3UploaderTestSuite struct {
 	s3test.S3TestSuite
 }
 
-func (t *S3UploaderTestSuite) SetupTest() {
-	t.SetupLocalDigitalOceanS3()
-}
-
 // TestRead, you'll need to set the secret values to run the test
 func (t *S3UploaderTestSuite) TestUploadZst() {
 	ctx := context.Background()
 
-	fn := "geth.tar.zst"
-	bucketName := "zeus-fyi"
+	fn := "tmp.txt"
+	bucketName := "zeusfyi"
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fn),
 	}
 	p := filepaths.Path{
 		PackageName: "",
-		DirIn:       "./ethereum/geth_zstd_cmp",
+		DirIn:       "/Users/alex/go/Olympus/olympus/datastores/s3/upload/",
 		DirOut:      "./",
 		FnIn:        fn,
-		Env:         "",
-		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	uploader := NewS3ClientUploader(t.S3)
+	uploader := NewS3ClientUploader(t.OvhS3)
 	err := uploader.Upload(ctx, p, input)
 	t.Require().Nil(err)
 }

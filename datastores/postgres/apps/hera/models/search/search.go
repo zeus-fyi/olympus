@@ -78,6 +78,7 @@ type SearchResultGroup struct {
 	SearchResultChunkTokenEstimate *int                          `json:"searchResultChunkTokenEstimates,omitempty"`
 	Window                         artemis_orchestrations.Window `json:"window,omitempty"`
 	FunctionDefinition             openai.FunctionDefinition     `json:"functionDefinition,omitempty"`
+	RetrievalName                  *string                       `json:"retrievalName,omitempty"`
 }
 
 func (sg *SearchResultGroup) GetMessageMap() map[int]*SearchResult {
@@ -179,7 +180,11 @@ type SearchResult struct {
 	RedditMetadata  RedditMetadata                `json:"redditMetadata"`
 	TwitterMetadata *TwitterMetadata              `json:"twitterMetadata,omitempty"`
 	WebResponse     WebResponse                   `json:"webResponses,omitempty"`
+	CsvMetadata     *CsvMetadata                  `json:"csvMetadata,omitempty"`
 	UserEntities    []artemis_entities.UserEntity `json:"userEntity,omitempty"`
+}
+
+type CsvMetadata struct {
 }
 
 type TwitterMetadata struct {
@@ -206,6 +211,8 @@ type RedditMetadata struct {
 type WebResponse struct {
 	WebFilters        *artemis_orchestrations.WebFilters `json:"webFilters,omitempty"`
 	Body              echo.Map                           `json:"body"`
+	BodyV2            map[string]interface{}             `json:"bodyV2"`
+	BodyV2Slice       []map[string]interface{}           `json:"bodyV2Slice"`
 	RawMessage        []byte                             `json:"rawMessage"`
 	RegexFilteredBody string                             `json:"regexFilteredBody"`
 }
@@ -487,13 +494,16 @@ func FormatSearchResultsV5(results []SearchResult) string {
 	var newResults []interface{}
 	for _, result := range results {
 		if result.WebResponse.Body != nil && len(result.QueryParams) > 0 && result.WebResponse.RegexFilteredBody == "" {
-			if _, ok := result.WebResponse.Body["msg_body"]; !ok {
-				result.WebResponse.Body["msg_body"] = result.Value
+			m := map[string]interface{}{}
+			if len(result.Value) > 0 {
+				m["msg_body"] = result.Value
+			} else if mbv, ok := result.WebResponse.Body["msg_body"]; !ok {
+				m["msg_body"] = mbv
 			}
 			if result.QueryParams != nil {
-				result.WebResponse.Body["entity"] = result.QueryParams
+				m["entity"] = result.QueryParams
 			}
-			newResults = append(newResults, result.WebResponse.Body)
+			newResults = append(newResults, m)
 		} else if result.WebResponse.RegexFilteredBody != "" || len(result.QueryParams) > 0 {
 			m := map[string]interface{}{
 				"msg_body": result.Value,
@@ -506,10 +516,13 @@ func FormatSearchResultsV5(results []SearchResult) string {
 			}
 			newResults = append(newResults, m)
 		} else if result.WebResponse.Body != nil {
-			if result.Value != "" {
-				result.WebResponse.Body["msg_body"] = result.Value
+			m := map[string]interface{}{}
+			if mbv, ok := result.WebResponse.Body["msg_body"]; !ok {
+				m["msg_body"] = mbv
+			} else if len(result.Value) > 0 {
+				m["msg_body"] = result.Value
 			}
-			newResults = append(newResults, result.WebResponse.Body)
+			newResults = append(newResults, m)
 		} else if result.Verified != nil && *result.Verified && result.UnixTimestamp > 0 {
 			msgID := fmt.Sprintf("%d", result.UnixTimestamp)
 			if result.TwitterMetadata != nil && result.TwitterMetadata.TweetStrID != "" {

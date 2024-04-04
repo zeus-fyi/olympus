@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -24,9 +25,12 @@ type WorkflowExecParams struct {
 }
 
 type WorkflowOverrides struct {
-	IsUsingFlows         bool               `json:"isUsingFlows"`
-	SchemaFieldOverrides SchemaOverrides    `json:"schemaFieldOverrides"`
-	RetrievalOverrides   RetrievalOverrides `json:"retrievalOverride"`
+	WorkflowRunName      string                            `json:"workflowRunName"`
+	IsUsingFlows         bool                              `json:"isUsingFlows"`
+	SchemaFieldOverrides SchemaOverrides                   `json:"schemaFieldOverrides"`
+	RetrievalOverrides   RetrievalOverrides                `json:"retrievalOverride"`
+	WorkflowEntityRefs   []artemis_entities.EntitiesFilter `json:"workflowEntitiesRef,omitempty"`
+	WorkflowEntities     []artemis_entities.UserEntity     `json:"workflowEntities,omitempty"`
 }
 
 type WorkflowExecTimekeepingParams struct {

@@ -27,9 +27,6 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowProcess(ctx context.C
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 100,
 		},
-		CronSchedule:     "",
-		Memo:             nil,
-		SearchAttributes: nil,
 	}
 	resp, _ := tc.DescribeWorkflowExecution(ctx, wfID, "")
 	if resp != nil {
@@ -44,6 +41,7 @@ func (z *ZeusAiPlatformServicesWorker) ExecuteRunAiWorkflowProcess(ctx context.C
 		log.Err(err).Msg("UpsertAiOrchestration: activity failed")
 		return -1, err
 	}
+	params.WorkflowOverrides.WorkflowRunName = wfID
 	fmt.Println("UpsertAiOrchestration: activity succeeded", id)
 	txWf := NewZeusPlatformServiceWorkflows()
 	wf := txWf.RunAiWorkflowProcess

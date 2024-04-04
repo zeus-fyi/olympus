@@ -18,6 +18,20 @@ const (
 	OpenAiPlatform = "openai"
 )
 
+type ChatCompletionQueryResponse struct {
+	Prompt                map[string]string                              `json:"prompt"`
+	Params                hera_openai.OpenAIParams                       `json:"params"`
+	Schemas               []*artemis_orchestrations.JsonSchemaDefinition `json:"schemas"`
+	EvalResultID          int                                            `json:"evalResultID,omitempty"`
+	WorkflowResultID      int                                            `json:"workflowResultID,omitempty"`
+	Response              openai.ChatCompletionResponse                  `json:"response"`
+	ResponseID            int                                            `json:"responseID,omitempty"`
+	ResponseTaskID        int                                            `json:"responseTaskID,omitempty"`
+	RegexSearchResults    []hera_search.SearchResult                     `json:"regexSearchResults,omitempty"`
+	FilteredSearchResults []hera_search.SearchResult                     `json:"filteredSearchResults,omitempty"`
+	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition  `json:"jsonResponseResults,omitempty"`
+}
+
 func GetMockingBirdSecrets(ctx context.Context, ou org_users.OrgUser) (*aws_secrets.OAuth2PlatformSecret, error) {
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
 	if err != nil || ps == nil || ps.ApiKey == "" {
@@ -42,7 +56,7 @@ func (z *ZeusAiPlatformActivities) SelectTaskDefinition(ctx context.Context, ou 
 func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
 	var content string
 	if cp != nil && cp.Wsr.InputID > 0 {
-		in, werr := gws(ctx, cp.Wsr.InputID)
+		in, werr := gs3wfs(ctx, cp)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr
@@ -172,20 +186,6 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 	}, nil
 }
 
-type ChatCompletionQueryResponse struct {
-	Prompt                map[string]string                              `json:"prompt"`
-	Params                hera_openai.OpenAIParams                       `json:"params"`
-	Schemas               []*artemis_orchestrations.JsonSchemaDefinition `json:"schemas"`
-	EvalResultID          int                                            `json:"evalResultID,omitempty"`
-	WorkflowResultID      int                                            `json:"workflowResultID,omitempty"`
-	Response              openai.ChatCompletionResponse                  `json:"response"`
-	ResponseID            int                                            `json:"responseID,omitempty"`
-	ResponseTaskID        int                                            `json:"responseTaskID,omitempty"`
-	RegexSearchResults    []hera_search.SearchResult                     `json:"regexSearchResults,omitempty"`
-	FilteredSearchResults []hera_search.SearchResult                     `json:"filteredSearchResults,omitempty"`
-	JsonResponseResults   []artemis_orchestrations.JsonSchemaDefinition  `json:"jsonResponseResults,omitempty"`
-}
-
 func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.JsonSchemaDefinition) bool {
 	if len(jr) <= 0 {
 		return false
@@ -205,8 +205,8 @@ func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.J
 
 func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
 	var content string
-	if cp != nil && cp.Wsr.InputID > 0 {
-		in, werr := gws(ctx, cp.Wsr.InputID)
+	if cp != nil {
+		in, werr := gs3wfs(ctx, cp)
 		if werr != nil {
 			log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
 			return nil, werr

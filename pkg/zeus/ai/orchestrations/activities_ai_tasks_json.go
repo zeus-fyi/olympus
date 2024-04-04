@@ -14,9 +14,117 @@ import (
 	"go.temporal.io/sdk/activity"
 )
 
-const FlowsOrgID = 1685378241971196000
+const (
+	FlowsOrgID      = 1685378241971196000
+	FlowsS3Ovh      = "s3-ovh-us-west-or"
+	FlowsBucketName = "flows"
+)
 
 func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Context, mb *MbChildSubProcessParams, params hera_openai.OpenAIParams) (*ChatCompletionQueryResponse, error) {
+	jsd, err := getJsonSchemaDefs(ctx, mb)
+	if err != nil {
+		log.Err(err).Msg("CreateJsonOutputModelResponse: getJsonSchemaDefs failed")
+		return nil, err
+	}
+	// todo: needs to save data outputs
+	params.FunctionDefinition = artemis_orchestrations.ConvertToFuncDef(jsd)
+	in, err := gs3wfs(ctx, mb)
+	if err != nil {
+		log.Err(err).Msg("CreateJsonOutputModelResponse: gws failed")
+		return nil, err
+	}
+	sg := getJsonSgChunkToProcess(mb, in)
+	params.Prompt = sg.GetPromptBody()
+	if len(params.Prompt) == 0 {
+		log.Warn().Interface("mb.Tc.TaskName", mb.Tc.TaskName).Msg("CreateJsonOutputModelResponse: prompt is empty")
+		return nil, fmt.Errorf("CreateJsonOutputModelResponse: prompt is empty")
+	}
+	var resp openai.ChatCompletionResponse
+	ps, err := GetMockingBirdSecrets(ctx, mb.Ou)
+	if err != nil || ps == nil || ps.ApiKey == "" {
+		log.Info().Msg("CreatJsonOutputModelResponse: GetMockingBirdSecrets failed to find user openai api key, using system key")
+		err = nil
+		resp, err = hera_openai.HeraOpenAI.MakeCodeGenRequestJsonFormattedOutput(ctx, mb.Ou, params)
+	} else {
+		oc := hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
+		resp, err = oc.MakeCodeGenRequestJsonFormattedOutput(ctx, mb.Ou, params)
+	}
+	if err != nil {
+		log.Err(err).Interface("params", params).Msg("CreatJsonOutputModelResponse: MakeCodeGenRequestJsonFormattedOutput failed")
+		return nil, err
+	}
+	b, err := json.Marshal(params.Prompt)
+	if err != nil {
+		log.Err(err).Msg("RecordCompletionResponse: failed")
+		return nil, err
+	}
+	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, mb.Ou, resp, b)
+	if err != nil {
+		log.Err(err).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
+		return nil, err
+	}
+	cr := &ChatCompletionQueryResponse{
+		Params:     params,
+		Prompt:     map[string]string{"prompt": params.Prompt},
+		Response:   resp,
+		ResponseID: rid,
+		Schemas:    jsd,
+	}
+	jsv, err := unmarshallJsonOpenAI(cr, jsd, sg)
+	if err != nil {
+		log.Err(err).Interface("jsv", jsv).Msg("unmarshallJsonOpenAI failed")
+	}
+	if len(jsv) > 0 {
+		cr.JsonResponseResults = jsv
+	}
+	activity.RecordHeartbeat(ctx, cr.Response.ID)
+	return cr, nil
+}
+
+func getJsonSgChunkToProcess(mb *MbChildSubProcessParams, in *WorkflowStageIO) *hera_search.SearchResultGroup {
+	pr := in.WorkflowStageInfo.PromptReduction
+	var sg *hera_search.SearchResultGroup
+	if in.WorkflowStageInfo.PromptTextFromTextStage != "" {
+		sg = &hera_search.SearchResultGroup{
+			BodyPrompt: in.WorkflowStageInfo.PromptTextFromTextStage,
+		}
+	} else if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && mb.Wsr.ChunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
+		sg = pr.PromptReductionSearchResults.OutSearchGroups[mb.Wsr.ChunkOffset]
+	} else {
+		sg = &hera_search.SearchResultGroup{
+			BodyPrompt:    pr.PromptReductionText.OutPromptChunks[mb.Wsr.ChunkOffset],
+			SearchResults: []hera_search.SearchResult{},
+		}
+	}
+	return sg
+}
+
+func unmarshallJsonOpenAI(cr *ChatCompletionQueryResponse, jsd []*artemis_orchestrations.JsonSchemaDefinition, sg *hera_search.SearchResultGroup) ([]artemis_orchestrations.JsonSchemaDefinition, error) {
+	var m any
+	var anyErr error
+	if len(cr.Response.Choices) > 0 && len(cr.Response.Choices[0].Message.ToolCalls) > 0 {
+		m, anyErr = UnmarshallOpenAiJsonInterfaceSlice(cr.Params.FunctionDefinition.Name, cr)
+		if anyErr != nil {
+			log.Err(anyErr).Interface("m", m).Interface("resp", cr.Response.Choices).Interface("prompt", sg.GetPromptBody()).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
+			return nil, anyErr
+		}
+	} else {
+		m, anyErr = UnmarshallOpenAiJsonInterface(cr.Params.FunctionDefinition.Name, cr)
+		if anyErr != nil {
+			log.Err(anyErr).Interface("m", m).Interface("resp", cr.Response.Choices).Interface("prompt", sg.GetPromptBody()).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
+			return nil, anyErr
+		}
+	}
+	var tmpResp []artemis_orchestrations.JsonSchemaDefinition
+	tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
+	if anyErr != nil {
+		log.Err(anyErr).Interface("m", m).Interface("jsd", jsd).Interface("prompt", sg.GetPromptBody()).Msg("AssignMapValuesMultipleJsonSchemasSlice: UnmarshallOpenAiJsonInterface failed")
+		return nil, anyErr
+	}
+	return tmpResp, anyErr
+}
+
+func getJsonSchemaDefs(ctx context.Context, mb *MbChildSubProcessParams) ([]*artemis_orchestrations.JsonSchemaDefinition, error) {
 	var jsd []*artemis_orchestrations.JsonSchemaDefinition
 	if mb.Tc.EvalID > 0 && mb.Tc.EvalSchemas != nil && len(mb.Tc.EvalSchemas) > 0 {
 		jsd = append(jsd, mb.Tc.EvalSchemas...)
@@ -30,7 +138,6 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
 			return nil, err
 		}
-
 		if len(tv) == 0 {
 			err = fmt.Errorf("failed to get task definition for task id: %d", mb.Tc.TaskID)
 			log.Err(err).Msg("SelectTaskDefinition: failed to get task definition")
@@ -54,88 +161,5 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 			jsd = append(jsd, taskDef.Schemas...)
 		}
 	}
-	params.FunctionDefinition = artemis_orchestrations.ConvertToFuncDef(jsd)
-	in, err := gws(ctx, mb.Wsr.InputID)
-	if err != nil {
-		log.Err(err).Msg("CreateJsonOutputModelResponse: gws failed")
-		return nil, err
-	}
-	pr := in.WorkflowStageInfo.PromptReduction
-	var sg *hera_search.SearchResultGroup
-	if in.WorkflowStageInfo.PromptTextFromTextStage != "" {
-		sg = &hera_search.SearchResultGroup{
-			BodyPrompt: in.WorkflowStageInfo.PromptTextFromTextStage,
-		}
-	} else if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && mb.Wsr.ChunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
-		sg = pr.PromptReductionSearchResults.OutSearchGroups[mb.Wsr.ChunkOffset]
-	} else {
-		sg = &hera_search.SearchResultGroup{
-			BodyPrompt:    pr.PromptReductionText.OutPromptChunks[mb.Wsr.ChunkOffset],
-			SearchResults: []hera_search.SearchResult{},
-		}
-	}
-	params.Prompt = sg.GetPromptBody()
-	if len(params.Prompt) == 0 {
-		log.Warn().Interface("mb.Tc.TaskName", mb.Tc.TaskName).Msg("CreateJsonOutputModelResponse: prompt is empty")
-		return nil, fmt.Errorf("CreateJsonOutputModelResponse: prompt is empty")
-	}
-
-	var resp openai.ChatCompletionResponse
-	ps, err := GetMockingBirdSecrets(ctx, mb.Ou)
-	if err != nil || ps == nil || ps.ApiKey == "" {
-		log.Info().Msg("CreatJsonOutputModelResponse: GetMockingBirdSecrets failed to find user openai api key, using system key")
-		err = nil
-		resp, err = hera_openai.HeraOpenAI.MakeCodeGenRequestJsonFormattedOutput(ctx, mb.Ou, params)
-	} else {
-		oc := hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
-		resp, err = oc.MakeCodeGenRequestJsonFormattedOutput(ctx, mb.Ou, params)
-	}
-	if err != nil {
-		log.Err(err).Interface("params", params).Msg("CreatJsonOutputModelResponse: MakeCodeGenRequestJsonFormattedOutput failed")
-		return nil, err
-	}
-
-	b, err := json.Marshal(params.Prompt)
-	if err != nil {
-		log.Err(err).Msg("RecordCompletionResponse: failed")
-		return nil, err
-	}
-	rid, err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, mb.Ou, resp, b)
-	if err != nil {
-		log.Err(err).Msg("ZeusAiPlatformActivities: RecordCompletionResponse: failed")
-		return nil, err
-	}
-	cr := &ChatCompletionQueryResponse{
-		Params:     params,
-		Prompt:     map[string]string{"prompt": params.Prompt},
-		Response:   resp,
-		ResponseID: rid,
-		Schemas:    jsd,
-	}
-	var m any
-	var anyErr error
-	if len(cr.Response.Choices) > 0 && len(cr.Response.Choices[0].Message.ToolCalls) > 0 {
-		m, anyErr = UnmarshallOpenAiJsonInterfaceSlice(params.FunctionDefinition.Name, cr)
-		if anyErr != nil {
-			log.Err(anyErr).Interface("m", m).Interface("resp", cr.Response.Choices).Interface("prompt", sg.GetPromptBody()).Msg("1_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterfaceSlice failed")
-			return nil, anyErr
-		}
-	} else {
-		m, anyErr = UnmarshallOpenAiJsonInterface(params.FunctionDefinition.Name, cr)
-		if anyErr != nil {
-			log.Err(anyErr).Interface("m", m).Interface("resp", cr.Response.Choices).Interface("prompt", sg.GetPromptBody()).Msg("2_UnmarshallFilteredMsgIdsFromAiJson: UnmarshallOpenAiJsonInterface failed")
-			return nil, anyErr
-		}
-	}
-	var tmpResp []artemis_orchestrations.JsonSchemaDefinition
-	tmpResp, anyErr = artemis_orchestrations.AssignMapValuesMultipleJsonSchemasSlice(jsd, m)
-	if anyErr != nil {
-		log.Err(anyErr).Interface("m", m).Interface("jsd", jsd).Interface("prompt", sg.GetPromptBody()).Msg("AssignMapValuesMultipleJsonSchemasSlice: UnmarshallOpenAiJsonInterface failed")
-		return nil, anyErr
-	}
-	if tmpResp != nil {
-		cr.JsonResponseResults = tmpResp
-	}
-	activity.RecordHeartbeat(ctx, cr.Response.ID)
-	return cr, nil
+	return jsd, nil
 }

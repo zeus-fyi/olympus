@@ -24,7 +24,6 @@ func FlowsExecActionsRequestHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-
 	return request.ProcessFlow(c)
 }
 
@@ -34,24 +33,9 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	err := w.EmailsValidatorSetup()
+	_, err := w.SetupFlow(c.Request().Context(), ou)
 	if err != nil {
-		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	err = w.GoogleSearchSetup()
-	if err != nil {
-		log.Err(err).Interface("w", w).Msg("GoogleSearchSetup failed")
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	err = w.LinkedInScraperSetup()
-	if err != nil {
-		log.Err(err).Interface("w", w).Msg("LinkedInScraperSetup failed")
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	err = w.ScrapeRegularWebsiteSetup()
-	if err != nil {
-		log.Err(err).Interface("w", w).Msg("ScrapeRegularWebsiteSetup failed")
+		log.Err(err).Interface("w", w).Msg("SaveImport failed")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	if len(w.Workflows) > 0 {
@@ -136,6 +120,12 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		for ri, _ := range resp {
+			wfName := resp[ri].WorkflowTemplate.WorkflowName
+			if ve, wok := w.WorkflowEntitiesOverrides[wfName]; wok {
+				resp[ri].WorkflowOverrides.WorkflowEntities = ve
+			} else {
+				resp[ri].WorkflowOverrides.WorkflowEntities = w.WorkflowEntities
+			}
 			resp[ri].WorkflowExecTimekeepingParams.IsCycleStepped = isCycleStepped
 			if isCycleStepped {
 				resp[ri].WorkflowExecTimekeepingParams.RunCycles = w.Duration
@@ -155,17 +145,21 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
 			}
-			if w.RetrievalOverrides != nil {
-				resp[ri].WorkflowOverrides.RetrievalOverrides = w.RetrievalOverrides
+			if w.WfRetrievalOverrides != nil {
+				if wv, wok := w.WfRetrievalOverrides[wfName]; wok {
+					resp[ri].WorkflowOverrides.RetrievalOverrides = wv
+				}
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			resp[ri].WorkflowOverrides.IsUsingFlows = true
+			resp[ri].WorkflowOverrides.WorkflowEntityRefs = w.WorkflowEntityRefs
 			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
 				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")
 				return c.JSON(http.StatusInternalServerError, nil)
 			}
 		}
+
 	case "stop":
 		// do y
 	}

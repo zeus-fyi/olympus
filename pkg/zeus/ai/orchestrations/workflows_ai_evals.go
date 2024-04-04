@@ -23,14 +23,14 @@ type MbChildSubProcessParams struct {
 	Tc           TaskContext                                   `json:"taskContext"`
 }
 
+func (c *MbChildSubProcessParams) GetRunName() string {
+	return c.WfExecParams.WorkflowOverrides.WorkflowRunName
+}
+
 const (
 	evalModelScoredJsonOutput = "model"
 	evalModelScoredViaApi     = "api"
 )
-
-type RunAiWorkflowAutoEvalProcessInputs struct {
-	Mb *MbChildSubProcessParams `json:"mb,omitempty"`
-}
 
 func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowAutoEvalProcess(ctx workflow.Context, mb *MbChildSubProcessParams) error {
 	if mb == nil || mb.Tc.EvalID == 0 {

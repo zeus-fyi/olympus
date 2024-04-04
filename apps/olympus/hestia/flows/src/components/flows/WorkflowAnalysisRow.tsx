@@ -34,14 +34,14 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                         color="primary"
                     />
                 </TableCell>
-                <TableCell align="left">{row.orchestration.orchestrationID}</TableCell>
+                <TableCell align="left">{row.orchestration.orchestrationStrID}</TableCell>
                 <TableCell align="left">{row.orchestration.orchestrationName}</TableCell>
                 <TableCell align="left">{row.orchestration.groupName}</TableCell>
                 <TableCell align="left">{row.orchestration.type}</TableCell>
                 <TableCell align="left">{row.orchestration.active ? 'Yes' : 'No'}</TableCell>
                 <TableCell align="left">{row.runCycles}</TableCell>
                 <TableCell align="left">{row.totalWorkflowTokenUsage}</TableCell>
-                { csvExport && <CsvExportButton name={row.orchestration.orchestrationName} results={row}/>}
+                { csvExport && <CsvExportButton name={row.orchestration.orchestrationName} orchStrID={row.orchestration.orchestrationStrID} results={row}/>}
             </TableRow>
             {row.aggregatedEvalResults && row.aggregatedEvalResults.length > 0 && (
                 <TableRow>

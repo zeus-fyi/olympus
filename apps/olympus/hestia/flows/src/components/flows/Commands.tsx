@@ -102,13 +102,16 @@ export function Commands(props: any) {
             buttonDisabledCreate = false;
             break;
     }
+
     const onClickSubmit = async () => {
         try {
             setFlowsRequestStatus('pending');
             const fa = {
-                contentContactsCsv: contacts,
+                contentContactsCsv: [] as [],
+                contentContactsCsvStr: objectArrayToCsv(contacts),
                 contentContactsFieldMaps: {},
-                promptsCsv: bodyPrompts,
+                promptsCsv: [] as [],
+                promptsCsvStr: objectArrayToCsv(bodyPrompts),
                 stages: {
                     linkedIn: checked,
                     linkedInBiz: checkedLi,
@@ -118,9 +121,10 @@ export function Commands(props: any) {
                 },
                commandPrompts: cmds
             }
+            // console.log(fa, 'sffsf')
             let res: any = await aiApiGateway.flowsRequest(fa)
             const statusCode = res.status;
-            if (statusCode === 200 || statusCode === 204) {
+            if (statusCode >= 200 && statusCode < 300) {
                 setFlowsRequestStatus('success');
             } else if (statusCode === 412) {
                 setFlowsRequestStatus('insufficientTokenBalance');
@@ -197,3 +201,25 @@ export function Commands(props: any) {
         </div>
     );
 }
+const objectArrayToCsv = <T extends Record<string, unknown>>(data: T[]): string => {
+    if (data.length === 0) {
+        return '';
+    }
+
+    // Extract headers
+    const headers = Object.keys(data[0]).join(',');
+
+    // Extract rows
+    const rows = data.map(obj =>
+        Object.values(obj).map(val => {
+            // Handle values that contain commas, double-quotes, or newlines by enclosing in double quotes
+            if (typeof val === 'string') {
+                return `"${val.replace(/"/g, '""')}"`; // Escape double quotes
+            }
+            return String(val);
+        }).join(',')
+    );
+
+    // Combine headers and rows
+    return [headers, ...rows].join('\r\n');
+};

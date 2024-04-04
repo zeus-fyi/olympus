@@ -31,8 +31,10 @@ type QuickNodeMarketplace struct {
 }
 
 type TestContainer struct {
-	Env string
-
+	Env                        string
+	OvhS3User                  string
+	OvhS3SecretKey             string
+	OvhS3AccessKey             string
 	AwsZeusEksServiceAccessKey string
 	AwsZeusEksServiceSecretKey string
 
@@ -232,6 +234,10 @@ func InitLocalTestConfigs() TestContainer {
 	}
 	testCont.AwsZeusEksServiceAccessKey = viper.GetString("AWS_ZEUS_EKS_SERVICE_ACCESS_KEY")
 	testCont.AwsZeusEksServiceSecretKey = viper.GetString("AWS_ZEUS_EKS_SERVICE_SECRET_KEY")
+
+	testCont.OvhS3User = viper.GetString("OVH_S3_USER")
+	testCont.OvhS3SecretKey = viper.GetString("OVH_S3_SECRET_KEY")
+	testCont.OvhS3AccessKey = viper.GetString("OVH_S3_ACCESS_KEY")
 
 	testCont.DiscordBotToken = viper.GetString("DISCORD_BOT_TOKEN")
 	testCont.DiscordClientID = viper.GetString("DISCORD_CLIENT_ID")

@@ -238,14 +238,16 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 		}
 		SecretCache.Set(FormatSecret(ou.OrgID), m, cache.DefaultExpiration)
 	}
-
 	mp := MockingBirdPlatformNames(platform)
 	op := &OAuth2PlatformSecret{
 		Platform: platform,
 	}
-
+	mpAdd := MockingBirdPlatformNamesCloudServices("mb")
+	for k, v := range mpAdd {
+		mp[k] = v
+	}
 	for mkeyName, mockingbird := range mp {
-		//fmt.Println(mkeyName, "mkey")
+		//fmt.Println(mkeyName, "mkey", mockingbird, "mockingbird")
 		svItem, sok := m[mkeyName]
 		if sok && svItem.Key == mockingbird {
 			if strings.Contains(mkeyName, "twillio") {
@@ -288,6 +290,12 @@ func GetMockingbirdPlatformSecrets(ctx context.Context, ou org_users.OrgUser, pl
 			if strings.HasSuffix(mkeyName, platform) {
 				op.BearerToken = svItem.Value
 			}
+			if strings.HasSuffix(mkeyName, "-s3-access") {
+				op.S3AccessKey = svItem.Value
+			}
+			if strings.HasSuffix(mkeyName, "-s3-secret") {
+				op.S3SecretKey = svItem.Value
+			}
 		}
 	}
 	return op, nil
@@ -309,7 +317,16 @@ func MockingBirdPlatformNames(platform string) map[string]string {
 	}
 }
 
+func MockingBirdPlatformNamesCloudServices(platform string) map[string]string {
+	return map[string]string{
+		fmt.Sprintf("%s-s3-access", platform): "mockingbird-s3-ovh-us-west-or",
+		fmt.Sprintf("%s-s3-secret", platform): "mockingbird-s3-ovh-us-west-or",
+	}
+}
+
 type OAuth2PlatformSecret struct {
+	S3AccessKey       string `json:"s3AccessKey"`
+	S3SecretKey       string `json:"s3SecretKey"`
 	TwillioAccount    string `json:"twillioAccount"`
 	TwillioAuth       string `json:"twillioAuth"`
 	ConsumerPublic    string `json:"consumerPublic"`

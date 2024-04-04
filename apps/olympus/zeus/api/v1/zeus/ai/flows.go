@@ -9,11 +9,16 @@ import (
 )
 
 type FlowsActionsRequest struct {
-	ContactsCsv []map[string]string `json:"contentContactsCsv"`
-	//ContactsFieldsMaps map[string]string   `json:"contactsFieldsMaps,omitempty"`
-	PromptsCsv     []map[string]string `json:"promptsCsv,omitempty"`
-	Stages         map[string]bool     `json:"stages"`
-	CommandPrompts map[string]string   `json:"commandPrompts"`
+	FlowsCsvPayload `json:",inline"`
+	Stages          map[string]bool   `json:"stages"`
+	CommandPrompts  map[string]string `json:"commandPrompts"`
+}
+
+type FlowsCsvPayload struct {
+	ContactsCsvStr string              `json:"contentContactsCsvStr"`
+	ContactsCsv    []map[string]string `json:"contentContactsCsv,omitempty"`
+	PromptsCsvStr  string              `json:"promptsCsvStr"`
+	PromptsCsv     []map[string]string `json:"promptsCsv,omitempty,omitempty"`
 }
 
 func FlowsActionsRequestHandler(c echo.Context) error {

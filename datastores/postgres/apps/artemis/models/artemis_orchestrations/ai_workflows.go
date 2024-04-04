@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
@@ -20,6 +21,9 @@ type WorkflowTemplate struct {
 	FundamentalPeriodTimeUnit string `json:"fundamentalPeriodTimeUnit"`
 	Tasks                     []Task `json:"tasks"` // Array of Task to hold the JSON aggregated tasks
 }
+
+type WorkflowUserEntitiesOverrides map[string][]artemis_entities.UserEntity
+
 type SchemaOverrides map[string]map[string]string
 
 type RetrievalOverrides map[string]RetrievalOverride

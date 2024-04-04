@@ -12,7 +12,6 @@ export function ContactsTable(props: any) {
     const {} = props;
     const contacts = useSelector((state: RootState) => state.flows.uploadContentContacts);
     const csvHeaders = useSelector((state: RootState) => state.flows.csvHeaders);
-
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     // Extract CSV headers if contacts is not empty
@@ -67,8 +66,8 @@ export function ContactsTable(props: any) {
                     <TableRow>
                         <TablePagination
                             rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
-                            colSpan={csvHeaders.length}
-                            count={contacts.length}
+                            colSpan={Array.isArray(csvHeaders) ? csvHeaders.length : 0}
+                            count={Array.isArray(contacts) ? contacts.length : 0}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             onPageChange={handleChangePage}

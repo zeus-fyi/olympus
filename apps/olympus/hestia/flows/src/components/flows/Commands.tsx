@@ -11,7 +11,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {setCommandPrompt} from "../../redux/flows/flows.reducer";
 
 export function Commands(props: any) {
-    const bodyPrompts = useSelector((state: any) => state.flows.uploadContentTasks);
+    const bodyPrompts = useSelector((state: any) => state.flows.promptsCsvContent);
     const contacts = useSelector((state: any) => state.flows.uploadContentContacts);
     const cmds = useSelector((state: any) => state.flows.commandPrompts);
     const [checked, setChecked] = React.useState(false);

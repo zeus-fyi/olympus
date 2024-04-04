@@ -5,7 +5,7 @@ import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import * as React from "react";
 import {useDispatch} from "react-redux";
-import {setCsvHeaders, setUploadContacts} from "../../redux/flows/flows.reducer";
+import {setPromptHeaders, setPromptsCsvContent, setUploadContacts} from "../../redux/flows/flows.reducer";
 import Container from "@mui/material/Container";
 import {TaskPromptsTable} from "./PromptTable";
 import {PromptsTextFieldRows} from "./UploadFieldMap";
@@ -47,9 +47,11 @@ export function AnalyzeActionAreaCard(props: any) {
                     try {
                         const data = result.data;
                         const headers = result.meta.fields || [];
-                        if (Array.isArray(headers)) {
-                            dispatch(setCsvHeaders(headers));
-                            dispatch(setUploadContacts(data as []));
+                       if (Array.isArray(headers)) {
+                           dispatch(setPromptsCsvContent(data as []))
+                           dispatch(setPromptHeaders(headers))
+                            // dispatch(setCsvHeaders(headers));
+                            // dispatch(setUploadContacts(data as []));
                         }
                     } catch (error) {
                         console.error("Error parsing CSV file:", error);

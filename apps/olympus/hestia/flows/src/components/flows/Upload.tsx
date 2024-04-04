@@ -12,7 +12,7 @@ import Papa from "papaparse";
 
 export function CsvUploadActionAreaCard(props: any) {
     const dispatch = useDispatch();
-    const contacts = useSelector((state: RootState) => state.flows.uploadContentTasks);
+    const contacts = useSelector((state: RootState) => state.flows.uploadContentContacts);
 
     const onUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;

@@ -112,10 +112,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			logger.Error("failed to execute child aggregation workflow", "Error", err)
 			return err
 		}
-		// now run final csv agg
-		/*
-		 aws.IntValue(aggInst.AggTaskID) == aggAllCsvTaskID && aws.StringValue(aggInst.AggResponseFormat) == "csv"
-		*/
+		if wfExecParams.WorkflowOverrides.IsUsingFlows {
+			cycleReportCtx := workflow.WithActivityOptions(ctx, ao)
+			aggChildParams.Window = artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-1, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
+			err = workflow.ExecuteActivity(cycleReportCtx, z.GenerateCycleReports, aggChildParams).Get(cycleReportCtx, nil)
+			if err != nil {
+				logger.Error("failed to run csv report output task", "Error", err)
+				return err
+			}
+		}
 	}
 	finishedCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(finishedCtx, "UpdateAndMarkOrchestrationInactive", oj).Get(finishedCtx, nil)

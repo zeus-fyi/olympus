@@ -139,7 +139,10 @@ func S3WfRunImports(ctx context.Context, ou org_users.OrgUser, wfRunName string,
 		return nil, err
 	}
 	if len(ue.Nickname) <= 0 {
-		return nil, fmt.Errorf("S3WfRunImports no nickname provided")
+		if len(wfRunName) < 0 {
+			return nil, fmt.Errorf("S3WfRunImports no nickname provided")
+		}
+		ue.Nickname = wfRunName
 	}
 	p := &filepaths.Path{
 		DirIn:  fmt.Sprintf("/%s/%s/%s", ogk, wfRunName, ue.Platform),

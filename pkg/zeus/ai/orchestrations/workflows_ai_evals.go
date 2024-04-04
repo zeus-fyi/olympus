@@ -23,6 +23,10 @@ type MbChildSubProcessParams struct {
 	Tc           TaskContext                                   `json:"taskContext"`
 }
 
+func (c *MbChildSubProcessParams) GetRunName() string {
+	return c.WfExecParams.WorkflowOverrides.WorkflowRunName
+}
+
 const (
 	evalModelScoredJsonOutput = "model"
 	evalModelScoredViaApi     = "api"

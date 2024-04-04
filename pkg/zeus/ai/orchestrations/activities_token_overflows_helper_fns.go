@@ -49,7 +49,7 @@ func overflowSetup(ctx context.Context, cp *MbChildSubProcessParams, promptExt *
 		return nil, nil, nil
 	}
 	pr = wio.PromptReduction
-	if promptExt != nil {
+	if promptExt != nil && promptExt.PromptReductionText != nil {
 		pr.PromptReductionText = promptExt.PromptReductionText
 	}
 	wio.PromptReduction = pr

@@ -36,7 +36,7 @@ func (f *AiAggregateAnalysisRetrievalTaskInputDebug) Save() {
 	}
 	//ch := chronos.Chronos{}
 	//ch.UnixTimeStampNow(),
-	rn := "AiAggregateAnalysisRetrievalTaskInputDebug"
+	rn := "GenerateCycleReports"
 	fp := filepaths.Path{
 		DirIn:  dirMain,
 		DirOut: path.Join(dirMain, "tmp"),

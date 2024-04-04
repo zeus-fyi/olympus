@@ -86,11 +86,6 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return nil, err
 	}
-	uef, err = w.SaveCsvImports(ctx, ou, uef)
-	if err != nil {
-		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
-		return nil, err
-	}
 	// this should add the email label
 	err = w.EmailsValidatorSetup(uef)
 	if err != nil {
@@ -113,6 +108,11 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 		log.Err(err).Interface("w", w).Msg("ScrapeRegularWebsiteSetup failed")
 		return nil, err
 	}
+	uef, err = w.SaveCsvImports(ctx, ou, uef)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
+		return nil, err
+	}
 	if uef != nil && uef.Nickname != "" && uef.Platform != "" {
 		w.WorkflowEntityRefs = append(w.WorkflowEntityRefs, *uef)
 	}
@@ -124,6 +124,12 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	if uef == nil || len(w.FlowsActionsRequest.ContactsCsvStr) == 0 {
 		return nil, nil
 	}
+	cs, err := utils_csv.PayloadToCsvString(w.ContactsCsv)
+	if err != nil {
+		log.Err(err).Interface("w.ContactsCsv", w.ContactsCsvStr).Msg("SaveCsvImports: PayloadToCsvString: failed")
+		return nil, err
+	}
+	w.ContactsCsvStr = cs
 	usre := &artemis_entities.UserEntity{
 		Platform: uef.Platform,
 		MdSlice: []artemis_entities.UserEntityMetadata{
@@ -142,6 +148,9 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	usre.Nickname = uef.Nickname
 	if len(usre.Nickname) <= 0 || len(usre.Platform) <= 0 || len(usre.MdSlice) <= 0 {
 		return nil, fmt.Errorf("no entities name")
+	}
+	for i, _ := range w.WorkflowEntities {
+		w.WorkflowEntities[i].Nickname = nn
 	}
 	_, err = ai_platform_service_orchestrations.S3GlobalOrgUpload(ctx, ou, usre)
 	if err != nil {
@@ -174,20 +183,22 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 					continue
 				}
 				if len(emRow) <= 0 {
-					emRow[colValue] = []int{r}
+					emRow[uv] = []int{r}
 				} else {
-					etm := emRow[colValue]
+					etm := emRow[uv]
 					etm = append(etm, r)
-					emRow[colValue] = etm
+					emRow[uv] = etm
 				}
 				if _, ok := seen[uv]; ok {
+					w.ContactsCsv[r][cname] = uv
 					continue
 				}
 				if strings.HasPrefix(uv, "https://www.linkedin.com") || strings.HasPrefix(uv, "https://linkedin.com") {
 					continue
 				}
 				pl := make(map[string]interface{})
-				pl["url"] = uv
+				w.ContactsCsv[r][cname] = uv
+				pl["url"] = w.ContactsCsv[r][cname]
 				pls = append(pls, pl)
 				seen[uv] = true
 			}

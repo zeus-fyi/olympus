@@ -141,13 +141,12 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	model := pr.Model
 	totalSearchResults := pr.PromptReductionSearchResults.InSearchGroup.SearchResults
 	var compressedSearchStr string
-	if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
-		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
-		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults
-	}
-	if pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults != nil {
+	if pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults) > 0 {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults)
 		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults
+	} else if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
+		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
+		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults
 	} else if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
 	}

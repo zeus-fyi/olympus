@@ -12,11 +12,12 @@ import (
 	utils_csv "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/csv"
 )
 
+//db := AiAggregateAnalysisRetrievalTaskInputDebug{
+//	Cp: cp,
+//}
+//db.Save()
+
 func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp *MbChildSubProcessParams) error {
-	db := AiAggregateAnalysisRetrievalTaskInputDebug{
-		Cp: cp,
-	}
-	db.Save()
 	var sourceTaskIds []int
 	for _, wfi := range cp.WfExecParams.WorkflowTasks {
 		if wfi.AnalysisTaskID > 0 && wfi.AggTaskID == nil {

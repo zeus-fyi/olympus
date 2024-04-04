@@ -66,16 +66,6 @@ func (w *ExecFlowsActionsRequest) InitMaps() {
 	}
 }
 
-func getNumberOfColumns(data []map[string]string) int {
-	if len(data) > 0 {
-		// Get the first row to count the number of columns
-		firstRow := data[0]
-		return len(firstRow)
-	}
-	// Return 0 if there are no rows
-	return 0
-}
-
 func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
 	if len(w.FlowsActionsRequest.ContactsCsvStr) > 0 {
 		cv, err := utils_csv.ParseCsvStringToMap(w.FlowsActionsRequest.ContactsCsvStr)

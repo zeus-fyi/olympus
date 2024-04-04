@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
@@ -11,11 +12,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	utils_csv "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/csv"
 )
-
-//db := AiAggregateAnalysisRetrievalTaskInputDebug{
-//	Cp: cp,
-//}
-//db.Save()
 
 func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp *MbChildSubProcessParams) error {
 	var sourceTaskIds []int
@@ -107,7 +103,7 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 	}
 
 	for i, source := range gens {
-		tmp := source.MdSlice
+		//tmp := source.MdSlice
 		for _, mi := range cp.WfExecParams.WorkflowOverrides.WorkflowEntities {
 			for _, minv := range mi.MdSlice {
 				if minv.JsonData != nil && string(minv.JsonData) != "null" {
@@ -156,8 +152,8 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 				}
 			}
 		}
-		fmt.Println(source)
-		fmt.Println(tmp)
+		//fmt.Println(source)
+		//fmt.Println(tmp)
 	}
 	return nil
 }
@@ -169,9 +165,17 @@ func convEntityToCsvCol(cn string, plms []map[string]interface{}) []map[string]i
 			pl[cn] = v
 			plms[i] = pl
 		}
+		for k, v := range pl {
+			pf := "summary_"
+			if strings.HasPrefix(k, "summary_") {
+				tmp := strings.TrimPrefix(k, pf)
+				delete(pl, k)
+				pl[fmt.Sprintf("%s_%s%s", cn, "AI_Response_", tmp)] = v
+			}
+		}
 		if v, ok := pl["summary"]; ok {
 			delete(pl, "summary")
-			pl[fmt.Sprintf("%s_%s", cn, "AI_Response")] = v
+			pl[fmt.Sprintf("%s_%s", cn, "AI_Response_0")] = v
 			plms[i] = pl
 		}
 	}

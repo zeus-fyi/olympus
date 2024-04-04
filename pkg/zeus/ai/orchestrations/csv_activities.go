@@ -26,30 +26,7 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 		log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
 		return 0, err
 	}
-	var merg []artemis_entities.UserEntity
 	switch cp.Tc.TaskType {
-	case AggTask:
-		// get all analysis output csvs and merge
-		for _, tv := range cp.WfExecParams.WorkflowTasks {
-			tmn := cp.Tc.TaskName
-			cp.Tc.TaskName = tv.AnalysisTaskName
-			// gets cycle stage values
-			wio, werr := gs3wfs(ctx, cp)
-			if werr != nil {
-				log.Err(werr).Msg("SaveCsvTaskOutput: gs3wfs failed to select workflow io")
-				return 0, werr
-			}
-			if wio == nil {
-				continue
-			}
-			merg, err = getGlobalCsvMergedEntities(gens, cp, wio)
-			if err != nil {
-				log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
-				return 0, err
-			}
-			gens = merg
-			cp.Tc.TaskName = tmn
-		}
 	default:
 		// gets cycle stage values
 		wio, werr := gs3wfs(ctx, cp)
@@ -82,23 +59,22 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 							log.Err(jerr).Interface("minv.JsonData", minv.JsonData).Msg(" json.Unmarshal(minv.JsonData, &emRow)")
 							continue
 						}
-						// {"MergeColName":"Email","Rows":{"alex@zeus.fyi":[0,2],"leevar@gmail.com":[1,3]}}
 						cnT := cme.MergeColName
 						log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
 						cv := convEntityToCsvCol(cnT, payloadMaps)
 						fmt.Println(cv)
 						merged, merr := utils_csv.MergeCsvEntity(source, cv, cme)
 						if merr != nil {
-							log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")
+							log.Err(merr).Msg("SaveCsvTaskOutput: MergeCsvEntity")
 							return 0, err
 						}
 						if merged == nil {
-							log.Warn().Msg("GenerateCycleReports: merged nil")
+							log.Warn().Msg("SaveCsvTaskOutput: merged nil")
 							continue
 						}
 						mergedCsvStr, merr := utils_csv.PayloadToCsvString(merged)
 						if merr != nil {
-							log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")
+							log.Err(merr).Msg("SaveCsvTaskOutput: MergeCsvEntity")
 							return 0, merr
 						}
 						source = artemis_entities.UserEntity{

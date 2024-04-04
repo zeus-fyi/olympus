@@ -5,10 +5,11 @@ import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import * as React from "react";
 import {useDispatch} from "react-redux";
-import {setPromptHeaders, setUploadTasksContent} from "../../redux/flows/flows.reducer";
+import {setPromptHeaders, setPromptsCsvContent, setUploadContacts} from "../../redux/flows/flows.reducer";
 import Container from "@mui/material/Container";
 import {TaskPromptsTable} from "./PromptTable";
 import {PromptsTextFieldRows} from "./UploadFieldMap";
+import Papa from "papaparse";
 
 export function AnalyzeActionAreaCard(props: any) {
     const dispatch = useDispatch();
@@ -17,45 +18,50 @@ export function AnalyzeActionAreaCard(props: any) {
         const file = files?.item(0);
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const result = e.target?.result;
-            if (!result) {
-                console.error("File read resulted in null.");
-                return;
-            }
-            let data;
-            let headers;
-            if (file.type === "application/json") {
+        if (file.type === "application/json") {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target?.result;
+                if (!result) {
+                    console.error("File read resulted in null.");
+                    return;
+                }
+
                 try {
-                    data = JSON.parse(result as string);
+                    const data = JSON.parse(result as string);
                     // Assuming you want to set headers for JSON as well,
                     // you might need to derive them from the data structure
                     // For example, if data is an array of objects:
                     // headers = Object.keys(data[0]);
+                    dispatch(setUploadContacts(data));
+                    // You should dispatch the headers here if necessary
                 } catch (error) {
                     console.error("Error parsing JSON file:", error);
                     return;
                 }
-            } else if (file.type === "text/csv") {
-                try {
-                    // Correctly destructure data and headers from the parseCSV result
-                    const parseResult = parseCSV(result as string);
-                    data = parseResult.data;
-                    headers = parseResult.fields;
-                    // console.log(data, headers);
-                    dispatch(setPromptHeaders(headers));
-                } catch (error) {
-                    console.error("Error parsing CSV file:", error);
-                    return;
-                }
-            } else {
-                console.error("Unsupported file type:", file.type);
-                return;
-            }
-            dispatch(setUploadTasksContent(data));
-        };
-        reader.readAsText(file);
+            };
+            reader.readAsText(file);
+        } else if (file.type === "text/csv") {
+            Papa.parse(file, {
+                complete: (result) => {
+                    try {
+                        const data = result.data;
+                        const headers = result.meta.fields || [];
+                       if (Array.isArray(headers)) {
+                           dispatch(setPromptsCsvContent(data as []))
+                           dispatch(setPromptHeaders(headers))
+                            // dispatch(setCsvHeaders(headers));
+                            // dispatch(setUploadContacts(data as []));
+                        }
+                    } catch (error) {
+                        console.error("Error parsing CSV file:", error);
+                    }
+                },
+                header: true
+            });
+        } else {
+            console.error("Unsupported file type:", file.type);
+        }
     };
     return (
         <div>
@@ -99,23 +105,4 @@ export function UploadButton(props: any) {
 type CsvDataRow = {
     [key: string]: string;
 };
-const parseCSV = (csvText: string): { data: CsvDataRow[], fields: string[] } => {
-    const lines = csvText.split(/\r\n|\n/);
-    // Ensure there's at least one line for headers
-    if (lines.length === 0) {
-        return { data: [], fields: [] };
-    }
 
-    const headers = lines[0].split(',');
-    const data = lines.slice(1).filter(line => line).map(line => {
-        const values = line.split(',');
-        // Use the CsvDataRow type for the object
-        const rowData: CsvDataRow = {};
-        headers.forEach((header, index) => {
-            rowData[header] = values[index] || ''; // Assign empty string if value is undefined
-        });
-        return rowData;
-    });
-
-    return { data, fields: headers };
-};

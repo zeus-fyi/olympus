@@ -5,8 +5,8 @@ const flowsSlice = createSlice({
     name: 'flows',
     initialState,
     reducers: {
-        setUploadTasksContent: (state, action: PayloadAction<[]>) => {
-            state.uploadContentTasks = action.payload;
+        setPromptsCsvContent: (state, action: PayloadAction<[]>) => {
+            state.promptsCsvContent = action.payload;
         },
         setUploadContacts: (state, action: PayloadAction<[]>) => {
             state.uploadContentContacts = action.payload;
@@ -38,7 +38,7 @@ const flowsSlice = createSlice({
 export const {
     setCsvHeaders,
     setUploadContacts,
-    setUploadTasksContent,
+    setPromptsCsvContent,
     setPromptHeaders,
     setResults,
     setStages,

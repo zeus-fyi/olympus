@@ -2,75 +2,21 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import CloudDownloadIcon from "@mui/icons-material/CloudUpload";
 import * as React from "react";
-import inMemoryJWT from "../../auth/InMemoryJWT";
-import Papa from "papaparse";
-import {configService} from "../../config/config";
-
-const filterAggregationTypes = (data: any) => {
-    if (!data || !data.aggregatedData) {
-        // Return an empty array or handle the error as appropriate
-        return [];
-    }
-
-    return data.aggregatedData
-        .filter((item: any) => item.taskType === "aggregation")
-        .map((item: any) => item.completionChoices);
-};
-
-const filterAnalysisTypes = (data: any) => {
-    if (!data || !data.aggregatedData) {
-        // Return an empty array or handle the error as appropriate
-        return [];
-    }
-    return data.aggregatedData
-        .filter((item: any) => item.taskType === "analysis")
-        .map((item: any) => item.completionChoices);
-};
+import {aiApiGateway} from "../../gateway/ai";
 
 const CsvExportButton = (props: any) => {
     const [loading, setIsLoading] = React.useState(false);
     const { name, orchStrID, results } = props;
-    let data: any
-    if (results.orchestration.type === 'validate-emails-wf') {
-        data = filterAnalysisTypes(results)
-    } else if (results.orchestration.type === 'website-analysis-wf') {
-        data = filterAnalysisTypes(results)
-        // console.log('results:', data);
-    } else {
-        data = filterAggregationTypes(results)
-    }
 
     const onClickExportCsv = async (name: string, id: string) => {
         try {
-            setIsLoading(true)
-            const url = `${configService.getZeusApiUrl()}/v1/flow/${id}/csv`;
-            const sessionID = inMemoryJWT.getToken();
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                },
-            };
-            Papa.parse(url, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                downloadRequestHeaders: config.headers, // Set headers directly for the download
-                complete: (result) => {
-                    // console.log('CSV data downloaded:', result.data);
-                    const csv = Papa.unparse(result.data);
-                    // Then convert this CSV string to a Blob
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    // Download the blob as a file
-                    downloadBlobAsFile(`${name}.csv`, blob);
-                    // Process the CSV data as needed
-                },
-                error: (error) => {
-                    console.error('CSV parsing error:', error);
-                    // No need to throw here as this is already inside the error callback
-                }
-            });
+            setIsLoading(true);
+            const response = await aiApiGateway.flowCsvExportRequest(id);
+            // Assuming response is the CSV string
+            const blob = new Blob([response.data], { type: 'text/csv' });
+            downloadBlobAsFile(`${name}.csv`, blob);
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     };
 
@@ -90,84 +36,7 @@ const CsvExportButton = (props: any) => {
     );
 };
 
-type CsvDataRow = {
-    [key: string]: string;
-};
-
-export const parseCSV = (csvText: string): { data: CsvDataRow[], fields: string[] } => {
-    const lines = csvText.split(/\r\n|\n/);
-    // Ensure there's at least one line for headers
-    if (lines.length === 0) {
-        return { data: [], fields: [] };
-    }
-
-    const headers = lines[0].split(',');
-    const data = lines.slice(1).filter(line => line).map(line => {
-        const values = line.split(',');
-        // Use the CsvDataRow type for the object
-        const rowData: CsvDataRow = {};
-        headers.forEach((header, index) => {
-            rowData[header] = values[index] || ''; // Assign empty string if value is undefined
-        });
-        return rowData;
-    });
-
-    return { data, fields: headers };
-};
-
-
 export default CsvExportButton;
-
-export const parseJSONAndCreateCSV = (name: string, data: any) => {
-    const processedData = prettyPrintObject(data);
-    if (processedData === '') {
-        return;
-    }
-    const sja =  stringToJsonArray(processedData)
-    const csvContent = jsonArrayToCSV(sja);
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    downloadBlobAsFile( name+'.csv', blob)
-};
-
-const jsonArrayToCSV = (jsonArray: any[]): string => {
-    if (jsonArray.length === 0) return '';
-
-    const headers = Object.keys(jsonArray[0])
-        .map(key => key.charAt(0).toUpperCase() + key.slice(1)) // Capitalize first letter
-        .join(',');
-
-    const rows = jsonArray.map(obj => {
-        const values = Object.values(obj).map((value: any) => {
-            if (value === null || value === undefined) {
-                return '""'; // Represent as empty strings in CSV
-            } else if (typeof value === 'object') {
-                // If value is an object or array, serialize it
-                return `"${serializeNestedObject(value)}"`;
-            } else {
-                // Escape double quotes and convert to string
-                return `"${value.toString().replace(/"/g, '""')}"`;
-            }
-        });
-        return values.join(',');
-    });
-
-    return [headers, ...rows].join('\n');
-};
-const serializeNestedObject = (value: any): string => {
-    if (Array.isArray(value) || typeof value === 'object') {
-        // Convert object/array to a JSON string or any other serialization logic
-        return JSON.stringify(value).replace(/"/g, '""'); // Escape double quotes for CSV compatibility
-    }
-    return value.toString();
-};
-function stringToJsonArray(jsonString: string) {
-    // Assuming each JSON object is separated by a newline
-    // Split the string by newline to get an array of strings, each representing a JSON object
-    const jsonParts = jsonString.trim().split('\n');
-
-    // Parse each part as JSON and return the array of objects
-    return jsonParts.map(part => JSON.parse(part));
-}
 
 export const prettyPrintObject = (obj: any): string => {
     // If 'message' is a string that needs to be parsed
@@ -225,22 +94,4 @@ export const downloadBlobAsFile = (fileName: string, blob: Blob) => {
     // Clean up by removing the <a> element and revoking the blob URL
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-};
-
-const convertToCSV = (arr: any[]) => {
-    // Check if there's data to convert
-    if (arr.length === 0) {
-        return '';
-    }
-
-    // Extract headers
-    const headers = Object.keys(arr[0]).join(',');
-    // Map each object's values, ensuring to handle commas within values
-    const rows = arr.map(obj =>
-        Object.values(obj).map((value: any) =>
-            `"${value.toString().replace(/"/g, '""')}"` // Escape double quotes
-        ).join(',')
-    );
-
-    return [headers, ...rows].join('\n');
 };

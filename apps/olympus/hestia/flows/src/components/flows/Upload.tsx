@@ -8,7 +8,7 @@ import {ContactsTable} from "./ContactsTable";
 import {RootState} from "../../redux/store";
 import {ContactsTextFieldRows} from "./UploadFieldMap";
 import {UploadButton} from "./Analyze";
-import {parseCSV} from "./CsvHelpers";
+import Papa from "papaparse";
 
 export function CsvUploadActionAreaCard(props: any) {
     const dispatch = useDispatch();
@@ -19,44 +19,48 @@ export function CsvUploadActionAreaCard(props: any) {
         const file = files?.item(0);
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const result = e.target?.result;
-            if (!result) {
-                console.error("File read resulted in null.");
-                return;
-            }
-            let data;
-            let headers;
-            if (file.type === "application/json") {
+        if (file.type === "application/json") {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target?.result;
+                if (!result) {
+                    console.error("File read resulted in null.");
+                    return;
+                }
+
                 try {
-                    data = JSON.parse(result as string);
+                    const data = JSON.parse(result as string);
                     // Assuming you want to set headers for JSON as well,
                     // you might need to derive them from the data structure
                     // For example, if data is an array of objects:
                     // headers = Object.keys(data[0]);
+                    dispatch(setUploadContacts(data));
+                    // You should dispatch the headers here if necessary
                 } catch (error) {
                     console.error("Error parsing JSON file:", error);
                     return;
                 }
-            } else if (file.type === "text/csv") {
-                try {
-                    // Correctly destructure data and headers from the parseCSV result
-                    const parseResult = parseCSV(result as string);
-                    data = parseResult.data;
-                    headers = parseResult.fields;
-                    dispatch(setCsvHeaders(headers));
-                } catch (error) {
-                    console.error("Error parsing CSV file:", error);
-                    return;
-                }
-            } else {
-                console.error("Unsupported file type:", file.type);
-                return;
-            }
-            dispatch(setUploadContacts(data));
-        };
-        reader.readAsText(file);
+            };
+            reader.readAsText(file);
+        } else if (file.type === "text/csv") {
+            Papa.parse(file, {
+                complete: (result) => {
+                    try {
+                        const data = result.data;
+                        const headers = result.meta.fields || [];
+                        if (Array.isArray(headers)) {
+                            dispatch(setCsvHeaders(headers));
+                            dispatch(setUploadContacts(data as []));
+                        }
+                    } catch (error) {
+                        console.error("Error parsing CSV file:", error);
+                    }
+                },
+                header: true
+            });
+        } else {
+            console.error("Unsupported file type:", file.type);
+        }
     };
     return (
         <div>

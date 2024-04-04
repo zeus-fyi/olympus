@@ -252,6 +252,17 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
+    async flowCsvExportRequest(id: string): Promise<any> {
+        const url = `/v1/flow/${id}/csv`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        };
+        return await zeusApi.get(url, config)
+    }
 }
 
 export const aiApiGateway = new AiApiGateway();

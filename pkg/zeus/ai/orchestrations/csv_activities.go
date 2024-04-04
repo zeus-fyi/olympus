@@ -2,11 +2,14 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
+	utils_csv "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/csv"
 )
 
 func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *MbChildSubProcessParams, wr *artemis_orchestrations.AIWorkflowAnalysisResult) (int, error) {
@@ -54,30 +57,72 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 			log.Err(werr).Msg("SaveCsvTaskOutput: gs3wfs failed to select workflow io")
 			return 0, werr
 		}
-		/*
-			cp.WfExecParams.WorkflowOverrides.WorkflowEntities
-			- this will have col name & json data for emRow
 
-			data coming from search groups inputs
-		*/
-		//fmt.Println(mergeCsvEntities, "mergeCsvEntities")
-		merg, err = getGlobalCsvMergedEntities(gens, cp, wio)
-		if err != nil {
-			log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
-			return 0, err
+		var payloadMaps []map[string]interface{}
+		sgo := wio.GetOutSearchGroups()
+		if sgo != nil && len(sgo) > 0 {
+			for _, sgi := range sgo {
+				if sgi.ApiResponseResults != nil && len(sgi.ApiResponseResults) > 0 {
+					for _, sr := range sgi.ApiResponseResults {
+						if sr.WebResponse.Body != nil {
+							payloadMaps = append(payloadMaps, sr.WebResponse.Body)
+						}
+					}
+				}
+			}
 		}
-		for i, nev := range merg {
-			log.Info().Interface("i", i).Interface("nn", nev.Nickname).Msg("mergeCsvEntities")
-			//mergeCsvEntities[i].Nickname = wfRunName
-			// for now just saved under wf, later use label, csv under platform csv-exports
-			if len(nev.Nickname) <= 0 {
-				nev.Nickname = wfRunName
+		for i, source := range gens {
+			tmp := source.MdSlice
+			for _, mi := range cp.WfExecParams.WorkflowOverrides.WorkflowEntities {
+				for _, minv := range mi.MdSlice {
+					if minv.JsonData != nil && string(minv.JsonData) != "null" {
+						var cme utils_csv.CsvMergeEntity
+						jerr := json.Unmarshal(minv.JsonData, &cme)
+						if jerr != nil {
+							log.Err(jerr).Interface("minv.JsonData", minv.JsonData).Msg(" json.Unmarshal(minv.JsonData, &emRow)")
+							continue
+						}
+						// {"MergeColName":"Email","Rows":{"alex@zeus.fyi":[0,2],"leevar@gmail.com":[1,3]}}
+						cnT := cme.MergeColName
+						log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
+						cv := convEntityToCsvCol(cnT, payloadMaps)
+						fmt.Println(cv)
+						merged, merr := utils_csv.MergeCsvEntity(source, cv, cme)
+						if merr != nil {
+							log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")
+							return 0, err
+						}
+						if merged == nil {
+							log.Warn().Msg("GenerateCycleReports: merged nil")
+							continue
+						}
+						mergedCsvStr, merr := utils_csv.PayloadToCsvString(merged)
+						if merr != nil {
+							log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")
+							return 0, merr
+						}
+						source = artemis_entities.UserEntity{
+							Platform: "csv-exports",
+							MdSlice: []artemis_entities.UserEntityMetadata{
+								{
+									TextData: aws.String(mergedCsvStr),
+								},
+							},
+						}
+						rna := cp.GetRunName()
+						if i > 0 {
+							rna = fmt.Sprintf("%s_%d", rn, i)
+						}
+						_, err = S3WfRunImports(ctx, cp.Ou, rna, &source)
+						if err != nil {
+							log.Err(err).Msg("S3WfRunImports: failed to save merged result")
+							return 0, err
+						}
+					}
+				}
 			}
-			_, err = S3WfRunImports(ctx, cp.Ou, wfRunName, &nev)
-			if err != nil {
-				log.Err(err).Msg("S3WfRunImports: failed to save merged result")
-				return 0, err
-			}
+			fmt.Println(source)
+			fmt.Println(tmp)
 		}
 	}
 	err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)

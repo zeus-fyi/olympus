@@ -120,6 +120,12 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		for ri, _ := range resp {
+			wfName := resp[ri].WorkflowTemplate.WorkflowName
+			if ve, wok := w.WorkflowEntitiesOverrides[wfName]; wok {
+				resp[ri].WorkflowOverrides.WorkflowEntities = ve
+			} else {
+				resp[ri].WorkflowOverrides.WorkflowEntities = w.WorkflowEntities
+			}
 			resp[ri].WorkflowExecTimekeepingParams.IsCycleStepped = isCycleStepped
 			if isCycleStepped {
 				resp[ri].WorkflowExecTimekeepingParams.RunCycles = w.Duration
@@ -139,13 +145,13 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
 			}
-			if w.RetrievalOverrides != nil {
-				resp[ri].WorkflowOverrides.RetrievalOverrides = w.RetrievalOverrides
+			if w.WfRetrievalOverrides != nil {
+				if wv, wok := w.WfRetrievalOverrides[wfName]; wok {
+					resp[ri].WorkflowOverrides.RetrievalOverrides = wv
+				}
 			}
-
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			resp[ri].WorkflowOverrides.IsUsingFlows = true
-			resp[ri].WorkflowOverrides.WorkflowEntities = w.WorkflowEntities
 			resp[ri].WorkflowOverrides.WorkflowEntityRefs = w.WorkflowEntityRefs
 			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
 			if err != nil {
@@ -153,6 +159,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 				return c.JSON(http.StatusInternalServerError, nil)
 			}
 		}
+
 	case "stop":
 		// do y
 	}

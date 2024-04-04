@@ -67,8 +67,12 @@ func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 }
 
 func (w *ExecFlowsActionsRequest) InitMaps() {
-	if w.RetrievalOverrides == nil {
-		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
+	if w.WorkflowEntitiesOverrides == nil {
+		w.WorkflowEntitiesOverrides = make(map[string][]artemis_entities.UserEntity)
+	}
+	if w.WfRetrievalOverrides == nil {
+		tmp := make(map[string]artemis_orchestrations.RetrievalOverrides)
+		w.WfRetrievalOverrides = tmp
 	}
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
@@ -149,8 +153,9 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	if len(usre.Nickname) <= 0 || len(usre.Platform) <= 0 || len(usre.MdSlice) <= 0 {
 		return nil, fmt.Errorf("no entities name")
 	}
-	for i, _ := range w.WorkflowEntities {
-		w.WorkflowEntities[i].Nickname = nn
+	for k, ue := range w.WorkflowEntities {
+		ue.Nickname = nn
+		w.WorkflowEntities[k] = ue
 	}
 	_, err = ai_platform_service_orchestrations.S3GlobalOrgUpload(ctx, ou, usre)
 	if err != nil {
@@ -230,7 +235,8 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 			},
 		},
 	}
-	w.WorkflowEntities = append(w.WorkflowEntities, usre)
+
+	w.WorkflowEntitiesOverrides[webFetchWf] = append(w.WorkflowEntitiesOverrides[webFetchWf], usre)
 	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
 		if w.SchemaFieldOverrides == nil {
 			w.SchemaFieldOverrides = make(map[string]map[string]string)
@@ -239,7 +245,9 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 			}
 		}
 	}
-	w.RetrievalOverrides["website-analysis"] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
+	w.WfRetrievalOverrides[webFetchWf] = map[string]artemis_orchestrations.RetrievalOverride{
+		"website-analysis": artemis_orchestrations.RetrievalOverride{Payloads: pls},
+	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: webFetchWf,
 	})
@@ -285,7 +293,9 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 		return nil
 	}
 	w.InitMaps()
-	w.RetrievalOverrides[validemailRetQp] = artemis_orchestrations.RetrievalOverride{Payloads: pls}
+	w.WfRetrievalOverrides[emailVdWf] = map[string]artemis_orchestrations.RetrievalOverride{
+		validemailRetQp: artemis_orchestrations.RetrievalOverride{Payloads: pls},
+	}
 	emLabel := csvGlobalMergeRetLabel(validemailRetQp)
 	labels := artemis_entities.CreateMdLabels([]string{
 		fmt.Sprintf("wf:%s", emailVdWf),
@@ -308,12 +318,9 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 		},
 	}
 	log.Info().Interface("labels", labels).Msg("EmailsValidatorSetup")
-	w.WorkflowEntities = append(w.WorkflowEntities, usre)
+	w.WorkflowEntitiesOverrides[emailVdWf] = append(w.WorkflowEntitiesOverrides[emailVdWf], usre)
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
-	}
-	if w.RetrievalOverrides == nil {
-		w.RetrievalOverrides = make(map[string]artemis_orchestrations.RetrievalOverride)
 	}
 	w.CustomBasePeriodStepSize = 24
 	w.CustomBasePeriodStepSizeUnit = "hours"

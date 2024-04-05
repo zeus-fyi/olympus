@@ -229,13 +229,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 			},
 		},
 	}
-	var prompts []string
-	for _, cvs := range w.PromptsCsv {
-		for _, colValue := range cvs {
-			prompts = append(prompts, colValue)
-		}
-	}
-
+	prompts := w.getPrompts()
 	w.WorkflowEntitiesOverrides[webFetchWf] = append(w.WorkflowEntitiesOverrides[webFetchWf], usre)
 	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
 		if len(prompts) <= 0 {
@@ -295,7 +289,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 				if strings.Contains(strings.ToLower(uv), "linkedin.com") {
 					pl := make(map[string]interface{})
 					w.ContactsCsv[r][cname] = uv
-					pl["url"] = w.ContactsCsv[r][cname]
+					pl["linkedin_url"] = w.ContactsCsv[r][cname]
 					pls = append(pls, pl)
 					seen[uv] = true
 				}
@@ -324,13 +318,13 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 		Platform: uef.Platform,
 		MdSlice: []artemis_entities.UserEntityMetadata{
 			{
+
 				JsonData: b,
 				Labels:   labels,
 			},
 		},
 	}
 	w.WorkflowEntitiesOverrides[liWf] = append(w.WorkflowEntitiesOverrides[liWf], usre)
-	w.TaskOverrides[linkedInTaskName] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
 	if v, ok := w.CommandPrompts[linkedIn]; ok && v != "" {
 		prompts := w.getPrompts()
 		if len(prompts) <= 0 {

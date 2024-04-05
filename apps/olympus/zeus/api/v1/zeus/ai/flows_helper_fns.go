@@ -3,6 +3,7 @@ package zeus_v1_ai
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
@@ -23,6 +24,15 @@ func csvGlobalMergeAnalysisTaskLabel(tn string) string {
 
 func csvGlobalMergeRetLabel(rn string) string {
 	return fmt.Sprintf("%s:%s", csvGlobalRetLabel(), rn)
+}
+
+func doesNotContain(sin string, notAllowed []string) bool {
+	for _, ns := range notAllowed {
+		if strings.Contains(strings.ToLower(sin), strings.ToLower(ns)) {
+			return false
+		}
+	}
+	return true
 }
 
 func isValidURL(inputURL string) (*url.URL, error) {
@@ -50,20 +60,45 @@ func convertToHTTPS(inputURL string) (string, error) {
 	return u.String(), nil
 }
 
+func (w *ExecFlowsActionsRequest) TestCsvParser() error {
+	for _, r := range w.FlowsActionsRequest.ContactsCsv {
+		fmt.Println("r", r)
+		for _, c := range r {
+			fmt.Println("c", c)
+		}
+	}
+	return fmt.Errorf("fake err")
+}
+
 func (w *ExecFlowsActionsRequest) InitMaps() {
 	if w.WorkflowEntitiesOverrides == nil {
 		w.WorkflowEntitiesOverrides = make(map[string][]artemis_entities.UserEntity)
 	}
-	if w.WfRetrievalOverrides == nil {
-		tmp := make(map[string]artemis_orchestrations.RetrievalOverrides)
-		w.WfRetrievalOverrides = tmp
-	}
+	// task level
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
 	if w.SchemaFieldOverrides == nil {
 		w.SchemaFieldOverrides = make(map[string]map[string][]string)
 	}
+	// wf level
+	if w.WfRetrievalOverrides == nil {
+		tmp := make(map[string]artemis_orchestrations.RetrievalOverrides)
+		w.WfRetrievalOverrides = tmp
+	}
+	if w.WfSchemaFieldOverrides == nil {
+		w.WfSchemaFieldOverrides = make(map[string]artemis_orchestrations.SchemaOverrides)
+	}
+}
+
+func (w *ExecFlowsActionsRequest) getPrompts() []string {
+	var prompts []string
+	for _, cvs := range w.PromptsCsv {
+		for _, colValue := range cvs {
+			prompts = append(prompts, colValue)
+		}
+	}
+	return prompts
 }
 
 func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {

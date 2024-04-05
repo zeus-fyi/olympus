@@ -11,9 +11,8 @@ import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
 import TableHead from "@mui/material/TableHead";
 import {prettyPrintWfRunRowJSON} from "./RetrievalsRow";
 
-export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean}) {
-    const { row, index, handleClick, checked } = props;
-    const [open, setOpen] = React.useState(false);
+export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean, open : boolean; handleOpen: any }) {
+    const {row, index, handleClick, checked, open, handleOpen } = props;
 
     return (
         <React.Fragment>
@@ -22,7 +21,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                     <IconButton
                         aria-label="expand row"
                         size="small"
-                        onClick={() => setOpen(!open)}
+                        onClick={() => handleOpen(index)}
                     >
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>
@@ -173,11 +172,13 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                 <TableBody>
                                     {row.aggregatedData && row.aggregatedData.map((data, dataIndex) => (
                                         <TableRow key={dataIndex}>
-                                            <TableCell> {data.workflowResultID}</TableCell>
-                                            <TableCell style={{ whiteSpace: 'pre-wrap' }}>
+                                            <TableCell style={{ maxWidth: 120  }} >
+                                                {data.workflowResultID}
+                                            </TableCell>
+                                            <TableCell style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word',  maxWidth: 400  }}>
                                                 {data && data.prompt !== undefined ? prettyPrintWfRunRowJSON(data.prompt): ""}
                                             </TableCell>
-                                            <TableCell style={{ whiteSpace: 'pre-wrap' }}>
+                                            <TableCell style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxWidth: 400  }}>
                                                 {data && data.completionChoices !== undefined ? prettyPrintWfRunRowJSON(data.completionChoices) : ""}
                                             </TableCell>
                                         </TableRow>

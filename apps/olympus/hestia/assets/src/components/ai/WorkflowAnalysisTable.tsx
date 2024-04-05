@@ -8,16 +8,7 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {aiApiGateway} from "../../gateway/ai";
-import {
-    setAssistants,
-    setEvalFns,
-    setRetrievals,
-    setRuns,
-    setSchemas,
-    setSelectedRuns,
-    setTriggerActions,
-    setWorkflows
-} from "../../redux/ai/ai.reducer";
+import {setOpenRunsRow, setOrchDetails, setRuns, setSelectedRuns} from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
 import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
@@ -25,11 +16,40 @@ import {WorkflowAnalysisRow} from "./WorkflowAnalysisRow";
 
 export function WorkflowAnalysisTable(props: any) {
     const [page, setPage] = React.useState(0);
+    const openRunsRow = useSelector((state: any) => state.ai.openRunsRow);
+    const orchDetails = useSelector((state: any) => state.ai.orchDetails);
     const selectedRuns = useSelector((state: any) => state.ai.selectedRuns);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
     const workflows = useSelector((state: any) => state.ai.runs);
     const dispatch = useDispatch();
+
+    const fetchRun = async (index: number) => {
+        const runId = workflows[index].orchestration.orchestrationStrID;
+        try {
+            setIsLoading(true);
+            const response = await aiApiGateway.getRun(runId);
+            // Assuming response.data is an array of OrchestrationsAnalysis
+            const runToUpdate: OrchestrationsAnalysis[] = response.data.filter((run: OrchestrationsAnalysis) => run.orchestration.orchestrationStrID === runId);
+            if (runToUpdate.length > 0) {
+                // Assuming we want to update the orchDetails state with these details
+                dispatch(setOrchDetails({ [runId]: runToUpdate[0] }));  // Update orchDetails with the first item matching the criteria
+            }
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleOpen = (index: number) => {
+        const isOpen = openRunsRow[index] || false;
+        if (!isOpen) {
+            fetchRun(index);
+        }
+        dispatch(setOpenRunsRow({ ...openRunsRow, [index]: !isOpen }));
+    };
+
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
@@ -47,7 +67,7 @@ export function WorkflowAnalysisTable(props: any) {
         const fetchData = async (params: any) => {
             try {
                 setIsLoading(true); // Set loading to true
-                const response = await aiApiGateway.getRuns();
+                const response = await aiApiGateway.getRunsUI();
                 dispatch(setRuns(response.data));
             } catch (error) {
                 console.log("error", error);
@@ -56,32 +76,6 @@ export function WorkflowAnalysisTable(props: any) {
             }
         }
         fetchData({});
-    }, []);
-
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true)
-                const response = await aiApiGateway.getWorkflowsRequest();
-                const statusCode = response.status;
-                if (statusCode < 400) {
-                    const data = response.data;
-                    dispatch(setWorkflows(data.workflows));
-                    dispatch(setRetrievals(data.retrievals));
-                    dispatch(setTriggerActions(data.triggerActions))
-                    dispatch(setEvalFns(data.evalFns))
-                    dispatch(setAssistants(data.assistants))
-                    dispatch(setSchemas(data.schemas))
-                } else {
-                    console.log('Failed to get workflows', response);
-                }
-            } catch (e) {
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        fetchData();
     }, []);
 
     if (loading) {
@@ -115,8 +109,8 @@ export function WorkflowAnalysisTable(props: any) {
         dispatch(setSelectedRuns([]));
     };
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 1000 }} aria-label="private apps pagination table">
+        <TableContainer sx={{ minWidth: 1800 }} component={Paper}>
+            <Table aria-label="workflow run analysis pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#333'}} >
                         <TableCell padding="checkbox">
@@ -138,15 +132,23 @@ export function WorkflowAnalysisTable(props: any) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rowsPerPage > 0 && workflows && workflows.map((row: OrchestrationsAnalysis, index: number) => (
-                        <WorkflowAnalysisRow
-                            key={index}
-                            row={row}
-                            index={index}
-                            handleClick={handleClick}
-                            checked={selectedRuns.indexOf(index) >= 0 || false}
-                        />
-                    ))}
+                    {rowsPerPage > 0 && workflows && workflows.map((row: OrchestrationsAnalysis, index: number) => {
+                        // Use orchestrationStrID to find details in orchDetails, or fallback to row if not found
+                        const detailedRow = orchDetails[row.orchestration.orchestrationStrID] || row;
+
+                        return (
+                            <WorkflowAnalysisRow
+                                key={index}
+                                row={detailedRow} // Pass detailedRow, which may contain additional details
+                                open={openRunsRow[index] || false}
+                                handleOpen={() => handleOpen(index)}
+                                index={index}
+                                // csvExport={csvExport}
+                                handleClick={handleClick}
+                                checked={selectedRuns.indexOf(index) >= 0}
+                            />
+                        );
+                    })}
                     {emptyRows > 0 && (
                         <TableRow style={{ height: 53 * emptyRows }}>
                             <TableCell colSpan={4} />

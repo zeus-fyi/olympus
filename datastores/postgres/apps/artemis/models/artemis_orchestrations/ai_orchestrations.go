@@ -27,6 +27,7 @@ type WorkflowExecParams struct {
 type WorkflowOverrides struct {
 	WorkflowRunName      string                            `json:"workflowRunName"`
 	IsUsingFlows         bool                              `json:"isUsingFlows"`
+	TaskPromptOverrides  TaskOverrides                     `json:"taskPromptOverrides"`
 	SchemaFieldOverrides SchemaOverrides                   `json:"schemaFieldOverrides"`
 	RetrievalOverrides   RetrievalOverrides                `json:"retrievalOverride"`
 	WorkflowEntityRefs   []artemis_entities.EntitiesFilter `json:"workflowEntitiesRef,omitempty"`

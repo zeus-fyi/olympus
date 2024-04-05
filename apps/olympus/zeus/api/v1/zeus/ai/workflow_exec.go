@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
@@ -27,7 +26,9 @@ type WorkflowsActionsRequest struct {
 	CustomBasePeriodStepSize     int    `json:"customBasePeriodStepSize,omitempty"`
 	CustomBasePeriodStepSizeUnit string `json:"customBasePeriodStepSizeUnit,omitempty"`
 
-	WfRetrievalOverrides      map[string]artemis_orchestrations.RetrievalOverrides `json:"retrievalPayloadOverrides,omitempty"`
+	WfSchemaFieldOverrides artemis_orchestrations.WorkflowSchemaOverrides       `json:"wfSchemaFieldOverrides,omitempty"`
+	WfRetrievalOverrides   map[string]artemis_orchestrations.RetrievalOverrides `json:"wfRetrievalPayloadOverrides,omitempty"`
+
 	TaskOverrides             artemis_orchestrations.TaskOverrides                 `json:"taskOverrides,omitempty"`
 	SchemaFieldOverrides      artemis_orchestrations.SchemaOverrides               `json:"schemaFieldOverrides,omitempty"`
 	WorkflowEntityRefs        []artemis_entities.EntitiesFilter                    `json:"workflowEntitiesRef,omitempty"`
@@ -68,56 +69,11 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 	}
 	switch w.Action {
 	case "start":
-		if w.UnixStartTime == 0 {
-			w.UnixStartTime = int(time.Now().Unix())
-		}
-		isCycleStepped := false
-		endTime := 0
-		switch w.DurationUnit {
-		case "minutes", "minute":
-			minutes := time.Minute
-			if w.Duration < 0 {
-				w.UnixStartTime += int(minutes.Seconds()) * w.Duration
-				w.Duration = -1 * w.Duration
-			}
-			endTime = w.UnixStartTime + int(minutes.Seconds())*w.Duration
-		case "hours", "hour", "hrs", "hr":
-			hours := time.Hour
-			if w.Duration < 0 {
-				w.UnixStartTime += int(hours.Seconds()) * w.Duration
-				w.Duration = -1 * w.Duration
-			}
-			endTime = w.UnixStartTime + int(hours.Seconds())*w.Duration
-		case "days", "day":
-			days := 24 * time.Hour
-			if w.Duration < 0 {
-				w.UnixStartTime += int(days.Seconds()) * w.Duration
-				w.Duration = -1 * w.Duration
-			}
-			endTime = w.UnixStartTime + int(days.Seconds())*w.Duration
-		case "weeks", "week":
-			weeks := 7 * 24 * time.Hour
-			if w.Duration < 0 {
-				w.UnixStartTime += int(weeks.Seconds()) * w.Duration
-				w.Duration = -1 * w.Duration
-			}
-			endTime = w.UnixStartTime + int(weeks.Seconds())*w.Duration
-		case "cycles":
-			isCycleStepped = true
-		}
-		window := artemis_orchestrations.Window{
-			UnixStartTime: w.UnixStartTime,
-			UnixEndTime:   endTime,
-		}
-		for wfi, _ := range w.Workflows {
-			if w.Workflows[wfi].WorkflowTemplateStrID != "" {
-				wid, werr := strconv.Atoi(w.Workflows[wfi].WorkflowTemplateStrID)
-				if werr != nil {
-					log.Err(werr).Msg("failed to parse int")
-					return c.JSON(http.StatusBadRequest, nil)
-				}
-				w.Workflows[wfi].WorkflowTemplateID = wid
-			}
+		window, isCycleStepped := w.GetTimeSeriesIterInst()
+		err = w.ConvertWfStrIDs()
+		if err != nil {
+			log.Err(err).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: ConvertWfStrIDs failed")
+			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, &window, w.Workflows)
 		if rerr != nil {

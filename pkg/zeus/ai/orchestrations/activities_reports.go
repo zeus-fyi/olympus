@@ -44,7 +44,6 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 			return err
 		}
 	}
-
 	results, err := artemis_orchestrations.SelectAiWorkflowAnalysisResults(ctx, cp.Window, []int{cp.Oj.OrchestrationID}, sourceTaskIds)
 	if err != nil {
 		log.Err(err).Msg("GenerateCycleReports: SelectAiWorkflowAnalysisResults failed")
@@ -117,7 +116,7 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 					cnT := cme.MergeColName
 					log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
 					cv := convEntityToCsvCol(cnT, payloadMaps)
-					fmt.Println(cv)
+					//fmt.Println(cv)
 					merged, merr := utils_csv.MergeCsvEntity(source, cv, cme)
 					if merr != nil {
 						log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")

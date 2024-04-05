@@ -65,8 +65,6 @@ import {TriggerActionApprovalPutRequest, TriggerActionsApproval} from "../../red
 import {accessApiGateway} from "../../gateway/access";
 import {IrisApiGateway} from "../../gateway/iris";
 import axios from 'axios';
-import {MbTaskCmdPrompt} from "../chatgpt/ChatGPT";
-import {prettyPrintWfRunRowJSON} from "./RetrievalsRow";
 
 const mdTheme = createTheme();
 const analysisStart = "====================================================================================ANALYSIS====================================================================================\n"
@@ -523,7 +521,8 @@ function AiWorkflowsDashboardContent(props: any) {
                         noWrap
                         sx={{ flexGrow: 1 }}
                     >
-                        Mockingbird — Model Supervised Intelligent Network
+                        Mockingbird — Model Supervised Tasking
+                        {/*Mockingbird — Model Supervised Intelligent Network*/}
                     </Typography>
                     <Button
                         color="inherit"
@@ -1493,26 +1492,26 @@ function AiWorkflowsDashboardContent(props: any) {
                             </Typography>
                         </Container>
                     )}
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <div>
-                                <Box flexGrow={3} sx={{ mb: 2, ml: 1, mr: 1 }}>
-                                    <Typography variant="h6" color="text.secondary">
-                                        Mockingbird Network Tasking Prompt
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ mb: 2, mt: 2 }}>
-                                    <MbTaskCmdPrompt language={"plaintext"} code={prettyPrintWfRunRowJSON(taskInst)} onChange={setTaskInst} height={"200px"} width={"1200px"}/>
-                                </Box>
-                                <Stack direction={"row"} >
-                                    <Box sx={{ mb: 2, mr: 2}}>
-                                        <Button variant="outlined">Execute Network Task</Button>
-                                    </Box>
-                                    <Box sx={{ mb: 2, mr: 2}}>
-                                        <Button variant="outlined">Preview Task Planner Output</Button>
-                                    </Box>
-                                </Stack>
-                            </div>
-                        </Container>
+                    {/*<Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>*/}
+                    {/*        <div>*/}
+                    {/*            <Box flexGrow={3} sx={{ mb: 2, ml: 1, mr: 1 }}>*/}
+                    {/*                <Typography variant="h6" color="text.secondary">*/}
+                    {/*                    Mockingbird Network Tasking Prompt*/}
+                    {/*                </Typography>*/}
+                    {/*            </Box>*/}
+                    {/*            <Box sx={{ mb: 2, mt: 2 }}>*/}
+                    {/*                <MbTaskCmdPrompt language={"plaintext"} code={prettyPrintWfRunRowJSON(taskInst)} onChange={setTaskInst} height={"200px"} width={"1200px"}/>*/}
+                    {/*            </Box>*/}
+                    {/*            <Stack direction={"row"} >*/}
+                    {/*                <Box sx={{ mb: 2, mr: 2}}>*/}
+                    {/*                    <Button variant="outlined">Execute Network Task</Button>*/}
+                    {/*                </Box>*/}
+                    {/*                <Box sx={{ mb: 2, mr: 2}}>*/}
+                    {/*                    <Button variant="outlined">Preview Task Planner Output</Button>*/}
+                    {/*                </Box>*/}
+                    {/*            </Stack>*/}
+                    {/*        </div>*/}
+                    {/*    </Container>*/}
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">

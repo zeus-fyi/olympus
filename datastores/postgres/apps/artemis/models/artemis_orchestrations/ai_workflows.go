@@ -24,6 +24,8 @@ type WorkflowTemplate struct {
 
 type WorkflowUserEntitiesOverrides map[string][]artemis_entities.UserEntity
 
+type WorkflowSchemaOverrides map[string]SchemaOverrides
+
 type SchemaOverrides map[string]map[string][]string
 
 type RetrievalOverrides map[string]RetrievalOverride
@@ -35,7 +37,8 @@ type RetrievalOverride struct {
 
 type TaskOverrides map[string]TaskOverride
 type TaskOverride struct {
-	ReplacePrompt string `json:"replacePrompt,omitempty"`
+	ReplacePrompt   string `json:"replacePrompt,omitempty"`
+	SystemPromptExt string `json:"systemPromptExt,omitempty"`
 }
 
 type Task struct {

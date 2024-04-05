@@ -1558,7 +1558,8 @@ function WorkflowEngineBuilder(props: any) {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Mockingbird — Model Supervised Intelligent Network
+                            Mockingbird — Model Supervised Tasking
+                            {/*Mockingbird — Model Supervised Intelligent Network*/}
                         </Typography>
                         <Button
                             color="inherit"

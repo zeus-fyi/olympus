@@ -1,15 +1,21 @@
 import {Assistant, Retrieval} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 import {EvalFn, EvalFnMap, EvalMap, EvalMetric} from "./ai.types.evals";
-import {OrchestrationsAnalysis} from "./ai.types.runs";
+import {OrchDetailsMap, OrchestrationsAnalysis} from "./ai.types.runs";
 import {TriggerAction} from "./ai.types.triggers";
-
 
 export interface RowIndexOpen {
     rowIndex: number;
     open: boolean;
 }
+
+export interface RowIndexOpenMap {
+    [index: number]: boolean;
+}
+
 export interface AiState {
+    openRunsRow: RowIndexOpenMap;
+    orchDetails: OrchDetailsMap;
     openActionApprovalRow: RowIndexOpen;
     addSchemasView: boolean;
     schema: JsonSchemaDefinition;
@@ -174,6 +180,7 @@ export type Task = {
 };
 
 export type Orchestration = {
+    orchestrationStrID: string;
     orchestrationID: number;
     active: boolean;
     groupName: string;

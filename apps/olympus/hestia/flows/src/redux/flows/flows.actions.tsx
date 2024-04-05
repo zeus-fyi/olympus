@@ -28,7 +28,7 @@ export const initialState: FlowState = {
         websiteScrape: false
     },
     commandPrompts: {
-        linkedIn: 'Can you tell me their role and responsibilities?',
+        linkedIn: '',
         googleSearch: '',
         websiteScrape: 'Can you tell me what the company does, and the industry they work in?'
     }

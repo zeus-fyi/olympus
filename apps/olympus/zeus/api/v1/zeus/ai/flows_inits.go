@@ -32,24 +32,15 @@ const (
 
 	// ret override
 	validemailRetQp = "validemail-query-params"
-
+	linkedInRetQp   = "linkedin-profile"
 	// task
-	wbsTaskName = "website-analysis"
+	wbsTaskName      = "website-analysis"
+	linkedInTaskName = "linkedin-profile-summary"
 
 	// work labels
 	csvSrcGlobalLabel      = "csv:global:source"
 	csvSrcGlobalMergeLabel = "csv:global:merge"
 )
-
-func (w *ExecFlowsActionsRequest) TestCsvParser() error {
-	for _, r := range w.FlowsActionsRequest.ContactsCsv {
-		fmt.Println("r", r)
-		for _, c := range r {
-			fmt.Println("c", c)
-		}
-	}
-	return fmt.Errorf("fake err")
-}
 
 func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
 	uef := &artemis_entities.EntitiesFilter{
@@ -137,27 +128,27 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	return uef, nil
 }
 
-func (w *ExecFlowsActionsRequest) AddPromptInject(uef *artemis_entities.EntitiesFilter, wfName string) error {
-	if w.PromptsCsvStr == "" {
-		return fmt.Errorf("no prompt inject csv provided")
-	}
-
-	switch wfName {
-	case webFetchWf, liWf, liBizWf, googWf:
-		ue := artemis_entities.UserEntity{
-			Nickname: uef.Nickname,
-			Platform: "prompts",
-			MdSlice: []artemis_entities.UserEntityMetadata{
-				{
-					TextData: aws.String(w.PromptsCsvStr),
-					Labels:   artemis_entities.CreateMdLabels([]string{"csv:prompts:wf"}),
-				},
-			},
-		}
-		w.WorkflowEntitiesOverrides[wfName] = append(w.WorkflowEntitiesOverrides[wfName], ue)
-	}
-	return nil
-}
+//func (w *ExecFlowsActionsRequest) AddPromptInject(uef *artemis_entities.EntitiesFilter, wfName string) error {
+//	if w.PromptsCsvStr == "" {
+//		return fmt.Errorf("no prompt inject csv provided")
+//	}
+//
+//	switch wfName {
+//	case webFetchWf, liWf, liBizWf, googWf:
+//		ue := artemis_entities.UserEntity{
+//			Nickname: uef.Nickname,
+//			Platform: "prompts",
+//			MdSlice: []artemis_entities.UserEntityMetadata{
+//				{
+//					TextData: aws.String(w.PromptsCsvStr),
+//					Labels:   artemis_entities.CreateMdLabels([]string{"csv:prompts:wf"}),
+//				},
+//			},
+//		}
+//		w.WorkflowEntitiesOverrides[wfName] = append(w.WorkflowEntitiesOverrides[wfName], ue)
+//	}
+//	return nil
+//}
 
 func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[websiteScrape]; !ok || !v {
@@ -207,50 +198,26 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		return nil
 	}
 	w.InitMaps()
-	wsbLabel := csvGlobalMergeAnalysisTaskLabel(wbsTaskName)
-	labels := artemis_entities.CreateMdLabels([]string{
-		fmt.Sprintf("wf:%s", webFetchWf),
-		wsbLabel,
-	})
-	uef.Labels = append(uef.Labels, wsbLabel)
-	b, err := utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
+	err := w.createCsvMergeEntity(webFetchWf, wbsTaskName, wbsTaskName, uef, colName, emRow, pls)
 	if err != nil {
-		log.Err(err).Msg("failed to marshal emRow")
+		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err
 	}
-	usre := artemis_entities.UserEntity{
-		Nickname: uef.Nickname,
-		Platform: uef.Platform,
-		MdSlice: []artemis_entities.UserEntityMetadata{
-			{
-				JsonData: b,
-				Labels:   labels,
-			},
-		},
-	}
-
-	var prompts []string
-	for _, cvs := range w.PromptsCsv {
-		for _, colValue := range cvs {
-			prompts = append(prompts, colValue)
+	prompts := w.getPrompts()
+	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
+		if len(prompts) <= 0 {
+			prompts = []string{v}
+		} else {
+			w.TaskOverrides[wbsTaskName] = artemis_orchestrations.TaskOverride{
+				SystemPromptExt: v,
+			}
 		}
 	}
-
-	w.WorkflowEntitiesOverrides[webFetchWf] = append(w.WorkflowEntitiesOverrides[webFetchWf], usre)
-	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" && len(prompts) <= 0 {
-		prompts = []string{v}
-	}
-	w.SchemaFieldOverrides["website-analysis"] = map[string][]string{
-		"summary": prompts,
-	}
-	w.WfRetrievalOverrides[webFetchWf] = map[string]artemis_orchestrations.RetrievalOverride{
-		"website-analysis": artemis_orchestrations.RetrievalOverride{Payloads: pls},
-	}
-	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: webFetchWf,
-	})
+	w.createWfSchemaFieldOverride(webFetchWf, wbsTaskName, "summary", prompts)
 	return nil
 }
+
+// Can you tell me what this person does in their current role; and the company they work at now?
 
 func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[validateEmails]; !ok || !v {
@@ -266,7 +233,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 			if strings.Contains(tv, "email") && len(colValue) > 0 && strings.Contains(colValue, "@") {
 				if len(colName) > 0 && colName != cname {
 					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("EmailsValidatorSetup")
-					return fmt.Errorf("duplicate email column")
+					return fmt.Errorf(fmt.Sprintf("Email csv input has duplicate web column: expecting: %s actual: %s", colName, cname))
 				}
 				colName = cname
 				if len(emRow) <= 0 {
@@ -317,7 +284,6 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 	}
 	log.Info().Interface("labels", labels).Msg("EmailsValidatorSetup")
 	w.WorkflowEntitiesOverrides[emailVdWf] = append(w.WorkflowEntitiesOverrides[emailVdWf], usre)
-
 	w.CustomBasePeriodStepSize = 24
 	w.CustomBasePeriodStepSizeUnit = "hours"
 	w.CustomBasePeriod = true
@@ -350,35 +316,6 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: googWf,
-	})
-	return nil
-}
-
-// Can you tell me what this person does in their current role; and the company they work at now?
-
-func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.EntitiesFilter) error {
-	if v, ok := w.Stages[linkedIn]; !ok || !v {
-		return nil
-	}
-	b, err := json.Marshal(w.ContactsCsv)
-	if err != nil {
-		log.Err(err).Msg("failed to marshal li")
-		return err
-	}
-	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
-	}
-	w.TaskOverrides["linkedin-profiles-rapid-api-qps"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
-	//if v, ok := w.CommandPrompts[linkedIn]; ok && v != "" {
-	//	if w.SchemaFieldOverrides == nil {
-	//		w.SchemaFieldOverrides = make(map[string]map[string]string)
-	//		w.SchemaFieldOverrides["results-agg"] = map[string]string{
-	//			"summary": v,
-	//		}
-	//	}
-	//}
-	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: liWf,
 	})
 	return nil
 }

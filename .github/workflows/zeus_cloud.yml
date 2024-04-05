@@ -8,6 +8,7 @@ on:
     branches:
       - main
       - ai-triggers
+      - add-flows
 
 permissions:
   contents: read
@@ -62,5 +63,4 @@ jobs:
           --token ${{ secrets.DEPOT_TOKEN }} \
           --provenance=false \
           -f docker/zeus_cloud/Dockerfile . --push
-
 

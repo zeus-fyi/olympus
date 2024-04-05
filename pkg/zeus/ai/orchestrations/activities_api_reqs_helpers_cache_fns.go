@@ -95,14 +95,16 @@ func checkIfCached(ctx context.Context, cp *MbChildSubProcessParams, r RouteTask
 					if err != nil {
 						log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
 					} else {
-						log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].JsonData).Msg("FanOutApiCallRequestTask: json cache found skipping")
+						log.Info().Interface("hash", ht.RequestCache).Msg("FanOutApiCallRequestTask: json cache found skipping")
+						//log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].JsonData).Msg("FanOutApiCallRequestTask: json cache found skipping")
 						reqCached = true
 					}
 				}
 			} else if len(uew.MdSlice) > 0 && uew.MdSlice[0].TextData != nil && *uew.MdSlice[0].TextData != "" {
 				reqCached = true
 				req.RawResponse = []byte(*uew.MdSlice[0].TextData)
-				log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].TextData).Msg("FanOutApiCallRequestTask: text cache found skipping")
+				log.Info().Interface("hash", ht.RequestCache).Msg("FanOutApiCallRequestTask: text cache found skipping")
+				//log.Info().Interface("hash", ht.RequestCache).Interface("len(uew.MdSlice)", uew.MdSlice[0].TextData).Msg("FanOutApiCallRequestTask: text cache found skipping")
 			}
 		}
 	}

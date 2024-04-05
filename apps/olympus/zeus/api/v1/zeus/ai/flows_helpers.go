@@ -308,9 +308,12 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 		return err
 	}
 	w.InitMaps()
-	lb := "labels"
-	labels := artemis_entities.CreateMdLabels([]string{lb})
-	uef.Labels = append(uef.Labels, lb)
+	wsbLabel := csvGlobalMergeAnalysisTaskLabel(wbsTaskName)
+	labels := artemis_entities.CreateMdLabels([]string{
+		fmt.Sprintf("wf:%s", webFetchWf),
+		wsbLabel,
+	})
+	uef.Labels = append(uef.Labels, wsbLabel)
 	b, err = utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
 	if err != nil {
 		log.Err(err).Msg("failed to marshal emRow")
@@ -327,7 +330,6 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 		},
 	}
 	w.WorkflowEntitiesOverrides[liWf] = append(w.WorkflowEntitiesOverrides[liWf], usre)
-
 	w.TaskOverrides[linkedInTaskName] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
 	if v, ok := w.CommandPrompts[linkedIn]; ok && v != "" {
 		prompts := w.getPrompts()

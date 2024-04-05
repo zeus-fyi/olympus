@@ -36,7 +36,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	_, err := w.SetupFlow(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("SaveImport failed")
-		return c.JSON(http.StatusBadRequest, nil)
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	if len(w.Workflows) > 0 {
 		w.Action = "start"

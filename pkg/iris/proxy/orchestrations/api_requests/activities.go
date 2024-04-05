@@ -233,7 +233,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		resp, err = sendRequest(r.R(), pr, "POST")
 	}
 	if err != nil {
-		log.Err(err).Msg("ExtLoadBalancerRequest: Failed to relay api request")
+		log.Err(err).Interface("pr.Url", pr.Url).Interface("pr.ExtRoutePath", pr.ExtRoutePath).Msg("ExtLoadBalancerRequest: Failed to relay api request")
 		return pr, fmt.Errorf("failed to relay api request")
 	}
 	if pr.StatusCode >= 400 && !skipErrorOnStatusCodes(pr.StatusCode, pr.SkipErrorOnStatusCodes) {

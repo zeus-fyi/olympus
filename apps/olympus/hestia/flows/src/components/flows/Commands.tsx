@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Card, CircularProgress, Tab, Tabs} from "@mui/material";
 import {MbTaskCmdPrompt} from "./CommandPrompt";
 import Typography from "@mui/material/Typography";
@@ -73,35 +73,38 @@ export function Commands(props: any) {
         dispatch(setCommandPrompt(newCommandPrompts));
     };
 
-    let buttonLabelCreate;
-    let buttonDisabledCreate;
-    let statusMessageCreate;
+    const [buttonLabelCreate, setButtonLabelCreate] = useState<React.ReactNode>('Send');
+    const [buttonDisabledCreate, setButtonDisabledCreate] = useState(false);
+    const [statusMessageCreate, setStatusMessageCreate] = useState('');
     const [flowsRequestStatus, setFlowsRequestStatus] = useState('');
-    switch (flowsRequestStatus) {
-        case 'pending':
-            buttonLabelCreate = <CircularProgress size={20}/>;
-            buttonDisabledCreate = true;
-            break;
-        case 'success':
-            buttonLabelCreate = 'Send';
-            buttonDisabledCreate = false;
-            statusMessageCreate = 'Request Sent Successfully!';
-            break;
-        case 'insufficientTokenBalance':
-            buttonLabelCreate = 'Send';
-            buttonDisabledCreate = true;
-            statusMessageCreate = 'Insufficient Token Balance. Email alex@zeus.fyi to request more tokens.'
-            break;
-        case 'error':
-            buttonLabelCreate = 'Send';
-            buttonDisabledCreate = false;
-            statusMessageCreate = ''
-            break;
-        default:
-            buttonLabelCreate = 'Send';
-            buttonDisabledCreate = false;
-            break;
-    }
+    useEffect(() => {
+        switch (flowsRequestStatus) {
+            case 'pending':
+                setButtonLabelCreate(<CircularProgress size={20} />);
+                setButtonDisabledCreate(true);
+                break;
+            case 'success':
+                setButtonLabelCreate('Send');
+                setButtonDisabledCreate(false);
+                setStatusMessageCreate('Request Sent Successfully!');
+                break;
+            case 'insufficientTokenBalance':
+                setButtonLabelCreate('Send');
+                setButtonDisabledCreate(true);
+                setStatusMessageCreate('Insufficient Token Balance. Email alex@zeus.fyi to request more tokens.');
+                break;
+            case 'error':
+                setButtonLabelCreate('Send');
+                setButtonDisabledCreate(false);
+                // statusMessageCreate is set by the error handler
+                break;
+            default:
+                setButtonLabelCreate('Send');
+                setButtonDisabledCreate(false);
+                setStatusMessageCreate('');
+                break;
+        }
+    }, [flowsRequestStatus]); // useEffect will trigger only when flowsRequestStatus changes
 
     const onClickSubmit = async () => {
         try {
@@ -119,26 +122,31 @@ export function Commands(props: any) {
                     validateEmails: vesChecked,
                     websiteScrape: webChecked
                 },
-               commandPrompts: cmds
-            }
-            // console.log(fa, 'sffsf')
-            let res: any = await aiApiGateway.flowsRequest(fa)
+                commandPrompts: cmds
+            };
+            let res = await aiApiGateway.flowsRequest(fa);
+            console.log('res', res)
             const statusCode = res.status;
             if (statusCode >= 200 && statusCode < 300) {
                 setFlowsRequestStatus('success');
             } else if (statusCode === 412) {
                 setFlowsRequestStatus('insufficientTokenBalance');
             } else {
+                setStatusMessageCreate(res.statusText || 'Unknown error');
                 setFlowsRequestStatus('error');
             }
         } catch (e: any) {
+            console.error(e);
             if (e.response && e.response.status === 412) {
+                setFlowsRequestStatus('error');
                 setFlowsRequestStatus('insufficientTokenBalance');
             } else {
                 setFlowsRequestStatus('error');
+                setStatusMessageCreate(e.response?.data || e.message || 'An error occurred');
             }
         }
-    }
+    };
+
     const getTabName = (selectedTab: number): string => {
         if (selectedTab === 0) {
             return 'Google Search ';

@@ -254,6 +254,15 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 
 // Can you tell me what this person does in their current role; and the company they work at now?
 
+func doesNotContain(sin string, notAllowed []string) bool {
+	for _, ns := range notAllowed {
+		if strings.Contains(strings.ToLower(sin), strings.ToLower(ns)) {
+			return false
+		}
+	}
+	return true
+}
+
 func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[linkedIn]; !ok || !v {
 		return nil
@@ -264,10 +273,11 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 	var pls []map[string]interface{}
 	for r, cvs := range w.ContactsCsv {
 		for cname, colValue := range cvs {
-			if strings.Contains(strings.ToLower(cname), "linkedin") && len(colValue) > 0 && !strings.Contains(strings.ToLower(cname), "biz") && !strings.Contains(strings.ToLower(cname), "business") {
+			// "company",
+			if strings.Contains(strings.ToLower(cname), "linkedin") && strings.Contains(strings.ToLower(colValue), "linkedin.com/in") && len(colValue) > 0 {
 				if len(colName) > 0 && colName != cname {
-					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("EmailsValidatorSetup")
-					return fmt.Errorf("duplicate web column")
+					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("LinkedInScraperSetup")
+					return fmt.Errorf(fmt.Sprintf("LinkedIn csv input has duplicate web column: expecting: %s actual: %s", colName, cname))
 				}
 				colName = cname
 				uv, err := convertToHTTPS(colValue)
@@ -286,7 +296,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 					w.ContactsCsv[r][cname] = uv
 					continue
 				}
-				if strings.Contains(strings.ToLower(uv), "linkedin.com") {
+				if strings.Contains(strings.ToLower(uv), "linkedin.com/in") {
 					pl := make(map[string]interface{})
 					w.ContactsCsv[r][cname] = uv
 					pl["linkedin_url"] = w.ContactsCsv[r][cname]
@@ -325,9 +335,12 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 		},
 	}
 	w.WorkflowEntitiesOverrides[liWf] = append(w.WorkflowEntitiesOverrides[liWf], usre)
-	if v, ok := w.CommandPrompts[linkedIn]; ok && v != "" {
+	if v, ok := w.CommandPrompts[linkedIn]; ok {
 		prompts := w.getPrompts()
 		if len(prompts) <= 0 {
+			if v == "" {
+				v = "Can you tell me their role and responsibilities?"
+			}
 			prompts = []string{v}
 		} else {
 			tmp := w.TaskOverrides[linkedInTaskName]
@@ -368,7 +381,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 			if strings.Contains(tv, "email") && len(colValue) > 0 && strings.Contains(colValue, "@") {
 				if len(colName) > 0 && colName != cname {
 					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("EmailsValidatorSetup")
-					return fmt.Errorf("duplicate email column")
+					return fmt.Errorf(fmt.Sprintf("Email csv input has duplicate web column: expecting: %s actual: %s", colName, cname))
 				}
 				colName = cname
 				if len(emRow) <= 0 {

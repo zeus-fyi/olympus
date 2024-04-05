@@ -125,7 +125,6 @@ export function Commands(props: any) {
                 commandPrompts: cmds
             };
             let res = await aiApiGateway.flowsRequest(fa);
-            console.log('res', res)
             const statusCode = res.status;
             if (statusCode >= 200 && statusCode < 300) {
                 setFlowsRequestStatus('success');

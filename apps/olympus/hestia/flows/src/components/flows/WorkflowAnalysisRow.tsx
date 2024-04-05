@@ -165,7 +165,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                     ))}
                                 </TableBody>
                             </Table>
-                            <Table  sx={{ mb: 4, mt: 4}} size="small" aria-label="sub-analysis">
+                            <Table  sx={{ mb: 4, mt: 4}}  aria-label="sub-analysis">
                                 <TableRow>
                                     <TableCell >Result ID</TableCell>
                                     <TableCell >Prompt</TableCell>
@@ -174,11 +174,13 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                 <TableBody>
                                     {row.aggregatedData && row.aggregatedData.map((data, dataIndex) => (
                                         <TableRow key={dataIndex}>
-                                            <TableCell> {data.workflowResultID}</TableCell>
-                                            <TableCell style={{ whiteSpace: 'pre-wrap' }}>
+                                            <TableCell style={{ maxWidth: 120  }} >
+                                                {data.workflowResultID}
+                                            </TableCell>
+                                            <TableCell style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word',  maxWidth: 400  }}>
                                                 {data && data.prompt !== undefined ? prettyPrintWfRunRowJSON(data.prompt): ""}
                                             </TableCell>
-                                            <TableCell style={{ whiteSpace: 'pre-wrap' }}>
+                                            <TableCell style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxWidth: 400  }}>
                                                 {data && data.completionChoices !== undefined ? prettyPrintWfRunRowJSON(data.completionChoices) : ""}
                                             </TableCell>
                                         </TableRow>

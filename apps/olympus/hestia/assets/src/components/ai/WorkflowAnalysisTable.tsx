@@ -115,8 +115,8 @@ export function WorkflowAnalysisTable(props: any) {
         dispatch(setSelectedRuns([]));
     };
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 1000 }} aria-label="private apps pagination table">
+        <TableContainer sx={{ minWidth: 1800 }} component={Paper}>
+            <Table aria-label="workflow run analysis pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#333'}} >
                         <TableCell padding="checkbox">

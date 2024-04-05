@@ -173,11 +173,13 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                 <TableBody>
                                     {row.aggregatedData && row.aggregatedData.map((data, dataIndex) => (
                                         <TableRow key={dataIndex}>
-                                            <TableCell> {data.workflowResultID}</TableCell>
-                                            <TableCell style={{ whiteSpace: 'pre-wrap' }}>
+                                            <TableCell style={{ maxWidth: 120  }} >
+                                                {data.workflowResultID}
+                                            </TableCell>
+                                            <TableCell style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word',  maxWidth: 500  }}>
                                                 {data && data.prompt !== undefined ? prettyPrintWfRunRowJSON(data.prompt): ""}
                                             </TableCell>
-                                            <TableCell style={{ whiteSpace: 'pre-wrap' }}>
+                                            <TableCell style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxWidth: 400  }}>
                                                 {data && data.completionChoices !== undefined ? prettyPrintWfRunRowJSON(data.completionChoices) : ""}
                                             </TableCell>
                                         </TableRow>

@@ -32,10 +32,10 @@ const (
 
 	// ret override
 	validemailRetQp = "validemail-query-params"
-
+	linkedInRetQp   = "linkedin-profile"
 	// task
 	wbsTaskName      = "website-analysis"
-	linkedInTaskName = "linkedin-profiles-rapid-api-qps"
+	linkedInTaskName = "linkedin-profile-summary"
 
 	// work labels
 	csvSrcGlobalLabel      = "csv:global:source"
@@ -306,6 +306,10 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 			}
 		}
 	}
+	if len(pls) == 0 {
+		log.Warn().Msg("no emails found")
+		return nil
+	}
 	b, err := json.Marshal(w.ContactsCsv)
 	if err != nil {
 		log.Err(err).Msg("failed to marshal li")
@@ -333,6 +337,9 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 				Labels:   labels,
 			},
 		},
+	}
+	w.WfRetrievalOverrides[liWf] = map[string]artemis_orchestrations.RetrievalOverride{
+		linkedInRetQp: artemis_orchestrations.RetrievalOverride{Payloads: pls},
 	}
 	w.WorkflowEntitiesOverrides[liWf] = append(w.WorkflowEntitiesOverrides[liWf], usre)
 	if v, ok := w.CommandPrompts[linkedIn]; ok {

@@ -1,7 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     AiState,
-    OrchDetailsMap,
     PlatformSecretReference,
     RowIndexOpen,
     RowIndexOpenMap,
@@ -13,7 +12,7 @@ import {
 import {Assistant, Retrieval} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 import {EvalFn, EvalMetric, UpdateEvalMapPayload} from "./ai.types.evals";
-import {OrchestrationsAnalysis} from "./ai.types.runs";
+import {OrchDetailsMap, OrchestrationsAnalysis} from "./ai.types.runs";
 import {TriggerAction} from "./ai.types.triggers";
 
 const initialState: AiState = {

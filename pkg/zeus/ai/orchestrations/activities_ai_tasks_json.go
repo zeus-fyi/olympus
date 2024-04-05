@@ -81,6 +81,21 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	return cr, nil
 }
 
+/*
+	var jsff []artemis_orchestrations.JsonSchemaDefinition
+	for _, jt := range jsd {
+		if jt != nil {
+			jsff = append(jsff, *jt)
+		}
+	}
+	payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsff)
+	for _, pv := range payloadMaps {
+		for k, v := range pv {
+			fmt.Println("k: ", k, "v: ", v)
+		}
+	}
+*/
+
 func getJsonSgChunkToProcess(mb *MbChildSubProcessParams, in *WorkflowStageIO) *hera_search.SearchResultGroup {
 	pr := in.WorkflowStageInfo.PromptReduction
 	var sg *hera_search.SearchResultGroup

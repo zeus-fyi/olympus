@@ -3,6 +3,7 @@ import {
     AiState,
     PlatformSecretReference,
     RowIndexOpen,
+    RowIndexOpenMap,
     SearchIndexerParams,
     TaskModelInstructions,
     UpdateTaskCycleCountPayload,
@@ -11,10 +12,12 @@ import {
 import {Assistant, Retrieval} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 import {EvalFn, EvalMetric, UpdateEvalMapPayload} from "./ai.types.evals";
-import {OrchestrationsAnalysis} from "./ai.types.runs";
+import {OrchDetailsMap, OrchestrationsAnalysis} from "./ai.types.runs";
 import {TriggerAction} from "./ai.types.triggers";
 
 const initialState: AiState = {
+    orchDetails: {},
+    openRunsRow: {},
     openActionApprovalRow: {
         rowIndex: 0,
         open: false
@@ -244,6 +247,13 @@ const aiSlice = createSlice({
         },
         setSelectedRetrievalForAnalysis: (state, action: PayloadAction<Retrieval>) => {
             state.selectedRetrievalForAnalysis = action.payload;
+        },
+        setOpenRunsRow(state, action: PayloadAction<RowIndexOpenMap>) {
+            state.openRunsRow = action.payload;
+        },
+        setOrchDetails(state, action: PayloadAction<OrchDetailsMap>) {
+            // Merge new details into existing map without overwriting unrelated entries
+            state.orchDetails = { ...state.orchDetails, ...action.payload };
         },
         setOpenActionApprovalRow(state, action: PayloadAction<RowIndexOpen>) {
             state.openActionApprovalRow = action.payload;
@@ -634,6 +644,8 @@ export const {
     setSchemaField,
     setAddSchemasView,
     setOpenActionApprovalRow,
-    setAddTriggerRetrievalView
+    setAddTriggerRetrievalView,
+    setOrchDetails,
+    setOpenRunsRow
 } = aiSlice.actions;
 export default aiSlice.reducer;

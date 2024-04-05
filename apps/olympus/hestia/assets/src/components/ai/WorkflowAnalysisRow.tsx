@@ -11,9 +11,8 @@ import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
 import TableHead from "@mui/material/TableHead";
 import {prettyPrintWfRunRowJSON} from "./RetrievalsRow";
 
-export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean}) {
-    const { row, index, handleClick, checked } = props;
-    const [open, setOpen] = React.useState(false);
+export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean, open : boolean; handleOpen: any }) {
+    const {row, index, handleClick, checked, open, handleOpen } = props;
 
     return (
         <React.Fragment>
@@ -22,7 +21,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                     <IconButton
                         aria-label="expand row"
                         size="small"
-                        onClick={() => setOpen(!open)}
+                        onClick={() => handleOpen(index)}
                     >
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>

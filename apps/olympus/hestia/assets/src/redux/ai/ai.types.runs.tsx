@@ -29,3 +29,7 @@ export interface OrchestrationsAnalysis {
     orchestration: Orchestration;
     aggregatedEvalResults: EvalMetric[]; // Added array of EvalMetricsResult
 }
+
+export interface OrchDetailsMap {
+    [index: string]: OrchestrationsAnalysis;
+}

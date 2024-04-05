@@ -1,7 +1,7 @@
 import {Assistant, Retrieval} from "./ai.types.retrievals";
 import {JsonSchemaDefinition, JsonSchemaField} from "./ai.types.schemas";
 import {EvalFn, EvalFnMap, EvalMap, EvalMetric} from "./ai.types.evals";
-import {OrchestrationsAnalysis} from "./ai.types.runs";
+import {OrchDetailsMap, OrchestrationsAnalysis} from "./ai.types.runs";
 import {TriggerAction} from "./ai.types.triggers";
 
 export interface RowIndexOpenMap {
@@ -11,10 +11,6 @@ export interface RowIndexOpenMap {
 export interface RowIndexOpen {
     rowIndex: number;
     open: boolean;
-}
-
-export interface OrchDetailsMap {
-    [index: string]: OrchestrationsAnalysis;
 }
 
 export interface AiState {

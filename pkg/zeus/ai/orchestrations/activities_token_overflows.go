@@ -232,6 +232,7 @@ func validateChunkTokenLimits(ctx context.Context, model string, marginBuffer fl
 		}
 		tokenEstimates = append(tokenEstimates, tokenEstimate)
 		if needsReduction {
+			log.Info().Interface("tokenEstimates", tokenEstimates).Msg("TokenOverflowSearchResults: validateChunkTokenLimits")
 			return true, nil, nil
 		}
 	}

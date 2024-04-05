@@ -24,6 +24,8 @@ type WorkflowTemplate struct {
 
 type WorkflowUserEntitiesOverrides map[string][]artemis_entities.UserEntity
 
+type WorkflowSchemaOverrides map[string]SchemaOverrides
+
 type SchemaOverrides map[string]map[string][]string
 
 type RetrievalOverrides map[string]RetrievalOverride

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
@@ -52,56 +51,11 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	}
 	switch w.Action {
 	case "start":
-		if w.UnixStartTime == 0 {
-			w.UnixStartTime = int(time.Now().Unix())
-		}
-		isCycleStepped := false
-		endTime := 0
-		switch w.DurationUnit {
-		case "minutes", "minute":
-			minutes := time.Minute
-			if w.Duration < 0 {
-				w.UnixStartTime += int(minutes.Seconds()) * w.Duration
-				w.Duration = -1 * w.Duration
-			}
-			endTime = w.UnixStartTime + int(minutes.Seconds())*w.Duration
-		case "hours", "hour", "hrs", "hr":
-			hours := time.Hour
-			if w.Duration < 0 {
-				w.UnixStartTime += int(hours.Seconds()) * w.Duration
-				w.Duration = -1 * w.Duration
-			}
-			endTime = w.UnixStartTime + int(hours.Seconds())*w.Duration
-		case "days", "day":
-			days := 24 * time.Hour
-			if w.Duration < 0 {
-				w.UnixStartTime += int(days.Seconds()) * w.Duration
-				w.Duration = -1 * w.Duration
-			}
-			endTime = w.UnixStartTime + int(days.Seconds())*w.Duration
-		case "weeks", "week":
-			weeks := 7 * 24 * time.Hour
-			if w.Duration < 0 {
-				w.UnixStartTime += int(weeks.Seconds()) * w.Duration
-				w.Duration = -1 * w.Duration
-			}
-			endTime = w.UnixStartTime + int(weeks.Seconds())*w.Duration
-		case "cycles":
-			isCycleStepped = true
-		}
-		window := artemis_orchestrations.Window{
-			UnixStartTime: w.UnixStartTime,
-			UnixEndTime:   endTime,
-		}
-		for wfi, _ := range w.Workflows {
-			if w.Workflows[wfi].WorkflowTemplateStrID != "" {
-				wid, werr := strconv.Atoi(w.Workflows[wfi].WorkflowTemplateStrID)
-				if werr != nil {
-					log.Err(werr).Msg("failed to parse int")
-					return c.JSON(http.StatusBadRequest, nil)
-				}
-				w.Workflows[wfi].WorkflowTemplateID = wid
-			}
+		window, isCycleStepped := w.GetTimeSeriesIterInst()
+		err = w.ConvertWfStrIDs()
+		if err != nil {
+			log.Err(err).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: ConvertWfStrIDs failed")
+			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		for _, wfn := range w.Workflows {
 			switch wfn.WorkflowName {
@@ -148,6 +102,11 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			if w.WfRetrievalOverrides != nil {
 				if wv, wok := w.WfRetrievalOverrides[wfName]; wok {
 					resp[ri].WorkflowOverrides.RetrievalOverrides = wv
+				}
+			}
+			if w.WfSchemaFieldOverrides != nil {
+				if wv, wok := w.WfSchemaFieldOverrides[wfName]; wok {
+					resp[ri].WorkflowOverrides.SchemaFieldOverrides = wv
 				}
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow

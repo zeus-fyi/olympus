@@ -198,16 +198,17 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	if len(pr.QueryParams) > 0 {
 		r.QueryParam = pr.QueryParams
 	}
-	for k, v := range pr.RequestHeaders {
-		switch k {
-		case "Authorization":
-			if !pr.IsInternal {
-				continue
+	if pr.RequestHeaders != nil {
+		for k, v := range pr.RequestHeaders {
+			switch k {
+			case "Authorization":
+				if !pr.IsInternal {
+					continue
+				}
 			}
+			r.SetHeader(k, strings.Join(v, ", ")) // Joining all values with a comma
 		}
-		r.SetHeader(k, strings.Join(v, ", ")) // Joining all values with a comma
 	}
-
 	if len(pr.Referrers) > 0 {
 		r.SetHeader("Referer", strings.Join(pr.Referrers, ", ")) // Joining all values with a comma
 	}
@@ -344,7 +345,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 				plMap := extractAndRespond(doc)
 				pr.Response = plMap
 			}
-			if pr.Response == nil {
+			if pr.Response == nil && resp.Body() != nil {
 				err = json.Unmarshal(resp.Body(), &pr.Response)
 				if err != nil {
 					log.Warn().Err(err).Msg("sendRequest: failed to unmarshal response body")
@@ -358,7 +359,9 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			pr.RawResponse = resp.Body()
 		}
 		pr.StatusCode = resp.StatusCode()
-		pr.ResponseHeaders = filterHeaders(resp.RawResponse.Header)
+		if pr.RequestHeaders != nil && resp != nil && resp.RawResponse != nil && resp.RawResponse.Header != nil {
+			pr.ResponseHeaders = filterHeaders(resp.RawResponse.Header)
+		}
 		pr.ReceivedAt = resp.ReceivedAt()
 		pr.Latency = resp.Time()
 		if pr.IsInternal {
@@ -424,7 +427,7 @@ func unescapeUnicode(input string) string {
 func filterHeaders(headers http.Header) http.Header {
 	filteredHeaders := make(http.Header)
 	for key, values := range headers {
-		if key[:2] == "X-" {
+		if len(key) > 2 && key[:2] == "X-" {
 			filteredHeaders[key] = values
 		}
 	}
@@ -449,7 +452,7 @@ func ExtractParams(regexStrs []string, strContent []byte) ([]string, error) {
 }
 
 func extractAndRespond(doc *goquery.Document) echo.Map {
-	var elements []map[string]string
+	var elements []string
 
 	//// Extract meta tags
 	//doc.Find("meta").Each(func(i int, s *goquery.Selection) {
@@ -474,11 +477,7 @@ func extractAndRespond(doc *goquery.Document) echo.Map {
 			if len(tv) == 0 {
 				return
 			}
-			element := map[string]string{
-				"type":    tag,
-				"content": tv,
-			}
-			elements = append(elements, element)
+			elements = append(elements, tv)
 		})
 	}
 
@@ -488,11 +487,7 @@ func extractAndRespond(doc *goquery.Document) echo.Map {
 		if len(tv) == 0 {
 			return
 		}
-		element := map[string]string{
-			"type":    "p",
-			"content": tv,
-		}
-		elements = append(elements, element)
+		elements = append(elements, tv)
 	})
 
 	if len(elements) == 0 {

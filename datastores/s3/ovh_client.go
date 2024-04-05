@@ -2,6 +2,7 @@ package s3base
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -43,4 +44,49 @@ func (s *S3Client) ConnectS3SpacesOvh(ctx context.Context) error {
 	// Create an Amazon S3 service client
 	s.AwsS3Client = s3.NewFromConfig(cfg)
 	return err
+}
+
+func (s *S3Client) ListAllItemsInBucket(ctx context.Context, bucket string) ([]string, error) {
+	// Initialize the list to store the names of the objects
+	var allObjectKeys []string
+
+	// Create the input configuration for listing objects
+	listObjectsInput := &s3.ListObjectsV2Input{
+		Bucket: &bucket,
+	}
+
+	// Create a paginator to handle listing of objects
+	paginator := s3.NewListObjectsV2Paginator(s.AwsS3Client, listObjectsInput)
+
+	// Iterate through the pages of results
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list objects: %w", err)
+		}
+
+		// Collect the keys of all objects
+		for _, object := range page.Contents {
+			allObjectKeys = append(allObjectKeys, *object.Key)
+		}
+	}
+
+	return allObjectKeys, nil
+}
+
+// DeleteObject deletes a single object from an S3 bucket
+func (s *S3Client) DeleteObject(ctx context.Context, bucket, key string) error {
+	// Prepare the input for the delete operation
+	deleteObjectInput := &s3.DeleteObjectInput{
+		Bucket: &bucket,
+		Key:    &key,
+	}
+
+	// Perform the delete operation
+	_, err := s.AwsS3Client.DeleteObject(ctx, deleteObjectInput)
+	if err != nil {
+		return fmt.Errorf("failed to delete object: %w", err)
+	}
+
+	return nil
 }

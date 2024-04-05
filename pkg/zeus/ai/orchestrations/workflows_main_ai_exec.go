@@ -21,7 +21,6 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			MaximumInterval:    time.Minute * 15,
 			MaximumAttempts:    1000,
 		},
-		DisableEagerExecution: false,
 	}
 	wfExecParams.WorkflowOverrides.WorkflowRunName = wfID
 	ojCtx := workflow.WithActivityOptions(ctx, ao)
@@ -113,7 +112,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiWorkflowProcess(ctx workflow.Conte
 			return err
 		}
 		if wfExecParams.WorkflowOverrides.IsUsingFlows {
-			cycleReportCtx := workflow.WithActivityOptions(ctx, ao)
+			roa := ao
+			roa.HeartbeatTimeout = 5 * time.Minute
+			cycleReportCtx := workflow.WithActivityOptions(ctx, roa)
 			aggChildParams.Window = artemis_orchestrations.CalculateTimeWindowFromCycles(wfExecParams.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime, i-1, i, wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize)
 			err = workflow.ExecuteActivity(cycleReportCtx, z.GenerateCycleReports, aggChildParams).Get(cycleReportCtx, nil)
 			if err != nil {

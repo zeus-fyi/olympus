@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -81,6 +82,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 		}
 		log.Info().Msg("analysis: running token overflow reduction")
 		var chunkIterator int
+		ofoa := ao
+		ofoa.HeartbeatTimeout = 5 * time.Minute
 		chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(chunkedTaskCtx, z.TokenOverflowReduction, cp, getAnalysisPrInput(analysisInst)).Get(chunkedTaskCtx, &cp)
 		if err != nil {

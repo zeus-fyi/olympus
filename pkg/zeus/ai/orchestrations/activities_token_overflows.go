@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
+	"go.temporal.io/sdk/activity"
 )
 
 type PromptReduction struct {
@@ -140,17 +141,20 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	marginBuffer := validateMarginBufferLimits(pr.MarginBuffer)
 	model := pr.Model
 	totalSearchResults := pr.PromptReductionSearchResults.InSearchGroup.SearchResults
+	sgName := "sg"
 	var compressedSearchStr string
 	if pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults) > 0 {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults)
 		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults
+		sgName = "regex"
 	} else if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
 		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults
+		sgName = "api"
 	} else if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
 	}
-	if pr.PromptReductionText != nil {
+	if pr.PromptReductionText != nil && (len(pr.PromptReductionText.InPromptSystem) > 0 || len(pr.PromptReductionText.InPromptBody) > 0) {
 		compressedSearchStr += pr.PromptReductionText.InPromptSystem
 		compressedSearchStr += pr.PromptReductionText.InPromptBody
 	}
@@ -159,6 +163,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		log.Err(err).Interface("tokenEstimate", tokenEstimate).Interface("compressedSearchStr", compressedSearchStr).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 		return err
 	}
+	log.Info().Interface("needsReduction", needsReduction).Interface("tokenEstimate", tokenEstimate).Msg("TokenOverflowSearchResults: ChunkSearchResults")
 	if !needsReduction {
 		pr.PromptReductionSearchResults.InSearchGroup.SearchResultChunkTokenEstimate = &tokenEstimate
 		pr.PromptReductionSearchResults.OutSearchGroups = []*hera_search.SearchResultGroup{
@@ -175,7 +180,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 			log.Err(cerr).Msg("TokenOverflowSearchResults: ChunkPromptToSlices for compressedSearchStr")
 			return cerr
 		}
-
+		log.Info().Interface("len(chunks)", len(chunks)).Msg("TokenOverflowSearchResults: ChunkPromptToSlices")
 		// Assuming that ChunkPromptToSlices does not only chunk but also ensures each chunk is within token limits
 		if len(chunks) > 0 {
 			// Update the PromptReductionText to reflect the chunking of compressedSearchStr
@@ -195,6 +200,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 
 	splitIteration := 2
 	for needsReduction && (splitIteration < len(totalSearchResults)) {
+		log.Info().Interface("splitIteration", splitIteration).Interface("len(totalSearchResults)", len(totalSearchResults)).Msg("ChunkSearchResults")
 		chunks := splitSliceIntoChunks(totalSearchResults, splitIteration)
 		var tokenEstimates []int
 		needsReduction, tokenEstimates, err = validateChunkTokenLimits(ctx, model, marginBuffer, chunks)
@@ -202,15 +208,17 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 			log.Err(err).Msg("TokenOverflowSearchResults: validateChunkTokenLimits")
 			return err
 		}
+		log.Info().Interface("len(chunks)", len(chunks)).Msg("TokenOverflowSearchResults: validateChunkTokenLimits")
 		if !needsReduction {
 			pr.PromptReductionSearchResults.OutSearchGroups = make([]*hera_search.SearchResultGroup, len(chunks))
 			for i, chunk := range chunks {
-				pr.PromptReductionSearchResults.OutSearchGroups[i] = createChunk(pr.PromptReductionSearchResults.InSearchGroup, chunk)
+				pr.PromptReductionSearchResults.OutSearchGroups[i] = createChunk(pr.PromptReductionSearchResults.InSearchGroup, chunk, sgName)
 				pr.PromptReductionSearchResults.OutSearchGroups[i].SearchResultChunkTokenEstimate = &tokenEstimates[i]
 			}
 			return nil
 		}
 		splitIteration++
+		activity.RecordHeartbeat(ctx, fmt.Sprintf("splitIteration-%d", splitIteration))
 	}
 
 	return fmt.Errorf("TokenOverflowSearchResults: failed to reduce search results")
@@ -225,8 +233,10 @@ func validateChunkTokenLimits(ctx context.Context, model string, marginBuffer fl
 			log.Err(err).Interface("tokenEstimate", tokenEstimate).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 			return false, nil, err
 		}
+		log.Info().Interface("tokenEstimate", tokenEstimate).Interface("model", model).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 		tokenEstimates = append(tokenEstimates, tokenEstimate)
 		if needsReduction {
+			log.Info().Interface("tokenEstimates", tokenEstimates).Msg("TokenOverflowSearchResults: validateChunkTokenLimits")
 			return true, nil, nil
 		}
 	}
@@ -261,9 +271,16 @@ func splitSliceIntoChunks[T any](s []T, chunkCount int) [][]T {
 	return chunks
 }
 
-func createChunk(originalGroup *hera_search.SearchResultGroup, chunk []hera_search.SearchResult) *hera_search.SearchResultGroup {
+func createChunk(originalGroup *hera_search.SearchResultGroup, chunk []hera_search.SearchResult, sgType string) *hera_search.SearchResultGroup {
 	newGroup := *originalGroup
-	newGroup.SearchResults = chunk
+	switch sgType {
+	case "regex":
+		newGroup.RegexSearchResults = chunk
+	case "api":
+		newGroup.ApiResponseResults = chunk
+	default:
+		newGroup.SearchResults = chunk
+	}
 	return &newGroup
 }
 
@@ -391,6 +408,7 @@ func CheckTokenContextMargin(ctx context.Context, model, promptStr string, margi
 	marginBuffer = validateMarginBufferLimits(marginBuffer)
 	// Calculate the threshold using the margin buffer
 	threshold := int(float64(tokenLimit) * marginBuffer)
+	log.Info().Interface("marginBuffer", marginBuffer).Interface("threshold", threshold).Msg("CheckTokenContextMargin")
 	return tokenEstimate > threshold, tokenEstimate, nil
 }
 

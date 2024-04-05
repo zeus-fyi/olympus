@@ -34,7 +34,8 @@ const (
 	validemailRetQp = "validemail-query-params"
 
 	// task
-	wbsTaskName = "website-analysis"
+	wbsTaskName      = "website-analysis"
+	linkedInTaskName = "linkedin-profiles-rapid-api-qps"
 
 	// work labels
 	csvSrcGlobalLabel      = "csv:global:source"
@@ -137,27 +138,27 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 	return uef, nil
 }
 
-func (w *ExecFlowsActionsRequest) AddPromptInject(uef *artemis_entities.EntitiesFilter, wfName string) error {
-	if w.PromptsCsvStr == "" {
-		return fmt.Errorf("no prompt inject csv provided")
-	}
-
-	switch wfName {
-	case webFetchWf, liWf, liBizWf, googWf:
-		ue := artemis_entities.UserEntity{
-			Nickname: uef.Nickname,
-			Platform: "prompts",
-			MdSlice: []artemis_entities.UserEntityMetadata{
-				{
-					TextData: aws.String(w.PromptsCsvStr),
-					Labels:   artemis_entities.CreateMdLabels([]string{"csv:prompts:wf"}),
-				},
-			},
-		}
-		w.WorkflowEntitiesOverrides[wfName] = append(w.WorkflowEntitiesOverrides[wfName], ue)
-	}
-	return nil
-}
+//func (w *ExecFlowsActionsRequest) AddPromptInject(uef *artemis_entities.EntitiesFilter, wfName string) error {
+//	if w.PromptsCsvStr == "" {
+//		return fmt.Errorf("no prompt inject csv provided")
+//	}
+//
+//	switch wfName {
+//	case webFetchWf, liWf, liBizWf, googWf:
+//		ue := artemis_entities.UserEntity{
+//			Nickname: uef.Nickname,
+//			Platform: "prompts",
+//			MdSlice: []artemis_entities.UserEntityMetadata{
+//				{
+//					TextData: aws.String(w.PromptsCsvStr),
+//					Labels:   artemis_entities.CreateMdLabels([]string{"csv:prompts:wf"}),
+//				},
+//			},
+//		}
+//		w.WorkflowEntitiesOverrides[wfName] = append(w.WorkflowEntitiesOverrides[wfName], ue)
+//	}
+//	return nil
+//}
 
 func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[websiteScrape]; !ok || !v {
@@ -228,7 +229,6 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 			},
 		},
 	}
-
 	var prompts []string
 	for _, cvs := range w.PromptsCsv {
 		for _, colValue := range cvs {
@@ -237,19 +237,125 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 	}
 
 	w.WorkflowEntitiesOverrides[webFetchWf] = append(w.WorkflowEntitiesOverrides[webFetchWf], usre)
-	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" && len(prompts) <= 0 {
-		prompts = []string{v}
+	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
+		if len(prompts) <= 0 {
+			prompts = []string{v}
+		} else {
+			w.TaskOverrides[wbsTaskName] = artemis_orchestrations.TaskOverride{
+				SystemPromptExt: v,
+			}
+		}
 	}
-	w.SchemaFieldOverrides["website-analysis"] = map[string][]string{
+	w.SchemaFieldOverrides[wbsTaskName] = map[string][]string{
 		"summary": prompts,
 	}
 	w.WfRetrievalOverrides[webFetchWf] = map[string]artemis_orchestrations.RetrievalOverride{
-		"website-analysis": artemis_orchestrations.RetrievalOverride{Payloads: pls},
+		wbsTaskName: artemis_orchestrations.RetrievalOverride{Payloads: pls},
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: webFetchWf,
 	})
 	return nil
+}
+
+// Can you tell me what this person does in their current role; and the company they work at now?
+
+func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.EntitiesFilter) error {
+	if v, ok := w.Stages[linkedIn]; !ok || !v {
+		return nil
+	}
+	var colName string
+	seen := make(map[string]bool)
+	emRow := make(map[string][]int)
+	var pls []map[string]interface{}
+	for r, cvs := range w.ContactsCsv {
+		for cname, colValue := range cvs {
+			if strings.Contains(strings.ToLower(cname), "linkedin") && len(colValue) > 0 && !strings.Contains(strings.ToLower(cname), "biz") && !strings.Contains(strings.ToLower(cname), "business") {
+				if len(colName) > 0 && colName != cname {
+					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("EmailsValidatorSetup")
+					return fmt.Errorf("duplicate web column")
+				}
+				colName = cname
+				uv, err := convertToHTTPS(colValue)
+				if err != nil {
+					log.Err(err).Msg("failed to convert url to https")
+					continue
+				}
+				if len(emRow) <= 0 {
+					emRow[uv] = []int{r}
+				} else {
+					etm := emRow[uv]
+					etm = append(etm, r)
+					emRow[uv] = etm
+				}
+				if _, ok := seen[uv]; ok {
+					w.ContactsCsv[r][cname] = uv
+					continue
+				}
+				if strings.Contains(strings.ToLower(uv), "linkedin.com") {
+					pl := make(map[string]interface{})
+					w.ContactsCsv[r][cname] = uv
+					pl["url"] = w.ContactsCsv[r][cname]
+					pls = append(pls, pl)
+					seen[uv] = true
+				}
+			}
+		}
+	}
+	b, err := json.Marshal(w.ContactsCsv)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal li")
+		return err
+	}
+	w.InitMaps()
+	lb := "labels"
+	labels := artemis_entities.CreateMdLabels([]string{lb})
+	uef.Labels = append(uef.Labels, lb)
+	b, err = utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal emRow")
+		return err
+	}
+	usre := artemis_entities.UserEntity{
+		Nickname: uef.Nickname,
+		Platform: uef.Platform,
+		MdSlice: []artemis_entities.UserEntityMetadata{
+			{
+				JsonData: b,
+				Labels:   labels,
+			},
+		},
+	}
+	w.WorkflowEntitiesOverrides[liWf] = append(w.WorkflowEntitiesOverrides[liWf], usre)
+
+	w.TaskOverrides[linkedInTaskName] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
+	if v, ok := w.CommandPrompts[linkedIn]; ok && v != "" {
+		prompts := w.getPrompts()
+		if len(prompts) <= 0 {
+			prompts = []string{v}
+		} else {
+			tmp := w.TaskOverrides[linkedInTaskName]
+			tmp.SystemPromptExt = v
+			w.TaskOverrides[linkedInTaskName] = tmp
+		}
+		w.SchemaFieldOverrides["results-agg"] = map[string][]string{
+			"summary": prompts,
+		}
+	}
+	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
+		WorkflowName: liWf,
+	})
+	return nil
+}
+
+func (w *ExecFlowsActionsRequest) getPrompts() []string {
+	var prompts []string
+	for _, cvs := range w.PromptsCsv {
+		for _, colValue := range cvs {
+			prompts = append(prompts, colValue)
+		}
+	}
+	return prompts
 }
 
 func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.EntitiesFilter) error {
@@ -317,7 +423,6 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 	}
 	log.Info().Interface("labels", labels).Msg("EmailsValidatorSetup")
 	w.WorkflowEntitiesOverrides[emailVdWf] = append(w.WorkflowEntitiesOverrides[emailVdWf], usre)
-
 	w.CustomBasePeriodStepSize = 24
 	w.CustomBasePeriodStepSizeUnit = "hours"
 	w.CustomBasePeriod = true
@@ -350,35 +455,6 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 	}
 	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
 		WorkflowName: googWf,
-	})
-	return nil
-}
-
-// Can you tell me what this person does in their current role; and the company they work at now?
-
-func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.EntitiesFilter) error {
-	if v, ok := w.Stages[linkedIn]; !ok || !v {
-		return nil
-	}
-	b, err := json.Marshal(w.ContactsCsv)
-	if err != nil {
-		log.Err(err).Msg("failed to marshal li")
-		return err
-	}
-	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
-	}
-	w.TaskOverrides["linkedin-profiles-rapid-api-qps"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
-	//if v, ok := w.CommandPrompts[linkedIn]; ok && v != "" {
-	//	if w.SchemaFieldOverrides == nil {
-	//		w.SchemaFieldOverrides = make(map[string]map[string]string)
-	//		w.SchemaFieldOverrides["results-agg"] = map[string]string{
-	//			"summary": v,
-	//		}
-	//	}
-	//}
-	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: liWf,
 	})
 	return nil
 }

@@ -34,6 +34,14 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 		return nil, err
 	}
 	sg := getJsonSgChunkToProcess(mb, in)
+	if mb.WfExecParams.WorkflowOverrides.TaskPromptOverrides != nil {
+		if v, ok := mb.WfExecParams.WorkflowOverrides.TaskPromptOverrides[mb.Tc.TaskName]; ok {
+			if len(v.SystemPromptExt) > 0 {
+				params.SystemPromptExt = v.SystemPromptExt
+				log.Info().Interface("v.SystemPromptExt", v).Msg("CreateJsonOutputModelResponse")
+			}
+		}
+	}
 	params.Prompt = sg.GetPromptBody()
 	if len(params.Prompt) == 0 {
 		log.Warn().Interface("mb.Tc.TaskName", mb.Tc.TaskName).Msg("CreateJsonOutputModelResponse: prompt is empty")
@@ -77,6 +85,20 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	if len(jsv) > 0 {
 		cr.JsonResponseResults = jsv
 	}
+	// temp
+	var jsff []artemis_orchestrations.JsonSchemaDefinition
+	for _, jt := range jsd {
+		if jt != nil {
+			jsff = append(jsff, *jt)
+		}
+	}
+	payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsff)
+	for _, pv := range payloadMaps {
+		for k, v := range pv {
+			fmt.Println("CreateJsonOutputModelResponse ", "k: ", k, "v: ", v)
+		}
+	}
+	// end temp
 	activity.RecordHeartbeat(ctx, cr.Response.ID)
 	return cr, nil
 }

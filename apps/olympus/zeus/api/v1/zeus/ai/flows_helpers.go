@@ -308,9 +308,9 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 		return err
 	}
 	w.InitMaps()
-	wsbLabel := csvGlobalMergeAnalysisTaskLabel(wbsTaskName)
+	wsbLabel := csvGlobalMergeAnalysisTaskLabel(linkedInTaskName)
 	labels := artemis_entities.CreateMdLabels([]string{
-		fmt.Sprintf("wf:%s", webFetchWf),
+		fmt.Sprintf("wf:%s", liWf),
 		wsbLabel,
 	})
 	uef.Labels = append(uef.Labels, wsbLabel)

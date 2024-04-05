@@ -359,7 +359,7 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 			pr.RawResponse = resp.Body()
 		}
 		pr.StatusCode = resp.StatusCode()
-		if pr.RequestHeaders != nil {
+		if pr.RequestHeaders != nil && resp != nil && resp.RawResponse != nil && resp.RawResponse.Header != nil {
 			pr.ResponseHeaders = filterHeaders(resp.RawResponse.Header)
 		}
 		pr.ReceivedAt = resp.ReceivedAt()

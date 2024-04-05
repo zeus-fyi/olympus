@@ -141,13 +141,16 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 	marginBuffer := validateMarginBufferLimits(pr.MarginBuffer)
 	model := pr.Model
 	totalSearchResults := pr.PromptReductionSearchResults.InSearchGroup.SearchResults
+	sgName := "sg"
 	var compressedSearchStr string
 	if pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults) > 0 {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults)
 		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults
+		sgName = "regex"
 	} else if pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults != nil && len(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults) > 0 {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults)
 		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults
+		sgName = "api"
 	} else if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
 	}
@@ -209,7 +212,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		if !needsReduction {
 			pr.PromptReductionSearchResults.OutSearchGroups = make([]*hera_search.SearchResultGroup, len(chunks))
 			for i, chunk := range chunks {
-				pr.PromptReductionSearchResults.OutSearchGroups[i] = createChunk(pr.PromptReductionSearchResults.InSearchGroup, chunk)
+				pr.PromptReductionSearchResults.OutSearchGroups[i] = createChunk(pr.PromptReductionSearchResults.InSearchGroup, chunk, sgName)
 				pr.PromptReductionSearchResults.OutSearchGroups[i].SearchResultChunkTokenEstimate = &tokenEstimates[i]
 			}
 			return nil
@@ -268,9 +271,16 @@ func splitSliceIntoChunks[T any](s []T, chunkCount int) [][]T {
 	return chunks
 }
 
-func createChunk(originalGroup *hera_search.SearchResultGroup, chunk []hera_search.SearchResult) *hera_search.SearchResultGroup {
+func createChunk(originalGroup *hera_search.SearchResultGroup, chunk []hera_search.SearchResult, sgType string) *hera_search.SearchResultGroup {
 	newGroup := *originalGroup
-	newGroup.SearchResults = chunk
+	switch sgType {
+	case "regex":
+		newGroup.RegexSearchResults = chunk
+	case "api":
+		newGroup.ApiResponseResults = chunk
+	default:
+		newGroup.SearchResults = chunk
+	}
 	return &newGroup
 }
 

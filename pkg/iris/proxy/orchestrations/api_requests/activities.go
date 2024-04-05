@@ -449,7 +449,7 @@ func ExtractParams(regexStrs []string, strContent []byte) ([]string, error) {
 }
 
 func extractAndRespond(doc *goquery.Document) echo.Map {
-	var elements []map[string]string
+	var elements []string
 
 	//// Extract meta tags
 	//doc.Find("meta").Each(func(i int, s *goquery.Selection) {
@@ -474,11 +474,7 @@ func extractAndRespond(doc *goquery.Document) echo.Map {
 			if len(tv) == 0 {
 				return
 			}
-			element := map[string]string{
-				"type":    tag,
-				"content": tv,
-			}
-			elements = append(elements, element)
+			elements = append(elements, tv)
 		})
 	}
 
@@ -488,11 +484,7 @@ func extractAndRespond(doc *goquery.Document) echo.Map {
 		if len(tv) == 0 {
 			return
 		}
-		element := map[string]string{
-			"type":    "p",
-			"content": tv,
-		}
-		elements = append(elements, element)
+		elements = append(elements, tv)
 	})
 
 	if len(elements) == 0 {

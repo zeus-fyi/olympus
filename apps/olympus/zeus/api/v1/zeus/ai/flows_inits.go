@@ -198,29 +198,12 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		return nil
 	}
 	w.InitMaps()
-	wsbLabel := csvGlobalMergeAnalysisTaskLabel(wbsTaskName)
-	labels := artemis_entities.CreateMdLabels([]string{
-		fmt.Sprintf("wf:%s", webFetchWf),
-		wsbLabel,
-	})
-	uef.Labels = append(uef.Labels, wsbLabel)
-	b, err := utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
+	err := w.createCsvMergeEntity(webFetchWf, wbsTaskName, wbsTaskName, uef, colName, emRow, pls)
 	if err != nil {
-		log.Err(err).Msg("failed to marshal emRow")
+		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err
 	}
-	usre := artemis_entities.UserEntity{
-		Nickname: uef.Nickname,
-		Platform: uef.Platform,
-		MdSlice: []artemis_entities.UserEntityMetadata{
-			{
-				JsonData: b,
-				Labels:   labels,
-			},
-		},
-	}
 	prompts := w.getPrompts()
-	w.WorkflowEntitiesOverrides[webFetchWf] = append(w.WorkflowEntitiesOverrides[webFetchWf], usre)
 	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
 		if len(prompts) <= 0 {
 			prompts = []string{v}
@@ -230,18 +213,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 			}
 		}
 	}
-
-	w.SchemaFieldOverrides[wbsTaskName] = map[string][]string{
-		"summary": prompts,
-	}
-
-	//w.createWfSchemaFieldOverride(webFetchWf, )
-	w.WfRetrievalOverrides[webFetchWf] = map[string]artemis_orchestrations.RetrievalOverride{
-		wbsTaskName: artemis_orchestrations.RetrievalOverride{Payloads: pls},
-	}
-	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: webFetchWf,
-	})
+	w.createWfSchemaFieldOverride(webFetchWf, wbsTaskName, "summary", prompts)
 	return nil
 }
 

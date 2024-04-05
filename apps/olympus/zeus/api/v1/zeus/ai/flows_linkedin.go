@@ -81,10 +81,17 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 }
 
 func (w *ExecFlowsActionsRequest) createWfSchemaFieldOverride(wfn, schN, fN string, overrides []string) {
-	w.WfSchemaFieldOverrides[wfn] = map[string]map[string][]string{
-		schN: map[string][]string{
-			fN: overrides,
-		},
+	if _, exists := w.WfSchemaFieldOverrides[wfn]; !exists {
+		w.WfSchemaFieldOverrides[wfn] = make(map[string]map[string][]string)
+	}
+	if _, exists := w.WfSchemaFieldOverrides[wfn][schN]; !exists {
+		w.WfSchemaFieldOverrides[wfn][schN] = make(map[string][]string)
+	}
+	// Check if the field name exists; if it does, append the overrides, else create a new entry
+	if existingOverrides, exists := w.WfSchemaFieldOverrides[wfn][schN][fN]; exists {
+		w.WfSchemaFieldOverrides[wfn][schN][fN] = append(existingOverrides, overrides...)
+	} else {
+		w.WfSchemaFieldOverrides[wfn][schN][fN] = overrides
 	}
 }
 

@@ -96,9 +96,6 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 					}
 				}
 			}
-			if w.SchemaFieldOverrides != nil {
-				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
-			}
 			if w.WfRetrievalOverrides != nil {
 				if wv, wok := w.WfRetrievalOverrides[wfName]; wok {
 					resp[ri].WorkflowOverrides.RetrievalOverrides = wv

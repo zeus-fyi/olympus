@@ -230,6 +230,7 @@ func validateChunkTokenLimits(ctx context.Context, model string, marginBuffer fl
 			log.Err(err).Interface("tokenEstimate", tokenEstimate).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 			return false, nil, err
 		}
+		log.Info().Interface("tokenEstimate", tokenEstimate).Interface("model", model).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 		tokenEstimates = append(tokenEstimates, tokenEstimate)
 		if needsReduction {
 			log.Info().Interface("tokenEstimates", tokenEstimates).Msg("TokenOverflowSearchResults: validateChunkTokenLimits")
@@ -397,6 +398,7 @@ func CheckTokenContextMargin(ctx context.Context, model, promptStr string, margi
 	marginBuffer = validateMarginBufferLimits(marginBuffer)
 	// Calculate the threshold using the margin buffer
 	threshold := int(float64(tokenLimit) * marginBuffer)
+	log.Info().Interface("marginBuffer", marginBuffer).Interface("threshold", threshold).Msg("CheckTokenContextMargin")
 	return tokenEstimate > threshold, tokenEstimate, nil
 }
 

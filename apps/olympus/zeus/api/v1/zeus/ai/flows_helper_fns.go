@@ -124,6 +124,5 @@ func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
 		}
 		w.PromptsCsv = pcv
 	}
-
 	return nil
 }

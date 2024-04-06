@@ -31,8 +31,9 @@ const (
 	websiteScrape  = "websiteScrape"
 
 	// ret override
-	validemailRetQp = "validemail-query-params"
-	linkedInRetQp   = "linkedin-profile"
+	validemailRetQp  = "validemail-query-params"
+	linkedInRetQp    = "linkedin-profile"
+	linkedInBizRetQp = "linkedin-biz-profile"
 	// task
 	wbsTaskName      = "website-analysis"
 	linkedInTaskName = "linkedin-profile-summary"
@@ -69,6 +70,11 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 	err = w.LinkedInScraperSetup(uef)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("LinkedInScraperSetup failed")
+		return nil, err
+	}
+	err = w.LinkedInBizScraperSetup(uef)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("LinkedInBizScraperSetup failed")
 		return nil, err
 	}
 	err = w.ScrapeRegularWebsiteSetup(uef)

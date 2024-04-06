@@ -39,13 +39,13 @@ export function SetupCard(props: any) {
                         />
                         <Typography variant="body1">LinkedIn Personal</Typography>
                     </Stack>
-                    {/*<Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>*/}
-                    {/*    <Checkbox*/}
-                    {/*        checked={checkedLi}*/}
-                    {/*        onChange={handleChangeLi}*/}
-                    {/*    />*/}
-                    {/*    <Typography variant="body1">LinkedIn Biz</Typography>*/}
-                    {/*</Stack>*/}
+                    <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>
+                        <Checkbox
+                            checked={checkedLi}
+                            onChange={handleChangeLi}
+                        />
+                        <Typography variant="body1">LinkedIn Biz</Typography>
+                    </Stack>
                     <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>
                         <Checkbox
                             checked={vesChecked}

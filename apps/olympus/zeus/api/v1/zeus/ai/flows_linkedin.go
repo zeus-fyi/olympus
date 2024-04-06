@@ -128,7 +128,7 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup(uef *artemis_entities.
 		return nil
 	}
 	w.InitMaps()
-	err := w.createCsvMergeEntity(liBizWf, linkedInTaskName, linkedInRetQp, uef, colName, emRow, pls)
+	err := w.createCsvMergeEntity(liBizWf, linkedInTaskName, linkedInBizRetQp, uef, colName, emRow, pls)
 	if err != nil {
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err

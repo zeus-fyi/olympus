@@ -12,6 +12,17 @@ import TableHead from "@mui/material/TableHead";
 import {prettyPrintWfRunRowJSON} from "../ai/RetrievalsRow";
 import CsvExportButton from "./CsvHelpers";
 
+function convertUnixNanoToLocalTimeString(unixNano: string): string {
+    // Convert the string to a BigInt to handle large numbers, then to a number in milliseconds
+    const milliseconds = Number(BigInt(unixNano) / BigInt(1e6));
+
+    // Create a Date object
+    const date = new Date(milliseconds);
+
+    // Convert to local time string
+    return date.toLocaleString();
+}
+
 export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean, csvExport: boolean; open : boolean; handleOpen: any }) {
     const {csvExport, row, index, handleClick, checked, open, handleOpen } = props;
 
@@ -34,7 +45,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                         color="primary"
                     />
                 </TableCell>
-                <TableCell align="left">{row.orchestration.orchestrationStrID}</TableCell>
+                <TableCell align="left">{convertUnixNanoToLocalTimeString(row.orchestration.orchestrationStrID)}</TableCell>
                 <TableCell align="left">{row.orchestration.orchestrationName}</TableCell>
                 <TableCell align="left">{row.orchestration.groupName}</TableCell>
                 <TableCell align="left">{row.orchestration.type}</TableCell>

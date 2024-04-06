@@ -47,6 +47,7 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 		Platform: "flows",
 		Labels:   []string{csvSrcGlobalLabel},
 	}
+
 	w.InitMaps()
 	err := w.ConvertToCsvStrToMap()
 	if err != nil {

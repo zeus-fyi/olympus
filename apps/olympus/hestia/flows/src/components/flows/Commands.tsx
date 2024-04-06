@@ -106,7 +106,7 @@ export function Commands(props: any) {
         }
     }, [flowsRequestStatus]); // useEffect will trigger only when flowsRequestStatus changes
 
-    const onClickSubmit = async () => {
+    const onClickSubmit = async (previewCount: number) => {
         try {
             setFlowsRequestStatus('pending');
             const fa = {
@@ -122,6 +122,7 @@ export function Commands(props: any) {
                     validateEmails: vesChecked,
                     websiteScrape: webChecked
                 },
+                previewCount: previewCount,
                 commandPrompts: cmds
             };
             let res = await aiApiGateway.flowsRequest(fa);
@@ -186,8 +187,23 @@ export function Commands(props: any) {
                 <Button
                     variant="contained"
                     disabled={buttonDisabledCreate}
-                    onClick={() => onClickSubmit()}
-                    sx={{ backgroundColor: '#00C48C', '&:hover': { backgroundColor: '#00A678' }}}
+                    onClick={() => onClickSubmit(3)}
+                    sx={{
+                        mb: 2,
+                        bgcolor: 'teal', // Replace 'dark teal' with the specific color code
+                        color: 'white',
+                        '&:hover': {
+                            bgcolor: 'darker shade of teal', // Replace 'darker shade of teal' with the specific color code for hover state
+                        }
+                    }}
+                >
+                    {"Preview"}
+                </Button>
+                <Button
+                    variant="contained"
+                    disabled={buttonDisabledCreate}
+                    onClick={() => onClickSubmit(0)}
+                    sx={{ mt: 0, backgroundColor: '#00C48C', '&:hover': { backgroundColor: '#00A678' }}}
                 >
                     {buttonLabelCreate}
                 </Button>

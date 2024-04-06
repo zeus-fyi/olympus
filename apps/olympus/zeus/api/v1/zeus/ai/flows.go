@@ -10,6 +10,7 @@ import (
 
 type FlowsActionsRequest struct {
 	FlowsCsvPayload `json:",inline"`
+	PreviewCount    int               `json:"previewCount"`
 	Stages          map[string]bool   `json:"stages"`
 	CommandPrompts  map[string]string `json:"commandPrompts"`
 }

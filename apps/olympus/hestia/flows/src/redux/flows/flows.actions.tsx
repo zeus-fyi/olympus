@@ -12,6 +12,7 @@ export interface FlowState {
         websiteScrape: boolean;
     };
     commandPrompts: {}
+    previewCount: number
 }
 
 export const initialState: FlowState = {
@@ -31,12 +32,14 @@ export const initialState: FlowState = {
         linkedIn: '',
         googleSearch: '',
         websiteScrape: 'Can you tell me what the company does, and the industry they work in?'
-    }
+    },
+    previewCount: 0,
 }
 
 // [key: string]: string;
 
 export interface FlowAction {
+    previewCount: number;
     contentContactsCsv: [];
     contentContactsCsvStr: string;
     promptsCsv: [];

@@ -108,6 +108,12 @@ func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
 			log.Err(err).Msg("SaveCsvImports: ContactsCsvStr: error")
 			return err
 		}
+		// Check if PreviewCount is set and limit the number of records accordingly
+		if w.PreviewCount > 0 && len(cv) > w.PreviewCount {
+			cv = cv[:w.PreviewCount]
+		}
+		tm, err := utils_csv.PayloadToCsvString(cv)
+		w.ContactsCsvStr = tm
 		w.ContactsCsv = cv
 	}
 	if len(w.FlowsActionsRequest.PromptsCsvStr) > 0 {

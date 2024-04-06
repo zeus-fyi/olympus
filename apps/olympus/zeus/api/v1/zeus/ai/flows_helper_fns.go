@@ -112,6 +112,8 @@ func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
 		if w.PreviewCount > 0 && len(cv) > w.PreviewCount {
 			cv = cv[:w.PreviewCount]
 		}
+		tm, err := utils_csv.PayloadToCsvString(cv)
+		w.ContactsCsvStr = tm
 		w.ContactsCsv = cv
 	}
 	if len(w.FlowsActionsRequest.PromptsCsvStr) > 0 {

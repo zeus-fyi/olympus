@@ -58,7 +58,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 		return nil
 	}
 	w.InitMaps()
-	err := w.createCsvMergeEntity(liWf, linkedInTaskName, linkedInRetQp, uef, colName, emRow, pls)
+	err := w.createCsvMergeEntity(liWf, wbsTaskName, linkedInRetQp, uef, colName, emRow, pls)
 	if err != nil {
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err
@@ -71,9 +71,9 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 			}
 			prompts = []string{v}
 		} else {
-			tmp := w.TaskOverrides[linkedInTaskName]
+			tmp := w.TaskOverrides[wbsTaskName]
 			tmp.SystemPromptExt = v
-			w.TaskOverrides[linkedInTaskName] = tmp
+			w.TaskOverrides[wbsTaskName] = tmp
 		}
 		w.createWfSchemaFieldOverride(liWf, wbsTaskName, "summary", prompts)
 	}
@@ -128,24 +128,24 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup(uef *artemis_entities.
 		return nil
 	}
 	w.InitMaps()
-	err := w.createCsvMergeEntity(liBizWf, linkedInTaskName, linkedInBizRetQp, uef, colName, emRow, pls)
+	err := w.createCsvMergeEntity(liBizWf, wbsTaskName, linkedInBizRetQp, uef, colName, emRow, pls)
 	if err != nil {
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err
 	}
+	prompts := w.getPrompts()
 	if v, ok := w.CommandPrompts[linkedInBiz]; ok {
-		prompts := w.getPrompts()
 		if len(prompts) <= 0 {
 			if v == "" {
 				v = "Can you tell me their role and responsibilities?"
 			}
 			prompts = []string{v}
 		} else {
-			tmp := w.TaskOverrides[linkedInTaskName]
+			tmp := w.TaskOverrides[wbsTaskName]
 			tmp.SystemPromptExt = v
-			w.TaskOverrides[linkedInTaskName] = tmp
+			w.TaskOverrides[wbsTaskName] = tmp
 		}
-		w.createWfSchemaFieldOverride(liBizWf, linkedInTaskName, "summary", prompts)
+		w.createWfSchemaFieldOverride(liBizWf, wbsTaskName, "summary", prompts)
 	}
 	return nil
 }

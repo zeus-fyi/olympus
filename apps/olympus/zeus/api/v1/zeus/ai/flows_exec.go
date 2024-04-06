@@ -59,9 +59,9 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		}
 		for _, wfn := range w.Workflows {
 			switch wfn.WorkflowName {
-			case googWf, liWf, emailVdWf, webFetchWf:
-			case liBizWf:
-				return c.JSON(http.StatusNotImplemented, nil)
+			case googWf, liWf, emailVdWf, webFetchWf, liBizWf:
+			//case liBizWf:
+			//	return c.JSON(http.StatusNotImplemented, nil)
 			default:
 				return c.JSON(http.StatusBadRequest, nil)
 			}

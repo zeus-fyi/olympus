@@ -35,8 +35,7 @@ const (
 	linkedInRetQp    = "linkedin-profile"
 	linkedInBizRetQp = "linkedin-biz-profile"
 	// task
-	wbsTaskName      = "website-analysis"
-	linkedInTaskName = "linkedin-profile-summary"
+	wbsTaskName = "website-analysis"
 
 	// work labels
 	csvSrcGlobalLabel      = "csv:global:source"

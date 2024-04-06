@@ -320,30 +320,3 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 	})
 	return nil
 }
-
-func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup() error {
-	if v, ok := w.Stages[linkedInBiz]; !ok || !v {
-		return nil
-	}
-	b, err := json.Marshal(w.ContactsCsv)
-	if err != nil {
-		log.Err(err).Msg("failed to marshal linkedInBiz")
-		return err
-	}
-	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
-	}
-	w.TaskOverrides["linkedin-biz-profiles-rapid-api-qps"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
-	//if v, ok := w.CommandPrompts[linkedInBiz]; ok && v != "" {
-	//	if w.SchemaFieldOverrides == nil {
-	//		w.SchemaFieldOverrides = make(map[string]map[string]string)
-	//		w.SchemaFieldOverrides["results-agg"] = map[string]string{
-	//			"summary": v,
-	//		}
-	//	}
-	//}
-	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: liBizWf,
-	})
-	return nil
-}

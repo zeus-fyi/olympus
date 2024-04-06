@@ -80,6 +80,76 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 	return nil
 }
 
+func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup(uef *artemis_entities.EntitiesFilter) error {
+	if v, ok := w.Stages[linkedInBiz]; !ok || !v {
+		return nil
+	}
+	var colName string
+	seen := make(map[string]bool)
+	emRow := make(map[string][]int)
+	var pls []map[string]interface{}
+	for r, cvs := range w.ContactsCsv {
+		for cname, colValue := range cvs {
+			// "company",
+			if strings.Contains(strings.ToLower(cname), "linkedin") && strings.Contains(strings.ToLower(colValue), "linkedin.com/company") && len(colValue) > 0 {
+				if len(colName) > 0 && colName != cname {
+					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("LinkedInBizScraperSetup")
+					return fmt.Errorf(fmt.Sprintf("LinkedInBiz csv input has duplicate web column: expecting: %s actual: %s", colName, cname))
+				}
+				colName = cname
+				uv, err := convertToHTTPS(colValue)
+				if err != nil {
+					log.Err(err).Msg("failed to convert url to https")
+					continue
+				}
+				if len(emRow) <= 0 {
+					emRow[uv] = []int{r}
+				} else {
+					etm := emRow[uv]
+					etm = append(etm, r)
+					emRow[uv] = etm
+				}
+				if _, ok := seen[uv]; ok {
+					w.ContactsCsv[r][cname] = uv
+					continue
+				}
+				if strings.Contains(strings.ToLower(uv), "linkedin.com/company") {
+					pl := make(map[string]interface{})
+					w.ContactsCsv[r][cname] = uv
+					pl["linkedin_url"] = w.ContactsCsv[r][cname]
+					pls = append(pls, pl)
+					seen[uv] = true
+				}
+			}
+		}
+	}
+	if len(pls) == 0 {
+		log.Warn().Msg("no profiles found")
+		return nil
+	}
+	w.InitMaps()
+	err := w.createCsvMergeEntity(liBizWf, linkedInTaskName, linkedInRetQp, uef, colName, emRow, pls)
+	if err != nil {
+		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
+		return err
+	}
+	if v, ok := w.CommandPrompts[linkedInBiz]; ok {
+		prompts := w.getPrompts()
+		if len(prompts) <= 0 {
+			if v == "" {
+				v = "Can you tell me their role and responsibilities?"
+			}
+			prompts = []string{v}
+		} else {
+			tmp := w.TaskOverrides[linkedInTaskName]
+			tmp.SystemPromptExt = v
+			w.TaskOverrides[linkedInTaskName] = tmp
+		}
+		w.createWfSchemaFieldOverride(liBizWf, linkedInTaskName, "summary", prompts)
+	}
+	return nil
+}
+
 func (w *ExecFlowsActionsRequest) createWfSchemaFieldOverride(wfn, schN, fN string, overrides []string) {
 	if _, exists := w.WfSchemaFieldOverrides[wfn]; !exists {
 		w.WfSchemaFieldOverrides[wfn] = make(map[string]map[string][]string)

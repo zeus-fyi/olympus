@@ -26,39 +26,39 @@ export function SetupCard(props: any) {
                         <Divider/>
                     </Box>
                     <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>
-                        <Typography variant="body1">Google Search</Typography>
                         <Checkbox
                             checked={gs}
                             onChange={handleChangeGs}
                         />
+                        <Typography variant="body1">Google Search</Typography>
                     </Stack>
-                    <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>
-                        <Typography variant="body1">LinkedIn Personal</Typography>
+                    <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0, mr: 4}}>
                         <Checkbox
                             checked={checked}
                             onChange={handleChange}
                         />
+                        <Typography variant="body1">LinkedIn Personal</Typography>
                     </Stack>
-                    {/*<Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 2}}>*/}
-                    {/*    <Typography variant="body1">LinkedIn Business</Typography>*/}
-                    {/*    <Checkbox*/}
-                    {/*        checked={checkedLi}*/}
-                    {/*        onChange={handleChangeLi}*/}
-                    {/*    />*/}
-                    {/*</Stack>*/}
                     <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>
-                        <Typography variant="body1">Validate Emails</Typography>
+                        <Checkbox
+                            checked={checkedLi}
+                            onChange={handleChangeLi}
+                        />
+                        <Typography variant="body1">LinkedIn Biz</Typography>
+                    </Stack>
+                    <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>
                         <Checkbox
                             checked={vesChecked}
                             onChange={handleChangeVesChecked}
                         />
+                        <Typography variant="body1">Validate Emails</Typography>
                     </Stack>
                     <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 2}}>
-                        <Typography variant="body1">Fetch Website</Typography>
                         <Checkbox
                             checked={webChecked}
                             onChange={handleChangeWebChecked}
                         />
+                        <Typography variant="body1">Fetch Website</Typography>
                     </Stack>
                 </Card>
             </div>

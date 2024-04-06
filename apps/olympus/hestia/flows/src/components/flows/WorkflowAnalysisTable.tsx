@@ -123,7 +123,7 @@ export function WorkflowAnalysisTable(props: any) {
                             />
                         </TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Run ID</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Run Start</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Group</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Type</TableCell>

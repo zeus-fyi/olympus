@@ -42,6 +42,7 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 			}
 		}
 	}
+
 	params.Prompt = sg.GetPromptBody()
 	if len(params.Prompt) == 0 {
 		log.Warn().Interface("mb.Tc.TaskName", mb.Tc.TaskName).Msg("CreateJsonOutputModelResponse: prompt is empty")
@@ -85,6 +86,9 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	if len(jsv) > 0 {
 		cr.JsonResponseResults = jsv
 	}
+
+	log.Info().Interface("len(cr.JsonResponseResults)", len(cr.JsonResponseResults)).Interface("len(sg.RegexSearchResults)", len(sg.RegexSearchResults)).Interface("len(sg.ApiResponseResults)", len(sg.ApiResponseResults)).Msg("CreateJsonOutputModelResponse }")
+
 	// temp
 	var jsff []artemis_orchestrations.JsonSchemaDefinition
 	for _, jt := range jsd {
@@ -102,21 +106,6 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	activity.RecordHeartbeat(ctx, cr.Response.ID)
 	return cr, nil
 }
-
-/*
-	var jsff []artemis_orchestrations.JsonSchemaDefinition
-	for _, jt := range jsd {
-		if jt != nil {
-			jsff = append(jsff, *jt)
-		}
-	}
-	payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsff)
-	for _, pv := range payloadMaps {
-		for k, v := range pv {
-			fmt.Println("k: ", k, "v: ", v)
-		}
-	}
-*/
 
 func getJsonSgChunkToProcess(mb *MbChildSubProcessParams, in *WorkflowStageIO) *hera_search.SearchResultGroup {
 	pr := in.WorkflowStageInfo.PromptReduction

@@ -83,8 +83,8 @@ func checkIfCached(ctx context.Context, cp *MbChildSubProcessParams, r RouteTask
 			Platform: rg,
 		}
 		//// clean cache debug
-		p, _ := globalWfEntityStageNamePath(cp, uew)
-		deleteFromS3(ctx, p)
+		//p, _ := globalWfEntityStageNamePath(cp, uew)
+		//deleteFromS3(ctx, p)
 		uew, err = gs3globalWf(ctx, cp, uew)
 		if err != nil {
 			log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")

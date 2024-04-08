@@ -548,6 +548,7 @@ func LimitTokenResp(elements []string) ([]string, error) {
 			return elements[:lv], nil
 		}
 	}
+	log.Info().Interface("totalCnt", totalCnt).Msg("LimitTokenResp")
 	// If the whole array is under the limit, return it
 	return elements[:lv], nil
 }

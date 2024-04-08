@@ -46,26 +46,24 @@ func ParseCsvStringToMap(csvString string) ([]map[string]string, error) {
 }
 
 func PayloadToCsvString(payload []map[string]string) (string, error) {
-	if payload == nil {
+	if payload == nil || len(payload) == 0 {
 		return "", fmt.Errorf("empty or nil payload")
 	}
-
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
-
-	// Write CSV header if necessary
-	// Assuming all maps in ContactsCsv have the same keys
+	// Extract and sort the headers
 	headers := make([]string, 0, len(payload[0]))
 	for key := range payload[0] {
 		headers = append(headers, key)
 	}
+	sort.Strings(headers) // Sort the headers alphabetically
+	// Write CSV header
 	if err := writer.Write(headers); err != nil {
 		return "", fmt.Errorf("error writing header to CSV: %w", err)
 	}
-
-	// Write data
+	// Write data rows
 	for _, record := range payload {
-		row := make([]string, 0, len(record))
+		row := make([]string, 0, len(headers))
 		for _, header := range headers {
 			row = append(row, record[header])
 		}
@@ -73,7 +71,6 @@ func PayloadToCsvString(payload []map[string]string) (string, error) {
 			return "", fmt.Errorf("error writing record to CSV: %w", err)
 		}
 	}
-
 	writer.Flush()
 	if err := writer.Error(); err != nil {
 		return "", fmt.Errorf("error flushing CSV writer: %w", err)

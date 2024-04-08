@@ -57,7 +57,4 @@ func (t *ZeusWorkerTestSuite) TestC() {
 	}
 	res := convEntityToCsvCol("Website", plms)
 	fmt.Println(res)
-
 }
-
-// GenerateCycleReports

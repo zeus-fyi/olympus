@@ -61,7 +61,6 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 			if !validPromptContent(ctx, v.Value) {
 				continue
 			}
-
 			na := NewZeusAiPlatformActivities()
 			cr, err := na.CsvAnalysisTask(ctx, mb.Ou, getTaskPrompt(mb, taskInstPrompt), v.Value)
 			if err != nil {

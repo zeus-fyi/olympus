@@ -14,6 +14,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/aws_secrets"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
+	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
@@ -76,15 +77,14 @@ func GetTokenCountEstimate(ctx context.Context, model, text string) (int, error)
 		},
 		IsInternal: true,
 	}
-
-	res := resty_base.GetBaseRestyClient(apiReq.Url, artemis_orchestration_auth.Bearer)
+	res := resty_base.GetBaseRestyClient(apiReq.Url, api_auth_temporal.Bearer)
 	resp, err := res.R().SetBody(&apiReq.Payload).SetResult(&tc).Post("tokenize")
 	if err != nil {
 		log.Err(err).Interface("&apiReq.Payload)", &apiReq.Payload).Msg("Zeus: GetTokenCountEstimate")
 		return -1, err
 	}
 	if resp != nil && resp.StatusCode() >= 400 {
-		if err != nil {
+		if err == nil {
 			err = fmt.Errorf("GetTokenCountEstimate: failed to relay api request: status code %d", resp.StatusCode())
 		}
 		log.Err(err).Interface("&apiReq.Payload)", &apiReq.Payload).Msg("Zeus: GetTokenCountEstimate")
